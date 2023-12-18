@@ -1,4 +1,5 @@
 > You found a secret server located under the deep sea. Your task is to hack inside the server and reveal the truth.
+<<<<<<< HEAD:docs/TryHackMe/Agent Sudo.md
 
 <details closed>
   <summary>
@@ -15,6 +16,14 @@
 
 ## Task 2: Enumerate
 ### How many open ports?
+=======
+# Task 1: Author note
+- All we have yo do is click on the `Start Machine` button.
+![[1 76.png]]
+# Task 2: Enumerate
+## Question
+> How many open ports?
+>>>>>>> d776a3ecea9ecf91fbe41e1223a3e5a60e122908:docs/TryHackMe/Agent Sudo
 - Let's run a simple `nmap` scan on the IP address.
 ```
 $ nmap -sC -sV 10.10.80.123
@@ -41,6 +50,7 @@ Nmap done: 1 IP address (1 host up) scanned in 32.64 seconds
 	- Port 21: ftp
 	- Port 22: ssh
 	- Port 80: http
+<<<<<<< HEAD:docs/TryHackMe/Agent Sudo.md
 
 | Port | Service | 
 |------|---------|
@@ -48,19 +58,18 @@ Nmap done: 1 IP address (1 host up) scanned in 32.64 seconds
 |22    | ssh     | 
 | 80 | http | 
 ### Answer
+=======
+## Answer
+>>>>>>> d776a3ecea9ecf91fbe41e1223a3e5a60e122908:docs/TryHackMe/Agent Sudo
 ```
 3
 ```
-
 ## Question
 > How you redirect yourself to a secret page?
-
 - Let's visit the machine using the browser.
-
-![Alt text](2.png)
+![[2 76.png]]
 - We have to use modify our request. For that we have to intercept it using Burpsuite.
-
-![Alt text](3.png) 
+![[3 58.png]]
 - Let's forward the request to the `Intruder`.
 ![[4 44.png]]
 - After setting the field on the `User-Agent`, we can move on to selecting the payloads.
