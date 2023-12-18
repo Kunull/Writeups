@@ -1,14 +1,15 @@
 > You found a secret server located under the deep sea. Your task is to hack inside the server and reveal the truth.
 
-<details open>
+<details closed>
   <summary>
     Details
   </summary>
   You found a secret server located under the deep sea. Your task is to hack inside the server and reveal the truth.
 </details>
+
 ## Task 1: Author note
 ### Deploy the machine
-#### No answer needed
+### No answer needed
 
 &nbsp;
 
@@ -43,7 +44,9 @@ Nmap done: 1 IP address (1 host up) scanned in 32.64 seconds
 
 | Port | Service | 
 |------|---------|
-|22    | ssh     |
+| 21 | ftp | 
+|22    | ssh     | 
+| 80 | http | 
 ### Answer
 ```
 3
