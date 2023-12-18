@@ -1,4 +1,11 @@
 > You found a secret server located under the deep sea. Your task is to hack inside the server and reveal the truth.
+
+<details open>
+  <summary>
+    Details
+  </summary>
+  You found a secret server located under the deep sea. Your task is to hack inside the server and reveal the truth.
+</details>
 ## Task 1: Author note
 ### Deploy the machine
 #### No answer needed
