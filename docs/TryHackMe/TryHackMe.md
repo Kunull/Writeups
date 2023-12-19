@@ -8,7 +8,11 @@ pagination_prev: null
 <details className="dropdown" closed>
   <summary><b>Easy</b></summary>
   
-  [Agent Sudo](./Agent%20Sudo.md)
+  [Agent Sudo](./Easy/Agent%20Sudo.md)
+  [Anthem](./Easy/Anthem.md)
+  [Bounty Hacker](./Easy/Bounty%20Hacker.md)
+  [Brooklyn Nine Nine](./Easy/Brooklyn%20Nine%20Nine.md)
+  [Brute It](./Easy/Brute%20It.md)
 </details>
 
 <details className="dropdown" closed>
