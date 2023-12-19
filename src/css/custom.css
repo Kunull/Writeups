@@ -76,14 +76,6 @@ article {
   width: 100%;
   border: none;
   background-color: var(--ifm-navbar-background-color);
-  border: none;
-}
-
-.details_b_Ee {
-  --docusaurus-details-decoration-color: red;
-  --docusaurus-details-transition: transform var(--ifm-transition-fast) ease;
-  border: none;
-  margin: 0 0 var(--ifm-spacing-vertical);
 }
 
 .alert--info {
