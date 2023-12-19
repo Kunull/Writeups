@@ -1,0 +1,179 @@
+## Task 1: Website Analysis
+
+### What port is for the web server?
+- Let's scan the target using `nmap`.
+```
+$ nmap -sC -sV 10.10.5.238 
+Starting Nmap 7.92 ( https://nmap.org ) at 2023-12-07 19:48 IST
+Nmap scan report for 10.10.5.238
+Host is up (0.14s latency).
+Not shown: 998 filtered tcp ports (no-response)
+PORT     STATE SERVICE       VERSION
+80/tcp   open  http          Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
+3389/tcp open  ms-wbt-server Microsoft Terminal Services
+| ssl-cert: Subject: commonName=WIN-LU09299160F
+| Not valid before: 2023-12-06T14:18:23
+|_Not valid after:  2024-06-06T14:18:23
+|_ssl-date: 2023-12-07T14:20:35+00:00; +2s from scanner time.
+| rdp-ntlm-info: 
+|   Target_Name: WIN-LU09299160F
+|   NetBIOS_Domain_Name: WIN-LU09299160F
+|   NetBIOS_Computer_Name: WIN-LU09299160F
+|   DNS_Domain_Name: WIN-LU09299160F
+|   DNS_Computer_Name: WIN-LU09299160F
+|   Product_Version: 10.0.17763
+|_  System_Time: 2023-12-07T14:19:28+00:00
+Service Info: OS: Windows; CPE: cpe:/o:microsoft:windows
+
+Host script results:
+|_clock-skew: mean: 1s, deviation: 0s, median: 1s
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 103.08 seconds
+
+```
+- As we can see there are two open ports:
+	- Port 80: http
+	- Port 3389: ms-wbt-server
+
+| Port | Service |
+| ---- | ------- |
+| 80   | http    |
+| 3389     |    ms-wbt-server     |
+## Answer
+```
+80
+```
+
+## Question
+> What port is for remote desktop service?
+- `ms-wbt-server` is the remote desktop service that runs on port 3389.
+## Answer
+```
+3389
+```
+
+## Question
+> What is a possible password in one of the pages web crawlers check for? 
+- The page that web crawlers check for is `robots.txt`. Let's see if that has something of importance.
+![[3 70.png]]
+- The password is mentioned along with the disallowed pages.
+## Answer
+```
+UmbracoIsTheBest!
+```
+
+
+## Question
+> What CMS is the website using?
+- We can find this answer on the `/robots.txt` page as well.
+![[4 55.png]]
+- The `/umbraco/` page tells us that the CMS is Umbraco.
+```
+Umbraco
+```
+
+## Question
+> What is the domain of the website?
+- Let's visit the webpage of the target machine.
+![[2 90.png]]
+- Nothing really important here. 
+## Answer
+```
+anthem.com
+```
+
+## Question
+> What's the name of the Administrator
+- Let's check out the first blog post.
+![[5 39.png]]
+- We can see that there is a poem written about the admin. This poem is actually a real one written about Solomon Grundy.
+## Answer
+```
+Solomon Grundy
+```
+
+## Question
+> Can we find find the email address of the administrator?
+- If we check out the second post, we can find the email format.
+![[6 29.png]]
+- Now that we know the email of Jane Doe is `JD@anthem.com` we can guess Solomon Grundy's email address.
+```
+SG@anthem.com
+```
+
+# Task 2: Spot the Flags
+## Question
+> What is flag 1?
+- We can find the first flag in the source page of the second post.
+![[7 23.png]]
+## Answer
+```
+THM{L0L_WH0_US3S_M3T4}
+```
+## Question
+> What is flag 2?
+- We can find the second flag in the source page of the main web page.
+![[8 19.png]]
+## Answer
+```
+THM{G!T_G00D}
+```
+
+## Question
+> What is flag 3?
+- We can find the third flag on viewing Jane Doe's profile
+![[9 14.png]]
+## Answer
+```
+THM{L0L_WH0_D15}
+```
+
+## Question
+> What is flag 4?
+- We can find the fourth flag on the source page of the first post.
+![[10 11.png]]
+## Answer
+```
+THM{AN0TH3R_M3TA}
+```
+
+# Task 3: Final stage
+# Question
+> Gain initial access to the machine, what is the contents of user.txt?
+- We know that there is a user `sg` and a password `UmbracoIsTheBest!`.
+- Using the credentials we can connect to the target through RDP.
+```
+$ xfreerdp /v:10.10.5.238 /u:sg /p:UmbracoIsTheBest! /cert:ignore +clipboard /dynamic-resolution
+```
+![[11 6.png]]
+## Answer
+```
+THM{N00T_NO0T}
+```
+
+## Question
+> Can we spot the admin password?
+- After changing the `View` to `Show hidden items` we can go to `C\backup`.
+- There is file there which we don't have the permissions to read.
+![[12 5.png]]
+- Let's see if we can change the permissions.
+![[13 5.png]]
+- After changing the permissions, we can read the file.
+![[14 3.png]]
+## Answer
+```
+ChangeMeBaby1MoreTime
+```
+
+## Question
+> Escalate your privileges to root, what is the contents of root.txt?
+- Let's end the current RDP session and login again as `Administrator` with the password as `ChangeMeBaby1MoreTime`.
+```
+$ xfreerdp /v:10.10.5.238 /u:Administrator /p:ChangeMeBaby1MoreTime /cert:ignore +clipboard /dynamic-resolution
+```
+![[15 2.png]]
+## Answer
+```
+THM{Y0U_4R3_1337}
+```
