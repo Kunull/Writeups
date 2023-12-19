@@ -27,6 +27,10 @@ html[data-theme='light'] .navbar .navbar__logo {
   content: url(/static/img/play_inverted.png)
 }
 
+html[data-theme="dark"] .navbar-sidebar {
+  background: #0a0a0a;
+}
+
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
   --ifm-menu-color-background-active: #181818;
@@ -86,4 +90,3 @@ article {
     font-size: 2.5rem !important;
   }
 }
-
