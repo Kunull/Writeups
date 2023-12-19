@@ -85,12 +85,12 @@ article {
   margin: 0 0 var(--ifm-spacing-vertical);
 }
 
-.alert--info {
+/* .alert--info {
   --ifm-alert-background-color: var( --ifm-color-info-contrast-background );
   --ifm-alert-background-color-highlight: rgba(84, 199, 236, 0.15);
   --ifm-alert-foreground-color: var( --ifm-color-info-contrast-foreground );
   --ifm-alert-border-color: var(--ifm-color-primary-dark);
-}
+} */
 
 @media screen and (min-width: 997px) {
   article header h1 {
