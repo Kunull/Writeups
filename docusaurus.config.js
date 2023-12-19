@@ -4,6 +4,8 @@
 // There are various equivalent ways to declare your Docusaurus config.
 // See: https://docusaurus.io/docs/api/docusaurus-config
 
+
+
 import {themes as prismThemes} from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
@@ -21,7 +23,7 @@ const config = {
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'facebook', // Usually your GitHub org/user name.
-  projectName: 'Write-ups', // Usually your repo name.
+  projectName: 'Write-ups | Knign', // Usually your repo name.
 
   onBrokenLinks: 'ignore',
   onBrokenMarkdownLinks: 'ignore',
@@ -67,7 +69,7 @@ const config = {
       // Replace with your project's social card
       // image: 'img/docusaurus-social-card.jpg',
       navbar: {
-        title: 'Write-ups',
+        title: 'Write-ups | Knign',
         logo: {
           alt: 'My Site Logo',
           src: 'img/play.png',
@@ -135,13 +137,16 @@ const config = {
           //   ],
           // },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} Write-ups, Built by Kunal Walavalkar.`,
+        copyright: `Copyright © ${new Date().getFullYear()} Write-ups, Built with Docusaurus by Kunal Walavalkar.`,
       },
       prism: {
         theme: prismThemes.github,
-        darkTheme: prismThemes.dracula,
+        darkTheme: prismThemes.oneDark,
       },
+
+      
     }),
+  
 };
 
 export default config;
