@@ -100,11 +100,11 @@ article {
   background-color: var(--ifm-navbar-background-color);
 }
 
-
-
-
-
 @media screen and (min-width: 997px) {
+  :root {
+    --ifm-font-size-base: 17px;
+  }  
+
   article header h1 {
     font-size: 2.5rem !important;
   }
