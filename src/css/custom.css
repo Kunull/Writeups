@@ -20,16 +20,20 @@
 }
 
 html[data-theme="dark"] {
-  --ifm-background-color: #171717;
+  --ifm-background-color: #0a0a0a;
+}
+
+html[data-theme='light'] .navbar .navbar__logo {
+  content: url(/static/img/play_inverted.png)
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-menu-color-background-active: #111;
-  --ifm-menu-color-background-hover: #111;
-  --ifm-breadcrumb-item-background-active: #111;
-  --ifm-navbar-background-color: #111;
-  --ifm-footer-background-color: #111;
+  --ifm-menu-color-background-active: #181818;
+  --ifm-menu-color-background-hover: #181818;
+  --ifm-breadcrumb-item-background-active: #181818;
+  --ifm-navbar-background-color: #181818;
+  --ifm-footer-background-color: #181818;
   --ifm-color-primary: #777;
   --ifm-color-primary-dark: #666;
   --ifm-color-primary-darker: #555;
@@ -74,7 +78,7 @@ article {
   --ifm-alert-background-color: var( --ifm-color-info-contrast-background );
   --ifm-alert-background-color-highlight: rgba(84, 199, 236, 0.15);
   --ifm-alert-foreground-color: var( --ifm-color-info-contrast-foreground );
-  --ifm-alert-border-color: var(--ifm-color-primary-darker);
+  --ifm-alert-border-color: var(--ifm-color-primary-dark);
 }
 
 @media screen and (min-width: 997px) {
@@ -82,3 +86,4 @@ article {
     font-size: 2.5rem !important;
   }
 }
+
