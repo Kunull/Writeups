@@ -82,7 +82,7 @@ article {
   --ifm-alert-background-color: var( --ifm-color-info-contrast-background );
   --ifm-alert-background-color-highlight: rgba(84, 199, 236, 0.15);
   --ifm-alert-foreground-color: var( --ifm-color-info-contrast-foreground );
-  --ifm-alert-border-color: var(--ifm-navbar-background-color);
+  --ifm-alert-border-color: var(--ifm-color-primary-darker);
 }
 
 @media screen and (min-width: 997px) {
