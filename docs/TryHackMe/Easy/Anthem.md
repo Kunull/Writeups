@@ -207,7 +207,7 @@ $ xfreerdp /v:10.10.5.238 /u:Administrator /p:ChangeMeBaby1MoreTime /cert:ignore
 
 ![15](https://github.com/Knign/Write-ups/assets/110326359/4215cb2c-2185-4d41-9095-bb5460615527)
 
-## Answer
+### Answer
 ```
 THM{Y0U_4R3_1337}
 ```
