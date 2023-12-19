@@ -36,11 +36,11 @@ html[data-theme='light'] .navbar .navbar__logo {
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-menu-color-background-active: #1d1d1d;
-  --ifm-menu-color-background-hover: #1d1d1d;
-  --ifm-breadcrumb-item-background-active: #1d1d1d;
-  --ifm-navbar-background-color: #1d1d1d;
-  --ifm-footer-background-color: #1d1d1d;
+  --ifm-menu-color-background-active: #171717;
+  --ifm-menu-color-background-hover: #171717;
+  --ifm-breadcrumb-item-background-active: #171717;
+  --ifm-navbar-background-color: #171717;
+  --ifm-footer-background-color: #171717;
   --ifm-color-primary: #777;
   --ifm-color-primary-dark: #666;
   --ifm-color-primary-darker: #555;
@@ -101,6 +101,9 @@ article {
   border: none;
   background-color: var(--ifm-navbar-background-color);
 }
+
+
+
 
 
 @media screen and (min-width: 997px) {
