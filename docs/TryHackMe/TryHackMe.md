@@ -7,7 +7,6 @@ pagination_prev: null
 
 <details className="dropdown" closed>
   <summary><b>Easy</b></summary>
-  
   - [Agent Sudo](./Easy/Agent%20Sudo.md)
   - [Anthem](./Easy/Anthem.md)
   - [Bounty Hacker](./Easy/Bounty%20Hacker.md)
