@@ -50,24 +50,26 @@ Nmap done: 1 IP address (1 host up) scanned in 32.64 seconds
 ### How you redirect yourself to a secret page?
 - Let's visit the machine using the browser.
 
-![Alt text](2.png)
+![2](https://github.com/Knign/Write-ups/assets/110326359/8bc89493-ded5-439d-82ea-90bb56b2f855)
+
 
 - We have to use modify our request. For that we have to intercept it using Burpsuite.
 
-![Alt text](3.png)
+![3](https://github.com/Knign/Write-ups/assets/110326359/0ada2e34-3de8-4813-be4c-f7cd3591c4b2)
 
 - Let's forward the request to the `Intruder`.
 
-![Alt text](4.png)
+![4](https://github.com/Knign/Write-ups/assets/110326359/0ec38f2e-b61e-4681-b9ae-b00f1ed17c91)
 
 - After setting the field on the `User-Agent`, we can move on to selecting the payloads.
 
-![Alt text](5.png)
+![5](https://github.com/Knign/Write-ups/assets/110326359/940bd213-2336-48f8-a66c-713101d8fddc)
 
 - We can set the Payload as a `Simple list` and use all the characters.
 - Let's start the attack.
 
-![Alt text](6.png)
+![6](https://github.com/Knign/Write-ups/assets/110326359/95231371-48be-43fa-a37f-12b71aff8e8f)
+
 
 - We can see that the request where the `User-Agent: C` is being redirected to another page as shown by the `302` code.
 ### Answer
@@ -80,11 +82,11 @@ User-Agent
 ### What is the agent name?
 - Let's go to the `Options` tab and set the `Follow redirection` option to `Always`.
 
-![Alt text](13.png)
+![13](https://github.com/Knign/Write-ups/assets/110326359/b6f2395d-6f52-4b31-a3df-e1d6dcfb1a81)
 
 - Now, let's start the attack again and check `Response 2` to see if it has any useful information.
 
-![Alt text](7.png)
+![7](https://github.com/Knign/Write-ups/assets/110326359/1e5b4aa5-f53b-4e9c-847f-a9bed92f0ea8)
 
 - We are told the the user `chris` has a weak password.
 - Knowing that FTP is running on the machine, this could be an opportunity for brute forcing.
@@ -258,7 +260,7 @@ Session completed.
 alien
 ```
 
-&nbsp
+&nbsp;
 
 ### steg password
 - We can now unzip the ZIP file.
@@ -335,19 +337,17 @@ Your buddy,
 chris
 ```
 - So we know that the user `james` has the password `hackerrules!`.
-## Answer
+### Answer
 ```
 james
 ```
-## Question
-> SSH password
-## Answer
+### SSH password
+### Answer
 ```
 hackerrules!
 ```
-# Task 4: Capture the user flag
-# Question 
-> What is the user flag?
+## Task 4: Capture the user flag
+### What is the user flag?
 - Let's SSH into James' machine.
 ```
 $ ssh james@10.10.80.123             
@@ -395,7 +395,7 @@ b03d975e8c92a7c04146cfa7a5a313c7
 
 &nbsp;
 
-## What is the incident of the photo called?
+### What is the incident of the photo called?
 - For this we have to download the `Alien_autospy.jpg` image.
 ```
 $ scp james@10.10.80.123:/home/james/Alien_autospy.jpg /home/kunal/tryhackme/agentsudo/.
@@ -404,15 +404,18 @@ Alien_autospy.jpg                                                               
 ```
 - We can now use TinEye to perform a reverse image search.
 
-![Alt text](8.png)
+![8](https://github.com/Knign/Write-ups/assets/110326359/3822e3d4-24cd-4c41-b566-f00591aa01be)
+
 
 - Let's upload the file.
 
-![Alt text](9.png)
+![9](https://github.com/Knign/Write-ups/assets/110326359/4457134a-c94d-4639-9f12-0b53e6fe0b1d)
+
 
 - Let's click on the top link.
 
-![Alt text](10.png)
+![10](https://github.com/Knign/Write-ups/assets/110326359/5825d474-ab9a-4cc9-a596-ebeabd630a2c)
+
 
 ### Answer
 ```
@@ -436,7 +439,8 @@ User james may run the following commands on agent-sudo:
 - The users are not allowed to run `/bin/bash` as root.
 - if we go to Exploit Database, we can find the CVE for this vulnerability.
 
-![Alt text](11.png)
+![11](https://github.com/Knign/Write-ups/assets/110326359/e2554b6d-f078-4492-aa49-9213cbc9ddcc)
+
 
 ### Answer
 ```
@@ -445,10 +449,11 @@ CVE-2019-14287
 
 &nbsp;
 
-## What is the root flag?
+### What is the root flag?
 - We can also find the exploit for this vulnerability on Exploit Database.
 
-![Alt text](12.png)
+![12](https://github.com/Knign/Write-ups/assets/110326359/4267c425-95dd-4127-8b2f-922bcde624f6)
+
 
 - Let's enter that in the terminal.
 ```
