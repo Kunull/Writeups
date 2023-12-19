@@ -1,3 +1,6 @@
+---
+custom_edit_url: null
+---
 
 ## Task 1: Author note
 > Welcome to another THM exclusive CTF room. Your task is simple, capture the flags just like the other CTF room. Have Fun!
