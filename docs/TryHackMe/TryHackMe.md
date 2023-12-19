@@ -12,6 +12,7 @@ pagination_prev: null
   - [Bounty Hacker](./Easy/Bounty%20Hacker.md)
   - [Brooklyn Nine Nine](./Easy/Brooklyn%20Nine%20Nine.md)
   - [Brute It](./Easy/Brute%20It.md)
+  - [c4ptur3-th3-fl4g](./Easy/c4ptur3-th3-fl4g.md)
 </details>
 
 <details className="dropdown" closed>
