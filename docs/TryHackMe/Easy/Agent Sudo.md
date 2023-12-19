@@ -9,6 +9,7 @@
 &nbsp;
 
 ## Task 2: Enumerate
+### How many open ports?
 - Let's run a simple `nmap` scan on the IP address.
 ```
 $ nmap -sC -sV 10.10.80.123
@@ -39,13 +40,14 @@ Nmap done: 1 IP address (1 host up) scanned in 32.64 seconds
 | 22 | ssh |
 | 80 | http | 
 
-### How many open ports?
+### Answer
 ```
 3
 ```
 
 &nbsp;
 
+### How you redirect yourself to a secret page?
 - Let's visit the machine using the browser.
 
 ![2](https://github.com/Knign/Write-ups/assets/110326359/8bc89493-ded5-439d-82ea-90bb56b2f855)
@@ -70,7 +72,7 @@ Nmap done: 1 IP address (1 host up) scanned in 32.64 seconds
 
 
 - We can see that the request where the `User-Agent: C` is being redirected to another page as shown by the `302` code.
-### How you redirect yourself to a secret page?
+### Answer
 ```
 User-Agent
 ```
