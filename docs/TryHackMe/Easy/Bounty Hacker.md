@@ -1,3 +1,7 @@
+---
+custom_edit_url: null
+---
+
 ## Task 1: Living up to the title.
 ### Who wrote the task list?
 - Let's got search the IP address using our browser.
