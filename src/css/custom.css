@@ -32,3 +32,27 @@
   --ifm-color-primary-lightest: #aaa;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
+
+article {
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Adjust footer link colors */
+#__docusaurus > footer > div > div.text--center > div > a {
+  color: unset;
+}
+
+#__docusaurus > footer > div > div.text--center > div > a:hover {
+  color: var(--ifm-link-color);
+  text-decoration: underline;
+}
+
+.navbar .navbar__items {
+  flex: auto;
+}
+
+.dropdown__link {
+  font-size: inherit;
+}
