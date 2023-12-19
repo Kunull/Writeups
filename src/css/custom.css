@@ -64,10 +64,12 @@ article {
 }
 
 .details_node_modules-\@docusaurus-theme-classic-lib-theme-Details-styles-module {
+  --ifm-alert-border-color: var(--ifm-color-primary);
+
   --docusaurus-details-decoration-color: var(--ifm-alert-border-color);
   --docusaurus-details-transition: transform var(--ifm-transition-fast) ease;
   margin: 0 0 var(--ifm-spacing-vertical);
-  border: 1px solid #555;
+  border: 1px solid var(--ifm-alert-border-color);
 }
 
 @media screen and (min-width: 997px) {
