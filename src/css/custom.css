@@ -79,7 +79,7 @@ article {
 }
 
 .details_b_Ee {
-  --docusaurus-details-decoration-color: #red;
+  --docusaurus-details-decoration-color: red;
   --docusaurus-details-transition: transform var(--ifm-transition-fast) ease;
   border: none;
   margin: 0 0 var(--ifm-spacing-vertical);
