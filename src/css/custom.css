@@ -6,8 +6,9 @@
 
 /* You can override the default Infima variables here. */
 :root {
-  --ifm-navbar-background-color: #eee;
-  --ifm-footer-background-color: #eee;
+  --ifm-color-emphasis-300: #bbb;
+  --ifm-navbar-background-color: #ededed;
+  --ifm-footer-background-color: #ededed;
   --ifm-color-primary: #555;
   --ifm-color-primary-dark: #444;
   --ifm-color-primary-darker: #333;
@@ -19,25 +20,27 @@
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 }
 
-html[data-theme="dark"] {
-  --ifm-background-color: #0a0a0a;
+html[data-theme='light'] .alert--info {
+  --ifm-alert-background-color: var( --ifm-color-info-contrast-background );
+  --ifm-alert-background-color-highlight: rgba(84, 199, 236, 0.15);
+  --ifm-alert-foreground-color: var( --ifm-color-info-contrast-foreground );
+  --ifm-alert-border-color: var(--ifm-color-emphasis-300);
 }
 
 html[data-theme='light'] .navbar .navbar__logo {
   content: url(/static/img/play_inverted.png)
 }
 
-html[data-theme="dark"] .navbar-sidebar {
-  background: #0a0a0a;
-}
+
+
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-menu-color-background-active: #181818;
-  --ifm-menu-color-background-hover: #181818;
-  --ifm-breadcrumb-item-background-active: #181818;
-  --ifm-navbar-background-color: #181818;
-  --ifm-footer-background-color: #181818;
+  --ifm-menu-color-background-active: #1d1d1d;
+  --ifm-menu-color-background-hover: #1d1d1d;
+  --ifm-breadcrumb-item-background-active: #1d1d1d;
+  --ifm-navbar-background-color: #1d1d1d;
+  --ifm-footer-background-color: #1d1d1d;
   --ifm-color-primary: #777;
   --ifm-color-primary-dark: #666;
   --ifm-color-primary-darker: #555;
@@ -47,6 +50,27 @@ html[data-theme="dark"] .navbar-sidebar {
   --ifm-color-primary-lightest: #aaa;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
+
+.alert--info {
+  --ifm-alert-background-color: var( --ifm-color-info-contrast-background );
+  --ifm-alert-background-color-highlight: rgba(84, 199, 236, 0.15);
+  --ifm-alert-foreground-color: var( --ifm-color-info-contrast-foreground );
+  --ifm-alert-border-color: var(--ifm-color-emphasis-300);
+}
+
+html[data-theme="dark"] {
+  --ifm-background-color: #fff;
+}
+
+
+html[data-theme="dark"] {
+  --ifm-background-color: #0a0a0a;
+}
+
+html[data-theme="dark"] .navbar-sidebar {
+  background: #0a0a0a;
+}
+
 
 article {
   max-width: 750px;
@@ -78,12 +102,6 @@ article {
   background-color: var(--ifm-navbar-background-color);
 }
 
-.alert--info {
-  --ifm-alert-background-color: var( --ifm-color-info-contrast-background );
-  --ifm-alert-background-color-highlight: rgba(84, 199, 236, 0.15);
-  --ifm-alert-foreground-color: var( --ifm-color-info-contrast-foreground );
-  --ifm-alert-border-color: var(--ifm-color-primary-darker);
-}
 
 @media screen and (min-width: 997px) {
   article header h1 {
