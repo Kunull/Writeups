@@ -164,7 +164,7 @@ THM{17_h45_l3553r_l3773r5}
 
 ## Task 9 Left or right
 ### Left, right, left, right... Rot 13 is too mainstream. Solve this
-> MAF{atbe_max_vtxltk}
+> MAF\{atbe_max_vtxltk}
 - Let's use the `Rot13` function with the amount set to `7`.
 
 ![4](https://github.com/Knign/Write-ups/assets/110326359/86fbe638-fc42-401d-89ad-30ddd0f9ca7f)
