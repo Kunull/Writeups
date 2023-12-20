@@ -1,3 +1,9 @@
+---
+custom_edit_url: null
+pagination_next: null
+pagination_prev: null
+---
+
 ## Task 1 Investigate!
 ### User Flag
 - Let's run a simple `nmap` scan against the target machine.
