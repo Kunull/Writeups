@@ -100,6 +100,10 @@ article {
   background-color: var(--ifm-navbar-background-color);
 }
 
+code {
+  background-color: #1d1d1d;
+}
+
 @media screen and (min-width: 997px) {
   :root {
     --ifm-font-size-base: 17px;
