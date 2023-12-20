@@ -372,7 +372,7 @@ THM{ch3ck_th3_h4ckb4ck}
 
 ## Task 19: Uncrackable!
 > Can you solve the following? By the way, I lost the key. Sorry >.<  
-> MYKAHODTQ{RVG_YVGGK_FAL_WXF}
+> MYKAHODTQ\{RVG_YVGGK_FAL_WXF}
 > Flag format: TRYHACKME\{FLAG IN ALL CAP}
 ### The deciphered text
 - In this task, we have to use the # Vigenère cipher.
