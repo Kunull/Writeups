@@ -13,6 +13,7 @@ pagination_prev: null
   - [Brooklyn Nine Nine](./Easy/Brooklyn%20Nine%20Nine.md)
   - [Brute It](./Easy/Brute%20It.md)
   - [c4ptur3-th3-fl4g](./Easy/c4ptur3-th3-fl4g.md)
+  - [Chill Hack](./Easy/Chill%20Hack.md)
 </details>
 
 <details className="dropdown" closed>
