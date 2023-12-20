@@ -331,8 +331,7 @@ THM{7h3r3_15_h0p3_1n_7h3_d4rkn355}
 &nbsp;
 
 ## Task 17: A sounding QR
-> How good is your listening skill?
-> P/S: The flag formatted as THM{Listened Flag}, the flag should be in All CAPS
+> How good is your listening skill? P/S: The flag formatted as THM{Listened Flag}, the flag should be in All CAPS
 ### What does the bot said?
 - Let's decode the `QRCTF.png` file using Zxing.
 
