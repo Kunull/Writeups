@@ -207,8 +207,7 @@ n63umy8lkf4i
 
 &nbsp;
 
-### Hash: $6$aReallyHardSalt$6WKUTqzq.UQQmrm0p/T7MPpMbGNnzXPMAXi4bJMl9be.cfi3/qxIf.hsGpS41BqMhSrHVXgMpdjS6xeKZAs02.
-### Salt: aReallyHardSalt
+### Hash: $6$aReallyHardSalt$6WKUTqzq.UQQmrm0p/T7MPpMbGNnzXPMAXi4bJMl9be.cfi3/qxIf.hsGpS41BqMhSrHVXgMpdjS6xeKZAs02. Salt: aReallyHardSalt
 - The `$6$` tells us that this is a SHAcrypt512 hash the mode for which is `1800`.
 
 ![10](https://github.com/Knign/Write-ups/assets/110326359/5ac362b8-333e-4f4c-b23c-342f3ec52996)
@@ -230,8 +229,7 @@ waka99
 
 &nbsp;
 
-### Hash: e5d8870e5bdd26602cab8dbe07a942c8669e56d6
-### Salt: tryhackme
+### Hash: e5d8870e5bdd26602cab8dbe07a942c8669e56d6 Salt: tryhackme
 - Let's identify the hash using `hash-identifier`.
 ```
 $ hash-identifier e5d8870e5bdd26602cab8dbe07a942c8669e56d6                                                                
