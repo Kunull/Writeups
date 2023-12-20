@@ -13,6 +13,7 @@ pagination_prev: null
   - [Brooklyn Nine Nine](./Easy/Brooklyn%20Nine%20Nine.md)
   - [Brute It](./Easy/Brute%20It.md)
   - [Chill Hack](./Easy/Chill%20Hack.md)
+  - [Crack the Hash](./Easy/Crack%20the%20Hash.md)
   - [c4ptur3-th3-fl4g](./Easy/c4ptur3-th3-fl4g.md)
 </details>
 
