@@ -5,8 +5,6 @@ pagination_prev: null
 ---
 
 ## Task 2: What does the base said?
-> Can you decode the following?
-> VEhNe2p1NTdfZDNjMGQzXzdoM19iNDUzfQ==
 ### Feed me the flag!
 - We can decode the flag using the `base64` utility.
 ```
@@ -88,7 +86,6 @@ THM{500n3r_0r_l473r_17_15_0ur_7urn}
 &nbsp;
 
 ## Task 5: Erm......Magick
-> Huh, where is the flag?
 ### Did you find the flag?
 - If we just select the task string, we will see the flag.
 
@@ -148,8 +145,6 @@ THM{345y_f1nd_345y_60}
 &nbsp;
 
 ## Task 8 Another decoding stuff
-> Can you decode it?
-> 3agrSy1CewF9v8ukcSkPSYm3oKUoByUpKG4L
 ### Oh, Oh, Did you get it?
 - We can use the `Magic` function from CyberChef to decode the flag.
 
@@ -258,9 +253,6 @@ THM{0h_my_h34d}
 &nbsp;
 
 ## Task 14: An exclusive!
-> Exclusive strings for everyone!
-> S1: 44585d6b2368737c65252166234f20626d  
-> S2: 1010101010101010101010101010101010
 ### Did you crack it? Feed me now!
 - Since there are two strings, the possible decryption method is XOR.
 - Let's use an online decoder.
@@ -331,7 +323,6 @@ THM{7h3r3_15_h0p3_1n_7h3_d4rkn355}
 &nbsp;
 
 ## Task 17: A sounding QR
-> How good is your listening skill? P/S: The flag formatted as THM\{Listened Flag}, the flag should be in All CAPS
 ### What does the bot said?
 - Let's decode the `QRCTF.png` file using Zxing.
 
@@ -351,9 +342,6 @@ THM{SOUNDINGQR}
 &nbsp;
 
 ## Task 18: Dig up the past
-> Sometimes we need a 'machine' to dig the past
-> Targetted website: https://www.embeddedhacker.com/[](http://www.embeddedhacker.com)  Targetted time: 2 January 2020
-
 ### Did you found my past?
 - For this one we have to use the Wayback Machine.
 
@@ -371,9 +359,6 @@ THM{ch3ck_th3_h4ckb4ck}
 &nbsp;
 
 ## Task 19: Uncrackable!
-> Can you solve the following? By the way, I lost the key. Sorry >.<
-> MYKAHODTQ\{RVG_YVGGK_FAL_WXF}
-> Flag format: TRYHACKME\{FLAG IN ALL CAP}
 ### The deciphered text
 - In this task, we have to use the # Vigenère cipher.
 - The key is `THM`.
@@ -388,8 +373,6 @@ TRYHACKME{YOU_FOUND_THE_KEY}
 &nbsp;
 
 ## Task 20: Small bases
-> Decode the following text.
-> 581695969015253365094191591547859387620042736036246486373595515576333693
 ### What is the flag?
 - We simply have to convert it from Decimal to Hexadecimal to ASCIII.
 
