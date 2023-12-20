@@ -149,10 +149,12 @@ Nmap done: 1 IP address (1 host up) scanned in 46.18 seconds
 
 ![2](https://github.com/Knign/Write-ups/assets/110326359/07fb3ab7-956d-40d7-9cb2-d4a7412181b0)
 
+### CVE
 - Let's check if this version has any vulnerabilities.
 
 ![3](https://github.com/Knign/Write-ups/assets/110326359/ac1ae3ec-675a-46d3-b0e2-946b77380900)
 
+### Exploit
 - Looking for exploits, we can find the following one:
 
 ![4](https://github.com/Knign/Write-ups/assets/110326359/52032efc-5f72-4945-a1fa-97f081fb9b5b)
