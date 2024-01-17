@@ -24,7 +24,7 @@ hacker@sandboxing-level-1:~$ /challenge/babyjail_level1 ../../flag
 ```
 - The first `..` escapes from the `/jail` and second `..` escapes from the `/tmp` directory.
 
-%nbsp;
+&nbsp;
 
 ## level 2
 > You may open a specified file, as given by the first argument to the program (argv[1]).
@@ -92,7 +92,7 @@ p.sendline(shellcode)
 p.interactive()
 ```
 
-%nbsp;
+&nbsp;
 
 ## level 3
 > You may open a specified file, as given by the first argument to the program (argv[1]).
@@ -187,7 +187,7 @@ flag:
 	.string "flag"
 ```
 
-%nbsp;
+&nbsp;
 
 ## level 4
 > Escape a chroot sandbox using shellcode, but this time only using the following syscalls: "openat", "read", "write", "sendfile".
@@ -240,7 +240,7 @@ flag:
 	.string "flag"
 ```
 
-%nbsp;
+&nbsp;
 
 ## level 5
 > Escape a chroot sandbox using shellcode, but this time only using the following syscalls: "linkat", "open", "read", "write", "sendfile"
@@ -316,8 +316,9 @@ flag:
 	.string "flag2.txt"
 ```
 
+&nbsp;
 
-# level 6 
+## level 6 
 > Escape a chroot sandbox using shellcode, but this time only using the following syscalls: "fchdir", "open", "read", "write", "sendfile".
 
 - The `fchdir` syscall works similar to `chdir`, the only difference is that it takes a file descriptor as argument.
@@ -366,8 +367,9 @@ flag:
 	.string "flag"
 ```
 
+&nbsp;
 
-# level 7
+## level 7
 > Escape a chroot sandbox using shellcode, but this time only using the following syscalls: "chdir", "chroot", "mkdir", "open", "read", "write", "sendfile".
 
 ```
@@ -413,8 +415,9 @@ flag:
 	.string "../../flag"
 ```
 
+&nbsp;
 
-# level 8 
+## level 8 
 > Escape a chroot sandbox using shellcode, but this time only using the following syscalls: ."openat", "read", "write", "sendfile".
 
 ```
@@ -447,8 +450,9 @@ flag:
 	.string "flag"
 ```
 
+&nbsp;
 
-# level 9
+## level 9
 > Escape a chroot sandbox using shellcode, but this time only using the following syscalls: "close", "stat", "fstat", "lstat".
 ```
 .global _start
@@ -488,8 +492,9 @@ section .bss
 	content resb 500
 ```
 
+&nbsp;
 
-# level 10
+## level 10
 ```
 .global _start
 .intel_syntax noprefix
