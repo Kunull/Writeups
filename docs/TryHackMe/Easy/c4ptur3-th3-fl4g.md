@@ -1,4 +1,8 @@
-
+---
+custom_edit_url: null
+pagination_next: null
+pagination_prev: null
+---
 
 ## Task 1: Translation & Shifting
 ### c4n y0u c4p7u23 7h3 f149?
