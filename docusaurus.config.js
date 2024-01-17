@@ -89,6 +89,12 @@ const config = {
           // },
           // {to: '/blog', label: 'Blog', position: 'left'},
           {
+            href: '',
+            label: 'CVE Reports',
+            position: 'left',
+          },
+          
+          {
             href: 'https://kunalwalavalkar.vercel.app',
             label: 'Personal Portfolio',
             position: 'right',
@@ -103,15 +109,16 @@ const config = {
       footer: {
         style: 'light',
         links: [
-          // {
-          //   title: 'Docs',
-          //   items: [
-          //     {
-          //       label: 'Tutorial',
-          //       to: '/docs/intro',
-          //     },
-          //   ],
-          // },
+          {
+            title: 'More',
+            items: [
+              {
+                label: 'Cve Reports',
+                href: '',
+              },
+            ],
+          },
+          
           {
             title: 'Socials',
             items: [
@@ -129,19 +136,7 @@ const config = {
               // },
             ],
           },
-          // {
-          //   title: 'More',
-          //   items: [
-          //     // {
-          //     //   label: 'Blog',
-          //     //   to: '/blog',
-          //     // },
-          //     {
-          //       label: 'GitHub',
-          //       href: 'https://github.com/facebook/docusaurus',
-          //     },
-          //   ],
-          // },
+          
         ],
         copyright: `Copyright © ${new Date().getFullYear()} Write-ups, Built with Docusaurus by Kunal Walavalkar.`,
       },
