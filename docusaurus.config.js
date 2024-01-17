@@ -89,7 +89,7 @@ const config = {
           // },
           // {to: '/blog', label: 'Blog', position: 'left'},
           {
-            href: '',
+            href: 'https://kunalwalavalkar.vercel.app',
             label: 'CVE Reports',
             position: 'left',
           },
@@ -114,7 +114,7 @@ const config = {
             items: [
               {
                 label: 'Cve Reports',
-                href: '',
+                href: 'https://kunalwalavalkar.vercel.app',
               },
             ],
           },
