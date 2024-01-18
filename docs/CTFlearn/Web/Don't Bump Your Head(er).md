@@ -1,3 +1,9 @@
+---
+custom_edit_url: null
+pagination_next: null
+pagination_prev: null
+---
+
 > Try to bypass my security measure on this site! http://165.227.106.113/header.php
 
 ![1](https://github.com/Knign/Write-ups/assets/110326359/ecd02f95-ab41-4a3a-9972-08926b96078c)
