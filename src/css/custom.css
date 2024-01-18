@@ -65,6 +65,7 @@ html[data-theme="dark"] {
   --ifm-background-color: #000;
 }
 
+
 html[data-theme="dark"] .navbar-sidebar {
   background: #000;
 }
