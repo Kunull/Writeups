@@ -1,3 +1,9 @@
+---
+custom_edit_url: null
+pagination_next: null
+pagination_prev: null
+---
+
 > Want to learn the hacker's secret? Try to smash this buffer!
 > You need guidance? Look no further than to [Mr. Liveoverflow](https://old.liveoverflow.com/binary_hacking/protostar/stack0.html). He puts out nice videos you should look if you haven't already
 > `nc thekidofarcrania.com 35235`
