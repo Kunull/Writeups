@@ -42,6 +42,10 @@ Major (OptionalHeader)        : 5
 Minor (OptionalHeader)        : 1
 KPCR                          : 0xffdff000 (CPU 0)
 ```
+## Answer
+```
+WinXPSP2x86
+```
 
 &nbsp;
 
@@ -82,6 +86,10 @@ PID     PPID    ImageFileName   Offset(V)       Threads Handles SessionId       
 - There are total 25 processes. 
 - 6 of the processes have 0 threads. This means that these 6 processes have been terminated.
 - So, the total number of running processes is 19.
+## Answer
+```
+19
+```
 
 &nbsp;
 
@@ -94,6 +102,10 @@ PID     PPID    ImageFileName   Offset(V)       Threads Handles SessionId       
 1960ress964100.0cmd.exe 0x89a18da0      0       -       0       False   2023-02-13 18:25:26.000000      2023-02-13 18:25:26.000000      Disabled
 
 ```
+## Answer
+```
+1960
+```
 
 &nbsp;
 
@@ -105,8 +117,12 @@ PID     PPID    ImageFileName   Offset(V)       Threads Handles SessionId       
 1960    964     cmd.exe 0x89a18da0      0       -       0       False   2023-02-13 18:25:26.000000      2023-02-13 18:25:26.000000      Disabled
 ```
 - We can find this suspicious process `rootkit.exe` because of it's name and also because it's child process is `cmd.exe`.
+## Answer
+```
+rootkit.exe
+```
 
-
+&nbsp;
 
 ## Q5. Which process shows the highest likelihood of code injection?
 - Let's look for malicious processes using the `malfind` plugin.
@@ -137,8 +153,14 @@ $ md5sum pid.880.vad.0x980000-0x988fff.dmp
 20020a9d850bd496954d8c21dfa614be  pid.880.vad.0x980000-0x988fff.dmp
 ```
 - Let's search this hash in Virustotal.
-![[virus total.png]]
+
+![virus total](https://github.com/Knign/Write-ups/assets/110326359/d374c4b7-4b46-40d2-90b3-091450922a6d)
+
 - We can see that the process is vulnerable to DLL injection.
+## Answer
+```
+svchost.exe
+```
 
 &nbsp;
 
@@ -179,6 +201,10 @@ $ strings ./pid.880.vad.0x980000-0x988fff.dmp
 C:\WINDOWS\system32\drivers\str.sys
 --snip--;
 ```
+## Answer
+```
+C:\WINDOWS\system32\drivers\str.sys
+```
 
 &nbsp;
 
@@ -198,6 +224,10 @@ Pid     Process Base    InLoad  InInit  InMem   MappedPath
 ```
 - We can see 3 DLL lists: InLoad, InInit, and InMem which indicate whether a module has been loaded into memory, initialized, or is currently in the process memory.
 - The `msxml3r.dll` is not linked to any of the three ldr modules. That makes it the most suspicious.
+## Answer
+```
+msxml3r.dll
+```
 
 &nbsp;
 
@@ -219,4 +249,8 @@ b8 00 00 00 00 00 00 00 ........
 00 00 00 00 00 00 00 00 ........
 00 00 00 00 f8 00 00 00 ........        4d 5a 90 00 03 00 00 00 04 00 00 00 ff ff 00 00 b8 00 00 00 00 00 00 00 40 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 f8 00 00 00
                                       
+```
+## Answer
+```
+0x980000
 ```
