@@ -7,11 +7,11 @@
 /* You can override the default Infima variables here. */
 :root {
   --ifm-color-emphasis-200: #ccc;
-  --ifm-menu-color-background-active: rgba(205,205,205);
-  --ifm-menu-color-background-hover: rgba(205,205,205);
-  --ifm-breadcrumb-item-background-active: rgba(205,205,205);
-  --ifm-navbar-background-color: rgba(205,205,205);
-  --ifm-footer-background-color: rgba(205,205,205);
+  --ifm-menu-color-background-active: rgba(205,0,0);
+  --ifm-menu-color-background-hover: rgba(205,0,0);
+  --ifm-breadcrumb-item-background-active: rgba(205,0,0);
+  --ifm-navbar-background-color: rgba(205,0,0);
+  --ifm-footer-background-color: rgba(205,0,0);
   --ifm-color-primary: #555;
   --ifm-color-primary-dark: #444;
   --ifm-color-primary-darker: #333;
