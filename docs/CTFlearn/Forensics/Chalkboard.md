@@ -1,3 +1,9 @@
+---
+custom_edit_url: null
+pagination_next: null
+pagination_prev: null
+---
+
 > Solve the equations embedded in the jpeg to find the flag. Solve this problem before solving my Scope challenge which is worth 100 points.
 > [math.jpg](https://ctflearn.com/challenge/download/972)
 
