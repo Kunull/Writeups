@@ -30,7 +30,9 @@ pagination_prev: null
 
 
 ## Security Level: Medium
+<!---
 > The developer has tried to add a simple pattern matching to remove any references to "</script>", to disable any JavaScript.
+-->
 > Spoiler: Its cAse sENSiTiVE.
 - Let's check out the source code.
 
