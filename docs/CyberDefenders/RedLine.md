@@ -1,3 +1,9 @@
+---
+custom_edit_url: null
+pagination_next: null
+pagination_prev: null
+---
+
 
 ## Q1. What is the name of the suspicious process?
 - Once we have downloaded the file, we can analyse it using `volatility`.
