@@ -1,0 +1,54 @@
+---
+custom_edit_url: null
+pagination_next: null
+pagination_prev: null
+---
+
+
+## XOR table
+```
+| A | B | Output |
++---+---+--------+
+| 0 | 0 |   0    |
+| 0 | 1 |   1    |
+| 1 | 0 |   1    |
+| 1 | 1 |   0    |
+```
+- Looking at the given table we can see that when xor is performed on two identical bits, the result is 0, whereas when the bits are different the result is 1.
+- Based on this knowledge, we can find the result manually.
+```
++-----------+-----------+-----------+-----------+-----------+-----------+
+| Character | l         | a         | b         | e         | l         |
+| Decimal   | 108       | 97        | 98        | 101       | 108       |
+| Bits      | 0110 1100 | 0110 0001 | 0110 0010 | 0110 0101 | 0110 1100 |
++-----------+-----------+-----------+-----------+-----------+-----------+
+XOR
++-----------+-----------+-----------+-----------+-----------+-----------+
+| Decimal   | 13        | 13        | 13        | 13        | 13        |
+| Bits      | 0000 1101 | 0000 1101 | 0000 1101 | 0000 1101 | 0000 1101 | 
++-----------+-----------+-----------+-----------+-----------+-----------+
+Result
++-----------+-----------+-----------+-----------+-----------+-----------+
+| Bits      | 0110 0001 | 0110 1100 | 0110 1111 | 0110 1000 | 0110 0001 |
+| Character | a         | l         | o         | h         | a         |
++-----------+-----------+-----------+-----------+-----------+-----------+
+```
+- The result should be `aloha`.
+## Solution
+```python
+string = "label"
+flag = ""  
+for i in string:  
+    xor_char = chr(ord(i)^13)
+    flag += xor_char  
+print(f"crypto{{{flag}}}")  
+```
+### Using xor()
+```python
+from pwn import xor
+
+string = "label"
+flag = xor(string, 13)
+flag = flag.decode()
+print(f"crypto{{{flag}}}") 
+```
