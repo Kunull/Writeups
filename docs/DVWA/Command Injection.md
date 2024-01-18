@@ -25,6 +25,8 @@ pagination_prev: null
 
 ![3](https://github.com/Knign/Write-ups/assets/110326359/3f3762ba-7fec-4d5b-9fb4-721a97449299)
 
+&nbsp;
+
 
 ## Security Level: Medium
 > The developer has read up on some of the issues with command injection, and placed in various pattern patching to filter the input. However, this isn't enough.
@@ -38,6 +40,8 @@ pagination_prev: null
 - Let's try using the pipe `|` operator.
 
 ![5](https://github.com/Knign/Write-ups/assets/110326359/35fbc180-d1f0-4885-94f2-66c86e3803ed)
+
+&nbsp;
 
 
 ## Security Level: High
