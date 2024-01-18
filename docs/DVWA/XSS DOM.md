@@ -28,7 +28,7 @@ pagination_prev: null
 
 
 ## Security Level: Medium
-> The developer has tried to add a simple pattern matching to remove any references to \"<script\" to disable any JavaScript. Find a way to run JavaScript without using the script tags.
+> The developer has tried to add a simple pattern matching to remove any references to "<script>" to disable any JavaScript. Find a way to run JavaScript without using the script tags.
 > Spoiler: You must first break out of the select block then you can add an image with an onerror event:  
 > /vulnerabilities/xss_d/?default=English>/option></select><img src='x' onerror='alert(1)'>.
 - Let's check the source code.
