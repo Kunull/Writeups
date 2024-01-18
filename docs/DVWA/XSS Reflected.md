@@ -49,7 +49,7 @@ pagination_prev: null
 
 
 ## Security Level: High
-> The developer now believes they can disable all JavaScript by removing the pattern "<s*c*r*i*p*t".
+> The developer now believes they can disable all JavaScript by removing the pattern "<s/*c/*r/*i/*p/*t".
 > Spoiler: HTML events.
 - In this level the `<script` pattern itself is removed.
 - Let's check the source code to see how this has been implemented.
