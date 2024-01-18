@@ -1,3 +1,9 @@
+---
+custom_edit_url: null
+pagination_next: null
+pagination_prev: null
+---
+
 > ### Objective
 > Your goal is to get the administrator’s password by brute forcing. Bonus points for getting the other four user passwords!
 
