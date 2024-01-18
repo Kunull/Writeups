@@ -23,14 +23,6 @@
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 }
 
-html[data-theme="light"] {
-  background: rgba(255,255,255);
-}
-
-html[data-theme="light"] .navbar-sidebar {
-  background: rgba(255,255,255);
-}
-
 html[data-theme='light'] .alert--info {
   --ifm-alert-background-color: var( --ifm-color-info-contrast-background );
   --ifm-alert-background-color-highlight: rgba(84, 199, 236, 0.15);
@@ -70,11 +62,11 @@ html[data-theme='light'] .navbar .navbar__logo {
 }
 
 html[data-theme="dark"] {
-  --ifm-background-color: rgba(0,0,0);
+  --ifm-background-color: #000;
 }
 
 html[data-theme="dark"] .navbar-sidebar {
-  background: rgba(0,0,0);
+  background: #000;
 }
 
 
