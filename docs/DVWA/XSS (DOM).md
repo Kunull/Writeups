@@ -1,4 +1,8 @@
-
+---
+custom_edit_url: null
+pagination_next: null
+pagination_prev: null
+---
 
 > ### Objective
 > Run your own JavaScript in another user's browser, use this to steal the cookie of a logged in user.
