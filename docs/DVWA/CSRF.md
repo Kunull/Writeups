@@ -27,6 +27,9 @@ pagination_prev: null
 http://10.0.4.5/DVWA/vulnerabilities/csrf/?password_new=password123&password_conf=password123&Change=Change
 ```
 
+&nbsp;
+
+
 ## Security Level: Medium
 > For the medium level challenge, there is a check to see where the last requested page came from. The developer believes if it matches the current domain, it must of come from the web application so it can be trusted.
 > It may be required to link in multiple vulnerabilities to exploit this vector, such as reflective XSS.
