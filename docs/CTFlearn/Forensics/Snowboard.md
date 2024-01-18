@@ -1,3 +1,9 @@
+---
+custom_edit_url: null
+pagination_next: null
+pagination_prev: null
+---
+
 > Find the flag in the jpeg file. Good Luck!
 > [Snowboard.jpg](https://ctflearn.com/challenge/download/934)
 
