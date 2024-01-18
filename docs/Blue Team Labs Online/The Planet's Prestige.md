@@ -28,8 +28,7 @@ negeja3921@pashter.com
 
 &nbsp;
 
-# Question 3
-> What is the filetype of the received attachment which helped to continue the investigation?
+## What is the filetype of the received attachment which helped to continue the investigation?
 - Let's open the PDF file attached to the email.
 
 ![3](https://github.com/Knign/Write-ups/assets/110326359/e91adc52-a32a-4956-adcb-178fb43f9aef)
