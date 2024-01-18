@@ -6,7 +6,6 @@
 
 /* You can override the default Infima variables here. */
 :root {
-  --ifm-background-color: rgba(255,255,255,.96);
   --ifm-color-emphasis-200: #ccc;
   --ifm-menu-color-background-active: #dadada;
   --ifm-menu-color-background-hover: #dadada;
@@ -71,11 +70,11 @@ html[data-theme='light'] .navbar .navbar__logo {
 }
 
 html[data-theme="dark"] {
-  --ifm-background-color: #rgba(0,0,0,.96);
+  --ifm-background-color: rgba(0,0,0,.5);
 }
 
 html[data-theme="dark"] .navbar-sidebar {
-  background: #rgba(0,0,0,.96);
+  background: rgba(0,0,0,.5);
 }
 
 
