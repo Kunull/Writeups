@@ -57,6 +57,8 @@ SELECT first_name, last_name FROM users WHERE user_id = '1' OR '1'='1';
 
 ![5](https://github.com/Knign/Write-ups/assets/110326359/755567c6-553e-4b17-9fa7-ec061bb1a41b)
 
+&nbsp;
+
 
 ## Security Level: Medium
 > The medium level uses a form of SQL injection protection, with the function of "[mysql_real_escape_string()](https://secure.php.net/manual/en/function.mysql-real-escape-string.php)". However due to the SQL query not having quotes around the parameter, this will not fully protect the query from being altered.
@@ -87,6 +89,8 @@ SELECT first_name, last_name FROM users WHERE user_id = '1' OR '1'='1';
 ```
 
 ![10](https://github.com/Knign/Write-ups/assets/110326359/d218c485-00c4-4f96-bff1-f06d228f94d5)
+
+&nbsp;
 
 
 ## Security Level: High
