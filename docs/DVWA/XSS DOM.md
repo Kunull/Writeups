@@ -19,7 +19,7 @@ pagination_prev: null
 - DOM-based XSS vulnerabilities usually arise when JavaScript takes data from an attacker-controllable source, such as the URL, and passes it to a sink that supports dynamic code execution.
 - Let's change the URL to the following:
 ```
-10.0.4.5/DVWA/vulnerabilities/xss_d/?default=<script>alert();</script>
+10.0.4.5/DVWA/vulnerabilities/xss_d/?default=<script>alert("knign");</script>
 ```
 
 ![2](https://github.com/Knign/Write-ups/assets/110326359/040fb1b1-eedc-4899-a79d-97d420e098f5)
