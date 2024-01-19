@@ -10,7 +10,7 @@ pagination_prev: null
 
 ## Security Level: Low
 > Low level will not check the requested input, before including it to be used in the output text.
-> Spoiler: /vulnerabilities/xss_d/?default=English<script>alert(1)</script>.
+> Spoiler: /vulnerabilities/xss_d/?default=English<script>alert(2)</script>.
 - Let's select the first option i.e. `English` and click `Submit`.
 
 ![1](https://github.com/Knign/Write-ups/assets/110326359/959ff393-694b-422d-aa1a-50c41213ce94)
