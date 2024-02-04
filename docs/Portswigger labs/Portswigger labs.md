@@ -39,7 +39,3 @@ import TabItem from '@theme/TabItem';
     - Essential skills
   </TabItem>
 </Tabs>
-
-## Server-side topics
-
-
