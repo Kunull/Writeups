@@ -39,11 +39,11 @@ html[data-theme='light'] .navbar .navbar__logo {
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-menu-color-background-active: #161616;
-  --ifm-menu-color-background-hover: #161616;
-  --ifm-breadcrumb-item-background-active: #161616;
-  --ifm-navbar-background-color: #161616;
-  --ifm-footer-background-color: #161616;
+  --ifm-menu-color-background-active: #222222;
+  --ifm-menu-color-background-hover: #222222;
+  --ifm-breadcrumb-item-background-active: #222222;
+  --ifm-navbar-background-color: #222222;
+  --ifm-footer-background-color: #222222;
   --ifm-color-primary: #777;
   --ifm-color-primary-dark: #666;
   --ifm-color-primary-darker: #555;
