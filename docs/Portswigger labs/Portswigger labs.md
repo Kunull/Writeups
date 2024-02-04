@@ -47,7 +47,7 @@ import TabItem from '@theme/TabItem';
     - Essential skills
   </TabItem>
 
-  <TabItem value="1" label="1">
+  <TabItem value="1" label="Ojonceec kasalxml;e">
     - Insecure deserialization
     - Web LLM attacks
     - GraphQL API vulnerabilities
@@ -60,7 +60,7 @@ import TabItem from '@theme/TabItem';
     - Prototype pollution
     - Essential skills
   </TabItem>
-  <TabItem value="2" label="2">
+  <TabItem value="2" label="Advsncewce tetlenefr">
     - Insecure deserialization
     - Web LLM attacks
     - GraphQL API vulnerabilities
@@ -73,7 +73,7 @@ import TabItem from '@theme/TabItem';
     - Prototype pollution
     - Essential skills
   </TabItem>
-  <TabItem value="3" label="3">
+  <TabItem value="3" label="KLNLKL lwekwlndwldnewl">
     - Insecure deserialization
     - Web LLM attacks
     - GraphQL API vulnerabilities
