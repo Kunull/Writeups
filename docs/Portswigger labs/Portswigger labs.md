@@ -1,3 +1,11 @@
+---
+custom_edit_url: null
+pagination_next: null
+pagination_prev: null
+sidebar_position: 1
+---
+
+
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
