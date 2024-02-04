@@ -2,6 +2,7 @@
 custom_edit_url: null
 pagination_next: null
 pagination_prev: null
+sidebar_position: 4
 ---
 
 ![cusco2](https://github.com/Knign/Write-ups/assets/110326359/2d741c64-e9f4-46e2-9c97-dad12dd3a35d)
