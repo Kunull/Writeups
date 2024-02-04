@@ -39,11 +39,11 @@ html[data-theme='light'] .navbar .navbar__logo {
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-menu-color-background-active: #222222;
-  --ifm-menu-color-background-hover: #222222;
-  --ifm-breadcrumb-item-background-active: #222222;
-  --ifm-navbar-background-color: #222222;
-  --ifm-footer-background-color: #222222;
+  --ifm-menu-color-background-active: #333333;
+  --ifm-menu-color-background-hover: #333333;
+  --ifm-breadcrumb-item-background-active: #333333;
+  --ifm-navbar-background-color: #333333;
+  --ifm-footer-background-color: #333333;
   --ifm-color-primary: #777;
   --ifm-color-primary-dark: #666;
   --ifm-color-primary-darker: #555;
@@ -71,7 +71,11 @@ html[data-theme="dark"] .navbar-sidebar {
 }
 
 code { 
-  background-color: #474748;
+  background-color: #333333;
+}
+
+.breadcrumbs__item--active .breadcrumbs__link {
+    background: #333333;
 }
 
 article {
