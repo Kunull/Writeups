@@ -55,7 +55,7 @@ pagination_prev: null
 
 
 ## Security Level: High
-> The developer is now white listing only the allowed languages, you must find a way to run your code without it going to the server. Spoiler: The fragment section of a URL (anything after the # symbol) does not get sent to the server and so cannot be blocked. The bad JavaScript being used to render the page reads the content from it when creating the page. /vulnerabilities/xss_d/?default=English#<script>alert(1)</script>.
+> The developer is now white listing only the allowed languages, you must find a way to run your code without it going to the server. Spoiler: The fragment section of a URL (anything after the # symbol) does not get sent to the server and so cannot be blocked. The bad JavaScript being used to render the page reads the content from it when creating the page. /vulnerabilities/xss_d/?default=English#<script>alert(document.cookie);</script>.
 - Let's check the source code first.
 
 ![6](https://github.com/Knign/Write-ups/assets/110326359/602f9853-2478-423b-a9f6-1f0d31c5710e)
