@@ -44,12 +44,12 @@ html[data-theme='light'] .navbar .navbar__logo {
   --ifm-breadcrumb-item-background-active: #222;
   --ifm-navbar-background-color: #222;
   --ifm-footer-background-color: #222;
-  --ifm-color-primary: #eaeaea;
-  --ifm-color-primary-dark: #e4e4e4;
-  --ifm-color-primary-darker: #e6e6e6;
-  --ifm-color-primary-darkest: #e8e8e8;
-  --ifm-color-primary-light: #ececec;
-  --ifm-color-primary-lighter: #eeeeee;
+  --ifm-color-primary: #e8e8e8;
+  --ifm-color-primary-dark: #dfdfdf;
+  --ifm-color-primary-darker: #d8d8d8;
+  --ifm-color-primary-darkest: #cfcfcf;
+  --ifm-color-primary-light: #efefef;
+  --ifm-color-primary-lighter: #f8f8f8;
   --ifm-color-primary-lightest: #ffffff;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
