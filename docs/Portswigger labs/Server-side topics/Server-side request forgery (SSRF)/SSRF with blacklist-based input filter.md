@@ -5,9 +5,6 @@ pagination_prev: null
 sidebar_position: 4
 ---
 
-> https://portswigger.net/web-security/ssrf/lab-ssrf-with-blacklist-filter
-
-![[1 100.png]]
 
 Let's check out the stock.
 
