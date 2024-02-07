@@ -138,7 +138,7 @@ const config = {
           },
           
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} Write-ups, Built with Docusaurus by Kunal Walavalkar.`,
+        copyright: `Copyright © ${new Date().getFullYear()} Kunal Walavalkar.`,
       },
       prism: {
         theme: prismThemes.vsDark,
