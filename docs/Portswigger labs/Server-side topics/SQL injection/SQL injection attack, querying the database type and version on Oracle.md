@@ -16,6 +16,7 @@ Since we are proxying the traffic through Burp Suite, we can go to the `Proxy > 
 ![3](https://github.com/Knign/Write-ups/assets/110326359/f8925d03-680c-4ebb-896f-6c6157aebc7a)
 
 Let's forward the request to the `Repeater` for further modification.
+
 Once in the `Repeater`, let's set the `category` parameter to the following:
 
 ```
