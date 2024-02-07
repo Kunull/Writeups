@@ -104,6 +104,11 @@ const config = {
             label: 'GitHub',
             position: 'right',
           },
+          {
+            href: 'https://www.linkedin.com/in/kunalwalavalkar/',
+            label: 'LinkedIn',
+            position: 'right',
+          },
         ],
       },
       footer: {
@@ -129,6 +134,10 @@ const config = {
               {
                 label: 'Github',
                 href: 'https://github.com/Knign',
+              },
+              {
+                href: 'https://www.linkedin.com/in/kunalwalavalkar/',
+                label: 'LinkedIn',
               },
               // {
               //   label: 'Email',
