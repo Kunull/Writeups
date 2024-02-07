@@ -2,7 +2,7 @@
 custom_edit_url: null
 pagination_next: null
 pagination_prev: null
-sidebar_position: 7
+sidebar_position: 6
 ---
 
 ![1](https://github.com/Knign/Write-ups/assets/110326359/c62c1005-0fff-45f0-bab4-39346cd7a589)
