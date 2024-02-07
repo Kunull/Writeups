@@ -12,10 +12,10 @@
   --ifm-breadcrumb-item-background-active: #dadada;
   --ifm-navbar-background-color: #dadada;
   --ifm-footer-background-color: #dadada;
-  --ifm-color-primary: #555;
-  --ifm-color-primary-dark: #444;
-  --ifm-color-primary-darker: #333;
   --ifm-color-primary-darkest: #222;
+  --ifm-color-primary-darker: #333;
+  --ifm-color-primary-dark: #444;
+  --ifm-color-primary: #555;
   --ifm-color-primary-light: #666;
   --ifm-color-primary-lighter: #777;
   --ifm-color-primary-lightest: #888;
