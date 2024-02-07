@@ -71,11 +71,11 @@ html[data-theme="dark"] .navbar-sidebar {
 }
 
 code { 
-  background-color: #333333;
+  background-color: #222;
 }
 
 .breadcrumbs__item--active .breadcrumbs__link {
-    background: #333333;
+    background: #222;
 }
 
 element.style {
