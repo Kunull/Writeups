@@ -44,10 +44,10 @@ html[data-theme='light'] .navbar .navbar__logo {
   --ifm-breadcrumb-item-background-active: #222;
   --ifm-navbar-background-color: #222;
   --ifm-footer-background-color: #222;
-  --ifm-color-primary: #e8e8e8;
-  --ifm-color-primary-dark: #dfdfdf;
-  --ifm-color-primary-darker: #d8d8d8;
   --ifm-color-primary-darkest: #cfcfcf;
+  --ifm-color-primary-darker: #d8d8d8;
+  --ifm-color-primary-dark: #dfdfdf;
+  --ifm-color-primary: #e8e8e8;
   --ifm-color-primary-light: #efefef;
   --ifm-color-primary-lighter: #f8f8f8;
   --ifm-color-primary-lightest: #ffffff;
