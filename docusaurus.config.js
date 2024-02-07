@@ -141,7 +141,7 @@ const config = {
         copyright: `Copyright © ${new Date().getFullYear()} Write-ups, Built with Docusaurus by Kunal Walavalkar.`,
       },
       prism: {
-        theme: prismThemes.dracula;
+        theme: prismThemes.dracula,
       },
 
       
