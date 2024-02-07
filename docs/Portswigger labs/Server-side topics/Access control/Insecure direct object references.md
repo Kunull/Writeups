@@ -5,7 +5,7 @@ pagination_prev: null
 sidebar_position: 9
 ---
 
-![Uploading 1.png…]()
+![1](https://github.com/Knign/Write-ups/assets/110326359/f46e9246-1f1f-4d05-83cc-0fa63e820988)
 
 Let's start the live chat.
 
