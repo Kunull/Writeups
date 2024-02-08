@@ -3,7 +3,7 @@ custom_edit_url: null
 pagination_next: null
 pagination_prev: null
 sidebar_position: 2
-description: https://portswigger.net/web-security/ssrf/lab-basic-ssrf-against-backend-system
+description: URI: https://portswigger.net/web-security/ssrf/lab-basic-ssrf-against-backend-system
 ---
 
 ![1](https://github.com/Knign/Write-ups/assets/110326359/6752b464-8aac-4292-87b4-7b09cbd9c8d2)
