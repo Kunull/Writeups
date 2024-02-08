@@ -1,35 +1,37 @@
----
+![4](https://github.com/Knign/Write-ups/assets/110326359/6ae639a7-86b3-4d80-bf1c-44da8a26a765)---
 custom_edit_url: null
 pagination_next: null
 pagination_prev: null
 sidebar_position: 4
 ---
 
+![1](https://github.com/Knign/Write-ups/assets/110326359/fb708aaa-65ca-4de1-bd08-c26be142584a)
 
 Let's check out the stock.
 
-![[2 105.png]]
+![2](https://github.com/Knign/Write-ups/assets/110326359/95f8aa50-fafe-4aa5-b532-13118d26abc1)
 
 We can intercept the request using Burpsuite.
 
-![[3 83.png]]
+![3](https://github.com/Knign/Write-ups/assets/110326359/404e9755-cfff-48e6-8663-084ff35ba964)
 
 Let's send the request to the `Repeater`.
+
 We can set the `stockApi` field to the following and send the request:
 
 ```
 http://localhost/admin
 ```
 
-![[4 70.png]]
+![4](https://github.com/Knign/Write-ups/assets/110326359/23b1b28b-5db1-43b5-8d17-aaf931166127)
 
 So that request is blocked.
+
 Let's send the following request:
 
 ```
 http://127.1/
 ```
-
 
 That returns a valid response.
 
