@@ -1,4 +1,5 @@
 ---
+title: Server-side request forgery (SSRF)
 custom_edit_url: null
 pagination_next: null
 pagination_prev: null
