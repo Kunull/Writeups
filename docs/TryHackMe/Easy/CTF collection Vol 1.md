@@ -1,4 +1,5 @@
 ---
+title: CTF collection Vol.1
 custom_edit_url: null
 pagination_next: null
 pagination_prev: null
@@ -6,7 +7,7 @@ pagination_prev: null
 
 ## Task 2: What does the base said?
 ### Feed me the flag!
-- We can decode the flag using the `base64` utility.
+We can decode the flag using the `base64` utility.
 ```
 $ echo "VEhNe2p1NTdfZDNjMGQzXzdoM19iNDUzfQ==" | base64 -d
 THM{ju57_d3c0d3_7h3_b453} 
@@ -20,8 +21,9 @@ THM{ju57_d3c0d3_7h3_b453}
 
 ## Task 3: Meta meta
 ### I'm hungry, I need the flag.
-- The name of the task hints us that the flag might be in the image metadata.
-- We can extract this metadata using `exiftool`.
+The name of the task hints us that the flag might be in the image metadata.
+
+We can extract this metadata using `exiftool`.
 ```
 $ exiftool Findme.jpg                                    
 ExifTool Version Number         : 12.44
@@ -64,8 +66,9 @@ THM{3x1f_0r_3x17}
 
 ## Task 4: Mon, are we going to be okay?
 ### It is sad. Feed me the flag.
-- Sometimes other data or files can be hidden inside of JPG files.
-- We can use `steghide` to extract these hidden files.
+Sometimes other data or files can be hidden inside of JPG files.
+
+We can use `steghide` to extract these hidden files.
 ```
 $ steghide extract -sf Extinction.jpg       
 Enter passphrase: 
@@ -87,7 +90,7 @@ THM{500n3r_0r_l473r_17_15_0ur_7urn}
 
 ## Task 5: Erm......Magick
 ### Did you find the flag?
-- If we just select the task string, we will see the flag.
+If we just select the task string, we will see the flag.
 
 ![1](https://github.com/Knign/Write-ups/assets/110326359/68029f7d-0ff6-4f5c-9072-eb3530417946)
 
@@ -100,8 +103,8 @@ THM{wh173_fl46}
 
 ## Task 6: QRrrrr
 ### More flag please!
-- The image we have is a QR code. 
-- In order to extract the flag, we can use the ZXing Decoder.
+The image we have is a QR code. 
+In order to extract the flag, we can use the ZXing Decoder.
 
 ![2](https://github.com/Knign/Write-ups/assets/110326359/46409cd1-5320-4675-80e9-f6115a0620c6)
 
@@ -114,12 +117,12 @@ THM{qr_m4k3_l1f3_345y}
 
 ## Task 7: Reverse it or read it?
 ### Found the flag?
-- For this challenge we are given an executable file.
+For this challenge we are given an executable file.
 ```
 $ file hello.hello      
 hello.hello: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=02900338a56c3c8296f8ef7a8cf5df8699b18696, for GNU/Linux 3.2.0, not stripped
 ```
-- We can check the strings inside the file using the `strings` command.
+We can check the strings inside the file using the `strings` command.
 ```
 $ strings hello.hello                
 /lib64/ld-linux-x86-64.so.2
@@ -146,7 +149,7 @@ THM{345y_f1nd_345y_60}
 
 ## Task 8 Another decoding stuff
 ### Oh, Oh, Did you get it?
-- We can use the `Magic` function from CyberChef to decode the flag.
+We can use the `Magic` function from CyberChef to decode the flag.
 
 ![3](https://github.com/Knign/Write-ups/assets/110326359/db3e5b82-3a1f-447a-ba27-11251627440b)
 
@@ -160,7 +163,7 @@ THM{17_h45_l3553r_l3773r5}
 ## Task 9 Left or right
 ### Left, right, left, right... Rot 13 is too mainstream. Solve this
 > MAF\{atbe_max_vtxltk}
-- Let's use the `Rot13` function with the amount set to `7`.
+Let's use the `Rot13` function with the amount set to `7`.
 
 ![4](https://github.com/Knign/Write-ups/assets/110326359/86fbe638-fc42-401d-89ad-30ddd0f9ca7f)
 
@@ -173,7 +176,7 @@ THM{hail_the_caesar}
 
 ## Task 10: Make a comment
 ### I'm hungry now... I need the flag
-- Let's inspect the page.
+Let's inspect the page.
 
 ![5](https://github.com/Knign/Write-ups/assets/110326359/ce14e4e8-4599-4236-bda1-4cdab0366012)
 
@@ -186,7 +189,7 @@ THM{4lw4y5_ch3ck_7h3_c0m3mn7}
 
 ## Task 11: Can you fix it?
 ### What is the content?
-- Let's check the hash dump of the PNG file.
+Let's check the hash dump of the PNG file.
 ```
 $ xxd spoil.png | head
 00000000: 2333 445f 0d0a 1a0a 0000 000d 4948 4452  #3D_........IHDR
@@ -200,18 +203,18 @@ $ xxd spoil.png | head
 00000080: 2f75 e63a 23ea 8c0c e830 8e03 6470 c191  /u.:#....0..dp..
 00000090: cd80 880c 4b20 0909 184c 42b6 4ed2 e9f4  ....K ...LB.N...
 ```
-- So the first 4 characters are wrong. In a PNG file the first 4 characters should be `89 50 4E 47` as shown in this image:
+So the first 4 characters are wrong. In a PNG file the first 4 characters should be `89 50 4E 47` as shown in this image:
 
 ![8](https://github.com/Knign/Write-ups/assets/110326359/a87fe4cb-fc6c-429a-9f68-008d13af3354)
 
-- Let's use `hexedit` to fix the bytes.
+Let's use `hexedit` to fix the bytes.
 ```
 $ hexedit spoil.png
 ```
 
 ![6](https://github.com/Knign/Write-ups/assets/110326359/029760e0-6cff-4a6a-ab71-ab29256d56e2)
 
-- We should now be able to view the image.
+We should now be able to view the image.
 
 ![7](https://github.com/Knign/Write-ups/assets/110326359/9b2514d5-0236-4d24-9083-3580137e5748)
 
@@ -223,8 +226,9 @@ THM{y35_w3_c4n}
 
 ## Task 12 Read it
 ### Did you found the hidden flag?
-- For this question, we have to perform some Google dorking.
-- Enter the following text in the search bar and click on the first link:
+For this question, we have to perform some Google dorking.
+
+Enter the following text in the search bar and click on the first link:
 ```
 site:reddit.com/[r/tryhackme](https://www.reddit.com/r/tryhackme/) intext:THM{*}
 ```
@@ -240,8 +244,9 @@ THM{50c14l_4cc0un7_15_p4r7_0f_051n7}
 
 ## Task 13: Spin my head
 ### Can you decode it?
-- The text is encrypted using Brainfuck.
-- We can decode it using an online decoder.
+The text is encrypted using Brainfuck.
+
+We can decode it using an online decoder.
 
 ![9](https://github.com/Knign/Write-ups/assets/110326359/d204134f-f754-4699-8aa6-a3cdc5e55d58)
 
@@ -254,8 +259,9 @@ THM{0h_my_h34d}
 
 ## Task 14: An exclusive!
 ### Did you crack it? Feed me now!
-- Since there are two strings, the possible decryption method is XOR.
-- Let's use an online decoder.
+Since there are two strings, the possible decryption method is XOR.
+
+Let's use an online decoder.
 
 ![10](https://github.com/Knign/Write-ups/assets/110326359/d88ab1a2-55b8-482c-bde4-39d1daff3f5d)
 
@@ -268,7 +274,7 @@ THM{3xclu51v3_0r}
 
 ## Task 15 Binary walk
 ### Flag! Flag! Flag!
-- We have to extract the embedded files from the JPG file using `binwalk`.
+We have to extract the embedded files from the JPG file using `binwalk`.
 ```
 $ binwalk -e hell.jpg 
 
@@ -279,7 +285,7 @@ DECIMAL       HEXADECIMAL     DESCRIPTION
 265845        0x40E75         Zip archive data, at least v2.0 to extract, uncompressed size: 69, name: hello_there.txt
 266099        0x40F73         End of Zip archive, footer length: 22
 ```
-- We can now read the flag from the `hello.txt` file.
+We can now read the flag from the `hello.txt` file.
 ```
 $ cat _hell.jpg.extracted/hello_there.txt 
 Thank you for extracting me, you are the best!
@@ -295,23 +301,23 @@ THM{y0u_w4lk_m3_0u7}
 
 ## Task 16 Darkness
 ### What does the flag said?
--  We have to first download `stegsolve` for this task using the following command:
+We have to first download `stegsolve` for this task using the following command:
 ```
 $ wget http://www.caesum.com/handbook/Stegsolve.jar -O stegsolve.jar
 $ chmod +x stegsolve.jar
 $ mkdir bin
 $ mv stegsolve.jar bin/
 ```
-- We have to now move the `dark.png` image to the `bin` folder that we crated.
+We have to now move the `dark.png` image to the `bin` folder that we crated.
 ```
 $ mv dark.png bin 
 ```
-- We are now ready to use `stegsolve`.
+We are now ready to use `stegsolve`.
 ```
 $ java -jar stegsolve.jar
 Picked up _JAVA_OPTIONS: -Dawt.useSystemAAFontSettings=on -Dswing.aatext=true
 ```
-- After opening the image using `stegsolve`, we have to go to `Blue plane 1` to be able to see the flag.
+After opening the image using `stegsolve`, we have to go to `Blue plane 1` to be able to see the flag.
 
 ![11](https://github.com/Knign/Write-ups/assets/110326359/cb440d62-8caa-4374-ac31-3d85b4996a33)
 
@@ -324,16 +330,17 @@ THM{7h3r3_15_h0p3_1n_7h3_d4rkn355}
 
 ## Task 17: A sounding QR
 ### What does the bot said?
-- Let's decode the `QRCTF.png` file using Zxing.
+Let's decode the `QRCTF.png` file using Zxing.
 
 ![12](https://github.com/Knign/Write-ups/assets/110326359/52f7b2b3-9ccd-4afb-b34a-0c3f981bfd79)
 
-- We are given a Soundcloud link as the result. 
-- Let's visit the link.
+We are given a Soundcloud link as the result. 
+
+Let's visit the link.
 
 ![13](https://github.com/Knign/Write-ups/assets/110326359/dc6313b9-46df-4955-a110-60cd6a4a658a)
 
-- The audio tells us that the flag is `soundingqr`.
+The audio tells us that the flag is `soundingqr`.
 ### Answer
 ```
 THM{SOUNDINGQR}
@@ -343,11 +350,11 @@ THM{SOUNDINGQR}
 
 ## Task 18: Dig up the past
 ### Did you found my past?
-- For this one we have to use the Wayback Machine.
+For this one we have to use the Wayback Machine.
 
 ![14](https://github.com/Knign/Write-ups/assets/110326359/e9fb5775-00dc-4163-9be0-6f4024f20c61)
 
-- Let's look at the snapshot created on January 2, 2020.
+Let's look at the snapshot created on January 2, 2020.
 
 ![15](https://github.com/Knign/Write-ups/assets/110326359/da138dd8-b527-4b31-a917-70165cae04cf)
 
@@ -360,8 +367,9 @@ THM{ch3ck_th3_h4ckb4ck}
 
 ## Task 19: Uncrackable!
 ### The deciphered text
-- In this task, we have to use the # Vigenère cipher.
-- The key is `THM`.
+In this task, we have to use the # Vigenère cipher.
+
+The key is `THM`.
 
 ![16](https://github.com/Knign/Write-ups/assets/110326359/c6b74ee0-db0e-4eee-8788-14866229ab2e)
 
@@ -374,7 +382,7 @@ TRYHACKME{YOU_FOUND_THE_KEY}
 
 ## Task 20: Small bases
 ### What is the flag?
-- We simply have to convert it from Decimal to Hexadecimal to ASCIII.
+We simply have to convert it from Decimal to Hexadecimal to ASCIII.
 
 ![17](https://github.com/Knign/Write-ups/assets/110326359/ac22f290-850d-4a07-8c37-9d33b8f3e185)
 
@@ -394,12 +402,12 @@ THM{17_ju57_4n_0rd1n4ry_b4535}
 
 ## Task 21: Read the packet
 ### Did you captured my neighbor's flag?
-- We have to open the PCAP using Wireshark and set the following filter:
+We have to open the PCAP using Wireshark and set the following filter:
 ```
 tcp.stream == 42
 ```
-- That filters for the HTTP packets.
-- We can find the flag in packet `1827`.
+That filters for the HTTP packets.
+We can find the flag in packet `1827`.
 
 ![19](https://github.com/Knign/Write-ups/assets/110326359/4d8fb8bf-40a6-4377-a9a0-c31daf192342)
 
