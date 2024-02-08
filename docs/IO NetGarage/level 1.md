@@ -11,6 +11,7 @@ sh-4.3$ ./level01
 Enter the 3 digit passcode to enter:
 ```
 As we can see we need to enter a 3digit passcode.
+
 We can disassemble the program using `gdb` to get an idea of how the program performs it's checks.
 ```
 (gdb) disassemble main
@@ -25,5 +26,6 @@ End of assembler dump.
 ```
 We can see that the value stored in `$eax` is being compared to `0x10f`.
 As this is the only comparison, this  should be our input.
+
 `0x10f` in decimal is 271.
 We can provide this value as the passcode and solve the level.
