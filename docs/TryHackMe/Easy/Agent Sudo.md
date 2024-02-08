@@ -5,8 +5,6 @@ pagination_prev: null
 ---
 
 ## Task 1: Author note
-> Welcome to another THM exclusive CTF room. Your task is simple, capture the flags just like the other CTF room. Have Fun!
-
 ### Deploy the machine
 ### No answer needed
 
