@@ -96,7 +96,7 @@ const config = {
           
           {
             href: 'https://kunalwalavalkar.vercel.app',
-            label: 'Personal Portfolio',
+            label: 'Main site',
             position: 'right',
           },
           {
@@ -128,7 +128,7 @@ const config = {
             title: 'Socials',
             items: [
               {
-                label: 'Personal Website',
+                label: 'Main site',
                 href: 'https://kunalwalavalkar.vercel.app',
               },
               {
