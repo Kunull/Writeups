@@ -124,10 +124,20 @@ const config = {
                 href: 'https://www.linkedin.com/in/kunalwalavalkar/',
                 label: 'LinkedIn',
               },
-              // {
-              //   label: 'Email',
-              //   href: 'walavalkarkunal@skiff.com',
-              // },
+            ],
+          },
+
+          {
+            title: 'CTF Accounts',
+            items: [
+              {
+                label: 'TryHackMe',
+                href: 'https://tryhackme.com/p/Knign',
+              },
+              {
+                label: 'Hack The Box',
+                href: 'https://app.hackthebox.com/profile/1158503',
+              },
             ],
           },
           
