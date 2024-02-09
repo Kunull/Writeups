@@ -73,18 +73,11 @@ const config = {
           src: 'img/play.png',
         },
         items: [
-          // {
-          //   type: 'docSidebar',
-          //   sidebarId: 'tutorialSidebar',
-          //   position: 'left',
-          //   label: 'Tutorial',
-          // },
-          // {to: '/blog', label: 'Blog', position: 'left'},
-     //     {
-     //       href: 'https://kunalwalavalkar.vercel.app',
-     //       label: 'CVE Reports',
-     //       position: 'left',
-     //     },
+          {
+            href: 'https://kunalwalavalkarblog.vercel.app',
+            label: 'Blog',
+            position: 'left',
+          },
           
           {
             href: 'https://kunalwalavalkar.vercel.app',
@@ -106,15 +99,15 @@ const config = {
       footer: {
         style: 'light',
         links: [
-       //   {
-       //     title: 'More',
-       //     items: [
-       //       {
-       //         label: 'Cve Reports',
-        //        href: 'https://kunalwalavalkar.vercel.app',
-         //     },
-        //    ],
-        //  },
+          {
+            title: 'Other collections',
+            items: [
+              {
+                label: 'Blog',
+                href: 'https://kunalwalavalkarblog.vercel.app',
+              },
+            ],
+          },
           
           {
             title: 'Socials',
