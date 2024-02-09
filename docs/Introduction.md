@@ -6,6 +6,6 @@ pagination_next: null
 pagination_prev: null
 ---
 
-This sub-doamin contains write-ups for the CTF challenges that I have solved. 
+This is a coleection of write-ups for the CTF challenges that I have solved. 
 
 It is updated on most days and will continue to be for the foreseeable future.
