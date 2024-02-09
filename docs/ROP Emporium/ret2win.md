@@ -100,7 +100,7 @@ End of assembler dump.
 ```
 This function seems kind of useless as it isn't accessing the `flag` file.
 ### ret2win()
-```{8}
+```
 pwndbg> disassemble ret2win
 Dump of assembler code for function ret2win:
    0x0000000000400756 <+0>:     push   rbp
