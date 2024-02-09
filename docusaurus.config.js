@@ -80,11 +80,11 @@ const config = {
           //   label: 'Tutorial',
           // },
           // {to: '/blog', label: 'Blog', position: 'left'},
-          {
-            href: 'https://kunalwalavalkar.vercel.app',
-            label: 'CVE Reports',
-            position: 'left',
-          },
+     //     {
+     //       href: 'https://kunalwalavalkar.vercel.app',
+     //       label: 'CVE Reports',
+     //       position: 'left',
+     //     },
           
           {
             href: 'https://kunalwalavalkar.vercel.app',
@@ -107,14 +107,14 @@ const config = {
         style: 'light',
         links: [
           {
-            title: 'More',
-            items: [
-              {
-                label: 'Cve Reports',
-                href: 'https://kunalwalavalkar.vercel.app',
-              },
-            ],
-          },
+       //     title: 'More',
+       //     items: [
+       //       {
+       //         label: 'Cve Reports',
+        //        href: 'https://kunalwalavalkar.vercel.app',
+         //     },
+        //    ],
+        //  },
           
           {
             title: 'Socials',
