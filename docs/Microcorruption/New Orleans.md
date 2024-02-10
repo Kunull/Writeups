@@ -17,7 +17,7 @@ If we continue through the program using the `continue` or `c` command, the prog
 ![neworleans3](https://github.com/Knign/Write-ups/assets/110326359/fc57a6e7-b8c5-4040-ab82-d4a3104e3bba)
 
 The program calls the following functions:
-  - `create_password`: Creates and sets a password for the lock. 
+	- `create_password`: Creates and sets a password for the lock. 
 	- `get_password`: Takes user input.
 	- `check_password`: Checks if user input is correct.
 The `create_password` function seems interesting. Let's set a breakpoint there using `break 447e` and continue execution flow using `c`.
