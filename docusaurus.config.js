@@ -45,9 +45,7 @@ const config = {
           sidebarPath: './sidebars.js',
           routeBasePath: '/',
         },
-        blog: {
-          showReadingTime: true,
-        },
+        blog: false,
         theme: {
           customCss: './src/css/custom.css',
         },
