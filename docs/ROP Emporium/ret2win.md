@@ -209,8 +209,8 @@ We can see that if we increment the `rbp` by 8, it will point to the saved retur
 Therefore the distance between the buffer and the saved return address is `offset+8` which is equal to 40.
 ### Exploit requirements
 We have all the information we need to create an exploit.
-	- Address of `ret2win`: `0x0000000000400756`
-	- Distance between the buffer and return address: `40`
+	- [x] Address of `ret2win`: `0x0000000000400756`
+	- [x] Distance between the buffer and return address: `40`
 ### Exploit
 ```python
 from pwn import *
@@ -329,8 +329,8 @@ We can see that if we increment the `ebp` by 4, it will point to the saved retur
 Therefore the distance between the buffer and the saved return address is `offset+4` which is equal to 44.
 ### Exploit requirements
 We have all the information we need to create an exploit.
-	- Address of `ret2win`: `0x0804862c`
-	- Distance between the buffer and return address: `44`
+	- [x] Address of `ret2win`: `0x0804862c`
+	- [x] Distance between the buffer and return address: `44`
 ### Exploit
 ```python
 from pwn import *
