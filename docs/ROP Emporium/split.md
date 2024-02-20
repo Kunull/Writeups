@@ -160,17 +160,17 @@ Therefore the distance between the buffer and the saved return address is `offse
 
 ### Exploit requirements
 We have all the knowledge we need to create an exploit.
-	-  Number of padding bytes: `40`
-	- Address of `pop rdi` gadget: `0x00000000004007c3`
-	- Address of `/bin/cat flag.txt`: `0x601060`
-	- Address of `call <system@plt>`: `0x000000000040074b`
+	- [x] Number of padding bytes: `40`
+	- [x] Address of `pop rdi` gadget: `0x00000000004007c3`
+	- [x] Address of `/bin/cat flag.txt`: `0x601060`
+	- [x] Address of `call <system@plt>`: `0x000000000040074b`
 All that remains is to link these pieces of information to create a ROP chain.
 
 ### ROP chain
 In this technique, we have to execute our instructions in a carefully chosen sequence:
-	- First we have to replace the `return address` with the address of the `pop rdi` gadget so that it is executed when `pwnme` returns.
-	- Then we have to chain it with the address of the `/bin/cat flag.txt` string so that it gets popped into the `rdi register`.
-	- Finally we chain it with the address of the `system@plt` call.
+	1. First we have to replace the `return address` with the address of the `pop rdi` gadget so that it is executed when `pwnme` returns.
+	2. Then we have to chain it with the address of the `/bin/cat flag.txt` string so that it gets popped into the `rdi register`.
+	3. Finally we chain it with the address of the `system@plt` call.
 This is what the ROP chain would look like on the stack.
 ```
 Stack:
@@ -340,15 +340,15 @@ We can see that if we increment the `ebp` by 4, it will point to the saved retur
 Therefore the distance between the buffer and the saved return address is `offset+4` which is equal to 44.
 ### Exploit requirements
 We have all the knowledge we need to create an exploit.
-	- Number of padding bytes: `44`
-	- Address of `/bin/cat flag.txt`: `0x804a030`
-	- Address of `call <system@plt>`: `0x0804861a`
+	- [x] Number of padding bytes: `44`
+	- [x] Address of `/bin/cat flag.txt`: `0x804a030`
+	- [x] Address of `call <system@plt>`: `0x0804861a`
 All that remains is to link these pieces of information to create a ROP chain.
 
 ### ROP chain
 In this technique, we have to execute our instructions in a carefully chosen sequence:
-	- First we have to replace the `return address` with the address of the `system@plt` call so that it is executed when `pwnme` returns.
-	- Then we have to chain it with the address of the `/bin/cat flag.txt` string so that it can act as the argument of the `system@plt` call.
+	1. First we have to replace the `return address` with the address of the `system@plt` call so that it is executed when `pwnme` returns.
+	2. Then we have to chain it with the address of the `/bin/cat flag.txt` string so that it can act as the argument of the `system@plt` call.
 This is what the ROP chain would look like on the stack.
 ```
 Stack:-
