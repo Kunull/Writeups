@@ -13,7 +13,7 @@ Let's follow the TCP stream via `Follow > TCP Stream`.
 
 ![2](https://github.com/Knign/Write-ups/assets/110326359/36b2d84d-71b8-4d67-9a4e-daf50432f229)
 
-## Answer
+### Answer
 ```
 use your own password
 ```
@@ -33,7 +33,7 @@ Let's use Cyberchef to decode it.
 
 ![4](https://github.com/Knign/Write-ups/assets/110326359/6cfc7113-0281-430e-84ff-6c4b5e935baa)
 
-## Answer
+### Answer
 ```
 redforever
 ```
@@ -50,7 +50,7 @@ Archive:  file.zip
   inflating: README.txt              
 ```
 As there are no more Zip files, we can safely say that no more password will be required.
-## Answer
+### Answer
 ```
 No
 ```
@@ -59,7 +59,7 @@ No
 
 ## What is the name of a widely-used tool that can be used to obtain file information?
 The `exiftool` utility can be used to obtain file information such as the metadata.
-## Answer
+### Answer
 ```
 Exiftool
 ```
@@ -98,7 +98,7 @@ Image Size                      : 1080x1018
 Megapixels                      : 1.1
 ```
 All the information is pretty standard for an image except for the `Technique : Steganography` field. Steganography is used to hide information in other information most notably images.
-## Answer
+### Answer
 ```
 Technique : Steganography
 ```
@@ -111,7 +111,7 @@ The `steghide` tool needs to be used retrieve the hidden information.
 Technique                       : Steganography
 Technique Command               : steghide
 ```
-## Answer
+### Answer
 ```
 StegHide
 ```
@@ -130,7 +130,7 @@ The `sf` flag is used to specify the name of the stego file.
 $ cat idInsider.txt 
 0726ba878ea47de571777a
 ```
-## Answer
+### Answer
 ```
 0726ba878ea47de571777a
 ```
@@ -151,7 +151,7 @@ What if we replace this ID with the one we retrieved: `0726ba878ea47de571777a`.
 ![6](https://github.com/Knign/Write-ups/assets/110326359/c25b16d1-b2c3-4c2a-8799-acc49fc8b2ef)
 
 We have our attacker.
-## Answer
+### Answer
 ```
 bluetiger
 ```
