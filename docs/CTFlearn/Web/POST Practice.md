@@ -7,8 +7,7 @@ pagination_prev: null
 > This website requires authentication, via POST. However, it seems as if someone has defaced our site. Maybe there is still some way to authenticate? 
 > http://165.227.106.113/post.php
 
-
-- Before we do anything else let's check the source code.
+Before we do anything else let's check the source code.
 
 ![1 5](https://github.com/Knign/Write-ups/assets/110326359/a6ac0e5d-58b2-4801-9311-315b53247c11)
 
@@ -17,17 +16,19 @@ username: admin
 password: 71urlkufpsdnlkadsf
 ```
 ## Burpsuite
-- Let's open Burpsuite and turn on the `Proxy`.
-- Then we can visit the website again so that it shows up in the `Proxy > HTTP History`.
+Let's open Burpsuite and turn on the `Proxy`.
+
+Then we can visit the website again so that it shows up in the `Proxy > HTTP History`.
 
 ![2](https://github.com/Knign/Write-ups/assets/110326359/af5debe2-5282-4637-a5ca-43e00dbd33a8)
 
-- Let's send the HHTP request to the Repeater by `Left click > Send to Repeater`.
+Let's send the HHTP request to the Repeater by `Left click > Send to Repeater`.
 
 ![3](https://github.com/Knign/Write-ups/assets/110326359/db0fee9f-2d65-4f0b-9d04-6e41a54ddf42)
 
-- Now we have to add the username and password as the content to this request and change the method to POST. 
-- The HTTP request must look like this when we are done:
+Now we have to add the username and password as the content to this request and change the method to POST. 
+
+The HTTP request must look like this when we are done:
 ```
 POST /post.php HTTP/1.1
 Host: 165.227.106.113
@@ -45,7 +46,7 @@ Content-Length: 42
 
 username=admin&password=71urlkufpsdnlkadsf
 ```
-- We can now send the request and check the `Response` tab.
+We can now send the request and check the `Response` tab.
 
 ![4](https://github.com/Knign/Write-ups/assets/110326359/26fe62d6-9abc-4fad-88a1-619e1dc0609a)
 
