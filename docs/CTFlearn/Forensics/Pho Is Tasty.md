@@ -7,7 +7,8 @@ pagination_prev: null
 
 > The flag is hidden in the jpeg file. Good Luck! Have some Pho! Solve this challenge before solving my Scope challenge for 100 points.
 > [Pho.jpg](https://ctflearn.com/challenge/download/971)
-- Before doing anything else let's use the `exiftool` utility to check the image metadata.
+
+Before doing anything else let's use the `exiftool` utility to check the image metadata.
 ```
 $ exiftool 971
 ExifTool Version Number         : 12.40
@@ -34,7 +35,7 @@ Y Cb Cr Sub Sampling            : YCbCr4:2:0 (2 2)
 Image Size                      : 595x661
 Megapixels                      : 0.393
 ```
-- We can use the `xxd` utility to look at the hexadecimal dump of the image.
+We can use the `xxd` utility to look at the hexadecimal dump of the image.
 ```
 $ xxd 971 | head
 00000000: ffd8 ffe0 0010 4a46 4946 0001 0100 0001  ......JFIF......
