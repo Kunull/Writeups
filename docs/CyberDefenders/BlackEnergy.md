@@ -6,7 +6,7 @@ pagination_prev: null
 
 
 ## Q1. Which volatility profile would be best for this machine?
-- We can find the correct profile using the `kdbgscan` plugin.
+We can find the correct profile using the `kdbgscan` plugin.
 ```
 $ volatility_2.5.linux.standalone/volatility_2.5_linux_x64 -f CYBERDEF-567078-20230213-171333.raw kdbgscan 
 Volatility Foundation Volatility Framework 2.5
@@ -42,7 +42,7 @@ Major (OptionalHeader)        : 5
 Minor (OptionalHeader)        : 1
 KPCR                          : 0xffdff000 (CPU 0)
 ```
-## Answer
+### Answer
 ```
 WinXPSP2x86
 ```
@@ -50,7 +50,7 @@ WinXPSP2x86
 &nbsp;
 
 ## Q2. How many processes were running when the image was acquired?
-- The `pslist` plugin lists out the processes of a system.
+The `pslist` plugin lists out the processes of a system.
 ```
 $ $ volatility3-2.4.1/vol.py -f CYBERDEF-567078-20230213-171333.raw windows.pslist 
 Volatility 3 Framework 2.4.1
@@ -83,10 +83,10 @@ PID     PPID    ImageFileName   Offset(V)       Threads Handles SessionId       
 1444    1484    notepad.exe     0x899e6da0      0       -       0       False   2023-02-13 18:28:42.000000      2023-02-13 18:28:47.000000      Disabled
 276     1484    DumpIt.exe      0x89a0fda0      1       25      0       False   2023-02-13 18:29:08.000000      N/A     Disabled
 ```
-- There are total 25 processes. 
-- 6 of the processes have 0 threads. This means that these 6 processes have been terminated.
-- So, the total number of running processes is 19.
-## Answer
+There are total 25 processes. 6 of the processes have 0 threads. This means that these 6 processes have been terminated.
+
+So, the total number of running processes is 19.
+### Answer
 ```
 19
 ```
@@ -94,7 +94,7 @@ PID     PPID    ImageFileName   Offset(V)       Threads Handles SessionId       
 &nbsp;
 
 ## Q3. What is the process ID of cmd.exe?
-- We can `grep` the list of processes for `cmd.exe`.
+We can `grep` the list of processes for `cmd.exe`.
 ```
 $ volatility3-2.4.1/vol.py -f CYBERDEF-567078-20230213-171333.raw windows.pslist | grep -i "cmd.exe"
 PID     PPID    ImageFileName   Offset(V)       Threads Handles SessionId       Wow64   CreateTime      ExitTime        File output
@@ -102,7 +102,7 @@ PID     PPID    ImageFileName   Offset(V)       Threads Handles SessionId       
 1960ress964100.0cmd.exe 0x89a18da0      0       -       0       False   2023-02-13 18:25:26.000000      2023-02-13 18:25:26.000000      Disabled
 
 ```
-## Answer
+### Answer
 ```
 1960
 ```
@@ -116,8 +116,8 @@ PID     PPID    ImageFileName   Offset(V)       Threads Handles SessionId       
 964     1484    rootkit.exe     0x899dd740      0       -       0       False   2023-02-13 18:25:26.000000      2023-02-13 18:25:26.000000      Disabled
 1960    964     cmd.exe 0x89a18da0      0       -       0       False   2023-02-13 18:25:26.000000      2023-02-13 18:25:26.000000      Disabled
 ```
-- We can find this suspicious process `rootkit.exe` because of it's name and also because it's child process is `cmd.exe`.
-## Answer
+We can find this suspicious process `rootkit.exe` because of it's name and also because it's child process is `cmd.exe`.
+### Answer
 ```
 rootkit.exe
 ```
@@ -125,7 +125,7 @@ rootkit.exe
 &nbsp;
 
 ## Q5. Which process shows the highest likelihood of code injection?
-- Let's look for malicious processes using the `malfind` plugin.
+Let's look for malicious processes using the `malfind` plugin.
 ```
 $ volatility3-2.4.1/vol.py -f CYBERDEF-567078-20230213-171333.raw windows.malfind                                              
 Volatility 3 Framework 2.4.1
@@ -143,21 +143,21 @@ b8 00 00 00 00 00 00 00 ........
 00 00 00 00 00 00 00 00 ........
 00 00 00 00 f8 00 00 00 ........        4d 5a 90 00 03 00 00 00 04 00 00 00 ff ff 00 00 b8 00 00 00 00 00 00 00 40 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 f8 00 00 00                          
 ```
-- We can use dump the output into a file.
+We can use dump the output into a file.
 ```
 $ volatility3-2.4.1/vol.py -f CYBERDEF-567078-20230213-171333.raw -o malfinddump/ windows.malfind --pid 880 --dump
 ```
-- The `md5sum` command gives us the MD5 hash of the file.
+The `md5sum` command gives us the MD5 hash of the file.
 ```
 $ md5sum pid.880.vad.0x980000-0x988fff.dmp 
 20020a9d850bd496954d8c21dfa614be  pid.880.vad.0x980000-0x988fff.dmp
 ```
-- Let's search this hash in Virustotal.
+Let's search this hash in Virustotal.
 
 ![virus total](https://github.com/Knign/Write-ups/assets/110326359/d374c4b7-4b46-40d2-90b3-091450922a6d)
 
-- We can see that the process is vulnerable to DLL injection.
-## Answer
+We can see that the process is vulnerable to DLL injection.
+### Answer
 ```
 svchost.exe
 ```
@@ -165,7 +165,7 @@ svchost.exe
 &nbsp;
 
 ## Q6. There is an odd file referenced in the recent process. Provide the full path of that file.
-- The `handles` plugin gives us the open handles in a process including the files.
+The `handles` plugin gives us the open handles in a process including the files.
 ```
 $ volatility_2.5.linux.standalone/volatility_2.5_linux_x64 -f CYBERDEF-567078-20230213-171333.raw --profile=WinXPSP2x86 -p 880 handles -t file
 Volatility Foundation Volatility Framework 2.5
@@ -193,7 +193,7 @@ Offset(V)     Pid     Handle     Access Type             Details
 0x89bbc028    880      0x488   0x100020 File             \Device\HarddiskVolume1\WINDOWS\WinSxS\x86_Microsoft.Windows.Common-Controls_6595b64144ccf1df_6.0.2600.5512_x-ww_35d4ce83
 0x89999980    880      0x4a8   0x1200a0 File             \Device\NetBT_Tcpip_{B35F0A5F-EBC3-4B5D-800D-7C1B64B30F14}
 ```
-- We can also check the `strings` in the file that we saved earlier.
+We can also check the `strings` in the file that we saved earlier.
 ```
 $ strings ./pid.880.vad.0x980000-0x988fff.dmp 
 
@@ -201,7 +201,7 @@ $ strings ./pid.880.vad.0x980000-0x988fff.dmp
 C:\WINDOWS\system32\drivers\str.sys
 --snip--;
 ```
-## Answer
+### Answer
 ```
 C:\WINDOWS\system32\drivers\str.sys
 ```
@@ -209,7 +209,7 @@ C:\WINDOWS\system32\drivers\str.sys
 &nbsp;
 
 ## Q7. What is the name of the injected dll file loaded from the recent process?
-- The `ldrmodules` plugin can be used to list the loaded modules (DLLs) in a process, and it can also be used to detect unlinked/hidden DLLs.
+The `ldrmodules` plugin can be used to list the loaded modules (DLLs) in a process, and it can also be used to detect unlinked/hidden DLLs.
 ```
 $ volatility3-2.4.1/vol.py -f CYBERDEF-567078-20230213-171333.raw windows.ldrmodules --pid 880
 Volatility 3 Framework 2.4.1
@@ -222,9 +222,10 @@ Pid     Process Base    InLoad  InInit  InMem   MappedPath
 880     svchost.exe     0x9a0000        False   False   False   \WINDOWS\system32\msxml3r.dll
 --snip--;
 ```
-- We can see 3 DLL lists: InLoad, InInit, and InMem which indicate whether a module has been loaded into memory, initialized, or is currently in the process memory.
-- The `msxml3r.dll` is not linked to any of the three ldr modules. That makes it the most suspicious.
-## Answer
+We can see 3 DLL lists: InLoad, InInit, and InMem which indicate whether a module has been loaded into memory, initialized, or is currently in the process memory.
+
+The `msxml3r.dll` is not linked to any of the three ldr modules. That makes it the most suspicious.
+### Answer
 ```
 msxml3r.dll
 ```
@@ -232,7 +233,7 @@ msxml3r.dll
 &nbsp;
 
 ## Q8. What is the base address of the injected dll?
-- We have already found the answer in a previous question when we used `malfind` plugin
+We have already found the answer in a previous question when we used `malfind` plugin
 ```
 $  volatility3-2.4.1/vol.py -f CYBERDEF-567078-20230213-171333.raw windows.malfind --pid 880 
 Volatility 3 Framework 2.4.1
@@ -250,7 +251,7 @@ b8 00 00 00 00 00 00 00 ........
 00 00 00 00 f8 00 00 00 ........        4d 5a 90 00 03 00 00 00 04 00 00 00 ff ff 00 00 b8 00 00 00 00 00 00 00 40 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 f8 00 00 00
                                       
 ```
-## Answer
+### Answer
 ```
 0x980000
 ```
