@@ -5,7 +5,8 @@ pagination_prev: null
 ---
 
 > The flag used to be there. But then I redacted it. Good Luck. https://mega.nz/#!3CwDFZpJ!Jjr55hfJQJ5-jspnyrnVtqBkMHGJrd6Nn_QqM7iXEuc
-- Let's look at the contents of the directory.
+
+Let's look at the contents of the directory.
 ```
 >dir
  Volume in drive D is DATA
@@ -20,7 +21,7 @@ pagination_prev: null
                1 File(s)             15 bytes
                3 Dir(s)  662,738,264,064 bytes free
 ```
-- We can look at the `.git` directory for the information about the project.
+We can look at the `.git` directory for the information about the project.
 ```
 dir
  Volume in drive D is DATA
@@ -44,7 +45,7 @@ dir
                5 File(s)            590 bytes
                8 Dir(s)  662,738,264,064 bytes free
 ```
-- We can look at the logs using the `git log` command.
+We can look at the logs using the `git log` command.
 ```
 git log
 commit d10f77c4e766705ab36c7f31dc47b0c5056666bb (HEAD -> master)
@@ -65,8 +66,9 @@ Date:   Sun Oct 30 14:32:11 2016 -0400
 
     edited files
 ```
-- So the `flag.txt` file was edited three times in the span of around two minutes.
-- If we use the `p` flag, we can see what the edits were.
+So the `flag.txt` file was edited three times in the span of around two minutes.
+
+If we use the `p` flag, we can see what the edits were.
 ```
 >git log -p
 commit d10f77c4e766705ab36c7f31dc47b0c5056666bb (HEAD -> master)
@@ -111,7 +113,7 @@ index 0000000..c5250d0
 @@ -0,0 +1 @@
 +flag{REDACTED}
 ```
-- Now we know that the flag was `flag{REDACTED}`, which was then changed to `flag{protect_your_git}` and then again changed to `flag{REDACTED}`.
+Now we know that the flag was `flag{REDACTED}`, which was then changed to `flag{protect_your_git}` and then again changed to `flag{REDACTED}`.
 ## Flag
 ```
 flag{protect_your_git}
