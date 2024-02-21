@@ -11,11 +11,11 @@ pagination_prev: null
 
 ![1](https://github.com/Knign/Write-ups/assets/110326359/8e5eae8c-e11b-4210-b026-9235cb772dcf)
 
-- Let's look at `Application` tab in the `Developer tools`.
+Let's look at `Application` tab in the `Developer tools`.
 
 ![2](https://github.com/Knign/Write-ups/assets/110326359/01287eb4-f03e-49c4-a523-7337544eaa27)
 
-- We can see that there are different storage options.  Let's check `Local storage`.
+We can see that there are different storage options.  Let's check `Local storage`.
 
 ![3](https://github.com/Knign/Write-ups/assets/110326359/f8c5f812-a868-478c-8911-a7877eb07b39)
 
