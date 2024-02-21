@@ -6,7 +6,8 @@ pagination_prev: null
 
 > Pay attention to those strings!
 > [PikesPeak.jpg](https://ctflearn.com/challenge/download/935)
-- We can use the `strings` utility in order to view all the strings present in the image which length more than 4 characters.
+
+We can use the `strings` utility in order to view all the strings present in the image which length more than 4 characters.
 ```
 $ strings 935
 JFIF
@@ -23,7 +24,7 @@ ctfLEARN{MtDoom}
 $ctflearncTfLeARN{MountKosciuszko}
 -- snip --;
 ```
-- Only one of the flags present are in the correct format.
+Only one of the flags present are in the correct format.
 ## Flag
 ```
 CTFlearn{Gandalf}
