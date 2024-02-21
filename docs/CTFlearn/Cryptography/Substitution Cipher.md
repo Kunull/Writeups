@@ -9,8 +9,9 @@ pagination_prev: null
 
 ![2](https://github.com/Knign/Write-ups/assets/110326359/9d5769d7-463a-43af-a700-93b2796db2fc)
 
-- The characters in the text are encoded using simple Substitution cipher.
-- We can use QuipQiup to decode the cipher.
+The characters in the text are encoded using simple Substitution cipher.
+
+We can use QuipQiup to decode the cipher.
 
 ![1](https://github.com/Knign/Write-ups/assets/110326359/16dcdae1-726a-493c-9c82-a88441e984b8)
 
