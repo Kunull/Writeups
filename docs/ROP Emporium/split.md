@@ -314,6 +314,8 @@ Found at offset 40
 So the offset is 40 bytes.
 
 Let's see how this looks on the stack.
+
+### Stack
 ```
 <======: Value is stored at that location
 <------: Points to the address
