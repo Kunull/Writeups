@@ -207,6 +207,8 @@ After changing the permissions, we can read the file.
 ChangeMeBaby1MoreTime
 ```
 
+&nbsp;
+
 ### Escalate your privileges to root, what is the contents of root.txt?
 Let's end the current RDP session and login again as `Administrator` with the password as `ChangeMeBaby1MoreTime`.
 ```
