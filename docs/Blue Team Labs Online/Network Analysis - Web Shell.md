@@ -10,7 +10,7 @@ In order to see the port scan activity, we have to to go `Statistics > Conversat
 
 ![1](https://github.com/Knign/Write-ups/assets/110326359/b2b6e66d-cff1-4e92-bd5b-e6cecd25319d)
 
-## Answer
+### Answer
 ```
 10.251.96.4
 ```
@@ -23,7 +23,7 @@ Let's sort `Port B` in an ascending order.
 ![2](https://github.com/Knign/Write-ups/assets/110326359/46478686-7f2b-431d-954d-583265b08bfb)
 
 We can see that the last port scanned is 1024.
-## Answer
+### Answer
 ```
 1-1024
 ```
@@ -39,7 +39,7 @@ ip.src == 10.251.96.4
 ![3](https://github.com/Knign/Write-ups/assets/110326359/77cde470-7352-4a42-b6bd-4fd59c6353a5)
 
 The packets that we filtered are TCP packets with the SYN flag set.
-## Answer
+### Answer
 ```
 TCP SYN
 ```
@@ -63,7 +63,7 @@ In order to find the second tool, we have to scroll down until we find an encode
 ![5](https://github.com/Knign/Write-ups/assets/110326359/0c14f5fc-fa7f-49d4-97a0-53698f5f2e05)
 
 The second tool is SQLmap.
-## Answer
+### Answer
 ```
 gobuster 3.0.1, sqlmap 1.4.7
 ```
@@ -80,7 +80,7 @@ Scrolling down, we can see a POST request made for a `upload.php` file.
 ![6](https://github.com/Knign/Write-ups/assets/110326359/84ad7616-2e61-4fc3-a0a6-7c82ebb75bdb)
 
 The `Referer` header in the packet tells us the address from which a resource has been requested.
-## Answer
+### Answer
 ```
 editprofile.php
 ```
@@ -93,7 +93,7 @@ Let's follow the TCP stream for the same packet by going to `Follow > TCP Stream
 ![7](https://github.com/Knign/Write-ups/assets/110326359/a8682218-3dfe-4c5f-bd32-4e3c6149b2f7)
 
 As we can see the `Content-Disposition` header is set to `form-data` with the `dbfunctions.php` as the filename.
-## Answer
+### Answer
 ```
 dbfunctions.php
 ```
@@ -105,7 +105,7 @@ In the same TCP Stream we can see an if statement that takes `cmd` as the parame
 
 ![7](https://github.com/Knign/Write-ups/assets/110326359/4cf973ca-bafa-477a-ac40-6da3eb105bbd)
 
-## Answer
+### Answer
 ```
 cmd
 ```
@@ -121,7 +121,7 @@ http.request.method == GET
 ![8](https://github.com/Knign/Write-ups/assets/110326359/b15615e2-303a-4024-b751-af31201f3314)
 
 There were three commands executed: `id`, `python code` and `whoami`.
-## Answer
+### Answer
 ```
 id
 ```
@@ -148,7 +148,7 @@ It creates a socket object `s` and connects to the specified IP address ("10.251
 It then uses `subprocess.call` to execute the `/bin/sh` shell with the "-i" flag, which opens an interactive shell session, effectively allowing the user to control the remote server.
 
 This is inline with the characteristics of a reverse shell.
-## Answer
+### Answer
 ```
 Reverse shell
 ```
@@ -157,7 +157,7 @@ Reverse shell
 
 ## What is the port he uses for the shell connection?
 We saw that the reverse shell connects to port 4422.
-## Answer
+### Answer
 ```
 4422
 ```
