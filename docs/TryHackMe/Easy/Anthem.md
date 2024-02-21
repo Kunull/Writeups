@@ -38,12 +38,13 @@ Service detection performed. Please report any incorrect results at https://nmap
 Nmap done: 1 IP address (1 host up) scanned in 103.08 seconds
 
 ```
-As we can see there are two open ports:
+There are two open ports:
 
 | Port | Service |
 | ---- | ------- |
 | 80   | http    |
 | 3389     |    ms-wbt-server     |
+
 ### Answer
 ```
 80
@@ -109,6 +110,8 @@ We can see that there is a poem written about the admin. This poem is actually a
 Solomon Grundy
 ```
 
+&nbsp;
+
 ### Can we find find the email address of the administrator?
 If we check out the second post, we can find the email format.
 
@@ -172,7 +175,7 @@ THM{AN0TH3R_M3TA}
 &nbsp;
 
 ## Task 3: Final stage
-## Gain initial access to the machine, what is the contents of user.txt?
+### Gain initial access to the machine, what is the contents of user.txt?
 We know that there is a user `sg` and a password `UmbracoIsTheBest!`.
 
 Using the credentials we can connect to the target through RDP.
@@ -186,6 +189,8 @@ $ xfreerdp /v:10.10.5.238 /u:sg /p:UmbracoIsTheBest! /cert:ignore +clipboard /dy
 ```
 THM{N00T_NO0T}
 ```
+
+&nbsp;
 
 ### Can we spot the admin password?
 After changing the `View` to `Show hidden items` we can go to `C\backup`.
