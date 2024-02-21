@@ -13,7 +13,7 @@ Camera Model Name               : Canon EOS 550D
 Canon Model ID                  : EOS Rebel T2i / 550D / Kiss X4
 Lens Model                      : EF-S55-250mm f/4-5.6 IS
 ```
-## Answer
+### Answer
 ```
 Canon EOS 550D
 ```
@@ -35,7 +35,7 @@ Date/Time Original              : 2021:11:02 13:20:23.32
 Modify Date                     : 2021:11:02 13:20:23.32
 ```
 The `Create Date` field is what we are interested in.
-## Answer
+### Answer
 ```
 2021:11:02 13:20:23
 ```
@@ -48,7 +48,7 @@ Let's filter for `Comment`.
 $ exiftool uploaded_1.JPG | grep "Comment"
 Comment                         : relying on altered metadata to catch me?
 ```
-## Answer
+### Answer
 ```
 relying on altered metadata to catch me?
 ```
@@ -67,7 +67,7 @@ Let's look up `uploaded_2.png` to verify.
 ![meta 2](https://github.com/Knign/Write-ups/assets/110326359/cebd8bca-d0a2-489f-9ba5-517c22f176e7)
 
 Our results tell us that `uploaded_2.png` is a picture of a historical landmark in Kathmandu called Nasal Chowk.
-## Answer
+### Answer
 ```
 Kathmandu
 ```
