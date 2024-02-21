@@ -9,7 +9,7 @@ To find the email service used by the malicious actor we need to check the `Rece
 
 ![1](https://github.com/Knign/Write-ups/assets/110326359/357f8954-840e-4cb5-b649-b152b3b70472)
 
-## Answer
+### Answer
 ```
 emkei.cz
 ```
@@ -21,7 +21,7 @@ If we open the file using Thunderbird, we can find the `Reply-To` email address.
 
 ![2](https://github.com/Knign/Write-ups/assets/110326359/1a48e22c-12e7-49e1-ad91-bcb41aa7806e)
 
-## Answer
+### Answer
 ```
 negeja3921@pashter.com
 ```
@@ -40,7 +40,7 @@ Using the `file` utility we can check the actual format of the file.
 $ file PuzzleToCoCanDa.pdf 
 PuzzleToCoCanDa.pdf: Zip archive data, at least v2.0 to extract
 ```
-## Answer
+### Answer
 ```
 zip
 ```
@@ -78,7 +78,7 @@ Author                          : Pestero Negeja
 Producer                        : Skia/PDF m90
 Page Count                      : 1
 ```
-## Answer
+### Answer
 ```
 Pestero Negeja
 ```
@@ -102,7 +102,7 @@ We can use Cyberchef to decrypt the text.
 
 ![6](https://github.com/Knign/Write-ups/assets/110326359/1f7e67c0-f510-49a2-b9f4-6339ddb62cdf)
 
-## Answer
+### Answer
 ```
 The Martian Colony, Beside Interplanetary Spaceport
 ```
@@ -111,7 +111,7 @@ The Martian Colony, Beside Interplanetary Spaceport
 
 ## What could be the probable C&C domain to control the attacker’s autonomous bots?
 The attacker's name is `Pestero Negeja` and the reply-to email is `negeja3921@pashter.com` so we can guess the C&C domain used by the attacker.
-## Answer
+### Answer
 ```
 pashter.com
 ```
