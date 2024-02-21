@@ -10,8 +10,9 @@ pagination_prev: null
 
 ![1](https://github.com/Knign/Write-ups/assets/110326359/d4e3acdf-e242-47cf-bd23-f9a9ac1f3d9a)
 
-- Opening the PDF doesn't give us anything of importance.
-- Let's use the `strings` utility to view all the strings present in the file.
+Opening the PDF doesn't give us anything of importance.
+
+Let's use the `strings` utility to view all the strings present in the file.
 ```
 $ strings 957 | tail -15
 == SECRET DATA DONT LOOK AT THIS ==
@@ -30,7 +31,7 @@ startxref
 150295
 %%EOF
 ```
-- The `external` and `password` fields look like they are Base64 encoded. We can decode them using CyberChef.
+The `external` and `password` fields look like they are Base64 encoded. We can decode them using CyberChef.
 
 ![2](https://github.com/Knign/Write-ups/assets/110326359/ee5d0100-c6fb-4fab-aece-5036a7ed1a2d)
 
