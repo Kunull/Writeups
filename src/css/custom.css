@@ -39,6 +39,7 @@ html[data-theme='light'] .navbar .navbar__logo {
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
+  --ifm-table-head-background: #222;
   --ifm-menu-color-background-active: #222;
   --ifm-menu-color-background-hover: #222;
   --ifm-breadcrumb-item-background-active: #222;
