@@ -66,6 +66,7 @@ html[data-theme="dark"] {
 }
 
 table {
+  display: table;
   width: 100%;
   border-collapse: collapse;
   margin-bottom: var(--ifm-spacing-vertical);
