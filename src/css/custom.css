@@ -120,6 +120,16 @@ article {
   background-color: var(--ifm-navbar-background-color);
 }
 
+/* Adjust footer link colors */
+#__docusaurus > footer > div > div.text--center > div > a {
+  color: unset;
+}
+
+#__docusaurus > footer > div > div.text--center > div > a:hover {
+  color: var(--ifm-link-color);
+  text-decoration: underline;
+}
+
 @media screen and (min-width: 997px) {
   :root {
     --ifm-font-size-base: 17px;
