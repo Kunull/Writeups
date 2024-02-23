@@ -6,17 +6,17 @@ sidebar_position: 1
 ---
 
 
-## Century 0
+## Century 0 -> 1
 
-> _The goal of this level is to log into the game. Do the following in order to achieve this goal._
+> The goal of this level is to log into the game. Do the following in order to achieve this goal.
 >
-> _1. Obtain the initial credentials via the #StartHere channel on our Slack (_[_link_](https://join.slack.com/t/underthewire/shared\_invite/zt-11xkgkxj5-VmAGL\_ofeIAQ2hNXuu\_irg)_). Once you are in the channel, scroll to the top to see the credentials._
+> 1. Obtain the initial credentials via the #StartHere channel on our Slack (_[_link_](https://join.slack.com/t/underthewire/shared\_invite/zt-11xkgkxj5-VmAGL\_ofeIAQ2hNXuu\_irg)_). Once you are in the channel, scroll to the top to see the credentials.
 >
-> _2. After obtaining the credentials, connect to the server via SSH. You will need an SSH client such as Putty. The host that you will be connecting to is century.underthewire.tech, on port 22._
+> 2. After obtaining the credentials, connect to the server via SSH. You will need an SSH client such as Putty. The host that you will be connecting to is century.underthewire.tech, on port 22.
 >
-> _3. When prompted, use the credentials for the applicable game found in the #StartHere Slack channel._
+> 3. When prompted, use the credentials for the applicable game found in the #StartHere Slack channel.
 >
-> _4. You have successfully connected to the game server when your path changes to “PS C:\Users\Century1\desktop>”._
+> 4. You have successfully connected to the game server when your path changes to “PS C:\Users\Century1\desktop>”.
 
 We can achieve this using ssh connection as follows:
 
@@ -28,9 +28,9 @@ The password for level 1 is: **century1**
 
 &nbsp;
 
-## Century 1
+## Century 1 -> 2
 
-> _The password for Century2 is the build version of the instance of PowerShell installed on this system._
+> The password for Century2 is the build version of the instance of PowerShell installed on this system.
 
 We can obtain the build version using **$psVersionTable**_**:**_
 
@@ -53,9 +53,9 @@ The password for level 2 is **10.0.14393.5127**
 
 &nbsp;
 
-## Century 2
+## Century 2 -> 3
 
-> _The password for Century3 is the name of the built-in cmdlet that performs the wget like function within PowerShell PLUS the name of the file on the desktop._
+> The password for Century3 is the name of the built-in cmdlet that performs the wget like function within PowerShell PLUS the name of the file on the desktop.
 
 We could conduct a simple google search for the answer. But since the goal is to use the PowerShell we could use the **Get-Alias** cmdlet:
 
@@ -88,9 +88,9 @@ The password for level 3 is **Invoke-WebRequest443**
 
 &nbsp;
 
-## Century 3
+## Century 3 -> 4
 
-> _The password for Century4 is the number of files on the desktop._
+> The password for Century4 is the number of files on the desktop.
 
 We can obtain the number of files by piping the **Measure-Object** cmlet with the **Get-ChildItem** cmdlet:
 
@@ -106,9 +106,9 @@ The password for level 4 is **123**
 
 &nbsp;
 
-## Century 4
+## Century 4 -> 5
 
-> _The password for Century5 is the name of the file within a directory on the desktop that has spaces in its name._
+> The password for Century5 is the name of the file within a directory on the desktop that has spaces in its name.
 
 We can filter the **Get-ChildItem** cmdlet to get only the directories with spaces in their name as follows:
 
@@ -141,9 +141,9 @@ The password for level 5 is **495125**
 
 &nbsp;
 
-## Century 5
+## Century 5 -> 6
 
-> _The password for Century6 is the short name of the domain in which this system resides in PLUS the name of the file on the desktop._
+> The password for Century6 is the short name of the domain in which this system resides in PLUS the name of the file on the desktop.
 
 We can get the required domain name using Get-WmiObject cmdlet:
 
@@ -177,9 +177,9 @@ The password for level 6 is **underthewire3347**
 
 &nbsp;
 
-## Century 6
+## Century 6 -> 7
 
-> _The password for Century7 is the number of folders on the desktop._
+> The password for Century7 is the number of folders on the desktop.
 
 We can add the -Directory filter to the Get-ChildItem in order to get only directories as the result.
 
@@ -197,9 +197,9 @@ The password for level 7 is **197**
 
 &nbsp;
 
-## Century 7
+## Century 7 -> 8
 
-> _The password for Century8 is in a readme file somewhere within the contacts, desktop, documents, downloads, favorites, music, or videos folder in the user’s profile._
+> The password for Century8 is in a readme file somewhere within the contacts, desktop, documents, downloads, favorites, music, or videos folder in the user’s profile.
 
 We can search recursively for the file and set a filter to get any file which has readme in its starting part.
 
@@ -213,9 +213,9 @@ The password for level 8 is **7points**
 
 &nbsp;
 
-## Century 8
+## Century 8 -> 9
 
-> _The password for Century9 is the number of unique entries within the file on the desktop._
+> The password for Century9 is the number of unique entries within the file on the desktop.
 
 We can use the **Get-Content** cmdlet to display the file content and the pipe it in the following manner to get desired result:
 
@@ -231,9 +231,9 @@ The password for level 9 is **696**
 
 &nbsp;
 
-## Century 9
+## Century 9 -> 10
 
-> _The password for Century10 is the 161st word within the file on the desktop**.**_
+> The password for Century10 is the 161st word within the file on the desktop.
 
 We can use the **Get-Content** cmdlet to get the result:
 
@@ -247,9 +247,9 @@ The password for level 10 is **pierid**
 
 &nbsp;
 
-## Century 10
+## Century 10 -> 11
 
-> _The password for Century11 is the 10th and 8th word of the Windows Update service description combined PLUS the name of the file on the desktop._
+> The password for Century11 is the 10th and 8th word of the Windows Update service description combined PLUS the name of the file on the desktop.
 
 We can pipe the **Get-WmiObject** and **Select-Object** as follows:
 
@@ -278,9 +278,9 @@ The password for level 11 is **windowsupdates110**
 
 &nbsp;
 
-## Century 11
+## Century 11 -> 12
 
-> _The password for Century12 is the name of the hidden file within the contacts, desktop, documents, downloads, favorites, music, or videos folder in the user’s profile._
+> The password for Century12 is the name of the hidden file within the contacts, desktop, documents, downloads, favorites, music, or videos folder in the user’s profile.
 
 ```powershell
 PS C:\Users\century11> Get-ChildItem | Get-ChildItem -Recurse -File -Hidden | Where-Object {$_.Name -ne 'desktop.ini'}
@@ -298,9 +298,9 @@ The password for level 12 is **secret\_sauce**
 
 &nbsp;
 
-## Century 12
+## Century 12 -> 13
 
-> _The password for Century13 is the description of the computer designated as a Domain Controller within this domain PLUS the name of the file on the desktop._
+> The password for Century13 is the description of the computer designated as a Domain Controller within this domain PLUS the name of the file on the desktop.
 
 ```powershell
 PS C:\users\century12\desktop> Get-ADComputer UTW -Properties Description
@@ -336,9 +336,9 @@ The password for level 13 is **i\_authenticate\_things**
 
 &nbsp;
 
-## Century 13
+## Century 13 -> 14
 
-> _The password for Century14 is the number of words within the file on the desktop._
+> The password for Century14 is the number of words within the file on the desktop.
 
 ```powershell
 PS C:\users\century13\desktop> (Get-ChildItem | get-content | Measure-Object -Word).Words
@@ -349,9 +349,9 @@ The password for level 14 is **755**
 
 &nbsp;
 
-## Century 14
+## Century 14 -> 15
 
-> _The password for Century15 is the number of times the word “polo” appears within the file on the desktop._
+> The password for Century15 is the number of times the word “polo” appears within the file on the desktop.
 
 We can obtain the required string using the **Select-String** cmdlet and then we can pipe it with **Measure-Object**
 
