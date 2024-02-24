@@ -14,7 +14,7 @@ We can use `nc` to connect to the specified address on the port specified.
 $ nc 10.0.0.3 31337
 ```
 
-
+&nbsp;
 
 ## level 2
 
@@ -26,7 +26,7 @@ The `l` option in `nc` allows users to listen on a specified port.
 $ nc -l 31337
 ```
 
-
+&nbsp;
 
 ## level 3
 
@@ -44,7 +44,7 @@ After that we just have to connect on the open
 $ nc 10.0.0.245 31337
 ```
 
-
+&nbsp;
 
 ## level 4
 
@@ -58,7 +58,7 @@ The `T5` flag in `nmap` sets the scan speed to `insane` which is the fastest ava
 $ nmap -v 10.0.0.0/16 -p 31337 -T5
 ```
 
-
+&nbsp;
 
 ## level 5
 
@@ -72,7 +72,7 @@ $ tcpdump -A
 
 The `A` flag prints out every packet in ASCII.
 
-
+&nbsp;
 
 ## level 6
 
@@ -81,7 +81,7 @@ $ tcpdump -A > packet.txt
 $ cat packet.txt
 ```
 
-
+&nbsp;
 
 ## level 7
 
@@ -103,7 +103,7 @@ Now when we receive an ARP `who-has` request asking for 10.0.0.2, we can send a 
 $ nc -l 31337
 ```
 
-
+&nbsp;
 
 ## level 8
 
@@ -138,7 +138,7 @@ Now that we have the correct fields, we are ready to send the packet.
 
 The remote host is connected to the `eth0` interface, so we send the packets out of the `eth0` interface.
 
-
+&nbsp;
 
 ## level 9
 
@@ -174,7 +174,7 @@ Now we just have to fill the correct fields.
 >>> sendp(Ether(src="c6:0a:09:24:4f:c9", dst="ff:ff:ff:ff:ff:ff") / IP(src="10.0.0.2", dst="10.0.0.3", proto=0xFF), iface="eth0")
 ```
 
-
+&nbsp;
 
 ## level 10
 
@@ -186,7 +186,7 @@ We have to add another layer of encapsulation, which is TCP.
 >>> sendp(Ether(src="fa:2c:4a:60:51:ee", dst="ff:ff:ff:ff:ff:ff") / IP(src="10.0.0.2", dst="10.0.0.3") / TCP( sport=31337, dport=31337, seq=31337, ack=31337, flags="APRSF"), iface="eth0")
 ```
 
-
+&nbsp;
 
 ## level 11
 
@@ -224,7 +224,7 @@ So the host at 10.0.0.3 has acknowledged our SYN packet. Now we have to acknowle
 >>> sendp(Ether(src="1a:57:9e:f1:dd:33", dst="1e:c3:ea:f1:34:3e") / IP(src="10.0.0.2", dst="10.0.0.3") / TCP(sport=31337, dport=31337, seq=31338, ack=3093962237, flags="A"), iface="eth0")
 ```
 
-
+&nbsp;
 
 ## level 12
 
@@ -261,7 +261,7 @@ The packet fields represent the following:
 >>> sendp(Ether(src="8a:3f:c0:ef:89:cf", dst="ff:ff:ff:ff:ff:ff") / ARP(op="is-at", psrc="10.0.0.2", hwsrc="8a:3f:c0:ef:89:cf"), iface="eth0")
 ```
 
-
+&nbsp;
 
 ## level 13
 
@@ -274,7 +274,3 @@ Therefore we will have to create an ARP packet from scratch and send it to the h
 ```python
 >>> sendp(Ether(src="76:45:f9:f1:45:de", dst="ff:ff:ff:ff:ff:ff") / ARP(op="is-at", psrc="10.0.0.2", hwsrc="76:45:f9:f1:45:de") / IP(src="10.0.0.3", dst="10.0.0.4"), iface="eth0")
 ```
-
-
-
-## level 14
