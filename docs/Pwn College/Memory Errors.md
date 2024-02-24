@@ -4,7 +4,7 @@
 
 From the information that we have been provided and by looking at the stack, we can make a few modifications that can help us better understand the challenge.
 
-{% code fullWidth="false" %}
+
 ```
             +---------------------------------+-------------------------+--------------------+
             |                  Stack location |            Data (bytes) |      Data (LE int) |
@@ -37,7 +37,7 @@ ebp ------> | 0x00007fff5e6806a0 (rsp+0x00c0) | e0 16 68 5e ff 7f 00 00 | 0x0000
             | 0x00007fff5e6806a8 (rsp+0x00c8) | e8 3d 60 8c 02 56 00 00 | 0x000056028c603de8 | <------ return address
             +---------------------------------+-------------------------+--------------------+
 ```
-{% endcode %}
+
 
 In this case, the pointer to the buffer is stored at `(rsp+0x0030)` and the pointer to the `win` variable is located at `(rsp+0x0038)`. These are not to be confused with the actual location of the buffer or the win variable.
 
@@ -203,7 +203,7 @@ p.interactive()
 
 > Overflow a buffer on the stack to set trickier conditions to obtain the flag!
 
-{% code fullWidth="false" %}
+
 ```
 	    +---------------------------------+-------------------------+--------------------+
 	    |                  Stack location |            Data (bytes) |      Data (LE int) |
@@ -234,7 +234,7 @@ ebp ------> | 0x00007fff85a4bd30 (rsp+0x00b0) | 70 cd a4 85 ff 7f 00 00 | 0x0000
 	    | 0x00007fff85a4bd38 (rsp+0x00b8) | 22 ef b6 1b 31 56 00 00 | 0x000056311bb6ef22 | <------ return address
             +---------------------------------+-------------------------+--------------------+
 ```
-{% endcode %}
+
 
 The buffer is 87 bytes long, which means that it only covers 7 bytes out of the word at `(rsp+0x0090)`.
 
@@ -392,7 +392,7 @@ p.interactive()
 
 > Overflow a buffer and smash the stack to obtain the flag!
 
-{% code fullWidth="false" %}
+
 ```
             +---------------------------------+-------------------------+--------------------+
             |                  Stack location |            Data (bytes) |      Data (LE int) |
@@ -417,7 +417,7 @@ ebp ------> | 0x00007ffd2e328c80 (rsp+0x0080) | b0 9c 32 2e fd 7f 00 00 | 0x0000
 	    | 0x00007ffd2e328c88 (rsp+0x0088) | 9f 2a 40 00 00 00 00 00 | 0x0000000000402a9f | <------ return address
 	    +---------------------------------+-------------------------+--------------------+
 ```
-{% endcode %}
+
 
 This time there's no pointer to the buffer or to the win variable as there is no win variable in the first place.
 
@@ -581,7 +581,7 @@ p.interactive()
 
 Our stack frame looks something like this:
 
-{% code fullWidth="false" %}
+
 ```
 	    +---------------------------------+-------------------------+--------------------+
 	    |                  Stack location |            Data (bytes) |      Data (LE int) |
@@ -606,7 +606,7 @@ rbp ------> | 0x00007ffd17398440 (rsp+0x0080) | 70 94 39 17 fd 7f 00 00 | 0x0000
             | 0x00007ffd17398448 (rsp+0x0088) | 87 2a 40 00 00 00 00 00 | 0x0000000000402a87 | <------ return address
             +---------------------------------+-------------------------+--------------------+
 ```
-{% endcode %}
+
 
 Again, we have to overwrite the return address in order to divert control flow.
 
@@ -625,7 +625,7 @@ Buffer:                           Random bytes:                     Return addre
 
 Let's find the address of the `win` function.
 
-{% code fullWidth="false" %}
+
 ```
 (gdb) disassemble win
 
@@ -634,7 +634,7 @@ Dump of assembler code for function win:
    0x00000000004022cb <+0>:     endbr64 
 ; -- snip --
 ```
-{% endcode %}
+
 
 The program does not want us to overflow the buffer, so it tries to ensure that the payload size we set is lower than the buffer size.
 
