@@ -194,8 +194,6 @@ We have to add another layer of encapsulation, which is TCP.
 
 A TCP handshake is really just a sequence of packets that establishes a secure and reliable connection between two devices.
 
-<figure><img src="../.gitbook/assets/TCP handshake.png" alt=""><figcaption></figcaption></figure>
-
 It includes three packets:
 
 1. SYN
