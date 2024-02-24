@@ -451,7 +451,7 @@ print(response.text)
 
 &nbsp;
 
-## level37
+## level 37
 
 > Make multiple requests in response to stateful HTTP responses using curl
 
@@ -492,7 +492,7 @@ GET / HTTP/1.1
 Cookie: session=eyJzdGF0ZSI6Mn0.ZIdGGw.vET_YPzKaN7NNySdDm80v_VRahM
 ```
 
-```title="Requests.txt"
+```jsx title="/src/components/HelloCodeTitle.js"
 /$ nc localhost 80
 GET / HTTP/1.1
 Cookie: session=eyJzdGF0ZSI6M30.ZIdGTg.7DxhB2c_HvhkfSS5ADGrIgK-eq4
