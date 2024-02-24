@@ -4,8 +4,6 @@ pagination_next: null
 pagination_prev: null
 ---
 
-# Assembly
-
 :::tip
 
 For this module, `int3` displays the state of the registers, which is helpful in writing the code.
