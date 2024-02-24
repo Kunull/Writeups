@@ -32,6 +32,8 @@ We can continue the execution and get the flag.
 (gdb) continue
 ```
 
+&nbsp;
+
 ## level 2
 
 > In order to solve this level, you must figure out the current random value of register r12 in hex.
@@ -47,7 +49,7 @@ The `x` option prints the value in hexadecimal.
 
 Rest of the steps remain the same.
 
-
+&nbsp;
 
 ## level 3
 
@@ -95,6 +97,7 @@ Now that we know the location of the buffer is `rbp-0x18`, we can now check the 
 
 The format is set to hexadecimal using `x` and the unit size is set to giga word using `g`.
 
+&nbsp;
 
 ### level 4
 
@@ -186,7 +189,7 @@ The correct answer is: 1f00026c7ef5aa7f
 
 We can see that the check was successfully passed. This process will repeat a couple of times but the method will be the same.
 
-
+&nbsp;
 
 ## level 5
 
@@ -245,7 +248,7 @@ continue
 
 The commands will be executed every time the breakpoint is hit.
 
-
+&nbsp;
 
 ## level 7
 
@@ -255,7 +258,7 @@ In this level we are introduced to another way of executing the `win` function.
 (gdb) call (void)win()
 ```
 
-
+&nbsp;
 
 ## level 8
 
