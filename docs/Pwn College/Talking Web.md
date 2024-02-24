@@ -483,7 +483,6 @@ OR
 $ nc localhost 80
 GET / HTTP/1.1
 Cookie: session=eyJzdGF0ZSI6MX0.ZIdFvA.sHWWKoF8bM1fkGxOrTHbPJrHnXk
-
 ```
 
 ```txt title="Request.txt"
