@@ -486,13 +486,13 @@ Cookie: session=eyJzdGF0ZSI6MX0.ZIdFvA.sHWWKoF8bM1fkGxOrTHbPJrHnXk
 
 ```
 
-```title="Requests.txt"
+```title="/src/components/HelloCodeTitle.js"
 /$ nc localhost 80
 GET / HTTP/1.1
 Cookie: session=eyJzdGF0ZSI6Mn0.ZIdGGw.vET_YPzKaN7NNySdDm80v_VRahM
 ```
 
-```jsx title="/src/components/HelloCodeTitle.js"
+```txt title="/src/components/HelloCodeTitle.js"
 /$ nc localhost 80
 GET / HTTP/1.1
 Cookie: session=eyJzdGF0ZSI6M30.ZIdGTg.7DxhB2c_HvhkfSS5ADGrIgK-eq4
