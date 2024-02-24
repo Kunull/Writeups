@@ -8,7 +8,7 @@ pagination_prev: null
 
 > Send an HTTP request using curl
 
-```js title="title"
+```txt title="Request.txt"
 /$ curl localhost
 ```
 
@@ -60,7 +60,7 @@ In order to set the host-header, we need to use the `H` flag.
 
 > Set the host header in an HTTP request using nc.
 
-```Requests.txt
+```txt title="Request.txt"
 /$ nc localhost 80
 GET / HTTP/1.1
 Host: 955346154465080a0f6f80ad1abab644
@@ -95,7 +95,7 @@ print(response.text)
 
 > Set the path in an HTTP request using nc
 
-```title='Requests.txt'
+```txt title="Request.txt"
 /$ nc localhost 80
 GET /6fa55c0a2c6a06641a0d3b0c7bb52aae HTTP/1.1
 ```
@@ -129,7 +129,7 @@ print(response.text)
 
 > URL encode a path in an HTTP request using nc
 
-```Requests.txt
+```txt title="Request.txt"
 /$ nc localhost 80
 GET /b12c4f12%2067266589%2Fd666cda6%20d2af6f45 HTTP/1.1
 ```
@@ -163,7 +163,7 @@ print(response.text)
 
 > Specify an argument in an HTTP request using nc
 
-```Requests.txt
+```txt title="Request.txt"
 /$ nc localhost 80
 GET /?a=9cb477c13d0f3467762b96e34723b429 HTTP/1.1
 ```
@@ -197,14 +197,14 @@ print(response.text)
 
 > Specify multiple arguments in an HTTP request using nc
 
-```Requests.txt
+```txt title="Request.txt"
 /$ nc localhost 80
 GET /?a=0d5d14b5c59f30f71f8a4ad183e5594b&b=14ee11ce 7bcd30bb&945e070f#8c4ca511 HTTP/1.1
 ```
 
 * encode space, &, #
 
-```Requests.txt
+```txt title="Request.txt"
 /$ nc localhost 80
 GET /?a=0d5d14b5c59f30f71f8a4ad183e5594b&b=14ee11ce%207bcd30bb%26945e070f%238c4ca511 HTTP/1.1
 ```
@@ -238,7 +238,7 @@ print(response.text)
 
 > Include form data in an HTTP request using nc
 
-```Requests.txt
+```txt title="Request.txt"
 /$ nc localhost 80
 POST / HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
@@ -276,7 +276,7 @@ print(response.text)
 
 > Include form data with multiple fields in an HTTP request using nc
 
-```title="Requests.txt"
+```txt title="Request.txt"
 /$ nc localhost 80
 POST / HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
@@ -314,7 +314,7 @@ print(response.text)
 
 > Include json data in an HTTP request using nc
 
-```title="Requests.txt"
+```txt title="Request.txt"
 /$ nc localhost 80
 POST / HTTP/1.1
 Content-Type: application/json
@@ -352,7 +352,7 @@ print(response.text)
 
 > Include complex json data in an HTTP request using nc
 
-```title="Requests.txt"
+```txt title="Request.txt"
 /$ nec localhost 80
 POST / HTTP/1.1
 Content-Type: application/json
@@ -390,7 +390,7 @@ print(response.text)
 
 > Follow an HTTP redirect from HTTP response using nc
 
-```title="Requests.txt"
+```txt title="Request.txt"
 /$ nc localhost 80
 GET /04f17f0a0c09c5f51d7b4b41227fc991 HTTP/1.1
 ```
@@ -430,7 +430,7 @@ OR
 
 > Include a cookie from HTTP response using nc
 
-```title="Requests.txt"
+```txt title="Request.txt"
 /$ nc localhost 80
 GET / HTTP/1.1
 Cookie: cookie=fd64267b1b2798fc6498188109e91cf7
@@ -479,20 +479,20 @@ OR
 
 > Make multiple requests in response to stateful HTTP responses using nc
 
-```title="Requests.txt"
+```txt title="Request.txt"
 /$ nc localhost 80
 GET / HTTP/1.1
 Cookie: session=eyJzdGF0ZSI6MX0.ZIdFvA.sHWWKoF8bM1fkGxOrTHbPJrHnXk
 
 ```
 
-```title="/src/components/HelloCodeTitle.js"
+```txt title="Request.txt"
 /$ nc localhost 80
 GET / HTTP/1.1
 Cookie: session=eyJzdGF0ZSI6Mn0.ZIdGGw.vET_YPzKaN7NNySdDm80v_VRahM
 ```
 
-```txt title="/src/components/HelloCodeTitle.js"
+```txt title="Request.txt"
 /$ nc localhost 80
 GET / HTTP/1.1
 Cookie: session=eyJzdGF0ZSI6M30.ZIdGTg.7DxhB2c_HvhkfSS5ADGrIgK-eq4
