@@ -28,8 +28,9 @@ If we give it `/flag` as `argv[1]`, it is interpreted as `/tmp/jail/flag`, which
 
 In order to get the real flag, we have to pass the relative address of the real `/flag` from `/tmp/jail/`.
 
-<pre><code><strong>$ /challenge/babyjail_level1 ../../flag 
-</strong></code></pre>
+```
+$ /challenge/babyjail_level1 ../../flag 
+```
 
 The first `..` escapes from the `jail/` and second `..` escapes from the `/tmp/` directory.
 
