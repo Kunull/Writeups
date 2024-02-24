@@ -21,7 +21,7 @@ _start:
 .section .data
 ```
 
-
+&nbsp;
 
 ## level 2
 
@@ -64,7 +64,7 @@ _start:
 .section .data
 ```
 
-
+&nbsp;
 
 ## level 3
 
@@ -102,7 +102,7 @@ sockaddr:
 	.8byte 0
 ```
 
-
+&nbsp;
 
 ## level 4
 
@@ -145,6 +145,8 @@ sockaddr:
 	.4byte 0
 	.8byte 0
 ```
+
+&nbsp;
 
 ### level 5
 
@@ -194,6 +196,8 @@ sockaddr:
 	.4byte 0
 	.8byte 0
 ```
+
+&nbsp;
 
 ### level 6
 
@@ -265,6 +269,8 @@ sockaddr:
 response: 
 	.string "HTTP/1.0 200 OK\r\n\r\n"
 ```
+
+&nbsp;
 
 ### level 7
 
@@ -387,6 +393,8 @@ sockaddr:
 response: 
 	.string "HTTP/1.0 200 OK\r\n\r\n"
 ```
+
+&nbsp;
 
 ### level 8
 
