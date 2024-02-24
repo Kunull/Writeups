@@ -9,7 +9,7 @@ pagination_prev: null
 > Send an HTTP request using curl
 
 ```txt title="Request.txt"
-/$ curl localhost
+$ curl localhost
 ```
 
 &nbsp;
@@ -21,7 +21,7 @@ pagination_prev: null
 `nc` takes URL and port in order to functin.
 
 ```
-/$ nc localhost 80
+$ nc localhost 80
 GET / HTTP/1.1
 ```
 
@@ -51,7 +51,7 @@ The host header allows user to access a site out of multiple sites hosted on the
 In order to set the host-header, we need to use the `H` flag.
 
 ```
-/$ curl -v -H 'Host: 3c22a6070842664437f7deb701d0ba73' localhost
+$ curl -v -H 'Host: 3c22a6070842664437f7deb701d0ba73' localhost
 ```
 
 &nbsp;
@@ -61,7 +61,7 @@ In order to set the host-header, we need to use the `H` flag.
 > Set the host header in an HTTP request using nc.
 
 ```txt title="Request.txt"
-/$ nc localhost 80
+$ nc localhost 80
 GET / HTTP/1.1
 Host: 955346154465080a0f6f80ad1abab644
 ```
@@ -86,7 +86,7 @@ print(response.text)
 > Set the path in an HTTP request using curl
 
 ```
-/$ curl -v localhost/6b24f3f2803e65ee8a4c7718e3746e9b
+$ curl -v localhost/6b24f3f2803e65ee8a4c7718e3746e9b
 ```
 
 &nbsp;
@@ -96,7 +96,7 @@ print(response.text)
 > Set the path in an HTTP request using nc
 
 ```txt title="Request.txt"
-/$ nc localhost 80
+$ nc localhost 80
 GET /6fa55c0a2c6a06641a0d3b0c7bb52aae HTTP/1.1
 ```
 
@@ -120,7 +120,7 @@ print(response.text)
 > URL encode a path in an HTTP request using curl
 
 ```
-/$ curl -v localhost/57663ceb%20cd9c94ed%2F6168ae2b%20da2eccda
+$ curl -v localhost/57663ceb%20cd9c94ed%2F6168ae2b%20da2eccda
 ```
 
 &nbsp;
@@ -130,7 +130,7 @@ print(response.text)
 > URL encode a path in an HTTP request using nc
 
 ```txt title="Request.txt"
-/$ nc localhost 80
+$ nc localhost 80
 GET /b12c4f12%2067266589%2Fd666cda6%20d2af6f45 HTTP/1.1
 ```
 
@@ -154,7 +154,7 @@ print(response.text)
 > Specify an argument in an HTTP request using curl
 
 ```
-/$ curl 'localhost?a=0700717794063c8870f6587ffe9d1f2e'
+$ curl 'localhost?a=0700717794063c8870f6587ffe9d1f2e'
 ```
 
 &nbsp;
@@ -164,7 +164,7 @@ print(response.text)
 > Specify an argument in an HTTP request using nc
 
 ```txt title="Request.txt"
-/$ nc localhost 80
+$ nc localhost 80
 GET /?a=9cb477c13d0f3467762b96e34723b429 HTTP/1.1
 ```
 
@@ -188,7 +188,7 @@ print(response.text)
 > Specify multiple arguments in an HTTP request using curl
 
 ```
-/$ curl -v 'localhost?a=183a900965dbaa297b87b8da347b5000&b=755bccd7%20431ba7ab%26e4271ad1%23165b5805'
+$ curl -v 'localhost?a=183a900965dbaa297b87b8da347b5000&b=755bccd7%20431ba7ab%26e4271ad1%23165b5805'
 ```
 
 &nbsp;
@@ -198,14 +198,14 @@ print(response.text)
 > Specify multiple arguments in an HTTP request using nc
 
 ```txt title="Request.txt"
-/$ nc localhost 80
+$ nc localhost 80
 GET /?a=0d5d14b5c59f30f71f8a4ad183e5594b&b=14ee11ce 7bcd30bb&945e070f#8c4ca511 HTTP/1.1
 ```
 
 * encode space, &, #
 
 ```txt title="Request.txt"
-/$ nc localhost 80
+$ nc localhost 80
 GET /?a=0d5d14b5c59f30f71f8a4ad183e5594b&b=14ee11ce%207bcd30bb%26945e070f%238c4ca511 HTTP/1.1
 ```
 
@@ -229,7 +229,7 @@ print(response.text)
 > Include form data in an HTTP request using curl
 
 ```
-/$ curl localhost -H "Content-Type: application/x-www-form-urlencoded" -d "a=2f326bd3fccd73a0779f0b2d508973b7"
+$ curl localhost -H "Content-Type: application/x-www-form-urlencoded" -d "a=2f326bd3fccd73a0779f0b2d508973b7"
 ```
 
 &nbsp;
@@ -239,7 +239,7 @@ print(response.text)
 > Include form data in an HTTP request using nc
 
 ```txt title="Request.txt"
-/$ nc localhost 80
+$ nc localhost 80
 POST / HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
 Content-Length: 34
@@ -267,7 +267,7 @@ print(response.text)
 > Include form data with multiple fields in an HTTP request using curl
 
 ```
-/$ curl localhost -H "Content-Type: application/x-www-form-urlencoded" -d "a=49d18424ea2da90ef911b176280d2b4f&b=e554316c%20d26a8c93%2637806597%2308446ae2"
+$ curl localhost -H "Content-Type: application/x-www-form-urlencoded" -d "a=49d18424ea2da90ef911b176280d2b4f&b=e554316c%20d26a8c93%2637806597%2308446ae2"
 ```
 
 &nbsp;
@@ -277,7 +277,7 @@ print(response.text)
 > Include form data with multiple fields in an HTTP request using nc
 
 ```txt title="Request.txt"
-/$ nc localhost 80
+$ nc localhost 80
 POST / HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
 Content-Length: 78
@@ -305,7 +305,7 @@ print(response.text)
 > Include json data in an HTTP request using curl
 
 ```
-/$ curl -v localhost -H "Content-Type: application/json" -d '{"a": "4ca4028161b46e326dccbd61fd9ca126"}'
+$ curl -v localhost -H "Content-Type: application/json" -d '{"a": "4ca4028161b46e326dccbd61fd9ca126"}'
 ```
 
 &nbsp;
@@ -315,7 +315,7 @@ print(response.text)
 > Include json data in an HTTP request using nc
 
 ```txt title="Request.txt"
-/$ nc localhost 80
+$ nc localhost 80
 POST / HTTP/1.1
 Content-Type: application/json
 Content-Length: 41
@@ -343,7 +343,7 @@ print(response.text)
 > Include complex json data in an HTTP request using curl
 
 ```
-/$ curl -v -H "Content-Type: application/json" localhost -d '{"a": "134feb33f6406e92577a3da1af09d6e1", "b":  {"c": "731530a0", "d": ["aa22dd29", "33a13f37 c90ae96c&fc4db4e3#43ed5bf2"]}}'
+$ curl -v -H "Content-Type: application/json" localhost -d '{"a": "134feb33f6406e92577a3da1af09d6e1", "b":  {"c": "731530a0", "d": ["aa22dd29", "33a13f37 c90ae96c&fc4db4e3#43ed5bf2"]}}'
 ```
 
 &nbsp;
@@ -353,7 +353,7 @@ print(response.text)
 > Include complex json data in an HTTP request using nc
 
 ```txt title="Request.txt"
-/$ nec localhost 80
+$ nec localhost 80
 POST / HTTP/1.1
 Content-Type: application/json
 Content-Length: 123
@@ -381,7 +381,7 @@ print(response.text)
 > Follow an HTTP redirect from HTTP response using curl
 
 ```
-/$ curl -v localhost/fe865645cf9d9429f8d3a64bd3624bde
+$ curl -v localhost/fe865645cf9d9429f8d3a64bd3624bde
 ```
 
 &nbsp;
@@ -391,7 +391,7 @@ print(response.text)
 > Follow an HTTP redirect from HTTP response using nc
 
 ```txt title="Request.txt"
-/$ nc localhost 80
+$ nc localhost 80
 GET /04f17f0a0c09c5f51d7b4b41227fc991 HTTP/1.1
 ```
 
@@ -415,13 +415,13 @@ print(response.text)
 > Include a cookie from HTTP response using curl
 
 ```
-/$ curl -v -H 'Cookie: cookie=6ba66cf208e8af50138db065514ec00c' localhost
+$ curl -v -H 'Cookie: cookie=6ba66cf208e8af50138db065514ec00c' localhost
 ```
 
 OR
 
 ```
-/$ curl -L --cookie /tmp/cookie localhost
+$ curl -L --cookie /tmp/cookie localhost
 ```
 
 &nbsp;
@@ -431,7 +431,7 @@ OR
 > Include a cookie from HTTP response using nc
 
 ```txt title="Request.txt"
-/$ nc localhost 80
+$ nc localhost 80
 GET / HTTP/1.1
 Cookie: cookie=fd64267b1b2798fc6498188109e91cf7
 ```
@@ -456,15 +456,15 @@ print(response.text)
 > Make multiple requests in response to stateful HTTP responses using curl
 
 ```
-/$ curl -v -H 'Cookie: session=eyJzdGF0ZSI6MX0.ZIdjyA.Il0n0-3Dc92AGqznlmke0NUGbSM' localhost
+$ curl -v -H 'Cookie: session=eyJzdGF0ZSI6MX0.ZIdjyA.Il0n0-3Dc92AGqznlmke0NUGbSM' localhost
 ```
 
 ```
-/$ curl -v -H 'Cookie: session=eyJzdGF0ZSI6Mn0.ZIdj-g.xNEcHHpWLkuTjDyiyMlOkpJlhHc' localhost
+$ curl -v -H 'Cookie: session=eyJzdGF0ZSI6Mn0.ZIdj-g.xNEcHHpWLkuTjDyiyMlOkpJlhHc' localhost
 ```
 
 ```
-/$ curl -v -H 'Cookie: session=eyJzdGF0ZSI6M30.ZIdkLw.GAPUeUh0rrxafcjsCri18TI506o' localhost
+$ curl -v -H 'Cookie: session=eyJzdGF0ZSI6M30.ZIdkLw.GAPUeUh0rrxafcjsCri18TI506o' localhost
 ```
 
 OR
@@ -480,20 +480,20 @@ OR
 > Make multiple requests in response to stateful HTTP responses using nc
 
 ```txt title="Request.txt"
-/$ nc localhost 80
+$ nc localhost 80
 GET / HTTP/1.1
 Cookie: session=eyJzdGF0ZSI6MX0.ZIdFvA.sHWWKoF8bM1fkGxOrTHbPJrHnXk
 
 ```
 
 ```txt title="Request.txt"
-/$ nc localhost 80
+$ nc localhost 80
 GET / HTTP/1.1
 Cookie: session=eyJzdGF0ZSI6Mn0.ZIdGGw.vET_YPzKaN7NNySdDm80v_VRahM
 ```
 
 ```txt title="Request.txt"
-/$ nc localhost 80
+$ nc localhost 80
 GET / HTTP/1.1
 Cookie: session=eyJzdGF0ZSI6M30.ZIdGTg.7DxhB2c_HvhkfSS5ADGrIgK-eq4
 ```
