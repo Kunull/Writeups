@@ -48,7 +48,7 @@ mov destination, source
 
 The first operand is the location where data is stored, while the second operand is the source of the data.
 
-
+&nbsp;
 
 ## level 2
 
@@ -65,7 +65,7 @@ add destination, source
 
 The first operand is the location at which the original data is stored, while the second operand is the source of the data to be added.
 
-
+&nbsp;
 
 ## level 3
 
@@ -99,7 +99,7 @@ mul rsi
 
 After that, we can just add the result of multiplication stored in `rax` with `rdx`.
 
-
+&nbsp;
 
 ## level 4
 
@@ -130,7 +130,7 @@ mov rax, rdi
 div rsi
 ```
 
-
+&nbsp;
 
 ## level 5
 
@@ -155,7 +155,7 @@ In the case modulus operation, the resultant is what we are interested in.
 
 After performing the division in the same manner as [level 4](assembly-crash-course.md#level-4), we have to move the resultant stored in `rdx` into `rax`.
 
-
+&nbsp;
 
 ## level 6
 
@@ -193,7 +193,7 @@ mov al, dil
 mov bx, si
 ```
 
-
+&nbsp;
 
 ## level 7
 
@@ -235,7 +235,7 @@ As we can see, on performing `shr`, the equivalent number of bits from the LSB a
 
 Next, we simply have to move the value into `rax`.
 
-
+&nbsp;
 
 ## level 8
 
@@ -313,7 +313,7 @@ Looking at the table, we can see that OR of zero with any bit is equal to the bi
 or rax, rdi
 ```
 
-
+&nbsp;
 
 ## level 9
 
@@ -386,7 +386,7 @@ xor rdi, 1
 
 Then we simply have to zero out `rax` and set it's value equal to the value of `rdx` using the same methods as [level 8](assembly-crash-course.md#level-8).
 
-
+&nbsp;
 
 ## level 10
 
@@ -427,7 +427,7 @@ add rbx, 0x1337
 mov [0x404000], rbx
 ```
 
-
+&nbsp;
 
 ## level 11
 
@@ -485,7 +485,7 @@ mov rcx, dword ptr [0x404000]
 mov rdx, qword ptr [0x404000]
 ```
 
-
+&nbsp;
 
 ## level 12
 
@@ -523,7 +523,7 @@ mov rax, 0xc0ffee0000
 mov [rsi], rax
 ```
 
-
+&nbsp;
 
 ## level 13
 
@@ -588,7 +588,7 @@ mov rax, qword ptr [rdi]
 mov rbx, qword ptr [rdi + 8]
 ```
 
-
+&nbsp;
 
 ## level 14
 
@@ -689,7 +689,7 @@ push rax    # Decrements rsp by 8 and moves data in rax to the address pointed t
         +-------------------------+
 ```
 
-
+&nbsp;
 
 ## level 15
 
@@ -723,7 +723,7 @@ pop rsi
 
 So the content of `rsi` will be popped first which we will store in our `rdi` register and then we will use the `rsi` register to store the content of `rdi` which will be popped next.
 
-
+&nbsp;
 
 ## level 16
 
@@ -824,7 +824,7 @@ RSP         |         Average         | <------ rsp
             +-------------------------+
 ```
 
-
+&nbsp;
 
 ## level 17
 
@@ -965,7 +965,7 @@ push 0x403000
 ret
 ```
 
-
+&nbsp;
 
 ### level 19
 
@@ -998,5 +998,3 @@ ret
 > * use no more than 3 jumps (of any variant)&#x20;
 > * we will provide you with the number to 'switch' on in rdi.&#x20;
 > * we will provide you with a jump table base address in rsi.
-
-##
