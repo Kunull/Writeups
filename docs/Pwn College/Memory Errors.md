@@ -1,3 +1,9 @@
+---
+custom_edit_url: null
+pagination_next: null
+pagination_prev: null
+---
+
 ## level 1.0
 
 > Overflow a buffer on the stack to set the right conditions to obtain the flag!
