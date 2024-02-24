@@ -8,7 +8,7 @@ pagination_prev: null
 
 > Send an HTTP request using curl
 
-```
+```js title="title"
 /$ curl localhost
 ```
 
@@ -490,7 +490,6 @@ Cookie: session=eyJzdGF0ZSI6MX0.ZIdFvA.sHWWKoF8bM1fkGxOrTHbPJrHnXk
 /$ nc localhost 80
 GET / HTTP/1.1
 Cookie: session=eyJzdGF0ZSI6Mn0.ZIdGGw.vET_YPzKaN7NNySdDm80v_VRahM
-
 ```
 
 ```title="Requests.txt"
