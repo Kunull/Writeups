@@ -6,10 +6,7 @@ pagination_prev: null
 
 
 ## level 1
-> This challenge will chroot into a jail in /tmp/jail-XXXXXX. You will be able to easily read a fake flag file inside this
-   jail, not the real flag file outside of it. If you want the real flag, you must escape.
-   The only thing you can do in this challenge is read out one single file, as specified by the first argument to the
-   program (argv[1]).
+> This challenge will chroot into a jail in /tmp/jail-XXXXXX. You will be able to easily read a fake flag file inside this jail, not the real flag file outside of it. If you want the real flag, you must escape. The only thing you can do in this challenge is read out one single file, as specified by the first argument to the program (argv[1]).
 
 Let's look at the source code.
 ```
