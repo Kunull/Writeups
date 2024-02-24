@@ -12,6 +12,8 @@ import base64
 base64.b64decode("cHduLmNvbGxlZ2V7SUwyV284RkdzQjRvNEg3UkVpMjlYUmkzeXp4LmROek56TURMNElUTTBFeld9Cg==")
 ```
 
+&nbsp;
+
 ## level 2
 
 ```python
@@ -26,6 +28,8 @@ plaintext=strxor(ciphertext, key)
 print(plaintext)
 ```
 
+&nbsp;
+
 ## level 3
 
 ```python
@@ -39,6 +43,8 @@ key=base64.b64decode("qJW4X/+m+3obwcHPRux799rpB80Fdyyz/XJai1qghuX9tAtqZBXDZwSODJ
 plaintext=strxor(ciphertext, key[:len(ciphertext)])
 print(plaintext)
 ```
+
+&nbsp;
 
 ## level 4
 
@@ -55,6 +61,8 @@ plaintext=cipher.decrypt(ciphertext)
 print(plaintext)
 ```
 
+&nbsp;
+
 ## level 9
 
 ```python
@@ -66,6 +74,8 @@ while True:
 		break
 	i += 1 
 ```
+
+&nbsp;
 
 ## level 11
 
