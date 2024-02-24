@@ -6,13 +6,17 @@ pagination_prev: null
 
 # Assembly
 
-{% hint style="info" %}
-For this module, `int3` displays the state of the registers, which is helpful in writing the code.
-{% endhint %}
+:::tip
 
-{% hint style="info" %}
+For this module, `int3` displays the state of the registers, which is helpful in writing the code.
+
+:::
+
+:::tip
+
 Use the code snippet provided below and replace the comment with your assembly code.
-{% endhint %}
+
+:::
 
 ## Code Snippet
 
