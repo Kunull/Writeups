@@ -99,7 +99,7 @@ The format is set to hexadecimal using `x` and the unit size is set to giga word
 
 &nbsp;
 
-### level 4
+## level 4
 
 > In order to solve this level, you must figure out a series of random values which will be placed on the stack. You are highly encouraged to try using combinations of `stepi`, `nexti`, `break`, `continue`, and `finish` to make sure you have a good internal understanding of these commands. The commands are all absolutely critical to navigating a program's execution.
 
