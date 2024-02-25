@@ -77,6 +77,11 @@ html[data-theme="dark"] .navbar-sidebar {
   background: #000;
 }
 
+.mainWrapper_z2l0 {
+  padding-left: 20px;
+  padding-right: 20px
+}
+
 code { 
   background-color: #222;
 }
