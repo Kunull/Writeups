@@ -81,10 +81,6 @@ code {
   background-color: #222;
 }
 
-span.token-line {
-  color: rgb(150,150,150);
-}
-
 .breadcrumbs__item--active .breadcrumbs__link {
     background: #222;
 }
