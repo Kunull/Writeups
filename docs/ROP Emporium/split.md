@@ -164,6 +164,7 @@ We have all the knowledge we need to create an exploit.
 	- [x] Address of `pop rdi ; ret` gadget: `0x00000000004007c3`
 	- [x] Address of `/bin/cat flag.txt`: `0x601060`
 	- [x] Address of `call <system@plt>`: `0x000000000040074b`
+ 
 All that remains is to link these pieces of information to create a ROP chain.
 
 ### ROP chain
@@ -345,6 +346,7 @@ We have all the knowledge we need to create an exploit.
 	- [x] Number of padding bytes: `44`
 	- [x] Address of `/bin/cat flag.txt`: `0x804a030`
 	- [x] Address of `call <system@plt>`: `0x0804861a`
+ 
 All that remains is to link these pieces of information to create a ROP chain.
 
 ### ROP chain
