@@ -374,7 +374,7 @@ Stack:-
 +--------------------------+
 
 =====================================================================
-call <system@plt> <------ rip
+call <system@plt> <------ eip
 # This gadget makes a system call based on the argument on the stack
 =====================================================================
 ```
