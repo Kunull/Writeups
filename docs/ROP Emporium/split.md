@@ -321,7 +321,7 @@ Let's see how this looks on the stack.
 <------: Points to the address
 
 +---------------+ 
-|  61 61 61 61  | <====== buffer (32 bytes) <------ esp
+|  61 61 61 61  | <====== buffer (40 bytes) <------ esp
 |  62 61 61 61  | 
 |  63 61 61 61  |
 |  64 61 61 61  |
