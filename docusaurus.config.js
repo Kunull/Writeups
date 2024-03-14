@@ -116,7 +116,7 @@ const config = {
               },
               {
                 label: 'Github',
-                href: 'https://github.com/Knign',
+                href: 'https://github.com/KuNull',
               },
               {
                 href: 'https://www.linkedin.com/in/kunalwalavalkar/',
