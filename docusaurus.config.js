@@ -83,7 +83,7 @@ const config = {
             position: 'right',
           },
           {
-            href: 'https://github.com/Knign',
+            href: 'https://github.com/KuNull',
             label: 'GitHub',
             position: 'right',
           },
@@ -130,7 +130,7 @@ const config = {
             items: [
               {
                 label: 'TryHackMe',
-                href: 'https://tryhackme.com/p/Knign',
+                href: 'https://tryhackme.com/p/KuNull',
               },
               {
                 label: 'Hack The Box',
