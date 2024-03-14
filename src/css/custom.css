@@ -64,7 +64,7 @@ html[data-theme='light'] .navbar .navbar__logo {
 
 html[data-theme="dark"] {
   --ifm-background-color: #000;
-  --ifm-code-background: #222222;
+  --ifm-code-background: #999999;
 }
 
 table {
