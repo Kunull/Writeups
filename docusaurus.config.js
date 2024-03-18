@@ -12,7 +12,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
 const config = {
   title: 'Write-ups',
   tagline: 'Dinosaurs are cool',
-  favicon: 'img/null.png',
+  favicon: 'img/null_large.png',
 
   // Set the production url of your site here
   url: 'https://github.com',
