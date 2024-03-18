@@ -68,7 +68,7 @@ const config = {
         title: 'Write-ups | KuNull',
         logo: {
           alt: 'My Site Logo',
-          src: 'img/null_large.png',
+          src: 'img/null.png',
         },
         items: [
           {
