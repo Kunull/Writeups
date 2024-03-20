@@ -92,9 +92,10 @@ html[data-theme="dark"] .navbar-sidebar {
   border-bottom: 1px solid var(--ifm-toc-border-color);
 }
 
-.navbar {
-    border-bottom-width: 1px;
-    box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+nav.navbar:not(.navbar-sidebar--show) {
+  --tw-backdrop-blur: blur(12px);
+  backdrop-filter: var(--tw-backdrop-blur);
+  background-color: initial;
 }
 
 .navbar__inner {
