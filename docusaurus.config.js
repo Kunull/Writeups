@@ -94,54 +94,54 @@ const config = {
           },
         ],
       },
-      footer: {
-        style: 'light',
-        links: [
-          {
-            title: 'Other collections',
-            items: [
-              {
-                label: 'Blog',
-                href: 'https://kunalwalavalkarblog.vercel.app',
-              },
-            ],
-          },
+      // footer: {
+      //   style: 'light',
+      //   links: [
+      //     {
+      //       title: 'Other collections',
+      //       items: [
+      //         {
+      //           label: 'Blog',
+      //           href: 'https://kunalwalavalkarblog.vercel.app',
+      //         },
+      //       ],
+      //     },
           
-          {
-            title: 'Socials',
-            items: [
-              {
-                label: 'Main site',
-                href: 'https://kunalwalavalkar.vercel.app',
-              },
-              {
-                label: 'Github',
-                href: 'https://github.com/KuNull',
-              },
-              {
-                href: 'https://www.linkedin.com/in/kunalwalavalkar/',
-                label: 'LinkedIn',
-              },
-            ],
-          },
+      //     {
+      //       title: 'Socials',
+      //       items: [
+      //         {
+      //           label: 'Main site',
+      //           href: 'https://kunalwalavalkar.vercel.app',
+      //         },
+      //         {
+      //           label: 'Github',
+      //           href: 'https://github.com/KuNull',
+      //         },
+      //         {
+      //           href: 'https://www.linkedin.com/in/kunalwalavalkar/',
+      //           label: 'LinkedIn',
+      //         },
+      //       ],
+      //     },
 
-          {
-            title: 'CTF Accounts',
-            items: [
-              {
-                label: 'TryHackMe',
-                href: 'https://tryhackme.com/p/KuNull',
-              },
-              {
-                label: 'Hack The Box',
-                href: 'https://app.hackthebox.com/profile/1158503',
-              },
-            ],
-          },
+      //     {
+      //       title: 'CTF Accounts',
+      //       items: [
+      //         {
+      //           label: 'TryHackMe',
+      //           href: 'https://tryhackme.com/p/KuNull',
+      //         },
+      //         {
+      //           label: 'Hack The Box',
+      //           href: 'https://app.hackthebox.com/profile/1158503',
+      //         },
+      //       ],
+      //     },
           
-        ],
-        copyright: `Copyright © ${new Date().getFullYear()} Kunal Walavalkar.`,
-      },
+      //   ],
+      //   copyright: `Copyright © ${new Date().getFullYear()} Kunal Walavalkar.`,
+      // },
       prism: {
         theme: prismThemes.vsDark,
       },
