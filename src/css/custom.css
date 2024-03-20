@@ -120,23 +120,23 @@ nav.menu_SIkG {
   color: #000;
 }
 
-.menu__list-item:not(:first-child) {
+.menu__list-item: {
   margin-top: 0.25rem;
   font-size: 0.9rem;
 }
 
-code { 
-  background-color: #222;
-}
 
+/* BREADCRUMBS */
+
+/* Background color */
 .breadcrumbs__item--active .breadcrumbs__link {
     background: #222;
 }
 
-element.style {
+/* element.style {
     color: rgb(248, 248, 242);
     background-color: rgb(30 62 255);
-}
+} */
 
 
 /* DOCS */
