@@ -91,7 +91,7 @@ html[data-theme="dark"] .navbar-sidebar {
 }
 
 .token-line {
-  color: #000
+  color: #000;
 }
 
 .menu__list-item:not(:first-child) {
