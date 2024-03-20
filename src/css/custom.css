@@ -84,10 +84,8 @@ html[data-theme="dark"] .navbar-sidebar {
   padding-right: 10px
 } */
 
-.menu_SIkG {
+nav.menu_SIkG {
   padding: 0.5rem 0.5rem 0.5rem 0.5rem;
-  scrollbar-gutter: stable;
-  scrollbar-gutter: stable;
 }
 
 .token-line {
