@@ -89,6 +89,10 @@ html[data-theme="dark"] .navbar-sidebar {
 /* NAVBAR */
 
 .navbar {
+  border-bottom: 1px solid var(--ifm-toc-border-color);
+}
+
+.navbar {
     border-bottom-width: 1px;
     box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
