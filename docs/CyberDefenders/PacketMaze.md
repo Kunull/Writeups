@@ -39,7 +39,7 @@ Let's look at the first packet.
 
 ![packetmaze 2 2](https://github.com/Knign/Write-ups/assets/110326359/b84e2aa7-f71e-4a36-8473-f7fb6a44ccdb)
 
-- We can see the IPv6 address of the DNS server in the `Destination Address` field.
+We can see the IPv6 address of the DNS server in the `Destination Address` field.
 
 ### Answer
 ```
