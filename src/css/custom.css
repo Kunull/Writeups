@@ -104,6 +104,10 @@ nav.navbar:not(.navbar-sidebar--show) {
 
 /* SIDEBAR */
 
+aside.docSidebarContainer_YfHR {
+    border-right: 0px;
+}
+
 nav.menu_SIkG {
   padding: 1.5rem 1rem 1rem 1.5rem;
 }
