@@ -101,14 +101,6 @@ nav.menu_SIkG {
   padding: 1rem 1rem 1rem 1rem;
 }
 
-.theme-doc-sidebar-menu.theme-doc-sidebar-menu .theme-doc-sidebar-item-category ul.menu__list {
-  border-left-width: 1px;
-  border-color: #fff;
-  font-weight: 400;
-  margin-bottom: 0;
-  margin-top: 0
-}
-
 .token-line {
   color: #000;
 }
