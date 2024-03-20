@@ -84,8 +84,8 @@ html[data-theme="dark"] .navbar-sidebar {
   padding-right: 10px
 } */
 
-.menu_SIkG {
-  padding-left: 1rem;
+.menu {
+  padding: 1rem !importnant;
 } 
 
 code { 
