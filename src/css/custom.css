@@ -79,10 +79,14 @@ html[data-theme="dark"] .navbar-sidebar {
   background: #000;
 }
 
-.mainWrapper_z2l0 {
+/* .mainWrapper_z2l0 {
   padding-left: 10px;
   padding-right: 10px
-}
+} */
+
+.menu {
+  padding: 0.5rem;
+} 
 
 code { 
   background-color: #222;
