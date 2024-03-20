@@ -84,16 +84,10 @@ html[data-theme="dark"] .navbar-sidebar {
   padding-right: 10px
 } */
 
-/* .menu {
-  padding: 1rem!importnant;
-}  */
-@media (min-width: 997px) {
-  @supports (scrollbar-gutter:stable) {
-    .menu_SIkG {
-      padding: .5rem .5rem .5rem .5rem;
-      scrollbar-gutter: stable
-    }
-  }
+.menu_SIkG {
+  padding: 0.5rem 0.5rem 0.5rem 0.5rem;
+  scrollbar-gutter: stable;
+  scrollbar-gutter: stable;
 }
 
 .menu__list-item:not(:first-child) {
