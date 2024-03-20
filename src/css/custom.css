@@ -102,11 +102,11 @@ nav.menu_SIkG {
 }
 
 .theme-doc-sidebar-menu.theme-doc-sidebar-menu .theme-doc-sidebar-item-category ul.menu__list {
-    border-left-width: 1px;
-    font-weight: 400;
-    margin-bottom: 0;
-    margin-left: 1rem;
-    margin-top: 0
+  border-left-width: 1px;
+  border-color: #000;
+  font-weight: 400;
+  margin-bottom: 0;
+  margin-top: 0
 }
 
 .token-line {
