@@ -101,7 +101,7 @@ nav.menu_SIkG {
   padding: 1rem 1rem 1rem 1rem;
 }
 
-.theme-doc-sidebar-menu.theme-doc-sidebar-menu .theme-doc-sidebar-item-category ul.menu__list {
+ul.menu__list {
   border-left-width: 1px;
   border-color: #000;
   font-weight: 400;
