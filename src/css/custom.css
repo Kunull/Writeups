@@ -110,11 +110,6 @@ element.style {
     background-color: rgb(30 62 255);
 }
 
-.main-wrapper>div {
-    margin: 0 auto;
-    max-width: 1440px;
-}
-
 article {
   max-width: 800px;
   margin-left: auto;
