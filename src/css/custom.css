@@ -139,13 +139,29 @@ element.style {
 }
 
 
-/* WIDTH */
+/* DOCS */
 
+/* Width */
+.mainWrapper_z2l0 {
+    margin: 0 auto;
+    width: 94%;
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+}
+
+
+/* ARTICLE */
+
+/* Width */
 article {
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
 }
+
+
+
 
 /* Adjust footer link colors */
 #__docusaurus > footer > div > div.text--center > div > a {
