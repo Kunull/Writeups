@@ -87,17 +87,18 @@ html[data-theme="dark"] .navbar-sidebar {
 /* .menu {
   padding: 1rem!importnant;
 }  */
-
-@supports (scrollbar-gutter:stable) {
-  .menu_SIkG {
-    padding: .5rem .5rem .5rem .5rem;
-    scrollbar-gutter: stable
+@media (min-width: 997px) {
+  @supports (scrollbar-gutter:stable) {
+    .menu_SIkG {
+      padding: .5rem .5rem .5rem .5rem;
+      scrollbar-gutter: stable
+    }
   }
 }
 
 .menu__list-item:not(:first-child) {
-    margin-top: .25rem;
-    font-size: 0.9rem;
+  margin-top: .25rem;
+  font-size: 0.9rem;
 }
 
 code { 
