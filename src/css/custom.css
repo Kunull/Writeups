@@ -84,9 +84,16 @@ html[data-theme="dark"] .navbar-sidebar {
   padding-right: 10px
 } */
 
-.menu {
+/* .menu {
   padding: 1rem!importnant;
-} 
+}  */
+
+@supports (scrollbar-gutter:stable) {
+  .menu_SIkG {
+    padding: .5rem .5rem .5rem .5rem;
+    scrollbar-gutter: stable
+  }
+}
 
 .menu__list-item:not(:first-child) {
     margin-top: .25rem;
