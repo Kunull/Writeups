@@ -90,6 +90,10 @@ html[data-theme="dark"] .navbar-sidebar {
   scrollbar-gutter: stable;
 }
 
+.token-line {
+  color: #000
+}
+
 .menu__list-item:not(:first-child) {
   margin-top: .25rem;
   font-size: 0.9rem;
