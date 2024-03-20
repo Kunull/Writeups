@@ -45,7 +45,7 @@ html[data-theme='light'] .navbar .navbar__logo {
   --ifm-menu-color-background-active: #222;
   --ifm-menu-color-background-hover: #222;
   --ifm-breadcrumb-item-background-active: #222;
-  --ifm-navbar-background-color: rgba(0, 0, 0, 0.75);
+  --ifm-navbar-background-color: rgba(0, 0, 0, 0.95);
   --ifm-footer-background-color: #222;
   --ifm-color-primary-darkest: rgba(60, 60, 60, 1);
   --ifm-color-primary-darker: rgba(80, 80, 80, 1);
@@ -91,13 +91,6 @@ html[data-theme="dark"] .navbar-sidebar {
 .navbar {
     border-bottom-width: 1px;
     box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
-}
-
-nav.navbar {
-    --tw-backdrop-blur: blur(12px);
-    -webkit-backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
-    backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
-    background-color: initial;
 }
 
 .navbar__inner {
