@@ -74,7 +74,7 @@ const config = {
           {
             href: 'https://kunalwalavalkarblog.vercel.app',
             label: 'Blog',
-            position: 'left',
+            position: 'right',
           },
           
           {
