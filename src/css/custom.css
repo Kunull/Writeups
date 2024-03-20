@@ -126,7 +126,6 @@ element.style {
 /* WIDTH */
 
 .main-wrapper>div {
-    margin: 0 auto;
     max-width: 1440px;
 }
 
