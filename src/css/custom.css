@@ -88,21 +88,24 @@ html[data-theme="dark"] .navbar-sidebar {
 
 /* NAVBAR */
 
+/* Lower border */
 .navbar {
   border-bottom: 1px solid var(--ifm-toc-border-color);
 }
 
+/* Glassmorphism */
 nav.navbar:not(.navbar-sidebar--show) {
   --tw-backdrop-blur: blur(12px);
   backdrop-filter: var(--tw-backdrop-blur);
   background-color: initial;
 }
 
-.navbar__inner {
+/* Width */
+/* .navbar__inner {
     margin: 0 auto;
     max-width: 1420px;
     padding: 0 16px;
-}
+} */
 
 
 
