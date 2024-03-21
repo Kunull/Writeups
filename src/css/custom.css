@@ -153,6 +153,20 @@ nav.menu_SIkG {
 
 
 
+/* TABLE */
+
+/* Border color */
+table td, table th {
+    border: var(--ifm-table-border-width) solid #333333;
+    padding: var(--ifm-table-cell-padding);
+}
+
+table thead tr {
+    border-bottom: 2px solid #333333;
+}
+
+
+
 /* DOCS */
 
 /* Width */
