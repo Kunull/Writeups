@@ -101,11 +101,11 @@ nav.navbar:not(.navbar-sidebar--show) {
 }
 
 /* Width */
-.navbar__inner {
+/* .navbar__inner {
     margin: 0 auto;
     max-width: 1420px;
     padding: 0 16px;
-}
+} */
 
 
 
