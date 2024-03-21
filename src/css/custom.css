@@ -90,7 +90,7 @@ html[data-theme="dark"] .navbar-sidebar {
 
 /* Lower border */
 .navbar {
-  border-bottom: 1px solid var(--ifm-toc-border-color);
+  border-bottom: 1px solid #333333;
 }
 
 /* Glassmorphism */
@@ -129,6 +129,16 @@ nav.menu_SIkG {
 }
 
 
+
+/* IN PAGE ITEMS */
+
+/* Left border */
+.table-of-contents__left-border {
+    border-left: 1px solid #333333;
+}
+
+
+
 /* BREADCRUMBS */
 
 /* Background color */
@@ -142,6 +152,7 @@ nav.menu_SIkG {
 } */
 
 
+
 /* DOCS */
 
 /* Width */
@@ -152,6 +163,7 @@ nav.menu_SIkG {
     flex: 1 0 auto;
     flex-direction: column;
 }
+
 
 
 /* ARTICLE */
