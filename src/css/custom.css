@@ -121,11 +121,12 @@ nav.menu_SIkG {
   font-size: 0.9rem;
 }
 
+/* Left borderon menu list */
 ul.menu__list {
-    border-left-width: 1px;
+    border-left: 1px solid #33
     font-weight: 400;
     margin-bottom: 0;
-    margin-left: 1rem;
+/*     margin-left: 1rem; */
     margin-top: 0;
 }
 
