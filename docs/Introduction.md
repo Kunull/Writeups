@@ -7,7 +7,6 @@ pagination_prev: null
 ---
 
 This is a collection of write-ups for the CTF challenges that I have solved. 
-
 It is updated on most days and will continue to be for the foreseeable future.
 
 I am dedicated to the ongoing development of this collection, recognizing that learning in cybersecurity is a journey with no end. As I continue to explore new challenges and acquire new skills, I will share my insights and solutions here, ensuring that the collection evolves alongside my own knowledge and expertise.
