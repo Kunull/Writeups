@@ -73,26 +73,53 @@ const config = {
         },
         items: [
           {
-            href: 'https://kunalwalavalkarblog.vercel.app',
-            label: 'Blog',
-            position: 'right',
+              href: 'https://kunalwalavalkarblog.vercel.app',
+              label: 'Blog',
+              position: 'right',
           },
           
+          
           {
-            href: 'https://kunalwalavalkar.vercel.app',
-            label: 'Main site',
+            type: 'dropdown',
+            label: 'Socials',
             position: 'right',
+            items: [
+              {
+                href: 'https://kunalwalavalkar.vercel.app',
+                label: 'Main site',
+                position: 'right',
+              },
+              {
+                href: 'https://github.com/kunull',
+                label: 'GitHub',
+                position: 'right',
+              },
+              {
+                href: 'https://www.linkedin.com/in/kunalwalavalkar/',
+                label: 'LinkedIn',
+                position: 'right',
+              },  
+            ],
           },
+
+          
           {
-            href: 'https://github.com/kunull',
-            label: 'GitHub',
+            type: 'dropdown',
+            label: 'CTF Accounts',
             position: 'right',
-          },
-          {
-            href: 'https://www.linkedin.com/in/kunalwalavalkar/',
-            label: 'LinkedIn',
-            position: 'right',
-          },
+            items: [
+              {
+                href: 'https://tryhackme.com/p/Kunull',
+                label: 'TryHackMe',
+                position: 'right',
+              },
+              {
+                href: 'https://app.hackthebox.com/profile/1158503',
+                label: 'Hack The Box',
+                position: 'right',
+              },
+            ],
+          },         
         ],
       },
       // footer: {
