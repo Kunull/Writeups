@@ -42,6 +42,7 @@ const config = {
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: {
+          breadcrumbs: false,
           sidebarPath: './sidebars.js',
           routeBasePath: '/',
         },
