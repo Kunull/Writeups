@@ -69,13 +69,6 @@ html[data-theme="dark"] {
   --ifm-code-background: #222222;
 }
 
-table {
-  display: table;
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: var(--ifm-spacing-vertical);
-} 
-
 html[data-theme="dark"] .navbar-sidebar {
   background: #000;
 }
@@ -128,6 +121,14 @@ nav.menu_SIkG {
   font-size: 0.9rem;
 }
 
+ul.menu__list {
+    border-left-width: 1px;
+    font-weight: 400;
+    margin-bottom: 0;
+    margin-left: 1rem;
+    margin-top: 0;
+}
+
 
 
 /* IN PAGE ITEMS */
@@ -160,6 +161,14 @@ nav.menu_SIkG {
 
 
 /* TABLE */
+
+/* Layout */
+table {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--ifm-spacing-vertical);
+} 
 
 /* Border color */
 table td, table th {
