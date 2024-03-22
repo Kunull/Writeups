@@ -84,7 +84,7 @@ const config = {
             position: 'right',
           },
           {
-            href: 'https://github.com/KuNull',
+            href: 'https://github.com/kunull',
             label: 'GitHub',
             position: 'right',
           },
