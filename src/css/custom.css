@@ -123,7 +123,7 @@ nav.menu_SIkG {
 
 /* Left borderon menu list */
 ul.menu__list {
-    border-left: 1px solid #33
+    border-left: 1px solid #333;
     font-weight: 400;
     margin-bottom: 0;
 /*     margin-left: 1rem; */
