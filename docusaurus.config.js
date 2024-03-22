@@ -87,17 +87,17 @@ const config = {
               {
                 href: 'https://kunalwalavalkar.vercel.app',
                 label: 'Main site',
-                position: 'right',
+                // position: 'right',
               },
               {
                 href: 'https://github.com/kunull',
                 label: 'GitHub',
-                position: 'right',
+                // position: 'right',
               },
               {
                 href: 'https://www.linkedin.com/in/kunalwalavalkar/',
                 label: 'LinkedIn',
-                position: 'right',
+                // position: 'right',
               },  
             ],
           },
@@ -111,12 +111,12 @@ const config = {
               {
                 href: 'https://tryhackme.com/p/Kunull',
                 label: 'TryHackMe',
-                position: 'right',
+                // position: 'right',
               },
               {
                 href: 'https://app.hackthebox.com/profile/1158503',
                 label: 'Hack The Box',
-                position: 'right',
+                // position: 'right',
               },
             ],
           },         
