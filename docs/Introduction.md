@@ -16,7 +16,7 @@ By documenting my experiences and solutions in real-time, I aim to provide trans
 
 ## My CTF accounts
 
-[TryHackMe](https://tryhackme.com/p/kunull)
+[TryHackMe](https://tryhackme.com/p/Kunull)
 
 [Hack The Box](https://app.hackthebox.com/profile/1158503)
 
