@@ -88,9 +88,10 @@ html[data-theme="dark"] .navbar-sidebar {
 
 /* Glassmorphism */
 nav.navbar:not(.navbar-sidebar--show) {
-  --tw-backdrop-blur: blur(12px);
-  backdrop-filter: var(--tw-backdrop-blur);
-  background-color: initial;
+    --tw-backdrop-blur: blur(10px);
+    -webkit-backdrop-filter: var(--tw-backdrop-blur);
+    backdrop-filter: var(--tw-backdrop-blur);
+    background-color: rgb(0, 0, 0, 0.4);
 }
 
 /* Width */
