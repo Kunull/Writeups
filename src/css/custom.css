@@ -208,7 +208,23 @@ article {
 
 
 
+/* COLLAPSIBLE LIST */
 
+/* Centre border */
+.tocCollapsibleContent_vkbj>ul {
+    border-left: none;
+    border-top: 1px solid #333;
+    font-size: 15px;
+    padding: .2rem 0;
+}
+
+/* Background color and border */
+.tocCollapsible_ETCw {
+    border: 1px solid #333;
+    background-color: #000;
+    border-radius: var(--ifm-global-radius);
+    margin: 1rem 0;
+}
 /* Adjust footer link colors */
 #__docusaurus > footer > div > div.text--center > div > a {
   color: unset;
