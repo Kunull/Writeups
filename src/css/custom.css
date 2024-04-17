@@ -227,7 +227,7 @@ article {
 /* COLLAPSIBLE LIST */
 
 /* Centre border */
-.tocCollapsibleContent_vkbj>ul {
+.table-of-contents .table-of-contents__left-border {
     border-left: none;
     border-top: 1px solid #333;
     font-size: 15px;
@@ -235,7 +235,7 @@ article {
 }
 
 /* Background color and border */
-.tocCollapsible_ETCw {
+.tocCollapsible_ETCw .theme-doc-toc-mobile .tocMobile_ITEo {
     border: 1px solid #333;
     background-color: #000;
     border-radius: var(--ifm-global-radius);
