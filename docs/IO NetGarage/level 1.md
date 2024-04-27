@@ -10,7 +10,7 @@ Let's run the program.
 sh-4.3$ ./level01
 Enter the 3 digit passcode to enter:
 ```
-As we can see we need to enter a 3digit passcode.
+As we can see we need to enter a 3 digit passcode.
 
 We can disassemble the program using `gdb` to get an idea of how the program performs it's checks.
 ```
