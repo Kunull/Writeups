@@ -84,12 +84,11 @@ const config = {
               // ... more items
             ],
           },
-          {
-              href: 'https://kunalwalavalkarblog.vercel.app',
-              label: 'Blog',
-              position: 'right',
-          },
-          
+          // {
+          //     href: 'https://kunalwalavalkarblog.vercel.app',
+          //     label: 'Blog',
+          //     position: 'right',
+          // },         
           {
               href: 'https://kunalwalavalkar.vercel.app',
               label: 'Main site',
