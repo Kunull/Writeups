@@ -101,14 +101,6 @@ nav.navbar:not(.navbar-sidebar--show) {
     padding: 0 16px;
 } */
 
-/* Dropdown Glassmorphism */
-.dropdown__menu {
-    --tw-backdrop-blur: blur(10px);
-    -webkit-backdrop-filter: var(--tw-backdrop-blur);
-    backdrop-filter: var(--tw-backdrop-blur);
-    background-color: rgb(0, 0, 0, 0.4);
-}
-
 
 
 /* SIDEBAR */
@@ -232,53 +224,16 @@ article {
 
 
 
-/* COLLAPSIBLE LIST */
-
-/* Centre border */
-.table-of-contents .table-of-contents__left-border {
-    border-left: none;
-    border-top: 1px solid #333;
-    font-size: 15px;
-    padding: .2rem 0;
-}
-
-/* Background color and border */
-.tocCollapsible_ETCw .theme-doc-toc-mobile .tocMobile_ITEo {
-    border: 1px solid #333;
-    background-color: #000;
-    border-radius: var(--ifm-global-radius);
-    margin: 1rem 0;
-}
-/* Adjust footer link colors */
-#__docusaurus > footer > div > div.text--center > div > a {
-  color: unset;
-}
-
-#__docusaurus > footer > div > div.text--center > div > a:hover {
-  color: var(--ifm-link-color);
-  text-decoration: underline;
-}
-
-.navbar .navbar__items {
-  flex: auto;
-}
-
-.dropdown__link {
-  font-size: inherit;
-}
-
+/* DROPDOWN */
 .dropdown {
   width: auto;
-  border: none;
   background-color: var(--ifm-navbar-background-color);
 }
 
-/* Adjust footer link colors */
-#__docusaurus > footer > div > div.text--center > div > a {
-  color: unset;
-}
-
-#__docusaurus > footer > div > div.text--center > div > a:hover {
-  color: var(--ifm-link-color);
-  text-decoration: underline;
+/* Dropdown Glassmorphism */
+.dropdown__menu {
+    --tw-backdrop-blur: blur(10px);
+    -webkit-backdrop-filter: var(--tw-backdrop-blur);
+    backdrop-filter: var(--tw-backdrop-blur);
+    background-color: rgb(0, 0, 0, 0.4);
 }
