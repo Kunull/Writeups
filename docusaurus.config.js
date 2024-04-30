@@ -75,7 +75,7 @@ const config = {
           {
             type: 'dropdown',
             label: 'Other Collections',
-            position: 'left',
+            position: 'right',
             items: [
               {
                 label: 'Blog',
