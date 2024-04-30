@@ -268,7 +268,7 @@ article {
 }
 
 .dropdown {
-  width: 100%;
+  width: auto;
   border: none;
   background-color: var(--ifm-navbar-background-color);
 }
