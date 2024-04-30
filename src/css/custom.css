@@ -101,6 +101,14 @@ nav.navbar:not(.navbar-sidebar--show) {
     padding: 0 16px;
 } */
 
+/* Dropdown Glassmorphism */
+.dropdown__menu {
+    --tw-backdrop-blur: blur(10px);
+    -webkit-backdrop-filter: var(--tw-backdrop-blur);
+    backdrop-filter: var(--tw-backdrop-blur);
+    background-color: rgb(0, 0, 0, 0.4);
+}
+
 
 
 /* SIDEBAR */
