@@ -73,6 +73,18 @@ const config = {
         },
         items: [
           {
+            type: 'dropdown',
+            label: 'Other Collections',
+            position: 'left',
+            items: [
+              {
+                label: 'Blog',
+                href: 'https://blog-kunull.vercel.app',
+              },
+              // ... more items
+            ],
+          },
+          {
               href: 'https://kunalwalavalkarblog.vercel.app',
               label: 'Blog',
               position: 'right',
