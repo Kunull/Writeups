@@ -225,12 +225,17 @@ article {
 
 
 /* DROPDOWN */
-.dropdown {
-  width: auto;
-  background-color: var(--ifm-navbar-background-color);
-}
 
 /* Dropdown Glassmorphism */
+.dropdown {
+    width: auto;
+    --tw-backdrop-blur: blur(10px);
+    -webkit-backdrop-filter: var(--tw-backdrop-blur);
+    backdrop-filter: var(--tw-backdrop-blur);
+    background-color: rgb(0, 0, 0, 0.4);
+}
+
+/* Dropdown list Glassmorphism */
 .dropdown__menu {
     --tw-backdrop-blur: blur(10px);
     -webkit-backdrop-filter: var(--tw-backdrop-blur);
