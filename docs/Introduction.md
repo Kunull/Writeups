@@ -1,5 +1,6 @@
 ---
 slug: /
+title: Write-ups
 sidebar_position: 1
 custom_edit_url: null
 pagination_next: null
