@@ -195,9 +195,13 @@ table td, table th {
 }
 
 table thead tr {
-    border-bottom: 2px solid #333333;
+    border-bottom: 2px solid #222;
 }
 
+/* 2n child */
+tr:nth-child(2n) {
+    background-color: #000;
+}
 
 
 /* DOCS */
