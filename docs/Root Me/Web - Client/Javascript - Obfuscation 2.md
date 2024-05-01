@@ -7,7 +7,7 @@ sidebar_position: 6
 
 ![1](https://github.com/Knign/Write-ups/assets/110326359/4d237aab-f71e-44cf-b9e2-456f62c23444)
 
-The page is empty. Let's check the source code.
+The page is empty. Let's inspect the source code of the page.
 
 ![2](https://github.com/Knign/Write-ups/assets/110326359/9a79f214-0238-4257-be90-050459531f19)
 
