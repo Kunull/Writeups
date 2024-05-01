@@ -222,6 +222,10 @@ article {
   margin-right: auto;
 }
 
+/* 2rem padding */
+.padding-top--md, .padding-vert--md {
+    padding-top: 2rem !important;
+}
 
 
 /* DROPDOWN */
