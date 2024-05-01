@@ -295,7 +295,7 @@ We have found the following credentials.
 | jerry    | adipiscing |
 | tom      | parturient |
 
-## Logging in through SSH
+### Logging in through SSH
 
 Since we know that there is an SSH service running on the target, we can use the credentials we have to login.
 
@@ -315,7 +315,7 @@ tom@DC-2:~$
 &nbsp;
 
 ## Post Exploitation
-### Command restriction
+### Escaping restricted shell
 
 Once we obtain a foothold on the target, we quickly realize that most commands are not allowed.
 
