@@ -198,11 +198,6 @@ table thead tr {
     border-bottom: 2px solid #333333;
 }
 
-/* 2n child */
-table thead, table tr:nth-child(2n) {
-    background-color: var(--ifm-table-stripe-background);
-}
-
 
 
 /* DOCS */
