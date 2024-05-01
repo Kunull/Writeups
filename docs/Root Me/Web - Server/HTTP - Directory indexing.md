@@ -6,7 +6,7 @@ sidebar_position: 9
 ---
 
 > Find a vulnerability in this service and exploit it.
-
+>
 > The flag is on the `index.php` file.
 
 ![1](https://github.com/Knign/Write-ups/assets/110326359/d1e2fbf5-dde6-4680-9880-434f849e9474)
