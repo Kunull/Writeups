@@ -157,7 +157,7 @@ const config = {
       //   copyright: `Copyright © ${new Date().getFullYear()} Kunal Walavalkar.`,
       // },
       prism: {
-        theme: prismThemes.omeDark,
+        theme: prismThemes.vsDark,
       },
 
       
