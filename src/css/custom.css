@@ -247,3 +247,13 @@ article {
     backdrop-filter: var(--tw-backdrop-blur);
     background-color: rgb(0, 0, 0, 0.4);
 }
+
+
+
+/* CODE BLOCK */
+
+/* Line color */
+
+.token-line { 
+  color: rgb(174 174 174);
+} 
