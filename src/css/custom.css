@@ -151,8 +151,9 @@ nav.menu_SIkG {
 
 
 /* IN PAGE ITEMS */
+
 /* Top padding */
-.tableOfContents_bqdL {
+.tableOfContents_bqdL .thin-scrollbar .theme-doc-toc-desktop {
     top: calc(var(--ifm-navbar-height) + 1.5rem);
 }
 
