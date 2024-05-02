@@ -149,7 +149,12 @@ nav.menu_SIkG {
 }
 
 
+
 /* IN PAGE ITEMS */
+/* Top padding */
+.tableOfContents_bqdL {
+    top: calc(var(--ifm-navbar-height) + 1.5rem);
+}
 
 /* Left border */
 .table-of-contents__left-border {
