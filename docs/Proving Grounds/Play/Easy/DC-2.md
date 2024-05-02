@@ -364,9 +364,18 @@ tom@DC-2:~$ export PATH=/bin:/usr/bin:$PATH
 tom@DC-2:~$ export SHELL=/bin/bash:$SHELL
 ```
 
+### local.txt
+
+We can now `cat` the `local.txt` flag.
+
+```
+tom@DC-2:~$ cat local.txt
+a5af626ceea9f79c26034c91502946ce
+```
+
 ### Switching to the jerry user
 
-We can switch to the user `jerry` using the `su` command.
+Let's switch to the user `jerry` using the `su` command.
 
 ```
 tom@DC-2:~$ su jerry
@@ -401,3 +410,10 @@ root
 ```
 
 We are now the `root` user.
+
+### proof.txt
+
+```
+root@DC-2:~# cat proof.txt
+95e76ef1154a293d3cfcf606748f6f6d
+```
