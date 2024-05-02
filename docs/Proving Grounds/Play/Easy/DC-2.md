@@ -131,6 +131,7 @@ Interesting Finding(s):
 
 [i] User(s) Identified:
 
+// highlight-next-line
 [+] admin
  | Found By: Rss Generator (Passive Detection)
  | Confirmed By:
@@ -139,6 +140,7 @@ Interesting Finding(s):
  |  Author Id Brute Forcing - Author Pattern (Aggressive Detection)
  |  Login Error Messages (Aggressive Detection)
 
+// highlight-next-line
 [+] jerry
  | Found By: Wp Json Api (Aggressive Detection)
  |  - http://dc-2/index.php/wp-json/wp/v2/users/?per_page=100&page=1
