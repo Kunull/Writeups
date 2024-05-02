@@ -53,7 +53,7 @@ As we can see, there is a WordPress site running on port 80.
 
 We can gather more information using the `wpscan` utility.
 
-```
+```txt
 $ wpscan --url http://dc-2 --enumerate u
 _______________________________________________________________
          __          _______   _____
