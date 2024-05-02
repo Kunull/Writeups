@@ -67,7 +67,7 @@ Nmap done: 1 IP address (1 host up) scanned in 14.54 seconds
 
 An important piece of information is the Drupal version having been identified as 7.
 
-### Directory Brute Force
+### Directory brute force using FFUF
 
 Let's perform some directory brute forcing to check what web directories are present.
 
@@ -129,7 +129,7 @@ Let's check if there are any exploits present for Drupal version 7.2.
 
 ## Exploitation
 
-### Searchsploit
+### Searching for relevant exploit using Searchsploit
 
 ```
 $ searchsploit drupal 7.2
@@ -235,7 +235,7 @@ find / -perm -u=s -type f 2>/dev/null
 
 We can now use on of these files to escalate our privilege.
 
-Let's go to GTFOBins to search for an exploit for the `find` utility. 
+Let's go to [GTFOBins](https://gtfobins.github.io) to search for an exploit for the `find` utility. 
 
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/3ad3e713-0185-4392-b8fb-b010f246b217)
 
@@ -247,4 +247,4 @@ whoami
 root
 ```
 
-We are now the root user.
+We are now the `root` user.
