@@ -152,14 +152,6 @@ nav.menu_SIkG {
 
 /* IN PAGE ITEMS */
 
-/* Top padding */
-.tableOfContents_bqdL {
-    max-height: calc(100vh - var(--ifm-navbar-height) - 2rem);
-    overflow-y: auto;
-    position: sticky;
-    top: 4.75rem;
-}
-
 /* Left border */
 .table-of-contents__left-border {
     border-left: 1px solid #333333;
