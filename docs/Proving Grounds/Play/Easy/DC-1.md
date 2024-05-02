@@ -205,6 +205,16 @@ python -c 'import pty; pty.spawn("/bin/bash")'
 www-data@DC-1:$
 ```
 
+### local.txt
+
+Let's `cat` the `local.txt` flag.
+
+```
+www-data@DC-1:/home$ cat local.txt
+cat local.txt
+a5fb380401e95264349fabe9fe4a2f81
+```
+
 ### Privilege escalation
 
 We can use the `find` command to search for files on the system where the `setuid` bit is set.
@@ -248,3 +258,11 @@ root
 ```
 
 We are now the `root` user.
+
+### proof.txt
+
+```
+# cat /root/proof.txt
+cat /root/proof.txt
+005f96da1c129e56103346eeb058e992
+```
