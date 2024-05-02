@@ -153,8 +153,11 @@ nav.menu_SIkG {
 /* IN PAGE ITEMS */
 
 /* Top padding */
-.tableOfContents_bqdL .thin-scrollbar .theme-doc-toc-desktop {
-    top: calc(var(--ifm-navbar-height) + 1.5rem);
+.tableOfContents_bqdL {
+    max-height: calc(100vh - var(--ifm-navbar-height) - 2rem);
+    overflow-y: auto;
+    position: sticky;
+    top: calc(var(--ifm-navbar-height) + 1rem);
 }
 
 /* Left border */
