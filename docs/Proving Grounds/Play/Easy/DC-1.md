@@ -10,24 +10,7 @@ pagination_prev: null
 Let's perform a simple `nmap` scan on the target.
 
 ```
-$ nmap -p- -T5 192.168.210.193
-Starting Nmap 7.94SVN ( https://nmap.org ) at 2024-04-30 03:34 UTC
-Nmap scan report for 192.168.210.193
-Host is up (0.011s latency).
-Not shown: 65531 closed tcp ports (conn-refused)
-PORT      STATE SERVICE
-22/tcp    open  ssh
-80/tcp    open  http
-111/tcp   open  rpcbind              
-40238/tcp open  unknown 
-
-Nmap done: 1 IP address (1 host up) scanned in 2.90 seconds
-```
-
-Now we can use the `-A` options to execute all scripts against the open ports.
-
-```
-$ nmap -p 22,80,111,40238 -A 192.168.210.193
+$ nmap -Pn -p- -A -T5 192.168.210.193
 Starting Nmap 7.94SVN ( https://nmap.org ) at 2024-04-30 03:38 UTC
 Nmap scan report for 192.168.210.193
 Host is up (0.0011s latency).
