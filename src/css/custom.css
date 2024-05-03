@@ -131,6 +131,13 @@ nav.menu_SIkG {
     margin-top: 0.25rem;
 }
 
+/* Mobile version */
+.navbar-sidebar__item {
+    flex-shrink: 0;
+    padding: 1rem 1.5rem;
+    width: calc(var(--ifm-navbar-sidebar-width));
+}
+
 
 
 /* BACK TO MAIN MENU */
@@ -227,6 +234,7 @@ article {
 .padding-top--md, .padding-vert--md {
     padding-top: 1.5rem !important;
 }
+
 
 
 /* DROPDOWN */
