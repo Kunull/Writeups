@@ -40,7 +40,7 @@ Our input causes the application to create the following query:
 SELECT first_name, last_name FROM users WHERE user_id = '1' OR '1'='1';
 ```
 
-As 1 is always equal to 1,  all the users first and last name will be output to the page regardless of whether their id is 1 or not.
+As 1 is always equal to 1,  all the users' first and last name will be output to the page regardless of whether their id is 1 or not.
 
 ![4](https://github.com/Knign/Write-ups/assets/110326359/1a0694a8-b898-4d7e-b214-a034519825fc)
 
