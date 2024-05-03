@@ -10,13 +10,17 @@ pagination_prev: null
 
 ## Security Level: Low
 > Low level will not check the requested input, before including it to be used in the output text. Spoiler: /vulnerabilities/xss_d/?default=English<script>alert(1)</script>.
-- Let's select the first option i.e. `English` and click `Submit`.
+
+Let's select the first option i.e. `English` and click `Submit`.
 
 ![1](https://github.com/Knign/Write-ups/assets/110326359/959ff393-694b-422d-aa1a-50c41213ce94)
 
-- If we look at the URL, we can see that our input has been set as a URL parameter.
-- DOM-based XSS vulnerabilities usually arise when JavaScript takes data from an attacker-controllable source, such as the URL, and passes it to a sink that supports dynamic code execution.
-- Let's change the URL to the following:
+If we look at the URL, we can see that our input has been set as a URL parameter.
+
+DOM-based XSS vulnerabilities usually arise when JavaScript takes data from an attacker-controllable source, such as the URL, and passes it to a sink that supports dynamic code execution.
+
+Let's change the URL to the following:
+
 ```
 10.0.4.5/DVWA/vulnerabilities/xss_d/?default=<script>alert();</script>
 ```
@@ -34,17 +38,21 @@ pagination_prev: null
 <!---
 > /vulnerabilities/xss_d/?default=English>/option></select><img src='x' onerror='alert(1)'>.
 -->
-- Let's check the source code.
+
+Let's check the source code.
 
 ![3](https://github.com/Knign/Write-ups/assets/110326359/ac7216de-a267-4126-9ff7-c0c38fa67bee)
 
-- So our input is being stripped of `<script` tags.
-- Let's inspect the code in the web page as well.
+So our input is being stripped of `<script` tags.
+
+Let's inspect the code in the web page as well.
 
 ![4](https://github.com/Knign/Write-ups/assets/110326359/a0fe7593-ebce-4bb2-a364-379469ccfce9)
 
-- We can see that we first need to escape the `<select>` tag that we are in.
-- Once we have done that we can use the `img onerror` attribute to trigger an alert.
+We can see that we first need to escape the `<select>` tag that we are in.
+
+Once we have done that we can use the `img onerror` attribute to trigger an alert.
+
 ```
 10.0.4.5/DVWA/vulnerabilities/xss_d/?default=</select><img src=1 onerror=alert(document.cookie)>
 ```
@@ -56,11 +64,13 @@ pagination_prev: null
 
 ## Security Level: High
 > The developer is now white listing only the allowed languages, you must find a way to run your code without it going to the server. Spoiler: The fragment section of a URL (anything after the # symbol) does not get sent to the server and so cannot be blocked. The bad JavaScript being used to render the page reads the content from it when creating the page. /vulnerabilities/xss_d/?default=English#<script>print();</script>.
-- Let's check the source code first.
+
+Let's check the source code first.
 
 ![6](https://github.com/Knign/Write-ups/assets/110326359/602f9853-2478-423b-a9f6-1f0d31c5710e)
 
-- In this case we can use the `#` character so that our URI is fragmented and it satisfies the checks.
+In this case we can use the `#` character so that our URI is fragmented and it satisfies the checks.
+
 ```
 10.0.4.5/DVWA/vulnerabilities/xss_d/#?default=<script>alert(document.cookie);</script>
 ```
