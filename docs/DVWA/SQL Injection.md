@@ -77,7 +77,7 @@ Let's create our final payload:
 
 ![6](https://github.com/Knign/Write-ups/assets/110326359/e39d6f7b-43ec-4911-b9cc-b66ffc775028)
 
-- Let's first check the source code.
+Let's first check the source code.
 
 ![7](https://github.com/Knign/Write-ups/assets/110326359/c97287bc-87c5-4aef-b115-a098d7bd625a)
 
