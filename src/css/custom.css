@@ -258,10 +258,11 @@ article {
 
 
 
-/* CODE BLOCK */
+/* MAIN CONATAINER */
 
-/* Line color */
-
-.token-line { 
-  color: rgb(174 174 174);
-} 
+/* Width */
+@media (min-width: 1440px) {
+    .container {
+        max-width: 100%;
+    }
+}
