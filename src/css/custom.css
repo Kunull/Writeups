@@ -23,6 +23,7 @@
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
   --ifm-breadcrumb-border-radius: 0.25rem;
   --ifm-spacing-horizontal: 2rem;
+  --doc-sidebar-width: 320px;
 }
 
 html[data-theme='light'] .alert--info {
@@ -30,7 +31,6 @@ html[data-theme='light'] .alert--info {
   --ifm-alert-background-color-highlight: rgba(84, 199, 236, 0.15);
   --ifm-alert-foreground-color: var( --ifm-color-info-contrast-foreground );
   --ifm-alert-border-color: var(--ifm-color-emphasis-200);
-  --doc-sidebar-width: 320px;
 }
 
 html[data-theme='light'] .navbar .navbar__logo {
