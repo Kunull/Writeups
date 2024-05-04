@@ -66,7 +66,7 @@ const config = {
       // Replace with your project's social card
       // image: 'img/docusaurus-social-card.jpg',
       navbar: {
-        title: 'Write-ups | KuNull',
+        title: 'Write-ups | Kunull',
         logo: {
           alt: 'My Site Logo',
           src: 'img/null_medium.png',
