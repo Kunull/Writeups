@@ -138,7 +138,8 @@ Shellcodes: No Results
 ```
 
 We can use the `exploit/unix/webapp/drupal_drupalgeddon2` module in Metasploit to exploit the target.
-### Metasploit framework
+
+### Using exploit module from Metasploit framework
 
 ```
 msf6 > use exploit/unix/webapp/drupal_drupalgeddon2
