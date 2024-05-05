@@ -167,13 +167,12 @@ nav.menu_SIkG {
 
 /* Selected item border radius */
 .menu__caret, .menu__link, .menu__list-item-collapsible {
-    border-radius: 0;
-    transition: background var(--ifm-transition-fast) var(--ifm-transition-timing-default);
+    border-radius: 0.25rem;
 }
 
 /* Background color (selected directory) */
 .menu__caret:hover, .menu__link:hover, .menu__list-item-collapsible--active, .menu__list-item-collapsible:hover {
-    background: #000;
+    background: #222;
 }
 
 /* Background color, left-padding, left-margin, left-border (selected page) */
