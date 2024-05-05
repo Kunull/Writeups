@@ -80,7 +80,7 @@ html[data-theme="dark"] .navbar-sidebar {
 
 code {
     background-color: var(--ifm-code-background);
-    border: 1px solid #222;
+    border: 1px solid #333;
     border-radius: var(--ifm-code-border-radius);
     font-family: var(--ifm-font-family-monospace);
     font-size: var(--ifm-code-font-size);
