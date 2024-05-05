@@ -153,8 +153,32 @@ nav.menu_SIkG {
     border-left: 1px solid #333;
     font-weight: 400;
     margin-bottom: 0;
-    margin-left: 0.75rem;
+    margin-left: 0.8rem;
     margin-top: 0.25rem;
+}
+
+/* Left padding */
+.menu__list .menu__list {
+    flex: 0 0 100%;
+    margin-top: .25rem;
+    padding-left: 0;
+}
+
+/* Selected item background color */
+.menu__link--active:not(.menu__link--sublist) {
+    background-color: #000;
+}
+
+/* Selected item border radius */
+.menu__caret, .menu__link, .menu__list-item-collapsible {
+    border-radius: 0;
+    transition: background var(--ifm-transition-fast) var(--ifm-transition-timing-default);
+}
+
+/* Selected item left border */
+.menu__link--active:not(.menu__link--sublist) {
+    border-left: 1px solid #999;
+    /* background-color: var(--ifm-menu-color-background-active); */
 }
 
 /* Mobile version */
