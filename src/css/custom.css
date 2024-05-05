@@ -179,8 +179,8 @@ nav.menu_SIkG {
 .menu__link--active:not(.menu__link--sublist) {
     background-color: #222;
 /*     border-left: 1px solid #999; */
-    margin-left: -0.4rem;
-    padding-left: 0.8rem;
+/*     margin-left: -0.4rem; */
+/*     padding-left: 0.8rem; */
 }
 
 /* Mobile version */
