@@ -302,3 +302,17 @@ table thead tr {
         max-width: 100%;
     }
 }
+
+
+
+/* TABLE */
+
+/* Head */
+table thead {
+    background-color: #111;
+}
+
+/* 2n child background */
+table tr:nth-child(2n) {
+    background-color: #000;
+}
