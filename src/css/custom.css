@@ -164,9 +164,14 @@ nav.menu_SIkG {
     padding-left: 0;
 }
 
-/* Selected item background color */
+/* Selected item background color (page) */
 .menu__link--active:not(.menu__link--sublist) {
     background-color: #000;
+}
+
+/* Selected item background color (directory) */
+.menu__caret:hover, .menu__link:hover, .menu__list-item-collapsible--active, .menu__list-item-collapsible:hover {
+    background: #000;
 }
 
 /* Selected item border radius */
