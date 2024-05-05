@@ -187,7 +187,7 @@ $ cewl http://dc-2/ -w passwords.txt
 
 ## Exploitation
 
-### Brute forcing login
+### Brute forcing credentials using WPScan
 
 Again, using the `wpscan` utility we can brute force the login.
 
