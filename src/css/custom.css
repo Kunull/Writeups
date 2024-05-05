@@ -65,9 +65,13 @@ html[data-theme='light'] .navbar .navbar__logo {
   --ifm-alert-border-color: var(--ifm-color-emphasis-200);
 }
 
+
+
+/* CODE BLOCK */
+
 html[data-theme="dark"] {
   --ifm-background-color: #000;
-  --ifm-code-background: #222222;
+  --ifm-code-background: rgb(10, 10, 10);
 }
 
 html[data-theme="dark"] .navbar-sidebar {
