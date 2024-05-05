@@ -231,9 +231,9 @@ tiago@lampiao:~$ cat local.txt
 229d1846a96d66061cff6013cd7d1570
 ```
 
-## Privilege Escalation
+### Privilege Escalation
 
-### Enumerating Privilege Escalation vectors using Linux Exploit Suggester
+#### Enumerating Privilege Escalation vectors using Linux Exploit Suggester
 
 We have to use the [Linux Exploit Suggester](https://github.com/The-Z-Labs/linux-exploit-suggester/blob/master/linux-exploit-suggester.sh) in order to find a privilege escalation vector.
 
@@ -452,7 +452,7 @@ https://blog.theori.io/research/CVE-2022-32250-linux-kernel-lpe-2022/
 
 Out of the many exploits suggested, we will be using the [Dirty COW](https://www.exploit-db.com/exploits/40847) exploit.
 
-### Dirty COW
+#### Dirty COW
 
 ![4](https://github.com/Kunull/Write-ups/assets/110326359/57d295a5-faee-47c1-a441-85bae728e49e)
 
