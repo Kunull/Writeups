@@ -78,6 +78,15 @@ html[data-theme="dark"] .navbar-sidebar {
   background: #000;
 }
 
+code {
+    background-color: var(--ifm-code-background);
+    border: 1px solid #222;
+    border-radius: var(--ifm-code-border-radius);
+    font-family: var(--ifm-font-family-monospace);
+    font-size: var(--ifm-code-font-size);
+    padding: var(--ifm-code-padding-vertical) var(--ifm-code-padding-horizontal);
+}
+
 
 
 /* MAIN WRAPPER */
