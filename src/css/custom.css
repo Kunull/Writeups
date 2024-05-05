@@ -117,7 +117,7 @@ nav.navbar:not(.navbar-sidebar--show) {
     --tw-backdrop-blur: blur(10px);
     -webkit-backdrop-filter: var(--tw-backdrop-blur);
     backdrop-filter: var(--tw-backdrop-blur);
-    background-color: rgb(0, 0, 0, 0.4);
+    background-color: rgb(0, 0, 0, 0.75);
 }
 
 /* Width */
@@ -250,7 +250,7 @@ table thead tr {
     --tw-backdrop-blur: blur(10px);
     -webkit-backdrop-filter: var(--tw-backdrop-blur);
     backdrop-filter: var(--tw-backdrop-blur);
-    background-color: rgb(0, 0, 0, 0.4);
+    background-color: rgb(0, 0, 0, 0.75);
 }
 
 
