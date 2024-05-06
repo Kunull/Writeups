@@ -180,22 +180,22 @@ nav.menu_SIkG {
 }
 
 /* Selected item border radius */
-.menu__caret, .menu__link, .menu__list-item-collapsible {
+/* .menu__caret, .menu__link, .menu__list-item-collapsible {
     border-radius: 0.25rem;
-}
+} */
 
 /* Background color (selected directory) */
-.menu__caret:hover, .menu__link:hover, .menu__list-item-collapsible--active, .menu__list-item-collapsible:hover {
+/* .menu__caret:hover, .menu__link:hover, .menu__list-item-collapsible--active, .menu__list-item-collapsible:hover {
     background: #222;
-}
+} */
 
 /* Background color, left-padding, left-margin, left-border (selected page) */
-.menu__link--active:not(.menu__link--sublist) {
+/* .menu__link--active:not(.menu__link--sublist) {
     background-color: #222;
-/*     border-left: 1px solid #999; */
-/*     margin-left: -0.4rem; */
-/*     padding-left: 0.8rem; */
-}
+    border-left: 1px solid #999;
+    margin-left: -0.4rem;
+    padding-left: 0.8rem;
+} */
 
 /* Mobile version */
 .navbar-sidebar__item {
