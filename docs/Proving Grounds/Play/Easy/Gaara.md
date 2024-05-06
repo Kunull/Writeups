@@ -187,6 +187,8 @@ root
 
 ### proof.txt
 
+We can now `cat` the `proof.txt` flag.
+
 ```
 sh-5.0# cat /root/proof.txt
 2c39a99c3217a56762321da6bf9860b3
