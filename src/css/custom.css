@@ -65,18 +65,18 @@ html[data-theme='light'] .navbar .navbar__logo {
   --ifm-alert-border-color: var(--ifm-color-emphasis-200);
 }
 
-
-
-/* CODE BLOCK (Single word) */
-
-/* html[data-theme="dark"] {
+html[data-theme="dark"] {
   --ifm-background-color: #000;
   --ifm-code-background: rgb(20,20,20);
 }
 
 html[data-theme="dark"] .navbar-sidebar {
   background: #000;
-} */
+}
+
+
+
+/* CODE BLOCK (Single word) */
 
 code {
     color: #999;
