@@ -306,6 +306,15 @@ table tr:nth-child(2n) {
 
 
 
+/* ON THIS PAGE */
+
+/* Display none */
+.tocCollapsible_ETCw {
+    display: none;
+}
+
+
+
 /* MAIN CONATAINER */
 
 /* Width */
