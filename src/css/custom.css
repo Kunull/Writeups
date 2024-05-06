@@ -90,6 +90,22 @@ code {
 
 
 
+/* MAIN CONATAINER */
+
+/* Width */
+@media (min-width: 1440px) {
+    .container {
+        max-width: 100%;
+    }
+}
+
+.container {
+    margin: 0;
+    max-width: 100%;
+}
+
+
+
 /* MAIN WRAPPER */
 
 @media (min-width: 1416px) {
@@ -319,15 +335,4 @@ table tr:nth-child(2n) {
 /* Display none */
 .tocCollapsible_ETCw {
     display: none;
-}
-
-
-
-/* MAIN CONATAINER */
-
-/* Width */
-@media (min-width: 1440px) {
-    .container {
-        max-width: 100%;
-    }
 }
