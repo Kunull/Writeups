@@ -245,6 +245,8 @@ We are now the `root` user.
 
 ### proof.txt
 
+We can now `cat` the `proof.txt` flag.
+
 ```
 # cat /root/proof.txt
 cat /root/proof.txt
