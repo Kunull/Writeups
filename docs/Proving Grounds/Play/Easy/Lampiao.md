@@ -527,6 +527,8 @@ root@lampiao:~#
 
 ### proof.txt
 
+We can now `cat` the `proof.txt` flag.
+
 ```
 root@lampiao:~# cat /root/proof.txt
 133d5c0ad1d55b176113a9ded654df3f
