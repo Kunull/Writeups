@@ -420,6 +420,8 @@ We are now the `root` user.
 
 ### proof.txt
 
+We can now `cat` the `proof.txt` flag.
+
 ```
 root@DC-2:~# cat proof.txt
 95e76ef1154a293d3cfcf606748f6f6d
