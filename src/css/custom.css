@@ -69,14 +69,14 @@ html[data-theme='light'] .navbar .navbar__logo {
 
 /* CODE BLOCK (Single word) */
 
-html[data-theme="dark"] {
+/* html[data-theme="dark"] {
   --ifm-background-color: #000;
   --ifm-code-background: rgb(20,20,20);
 }
 
 html[data-theme="dark"] .navbar-sidebar {
   background: #000;
-}
+} */
 
 code {
     color: #999;
