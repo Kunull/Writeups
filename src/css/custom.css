@@ -42,9 +42,9 @@ html[data-theme='light'] .navbar .navbar__logo {
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-table-head-background: #111;
-  --ifm-menu-color-background-active: #111;
-  --ifm-menu-color-background-hover: #111;
+  --ifm-table-head-background: rgb(20,20,20);
+  --ifm-menu-color-background-active: rgb(20,20,20);
+  --ifm-menu-color-background-hover: rgb(20,20,20);
   --ifm-breadcrumb-item-background-active: #222;
   --ifm-navbar-background-color: rgba(0, 0, 0, 0.95);
   --ifm-footer-background-color: #222;
@@ -71,7 +71,7 @@ html[data-theme='light'] .navbar .navbar__logo {
 
 html[data-theme="dark"] {
   --ifm-background-color: #000;
-  --ifm-code-background: rgb(15, 15, 15);
+  --ifm-code-background: rgb(20,20,20);
 }
 
 html[data-theme="dark"] .navbar-sidebar {
@@ -274,7 +274,7 @@ table thead tr {
 
 /* Head */
 table thead {
-    background-color: #111;
+    background-color: rgb(20,20,20);
 }
 
 /* 2n child background */
