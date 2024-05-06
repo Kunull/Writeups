@@ -92,6 +92,14 @@ code {
 
 /* MAIN WRAPPER */
 
+@media (min-width: 1416px) {
+    .main-wrapper {
+        align-self: center;
+        max-width: 1400px;
+        width: 1400px;
+    }
+}
+
 /* Width */
 .mainWrapper_z2l0 {
     margin: 0 auto;
