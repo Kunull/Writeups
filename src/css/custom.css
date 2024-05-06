@@ -67,7 +67,7 @@ html[data-theme='light'] .navbar .navbar__logo {
 
 
 
-/* CODE BLOCK */
+/* CODE BLOCK (Single word) */
 
 html[data-theme="dark"] {
   --ifm-background-color: #000;
@@ -79,13 +79,13 @@ html[data-theme="dark"] .navbar-sidebar {
 }
 
 code {
-    color: #666;
+    color: #999;
     background-color: var(--ifm-code-background);
     border: 1px solid #333;
     border-radius: var(--ifm-code-border-radius);
     font-family: var(--ifm-font-family-monospace);
     font-size: var(--ifm-code-font-size);
-    padding: var(--ifm-code-padding-vertical) var(--ifm-code-padding-horizontal);
+    padding: 0.2rem;
 }
 
 
