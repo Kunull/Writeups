@@ -262,6 +262,11 @@ nav.menu_SIkG {
     border-left: 1px solid #333333;
 }
 
+/* Padding left */
+.col--3 {
+    padding-left: 0;
+}
+
 
 
 /* BREADCRUMBS */
