@@ -90,7 +90,7 @@ PAGE_EXECUTE_READWRITE
 ## Q4. What is the name of the process responsible for the VPN connection?
 Let's look at all the running processes.
 ```
-└─$ volatility3-2.4.1/vol.py -f MemoryDump.mem windows.pstree              
+$ volatility3-2.4.1/vol.py -f MemoryDump.mem windows.pstree              
 Volatility 3 Framework 2.4.1
 Progress:  100.00               PDB scanning finished                        
 PID     PPID    ImageFileName   Offset(V)       Threads Handles SessionId       Wow64   CreateTime      ExitTime
