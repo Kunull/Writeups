@@ -8,35 +8,56 @@ pagination_prev: null
 ## Q1. What is the name of the suspicious process?
 Once we have downloaded the file, we can analyse it using `volatility`.
 
-Let's begin by searching for malicious processes using the `windows.malfind` plugin.
+### Volatility 3
+Let's begin by searching for malicious processes using the `windows.malfind` plugin in Volatility 3.
 ```
-$ volatility3-2.4.1/vol.py -f MemoryDump.mem windows.malfind
-Volatility 3 Framework 2.4.1
-Progress:  100.00               PDB scanning finished                                                                                              
-PID     Process Start VPN       End VPN Tag     Protection      CommitCharge    PrivateMemory   File output     Hexdump Disasm
+$ ./volatility3/vol.py -f MemoryDump.mem windows.malfind
+Volatility 3 Framework 2.7.0
+Progress:  100.00		PDB scanning finished                                                                                             
+PID	Process	Start VPN	End VPN	Tag	Protection	CommitCharge	PrivateMemory	File output	Notes	Hexdump	Disasm
 
-5896    oneetx.exe      0x400000        0x437fff        VadS    PAGE_EXECUTE_READWRITE  56      1       Disabled
-4d 5a 90 00 03 00 00 00 MZ......
-04 00 00 00 ff ff 00 00 ........
-b8 00 00 00 00 00 00 00 ........
-40 00 00 00 00 00 00 00 @.......
-00 00 00 00 00 00 00 00 ........
-00 00 00 00 00 00 00 00 ........
-00 00 00 00 00 00 00 00 ........
-00 00 00 00 00 01 00 00 ........        4d 5a 90 00 03 00 00 00 04 00 00 00 ff ff 00 00 b8 00 00 00 00 00 00 00 40 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00
-7540    smartscreen.ex  0x2505c140000   0x2505c15ffff   VadS    PAGE_EXECUTE_READWRITE  1       1       Disabled
-48 89 54 24 10 48 89 4c H.T$.H.L
-24 08 4c 89 44 24 18 4c $.L.D$.L
-89 4c 24 20 48 8b 41 28 .L$.H.A(
-48 8b 48 08 48 8b 51 50 H.H.H.QP
-48 83 e2 f8 48 8b ca 48 H...H..H
-b8 60 00 14 5c 50 02 00 .`..\P..
-00 48 2b c8 48 81 f9 70 .H+.H..p
-0f 00 00 76 09 48 c7 c1 ...v.H..        48 89 54 24 10 48 89 4c 24 08 4c 89 44 24 18 4c 89 4c 24 20 48 8b 41 28 48 8b 48 08 48 8b 51 50 48 83 e2 f8 48 8b ca 48 b8 60 00 14 5c 50 02 00 00 48 2b c8 48 81 f9 70 0f 00 00 76 09 48 c7 c1                               
+5896	oneetx.exe	0x400000	0x437fff	VadS	PAGE_EXECUTE_READWRITE	56	1	Disabled	MZ header	
+4d 5a 90 00 03 00 00 00	MZ......
+04 00 00 00 ff ff 00 00	........
+b8 00 00 00 00 00 00 00	........
+40 00 00 00 00 00 00 00	@.......
+00 00 00 00 00 00 00 00	........
+00 00 00 00 00 00 00 00	........
+00 00 00 00 00 00 00 00	........
+00 00 00 00 00 01 00 00	........	
+0x400000:	dec	ebp
+0x400001:	pop	edx
+0x400002:	nop	
+0x400003:	add	byte ptr [ebx], al
+0x400005:	add	byte ptr [eax], al
+0x400007:	add	byte ptr [eax + eax], al
+0x40000a:	add	byte ptr [eax], al
+7540	smartscreen.ex	0x2505c140000	0x2505c15ffff	VadS	PAGE_EXECUTE_READWRITE	1	1	Disabled	N/A	
+48 89 54 24 10 48 89 4c	H.T$.H.L
+24 08 4c 89 44 24 18 4c	$.L.D$.L
+89 4c 24 20 48 8b 41 28	.L$.H.A(
+48 8b 48 08 48 8b 51 50	H.H.H.QP
+48 83 e2 f8 48 8b ca 48	H...H..H
+b8 60 00 14 5c 50 02 00	.`..\P..
+00 48 2b c8 48 81 f9 70	.H+.H..p
+0f 00 00 76 09 48 c7 c1	...v.H..	
+0x2505c140000:	mov	qword ptr [rsp + 0x10], rdx
+0x2505c140005:	mov	qword ptr [rsp + 8], rcx
+0x2505c14000a:	mov	qword ptr [rsp + 0x18], r8
+0x2505c14000f:	mov	qword ptr [rsp + 0x20], r9
+0x2505c140014:	mov	rax, qword ptr [rcx + 0x28]
+0x2505c140018:	mov	rcx, qword ptr [rax + 8]
+0x2505c14001c:	mov	rdx, qword ptr [rcx + 0x50]
+0x2505c140020:	and	rdx, 0xfffffffffffffff8
+0x2505c140024:	mov	rcx, rdx
+0x2505c140027:	movabs	rax, 0x2505c140060
+0x2505c140031:	sub	rcx, rax
+0x2505c140034:	cmp	rcx, 0xf70
+0x2505c14003b:	jbe	0x2505c140046                              
 ```
 There are two processes namely `oneetx.exe` and `smartscreen.ex`.
 
-`oneetx.exe` is a malicious process, related to Amadey dropper malware.
+On some searching, we can find that `oneetx.exe` is a malicious process, related to Amadey dropper malware.
 ### Answer
 ```
 oneetx.exe
