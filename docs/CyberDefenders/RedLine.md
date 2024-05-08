@@ -7,9 +7,7 @@ pagination_prev: null
 
 ## Q1. What is the name of the suspicious process?
 Once we have downloaded the file, we can analyse it using `volatility`.
-
-### Volatility 3
-Let's begin by searching for malicious processes using the `windows.malfind` plugin in Volatility 3.
+Let's begin by searching for malicious processes using the `windows.malfind` plugin.
 ```
 $ volatility3/vol.py -f MemoryDump.mem windows.malfind
 Volatility 3 Framework 2.7.0
