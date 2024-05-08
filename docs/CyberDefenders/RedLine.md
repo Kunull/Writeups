@@ -11,7 +11,7 @@ Once we have downloaded the file, we can analyse it using `volatility`.
 ### Volatility 3
 Let's begin by searching for malicious processes using the `windows.malfind` plugin in Volatility 3.
 ```
-$ ./volatility3/vol.py -f MemoryDump.mem windows.malfind
+$ volatility3/vol.py -f MemoryDump.mem windows.malfind
 Volatility 3 Framework 2.7.0
 Progress:  100.00		PDB scanning finished                                                                                             
 PID	Process	Start VPN	End VPN	Tag	Protection	CommitCharge	PrivateMemory	File output	Notes	Hexdump	Disasm
@@ -69,7 +69,7 @@ oneetx.exe
 ## Q2. What is the child process name of the suspicious process?
 We can check the child process using the `pslist` plugin and then `grep` for 5896.
 ```
-$ ./volatility3/vol.py -f MemoryDump.mem windows.pslist
+$ volatility3/vol.py -f MemoryDump.mem windows.pslist
 Volatility 3 Framework 2.7.0
 Progress:  100.00		PDB scanning finished                        
 PID	PPID	ImageFileName	Offset(V)	Threads	Handles	SessionId	Wow64	CreateTime	ExitTime	File output
@@ -187,7 +187,7 @@ rundll32.exe
 ## Q3. What is the memory protection applied to the suspicious process memory region?
 This already found this when we used the `malfind` plugin.
 ```
-$ ./volatility3/vol.py -f MemoryDump.mem windows.malfind
+$ volatility3/vol.py -f MemoryDump.mem windows.malfind
 Volatility 3 Framework 2.7.0
 Progress:  100.00		PDB scanning finished                                                                                             
 PID	Process	Start VPN	End VPN	Tag	Protection	CommitCharge	PrivateMemory	File output	Notes	Hexdump	Disasm
@@ -242,7 +242,7 @@ PAGE_EXECUTE_READWRITE
 ## Q4. What is the name of the process responsible for the VPN connection?
 Let's look at all the running processes.
 ```
-$ ./volatility3/vol.py -f MemoryDump.mem windows.pstree
+$ volatility3/vol.py -f MemoryDump.mem windows.pstree
 Volatility 3 Framework 2.7.0
 Progress:  100.00		PDB scanning finished                        
 PID	PPID	ImageFileName	Offset(V)	Threads	Handles	SessionId	Wow64	CreateTime	ExitTime	Audit	Cmd	Path
@@ -360,19 +360,23 @@ outline.exe
 ## Q5. What is the attacker's IP address?
 We can use `netscan` plugin to scan for network artifacts.
 ```
-$ ./volatility3/vol.py -f MemoryDump.mem windows.netscan
+$ volatility3/vol.py -f MemoryDump.mem windows.netscan
 Volatility 3 Framework 2.7.0
 Progress:  100.00		PDB scanning finished                        
 Offset	Proto	LocalAddr	LocalPort	ForeignAddr	ForeignPort	State	PID	Owner	Created
 
 <--SNIP-->
-0xad818de4aa20.0TCPv4	10.0.85.2DB scan55462fin77.91.124.20    80      CLOSED	5896	oneetx.exe	2023-05-21 23:01:22.000000 
+0xad818de4aa20	TCPv4	10.0.85.2	55462	77.91.124.20	80	CLOSED	5896	oneetx.exe	2023-05-21 23:01:22.000000 
+<--SNIP-->
 0xad818e4a6900	UDPv4	0.0.0.0	0	*	0		5480	oneetx.exe	2023-05-21 22:39:47.000000 
 0xad818e4a6900	UDPv6	::	0	*	0		5480	oneetx.exe	2023-05-21 22:39:47.000000 
-0xad818e4a9650	UDPv4	0.0.0.0	0	*	0		5480	oneetx.exe	2023-05-21 22:39:47.000000
+0xad818e4a9650	UDPv4	0.0.0.0	0	*	0		5480	oneetx.exe	2023-05-21 22:39:47.000000 
 <--SNIP-->
 ```
-The `oneetx.exe` process has the foreign address of `77.91.124.20`.
+We can see that the `oneetx` process is making four network connections.
+
+Out of the four, the TCP connection has a foreign address of `77.91.124.20`.
+
 ### Answer
 ```
 77.91.124.20
@@ -413,7 +417,7 @@ http://77.91.124.20/store/games/index.php
 ```
 ### Answer
 ```
-[77.91.124.20](http://77.91.124.20/store/games/index.php)
+http://77.91.124.20/store/games/index.php
 ```
 
 &nbsp;
@@ -422,10 +426,16 @@ http://77.91.124.20/store/games/index.php
 ## Q8. What is the full path of the malicious executable?
 To get the full path, we can use the `filescan` plugin.
 ```
-$ volatility3-2.4.1/vol.py -f MemoryDump.mem windows.filescan | grep -i "oneetx.exe"
-0xad818d436c70.0\Users\Tammam\AppData\Local\Temp\c3912af058\oneetx.exe  216
-0xad818da36c30  \Users\Tammam\AppData\Local\Temp\c3912af058\oneetx.exe  216
-0xad818ef1a0b0  \Users\Tammam\AppData\Local\Temp\c3912af058\oneetx.exe  216
+$ volatility3/vol.py -f MemoryDump.mem windows.filescan
+Volatility 3 Framework 2.7.0
+Progress:  100.00		PDB scanning finished                        
+Offset	Name	Size
+
+<--SNIP-->
+0xad818d436c70.0\Users\Tammam\AppData\Local\Temp\c3912af058\oneetx.exe	216
+0xad818da36c30	\Users\Tammam\AppData\Local\Temp\c3912af058\oneetx.exe	216
+0xad818ef1a0b0	\Users\Tammam\AppData\Local\Temp\c3912af058\oneetx.exe	216
+<--SNIP-->
 ```
 ### Answer
 ```
