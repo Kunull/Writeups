@@ -360,14 +360,17 @@ outline.exe
 ## Q5. What is the attacker's IP address?
 We can use `netscan` plugin to scan for network artifacts.
 ```
-$ volatility3-2.4.1/vol.py -f MemoryDump.mem windows.netscan | grep -i "oneetx.exe"
-Progress:  100.00               PDB scanning finished                     
-Offset  Proto   LocalAddr       LocalPort       ForeignAddr     ForeignPort     State   PID     Owner   Created
+$ ./volatility3/vol.py -f MemoryDump.mem windows.netscan
+Volatility 3 Framework 2.7.0
+Progress:  100.00		PDB scanning finished                        
+Offset	Proto	LocalAddr	LocalPort	ForeignAddr	ForeignPort	State	PID	Owner	Created
 
-0xad818de4aa20  TCPv4   10.0.85.2       55462   77.91.124.20    80      CLOSED  5896    oneetx.exe      2023-05-21 23:01:22.000000 
-0xad818e4a6900  UDPv4   0.0.0.0 0       *       0               5480    oneetx.exe      2023-05-21 22:39:47.000000 
-0xad818e4a6900  UDPv6   ::      0       *       0               5480    oneetx.exe      2023-05-21 22:39:47.000000 
-0xad818e4a9650  UDPv4   0.0.0.0 0       *       0               5480    oneetx.exe      2023-05-21 22:39:47.000000 
+<--SNIP-->
+0xad818de4aa20.0TCPv4	10.0.85.2DB scan55462fin77.91.124.20    80      CLOSED	5896	oneetx.exe	2023-05-21 23:01:22.000000 
+0xad818e4a6900	UDPv4	0.0.0.0	0	*	0		5480	oneetx.exe	2023-05-21 22:39:47.000000 
+0xad818e4a6900	UDPv6	::	0	*	0		5480	oneetx.exe	2023-05-21 22:39:47.000000 
+0xad818e4a9650	UDPv4	0.0.0.0	0	*	0		5480	oneetx.exe	2023-05-21 22:39:47.000000
+<--SNIP-->
 ```
 The `oneetx.exe` process has the foreign address of `77.91.124.20`.
 ### Answer
