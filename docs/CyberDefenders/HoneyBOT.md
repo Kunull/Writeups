@@ -82,7 +82,7 @@ Using the following filter we can filter out SMB packets.
 smb
 ```
 
-On observing the packets, we can see a few DSSETUP packets. These are used to obtain information about a remote hosts Active Directory.
+On observing the packets, we can see a few `DSSETUP` packets. These are used to obtain information about a remote hosts Active Directory.
 
 ![HoneyBOT 7](https://github.com/Kunull/Write-ups/assets/110326359/63b919a6-942e-4867-a1d1-2ed893f60fe6)
 
