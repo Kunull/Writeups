@@ -68,16 +68,8 @@ Let us set the time display format to `Seconds since beginning of capture`.
 We can see that the last packet arrives around 16 seconds after the first packet. So it took 16 seconds to perform the attack.
 
 ### Answer
-
 ```
 16
-```
-
-&nbsp;
-
-### Answer
-```
-CVE-2003-0533
 ```
 
 &nbsp;
@@ -138,7 +130,7 @@ Alternatively, in TCP stream 2 we can see the command executed by the attacker.
 
 The attacker ran the `ftp` command using the script file `o` and disabled auto-login using the `n` flag.
 
-## Answer
+### Answer
 ```
 ftp
 ```
