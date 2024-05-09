@@ -33,11 +33,6 @@ html[data-theme='light'] .alert--info {
   --ifm-alert-border-color: var(--ifm-color-emphasis-200);
 }
 
-html[data-theme='light'] .navbar .navbar__logo {
-  content: url(/static/img/play_inverted.png)
-}
-
-
 
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
