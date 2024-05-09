@@ -108,7 +108,7 @@ $ ./droopescan scan drupal -u http://192.168.210.193:80/
 
 Let's check if there are any exploits present for Drupal version 7.2.
 
-
+&nbsp;
 
 ## Exploitation
 
@@ -169,7 +169,7 @@ msf6 exploit(unix/webapp/drupal_drupalgeddon2) > run
 meterpreter > 
 ```
 
-
+&nbsp;
 
 ## Post Exploitation
 ### Spawning a tty shell
