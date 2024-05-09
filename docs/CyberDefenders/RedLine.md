@@ -242,7 +242,7 @@ Progress:  100.00		PDB scanning finished
 Offset	Name	Size
 
 <--SNIP-->
-0xad818d436c70  \Users\Tammam\AppData\Local\Temp\c3912af058\oneetx.exe	216
+0xad818d436c70.0\Users\Tammam\AppData\Local\Temp\c3912af058\oneetx.exe	216
 0xad818da36c30	\Users\Tammam\AppData\Local\Temp\c3912af058\oneetx.exe	216
 0xad818ef1a0b0	\Users\Tammam\AppData\Local\Temp\c3912af058\oneetx.exe	216
 <--SNIP-->
