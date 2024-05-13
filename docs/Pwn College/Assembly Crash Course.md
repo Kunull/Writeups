@@ -10,7 +10,7 @@ For this module, `int3` displays the state of the registers, which is helpful in
 
 :::
 
-:::tip
+:::note
 
 Use the code snippet provided below and replace the comment with your assembly code.
 
