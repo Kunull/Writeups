@@ -156,7 +156,7 @@ This tells us some potential credentials.
 | agi      | agi@photographer.com   |                  |
 | daisa    | daisa@photographer.com | secret, babygirl |
 
-## Port 8000 - HTTP
+### Port 8000 - HTTP
 
 Let's enumerate port 8000 through our browser.
 
