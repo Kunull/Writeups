@@ -158,7 +158,7 @@ This tells us that maybe there is a user named `renu` on the machine.
 
 ## Exploitation
 
-### Brute forcing SSH credentials using Hydra
+### Brute forcing SSH password using Hydra
 
 Let's brute force the SSH credentials using `hydra`.
 
