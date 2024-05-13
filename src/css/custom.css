@@ -263,6 +263,11 @@ nav.menu_SIkG {
     padding-left: 0;
 }
 
+/* Display none (mobile version) */
+.tocCollapsible_ETCw {
+    display: none;
+}
+
 
 
 /* BREADCRUMBS */
@@ -337,14 +342,10 @@ table tr:nth-child(2n) {
     background-color: rgb(0, 0, 0, 0.75);
 }
 
-
-
-/* ON THIS PAGE */
-
-/* Display none */
-/* .tocCollapsible_ETCw {
-    display: none;
-} */
+/* Border radius */
+.dropdown__menu {
+    border-radius: 0.25rem;
+}
 
 
 
