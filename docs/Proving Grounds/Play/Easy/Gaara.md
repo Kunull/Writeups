@@ -97,7 +97,7 @@ Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2024-05-02 14:10:
 | -------- | --------- |
 | gaara    | iloveyou2 |
 
-### Logging in through SSH
+### SSH login
 
 ```
 $ ssh gaara@192.168.205.142
