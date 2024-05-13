@@ -328,9 +328,9 @@ $
 
 ## Post Exploitation
 
-### Spawning a `tty` shell
+### Spawning a TTY shell
 
-We can now upgrade this shell to a tty shell using Python.
+We can now upgrade this shell to a TTY shell using Python.
 
 ```
 $ python -c 'import pty; pty.spawn("/bin/bash")'
