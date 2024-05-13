@@ -172,7 +172,7 @@ meterpreter >
 &nbsp;
 
 ## Post Exploitation
-### Spawning a tty shell
+### Spawning a TTY shell
 
 Let's first obtain a native shell.
 
@@ -182,7 +182,7 @@ Process 5452 created.
 Channel 1 created.
 ```
 
-We can now upgrade this shell to a tty shell using Python.
+We can now upgrade this shell to a TTY shell using Python.
 
 ```
 python -c 'import pty; pty.spawn("/bin/bash")'
