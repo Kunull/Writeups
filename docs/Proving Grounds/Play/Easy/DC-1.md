@@ -50,7 +50,7 @@ Nmap done: 1 IP address (1 host up) scanned in 14.54 seconds
 
 An important piece of information is the Drupal version having been identified as 7.
 
-### Directory brute force using FFUF
+### Directory brute force
 
 Let's perform some directory brute forcing to check what web directories are present.
 
@@ -112,7 +112,7 @@ Let's check if there are any exploits present for Drupal version 7.2.
 
 ## Exploitation
 
-### Searching for relevant exploit using Searchsploit
+### Searching for relevant exploit
 
 ```
 $ searchsploit drupal 7.2
