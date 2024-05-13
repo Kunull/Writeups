@@ -49,7 +49,7 @@ We have to map `192.168.240.194` to `dc-2` in our `/etc/hosts` file.
 
 As we can see, there is a WordPress site running on port 80.
 
-### User enumeration using WPScan
+### User enumeration
 
 We can gather more information using the `wpscan` utility.
 
@@ -173,7 +173,7 @@ We managed to find three users
 
 Let's save these usernames in the `users.txt` file.
 
-### Generating passwords using cewl
+### Generating passwords
 
 Now, we can use the `cewl` utility to generate password list for the users we found.
 
@@ -185,7 +185,7 @@ $ cewl http://dc-2/ -w passwords.txt
 
 ## Exploitation
 
-### Brute forcing credentials using WPScan
+### Brute forcing credentials
 
 Again, using the `wpscan` utility we can brute force the login.
 
