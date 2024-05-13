@@ -159,8 +159,13 @@ const config = {
       prism: {
         theme: prismThemes.oneDark,
       },
-
-      
+      algolia: {
+          // The application ID provided by Algolia
+        appId: 'PKV0V904II',
+          // Public API key: it is safe to commit it
+        apiKey: 'd05053bf471ae2fdb9bae6a79e013a90',
+        indexName: 'writeups-kunull',
+      },
     }),
   
 };
