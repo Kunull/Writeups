@@ -120,7 +120,7 @@ Upon visiting port 1898 on which Drupal is running, we find two posts from the t
 
 We have to save these usernames in a `usres.txt` file.
 
-### Generating passwords using cewl
+### Generating passwords
 
 Let's generate a password using `tiago`'s blog post first.
 
@@ -138,7 +138,7 @@ cewl http://192.168.167.48:1898/?q=node/3 -w passwords.txt
 
 ## Exploitation vector 1
 
-### Brute forcing SSH credentials using Hydra
+### Brute forcing SSH credentials
 
 Let's brute force the SSH credentials using `hydra`.
 
