@@ -47,7 +47,7 @@ Let's visit the web server through our browser.
 
 Nothing useful, just a picture of the anime character [Gaara](https://en.wikipedia.org/wiki/Gaara).
 
-### Directory brute forcing using FFUF
+### Directory brute forcing
 
 We can use `ffuf` to brute force the web directories on the web server.
 
