@@ -153,7 +153,7 @@ However the quotient isn't the only value generated after performing division, a
 
 In the case modulus operation, the resultant is what we are interested in.
 
-After performing the division in the same manner as [level 4](assembly-crash-course.md#level-4), we have to move the resultant stored in `rdx` into `rax`.
+After performing the division in the same manner as [level 4](Assembly%20Crash%20Course.md#level-4), we have to move the resultant stored in `rdx` into `rax`.
 
 &nbsp;
 
@@ -384,7 +384,7 @@ If `rdi` is even, the result will be 1 whereas if `rdi` is odd, the result will 
 xor rdi, 1
 ```
 
-Then we simply have to zero out `rax` and set it's value equal to the value of `rdx` using the same methods as [level 8](assembly-crash-course.md#level-8).
+Then we simply have to zero out `rax` and set it's value equal to the value of `rdx` using the same methods as [level 8](Assembly%20Crash%20Course.md#level-8).
 
 &nbsp;
 
@@ -438,7 +438,7 @@ mov [0x404000], rbx
 > 3. Set rcx to the double word at 0x404000
 > 4. Set rdx to the quad word at 0x404000
 
-We can solve this level using the lower bit equivalent registers mentioned in [level 6](assembly-crash-course.md#level-6). In that case, we can would need to know how many bits is referred to by which term.
+We can solve this level using the lower bit equivalent registers mentioned in [level 6](Assembly%20Crash%20Course.md#level-6). In that case, we can would need to know how many bits is referred to by which term.
 
 ```
 * Quad Word = 8 Bytes = 64 bits
@@ -741,7 +741,7 @@ So the content of `rsi` will be popped first which we will store in our `rdi` re
 >
 > RSP-0x?? Average
 
-In [level 14](assembly-crash-course.md#level-14), we saw that the stack pointer `rsp` points to the bottom of the stack. And that this location stores 8 bytes of data which is also called a quad word.
+In [level 14](Assembly%20Crash%20Course.md#level-14), we saw that the stack pointer `rsp` points to the bottom of the stack. And that this location stores 8 bytes of data which is also called a quad word.
 
 We also saw that every other quad word sits at an offset from `rsp` which is the multiple of 8.
 
