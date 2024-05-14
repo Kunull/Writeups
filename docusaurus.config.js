@@ -166,6 +166,7 @@ const config = {
         apiKey: 'd05053bf471ae2fdb9bae6a79e013a90',
         indexName: 'writeups-kunull',
         contextualSearch: false,
+        typoTolerance: false,
       },
     }),
   
