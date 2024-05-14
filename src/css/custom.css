@@ -364,8 +364,8 @@ table tr:nth-child(2n) {
   --docsearch-searchbox-focus-background: var(--ifm-color-black);
   /* Hit */
   --docsearch-hit-color: var(--ifm-font-color-base);
-  --docsearch-hit-active-color: var(--ifm-color-white);
-  --docsearch-hit-background: var(--ifm-color-emphasis-100);
+  --docsearch-hit-active-color: #222;
+  --docsearch-hit-background: #111;
   /* Footer */
   --docsearch-footer-background: #000;
   --docsearch-footer-shadow: 0 1px 0 0 #333;
@@ -398,10 +398,4 @@ table tr:nth-child(2n) {
 /* SEARCH FOOTER */
 .DocSearch-Logo {
   display: none;
-}
-
-
-/* SEARCH RESULTS */
-.DocSearch-Hit a {
-    background: #111;
 }
