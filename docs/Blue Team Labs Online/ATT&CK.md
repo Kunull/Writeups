@@ -4,6 +4,10 @@ pagination_next: null
 pagination_prev: null
 ---
 
+<head>
+    <link rel="canonical" href="https://writeups-kunull.vercel.app/Blue%20Team%20Labs%20Online/ATT&CK" />
+</head>
+
 ## Your company heavily relies on cloud services like Azure AD, and Office 365 publicly. What technique should you focus on mitigating, to prevent an attacker performing Discovery activities if they have obtained valid credentials? (Hint: Not using an API to interact with the cloud environment!)
 ### Answer
 ```
