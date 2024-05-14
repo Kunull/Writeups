@@ -22,7 +22,7 @@ const config = {
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'Knign', // Usually your GitHub org/user name.
+  organizationName: 'Kunull', // Usually your GitHub org/user name.
   projectName: 'Write-ups', // Usually your repo name.
 
   onBrokenLinks: 'ignore',
