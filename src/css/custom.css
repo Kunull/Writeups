@@ -64,7 +64,6 @@ html[data-theme='light'] .alert--info {
 html[data-theme="dark"] {
   --ifm-background-color: #000;
   --ifm-code-background: rgb(20,20,20);
-  --docsearch-searchbox-focus-background: #111;
 }
 
 html[data-theme="dark"] .navbar-sidebar {
@@ -398,9 +397,4 @@ table tr:nth-child(2n) {
 /* SEARCH FOOTER */
 .DocSearch-Logo {
   display: none;
-}
-
-
-.searchQueryInput_u2C7, .searchVersionInput_m0Ui {
-    background: #111;
 }
