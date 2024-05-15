@@ -367,7 +367,7 @@ table tr:nth-child(2n) {
   --docsearch-hit-active-color: #222;
   --docsearch-hit-background: #000;
   /* Footer */
-  --docsearch-footer-background: #000;
+  --docsearch-footer-background: #111;
   --docsearch-footer-shadow: 0 1px 0 0 #333;
   --docsearch-key-gradient: #000;
   --docsearch-key-shadow: 1px solid #333;
