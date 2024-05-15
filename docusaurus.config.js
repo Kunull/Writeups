@@ -167,6 +167,7 @@ const config = {
         indexName: 'writeups-kunull',
         contextualSearch: false,
         typoTolerance: false,
+        maxResultsPerGroup: 10,
       },
     }),
   
