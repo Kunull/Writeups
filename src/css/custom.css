@@ -401,13 +401,5 @@ table tr:nth-child(2n) {
 
 
 .searchQueryInput_u2C7, .searchVersionInput_m0Ui {
-    background: var(--docsearch-searchbox-focus-background);
-    border: 2px solid var(--ifm-toc-border-color);
-    border-radius: var(--ifm-global-radius);
-    color: var(--docsearch-text-color);
-    font: var(--ifm-font-size-base) var(--ifm-font-family-base);
-    margin-bottom: .5rem;
-    padding: .8rem;
-    transition: border var(--ifm-transition-fast) ease;
-    width: 100%;
+    background: #111;
 }
