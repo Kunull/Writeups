@@ -364,8 +364,8 @@ table tr:nth-child(2n) {
   --docsearch-searchbox-shadow: inset 0 0 0 2px #333;
   /* Hit */
   --docsearch-hit-color: var(--ifm-font-color-base);
-  --docsearch-hit-active-color: #fff;
-  --docsearch-hit-background: #000;
+  --docsearch-hit-active-color: #222;
+  --docsearch-hit-background: #111;
   /* Footer */
   --docsearch-footer-background: #000;
   --docsearch-footer-shadow: 0 1px 0 0 #333;
@@ -394,10 +394,10 @@ table tr:nth-child(2n) {
 }
 
 /* Search option (selected) */
-.DocSearch-Hit[aria-selected=true] a {
+/* .DocSearch-Hit[aria-selected=true] a {
     background-color: #111 !important;
-/*     border: 1px solid #333 !important; */
-}
+    border: 1px solid #333 !important;
+} */
 
 /* Logo (SEARCH FOOTER) */
 /* .DocSearch-Logo {
