@@ -400,9 +400,9 @@ table tr:nth-child(2n) {
 }
 
 /* Logo (SEARCH FOOTER) */
-.DocSearch-Logo {
-/*   display: none; */
-  filter: grayscale(1);
+.DocSearch-Logo svg {
+/*     display: none; */
+    filter: grayscale(1) !important;
 }
 
 
