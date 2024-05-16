@@ -356,7 +356,7 @@ table tr:nth-child(2n) {
 [data-theme='dark'] .DocSearch {
   --docsearch-text-color: var(--ifm-font-color-base);
   --docsearch-muted-color: var(--ifm-color-secondary-darkest);
-  --docsearch-container-background: rgba(0, 0, 0, 0.9);
+  --docsearch-container-background: #111111f0;
   /* Modal */
   --docsearch-modal-background: #000;
   --docsearch-modal-shadow: #000;
