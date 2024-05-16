@@ -171,6 +171,33 @@ nav.navbar:not(.navbar-sidebar--show) {
 
 
 
+/* NAVBAR DROPDOWN */
+
+/* Dropdown Glassmorphism */
+/* .dropdown {
+    width: auto;
+    --tw-backdrop-blur: blur(10px);
+    -webkit-backdrop-filter: var(--tw-backdrop-blur);
+    backdrop-filter: var(--tw-backdrop-blur);
+    background-color: rgb(0, 0, 0, 0.0);
+} */
+
+/* Dropdown list Glassmorphism */
+.dropdown__menu {
+    --tw-backdrop-blur: blur(10px);
+    -webkit-backdrop-filter: var(--tw-backdrop-blur);
+    backdrop-filter: var(--tw-backdrop-blur);
+    background-color: rgb(0, 0, 0, 0.75);
+}
+
+/* Border */
+.dropdown__menu {
+    border-radius: 0.25rem;
+    border: 1px solid #333;
+}
+
+
+
 /* SIDEBAR */
 
 aside.docSidebarContainer_YfHR {
@@ -318,33 +345,6 @@ table thead {
 /* 2n child background */
 table tr:nth-child(2n) {
     background-color: #000;
-}
-
-
-
-
-/* DROPDOWN */
-
-/* Dropdown Glassmorphism */
-/* .dropdown {
-    width: auto;
-    --tw-backdrop-blur: blur(10px);
-    -webkit-backdrop-filter: var(--tw-backdrop-blur);
-    backdrop-filter: var(--tw-backdrop-blur);
-    background-color: rgb(0, 0, 0, 0.0);
-} */
-
-/* Dropdown list Glassmorphism */
-.dropdown__menu {
-    --tw-backdrop-blur: blur(10px);
-    -webkit-backdrop-filter: var(--tw-backdrop-blur);
-    backdrop-filter: var(--tw-backdrop-blur);
-    background-color: rgb(0, 0, 0, 0.75);
-}
-
-/* Border radius */
-.dropdown__menu {
-    border-radius: 0.25rem;
 }
 
 
