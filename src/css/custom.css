@@ -418,3 +418,9 @@ html[data-theme=dark] {
 .margin-top--lg, .margin-vert--lg {
     margin-top: 1.5rem !important;
 }
+
+/* Logo (SEARCH PAGE) */
+.algoliaLogo_rT1R {
+    max-width: 150px;
+    filter: grayscale(1) !important;
+}
