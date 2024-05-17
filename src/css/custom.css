@@ -396,7 +396,7 @@ table tr:nth-child(2n) {
 /* Search option (selected) */
 .DocSearch-Hit[aria-selected=true] a {
     background-color: #111 !important;
-    border: 1px solid #333 !important;
+/*     border: 1px solid #333 !important; */
 }
 
 /* Logo (SEARCH FOOTER) */
