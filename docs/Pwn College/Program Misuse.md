@@ -1269,7 +1269,7 @@ this challenge container to make sure that I set the SUID bit on /usr/bin/perl!
 
 Perl is a scripting language. As such, ew can use the following script to read the `/flag`.
 
-```perl
+```title='babysuid41.pl'
 open(fh, "/flag");
 $firstline = <fh>;
 print "$firstline\n";
