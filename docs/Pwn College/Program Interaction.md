@@ -1218,7 +1218,7 @@ ONWARDS TO GREATNESS!
 [FAIL]    Executable must be 'python'. Yours is: bash
 ```
 
-```python.py
+```python
 from pwn import *
 import os
 
@@ -1231,7 +1231,7 @@ with open("/tmp/btxtnc", "r") as file:
 p.interactive()
 ```
 
-```python.py
+```python
 import subprocess as sp
 import os
 
@@ -1284,7 +1284,7 @@ ONWARDS TO GREATNESS!
 [FAIL]    Executable must be 'python'. Yours is: bash
 ```
 
-```python.py
+```python
 from pwn import *
 import os
 
