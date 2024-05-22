@@ -831,7 +831,7 @@ WARNING: your terminal doesn't support cursor position requests (CPR).
 In [1]:
 ```
 
-```python.py
+```python
 from pwn import *
 import os
 
@@ -848,7 +848,7 @@ This time we open the `/tmp/wxngwq` with the `O_WRONLY` option. We also specify 
 We then pass this `fd` file descriptor as STDOUT so the program can write to it.
 Lastly we just open it file with `r` permissions and print the contents.
 
-```python.py
+```python
 import subprocess as sp
 import os
 
@@ -861,7 +861,7 @@ with open("/tmp/wxngwq", "r") as file:
 p.communicate()
 ```
 
-```python.py
+```python
 import subprocess
 import os
 
@@ -913,7 +913,7 @@ WARNING: your terminal doesn't support cursor position requests (CPR).
 In [1]:
 ```
 
-```python.py
+```python
 from pwn import *
 import os
 
