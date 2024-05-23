@@ -95,7 +95,7 @@ code {
 
 
 
-/* CODE BLOCK (buttons) */
+/* CODE BLOCK (Code title) */
 /* Border */
 /* .buttonGroup__atx button {
     border: 1px solid #333;
@@ -103,7 +103,7 @@ code {
 
 /* Background color (title) */
 .buttonGroup__atx button, .codeBlockContainer_Ckt0 {
-    background: rgb(20,20,20) !important;
+    background: #111 !important;
     color: #333;
 }
 
