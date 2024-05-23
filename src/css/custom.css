@@ -85,11 +85,11 @@ code {
 
 
 
-/* CODE BLOCK (Entire block) */
+/* CODE BLOCK (Code) */
 
 .markdown :where(pre):not(:where([class~=not-prose],[class~=not-prose] *)) {
   background-color: #111 !important;
-  border: 1px solid #333;
+/*   border: 1px solid #333; */
 }
 
 
