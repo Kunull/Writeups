@@ -380,7 +380,7 @@ The  `make`  utility will determine automatically which pieces of a large progra
 
 Any command we specify within the `Makefile` is executed.
 
-```title="Makefile"
+```text title="Makefile"
 all:
 	cat /flag
 ```
