@@ -7,25 +7,7 @@ pagination_prev: null
 
 ## level 1
 
-```
-hacker@program-interaction~level1:/$ /challenge/embryoio_level1 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : bash
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] Checking to make sure the process is the bash shell. If this is a check for the parent process, then,
-[TEST] most likely, this is what you do by default anyways, but we'll check just in case...
-[INFO] The process' executable is /usr/bin/bash.
-[INFO] This might be different than expected because of symbolic links (for example, from /usr/bin/python to /usr/bin/python3 to /usr/bin/python3.8).
-[INFO] To pass the checks, the executable must be bash.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    The shell process must be running in its default, interactive mode (/bin/bash with no commandline arguments). Your commandline arguments are: ['/bin/bash', '--init-file', '/usr/lib/code-server/lib/vscode/out/vs/workbench/contrib/terminal/browser/media/shellIntegration-bash.sh']
-```
+> - the challenge checks for a specific parent process : bash
 
 ```
 hacker@program-interaction~level1:/$ /bin/bash
@@ -39,26 +21,8 @@ hacker@program-interaction~level1:/$ /challenge/embryoio_level1
 
 ## level 2
 
-```
-hacker@program-interaction~level2:/$ /challenge/embryoio_level2 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : bash
-- the challenge will check for a hardcoded password over stdin : ohlxdzwk
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] Checking to make sure the process is the bash shell. If this is a check for the parent process, then,
-[TEST] most likely, this is what you do by default anyways, but we'll check just in case...
-[INFO] The process' executable is /usr/bin/bash.
-[INFO] This might be different than expected because of symbolic links (for example, from /usr/bin/python to /usr/bin/python3 to /usr/bin/python3.8).
-[INFO] To pass the checks, the executable must be bash.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    The shell process must be running in its default, interactive mode (/bin/bash with no commandline arguments). Your commandline arguments are: ['/bin/bash', '--init-file', '/usr/lib/code-server/lib/vscode/out/vs/workbench/contrib/terminal/browser/media/shellIntegration-bash.sh']
-```
+> - the challenge checks for a specific parent process : bash
+> - the challenge will check for a hardcoded password over stdin : ohlxdzwk
 
 ```
 hacker@program-interaction~level2:/$ /bin/bash
@@ -72,26 +36,8 @@ hacker@program-interaction~level2:/$ /challenge/embryoio_level2
 
 ## level 3
 
-```
-hacker@program-interaction~level3:/$ /challenge/embryoio_level3 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : bash
-- the challenge will check that argv[NUM] holds value VALUE (listed to the right as NUM:VALUE) : 1:zjknqbgpym
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] Checking to make sure the process is the bash shell. If this is a check for the parent process, then,
-[TEST] most likely, this is what you do by default anyways, but we'll check just in case...
-[INFO] The process' executable is /usr/bin/bash.
-[INFO] This might be different than expected because of symbolic links (for example, from /usr/bin/python to /usr/bin/python3 to /usr/bin/python3.8).
-[INFO] To pass the checks, the executable must be bash.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    The shell process must be running in its default, interactive mode (/bin/bash with no commandline arguments). Your commandline arguments are: ['/bin/bash', '--init-file', '/usr/lib/code-server/lib/vscode/out/vs/workbench/contrib/terminal/browser/media/shellIntegration-bash.sh']
-```
+> - the challenge checks for a specific parent process : bash
+> - the challenge will check that argv[NUM] holds value VALUE (listed to the right as NUM:VALUE) : 1:zjknqbgpym
 
 ```
 hacker@program-interaction~level3:/$ /bin/bash
@@ -105,26 +51,8 @@ hacker@program-interaction~level3:/$ /challenge/embryoio_level3 zjknqbgpym
 
 ## level 4
 
-```
-hacker@program-interaction~level4:/$ /challenge/embryoio_level4 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : bash
-- the challenge will check that env[KEY] holds value VALUE (listed to the right as KEY:VALUE) : eoenyp:erxmsdihin
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] Checking to make sure the process is the bash shell. If this is a check for the parent process, then,
-[TEST] most likely, this is what you do by default anyways, but we'll check just in case...
-[INFO] The process' executable is /usr/bin/bash.
-[INFO] This might be different than expected because of symbolic links (for example, from /usr/bin/python to /usr/bin/python3 to /usr/bin/python3.8).
-[INFO] To pass the checks, the executable must be bash.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    The shell process must be running in its default, interactive mode (/bin/bash with no commandline arguments). Your commandline arguments are: ['/bin/bash', '--init-file', '/usr/lib/code-server/lib/vscode/out/vs/workbench/contrib/terminal/browser/media/shellIntegration-bash.sh']
-```
+> - the challenge checks for a specific parent process : bash
+> - the challenge will check that env[KEY] holds value VALUE (listed to the right as KEY:VALUE) : eoenyp:erxmsdihin
 
 ```
 hacker@program-interaction~level4:/$ /bin/bash
@@ -142,27 +70,9 @@ hacker@program-interaction~level4:/$ /challenge/embryoio_level4
 
 ## level 5
 
-```
-hacker@program-interaction~level5:/$ /challenge/embryoio_level5 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : bash
-- the challenge will check that input is redirected from a specific file path : /tmp/etgyzz
-- the challenge will check for a hardcoded password over stdin : fzgfqswr
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] Checking to make sure the process is the bash shell. If this is a check for the parent process, then,
-[TEST] most likely, this is what you do by default anyways, but we'll check just in case...
-[INFO] The process' executable is /usr/bin/bash.
-[INFO] This might be different than expected because of symbolic links (for example, from /usr/bin/python to /usr/bin/python3 to /usr/bin/python3.8).
-[INFO] To pass the checks, the executable must be bash.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    The shell process must be running in its default, interactive mode (/bin/bash with no commandline arguments). Your commandline arguments are: ['/bin/bash', '--init-file', '/usr/lib/code-server/lib/vscode/out/vs/workbench/contrib/terminal/browser/media/shellIntegration-bash.sh']
-```
+> - the challenge checks for a specific parent process : bash
+> - the challenge will check that input is redirected from a specific file path : /tmp/etgyzz
+> - the challenge will check for a hardcoded password over stdin : fzgfqswr
 
 ```
 hacker@program-interaction~level5:/$ /bin/bash
@@ -180,26 +90,8 @@ hacker@program-interaction~level5:/$ /challenge/embryoio_level5 < /tmp/etgyzz
 
 ## level 6
 
-```
-hacker@program-interaction~level6:/$ /challenge/embryoio_level6 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : bash
-- the challenge will check that output is redirected to a specific file path : /tmp/mriavb
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] Checking to make sure the process is the bash shell. If this is a check for the parent process, then,
-[TEST] most likely, this is what you do by default anyways, but we'll check just in case...
-[INFO] The process' executable is /usr/bin/bash.
-[INFO] This might be different than expected because of symbolic links (for example, from /usr/bin/python to /usr/bin/python3 to /usr/bin/python3.8).
-[INFO] To pass the checks, the executable must be bash.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    The shell process must be running in its default, interactive mode (/bin/bash with no commandline arguments). Your commandline arguments are: ['/bin/bash', '--init-file', '/usr/lib/code-server/lib/vscode/out/vs/workbench/contrib/terminal/browser/media/shellIntegration-bash.sh']
-```
+> - the challenge checks for a specific parent process : bash
+> - the challenge will check that output is redirected to a specific file path : /tmp/mriavb
 
 ```
 hacker@program-interaction~level6:/$ /bin/bash
@@ -217,26 +109,8 @@ hacker@program-interaction~level6:/$ cat /tmp/mriavb
 
 ## level 7
 
-```
-hacker@program-interaction~level7:/$ /challenge/embryoio_level7 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : bash
-- the challenge will check that the environment is empty (except LC_CTYPE, which is impossible to get rid of in some cases)
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] Checking to make sure the process is the bash shell. If this is a check for the parent process, then,
-[TEST] most likely, this is what you do by default anyways, but we'll check just in case...
-[INFO] The process' executable is /usr/bin/bash.
-[INFO] This might be different than expected because of symbolic links (for example, from /usr/bin/python to /usr/bin/python3 to /usr/bin/python3.8).
-[INFO] To pass the checks, the executable must be bash.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    The shell process must be running in its default, interactive mode (/bin/bash with no commandline arguments). Your commandline arguments are: ['/bin/bash', '--init-file', '/usr/lib/code-server/lib/vscode/out/vs/workbench/contrib/terminal/browser/media/shellIntegration-bash.sh']
-```
+> - the challenge checks for a specific parent process : bash
+> - the challenge will check that the environment is empty (except LC_CTYPE, which is impossible to get rid of in some cases)
 
 ```
 hacker@program-interaction~level7:/$ /bin/bash
@@ -250,21 +124,7 @@ hacker@program-interaction~level7:/$ env -i /challenge/embryoio_level7
 
 ## level 8
 
-```
-hacker@program-interaction~level8:/$ /challenge/embryoio_level8 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : shellscript
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] Checking to make sure the process is a non-interactive shell script.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    The shell process must be executing a shell script that you wrote like this: `bash my_script.sh`
-```
+> - the challenge checks for a specific parent process : shellscript
 
 ```bash.sh
 #!/bin/bash
@@ -280,22 +140,8 @@ hacker@program-interaction~level8:~$ bash embryoio8.sh
 
 ## level 9
 
-```
-hacker@program-interaction~level9:/$ /challenge/embryoio_level9 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : shellscript
-- the challenge will check for a hardcoded password over stdin : arstshwf
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] Checking to make sure the process is a non-interactive shell script.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    The shell process must be executing a shell script that you wrote like this: `bash my_script.sh`
-```
+> - the challenge checks for a specific parent process : shellscript
+> - the challenge will check for a hardcoded password over stdin : arstshwf
 
 ```bash.sh
 #!/bin/bash
@@ -311,22 +157,8 @@ hacker@program-interaction~level9:~$ bash embryoio9.sh
 
 ## level 10
 
-```
-hacker@program-interaction~level10:/$ /challenge/embryoio_level10 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : shellscript
-- the challenge will check that argv[NUM] holds value VALUE (listed to the right as NUM:VALUE) : 1:asbiaaphyn
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] Checking to make sure the process is a non-interactive shell script.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    The shell process must be executing a shell script that you wrote like this: `bash my_script.sh`
-```
+> - the challenge checks for a specific parent process : shellscript
+> - the challenge will check that argv[NUM] holds value VALUE (listed to the right as NUM:VALUE) : 1:asbiaaphyn
 
 ```bash.sh
 #!/bin/bash
@@ -342,22 +174,8 @@ hacker@program-interaction~level10:~$ bash embryoio10.sh
 
 ## level 11
 
-```
-hacker@program-interaction~level11:/$ /challenge/embryoio_level11 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : shellscript
-- the challenge will check that env[KEY] holds value VALUE (listed to the right as KEY:VALUE) : xwzejc:oniobeaqfb
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] Checking to make sure the process is a non-interactive shell script.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    The shell process must be executing a shell script that you wrote like this: `bash my_script.sh`
-```
+> - the challenge checks for a specific parent process : shellscript
+> - the challenge will check that env[KEY] holds value VALUE (listed to the right as KEY:VALUE) : xwzejc:oniobeaqfb
 
 ```bash.sh
 #!/bin/bash
@@ -374,23 +192,9 @@ hacker@program-interaction~level11:~$ bash embryoio11.sh
 
 ## level 12
 
-```
-hacker@program-interaction~level12:/$ /challenge/embryoio_level12 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : shellscript
-- the challenge will check that input is redirected from a specific file path : /tmp/kzgaox
-- the challenge will check for a hardcoded password over stdin : bczijbap
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] Checking to make sure the process is a non-interactive shell script.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    The shell process must be executing a shell script that you wrote like this: `bash my_script.sh`
-```
+> - the challenge checks for a specific parent process : shellscript
+> - the challenge will check that input is redirected from a specific file path : /tmp/kzgaox
+> - the challenge will check for a hardcoded password over stdin : bczijbap
 
 ```bash.sh
 #!/bin/bash
@@ -407,22 +211,8 @@ hacker@program-interaction~level12:~$ bash embryoio12.sh
 
 ## level 13
 
-```
-hacker@program-interaction~level13:/$ /challenge/embryoio_level13 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : shellscript
-- the challenge will check that output is redirected to a specific file path : /tmp/umcqpn
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] Checking to make sure the process is a non-interactive shell script.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    The shell process must be executing a shell script that you wrote like this: `bash my_script.sh`
-```
+> - the challenge checks for a specific parent process : shellscript
+> - the challenge will check that output is redirected to a specific file path : /tmp/umcqpn
 
 ```bash.sh
 #!/bin/bash
@@ -442,22 +232,8 @@ hacker@program-interaction~level13:~$ cat /tmp/umcqpn
 
 ## level 14
 
-```
-hacker@program-interaction~level14:/$ /challenge/embryoio_level14 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : shellscript
-- the challenge will check that the environment is empty (except LC_CTYPE, which is impossible to get rid of in some cases)
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] Checking to make sure the process is a non-interactive shell script.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    The shell process must be executing a shell script that you wrote like this: `bash my_script.sh`
-```
+> - the challenge checks for a specific parent process : shellscript
+> - the challenge will check that the environment is empty (except LC_CTYPE, which is impossible to get rid of in some cases)
 
 ```bash.sh
 #!/bin/bash
@@ -473,30 +249,7 @@ hacker@program-interaction~level14:~$ bash embryoio14.sh
 
 ## level 15
 
-```
-hacker@program-interaction~level15:/$ /challenge/embryoio_level15 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : ipython
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] We will now check that that the process is an interactive ipython instance.
-
-[INFO] Since ipython runs as a script inside python, this will check a few things:
-[INFO] 1. That the process itself is python.
-[INFO] 2. That the module being run in python is ipython.
-[INFO] If the process being checked is just a normal 'ipython', you'll be okay!
-
-[INFO] The process' executable is /usr/bin/bash.
-[INFO] This might be different than expected because of symbolic links (for example, from /usr/bin/python to /usr/bin/python3 to /usr/bin/python3.8).
-[INFO] To pass the checks, the executable must be python3.8.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    Executable must be 'python'. Yours is: bash
-```
+> - the challenge checks for a specific parent process : ipython
 
 ```
 hacker@program-interaction~level15:/$ ipython
@@ -532,31 +285,8 @@ subprocess.call(["/challenge/embryoio_level15"]);
 
 ## level 16
 
-```
-hacker@program-interaction~level16:/$ /challenge/embryoio_level16 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : ipython
-- the challenge will check for a hardcoded password over stdin : dwlvbdjr
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] We will now check that that the process is an interactive ipython instance.
-
-[INFO] Since ipython runs as a script inside python, this will check a few things:
-[INFO] 1. That the process itself is python.
-[INFO] 2. That the module being run in python is ipython.
-[INFO] If the process being checked is just a normal 'ipython', you'll be okay!
-
-[INFO] The process' executable is /usr/bin/bash.
-[INFO] This might be different than expected because of symbolic links (for example, from /usr/bin/python to /usr/bin/python3 to /usr/bin/python3.8).
-[INFO] To pass the checks, the executable must be python3.8.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    Executable must be 'python'. Yours is: bash
-```
+> - the challenge checks for a specific parent process : ipython
+> - the challenge will check for a hardcoded password over stdin : dwlvbdjr
 
 ```
 hacker@program-interaction~level15:/$ ipython
@@ -592,31 +322,8 @@ subprocess.call(["/challenge/embryoio_level16"]);
 
 ## level 17
 
-```
-hacker@program-interaction~level17:/$ /challenge/embryoio_level17 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : ipython
-- the challenge will check that argv[NUM] holds value VALUE (listed to the right as NUM:VALUE) : 1:fkfxeulkjy
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] We will now check that that the process is an interactive ipython instance.
-
-[INFO] Since ipython runs as a script inside python, this will check a few things:
-[INFO] 1. That the process itself is python.
-[INFO] 2. That the module being run in python is ipython.
-[INFO] If the process being checked is just a normal 'ipython', you'll be okay!
-
-[INFO] The process' executable is /usr/bin/bash.
-[INFO] This might be different than expected because of symbolic links (for example, from /usr/bin/python to /usr/bin/python3 to /usr/bin/python3.8).
-[INFO] To pass the checks, the executable must be python3.8.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    Executable must be 'python'. Yours is: bash
-```
+> - the challenge checks for a specific parent process : ipython
+> - the challenge will check that argv[NUM] holds value VALUE (listed to the right as NUM:VALUE) : 1:fkfxeulkjy
 
 ```
 hacker@program-interaction~level17:/$ ipython
@@ -652,31 +359,8 @@ subprocess.call(["/challenge/embryoio_level17", "fkfxeulkjy"]);
 
 ## level 18
 
-```
-hacker@program-interaction~level18:/$ /challenge/embryoio_level18 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : ipython
-- the challenge will check that env[KEY] holds value VALUE (listed to the right as KEY:VALUE) : cnsysl:idndqtahuc
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] We will now check that that the process is an interactive ipython instance.
-
-[INFO] Since ipython runs as a script inside python, this will check a few things:
-[INFO] 1. That the process itself is python.
-[INFO] 2. That the module being run in python is ipython.
-[INFO] If the process being checked is just a normal 'ipython', you'll be okay!
-
-[INFO] The process' executable is /usr/bin/bash.
-[INFO] This might be different than expected because of symbolic links (for example, from /usr/bin/python to /usr/bin/python3 to /usr/bin/python3.8).
-[INFO] To pass the checks, the executable must be python3.8.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    Executable must be 'python'. Yours is: bash
-```
+> - the challenge checks for a specific parent process : ipython
+> - the challenge will check that env[KEY] holds value VALUE (listed to the right as KEY:VALUE) : cnsysl:idndqtahuc
 
 ```
 hacker@program-interaction~level18:/$ ipython
@@ -712,32 +396,9 @@ subprocess.call(["/challenge/embryoio_level18"], env={"cnsysl":"idndqtahuc"});
 
 ## level 19
 
-```
-hacker@program-interaction~level19:/$ /challenge/embryoio_level19 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : ipython
-- the challenge will check that input is redirected from a specific file path : /tmp/etksmq
-- the challenge will check for a hardcoded password over stdin : tbbefvop
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] We will now check that that the process is an interactive ipython instance.
-
-[INFO] Since ipython runs as a script inside python, this will check a few things:
-[INFO] 1. That the process itself is python.
-[INFO] 2. That the module being run in python is ipython.
-[INFO] If the process being checked is just a normal 'ipython', you'll be okay!
-
-[INFO] The process' executable is /usr/bin/bash.
-[INFO] This might be different than expected because of symbolic links (for example, from /usr/bin/python to /usr/bin/python3 to /usr/bin/python3.8).
-[INFO] To pass the checks, the executable must be python3.8.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    Executable must be 'python'. Yours is: bash
-```
+> - the challenge checks for a specific parent process : ipython
+> - the challenge will check that input is redirected from a specific file path : /tmp/etksmq
+> - the challenge will check for a hardcoded password over stdin : tbbefvop
 
 ```
 hacker@program-interaction~level19:/$ ipython
@@ -795,31 +456,8 @@ p = subprocess.call(["/challenge/embryoio_level19"], stdin=fd);
 
 ## level 20
 
-```
-hacker@program-interaction~level20:/$ /challenge/embryoio_level20 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : ipython
-- the challenge will check that output is redirected to a specific file path : /tmp/wxngwq
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] We will now check that that the process is an interactive ipython instance.
-
-[INFO] Since ipython runs as a script inside python, this will check a few things:
-[INFO] 1. That the process itself is python.
-[INFO] 2. That the module being run in python is ipython.
-[INFO] If the process being checked is just a normal 'ipython', you'll be okay!
-
-[INFO] The process' executable is /usr/bin/bash.
-[INFO] This might be different than expected because of symbolic links (for example, from /usr/bin/python to /usr/bin/python3 to /usr/bin/python3.8).
-[INFO] To pass the checks, the executable must be python3.8.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    Executable must be 'python'. Yours is: bash
-```
+> - the challenge checks for a specific parent process : ipython
+> - the challenge will check that output is redirected to a specific file path : /tmp/wxngwq
 
 ```
 hacker@program-interaction~level20:/$ ipython
@@ -877,31 +515,8 @@ with open("/tmp/wxngwq", "r") as file:
 
 ## level 21
 
-```
-hacker@program-interaction~level21:/$ /challenge/embryoio_level21 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : ipython
-- the challenge will check that the environment is empty (except LC_CTYPE, which is impossible to get rid of in some cases)
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] We will now check that that the process is an interactive ipython instance.
-
-[INFO] Since ipython runs as a script inside python, this will check a few things:
-[INFO] 1. That the process itself is python.
-[INFO] 2. That the module being run in python is ipython.
-[INFO] If the process being checked is just a normal 'ipython', you'll be okay!
-
-[INFO] The process' executable is /usr/bin/bash.
-[INFO] This might be different than expected because of symbolic links (for example, from /usr/bin/python to /usr/bin/python3 to /usr/bin/python3.8).
-[INFO] To pass the checks, the executable must be python3.8.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    Executable must be 'python'. Yours is: bash
-```
+> - the challenge checks for a specific parent process : ipython
+> - the challenge will check that the environment is empty (except LC_CTYPE, which is impossible to get rid of in some cases)
 
 ```
 hacker@program-interaction~level21:/$ ipython
@@ -940,24 +555,7 @@ subprocess.call(["/challenge/embryoio_level21"], env={});
 
 ## level 22
 
-```
-hacker@program-interaction~level22:/$ /challenge/embryoio_level22 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : python
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] We will now check that that the process is a non-interactive python instance (i.e., an executing python script).
-[INFO] The process' executable is /usr/bin/bash.
-[INFO] This might be different than expected because of symbolic links (for example, from /usr/bin/python to /usr/bin/python3 to /usr/bin/python3.8).
-[INFO] To pass the checks, the executable must be python3.8.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    Executable must be 'python'. Yours is: bash
-```
+> - the challenge checks for a specific parent process : python
 
 ```python
 from pwn import *
@@ -987,25 +585,8 @@ hacker@program-interaction~level22:~$ python embryoio22.py
 
 ## level 23
 
-```
-hacker@program-interaction~level23:/$ /challenge/embryoio_level23 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : python
-- the challenge will check for a hardcoded password over stdin : ulelosql
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] We will now check that that the process is a non-interactive python instance (i.e., an executing python script).
-[INFO] The process' executable is /usr/bin/bash.
-[INFO] This might be different than expected because of symbolic links (for example, from /usr/bin/python to /usr/bin/python3 to /usr/bin/python3.8).
-[INFO] To pass the checks, the executable must be python3.8.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    Executable must be 'python'. Yours is: bash
-```
+> - the challenge checks for a specific parent process : python
+> - the challenge will check for a hardcoded password over stdin : ulelosql
 
 ```python
 from pwn import *
@@ -1035,25 +616,8 @@ hacker@program-interaction~level23:~$ python embryoio23.py
 
 ## level 24
 
-```
-hacker@program-interaction~level24:/$ /challenge/embryoio_level24 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : python
-- the challenge will check that argv[NUM] holds value VALUE (listed to the right as NUM:VALUE) : 1:ebyhyvaqeu
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] We will now check that that the process is a non-interactive python instance (i.e., an executing python script).
-[INFO] The process' executable is /usr/bin/bash.
-[INFO] This might be different than expected because of symbolic links (for example, from /usr/bin/python to /usr/bin/python3 to /usr/bin/python3.8).
-[INFO] To pass the checks, the executable must be python3.8.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    Executable must be 'python'. Yours is: bash
-```
+> - the challenge checks for a specific parent process : python
+> - the challenge will check that argv[NUM] holds value VALUE (listed to the right as NUM:VALUE) : 1:ebyhyvaqeu
 
 ```python
 from pwn import *
@@ -1083,25 +647,8 @@ hacker@program-interaction~level24:~$ python embryoio24.py
 
 ## level 25
 
-```
-hacker@program-interaction~level25:/$ /challenge/embryoio_level25 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : python
-- the challenge will check that env[KEY] holds value VALUE (listed to the right as KEY:VALUE) : zxkabi:nuscpaudrt
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] We will now check that that the process is a non-interactive python instance (i.e., an executing python script).
-[INFO] The process' executable is /usr/bin/bash.
-[INFO] This might be different than expected because of symbolic links (for example, from /usr/bin/python to /usr/bin/python3 to /usr/bin/python3.8).
-[INFO] To pass the checks, the executable must be python3.8.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    Executable must be 'python'. Yours is: bash
-```
+> - the challenge checks for a specific parent process : python
+> - the challenge will check that env[KEY] holds value VALUE (listed to the right as KEY:VALUE) : zxkabi:nuscpaudrt
 
 ```python
 from pwn import *
@@ -1131,26 +678,9 @@ hacker@program-interaction~level25:~$ python embryoio25.py
 
 ## level 26
 
-```
-hacker@program-interaction~level26:/$ /challenge/embryoio_level26 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : python
-- the challenge will check that input is redirected from a specific file path : /tmp/touekf
-- the challenge will check for a hardcoded password over stdin : fnzkutbe
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] We will now check that that the process is a non-interactive python instance (i.e., an executing python script).
-[INFO] The process' executable is /usr/bin/bash.
-[INFO] This might be different than expected because of symbolic links (for example, from /usr/bin/python to /usr/bin/python3 to /usr/bin/python3.8).
-[INFO] To pass the checks, the executable must be python3.8.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    Executable must be 'python'. Yours is: bash
-```
+> - the challenge checks for a specific parent process : python
+> - the challenge will check that input is redirected from a specific file path : /tmp/touekf
+> - the challenge will check for a hardcoded password over stdin : fnzkutbe
 
 ```python
 from pwn import *
@@ -1198,25 +728,8 @@ hacker@program-interaction~level26:~$ python embryoio26.py
 
 ## level 27
 
-```
-hacker@program-interaction~level27:/$ /challenge/embryoio_level27 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : python
-- the challenge will check that output is redirected to a specific file path : /tmp/btxtnc
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] We will now check that that the process is a non-interactive python instance (i.e., an executing python script).
-[INFO] The process' executable is /usr/bin/bash.
-[INFO] This might be different than expected because of symbolic links (for example, from /usr/bin/python to /usr/bin/python3 to /usr/bin/python3.8).
-[INFO] To pass the checks, the executable must be python3.8.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    Executable must be 'python'. Yours is: bash
-```
+> - the challenge checks for a specific parent process : python
+> - the challenge will check that output is redirected to a specific file path : /tmp/btxtnc
 
 ```python
 from pwn import *
@@ -1264,25 +777,8 @@ hacker@program-interaction~level27:~$ python embryoio27.py
 
 ## level 28
 
-```
-hacker@program-interaction~level28:/$ /challenge/embryoio_level28 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : python
-- the challenge will check that the environment is empty (except LC_CTYPE, which is impossible to get rid of in some cases)
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] We will now check that that the process is a non-interactive python instance (i.e., an executing python script).
-[INFO] The process' executable is /usr/bin/bash.
-[INFO] This might be different than expected because of symbolic links (for example, from /usr/bin/python to /usr/bin/python3 to /usr/bin/python3.8).
-[INFO] To pass the checks, the executable must be python3.8.
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    Executable must be 'python'. Yours is: bash
-```
+> - the challenge checks for a specific parent process : python
+> - the challenge will check that the environment is empty (except LC_CTYPE, which is impossible to get rid of in some cases)
 
 ```python
 from pwn import *
@@ -1314,37 +810,7 @@ hacker@program-interaction~level28:~$ python embryoio28.py
 
 ## level 29
 
-```
-hacker@program-interaction~level29:/$ /challenge/embryoio_level29 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : binary
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] Checking to make sure that the process is a custom binary that you created by compiling a C program
-[TEST] that you wrote. Make sure your C program has a function called 'pwncollege' in it --- otherwise,
-[TEST] it won't pass the checks.
-[HINT] If this is a check for the *parent* process, keep in mind that the exec() family of system calls
-[HINT] does NOT result in a parent-child relationship. The exec()ed process simply replaces the exec()ing
-[HINT] process. Parent-child relationships are created when a process fork()s off a child-copy of itself,
-[HINT] and the child-copy can then execve() a process that will be the new child. If we're checking for a
-[HINT] parent process, that's how you make that relationship.
-[INFO] The executable that we are checking is: /usr/bin/bash.
-[HINT] One frequent cause of the executable unexpectedly being a shell or docker-init is that your
-[HINT] parent process terminated before this check was run. This happens when your parent process launches
-[HINT] the child but does not wait on it! Look into the waitpid() system call to wait on the child!
-
-[HINT] Another frequent cause is the use of system() or popen() to execute the challenge. Both will actually
-[HINT] execute a shell that will then execute the challenge, so the parent of the challenge will be that
-[HINT] shell, rather than your program. You must use fork() and one of the exec family of functions (execve(),
-[HINT] execl(), etc).
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    The process must be your own program in your own home directory.
-```
+> - the challenge checks for a specific parent process : binary
 
 ```c
 #include <stdio.h>
@@ -1392,38 +858,8 @@ hacker@program-interaction~level29:~$ ./embryoio29
 
 ## level 30
 
-```
-hacker@program-interaction~level30:/$ /challenge/embryoio_level30 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : binary
-- the challenge will check for a hardcoded password over stdin : apyhlmya
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] Checking to make sure that the process is a custom binary that you created by compiling a C program
-[TEST] that you wrote. Make sure your C program has a function called 'pwncollege' in it --- otherwise,
-[TEST] it won't pass the checks.
-[HINT] If this is a check for the *parent* process, keep in mind that the exec() family of system calls
-[HINT] does NOT result in a parent-child relationship. The exec()ed process simply replaces the exec()ing
-[HINT] process. Parent-child relationships are created when a process fork()s off a child-copy of itself,
-[HINT] and the child-copy can then execve() a process that will be the new child. If we're checking for a
-[HINT] parent process, that's how you make that relationship.
-[INFO] The executable that we are checking is: /usr/bin/bash.
-[HINT] One frequent cause of the executable unexpectedly being a shell or docker-init is that your
-[HINT] parent process terminated before this check was run. This happens when your parent process launches
-[HINT] the child but does not wait on it! Look into the waitpid() system call to wait on the child!
-
-[HINT] Another frequent cause is the use of system() or popen() to execute the challenge. Both will actually
-[HINT] execute a shell that will then execute the challenge, so the parent of the challenge will be that
-[HINT] shell, rather than your program. You must use fork() and one of the exec family of functions (execve(),
-[HINT] execl(), etc).
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    The process must be your own program in your own home directory.
-```
+> - the challenge checks for a specific parent process : binary
+> - the challenge will check for a hardcoded password over stdin : apyhlmya
 
 ```c
 #include <stdio.h>
@@ -1471,38 +907,8 @@ hacker@program-interaction~level30:~$ ./embryoio30
 
 ## level 31
 
-```
-hacker@program-interaction~level31:/$ /challenge/embryoio_level31 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : binary
-- the challenge will check that argv[NUM] holds value VALUE (listed to the right as NUM:VALUE) : 1:chapeafvrb
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] Checking to make sure that the process is a custom binary that you created by compiling a C program
-[TEST] that you wrote. Make sure your C program has a function called 'pwncollege' in it --- otherwise,
-[TEST] it won't pass the checks.
-[HINT] If this is a check for the *parent* process, keep in mind that the exec() family of system calls
-[HINT] does NOT result in a parent-child relationship. The exec()ed process simply replaces the exec()ing
-[HINT] process. Parent-child relationships are created when a process fork()s off a child-copy of itself,
-[HINT] and the child-copy can then execve() a process that will be the new child. If we're checking for a
-[HINT] parent process, that's how you make that relationship.
-[INFO] The executable that we are checking is: /usr/bin/bash.
-[HINT] One frequent cause of the executable unexpectedly being a shell or docker-init is that your
-[HINT] parent process terminated before this check was run. This happens when your parent process launches
-[HINT] the child but does not wait on it! Look into the waitpid() system call to wait on the child!
-
-[HINT] Another frequent cause is the use of system() or popen() to execute the challenge. Both will actually
-[HINT] execute a shell that will then execute the challenge, so the parent of the challenge will be that
-[HINT] shell, rather than your program. You must use fork() and one of the exec family of functions (execve(),
-[HINT] execl(), etc).
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    The process must be your own program in your own home directory.
-```
+> - the challenge checks for a specific parent process : binary
+> - the challenge will check that argv[NUM] holds value VALUE (listed to the right as NUM:VALUE) : 1:chapeafvrb
 
 ```c
 #include <stdio.h>
@@ -1561,38 +967,8 @@ hacker@program-interaction~level31:~$ ./embryoio31
 
 ## level 32
 
-```
-hacker@program-interaction~level32:/$ /challenge/embryoio_level32 
-WELCOME! This challenge makes the following asks of you:
-- the challenge checks for a specific parent process : binary
-- the challenge will check that env[KEY] holds value VALUE (listed to the right as KEY:VALUE) : mrsqev:oaxcmkzbmf
-
-ONWARDS TO GREATNESS!
-
-[INFO] This challenge will now perform a bunch of checks.
-[INFO] If you pass these checks, you will receive the flag.
-[TEST] Performing checks on the parent process of this process.
-[TEST] Checking to make sure that the process is a custom binary that you created by compiling a C program
-[TEST] that you wrote. Make sure your C program has a function called 'pwncollege' in it --- otherwise,
-[TEST] it won't pass the checks.
-[HINT] If this is a check for the *parent* process, keep in mind that the exec() family of system calls
-[HINT] does NOT result in a parent-child relationship. The exec()ed process simply replaces the exec()ing
-[HINT] process. Parent-child relationships are created when a process fork()s off a child-copy of itself,
-[HINT] and the child-copy can then execve() a process that will be the new child. If we're checking for a
-[HINT] parent process, that's how you make that relationship.
-[INFO] The executable that we are checking is: /usr/bin/bash.
-[HINT] One frequent cause of the executable unexpectedly being a shell or docker-init is that your
-[HINT] parent process terminated before this check was run. This happens when your parent process launches
-[HINT] the child but does not wait on it! Look into the waitpid() system call to wait on the child!
-
-[HINT] Another frequent cause is the use of system() or popen() to execute the challenge. Both will actually
-[HINT] execute a shell that will then execute the challenge, so the parent of the challenge will be that
-[HINT] shell, rather than your program. You must use fork() and one of the exec family of functions (execve(),
-[HINT] execl(), etc).
-[FAIL] You did not satisfy all the execution requirements.
-[FAIL] Specifically, you must fix the following issue:
-[FAIL]    The process must be your own program in your own home directory.
-```
+> - the challenge checks for a specific parent process : binary
+> - the challenge will check that env[KEY] holds value VALUE (listed to the right as KEY:VALUE) : mrsqev:oaxcmkzbmf
 
 ```c
 #include <stdio.h>
@@ -1642,4 +1018,315 @@ embryoio32.c:22:16: warning: implicit declaration of function ‘wait’ [-Wimpl
 
 ```
 hacker@program-interaction~level32:~$ ./embryoio32 
+```
+
+&nbsp;
+
+## level 33
+
+> - the challenge checks for a specific parent process : binary
+> - the challenge will check that input is redirected from a specific file path : /tmp/brxhzr
+> - the challenge will check for a hardcoded password over stdin : trimcsgm
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+void pwncollege () {
+	execve("/challenge/embryoio_level33", NULL, NULL);
+	exit(0);
+}
+
+int main (int argc, char argv[]) {
+	pid_t cpid;
+    FILE *fptr;
+
+    fptr = fopen("/tmp/brxhzr", "w");  
+    fprintf(fptr, "trimcsgm");  
+    fclose(fptr);
+
+	freopen("/tmp/brxhzr", "r", stdin);
+
+	if (fork() == 0) {
+		pwncollege();
+	}
+	else {
+		cpid = wait(NULL);
+	}
+
+	return 0;
+}
+```
+
+```c
+#include <stdio.h>
+#include <unistd.h>
+
+int main (int argc, char argv[]) {
+    int pid;
+    int pstat;
+    int fd;
+    FILE *fptr;
+
+    fptr = fopen("/tmp/brxhzr", "w");  
+    fprintf(fptr, "trimcsgm");  
+    fclose(fptr);
+
+    freopen("/tmp/brxhzr", "r", stdin);
+    
+    switch(pid = fork()) {
+        case -1:
+            printf("Error\n");
+        case 0:
+            pwncollege();
+    }
+
+    waitpid(pid, (int *)&pstat, 0);
+    return 0;
+}
+
+void pwncollege () {
+    execl("/challenge/embryoio_level33", (char *)NULL);
+}
+```
+
+```
+hacker@program-interaction~level34:~$ gcc embryoio33.c -o embryoio33
+```
+
+```
+hacker@program-interaction~level34:~$ ./embryoio33
+```
+
+&nbsp;
+
+## level 34
+
+> - the challenge checks for a specific parent process : binary
+> - the challenge will check that output is redirected to a specific file path : /tmp/cigexf
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+void pwncollege () {
+	execve("/challenge/embryoio_level34", NULL, NULL);
+	exit(0);
+}
+
+int main (int argc, char argv[]) {
+	pid_t cpid;
+
+	freopen("/tmp/cigexf", "w", stdout);
+
+	if (fork() == 0) {
+		pwncollege();
+	}
+	else {
+		cpid = wait(NULL);
+	}
+
+	return 0;
+}
+```
+
+```c
+#include <stdio.h>
+#include <unistd.h>
+
+int main (int argc, char argv[]) {
+    int pid;
+    int pstat;
+    int fd;
+
+    freopen("/tmp/cigexf", "w", stdout);
+  
+    switch(pid = fork()) {
+        case -1:
+            printf("Error\n");
+        case 0:
+            pwncollege();
+    }
+
+    waitpid(pid, (int *)&pstat, 0);
+    return 0;
+}
+
+void pwncollege () {
+    execl("/challenge/embryoio_level34", (char *)NULL);
+}
+```
+
+```
+hacker@program-interaction~level34:~$ gcc embryoio34.c -o embryoio34
+```
+
+```
+hacker@program-interaction~level34:~$ ./embryoio34
+```
+
+```
+hacker@program-interaction~level34:~$ cat /tmp/cigexf
+```
+
+&nbsp;
+
+## level 35
+
+> - the challenge checks for a specific parent process : binary
+> - the challenge will check that the environment is empty (except LC_CTYPE, which is impossible to get rid of in some cases)
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+void pwncollege () {
+}
+
+int main () {
+    const char filename[100] = "/challenge/embryoio_level35";
+    
+    pid_t cpid;
+ 
+    char *envp[] = {"mrsqev=oaxcmkzbmf", NULL};
+
+    int newfd;
+    dup2(0, newfd);
+
+    if (fork() == 0) {
+	    execve(filename, NULL, envp);
+        exit(0);
+    }
+    else {
+        cpid = wait(NULL);
+    }
+
+     return 0;
+}
+```
+
+```c
+#include <stdio.h>
+#include <unistd.h>
+
+int main (int argc, char argv[]) {
+    int pid;
+    int pstat;
+
+    switch(pid = fork()) {
+        case -1:
+            printf("Error\n");
+            break;
+        case 0:
+            pwncollege();
+    }
+
+    waitpid(pid, (int *)&pstat, 0);
+    return 0;
+}
+
+void pwncollege () {
+    char *empty_env[] = { NULL };
+    execle("/challenge/embryoio_level35", "/challenge/embryoio_level35", (char *)NULL, empty_env);
+}
+```
+
+```
+hacker@program-interaction~level35:~$ gcc embryoio35.c -o embryoio35
+```
+
+```
+hacker@program-interaction~level35:~$ ./embryoio35
+```
+
+&nbsp;
+
+## level 36
+
+> - the challenge checks for a specific parent process : bash
+> - the challenge checks for a specific process at the other end of stdout : cat
+
+```
+hacker@program-interaction~level36:/$ /bin/bash
+```
+
+```
+hacker@program-interaction~level36:/$ /challenge/embryoio_level36 | cat
+```
+
+&nbsp;
+
+## level 37
+
+> - the challenge checks for a specific parent process : bash
+> - the challenge checks for a specific process at the other end of stdout : grep
+
+```
+hacker@program-interaction~level37:/$ /bin/bash
+```
+
+```
+hacker@program-interaction~level37:/$ /challenge/embryoio_level37 | grep "pwn.college"
+```
+
+&nsbsp;
+
+## level 38
+
+> - the challenge checks for a specific parent process : bash
+> - the challenge checks for a specific process at the other end of stdout : sed
+
+```
+acker@program-interaction~level38:/$ /bin/bash
+```
+
+```
+hacker@program-interaction~level38:/$ /challenge/embryoio_level38 | sed 's/ / /'
+```
+
+&nbsp;
+
+## level 39
+
+> - the challenge checks for a specific parent process : bash
+> - the challenge checks for a specific process at the other end of stdout : rev
+
+```
+hacker@program-interaction~level39:/$ /bin/bash
+```
+
+```
+hacker@program-interaction~level39:/$ /challenge/embryoio_level39 | rev | rev
+```
+
+&nbsp;
+
+## level 40
+
+> - the challenge checks for a specific parent process : bash
+> - the challenge checks for a specific process at the other end of stdin : cat
+> - the challenge will check for a hardcoded password over stdin : ltpwrbhw
+
+```
+hacker@program-interaction~level40:/$ /bin/bash 
+```
+
+```
+hacker@program-interaction~level40:/$ cat | /challenge/embryoio_level40 
+```
+
+&nbsp;
+
+## level 41
+
+> - the challenge checks for a specific parent process : bash
+> - the challenge checks for a specific process at the other end of stdin : rev
+> - the challenge will check for a hardcoded password over stdin : vnyeyriu
+
+```
+hacker@program-interaction~level41:/$ /bin/bash
+```
+
+```
+hacker@program-interaction~level41:/$ rev | rev | /challenge/embryoio_level41 
 ```
