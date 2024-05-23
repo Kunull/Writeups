@@ -380,7 +380,7 @@ The  `make`  utility will determine automatically which pieces of a large progra
 
 Any command we specify within the `Makefile` is executed.
 
-```title='Makefile'
+```title="Makefile"
 all:
 	cat /flag
 ```
@@ -640,7 +640,7 @@ hacker@program-misuse~level41:~$ perl babysuid41.pl
 
 Python is a scripting language. As such, we can use the following script to read the `/flag`.
 
-```python
+```python title="babysuid42.py"
 with open("/flag", "r") as flag:
     print(flag.read())
 ```
@@ -660,7 +660,7 @@ hacker@program-misuse~level42:~$ python babysuid42.py
 
 Ruby is a scripting language. As such, we can use the following script to read the `/flag`.
 
-```ruby
+```ruby title="babysuid43.rb"
 fileObject = File.open("/flag","r");
 print(fileObject.read());
 fileObject.close();
@@ -681,7 +681,7 @@ hacker@program-misuse~level43:~$ ruby babysuid43.rb
 
 Bash is a scripting language. As such, we can use the following script to read the `/flag`.
 
-```bash
+```bash title="babysuid44.sh"
 cat /flag
 ```
 
