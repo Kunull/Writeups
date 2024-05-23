@@ -102,8 +102,14 @@ code {
 
 /* Background color (title) */
 .buttonGroup__atx button, .codeBlockContainer_Ckt0 {
-    background: #111 !important;
+    background: #000 !important;
     color: #333;
+    border: 1px solid #111 !important;
+}
+
+/* Border bottom */
+.codeBlockTitle_Ktv7 {
+    border-bottom: 1px solid #333 !important;
 }
 
 
