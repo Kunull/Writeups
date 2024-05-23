@@ -1330,3 +1330,469 @@ hacker@program-interaction~level41:/$ /bin/bash
 ```
 hacker@program-interaction~level41:/$ rev | rev | /challenge/embryoio_level41 
 ```
+
+&nbsp;
+
+## level 42
+
+> - the challenge checks for a specific parent process : shellscript
+> - the challenge checks for a specific process at the other end of stdout : cat
+
+```bash title="embryoio42.sh"
+#!/bin/bash
+
+/challenge/embryoio_level42 | cat
+```
+
+```
+hacker@program-interaction~level42:~$ bash embryoio42.sh
+```
+
+&nbsp;
+
+## level 43
+
+> - the challenge checks for a specific parent process : shellscript
+> - the challenge checks for a specific process at the other end of stdout : grep
+
+```bash title="embryoio43.sh"
+#!/bin/sh
+
+/challenge/embryoio_level43 | grep "pwn"
+```
+
+```
+hacker@program-interaction~level43:~$ bash embryoio43.sh
+```
+
+&nbsp;
+
+## level 44
+
+> - the challenge checks for a specific parent process : shellscript
+> - the challenge checks for a specific process at the other end of stdout : sed
+
+```bash title="embryoio44.sh"
+#!/bin/sh
+
+/challenge/embryoio_level44 | sed -n "/pwn/p"
+```
+
+```
+hacker@program-interaction~level44:~$ bash embryoio44.sh
+```
+
+&nbsp;
+
+## level 45
+
+> - the challenge checks for a specific parent process : shellscript
+> - the challenge checks for a specific process at the other end of stdout : rev
+
+```bash title="embryoio45.sh"
+#!/bin/sh
+
+/challenge/embryoio_level45 | rev | rev
+```
+
+```
+hacker@program-interaction~level45:~$ bash embryoio45.sh 
+```
+
+&nbsp;
+
+## level 46
+
+> - the challenge checks for a specific parent process : shellscript
+> - the challenge checks for a specific process at the other end of stdin : cat
+> - the challenge will check for a hardcoded password over stdin : hukyaqik
+
+```bash title="embryoio46.sh"
+#!/bin/bash
+
+cat | /challenge/embryoio_level42
+```
+
+```
+hacker@program-interaction~level46:~$ bash embryoio46.sh 
+```
+
+&nbsp;
+
+## level 47
+
+> - the challenge checks for a specific parent process : shellscript
+> - the challenge checks for a specific process at the other end of stdin : rev
+> - the challenge will check for a hardcoded password over stdin : xpiyvdor
+
+```bash title="embryoio47.sh"
+#!/bin/bash
+
+rev | rev | /challenge/embryoio_level47
+```
+
+```
+hacker@program-interaction~level47:~$ bash embryoio47.sh 
+```
+
+&nbsp;
+
+## level 48
+
+> - the challenge checks for a specific parent process : ipython
+> - the challenge checks for a specific process at the other end of stdout : cat
+
+```
+hacker@program-interaction~level48:/$ ipython
+Python 3.8.10 (default, Nov 22 2023, 10:22:35) 
+Type 'copyright', 'credits' or 'license' for more information
+IPython 8.12.3 -- An enhanced Interactive Python. Type '?' for help.
+
+In [1]: 
+```
+
+```python
+from pwn import *
+
+p = process(["/challenge/embryoio_level48"], stdout=PIPE); 
+p2 = process(["/usr/bin/cat"], stdout=p.stdout);
+p.interactive()
+```
+
+```python
+import subprocess as sp
+
+p = sp.Popen(["/challenge/embryoio_level48"], stdout=sp.PIPE); 
+p2 = sp.Popen(["/usr/bin/cat"], stdin=p.stdout);
+p2.communicate()
+```
+
+&nbsp;
+
+## level 49
+
+> - the challenge checks for a specific parent process : ipython
+> - the challenge checks for a specific process at the other end of stdout : grep
+
+```
+hacker@program-interaction~level49:/$ ipython
+Python 3.8.10 (default, Nov 22 2023, 10:22:35) 
+Type 'copyright', 'credits' or 'license' for more information
+IPython 8.12.3 -- An enhanced Interactive Python. Type '?' for help.
+
+In [1]:
+```
+
+```python
+from pwn import *
+
+p = process(["/challenge/embryoio_level49"], stdout=PIPE); 
+p2 = process(["/usr/bin/grep", "pwn"], stdout=p.stdout);
+p.interactive()
+```
+
+```python
+import subprocess as sp
+
+p = sp.Popen(["/challenge/embryoio_level49"], stdout=sp.PIPE); 
+p2 = sp.Popen(["/usr/bin/grep", "pwn"], stdin=p.stdout);
+p2.communicate()
+```
+
+&nbsp;
+
+## level 50
+
+> - the challenge checks for a specific parent process : ipython
+> - the challenge checks for a specific process at the other end of stdout : sed
+
+```
+hacker@program-interaction~level50:/$ ipython
+Python 3.8.10 (default, Nov 22 2023, 10:22:35) 
+Type 'copyright', 'credits' or 'license' for more information
+IPython 8.12.3 -- An enhanced Interactive Python. Type '?' for help.
+
+In [1]:
+```
+
+```python
+from pwn import *
+
+p = process(["/challenge/embryoio_level50"], stdout=PIPE); 
+p2 = process(["/usr/bin/sed", "-n", "/pwn/p"], stdout=p.stdout);
+p.interactive()
+```
+
+```python
+import subprocess as sp
+
+p = sp.Popen(["/challenge/embryoio_level50"], stdout=sp.PIPE); 
+p2 = sp.Popen(["/usr/bin/sed", "-n", "/pwn/p"], stdin=p.stdout);
+p2.communicate()
+```
+
+&nbsp;
+
+## level 51
+
+> - the challenge checks for a specific parent process : ipython
+> - the challenge checks for a specific process at the other end of stdout : rev
+
+```
+hacker@program-interaction~level51:/$ ipython
+Python 3.8.10 (default, Nov 22 2023, 10:22:35) 
+Type 'copyright', 'credits' or 'license' for more information
+IPython 8.12.3 -- An enhanced Interactive Python. Type '?' for help.
+
+In [1]: 
+```
+
+```python
+from pwn import *
+
+p = process(["/challenge/embryoio_level51"], stdout=PIPE); 
+p2 = process(["/usr/bin/rev"], stdout=p.stdout);
+p.interactive()
+```
+
+```python
+import subprocess as sp
+
+p = sp.Popen(["/challenge/embryoio_level51"], stdout=sp.PIPE); 
+p2 = sp.Popen(["/usr/bin/rev"], stdin=p.stdout, stdout=sp.PIPE);
+p3 = sp.Popen(["/usr/bin/rev"], stdin=p2.stdout);
+p3.communicate()
+```
+
+&nbsp;
+
+## level 52
+
+> - the challenge checks for a specific parent process : ipython
+> - the challenge checks for a specific process at the other end of stdin : cat
+> - the challenge will check for a hardcoded password over stdin : nlcncamf
+
+```
+hacker@program-interaction~level52:/$ ipython
+Python 3.8.10 (default, Nov 22 2023, 10:22:35) 
+Type 'copyright', 'credits' or 'license' for more information
+IPython 8.12.3 -- An enhanced Interactive Python. Type '?' for help.
+
+In [1]:
+```
+
+```python
+from pwn import *
+
+p = process(["/usr/bin/cat"], stdout=PIPE);
+p2 = process(["/challenge/embryoio_level52"], stdout=p.stdout); 
+p2.interactive()
+```
+
+```python
+import subprocess as sp
+
+p = sp.Popen(["/usr/bin/cat"], stdout=sp.PIPE);
+p2 = sp.Popen(["/challenge/embryoio_level52"], stdin=p.stdout); 
+p2.communicate()
+```
+
+&nbsp;
+
+## level 53
+
+> - the challenge checks for a specific parent process : ipython
+> - the challenge checks for a specific process at the other end of stdin : rev
+> - the challenge will check for a hardcoded password over stdin : piamnajl
+
+```
+hacker@program-interaction~level53:/$ ipython
+Python 3.8.10 (default, Nov 22 2023, 10:22:35) 
+Type 'copyright', 'credits' or 'license' for more information
+IPython 8.12.3 -- An enhanced Interactive Python. Type '?' for help.
+
+In [1]:
+```
+
+```python
+from pwn import *
+
+p = process(["/usr/bin/rev"], stdout=PIPE);
+p2 = process(["/challenge/embryoio_level53"], stdout=p.stdout); 
+p2.interactive()
+```
+
+```python
+import subprocess as sp
+
+p = sp.Popen(["/usr/bin/rev"], stdout=sp.PIPE);
+p2 = sp.Popen(["/usr/bin/rev"], stdin=p.stdout, stdout=sp.PIPE);
+p3 = sp.Popen(["/challenge/embryoio_level53"], stdin=p2.stdout); 
+p3.communicate()
+```
+
+&nbsp;
+
+## level 54
+
+> - the challenge checks for a specific parent process : python
+> - the challenge checks for a specific process at the other end of stdout : cat
+
+```python title="embryoio54.py"
+from pwn import *
+
+p = process(["/challenge/embryoio_level54"], stdout=PIPE); 
+p2 = process(["/usr/bin/cat"], stdout=p.stdout);
+p.interactive()
+```
+
+```python title="embryoio54.py"
+import subprocess as sp
+
+p = sp.Popen(["/challenge/embryoio_level54"], stdout=sp.PIPE); 
+p2 = sp.Popen(["/usr/bin/cat"], stdin=p.stdout);
+p2.communicate()
+```
+
+```
+hacker@program-interaction~level54:~$ python embryoio54.py 
+```
+
+&nbsp;
+
+## level 55
+
+> - the challenge checks for a specific parent process : python
+> - the challenge checks for a specific process at the other end of stdout : grep
+
+```python title="embryoio55.py"
+from pwn import *
+
+p = process(["/challenge/embryoio_level55"], stdout=PIPE); 
+p2 = process(["/usr/bin/grep", "pwn.college"], stdout=p.stdout);
+p.interactive()
+```
+
+```python title="embryoio55.py"
+import subprocess as sp
+
+p = sp.Popen(["/challenge/embryoio_level55"], stdout=sp.PIPE); 
+p2 = sp.Popen(["/usr/bin/grep", "pwn.college"], stdin=p.stdout);
+p2.communicate()
+```
+
+```
+hacker@program-interaction~level55:~$ python embryoio55.py
+```
+
+&nbsp;
+
+## level 56
+
+> - the challenge checks for a specific parent process : python
+> - the challenge checks for a specific process at the other end of stdout : sed
+
+```python title="embryoio56.py"
+from pwn import *
+
+p = process(["/challenge/embryoio_level56"], stdout=PIPE); 
+p2 = process(["/usr/bin/sed", "-n", "/pwn/p"], stdout=p.stdout);
+p.interactive()
+```
+
+```python title="embryoio56.py"
+import subprocess as sp
+
+p = sp.Popen(["/challenge/embryoio_level56"], stdout=sp.PIPE); 
+p2 = sp.Popen(["/usr/bin/sed", "-n", "/pwn/p"], stdin=p.stdout);
+p2.communicate()
+```
+
+```
+hacker@program-interaction~level56:/$ python embryoio56.py
+```
+
+&nbsp;
+
+## level 57
+
+> - the challenge checks for a specific parent process : python
+> - the challenge checks for a specific process at the other end of stdout : rev
+
+```python title="embryoio57.py"
+from pwn import *
+
+p = process(["/challenge/embryoio_level57"], stdout=PIPE); 
+p2 = process(["/usr/bin/rev"], stdout=p.stdout);
+p.interactive()
+```
+
+```python title="embryoio57.py"
+import subprocess as sp
+
+p = sp.Popen(["/challenge/embryoio_level57"], stdout=sp.PIPE); 
+p2 = sp.Popen(["/usr/bin/rev"], stdin=p.stdout, stdout=sp.PIPE);
+p3 = sp.Popen(["/usr/bin/rev"], stdin=p2.stdout);
+p3.communicate()
+```
+
+```
+hacker@program-interaction~level57:/$ python embryoio57.py
+```
+
+&nbsp;
+
+## level 58
+
+> - the challenge checks for a specific parent process : python
+> - the challenge checks for a specific process at the other end of stdin : cat
+> - the challenge will check for a hardcoded password over stdin : yhjdoqbb
+
+```python title="embryoio58.py"
+from pwn import *
+
+p = process(["/usr/bin/cat"], stdout=PIPE);
+p2 = process(["/challenge/embryoio_level58"], stdout=p.stdout); 
+p2.interactive()
+```
+
+```python title="embryoio58.py"
+import subprocess as sp
+
+p = sp.Popen(["/usr/bin/cat"], stdout=sp.PIPE);
+p2 = sp.Popen(["/challenge/embryoio_level58"], stdin=p.stdout); 
+p2.communicate()
+```
+
+```
+hacker@program-interaction~level58:/$ python embryoio58.py
+```
+
+&nbsp;
+
+## level 59
+
+> - the challenge checks for a specific parent process : python
+> - the challenge checks for a specific process at the other end of stdin : rev
+> - the challenge will check for a hardcoded password over stdin : qxfrhkpq
+
+```python title="embryoio59.py"
+from pwn import *
+
+p = process(["/usr/bin/rev"], stdout=PIPE);
+p2 = process(["/challenge/embryoio_level59"], stdout=p.stdout); 
+p2.interactive()
+```
+
+```python title="embryoio59.py"
+import subprocess as sp
+
+p = sp.Popen(["/usr/bin/rev"], stdout=sp.PIPE);
+p2 = sp.Popen(["/usr/bin/rev"], stdin=p.stdout, stdout=sp.PIPE);
+p3 = sp.Popen(["/challenge/embryoio_level59"], stdin=p2.stdout); 
+p.communicate()
+```
+
+```
+hacker@program-interaction~level59:~$ python embryoio59.py 
+```
