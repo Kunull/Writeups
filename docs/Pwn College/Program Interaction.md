@@ -160,7 +160,7 @@ hacker@program-interaction~level9:~$ bash embryoio9.sh
 > - the challenge checks for a specific parent process : shellscript
 > - the challenge will check that argv[NUM] holds value VALUE (listed to the right as NUM:VALUE) : 1:asbiaaphyn
 
-```bash.sh
+```bash.sh title="embryoio10.sh"
 #!/bin/bash
 
 /challenge/embryoio_level10 asbiaaphyn
@@ -177,7 +177,7 @@ hacker@program-interaction~level10:~$ bash embryoio10.sh
 > - the challenge checks for a specific parent process : shellscript
 > - the challenge will check that env[KEY] holds value VALUE (listed to the right as KEY:VALUE) : xwzejc:oniobeaqfb
 
-```bash.sh
+```bash.sh title="embryoio11.sh"
 #!/bin/bash
 
 export xwzejc=oniobeaqfb
@@ -196,7 +196,7 @@ hacker@program-interaction~level11:~$ bash embryoio11.sh
 > - the challenge will check that input is redirected from a specific file path : /tmp/kzgaox
 > - the challenge will check for a hardcoded password over stdin : bczijbap
 
-```bash.sh
+```bash.sh title="embryoio12.sh"
 #!/bin/bash
 
 echo "bczijbap" > /tmp/kzgaox
@@ -214,7 +214,7 @@ hacker@program-interaction~level12:~$ bash embryoio12.sh
 > - the challenge checks for a specific parent process : shellscript
 > - the challenge will check that output is redirected to a specific file path : /tmp/umcqpn
 
-```bash.sh
+```bash.sh title="embryoio13.sh"
 #!/bin/bash
 
 /challenge/embryoio_level13 > /tmp/umcqpn
@@ -235,7 +235,7 @@ hacker@program-interaction~level13:~$ cat /tmp/umcqpn
 > - the challenge checks for a specific parent process : shellscript
 > - the challenge will check that the environment is empty (except LC_CTYPE, which is impossible to get rid of in some cases)
 
-```bash.sh
+```bash.sh title="embryoio14.sh"
 #!/bin/bash
 
 env -i /challenge/embryoio_level14
@@ -588,21 +588,21 @@ hacker@program-interaction~level22:~$ python embryoio22.py
 > - the challenge checks for a specific parent process : python
 > - the challenge will check for a hardcoded password over stdin : ulelosql
 
-```python
+```python title="embryoio23.py"
 from pwn import *
 
 p = process(["/challenge/embryoio_level23"])
 p.interactive()
 ```
 
-```python
+```python title="embryoio23.py"
 import subprocess as sp
 
 p = sp.Popen(["/challenge/embryoio_level23"]); 
 p.communicate()
 ```
 
-```python
+```python title="embryoio23.py"
 import subprocess
 
 p = subprocess.call(["/challenge/embryoio_level23"]); 
@@ -619,21 +619,21 @@ hacker@program-interaction~level23:~$ python embryoio23.py
 > - the challenge checks for a specific parent process : python
 > - the challenge will check that argv[NUM] holds value VALUE (listed to the right as NUM:VALUE) : 1:ebyhyvaqeu
 
-```python
+```python title="embryoio24.py"
 from pwn import *
 
 p = process(["/challenge/embryoio_level24", "ebyhyvaqeu"])
 p.interactive()
 ```
 
-```python
+```python title="embryoio24.py"
 import subprocess as sp
 
 p = sp.Popen(["/challenge/embryoio_level24", "ebyhyvaqeu"]); 
 p.communicate()
 ```
 
-```python
+```python title="embryoio24.py"
 import subprocess
 
 subprocess.call(["/challenge/embryoio_level24", "ebyhyvaqeu"]);
@@ -650,21 +650,21 @@ hacker@program-interaction~level24:~$ python embryoio24.py
 > - the challenge checks for a specific parent process : python
 > - the challenge will check that env[KEY] holds value VALUE (listed to the right as KEY:VALUE) : zxkabi:nuscpaudrt
 
-```python
+```python title="embryoio25.py"
 from pwn import *
 
 p = process(["/challenge/embryoio_level25"], env={"zxkabi":"nuscpaudrt"})
 p.interactive()
 ```
 
-```python
+```python title="embryoio25.py"
 import subprocess as sp
 
 p = sp.Popen(["/challenge/embryoio_level25"], env={"zxkabi":"nuscpaudrt"}); 
 p.communicate()
 ```
 
-```python
+```python title="embryoio25.py"
 import subprocess
 
 p = subprocess.call(["/challenge/embryoio_level25"], env={"zxkabi":"nuscpaudrt"});
@@ -682,7 +682,7 @@ hacker@program-interaction~level25:~$ python embryoio25.py
 > - the challenge will check that input is redirected from a specific file path : /tmp/touekf
 > - the challenge will check for a hardcoded password over stdin : fnzkutbe
 
-```python
+```python title="embryoio26.py"
 from pwn import *
 import os
 
@@ -695,7 +695,7 @@ p = process(["/challenge/embryoio_level26"], stdin=fd)
 p.interactive()
 ```
 
-```python
+```python title="embryoio26.py"
 import subprocess as sp
 import os
 
@@ -708,7 +708,7 @@ p = sp.Popen(["/challenge/embryoio_level26"], stdin=fd);
 p.communicate()
 ```
 
-```python
+```python title="embryoio26.py"
 import subprocess
 import os
 
@@ -731,7 +731,7 @@ hacker@program-interaction~level26:~$ python embryoio26.py
 > - the challenge checks for a specific parent process : python
 > - the challenge will check that output is redirected to a specific file path : /tmp/btxtnc
 
-```python
+```python title="embryoio27.py"
 from pwn import *
 import os
 
@@ -744,7 +744,7 @@ with open("/tmp/btxtnc", "r") as file:
 p.interactive()
 ```
 
-```python
+```python title="embryoio27.py"
 import subprocess as sp
 import os
 
@@ -757,7 +757,7 @@ with open("/tmp/btxtnc", "r") as file:
 p.communicate()
 ```
 
-```python
+```python title="embryoio27.py"
 import subprocess
 import os
 
@@ -780,7 +780,7 @@ hacker@program-interaction~level27:~$ python embryoio27.py
 > - the challenge checks for a specific parent process : python
 > - the challenge will check that the environment is empty (except LC_CTYPE, which is impossible to get rid of in some cases)
 
-```python
+```python title="embryoio28.py"
 from pwn import *
 import os
 
@@ -789,14 +789,14 @@ p = process(["/challenge/embryoio_level28"], env={})
 p.interactive()
 ```
 
-```python
+```python title="embryoio28.py"
 import subprocess as sp
 
 p = sp.Popen(["/challenge/embryoio_level28"], env={}); 
 p.communicate()
 ```
 
-```python
+```python title="embryoio28.py"
 import subprocess 
 
 p = subprocess.call(["/challenge/embryoio_level28"], env={}); 
@@ -812,27 +812,51 @@ hacker@program-interaction~level28:~$ python embryoio28.py
 
 > - the challenge checks for a specific parent process : binary
 
-```c
+```c title="embryoio29.c"
 #include <stdio.h>
 #include <stdlib.h>
 
 void pwncollege () {
+	execve("/challenge/embryoio_level29", NULL, NULL);
+	exit(0);
 }
 
-int main () {
-	const char filename[100] = "/challenge/embryoio_level29";
-
+int main (int argc, char argv[]) {
 	pid_t cpid;
 
 	if (fork() == 0) {
-		execve(filename, NULL, NULL);
-		exit(0);
+		pwncollege();
 	}
 	else {
 		cpid = wait(NULL);
 	}
 
 	return 0;
+}
+```
+
+```c title="embryoio29.c"
+#include <stdio.h>
+#include <unistd.h>
+
+int main (int argc, char argv[]) {
+    int pid;
+    int pstat;
+
+    switch(pid = fork()) {
+        case -1:
+            printf("Error\n");
+            break;
+        case 0:
+            pwncollege();
+    }
+
+    waitpid(pid, (int *)&pstat, 0);
+    return 0;
+}
+
+void pwncollege () {
+    execl("/challenge/embryoio_level29", (char *)NULL);
 }
 ```
 
@@ -861,27 +885,51 @@ hacker@program-interaction~level29:~$ ./embryoio29
 > - the challenge checks for a specific parent process : binary
 > - the challenge will check for a hardcoded password over stdin : apyhlmya
 
-```c
+```c title="embryoio30.c"
 #include <stdio.h>
 #include <stdlib.h>
 
 void pwncollege () {
+	execve("/challenge/embryoio_level30", NULL, NULL);
+	exit(0);
 }
 
-int main () {
-	const char filename[100] = "/challenge/embryoio_level30";
-
+int main (int argc, char argv[]) {
 	pid_t cpid;
 
 	if (fork() == 0) {
-		execve(filename, NULL, NULL);
-		exit(0);
+		pwncollege();
 	}
 	else {
 		cpid = wait(NULL);
 	}
 
 	return 0;
+}
+```
+
+```c title="embryoio30.c"
+#include <stdio.h>
+#include <unistd.h>
+
+int main (int argc, char argv[]) {
+    int pid;
+    int pstat;
+
+    switch(pid = fork()) {
+        case -1:
+            printf("Error\n");
+            break;
+        case 0:
+            pwncollege();
+    }
+
+    waitpid(pid, (int *)&pstat, 0);
+    return 0;
+}
+
+void pwncollege () {
+    execl("/challenge/embryoio_level30", (char *)NULL);
 }
 ```
 
@@ -910,14 +958,16 @@ hacker@program-interaction~level30:~$ ./embryoio30
 > - the challenge checks for a specific parent process : binary
 > - the challenge will check that argv[NUM] holds value VALUE (listed to the right as NUM:VALUE) : 1:chapeafvrb
 
-```c
+```c title="embryoio31.c"
 #include <stdio.h>
 #include <stdlib.h>
 
 void pwncollege () {
+	execve(filename, argv, NULL);
+    exit(0);
 }
 
-int main () {
+int main (int argc, char argv[]) {
     const char filename[100] = "/challenge/embryoio_level31";
     
     pid_t cpid;
@@ -928,14 +978,38 @@ int main () {
     dup2(0, newfd);
 
     if (fork() == 0) {
-	    execve(filename, argv, NULL);
-        exit(0);
+	    
     }
     else {
         cpid = wait(NULL);
     }
 
      return 0;
+}
+```
+
+```c title="embryoio31.c"
+#include <stdio.h>
+#include <unistd.h>
+
+int main (int argc, char argv[]) {
+    int pid;
+    int pstat;
+
+    switch(pid = fork()) {
+        case -1:
+            printf("Error\n");
+            break;
+        case 0:
+            pwncollege();
+    }
+
+    waitpid(pid, (int *)&pstat, 0);
+    return 0;
+}
+
+void pwncollege () {
+    execl("/challenge/embryoio_level31", "chapeafvrb", (char *)NULL);
 }
 ```
 
@@ -970,7 +1044,7 @@ hacker@program-interaction~level31:~$ ./embryoio31
 > - the challenge checks for a specific parent process : binary
 > - the challenge will check that env[KEY] holds value VALUE (listed to the right as KEY:VALUE) : mrsqev:oaxcmkzbmf
 
-```c
+```c title="embryoio32.c"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -998,6 +1072,32 @@ int main () {
      return 0;
 }
 ```
+
+```c title="embryoio32.c"
+#include <stdio.h>
+#include <unistd.h>
+
+int main (int argc, char argv[]) {
+    int pid;
+    int pstat;
+    
+    switch(pid = fork()) {
+        case -1:
+            printf("Error\n");
+        case 0:
+            pwncollege();
+    }
+
+    waitpid(pid, (int *)&pstat, 0);
+    return 0;
+}
+
+void pwncollege () {
+    setenv("mrsqev", "oaxcmkzbmf", 1);
+    execl("/challenge/embryoio_level32", (char *)NULL);
+}
+```
+
 
 ```
 hacker@program-interaction~level32:~$ gcc embryoio32.c -o embryoio32
@@ -1028,7 +1128,7 @@ hacker@program-interaction~level32:~$ ./embryoio32
 > - the challenge will check that input is redirected from a specific file path : /tmp/brxhzr
 > - the challenge will check for a hardcoded password over stdin : trimcsgm
 
-```c
+```c title="embryoio33.c"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -1058,7 +1158,7 @@ int main (int argc, char argv[]) {
 }
 ```
 
-```c
+```c title="embryoio33.c"
 #include <stdio.h>
 #include <unistd.h>
 
@@ -1105,7 +1205,7 @@ hacker@program-interaction~level34:~$ ./embryoio33
 > - the challenge checks for a specific parent process : binary
 > - the challenge will check that output is redirected to a specific file path : /tmp/cigexf
 
-```c
+```c title="embryoio34.c"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -1130,7 +1230,7 @@ int main (int argc, char argv[]) {
 }
 ```
 
-```c
+```c title="embryoio34.c"
 #include <stdio.h>
 #include <unistd.h>
 
@@ -1176,7 +1276,7 @@ hacker@program-interaction~level34:~$ cat /tmp/cigexf
 > - the challenge checks for a specific parent process : binary
 > - the challenge will check that the environment is empty (except LC_CTYPE, which is impossible to get rid of in some cases)
 
-```c
+```c title="embryoio35.c"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -1205,7 +1305,7 @@ int main () {
 }
 ```
 
-```c
+```c title="embryoio35.c"
 #include <stdio.h>
 #include <unistd.h>
 
