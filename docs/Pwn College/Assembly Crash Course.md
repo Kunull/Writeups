@@ -325,10 +325,10 @@ mov rax, rdi
 ## level 10
 
 > Without using the following instructions:\
-> mov, xchg\
+> mov, xchg
 >
 > Please perform the following:\
-> rax = rdi AND rsi\
+> rax = rdi AND rsi
 >
 > i.e. Set rax to the value of (rdi AND rsi)
 >
@@ -424,13 +424,13 @@ or rax, rdi
 ## level 11
 
 > Using only the following instructions:\
-> 	and, or, xor\
+>   and, or, xor\
 > 
 > Implement the following logic:\
-> 	if x is even then\
-> 		y = 1\
-> 	else\
-> 		y = 0\
+>   if x is even then\
+>     y = 1\
+>   else\
+>     y = 0
 > 	
 > where:\
 > 	x = rdi\
