@@ -7,8 +7,8 @@ sidebar_position: 1
 
 ## level 1
 
->I just set the SUID bit on /usr/bin/cat.\
->Try to use it to read the flag!
+> I just set the SUID bit on /usr/bin/cat.\
+> Try to use it to read the flag!
 
 We can just `cat` the flag.
 
