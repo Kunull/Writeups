@@ -341,7 +341,7 @@ In order to perform the AND operation between `rdi` and `rsi`, we need to use th
 ### AND
 
 | A | B | X |
-|-|:-:|-|
+|:-|:-:|-|
 | 0 | 0 | 0 |
 | 0 | 1 | 0 |
 | 1 | 0 | 0 |
