@@ -36,7 +36,7 @@ Nmap done: 1 IP address (1 host up) scanned in 45.99 seconds
 As we can see there are two open ports:
 
 | Port | Service | 
-|---|---|
+| :-: | :-: |
 | 22 | ssh |
 | 80 | http |
 
@@ -156,7 +156,7 @@ The `passwd` file probably has some useful information.
 We have what looks to be a pair of a username `music_archive` and a hashed password `$apr1$BpZ.Q.1m$F0qqPwHSOG50URuOVQTTn.`.
 
 | Username | Password hash |
-|-|-|
+| :-: | :-: |
 | music_archive | $apr1$BpZ.Q.1m$F0qqPwHSOG50URuOVQTTn. |
 
 Let's identify the hash using the `hash-identifier` utility.
