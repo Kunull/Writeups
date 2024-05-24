@@ -71,41 +71,87 @@ const config = {
           alt: 'My Site Logo',
           src: 'img/null_medium.png',
         },
+
         items: [
           {
             type: 'dropdown',
-            label: 'Other Collections',
+            label: 'CTF accounts',
+            position: 'right',
+            items: [
+              {
+                label: 'TryHackMe',
+                href: 'https://tryhackme.com/p/Kunull',
+              },
+              {
+                label: 'Hack The Box',
+                href: 'https://app.hackthebox.com/profile/1158503',
+              },
+              {
+                label: 'CyberDefenders',
+                href: 'https://cyberdefenders.org/p/Kunull',
+              },
+              {
+                label: 'RootMe',
+                href: 'https://www.root-me.org/Kunull?lang=fr#715a5db3518744d717e43af1d56ba448',
+              },
+            ],
+          },
+
+          {
+            type: 'dropdown',
+            label: 'Other sites',
             position: 'right',
             items: [
               {
                 label: 'Blog',
                 href: 'https://blog-kunull.vercel.app',
               },
-              // ... more items
+              {
+                label: 'Main site',
+                href: 'https://kunalwalavalkar.vercel.app',
+              },
             ],
           },
+
+          {
+            type: 'dropdown',
+            label: 'Socials',
+            position: 'right',
+            items: [
+              {
+                label: 'GitHub',
+                href: 'https://github.com/kunull',
+              },
+              {
+                label: 'LinkedIn',
+                href: 'https://www.linkedin.com/in/kunalwalavalkar/',
+              },  
+            ],
+          },
+          
           // {
           //     href: 'https://kunalwalavalkarblog.vercel.app',
           //     label: 'Blog',
           //     position: 'right',
           // },         
-          {
-              href: 'https://kunalwalavalkar.vercel.app',
-              label: 'Main site',
-              position: 'right',
-          },
+
+          // {
+          //   href: 'https://kunalwalavalkar.vercel.app',
+          //   label: 'Main site',
+          //   position: 'right',
+          // },
           
-          {
-              href: 'https://github.com/kunull',
-              label: 'GitHub',
-              position: 'right',
-          },
+          // {
+          //     href: 'https://github.com/kunull',
+          //     label: 'GitHub',
+          //     position: 'right',
+          // },
           
-          {
-              href: 'https://www.linkedin.com/in/kunalwalavalkar/',
-              label: 'LinkedIn',
-              position: 'right',
-          },  
+          // {
+          //     href: 'https://www.linkedin.com/in/kunalwalavalkar/',
+          //     label: 'LinkedIn',
+          //     position: 'right',
+          // },  
         ],
       },
       // footer: {
