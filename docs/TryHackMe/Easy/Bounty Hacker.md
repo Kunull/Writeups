@@ -54,6 +54,7 @@ There are three open ports:
 | 21 | ftp |
 | 22 | ssh |
 | 80 | http |
+
 Let's login through FTP anonymously.
 ```
 $ ftp anonymous@10.10.245.97
