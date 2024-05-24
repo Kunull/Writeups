@@ -41,7 +41,7 @@ print(output.readallS())
 
 We can use the `mov` instruction in order to store a value in a register.
 
-### 'mov' instruction
+### `mov` instruction
 
 ```assembly
 mov destination, source
@@ -946,7 +946,7 @@ As we can see the `jmp` instruction looks for the label mentioned and then trans
 
 We still need to learn how to insert 51 bytes between the `jmp` instruction and the `label`.
 
-### Nop instruction
+### `nop` instruction
 
 The `nop` instruction makes no semantic difference to the program, i.e. it does nothing to the program logic. For this reason, it is used to pad the code.
 
@@ -1013,7 +1013,7 @@ rip ------> 0x03    Instruction 4    $$ To be executed
 
 In the above example, the `rip` will have the value `0x03` which is the address of `Instruction 4`.
 
-### Ret instruction
+### `ret` instruction
 
 When we use the `ret` instruction, it pops the latest value on the stack into the instruction pointer `rip`.
 
