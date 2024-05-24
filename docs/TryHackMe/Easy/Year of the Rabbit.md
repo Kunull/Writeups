@@ -32,7 +32,7 @@ Nmap done: 1 IP address (1 host up) scanned in 31.36 seconds
 There are three open ports:
 
 | Port | Service | 
-|-|-|
+| :-: | :-: |
 | 21 | ftp |
 | 22 | ssh |
 | 80 | http |
@@ -260,7 +260,7 @@ We can use an online decoder to decode it.
 ![8](https://github.com/Knign/Write-ups/assets/110326359/020c0449-508b-4233-8a30-051dac7c6c37)
 
 | Username | Password |
-|-|-|
+| :-: | :-: |
 | eli | DSpDiM1wAEwid |
 
 We can try to login through SSH using these credentials.
