@@ -32,7 +32,7 @@ output.write(pwn.asm("""
 print(output.readallS())
 ```
 
-
+&nbsp;
 
 ## level 1
 
@@ -498,16 +498,15 @@ or rax, rdi
 
 &nbsp;
 
-## level 10
+## level 12
 
-> Please perform the following:
->
-> 1. Place the value stored at 0x404000 into rax
-> 2. Increment the value stored at the address 0x404000 by 0x1337&#x20;
->
-> Make sure the value in rax is the original value stored at 0x404000 and make sure that \[0x404000] now has the incremented value.
-
-Before we attempt to solve this level, we must understand the concept of [derefencing](https://www.cs.uaf.edu/2006/fall/cs301/lecture/10\_02\_pointer.html).
+> Please perform the following:\
+> Place the value stored at 0x404000 into rax
+> 
+> Make sure the value in rax is the original value stored at 0x404000.
+> 
+> We will now set the following in preparation for your code:\
+> [0x404000] = 0x1e0d94
 
 ### Dereferencing
 
@@ -529,9 +528,36 @@ mov destination, [source]
 
 The value of register `rax` is set to the value at address `0x404000`.
 
-Let's  move the value at `0x404000` into another register say `rbx`, add `0x1337` to `rbx`, and then move the result back into the `0x404000` address.
+```asm title="assembly12.asm"
+mov rax, [0x404000]
+```
 
-```wasm
+&nbsp;
+
+## level 13
+
+> Please perform the following:\
+> Place the value stored in rax to 0x404000
+> 
+> We will now set the following in preparation for your code:\
+> rax = 0x1a85a0
+
+```asm title="assembly13.asm"
+mov [0x404000], rax
+```
+
+&nbsp;
+
+## level 14
+
+> Please perform the following:\
+> Place the value stored at 0x404000 into rax\
+> Increment the value stored at the address 0x404000 by 0x1337&#x20;
+>
+> Make sure the value in rax is the original value stored at 0x404000 and make sure that [0x404000] now has the incremented value.
+
+```asm title="assembly14.asm"
+mov rax, [0x404000]
 mov rbx, [0x404000]
 add rbx, 0x1337
 mov [0x404000], rbx
