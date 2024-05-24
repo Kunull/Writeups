@@ -945,21 +945,17 @@ pop rsi
 
 ## level 16
 
-> Without using pop please calculate the average of 4 consecutive quad words stored on the stack.&#x20;
+> Without using pop please calculate the average of 4 consecutive quad words stored on the stack.
 >
-> Store the average on the top of the stack. Hint:&#x20;
+> Push the average on the top of the stack.
 >
-> RSP+0x?? Quad Word A&#x20;
->
-> RSP+0x?? Quad Word B&#x20;
->
-> RSP+0x?? Quad Word C&#x20;
->
-> RSP Quad Word D&#x20;
->
-> RSP-0x?? Average
+> Hint:\
+> RSP+0x?? Quad Word A\
+> RSP+0x?? Quad Word B\
+> RSP+0x?? Quad Word C\
+> RSP Quad Word D
 
-In [level 14](Assembly%20Crash%20Course.md#level-14), we saw that the stack pointer `rsp` points to the bottom of the stack. And that this location stores 8 bytes of data which is also called a quad word.
+In [level 19]([Assembly%20Crash%20Course.md#level-14](https://writeups-kunull.vercel.app/Pwn%20College/Assembly%20Crash%20Course#level-19)), we saw that the stack pointer `rsp` points to the bottom of the stack. And that this location stores 8 bytes of data which is also called a quad word.
 
 We also saw that every other quad word sits at an offset from `rsp` which is the multiple of 8.
 
@@ -975,7 +971,7 @@ RSP         |       Quad Word D       | <------ rsp
             +-------------------------+
 ```
 
-Using that information we found out the relative offset of all the quad words from `rsp`.&#x20;
+Using that information we found out the relative offset of all the quad words from `rsp`.
 
 We can move the data pointed to by the stack pointer using the `mov` instruction, and then add up all the quad words.
 
@@ -1040,6 +1036,15 @@ RSP+0x08    |       Quad Word D       |
             +-------------------------+
 RSP         |         Average         | <------ rsp  
             +-------------------------+
+```
+
+```asm title="assembly21.asm"
+mov rax, [rsp]
+add rax, [rsp + 8]
+add rax, [rsp + 16]
+add rax, [rsp + 24]
+shr rax, 2
+push rax
 ```
 
 &nbsp;
