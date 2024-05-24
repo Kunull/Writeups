@@ -10,13 +10,14 @@ The text is encoded in LeetSpeak.
 In order to decode we just have to substitute the numbers with the equivalent characters.
 
 | Character | Number |
-| --------- | ------ |
+| :-: | :-: |
 | a         | 4      |
 | o         | 0      |
 | t         | 7      |
 | r         | 2      |
 | e         | 3      |
 | g         | 9      |
+
 ### Answer
 ```
 can you capture the flag
