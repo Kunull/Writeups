@@ -2,6 +2,7 @@
 custom_edit_url: null
 pagination_next: null
 pagination_prev: null
+sidebar_position: 3
 ---
 
 :::note
@@ -240,13 +241,18 @@ mov ah, 0x42
 
 &nbsp;
 
-## level 6
+## level 8
 
-> Please compute the following:&#x20;
->
-> rax = rdi modulo 256&#x20;
->
-> rbx = rsi modulo 65536&#x20;
+> Using only the following instruction(s):\
+> mov
+> 
+> Please compute the following:\
+> rax = rdi % 256\
+> rbx = rsi % 65536\
+> 
+> We will now set the following in preparation for your code:\
+> rdi = 0x9db9\
+> rsi = 0x824a11f8\
 
 In order to solve this level, we need to understand how the modulo operation translates to bits.
 
