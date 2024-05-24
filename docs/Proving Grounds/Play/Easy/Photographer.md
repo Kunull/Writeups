@@ -62,7 +62,7 @@ Nmap done: 1 IP address (1 host up) scanned in 313.07 seconds
 There are five open ports:
 
 | Port | Service     |
-| ---- | ----------- |
+| :-: | :-: |
 | 22   | ssh         |
 | 80   | http        |
 | 139  | netbios-ssn |
@@ -152,7 +152,7 @@ Don't forget your secret, my babygirl ;)
 This tells us some potential credentials.
 
 | Username | Email                  | Password         |
-| -------- | ---------------------- | ---------------- |
+| :------: | :--------------------: | :--------------: |
 | agi      | agi@photographer.com   |                  |
 | daisa    | daisa@photographer.com | secret, babygirl |
 
@@ -170,7 +170,7 @@ Let's enumerate port 8000 through our browser.
 ### Logging in to the Koken dashboard
 
 | Email                  | Password |
-| ---------------------- | -------- |
+| :-: | :-: |
 | daisa@photographer.com | babygirl |
 
 
