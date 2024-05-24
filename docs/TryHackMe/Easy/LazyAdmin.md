@@ -32,7 +32,7 @@ There are two open ports:
 
 
 | Ports | Service |
-| ----- | ------- |
+| :-: | :-: |
 | 22    | ssh        |
 | 80      | http        |
 
@@ -118,7 +118,7 @@ We can download and open this file in a text editor.
 If we look, closely we can see the following credentials:
 
 | User | Password hash |
-| ---- | -------- |
+| :-: | :-: |
 | manager     |     42f749ade7f9e195bf475f37a44cafcb     |
 
 Since the password is hashed, we need to first identify the type using `hash-identifier`.
@@ -149,7 +149,7 @@ Session completed.
 If we go to the `/content/as` page we will come across a login form which we can login to using the following credentials:
 
 | Username | Password |
-| -------- | -------- |
+| :-: | :-: |
 | manager         | Password123         |
 
 ![7](https://github.com/Knign/Write-ups/assets/110326359/405f9381-1153-4974-ad33-ec399eac078b)
