@@ -35,7 +35,7 @@ Nmap done: 1 IP address (1 host up) scanned in 393.91 seconds
 There are two open ports:
 
 | Port | Service |
-| ---- | ------- |
+| :-: | :-: |
 | 22   | ssh     |
 | 80   | http    |
 
@@ -94,7 +94,7 @@ Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2024-05-02 14:10:
 ```
 
 | Username | Password  |
-| -------- | --------- |
+| :-: | :-: |
 | gaara    | iloveyou2 |
 
 ### SSH login
