@@ -421,29 +421,21 @@ or rax, rdi
 
 &nbsp;
 
-## level 9
+## level 11
 
-> Using only the following instructions:&#x20;
->
-> and, or, xor&#x20;
->
-> Implement the following logic:
->
->
->
-> if x is even then&#x20;
->
-> &#x20;   y = 1&#x20;
->
-> else&#x20;
->
-> &#x20;   y = 0&#x20;
->
-> where:&#x20;
->
-> x = rdi&#x20;
->
-> y = rax
+> Using only the following instructions:\
+> 	and, or, xor\
+> 
+> Implement the following logic:\
+> 	if x is even then\
+> 		y = 1\
+> 	else\
+> 		y = 0\
+> 	
+> where:\
+> 	x = rdi\
+> 	y = rax
+
 
 In order to check whether an number is even or odd we can AND it with 1.
 
