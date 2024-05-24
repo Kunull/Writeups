@@ -96,7 +96,7 @@ Nmap done: 1 IP address (1 host up) scanned in 346.34 seconds
 There are three open ports:
 
 | Port | Service |
-| ---- | ------- |
+| :-: | :-: |
 | 22   | ssh     |
 | 80   | http    |
 | 1898 | http    |
@@ -114,7 +114,7 @@ Upon visiting port 1898 on which Drupal is running, we find two posts from the t
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/ede697dd-d7e6-476e-8cb0-c2a723349068)
 
 | Users |
-| ----- |
+| :-: |
 | tiago |
 | eder  |
 
@@ -495,7 +495,7 @@ Enjoy! :-)
 ```
 
 | Username | Password    |
-| -------- | ----------- |
+| :-: | :-: |
 | root     | dirtyCowFun |
 
 We can now login as the `root` user.
