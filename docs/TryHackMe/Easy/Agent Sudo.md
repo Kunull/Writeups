@@ -37,7 +37,7 @@ Nmap done: 1 IP address (1 host up) scanned in 32.64 seconds
 There are three open ports:
 
 | Port | Service | 
-|---------|------|
+| :-: | :-: |
 | 21 | ftp |
 | 22 | ssh |
 | 80 | http | 
