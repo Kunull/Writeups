@@ -42,7 +42,7 @@ Nmap done: 1 IP address (1 host up) scanned in 30.44 seconds
 There are four open ports:
 
 | Port | Service |
-| ---- | ------- |
+| :-: | :-: |
 | 22   | ssh     |
 | 80   | http    |
 | 110  | pop3    |
@@ -111,7 +111,7 @@ $ john --format=Raw-MD5 --show hashes
 ```
 
 | Users    | 
-| -------- | 
+| :-: |
 | mauer    | 
 | mustikka |
 | tegel    | 
@@ -123,7 +123,7 @@ $ john --format=Raw-MD5 --show hashes
 | sciana   | 
 
 | Passwords  |
-| ---------- |
+| :-: |
 | mailcall   |
 | bilbo101   |
 | apples01   |
