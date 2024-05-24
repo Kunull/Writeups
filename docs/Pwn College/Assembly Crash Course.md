@@ -36,13 +36,15 @@ print(output.readallS())
 ## level 1
 
 > In this level you will work with registers\_use! Please set the following:&#x20;
+>
 > rdi = 0x1337
 
 We can use the `mov` instruction in order to store a value in a register.
 
+### 'mov' instruction
+
 ```assembly
 mov destination, source
-----rdi        , 0x1337
 ```
 
 The first operand is the location where data is stored, while the second operand is the source of the data.
@@ -55,21 +57,52 @@ add rdi, 0x1337
 
 ## level 2
 
-> Do the following:&#x20;
-> add 0x331337 to rdi
+> In this level you will work with multiple registers. Please set the following:
+> rax = 0x1337
+> r12 = 0xCAFED00D1337BEEF
+> rsp = 0x31337
 
-We have to use the `add` instruction in order to add a value to a register.
+We can use the `mov` instruction that we learned in the previous level.
 
-```wasm
-add destination, source
-----rdi        , 331337
+```asm title="assembly2.asm"
+mov rax, 0x1337
+mov r12, 0xCAFED00D1337BEEF
+mov rsp, 0x31337
 ```
-
-The first operand is the location at which the original data is stored, while the second operand is the source of the data to be added.
 
 &nbsp;
 
 ## level 3
+
+> Do the following:&#x20;
+>
+> add 0x331337 to rdi
+
+We have to use the `add` instruction in order to add a value to a register.
+
+### `add` instruction
+
+```wasm
+add destination, source
+```
+
+The first operand is the location at which the original data is stored, while the second operand is the source of the data to be added.
+
+### `sub` instruction
+
+```asm
+sub destination, source
+```
+
+The first operand is the location at which the original data is stored, while the second operand is the source of the data to be subtracted.
+
+```asm title="assembly3.asm"
+add rdi, 0x331337
+```
+
+&nbsp;
+
+## level 4
 
 > Compute the following:&#x20;
 >
@@ -85,12 +118,16 @@ The first operand is the location at which the original data is stored, while th
 
 In order to compute this equation, we need to understand the `mul` instruction.
 
+### `mul` instruction
+
+The first operand is the location at which the original data is stored, while the second operand is the source of the data to be multiplied.
+
 ```wasm
 mul multiplicand, multiplier
 ----(rax)      
 ```
 
-We can see that the `mul` instruction is a bit different, i.e. the source of multiplicand is implicitly `rax` by default and we only have control over the source of the multiplier.
+The `mul` instruction is a bit different, i.e. the source of multiplicand is always `rax` by default and we only have control over the source of the multiplier.
 
 So if we want to multiply `rdi` with `rsi`, we would first have to move the value of `rdi` into `rax`.
 
@@ -101,9 +138,15 @@ mul rsi
 
 After that, we can just add the result of multiplication stored in `rax` with `rdx`.
 
+```asm title="assembly4.asm"
+mov rax, rdi
+mul rsi
+add rax, rdx
+```
+
 &nbsp;
 
-## level 4
+## level 5
 
 > Please compute the following:&#x20;
 >
@@ -117,24 +160,25 @@ After that, we can just add the result of multiplication stored in `rax` with `r
 
 In order to compute the equation, we need to understand the `div` instruction.
 
+### `div` instruction
+
 ```wasm
-div dividend, divisor
-    quotient
-----(rax)
+div dividend, divisor, quotient, resultant
+----(rax)              (rax)     (rdx)
 ```
 
-Similar to the `mov` instruction, the first operand of `div` is implicitly `rax` by default, i.e. location the dividend and quotient are always `rax`. We only have control over the source of the divisor.
+Similar to the `mov` instruction, the first operand of `div` is implicitly `rax` by default, i.e. location the dividend and quotient are always `rax`. We only have control over the source of the divisor. The resultant of the `div` instruction is always stored into `rdx` by default.
 
 So if we want to divide `rdi` by `rsi`, we would first have to move the value of `rdi` into `rax`.
 
-```wasm
+```asm title="assembly5.asm"
 mov rax, rdi
 div rsi
 ```
 
 &nbsp;
 
-## level 5
+## level 6
 
 > Please compute the following:&#x20;
 >
@@ -142,7 +186,7 @@ div rsi
 >
 > Place the value in rax.&#x20;
 
-In order to compute this equation, we need to learn something more about the `div` instruction. It has total three operands.
+In order to compute this equation, we need to learn something more about the `div` instruction.
 
 ```wasm
 div destination, source, resultant
@@ -155,7 +199,44 @@ However the quotient isn't the only value generated after performing division, a
 
 In the case modulus operation, the resultant is what we are interested in.
 
-After performing the division in the same manner as [level 4](Assembly%20Crash%20Course.md#level-4), we have to move the resultant stored in `rdx` into `rax`.
+After performing the division in the same manner as [level 5](Assembly%20Crash%20Course.md#level-5), we have to move the resultant stored in `rdx` into `rax`.
+
+```asm title="assembly6.asm"
+mov rax, rdi
+div rsi
+mov rax, rdx
+```
+
+&nbsp;
+
+## level 7
+
+> Using only one move instruction, please set the upper 8 bits of the ax register to 0x42.
+> 
+> We will now set the following in preparation for your code:
+> 
+> rax = 0xe93cb06c085c00e2
+
+### Lower register bytes
+
+```
+MSB                                    LSB
++----------------------------------------+
+|                   rax                  |  64 bit
++--------------------+-------------------+
+                     |        eax        |  32 bit
+                     +---------+---------+
+                               |   ax    |  16 bit
+                               +----+----+
+                               | ah | al |  8 bit each
+                               +----+----+
+```
+
+In order to set the upper 8 bits of the `ax` register, we can access the `ah` register.
+
+```asm title="assembly7.asm"
+mov ah, 0x42
+```
 
 &nbsp;
 
