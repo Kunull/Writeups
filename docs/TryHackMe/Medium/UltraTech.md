@@ -68,7 +68,7 @@ Nmap done: 1 IP address (1 host up) scanned in 17.96 seconds
 ```
 There are four open ports:
 
-| Port  | Service |
+| A | B |
 | :-: | :-: |
 | 21    | ftp        |
 | 22    |    ssh     |
