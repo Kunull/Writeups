@@ -442,7 +442,7 @@ In order to check whether an number is even or odd we can AND it with 1.
 ### AND with 1
 
 | A | B | X |
-| - | - | - |
+| :-: | :-: | :-: |
 | 0 | 1 | 0 |
 | 1 | 1 | 1 |
 
@@ -468,6 +468,11 @@ In order to achieve this result, we need to first XOR `rdi` with 1.
 
 ### XOR with 1
 
+| A | B | X |
+| :-: | :-: | :-: |
+| 0 | 1 | 1 |
+| 1 | 1 | 0 |
+
 ```
     XOR
  A | B | X
@@ -482,7 +487,14 @@ If `rdi` is even, the result will be 1 whereas if `rdi` is odd, the result will 
 xor rdi, 1
 ```
 
-Then we simply have to zero out `rax` and set it's value equal to the value of `rdx` using the same methods as [level 8](Assembly%20Crash%20Course.md#level-8).
+Then we simply have to zero out `rax` and set it's value equal to the value of `rdx` using the same methods as [level 10]([Assembly%20Crash%20Course.md#level-8](https://writeups-kunull.vercel.app/Pwn%20College/Assembly%20Crash%20Course#xor)).
+
+```asm title="assembly11.asm"
+and rdi, 1
+xor rdi, 1
+xor rax, rax
+or rax, rdi
+```
 
 &nbsp;
 
