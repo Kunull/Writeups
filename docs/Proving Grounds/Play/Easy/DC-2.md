@@ -35,7 +35,7 @@ Nmap done: 1 IP address (1 host up) scanned in 496.81 seconds
 There are two open ports:
 
 | Port | Service |
-| ---- | ------- |
+| :-: | :-: |
 | 80   | http    |
 | 7744 | ssh     |
 
