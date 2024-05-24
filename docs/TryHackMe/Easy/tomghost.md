@@ -34,7 +34,7 @@ Nmap done: 1 IP address (1 host up) scanned in 29.95 seconds
 There are four open ports:
 
 | Port | Service |
-|-|-|
+| :-: | :-: |
 | 22 | ssh |
 | 53 | tcpwrapped |
 | 8009 | ajp13 |
