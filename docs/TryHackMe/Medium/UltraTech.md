@@ -68,12 +68,12 @@ Nmap done: 1 IP address (1 host up) scanned in 17.96 seconds
 ```
 There are four open ports:
 
-| A | B |
+| Port | Service |
 | :-: | :-: |
-| 21    | ftp        |
-| 22    |    ssh     |
-| 8081  |  http    (node.js)   |
-| 31331 |   http (apache)     |
+| 21    | ftp |
+| 22    | ssh |
+| 8081  | http |
+| 31331 | http |
 
 The service running on port 8081 is Node.js.
 ### Answer
