@@ -565,6 +565,64 @@ mov [0x404000], rbx
 
 &nbsp;
 
+## level 15
+
+> Please perform the following:\
+> Set rax to the byte at 0x404000
+> 
+> We will now set the following in preparation for your code:\
+> [0x404000] = 0x11980e
+
+We can solve this level using the lower bit equivalent registers mentioned in [level 6](Assembly%20Crash%20Course.md#level-6). In that case, we can would need to know how many bits is referred to by which term.
+
+```
+* Quad Word = 8 Bytes = 64 bits
+* Double Word = 4 bytes = 32 bits
+* Word = 2 bytes = 16 bits
+* Byte = 1 byte = 8 bits
+```
+
+Now we simply have to use the relevant lower bit registers.
+
+### Lower bit equivalent registers
+
+```
++--------------+--------------+--------------+--------------+
+|    64 bit    |    32 bit    |    16 bit    |    8 bit     |
+|    (qword)   |    (dword)   |    (word)    |    (byte)    |
++--------------+--------------+--------------+--------------+
+|     rax      |     eax      |     ax       |    *al*      |
+|     rbx      |     ebx      |     bx       |     bl       |
+|     rcx      |     ecx      |     cx       |     cl       |
+|     rdx      |     edx      |     dx       |     dl       |
++--------------+--------------+--------------+--------------+
+```
+
+The register with the stars are the one we have to use along with derefencing.
+
+```asm title="assembly15.asm"
+mov al, [0x404000]
+```
+
+There is one more method, to solve this level. Instead of using lower bit equivalent registers, we can use type specifiers in order to indicate data to be loaded.
+
+### Type specifiers
+
+There are four different specifiers for each of the four memory size names.
+
+```
+Quad word:    qword ptr
+Double word:    dword ptr
+Word:    word ptr
+Byte:    byte ptr
+```
+
+```python title="assembly15.asm"
+mov rax, byte ptr [0x404000]
+```
+
+&nbsp;
+
 ## level 11
 
 > Please perform the following:
@@ -602,6 +660,8 @@ Now we simply have to use the relevant lower bit registers.
 The register with the stars are the one we have to use along with derefencing.
 
 There is one more method, to solve this level. Instead of using lower bit equivalent registers, we can use type specifiers in order to indicate data to be loaded.
+
+### Type specifiers
 
 There are four different specifiers for each of the four memory size names.
 
