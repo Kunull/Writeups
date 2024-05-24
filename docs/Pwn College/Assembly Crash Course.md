@@ -623,14 +623,13 @@ mov rax, byte ptr [0x404000]
 
 &nbsp;
 
-## level 11
+## level 16
 
-> Please perform the following:
->
-> 1. Set rax to the byte at 0x404000
-> 2. Set rbx to the word at 0x404000
-> 3. Set rcx to the double word at 0x404000
-> 4. Set rdx to the quad word at 0x404000
+> Please perform the following:\
+> Set rax to the byte at 0x404000\
+> Set rbx to the word at 0x404000\
+> Set rcx to the double word at 0x404000\
+> Set rdx to the quad word at 0x404000
 
 We can solve this level using the lower bit equivalent registers mentioned in [level 6](Assembly%20Crash%20Course.md#level-6). In that case, we can would need to know how many bits is referred to by which term.
 
@@ -659,6 +658,13 @@ Now we simply have to use the relevant lower bit registers.
 
 The register with the stars are the one we have to use along with derefencing.
 
+```asm title="assembly16.asm"
+mov al, [0x404000]
+mov bx, [0x404000]
+mov ecx, [0x404000]
+mov rdx, [0x404000]
+```
+
 There is one more method, to solve this level. Instead of using lower bit equivalent registers, we can use type specifiers in order to indicate data to be loaded.
 
 ### Type specifiers
@@ -674,7 +680,7 @@ Byte:    byte ptr
 
 This method allows us to use the complete 64 bit registers.
 
-```wasm
+```asm title="assembly16.asm"
 mov rax, byte ptr [0x404000]
 mov rbx, word ptr [0x404000]
 mov rcx, dword ptr [0x404000]
@@ -683,13 +689,12 @@ mov rdx, qword ptr [0x404000]
 
 &nbsp;
 
-## level 12
+## level 17
 
-> Using the earlier mentioned info, perform the following:
->
-> 1. set \[rdi] = 0xdeadbeef00001337
-> 2. set \[rsi] = 0xc0ffee0000&#x20;
->
+> Using the earlier mentioned info, perform the following:\
+> set \[rdi] = 0xdeadbeef00001337\
+> set \[rsi] = 0xc0ffee0000\
+> 
 > Hint: it may require some tricks to assign a big constant to a dereferenced register. Try setting a register to the constant then assigning that register to the dereferenced register.
 
 ### Limitation of Intel syntax
@@ -707,11 +712,6 @@ mov rax, 0xdeadbeef00001337
 mov [rdi], rax
 ```
 
-```wasm
-mov rax, 0xdeadbeef00001337
-mov [rdi], rax
-```
-
 We have to do this with the other data as well.
 
 ```
@@ -719,15 +719,21 @@ mov rax, 0xc0ffee0000
 mov [rsi], rax
 ```
 
+```asm title="assembly17.asm"
+mov rax, 0xdeadbeef00001337
+mov [rdi], rax
+mov rax, 0xc0ffee0000
+mov [rsi], rax
+```
+
 &nbsp;
 
-## level 13
+## level 18
 
-> Perform the following:
->
-> 1. load two consecutive quad words from the address stored in rdi
-> 2. calculate the sum of the previous steps quad words.
-> 3. store the sum at the address in rsi
+> Perform the following:\
+> load two consecutive quad words from the address stored in rdi\
+> calculate the sum of the previous steps quad words.\
+> store the sum at the address in rsi
 
 In order to solve this level we have understand the use offsets and little endian format.
 
@@ -784,9 +790,16 @@ mov rax, qword ptr [rdi]
 mov rbx, qword ptr [rdi + 8]
 ```
 
+```asm title="assembly18.asm"
+mov rax, qword ptr [rdi]
+mov rbx, qword ptr [rdi + 8]
+add rax, rbx
+mov [rsi], rax
+```
+
 &nbsp;
 
-## level 14
+## level 19
 
 > Replace the top value of the stack with (top value of the stack - rdi).
 
@@ -885,20 +898,26 @@ push rax    # Decrements rsp by 8 and moves data in rax to the address pointed t
         +-------------------------+
 ```
 
+---asm title="assembly19.asm"
+int3
+pop rax
+int3
+sub rax, rdi
+int3
+push rax
+int3
+---
+
 &nbsp;
 
-## level 15
+## level 20
 
-> Using only following instructions:&#x20;
+> Using only following instructions:\
+> push, pop
 >
-> push, pop&#x20;
->
-> Swap values in rdi and rsi.&#x20;
->
-> i.e.&#x20;
->
-> If to start rdi = 2 and rsi = 5&#x20;
->
+> Swap values in rdi and rsi.\
+> i.e.\
+> If to start rdi = 2 and rsi = 5\
 > Then to end rdi = 5 and rsi = 2
 
 This level can be easily completed using the `push` and `pop` instructions.
@@ -918,6 +937,13 @@ pop rsi
 ```
 
 So the content of `rsi` will be popped first which we will store in our `rdi` register and then we will use the `rsi` register to store the content of `rdi` which will be popped next.
+
+```asm title="assembly20.asm"
+push rdi
+push rsi
+pop rdi
+pop rsi
+```
 
 &nbsp;
 
