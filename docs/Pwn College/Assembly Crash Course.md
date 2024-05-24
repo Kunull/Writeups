@@ -341,7 +341,7 @@ In order to perform the AND operation between `rdi` and `rsi`, we need to use th
 ### AND
 
 | A | B | X |
-|:-|:-:|-|
+|:-:|:-:|:-:|
 | 0 | 0 | 0 |
 | 0 | 1 | 0 |
 | 1 | 0 | 0 |
@@ -364,7 +364,7 @@ Before we do anything else, we need to make sure that `rax` is empty. This can b
 ### XOR
 
 | A | B | X |
-|-|-|-|
+|:-:|:-:|:-:|
 | 0 | 0 | 0 |
 | 0 | 1 | 1 |
 | 1 | 0 | 1 |
@@ -391,7 +391,7 @@ In order to move the value of `rdi` into `rax`, we can use the `or` instruction.
 ### OR
 
 | A | B | X |
-|-|-|-|
+|:-:|:-:|:-:|
 | 0 | 0 | 0 |
 | 0 | 1 | 1 |
 | 1 | 0 | 1 | 
