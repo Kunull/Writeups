@@ -51,7 +51,7 @@ There are two open ports with the following services:
 
 
 | Port | Service |
-| ---- | ---- |
+| :-: | :-: |
 | 22 | ssh |
 | 80 | http |
 
