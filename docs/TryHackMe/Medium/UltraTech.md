@@ -69,7 +69,7 @@ Nmap done: 1 IP address (1 host up) scanned in 17.96 seconds
 There are four open ports:
 
 | Port  | Service |
-| ----- | ------- |
+| :-: | :-: |
 | 21    | ftp        |
 | 22    |    ssh     |
 | 8081  |  http    (node.js)   |
@@ -180,7 +180,7 @@ We can read the passwords from the database using `cat`.
 We get two password hashes, one of `r00t` user and one of `admin` user.
 
 | r00t |  admin     |
-| ----- | ------------------------------------- |
+| :-: | :-: |
 | f357a0c52799563c7c7b76c1e7543a32  | 0d0ea5111e3c1def594c1684e3b9be84 |
 
 ### Answer
