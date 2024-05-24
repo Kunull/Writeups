@@ -46,7 +46,7 @@ Nmap done: 1 IP address (1 host up) scanned in 41.15 seconds
 We can see that there are three open ports:
 
 | Port | Service |
-| ---- | ------- |
+| :-: | :-: |
 | 21   | ftp     |
 | 22   | ssh     |
 | 80     |    http     |
@@ -385,7 +385,7 @@ $ echo "IWQwbnRLbjB3bVlwQHNzdzByZA==" | base64 -d
 ```
 
 | Username | Password            |
-| -------- | ------------------- |
+| :-: | :-: |
 | anurodh  | !d0ntKn0wmYp@ssw0rd |
 
 We can now login through SSH as the user `anurodh` using the `!d0ntKn0wmYp@ssw0rd` password.
