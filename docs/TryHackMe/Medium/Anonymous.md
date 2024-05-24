@@ -88,7 +88,7 @@ There are four open ports:
 
 
 | Port | Service |
-| ---- | ------- |
+| :-: | :-: |
 | 21   | ftp        |
 | 22   | ssh        |
 | 139  | netbios-ssn (smbd)        |
@@ -406,7 +406,6 @@ find / -perm -u=s -type f 2>/dev/null
 /usr/bin/at
 /usr/bin/pkexec
 ```
-
 
 For this particular lab we will be using the `/usr/bin/env` to escalate our privileges. The exploit can be found on GTFOBins.
 
