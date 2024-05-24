@@ -89,10 +89,10 @@ There are four open ports:
 
 | Port | Service |
 | :-: | :-: |
-| 21   | ftp        |
-| 22   | ssh        |
-| 139  | netbios-ssn (smbd)        |
-| 445     | netbios-ssn (smbd)        |
+| 21   | ftp |
+| 22   | ssh |
+| 139  | netbios-ssn |
+| 445 | netbios-ssn |
 
 
 ### Answer
