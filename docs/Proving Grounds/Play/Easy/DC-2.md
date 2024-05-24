@@ -166,7 +166,7 @@ Interesting Finding(s):
 We managed to find three users
 
 | Users |
-| ----- |
+| :-: |
 | admin |
 | tom   |
 | jerry |
@@ -292,7 +292,7 @@ Trying admin / log Time: 00:01:05 <=============================================
 We have found the following credentials.
 
 | Username | Password   |
-| -------- | ---------- |
+| :-: | :-: |
 | jerry    | adipiscing |
 | tom      | parturient |
 
