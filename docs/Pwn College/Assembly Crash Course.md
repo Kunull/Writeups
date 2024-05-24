@@ -1128,6 +1128,63 @@ ret
 
 &nbsp;
 
+## level 23
+
+> Perform the following:\
+> Make the first instruction in your code a jmp\
+> Make that jmp a relative jump to 0x51 bytes from the current position\
+> At the code location where the relative jump will redirect control flow set rax to 0x1
+
+Let's learn how to perform a relative jump in the code flow.
+
+### Relative jump
+
+A jump can be performed using the `jmp` instruction.
+
+```
+jmp label
+.
+.
+51 bytes
+.
+.
+label:
+# Code to be executed
+```
+
+As we can see the `jmp` instruction looks for the label mentioned and then transfers the code flow to that label.
+
+We still need to learn how to insert 51 bytes between the `jmp` instruction and the `label`.
+
+### `nop` instruction
+
+The `nop` instruction makes no semantic difference to the program, i.e. it does nothing to the program logic. For this reason, it is used to pad the code.
+
+We can repeat the `nop instruction` using a repeat loop.
+
+### Repeat loop
+
+The repeat loop repeats whatever instruction is mentioned within it as many times as specified.
+
+```
+.rept (number of times to be repeated)
+instruction
+.endr
+```
+
+Now we simply have to put our `nop` instruction inside the repeat loop and put the repeat loop between the `jmp` instruction and the `label`.
+
+```asm title="assembly23.asm"
+jmp Relative
+.rept 0x51
+nop
+.endr
+Relative:
+mov rax, 0x1
+```
+
+&nbsp;
+
 ## level 17
 
 > Useful instructions for this level is:&#x20;
