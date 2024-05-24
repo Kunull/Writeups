@@ -898,15 +898,11 @@ push rax    # Decrements rsp by 8 and moves data in rax to the address pointed t
         +-------------------------+
 ```
 
----asm title="assembly19.asm"
-int3
+```asm title="assembly19.asm"
 pop rax
-int3
 sub rax, rdi
-int3
 push rax
-int3
----
+```
 
 &nbsp;
 
