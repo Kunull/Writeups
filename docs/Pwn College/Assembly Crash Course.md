@@ -36,8 +36,7 @@ print(output.readallS())
 
 ## level 1
 
-> In this level you will work with registers\_use! Please set the following:&#x20;
->
+> In this level you will work with registers\_use! Please set the following:\
 > rdi = 0x1337
 
 We can use the `mov` instruction in order to store a value in a register.
@@ -58,9 +57,9 @@ add rdi, 0x1337
 
 ## level 2
 
-> In this level you will work with multiple registers. Please set the following:
-> rax = 0x1337
-> r12 = 0xCAFED00D1337BEEF
+> In this level you will work with multiple registers. Please set the following:\
+> rax = 0x1337\
+> r12 = 0xCAFED00D1337BEEF\
 > rsp = 0x31337
 
 We can use the `mov` instruction that we learned in the previous level.
@@ -75,8 +74,7 @@ mov rsp, 0x31337
 
 ## level 3
 
-> Do the following:&#x20;
->
+> Do the following:\
 > add 0x331337 to rdi
 
 We have to use the `add` instruction in order to add a value to a register.
@@ -105,17 +103,12 @@ add rdi, 0x331337
 
 ## level 4
 
-> Compute the following:&#x20;
->
-> f(x) = mx + b, where:&#x20;
->
-> m = rdi&#x20;
->
-> x = rsi&#x20;
->
-> b = rdx&#x20;
->
-> Place the value into rax given the above.&#x20;
+> Compute the following:\
+> f(x) = mx + b, where:\
+> m = rdi\
+> x = rsi\
+> b = rdx\
+> Place the value into rax given the above.
 
 In order to compute this equation, we need to understand the `mul` instruction.
 
@@ -149,14 +142,10 @@ add rax, rdx
 
 ## level 5
 
-> Please compute the following:&#x20;
->
-> speed = distance / time, where:&#x20;
->
-> distance = rdi&#x20;
->
-> time = rsi&#x20;
->
+> Please compute the following:\
+> speed = distance / time, where:\
+> distance = rdi\
+> time = rsi\
 > Place the value of speed into rax given the above.
 
 In order to compute the equation, we need to understand the `div` instruction.
@@ -181,11 +170,9 @@ div rsi
 
 ## level 6
 
-> Please compute the following:&#x20;
->
-> rdi % rsi&#x20;
->
-> Place the value in rax.&#x20;
+> Please compute the following:\
+> rdi % rsi\
+> Place the value in rax.
 
 In order to compute this equation, we need to learn something more about the `div` instruction.
 
@@ -212,10 +199,9 @@ mov rax, rdx
 
 ## level 7
 
-> Using only one move instruction, please set the upper 8 bits of the ax register to 0x42.
+> Using only one move instruction, please set the upper 8 bits of the ax register to 0x42.\
 > 
-> We will now set the following in preparation for your code:
-> 
+> We will now set the following in preparation for your code:\
 > rax = 0xe93cb06c085c00e2
 
 ### Lower register bytes
@@ -282,18 +268,22 @@ mov al, dil
 mov bx, si
 ```
 
+```asm title="assembly8.asm"
+mov rax, 0
+mov rbx, 0
+mov al, dil
+mov bx, si
+```
+
 &nbsp;
 
-## level 7
+## level 9
 
-> Please perform the following:&#x20;
+> Please perform the following:\
+> Set rax to the 5th least significant byte of rdi;
 >
-> Set rax to the 5th least significant byte of rdi&#x20;
->
-> i.e.&#x20;
->
-> rdi = | B7 | B6 | B5 | B4 | B3 | B2 | B1 | B0 |&#x20;
->
+> For example:\
+> rdi = | B7 | B6 | B5 | B4 | B3 | B2 | B1 | B0 |\
 > Set rax to the value of B4
 
 For this level, we need to understand the bit shifting.
@@ -324,31 +314,38 @@ As we can see, on performing `shr`, the equivalent number of bits from the LSB a
 
 Next, we simply have to move the value into `rax`.
 
+```asm title="assembly9.asm"
+shl rdi, 24
+shr rdi, 56
+mov rax, rdi
+```
+
 &nbsp;
 
-## level 8
+## level 10
 
-> Without using the following instructions:&#x20;
+> Without using the following instructions:\
+> mov, xchg\
 >
-> mov, xchg&#x20;
->
-> Please perform the following:&#x20;
->
-> rax = rdi AND rsi&#x20;
+> Please perform the following:\
+> rax = rdi AND rsi\
 >
 > i.e. Set rax to the value of (rdi AND rsi)
 >
->
->
-> We will now set the following in preparation for your code:&#x20;
->
-> rdi = 0x81ddcb07ffac5964 r
->
+> We will now set the following in preparation for your code:\
+> rdi = 0x81ddcb07ffac5964\
 > rsi = 0x665d3bd0fd6486c7
 
 In order to perform the AND operation between `rdi` and `rsi`, we need to use the `and` instruction. It is fairly straightforward and can be understood using the table provided.
 
 ### AND
+
+| A | B | X |
+|-|-|-|
+| 0 | 0 | 0 |
+| 0 | 1 | 0 |
+| 1 | 0 | 0 |
+| 1 | 1 | 1 |
 
 ```
     AND       
@@ -365,6 +362,13 @@ The next part is a bit tricky, we need to move the answer into `rax` without usi
 Before we do anything else, we need to make sure that `rax` is empty. This can be done using `xor`.
 
 ### XOR
+
+| A | B | X |
+|-|-|-|
+| 0 | 0 | 0 |
+| 0 | 1 | 1 |
+| 1 | 0 | 1 |
+| 1 | 1 | 0 |
 
 ```
     XOR
@@ -386,6 +390,13 @@ In order to move the value of `rdi` into `rax`, we can use the `or` instruction.
 
 ### OR
 
+| A | B | X |
+|-|-|-|
+| 0 | 0 | 0 |
+| 0 | 1 | 1 |
+| 1 | 0 | 1 | 
+| 1 | 1 | 1 |
+
 ```
     OR    
  A | B | X  
@@ -399,6 +410,12 @@ In order to move the value of `rdi` into `rax`, we can use the `or` instruction.
 Looking at the table, we can see that OR of zero with any bit is equal to the bit. So if we OR `rax` which we already zeroed out, with `rdi`, the resultant will be the value of `rdi` stored in `rax`.
 
 ```wasm
+or rax, rdi
+```
+
+```asm title="assembly10.asm"
+and rdi, rsi
+xor rax, rax
 or rax, rdi
 ```
 
