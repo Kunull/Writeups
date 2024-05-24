@@ -943,7 +943,7 @@ pop rsi
 
 &nbsp;
 
-## level 16
+## level 21
 
 > Without using pop please calculate the average of 4 consecutive quad words stored on the stack.
 >
@@ -1045,6 +1045,85 @@ add rax, [rsp + 16]
 add rax, [rsp + 24]
 shr rax, 2
 push rax
+```
+
+&nbsp;
+
+## level 22
+
+> Perform the following:\
+> Jump to the absolute address 0x403000
+
+### Absolute jump
+
+In order to perform an absolute jump, we have to specify the address to jump to instead of a label.
+
+```
+jmp 0x10
+.
+.
+.
+0x10
+code
+```
+
+The problem with this is that it we cannot directly mention the address because of endianness. There are two methods of fixing this problem.
+
+We can first copy the address in a register and then provide the register as the operand.
+
+```asm title="assembly22.asm"
+mov rax, 0x403000
+jmp rax
+```
+
+For the second method we have to understand the how the `ret` instruction works in tandem with the instruction pointer.
+
+### Instruction pointer
+
+The instruction pointer is a register that holds the address of the instruction to be executed next, thus pointing to it.
+
+```
+            0x00    Instruction 1    ##
+            0x01    Instruction 2    ## Already executed
+            0x02    Instruction 3    ##
+rip ------> 0x03    Instruction 4    $$ To be executed
+```
+
+In the above example, the `rip` will have the value `0x03` which is the address of `Instruction 4`.
+
+### `ret` instruction
+
+When we use the `ret` instruction, it pops the latest value on the stack into the instruction pointer `rip`.
+
+```
+            +------------------+
+RSP+0x18    |       0x00       | <------ rbp 
+            +------------------+                                                       
+RSP+0x10    |       0x01       | 
+            +------------------+                                                           
+RSP+0x08    |       0x02       |
+            +------------------+
+RSP         |       0x03       | <------ rsp  
+            +------------------+
+=============================================
+ret
+=============================================
+            +------------------+
+RSP+0x10    |       0x00       | <------ rbp 
+            +------------------+                                                       
+RSP+0x08    |       0x01       | 
+            +------------------+                                                           
+RSP         |       0x02       | <------ rsp
+            +------------------+
+```
+
+In the above example, the value of `rip` will be set to `0x03` and the instruction at address `0x03` will be executed next.
+
+For our challenge we have to push the value on the stack and then use the `ret` instruction.
+
+```asm title="assembly.asm"
+push 0x403000
+ret
 ```
 
 &nbsp;
