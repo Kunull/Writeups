@@ -36,24 +36,26 @@ print(output.readallS())
 ## level 1
 
 > In this level you will work with registers\_use! Please set the following:&#x20;
->
 > rdi = 0x1337
 
 We can use the `mov` instruction in order to store a value in a register.
 
-```wasm
+```assembly
 mov destination, source
 ----rdi        , 0x1337
 ```
 
 The first operand is the location where data is stored, while the second operand is the source of the data.
 
+```assembly title="assembly1.asm"
+add rdi, 0x1337
+```
+
 &nbsp;
 
 ## level 2
 
 > Do the following:&#x20;
->
 > add 0x331337 to rdi
 
 We have to use the `add` instruction in order to add a value to a register.
