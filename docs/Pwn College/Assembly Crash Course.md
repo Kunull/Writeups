@@ -1185,21 +1185,14 @@ mov rax, 0x1
 
 &nbsp;
 
-## level 17
+## level 24
 
-> Useful instructions for this level is:&#x20;
->
-> jmp (reg1 | addr | offset) ; nop&#x20;
->
-> Hint: for the relative jump, lookup how to use `labels` in x86.
->
-> Using the above knowledge, perform the following: Create a two jump trampoline:
->
-> 1. Make the first instruction in your code a jmp
-> 2. Make that jmp a relative jump to 0x51 bytes from its current position
-> 3. At 0x51 write the following code:
-> 4. Place the top value on the stack into register rdi
-> 5. jmp to the absolute address 0x403000
+> Create a two jump trampoline:\
+> Make the first instruction in your code a jmp\
+> Make that jmp a relative jump to 0x51 bytes from its current position\
+> At 0x51 write the following code:\
+>   Place the top value on the stack into register rdi\
+>   jmp to the absolute address 0x403000\
 
 Let's learn how to perform a relative jump in the code flow.
 
@@ -1322,6 +1315,17 @@ For our challenge we have to push the value on the stack and then use the `ret` 
 ```
 push 0x403000
 ret
+```
+
+```asm title="assembly24.asm"
+jmp Relative
+.rept 0x51
+nop
+.endr
+Relative:
+pop rdi
+mov r10, 0x403000
+jmp r10
 ```
 
 &nbsp;
