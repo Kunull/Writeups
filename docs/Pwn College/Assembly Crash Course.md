@@ -681,9 +681,9 @@ Byte:    byte ptr
 This method allows us to use the complete 64 bit registers.
 
 ```asm title="assembly16.asm"
-mov rax, byte ptr [0x404000]
-mov rbx, word ptr [0x404000]
-mov rcx, dword ptr [0x404000]
+mov al, byte ptr [0x404000]
+mov bx, word ptr [0x404000]
+mov ecx, dword ptr [0x404000]
 mov rdx, qword ptr [0x404000]
 ```
 
