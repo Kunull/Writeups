@@ -678,8 +678,6 @@ Word:    word ptr
 Byte:    byte ptr
 ```
 
-This method allows us to use the complete 64 bit registers.
-
 ```asm title="assembly16.asm"
 mov al, byte ptr [0x404000]
 mov bx, word ptr [0x404000]
