@@ -187,7 +187,7 @@ However the quotient isn't the only value generated after performing division, a
 
 In the case modulus operation, the resultant is what we are interested in.
 
-After performing the division in the same manner as [level 5](Assembly%20Crash%20Course.md#level-5), we have to move the resultant stored in `rdx` into `rax`.
+After performing the division in the same manner as [level 5](#level-5), we have to move the resultant stored in `rdx` into `rax`.
 
 ```asm title="assembly6.asm"
 mov rax, rdi
@@ -487,7 +487,7 @@ If `rdi` is even, the result will be 1 whereas if `rdi` is odd, the result will 
 xor rdi, 1
 ```
 
-Then we simply have to zero out `rax` and set it's value equal to the value of `rdx` using the same methods as [level 10]([Assembly%20Crash%20Course.md#level-8](https://writeups-kunull.vercel.app/Pwn%20College/Assembly%20Crash%20Course#xor)).
+Then we simply have to zero out `rax` and set it's value equal to the value of `rdx` using the same methods as [level 10](#level-10).
 
 ```asm title="assembly11.asm"
 and rdi, 1
@@ -552,7 +552,7 @@ mov [0x404000], rax
 
 > Please perform the following:\
 > Place the value stored at 0x404000 into rax\
-> Increment the value stored at the address 0x404000 by 0x1337&#x20;
+> Increment the value stored at the address 0x404000 by 0x1337
 >
 > Make sure the value in rax is the original value stored at 0x404000 and make sure that [0x404000] now has the incremented value.
 
@@ -573,7 +573,7 @@ mov [0x404000], rbx
 > We will now set the following in preparation for your code:\
 > [0x404000] = 0x11980e
 
-We can solve this level using the lower bit equivalent registers mentioned in [level 6](Assembly%20Crash%20Course.md#level-6). In that case, we can would need to know how many bits is referred to by which term.
+In order to solve this level, we need to learn about lower bit equivalent register.
 
 ```
 * Quad Word = 8 Bytes = 64 bits
@@ -631,7 +631,7 @@ mov rax, byte ptr [0x404000]
 > Set rcx to the double word at 0x404000\
 > Set rdx to the quad word at 0x404000
 
-We can solve this level using the lower bit equivalent registers mentioned in [level 6](Assembly%20Crash%20Course.md#level-6). In that case, we can would need to know how many bits is referred to by which term.
+We can solve this level using the lower bit equivalent registers mentioned in [level 15](#level-15). In that case, we can would need to know how many bits is referred to by which term.
 
 ```
 * Quad Word = 8 Bytes = 64 bits
@@ -955,7 +955,7 @@ pop rsi
 > RSP+0x?? Quad Word C\
 > RSP Quad Word D
 
-In [level 19]([Assembly%20Crash%20Course.md#level-14](https://writeups-kunull.vercel.app/Pwn%20College/Assembly%20Crash%20Course#level-19)), we saw that the stack pointer `rsp` points to the bottom of the stack. And that this location stores 8 bytes of data which is also called a quad word.
+In [level 19](#level-19), we saw that the stack pointer `rsp` points to the bottom of the stack. And that this location stores 8 bytes of data which is also called a quad word.
 
 We also saw that every other quad word sits at an offset from `rsp` which is the multiple of 8.
 
@@ -1194,7 +1194,7 @@ mov rax, 0x1
 >   Place the top value on the stack into register rdi\
 >   jmp to the absolute address 0x403000\
 
-We have to combine the concepts learnt in [level 22](#level-22) and [level 23](#level-23)
+We have to combine the concepts learnt in [level 22](#level-22) and [level 23](#level-23).
 
 ```asm title="assembly24.asm"
 jmp Relative
