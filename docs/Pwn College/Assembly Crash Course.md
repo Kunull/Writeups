@@ -706,6 +706,7 @@ mov [address], 0xdeadbeef00001337    # Not allowed
 Therefore, we have to move the data value as well as the address into a register first, and then move the register's content into the dereferenced memory address.
 
 ```
+mov rdi, address
 mov rax, 0xdeadbeef00001337
 mov [rdi], rax
 ```
@@ -713,6 +714,7 @@ mov [rdi], rax
 We have to do this with the other data as well.
 
 ```
+mov rsi, address
 mov rax, 0xc0ffee0000
 mov [rsi], rax
 ```
