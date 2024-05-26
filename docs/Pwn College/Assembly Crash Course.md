@@ -700,10 +700,10 @@ mov rdx, qword ptr [0x404000]
 Intel syntax does not allow the user to move 64-bit value directly into memory.
 
 ```
-mov [rdi], 0xdeadbeef00001337    # Not allowed
+mov [address], 0xdeadbeef00001337    # Not allowed
 ```
 
-Therefore, we have to move the value into a register first, and then move the register's content into the dereferenced memory address.
+Therefore, we have to move the data value as well as the address into a register first, and then move the register's content into the dereferenced memory address.
 
 ```
 mov rax, 0xdeadbeef00001337
