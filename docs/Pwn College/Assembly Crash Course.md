@@ -1213,19 +1213,19 @@ jmp r10
 
 > Implement the following logic:\
 > if rdi is 0:\
-> &#x20;  jmp 0x403016\
+> &ensp;  jmp 0x403016\
 > else if rdi is 1:\
-> &#x20;  jmp 0x4030e4\
+> &emsp;  jmp 0x4030e4\
 > else if rdi is 2:\
-> &#x20;  jmp 0x4031e1\
+> &emsp;  jmp 0x4031e1\
 > else if rdi is 3:\
-> &#x20;  jmp 0x403298\
+> &emsp;  jmp 0x403298\
 > else:
-> &#x20;  jmp 0x403321\
+> &emsp;  jmp 0x403321\
 >
-> Please do the above with the following constraints:
-> &#x20;  Assume rdi will NOT be negative
-> &#x20;  Use no more than 1 cmp instruction
-> &#x20;  Use no more than 3 jumps (of any variant)
-> &#x20;  We will provide you with the number to 'switch' on in rdi.
-> &#x20;  We will provide you with a jump table base address in rsi.
+> Please do the above with the following constraints:\
+> &emsp;  Assume rdi will NOT be negative\
+> &emsp;  Use no more than 1 cmp instruction\
+> &emsp;  Use no more than 3 jumps (of any variant)\
+> &emsp;  We will provide you with the number to 'switch' on in rdi.\
+> &emsp;  We will provide you with a jump table base address in rsi.\
