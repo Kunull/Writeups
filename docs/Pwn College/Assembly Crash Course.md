@@ -1210,3 +1210,13 @@ jmp r10
 > &emsp;Use no more than 3 jumps (of any variant)\
 > &emsp;We will provide you with the number to 'switch' on in rdi.\
 > &emsp;We will provide you with a jump table base address in rsi.\
+
+```asm title="assembly26.asm"
+cmp rdi, 3
+jbe here
+mov rdi, 4
+
+here:
+mov rax, [8 * rdi + rsi]
+jmp rax
+```
