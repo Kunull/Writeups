@@ -37,7 +37,7 @@ print(output.readallS())
 ## level 1
 
 > In this level you will work with registers\_use! Please set the following:\
-> rdi = 0x1337
+> &emsp;rdi = 0x1337
 
 We can use the `mov` instruction in order to store a value in a register.
 
@@ -58,9 +58,9 @@ add rdi, 0x1337
 ## level 2
 
 > In this level you will work with multiple registers. Please set the following:\
-> rax = 0x1337\
-> r12 = 0xCAFED00D1337BEEF\
-> rsp = 0x31337
+> &emsp;rax = 0x1337\
+> &emsp;r12 = 0xCAFED00D1337BEEF\
+> &emsp;rsp = 0x31337
 
 We can use the `mov` instruction that we learned in the previous level.
 
@@ -75,7 +75,7 @@ mov rsp, 0x31337
 ## level 3
 
 > Do the following:\
-> add 0x331337 to rdi
+> &emsp;add 0x331337 to rdi
 
 We have to use the `add` instruction in order to add a value to a register.
 
@@ -104,10 +104,11 @@ add rdi, 0x331337
 ## level 4
 
 > Compute the following:\
-> f(x) = mx + b, where:\
-> m = rdi\
-> x = rsi\
-> b = rdx\
+> &emsp;f(x) = mx + b, where:\
+> &emsp;&emsp;m = rdi\
+> &emsp;&emsp;x = rsi\
+> &emsp;&emsp;b = rdx
+> 
 > Place the value into rax given the above.
 
 In order to compute this equation, we need to understand the `mul` instruction.
@@ -143,10 +144,12 @@ add rax, rdx
 ## level 5
 
 > Please compute the following:\
-> speed = distance / time, where:\
-> distance = rdi\
-> time = rsi\
-> Place the value of speed into rax given the above.
+> &emsp;speed = distance / time, where:\
+> &emsp;&emsp;distance = rdi\
+> &emsp;&emsp;time = rsi\
+> &emsp;&emsp;speed= rax
+> 
+> Note that distance will be at most a 64-bit value, so rdx should be 0 when dividing.
 
 In order to compute the equation, we need to understand the `div` instruction.
 
@@ -171,7 +174,8 @@ div rsi
 ## level 6
 
 > Please compute the following:\
-> rdi % rsi\
+> &emsp; rdi % rsi
+> 
 > Place the value in rax.
 
 In order to compute this equation, we need to learn something more about the `div` instruction.
@@ -199,10 +203,7 @@ mov rax, rdx
 
 ## level 7
 
-> Using only one move instruction, please set the upper 8 bits of the ax register to 0x42.\
-> 
-> We will now set the following in preparation for your code:\
-> rax = 0xe93cb06c085c00e2
+> Using only one move instruction, please set the upper 8 bits of the ax register to 0x42.
 
 ### Lower register bytes
 
@@ -230,15 +231,11 @@ mov ah, 0x42
 ## level 8
 
 > Using only the following instruction(s):\
-> mov
+> &emsp;mov
 > 
 > Please compute the following:\
-> rax = rdi % 256\
-> rbx = rsi % 65536\
-> 
-> We will now set the following in preparation for your code:\
-> rdi = 0x9db9\
-> rsi = 0x824a11f8\
+> &emsp;rax = rdi % 256\
+> &emsp;rbx = rsi % 65536
 
 In order to solve this level, we need to understand how the modulo operation translates to bits.
 
@@ -280,11 +277,11 @@ mov bx, si
 ## level 9
 
 > Please perform the following:\
-> Set rax to the 5th least significant byte of rdi;
+> &emsp;Set rax to the 5th least significant byte of rdi;
 >
 > For example:\
-> rdi = | B7 | B6 | B5 | B4 | B3 | B2 | B1 | B0 |\
-> Set rax to the value of B4
+> &emsp;rdi = | B7 | B6 | B5 | B4 | B3 | B2 | B1 | B0 |\
+> &emsp;Set rax to the value of B4
 
 For this level, we need to understand the bit shifting.
 
@@ -325,16 +322,12 @@ mov rax, rdi
 ## level 10
 
 > Without using the following instructions:\
-> mov, xchg
+> &emsp;mov, xchg
 >
 > Please perform the following:\
-> rax = rdi AND rsi
+> &emsp;rax = rdi AND rsi
 >
 > i.e. Set rax to the value of (rdi AND rsi)
->
-> We will now set the following in preparation for your code:\
-> rdi = 0x81ddcb07ffac5964\
-> rsi = 0x665d3bd0fd6486c7
 
 In order to perform the AND operation between `rdi` and `rsi`, we need to use the `and` instruction. It is fairly straightforward and can be understood using the table provided.
 
@@ -424,18 +417,17 @@ or rax, rdi
 ## level 11
 
 > Using only the following instructions:\
->   and, or, xor\
+> &emsp;and, or, xor\
 > 
 > Implement the following logic:\
->   if x is even then\
->     y = 1\
->   else\
->     y = 0
+> &emsp;if x is even then\
+> &emsp;&emsp;y = 1\
+> &emsp;else\
+> &emsp;&emsp;y = 0
 > 	
 > where:\
-> 	x = rdi\
-> 	y = rax
-
+> &emsp;x = rdi\
+> &emsp;y = rax
 
 In order to check whether an number is even or odd we can AND it with 1.
 
@@ -501,12 +493,9 @@ or rax, rdi
 ## level 12
 
 > Please perform the following:\
-> Place the value stored at 0x404000 into rax
+> &emsp;Place the value stored at 0x404000 into rax
 > 
 > Make sure the value in rax is the original value stored at 0x404000.
-> 
-> We will now set the following in preparation for your code:\
-> [0x404000] = 0x1e0d94
 
 ### Dereferencing
 
@@ -537,10 +526,7 @@ mov rax, [0x404000]
 ## level 13
 
 > Please perform the following:\
-> Place the value stored in rax to 0x404000
-> 
-> We will now set the following in preparation for your code:\
-> rax = 0x1a85a0
+> &emsp;Place the value stored in rax to 0x404000
 
 ```asm title="assembly13.asm"
 mov [0x404000], rax
@@ -551,8 +537,8 @@ mov [0x404000], rax
 ## level 14
 
 > Please perform the following:\
-> Place the value stored at 0x404000 into rax\
-> Increment the value stored at the address 0x404000 by 0x1337
+> &emsp;Place the value stored at 0x404000 into rax\
+> &emsp;Increment the value stored at the address 0x404000 by 0x1337
 >
 > Make sure the value in rax is the original value stored at 0x404000 and make sure that [0x404000] now has the incremented value.
 
@@ -568,10 +554,7 @@ mov [0x404000], rbx
 ## level 15
 
 > Please perform the following:\
-> Set rax to the byte at 0x404000
-> 
-> We will now set the following in preparation for your code:\
-> [0x404000] = 0x11980e
+> &emsp;Set rax to the byte at 0x404000
 
 In order to solve this level, we need to learn about lower bit equivalent register.
 
@@ -626,10 +609,10 @@ mov rax, byte ptr [0x404000]
 ## level 16
 
 > Please perform the following:\
-> Set rax to the byte at 0x404000\
-> Set rbx to the word at 0x404000\
-> Set rcx to the double word at 0x404000\
-> Set rdx to the quad word at 0x404000
+> &emsp;Set rax to the byte at 0x404000\
+> &emsp;Set rbx to the word at 0x404000\
+> &emsp;Set rcx to the double word at 0x404000\
+> &emsp;Set rdx to the quad word at 0x404000
 
 We can solve this level using the lower bit equivalent registers mentioned in [level 15](#level-15). In that case, we can would need to know how many bits is referred to by which term.
 
@@ -690,10 +673,8 @@ mov rdx, qword ptr [0x404000]
 ## level 17
 
 > Using the earlier mentioned info, perform the following:\
-> set \[rdi] = 0xdeadbeef00001337\
-> set \[rsi] = 0xc0ffee0000\
-> 
-> Hint: it may require some tricks to assign a big constant to a dereferenced register. Try setting a register to the constant then assigning that register to the dereferenced register.
+> &emsp;Set \[rdi] = 0xdeadbeef00001337\
+> &emsp;Set \[rsi] = 0xc0ffee0000
 
 ### Limitation of Intel syntax
 
@@ -731,9 +712,9 @@ mov [rsi], rax
 ## level 18
 
 > Perform the following:\
-> load two consecutive quad words from the address stored in rdi\
-> calculate the sum of the previous steps quad words.\
-> store the sum at the address in rsi
+> &emsp;Load two consecutive quad words from the address stored in rdi\
+> &emsp;Calculate the sum of the previous steps quad words.\
+> &emsp;Store the sum at the address in rsi
 
 In order to solve this level we have understand the use offsets and little endian format.
 
@@ -801,7 +782,7 @@ mov [rsi], rax
 
 ## level 19
 
-> Replace the top value of the stack with (top value of the stack - rdi).
+> Take the top value of the stack, subtract rdi from it, then put it back.
 
 For this level we have to learn about the stack, which is a region in memory.
 
@@ -909,7 +890,7 @@ push rax
 ## level 20
 
 > Using only following instructions:\
-> push, pop
+> &emsp;push, pop
 >
 > Swap values in rdi and rsi.\
 > i.e.\
@@ -945,15 +926,15 @@ pop rsi
 
 ## level 21
 
-> Without using pop please calculate the average of 4 consecutive quad words stored on the stack.
+> Without using pop, please calculate the average of 4 consecutive quad words stored on the stack.
 >
 > Push the average on the top of the stack.
 >
 > Hint:\
-> RSP+0x?? Quad Word A\
-> RSP+0x?? Quad Word B\
-> RSP+0x?? Quad Word C\
-> RSP Quad Word D
+> &emsp;RSP+0x?? Quad Word A\
+> &emsp;RSP+0x?? Quad Word B\
+> &emsp;RSP+0x?? Quad Word C\
+> &emsp;RSP Quad Word D
 
 In [level 19](#level-19), we saw that the stack pointer `rsp` points to the bottom of the stack. And that this location stores 8 bytes of data which is also called a quad word.
 
@@ -1052,7 +1033,7 @@ push rax
 ## level 22
 
 > Perform the following:\
-> Jump to the absolute address 0x403000
+> &emsp;Jump to the absolute address 0x403000
 
 ### Absolute jump
 
@@ -1131,9 +1112,9 @@ ret
 ## level 23
 
 > Perform the following:\
-> Make the first instruction in your code a jmp\
-> Make that jmp a relative jump to 0x51 bytes from the current position\
-> At the code location where the relative jump will redirect control flow set rax to 0x1
+> &emsp;Make the first instruction in your code a jmp\
+> &emsp;Make that jmp a relative jump to 0x51 bytes from the current position\
+> &emsp;At the code location where the relative jump will redirect control flow set rax to 0x1
 
 Let's learn how to perform a relative jump in the code flow.
 
@@ -1188,11 +1169,11 @@ mov rax, 0x1
 ## level 24
 
 > Create a two jump trampoline:\
-> Make the first instruction in your code a jmp\
-> Make that jmp a relative jump to 0x51 bytes from its current position\
-> At 0x51 write the following code:\
->   Place the top value on the stack into register rdi\
->   jmp to the absolute address 0x403000\
+> &emsp;Make the first instruction in your code a jmp\
+> &emsp;Make that jmp a relative jump to 0x51 bytes from its current position\
+> &emsp;At 0x51 write the following code:\
+> &emsp;&emsp;Place the top value on the stack into register rdi\
+> &emsp;&emsp;jmp to the absolute address 0x403000\
 
 We have to combine the concepts learnt in [level 22](#level-22) and [level 23](#level-23).
 
