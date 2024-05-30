@@ -1281,7 +1281,7 @@ nop
 > &emsp;&emsp;i = 0\
 > &emsp;&emsp;if src_addr != 0:\
 > &emsp;&emsp;&emsp;while [src_addr] != 0x00:\
-> &emsp;&emsp;&emsp;&emsp;if [src_addr] less than or equal 0x5a:\
+> &emsp;&emsp;&emsp;&emsp;if [src_addr] $\leq 0x5a:\
 > &emsp;&emsp;&emsp;&emsp;&emsp;[src_addr] = foo([src_addr])\
 > &emsp;&emsp;&emsp;&emsp;&emsp;i += 1\
 > &emsp;&emsp;&emsp;&emsp;src_addr += 1\
