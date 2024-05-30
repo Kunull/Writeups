@@ -1212,10 +1212,10 @@ jmp r10
 ## level 26
 
 > Implement the following logic:\
-> &emsp;if rdi is 0:\
-> &emsp;&emsp; jmp 0x403016\
-> &emsp; else if rdi is 1:\
-> &emsp;&emsp; jmp 0x4030e4\
+> &ensp;if rdi is 0:\
+> &ensp;&ensp;jmp 0x403016\
+> &ensp;else if rdi is 1:\
+> &emsp;jmp 0x4030e4\
 > &emsp; else if rdi is 2:\
 > &emsp;&emsp; jmp 0x4031e1\
 > &emsp; else if rdi is 3:\
