@@ -1220,3 +1220,103 @@ here:
 mov rax, [8 * rdi + rsi]
 jmp rax
 ```
+
+&nbsp;
+
+## level 27
+
+> Please compute the average of n consecutive quad words, where:\
+> &emsp;rdi = memory address of the 1st quad word\
+> &emsp;rsi = n (amount to loop for)\
+> &emsp;rax = average computed
+
+```asm title="assembly27.asm"
+mov rax, 0
+mov rbx, 1
+mov rax, [rdi]
+
+loop:
+cmp rbx, rsi
+jg done
+add rax, [rdi + rbx * 0x8]
+add rbx, 1
+jmp loop
+
+done:
+div rsi
+```
+
+&nbsp;
+
+## level 28
+
+> Count the consecutive non-zero bytes in a contiguous region of memory, where:\
+> &emsp;rdi = memory address of the 1st byte\
+> &emsp;rax = number of consecutive non-zero bytes
+>
+> Additionally, if rdi = 0, then set rax = 0 (we will check)!
+
+```asm title="assembly28.asm"
+cmp rdi, 0
+je done
+mov rax, 0
+
+loop:
+cmp byte ptr [rdi], 0
+je done
+add rax, 1
+add rdi, 1
+jmp loop
+
+done:
+nop
+```
+
+&nbsp;
+
+## level 29
+
+> Please implement the following logic:
+> &emsp;str_lower(src_addr):
+> &emsp;&emsp;i = 0
+> &emsp;&emsp;if src_addr != 0:
+> &emsp;&emsp;&emsp;while [src_addr] != 0x00:
+> &emsp;&emsp;&emsp;&emsp;if [src_addr] <= 0x5a:
+> &emsp;&emsp;&emsp;&emsp;&emsp;[src_addr] = foo([src_addr])
+> &emsp;&emsp;&emsp;&emsp;&emsp;i += 1
+> &emsp;&emsp;&emsp;&emsp;src_addr += 1
+> &emsp;&emsp;return i
+
+```asm title="assembly29.asm"
+mov rax, 0
+cmp rdi, 0
+je done
+
+loop:
+mov rbx, 0
+mov bl, [rdi]
+cmp bl, 0
+je done
+
+cmp bl, 90
+jg greater
+
+push rdi
+push rax
+mov rdi, 0
+mov dil, bl
+mov r10, 0x403000
+call r10
+mov bl, al
+pop rax
+pop rdi
+mov [rdi], bl
+add rax, 1
+
+greater:
+add rdi, 1
+jmp loop
+
+done:
+ret
+```
