@@ -1209,34 +1209,23 @@ jmp r10
 
 &nbsp;
 
-## level 19
+## level 26
 
-> Using the above knowledge, implement the following logic:&#x20;
+> Implement the following logic:\
+> if rdi is 0:\
+> &#x20;  jmp 0x403016\
+> else if rdi is 1:\
+> &#x20;  jmp 0x4030e4\
+> else if rdi is 2:\
+> &#x20;  jmp 0x4031e1\
+> else if rdi is 3:\
+> &#x20;  jmp 0x403298\
+> else:
+> &#x20;  jmp 0x403321\
 >
-> if rdi is 0:&#x20;
->
-> &#x20;   jmp 0x403016&#x20;
->
-> else if rdi is 1:&#x20;
->
-> &#x20;   jmp 0x4030e4&#x20;
->
-> else if rdi is 2:&#x20;
->
-> &#x20;   jmp 0x4031e1&#x20;
->
-> else if rdi is 3:&#x20;
->
-> &#x20;   jmp 0x403298&#x20;
->
-> else:&#x20;
->
-> &#x20;   jmp 0x403321&#x20;
->
-> Please do the above with the following constraints:&#x20;
->
-> * assume rdi will NOT be negative&#x20;
-> * use no more than 1 cmp instruction&#x20;
-> * use no more than 3 jumps (of any variant)&#x20;
-> * we will provide you with the number to 'switch' on in rdi.&#x20;
-> * we will provide you with a jump table base address in rsi.
+> Please do the above with the following constraints:
+> &#x20;  Assume rdi will NOT be negative
+> &#x20;  Use no more than 1 cmp instruction
+> &#x20;  Use no more than 3 jumps (of any variant)
+> &#x20;  We will provide you with the number to 'switch' on in rdi.
+> &#x20;  We will provide you with a jump table base address in rsi.
