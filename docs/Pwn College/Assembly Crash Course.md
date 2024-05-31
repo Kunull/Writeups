@@ -1286,6 +1286,18 @@ nop
 > &emsp;&emsp;&emsp;&emsp;&emsp;i += 1\
 > &emsp;&emsp;&emsp;&emsp;src_addr += 1\
 > &emsp;&emsp;return i
+>
+> foo is provided at 0x403000.\
+> foo takes a single argument as a value and returns a value.
+>
+> All functions (foo and str_lower) must follow the Linux amd64 calling convention (also known as System V AMD64 ABI):\
+> &emsp;https://en.wikipedia.org/wiki/X86_calling_conventions#System_V_AMD64_ABI
+>
+> Therefore, your function str_lower should look for src_addr in rdi and place the function return in rax.
+>
+> An important note is that src_addr is an address in memory (where the string is located) and [src_addr] refers to the byte that exists at src_addr.
+>
+> Therefore, the function foo accepts a byte as its first argument and returns a byte.
 
 ```asm title="assembly29.asm"
 mov rax, 0
