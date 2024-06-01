@@ -5,9 +5,15 @@ pagination_prev: null
 sidebar_position: 6
 ---
 
+:::note
+For this module, `syscall` displays the state of the registers, which is helpful in writing the code.
+:::
+
 ## level 1
 
 > In this challenge you will exit a program.
+
+In order to make an exit syscall, we need to first set it up properly.
 
 ### Exit system call
 
