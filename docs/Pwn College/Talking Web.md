@@ -654,6 +654,8 @@ hacker@talking-web~level34:/$ curl -L --cookie /tmp/cookie localhost
 
 > Include a cookie from HTTP response using nc
 
+### Method 1
+
 ```
 hacker@talking-web~level35:/$ nc localhost 80
 GET / HTTP/1.1
@@ -719,6 +721,8 @@ hacker@talking-web~level37:/$ curl -L --cookie /tmp/cookie localhost
 ## level 38
 
 > Make multiple requests in response to stateful HTTP responses using nc
+
+### Method 1
 
 ```
 hacker@talking-web~level38:/$ nc localhost 80
