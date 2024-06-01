@@ -2,7 +2,7 @@
 custom_edit_url: null
 pagination_next: null
 pagination_prev: null
-sidebar_position: 4
+sidebar_position: 5
 ---
 
 ## level 1
@@ -33,13 +33,13 @@ We can send HTTP request using the `GET` method.
 
 ### Method 2
 
-```txt title="talking_web5.txt"
+```txt title="talking_web2.txt"
 GET / HTTP/1.1
 
 ```
 
 ```
-hacker@talking-web~level5:~$ cat talking_web5.txt | nc localhost 80
+hacker@talking-web~level5:~$ cat talking_web2.txt | nc localhost 80
 ```
 
 &nbsp;
@@ -48,11 +48,15 @@ hacker@talking-web~level5:~$ cat talking_web5.txt | nc localhost 80
 
 > Send an HTTP request using python
 
-```python title="request3.py"
+```python title="talking_web3.py"
 import requests
 
 response = requests.get("http://localhost")
 print(response.text)
+```
+
+```
+hacker@talking-web~level5:~$ python talking_web3.py
 ```
 
 &nbsp;
@@ -66,7 +70,7 @@ The host header allows user to access a site out of multiple sites hosted on the
 In order to set the host-header, we need to use the `H` flag.
 
 ```
-$ curl -v -H 'Host: 3c22a6070842664437f7deb701d0ba73' localhost
+hacker@talking-web~level4:/$ curl -v -H 'Host: 3c22a6070842664437f7deb701d0ba73' localhost
 ```
 
 &nbsp;
@@ -75,10 +79,25 @@ $ curl -v -H 'Host: 3c22a6070842664437f7deb701d0ba73' localhost
 
 > Set the host header in an HTTP request using nc.
 
-```txt title="Request.txt"
+### Method 1
+
+```txt
 $ nc localhost 80
 GET / HTTP/1.1
 Host: 955346154465080a0f6f80ad1abab644
+
+```
+
+### Method 2
+
+```txt title="talking_web5.txt"
+GET / HTTP/1.1
+Host: 955346154465080a0f6f80ad1abab644
+
+```
+
+```
+hacker@talking-web~level5:~$ cat talking_web5.txt | nc localhost 80
 ```
 
 &nbsp;
