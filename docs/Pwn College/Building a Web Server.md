@@ -7,6 +7,15 @@ sidebar_position: 6
 
 ## level 1
 
+> In this challenge you will exit a program.
+
+### Exit system call
+
+| Register | Argument | Value | 
+|:-:|:-:|:-:|
+| rax | syscall id | 0x3c |
+| rdi | int error_code | 0 |
+
 ```
 .intel_syntax noprefix
 .globl _start
