@@ -41,7 +41,7 @@ html[data-theme='light'] .alert--info {
   --ifm-menu-color-background-active: rgb(20,20,20);
   --ifm-menu-color-background-hover: rgb(20,20,20);
   --ifm-breadcrumb-item-background-active: #222;
-  --ifm-navbar-background-color: rgba(0, 0, 0, 0.95);
+  --ifm-navbar-background-color: rgba(0, 0, 0, 0);
   --ifm-footer-background-color: #222;
   --ifm-color-primary-darkest: rgba(60, 60, 60, 1);
   --ifm-color-primary-darker: rgba(80, 80, 80, 1);
@@ -175,12 +175,12 @@ article {
 }
 
 /* Glassmorphism */
-/* nav.navbar:not(.navbar-sidebar--show) {
+nav.navbar:not(.navbar-sidebar--show) {
     --tw-backdrop-blur: blur(10px);
     -webkit-backdrop-filter: var(--tw-backdrop-blur);
     backdrop-filter: var(--tw-backdrop-blur);
     background-color: rgb(0, 0, 0, 0.75);
-} */
+}
 
 /* Width */
 .navbar__inner {
