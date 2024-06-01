@@ -349,6 +349,8 @@ hacker@talking-web~level19:/$ curl localhost -H "Content-Type: application/x-www
 
 > Include form data in an HTTP request using nc
 
+## Method 1
+
 ```
 hacker@talking-web~level20:/$ nc localhost 80
 POST / HTTP/1.1
@@ -405,13 +407,29 @@ hacker@talking-web~level21:/$ curl localhost -H "Content-Type: application/x-www
 
 > Include form data with multiple fields in an HTTP request using nc
 
-```txt title="Request.txt"
-$ nc localhost 80
+### Method 1
+
+```
+hacker@talking-web~level23:/$ nc localhost 80
 POST / HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
 Content-Length: 78
 
 a=ac3b1a1c63b69fad533e8978f6a5dff6&b=b573a00d%202ba9bc8a%26a6695f81%233c49eb83
+```
+
+### Method 2
+
+```txt title="talking_web23.txt"
+POST / HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 78
+
+a=ac3b1a1c63b69fad533e8978f6a5dff6&b=b573a00d%202ba9bc8a%26a6695f81%233c49eb83
+```
+
+```
+hacker@talking-web~level23:~$ cat talking_web23.txt | nc localhost 80
 ```
 
 &nbsp;
@@ -420,11 +438,15 @@ a=ac3b1a1c63b69fad533e8978f6a5dff6&b=b573a00d%202ba9bc8a%26a6695f81%233c49eb83
 
 > Include form data with multiple fields in an HTTP request using python
 
-```python
+```python title="talkng_web24.py"
 import requests
 
 response = requests.post("http://localhost", data = {"a": "d9ca68fd4ebb26ce7bc66ca673af28bd", "b": "3f36fa3c 5d887603&0ca6cc86#9b3ebe7e"})
 print(response.text)
+```
+
+```
+hacker@talking-web~level24:~$ python talking_web24.py
 ```
 
 &nbsp;
@@ -434,7 +456,7 @@ print(response.text)
 > Include json data in an HTTP request using curl
 
 ```
-$ curl -v localhost -H "Content-Type: application/json" -d '{"a": "4ca4028161b46e326dccbd61fd9ca126"}'
+hacker@talking-web~level25:/$ curl -v localhost -H "Content-Type: application/json" -d '{"a": "4ca4028161b46e326dccbd61fd9ca126"}'
 ```
 
 &nbsp;
@@ -443,13 +465,29 @@ $ curl -v localhost -H "Content-Type: application/json" -d '{"a": "4ca4028161b46
 
 > Include json data in an HTTP request using nc
 
-```txt title="Request.txt"
-$ nc localhost 80
+### Method 1
+
+```
+hacker@talking-web~level23:/$ nc localhost 80
 POST / HTTP/1.1
 Content-Type: application/json
 Content-Length: 41
 
 {"a": "2871410238346d3ef1efa9557c63d396"}
+```
+
+### Method 2
+
+```txt title="talking_web26.txt"
+POST / HTTP/1.1
+Content-Type: application/json
+Content-Length: 41
+
+{"a": "2871410238346d3ef1efa9557c63d396"}
+```
+
+```
+hacker@talking-web~level26:~$ cat talking_web26.txt | nc localhost 80
 ```
 
 &nbsp;
@@ -458,11 +496,15 @@ Content-Length: 41
 
 > Include json data in an HTTP request using python
 
-```python
+```python title="talking_web27.py"
 import requests
 
 response = requests.post("http://localhost", json = {"a": "4f8799edeeeae6280d2476ff44ec855b"})
 print(response.text)
+```
+
+```
+hacker@talking-web~level27:~$ python talking_web27.py
 ```
 
 &nbsp;
@@ -472,7 +514,7 @@ print(response.text)
 > Include complex json data in an HTTP request using curl
 
 ```
-$ curl -v -H "Content-Type: application/json" localhost -d '{"a": "134feb33f6406e92577a3da1af09d6e1", "b":  {"c": "731530a0", "d": ["aa22dd29", "33a13f37 c90ae96c&fc4db4e3#43ed5bf2"]}}'
+hacker@talking-web~level28:/$ curl -v -H "Content-Type: application/json" localhost -d '{"a": "134feb33f6406e92577a3da1af09d6e1", "b":  {"c": "731530a0", "d": ["aa22dd29", "33a13f37 c90ae96c&fc4db4e3#43ed5bf2"]}}'
 ```
 
 &nbsp;
@@ -481,13 +523,29 @@ $ curl -v -H "Content-Type: application/json" localhost -d '{"a": "134feb33f6406
 
 > Include complex json data in an HTTP request using nc
 
-```txt title="Request.txt"
-$ nec localhost 80
+### Method 1
+
+```
+hacker@talking-web~level29:/$ nc localhost 80
 POST / HTTP/1.1
 Content-Type: application/json
 Content-Length: 123
 
 {"a": "3c3fc4d92ea768d2f90a1564901c7151", "b": {"c": "88960a48", "d": ["f8b92795", "59ce8454 77e5423c&e259ebfd#c90f1078"]}}
+```
+
+### Method 2
+
+```txt title="talking_web29.txt"
+POST / HTTP/1.1
+Content-Type: application/json
+Content-Length: 123
+
+{"a": "3c3fc4d92ea768d2f90a1564901c7151", "b": {"c": "88960a48", "d": ["f8b92795", "59ce8454 77e5423c&e259ebfd#c90f1078"]}}
+```
+
+```
+hacker@talking-web~level29:~$ cat talking_web29.txt | nc localhost 80
 ```
 
 &nbsp;
@@ -496,11 +554,15 @@ Content-Length: 123
 
 > Include complex json data in an HTTP request using python
 
-```python
+```python title="talking_web30.py"
 import requests
 
 response = requests.post("http://localhost", json = {"a": "c49c2036612db43b827928a815ab4aa3", "b": {'c': '18990378', 'd': ['15a23d60', '5d838d26 b09c0f1b&b57e6ead#7e7021f8']}})
 print(response.text)
+```
+
+```
+hacker@talking-web~level30:~$ python talking_web30.py
 ```
 
 &nbsp;
@@ -510,7 +572,7 @@ print(response.text)
 > Follow an HTTP redirect from HTTP response using curl
 
 ```
-$ curl -v localhost/fe865645cf9d9429f8d3a64bd3624bde
+hacker@talking-web~level31:/$ curl -v localhost/fe865645cf9d9429f8d3a64bd3624bde
 ```
 
 &nbsp;
@@ -519,9 +581,38 @@ $ curl -v localhost/fe865645cf9d9429f8d3a64bd3624bde
 
 > Follow an HTTP redirect from HTTP response using nc
 
-```txt title="Request.txt"
-$ nc localhost 80
+### Method 1
+
+```
+hacker@talking-web~level32:/$ nc localhost 80
 GET /04f17f0a0c09c5f51d7b4b41227fc991 HTTP/1.1
+
+```
+
+The server will include the target URI for the redirect in the response.
+
+We have to make another request using the endpoint specified.
+
+```
+hacker@talking-web~level32:/$ nc localhost 80
+GET /3d825486aeccc071f71c8e941d6cd32f HTTP/1.1
+
+```
+
+### Method 2
+
+```txt title="talking_web32_1.txt"
+GET /04f17f0a0c09c5f51d7b4b41227fc991 HTTP/1.1
+
+```
+
+```txt title="talking_web32_2.txt"
+GET /3d825486aeccc071f71c8e941d6cd32f HTTP/1.1
+
+```
+
+```
+hacker@talking-web~level32:~$ cat talking_web32_1.txt | nc localhost 80; cat talking_web32_2.txt | nc localhost 80
 ```
 
 &nbsp;
@@ -530,11 +621,15 @@ GET /04f17f0a0c09c5f51d7b4b41227fc991 HTTP/1.1
 
 > Follow an HTTP redirect from HTTP response using python
 
-```python
+```python title="talking_web33.py"
 import requests
 
 response = requests.post("http://localhost")
 print(response.text)
+```
+
+```
+hacker@talking-web~level33:~$ python talking_web33.py
 ```
 
 &nbsp;
@@ -544,13 +639,13 @@ print(response.text)
 > Include a cookie from HTTP response using curl
 
 ```
-$ curl -v -H 'Cookie: cookie=6ba66cf208e8af50138db065514ec00c' localhost
+hacker@talking-web~level34:/$ curl -v -H 'Cookie: cookie=6ba66cf208e8af50138db065514ec00c' localhost
 ```
 
 OR
 
 ```
-$ curl -L --cookie /tmp/cookie localhost
+hacker@talking-web~level34:/$ curl -L --cookie /tmp/cookie localhost
 ```
 
 &nbsp;
@@ -559,10 +654,23 @@ $ curl -L --cookie /tmp/cookie localhost
 
 > Include a cookie from HTTP response using nc
 
-```txt title="Request.txt"
-$ nc localhost 80
+```
+hacker@talking-web~level35:/$ nc localhost 80
 GET / HTTP/1.1
 Cookie: cookie=fd64267b1b2798fc6498188109e91cf7
+
+```
+
+### Method 2
+
+```txt title="talking_web35.txt"
+GET / HTTP/1.1
+Cookie: cookie=fd64267b1b2798fc6498188109e91cf7
+
+```
+
+```
+hacker@talking-web~level35:~$ cat talking_web35.txt | nc localhost 80
 ```
 
 &nbsp;
@@ -571,11 +679,15 @@ Cookie: cookie=fd64267b1b2798fc6498188109e91cf7
 
 > Include a cookie from HTTP response using python
 
-```python
+```python title="talking_web36.py"
 import requests
 
 response = requests.post("http://localhost")
 print(response.text)
+```
+
+```
+hacker@talking-web~level36:~$ python talking_web36.py
 ```
 
 &nbsp;
@@ -585,21 +697,21 @@ print(response.text)
 > Make multiple requests in response to stateful HTTP responses using curl
 
 ```
-$ curl -v -H 'Cookie: session=eyJzdGF0ZSI6MX0.ZIdjyA.Il0n0-3Dc92AGqznlmke0NUGbSM' localhost
+hacker@talking-web~level37:/$ curl -v -H 'Cookie: session=eyJzdGF0ZSI6MX0.ZIdjyA.Il0n0-3Dc92AGqznlmke0NUGbSM' localhost
 ```
 
 ```
-$ curl -v -H 'Cookie: session=eyJzdGF0ZSI6Mn0.ZIdj-g.xNEcHHpWLkuTjDyiyMlOkpJlhHc' localhost
+hacker@talking-web~level37:/$ curl -v -H 'Cookie: session=eyJzdGF0ZSI6Mn0.ZIdj-g.xNEcHHpWLkuTjDyiyMlOkpJlhHc' localhost
 ```
 
 ```
-$ curl -v -H 'Cookie: session=eyJzdGF0ZSI6M30.ZIdkLw.GAPUeUh0rrxafcjsCri18TI506o' localhost
+hacker@talking-web~level37:/$ curl -v -H 'Cookie: session=eyJzdGF0ZSI6M30.ZIdkLw.GAPUeUh0rrxafcjsCri18TI506o' localhost
 ```
 
 OR
 
 ```
- curl -L --cookie /tmp/cookie localhost
+hacker@talking-web~level37:/$ curl -L --cookie /tmp/cookie localhost
 ```
 
 &nbsp;
@@ -608,22 +720,46 @@ OR
 
 > Make multiple requests in response to stateful HTTP responses using nc
 
-```txt title="Request.txt"
-$ nc localhost 80
+```
+hacker@talking-web~level38:/$ nc localhost 80
 GET / HTTP/1.1
 Cookie: session=eyJzdGF0ZSI6MX0.ZIdFvA.sHWWKoF8bM1fkGxOrTHbPJrHnXk
 ```
 
-```txt title="Request.txt"
-$ nc localhost 80
+```
+hacker@talking-web~level38:/$ nc localhost 80
 GET / HTTP/1.1
 Cookie: session=eyJzdGF0ZSI6Mn0.ZIdGGw.vET_YPzKaN7NNySdDm80v_VRahM
 ```
 
-```txt title="Request.txt"
-$ nc localhost 80
+```
+hacker@talking-web~level38:/$ nc localhost 80
 GET / HTTP/1.1
 Cookie: session=eyJzdGF0ZSI6M30.ZIdGTg.7DxhB2c_HvhkfSS5ADGrIgK-eq4
+```
+
+### Method 2
+
+```txt title="talking_web38_1.txt"
+GET / HTTP/1.1
+Cookie: session=eyJzdGF0ZSI6MX0.ZIdFvA.sHWWKoF8bM1fkGxOrTHbPJrHnXk
+
+```
+
+```txt title="talking_web38_2.txt"
+GET / HTTP/1.1
+Cookie: session=eyJzdGF0ZSI6Mn0.ZIdGGw.vET_YPzKaN7NNySdDm80v_VRahM
+
+```
+
+```txt title="talking_web38_3.txt"
+GET / HTTP/1.1
+Cookie: session=eyJzdGF0ZSI6M30.ZIdGTg.7DxhB2c_HvhkfSS5ADGrIgK-eq4
+
+```
+
+```
+hacker@talking-web~level38:~$ cat talking_web38_1.txt | nc localhost 80; cat talking_web38_2.txt | nc localhost 80; cat talking_web38_3.txt | nc localhost 80
 ```
 
 &nbsp;
@@ -632,9 +768,13 @@ Cookie: session=eyJzdGF0ZSI6M30.ZIdGTg.7DxhB2c_HvhkfSS5ADGrIgK-eq4
 
 > Make multiple requests in response to stateful HTTP responses using python
 
-```python
+```python title="talking_web39.py"
 import requests
 
 response = requests.post("http://localhost")
 print(response.text)
+```
+
+```
+hacker@talking-web~level39:~$ python talking_web39.py
 ```
