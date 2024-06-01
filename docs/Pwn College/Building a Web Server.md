@@ -51,6 +51,8 @@ _start:
 
 ## level 2
 
+> In this challenge you will create a socket.
+
 ```Python
 import pwn
 
