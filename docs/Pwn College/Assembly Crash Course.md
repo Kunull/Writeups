@@ -6,15 +6,11 @@ sidebar_position: 3
 ---
 
 :::note
-
 For this module, `int3` displays the state of the registers, which is helpful in writing the code.
-
 :::
 
 :::note
-
 Use the code snippet provided below and replace the comment with your assembly code.
-
 :::
 
 ## Code Snippet
