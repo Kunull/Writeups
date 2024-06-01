@@ -1228,19 +1228,19 @@ default_case:
   jmp end                     
 
 case_0x7f454c46:
-	add eax, ebx
+  add eax, ebx
   add eax, ecx 
   int3     
   jmp end                    
     
 case_0x00005A4D:
-	sub eax, ebx           
+  sub eax, ebx           
   sub eax, ecx 
   int3   
   jmp end                    
 
 end:
-	nop
+  nop
 ```
 
 &nbsp;
