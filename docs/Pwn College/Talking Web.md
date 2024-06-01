@@ -23,7 +23,7 @@ hacker@talking-web~level1:/$ curl localhost
 
 ### Method 1
 
-```txt title="Request2"
+```
 hacker@talking-web~level2:/$ nc localhost 80
 GET / HTTP/1.1
 
@@ -81,7 +81,7 @@ hacker@talking-web~level4:/$ curl -v -H 'Host: 3c22a6070842664437f7deb701d0ba73'
 
 ### Method 1
 
-```txt
+```
 $ nc localhost 80
 GET / HTTP/1.1
 Host: 955346154465080a0f6f80ad1abab644
