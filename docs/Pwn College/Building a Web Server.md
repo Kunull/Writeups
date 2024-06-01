@@ -23,6 +23,8 @@ In order to make an exit syscall, we need to first set it up properly.
 | rax | syscall id | 0x3c |
 | rdi | int error_code | 0 |
 
+Let's move the required values in the relevant registers.
+
 ```
 mov rdi, 0
 mov rax, 0x3c 
