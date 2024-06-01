@@ -6,7 +6,8 @@ sidebar_position: 6
 ---
 
 :::note
-For this module, `syscall` displays the state of the registers, which is helpful in writing the code.
+The `syscall` instruction invokes an OS system-call handler at privilege level 0, and is used to make system calls.
+It will be used in every level in this module.
 :::
 
 ## level 1
