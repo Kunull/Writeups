@@ -2,14 +2,15 @@
 custom_edit_url: null
 pagination_next: null
 pagination_prev: null
+sidebar_position: 4
 ---
 
 ## level 1
 
 > Send an HTTP request using curl
 
-```txt title="Request.txt"
-$ curl localhost
+```
+hacker@talking-web~level1:/$ curl localhost
 ```
 
 &nbsp;
@@ -18,14 +19,28 @@ $ curl localhost
 
 > Send an HTTP request using nc
 
-`nc` takes URL and port in order to functin.
+`nc` takes URL and port in order to function.
 
-```
-$ nc localhost 80
+### Method 1
+
+```txt title="Request2"
+hacker@talking-web~level2:/$ nc localhost 80
 GET / HTTP/1.1
+
 ```
 
 We can send HTTP request using the `GET` method.
+
+### Method 2
+
+```txt title="talking_web5.txt"
+GET / HTTP/1.1
+
+```
+
+```
+hacker@talking-web~level5:~$ cat talking_web5.txt | nc localhost 80
+```
 
 &nbsp;
 
@@ -33,7 +48,7 @@ We can send HTTP request using the `GET` method.
 
 > Send an HTTP request using python
 
-```python
+```python title="request3.py"
 import requests
 
 response = requests.get("http://localhost")
