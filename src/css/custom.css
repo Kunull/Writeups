@@ -209,8 +209,9 @@ nav.navbar:not(.navbar-sidebar--show) {
     background-color: rgb(0, 0, 0, 0.75);
 } */
 
-/* Border */
+/* Border and Margin */
 .dropdown__menu {
+    margin-top: 1rem;
     background-color: rgb(0, 0, 0, 1);
     border-radius: 0.25rem;
     border: 1px solid #333;
