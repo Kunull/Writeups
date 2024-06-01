@@ -24,6 +24,13 @@ In order to make an exit syscall, we need to first set it up properly.
 | rdi | int error_code | 0 |
 
 ```
+mov rdi, 0
+mov rax, 0x3c 
+```
+
+Once the setup is completed, we can use the `syscall` instruction.
+
+```asm title="webserver1.asm"
 .intel_syntax noprefix
 .globl _start
 
