@@ -31,6 +31,7 @@ void _exit(int status);
 The Exit syscall takes one argument:
 
 1. `status`: Status of the process' exit. 0 - for success / OK, 1 - non success / error.
+
 | Register | Argument | Value | 
 |:-:|:-:|:-:|
 | rax | syscall id | 0x3c |
