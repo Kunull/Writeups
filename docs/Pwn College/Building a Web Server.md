@@ -958,7 +958,7 @@ pM6ypGMUwpKdFw94HsUXn5woBxkD2hk2pViNTbWMSpaEVx8SBHH0CMYnSQj
 
 ### Writing file content
 
-The connection we wna tot write to has the file descriptor `4`.
+The connection we want to write to has the file descriptor `4`.
 
 We are again going to write from the stack pointed to by `rsp`. 
 
