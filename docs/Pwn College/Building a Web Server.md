@@ -28,6 +28,11 @@ In order to make an exit syscall, we need to first set it up properly.
 void _exit(int status);
 ```
 
+```
+RETURN VALUE         top
+       These functions do not return.
+```
+
 The Exit syscall does not return anything and takes one argument:
 
 1. `status`: Status of the process' exit. 0 - for success / OK, 1 - non success / error.
@@ -177,6 +182,12 @@ hacker@building-a-web-server~level2:~$ /challenge/run ./webserver2
 int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 ```
 
+```
+RETURN VALUE         top
+       On success, zero is returned.  On error, -1 is returned, and
+       errno is set to indicate the error.
+```
+
 The Bind syscall returns a file descriptor and takes three arguments:
 
 1. `sockfd`: File descriptor that refers to the socket.
@@ -314,6 +325,12 @@ hacker@building-a-web-server~level3:~$ /challenge/run ./webserver3
 int listen(int sockfd, int backlog);
 ```
 
+```
+RETURN VALUE         top
+       On success, zero is returned.  On error, -1 is returned, and
+       errno is set to indicate the error.
+```
+
 The Listen syscall returns a file descriptor and takes two arguments:
 
 1. `sockfd`: File descriptor that refers to the socket.
@@ -407,7 +424,9 @@ hacker@building-a-web-server~level4:~$ /challenge/run ./webserver4
 
 ```c
 int accept(int sockfd, struct sockaddr *_Nullable restrict addr, socklen_t *_Nullable restrict addrlen);
+```
 
+```
 RETURN VALUE         top
        On success, these system calls return a file descriptor for the
        accepted socket (a nonnegative integer).  On error, -1 is
