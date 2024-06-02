@@ -194,15 +194,12 @@ The Bind syscall returns a file descriptor and takes three arguments:
 2. `*addr`: Points to the address to be assigned to the socket. Requires a `struct` to be created for the socket.
 3. `addrlen`: Specifies the size, in bytes, of the address structure pointed to by `addr`.
 
-In order to fill up the arguments, we need to know the file descriptor of the socket required for the `sockfd` argument.
-For that we need to trace all the syscalls using the `strace` command.
+For the `sockfd` argument, we need to know the file descriptor of the socket created using the Socket syscall.
 
 ```
-hacker@building-a-web-server~level3:~/server$ strace ./webserver2
-execve("./server", ["./server"], 0x7ffd3e044280 /* 25 vars */) = 0
-socket(AF_INET, SOCK_STREAM, IPPROTO_IP) = 3
-exit(0)                                 = ?
-+++ exited with 0 +++
+===== Trace: Parent Process =====
+[✓] execve("/proc/self/fd/3", ["/proc/self/fd/3"], 0x7f56f63cd980 /* 0 vars */) = 0
+[✓] socket(AF_INET, SOCK_STREAM, IPPROTO_IP) = 3
 ```
 
 As we can see, the Socket syscall returns a file descriptor `3`. This makes sense because the first three file descriptors, `0`, `1` and `2`, are mapped to STDIN, STDOUT, and STDERR respectively.
@@ -530,6 +527,86 @@ hacker@building-a-web-server~level5:~$ /challenge/run ./webserver5
 
 ## level 6
 
+> In this challenge you will respond to an http request.
+
+For this level, we are expected to perform multiple new syscalls.
+
+```
+===== Expected: Parent Process =====
+[ ] execve(<execve_args>) = 0
+[ ] socket(AF_INET, SOCK_STREAM, IPPROTO_IP) = 3
+[ ] bind(3, {sa_family=AF_INET, sin_port=htons(<bind_port>), sin_addr=inet_addr("<bind_address>")}, 16) = 0
+    - Bind to port 80
+    - Bind to address 0.0.0.0
+[ ] listen(3, 0) = 0
+[ ] accept(3, NULL, NULL) = 4
+[ ] read(4, <read_request>, <read_request_count>) = <read_request_result>
+[ ] write(4, "HTTP/1.0 200 OK\r\n\r\n", 19) = 19
+[ ] close(4) = 0
+[ ] exit(0) = ?
+```
+
+### Read syscall
+
+```
+ssize_t read(int fd, void buf[.count], size_t count);
+```
+
+```
+RETURN VALUE         top
+       On success, the number of bytes read is returned (zero indicates
+       end of file), and the file position is advanced by this number.
+       It is not an error if this number is smaller than the number of
+       bytes requested; this may happen for example because fewer bytes
+       are actually available right now (maybe because we were close to
+       end-of-file, or because we are reading from a pipe, or from a
+       terminal), or because read() was interrupted by a signal.  See
+       also NOTES.
+
+       On error, -1 is returned, and errno is set to indicate the error.
+       In this case, it is left unspecified whether the file position
+       (if any) changes.
+```
+
+The Read syscall returns the number of bytes that are read and takes three arguments:
+
+1. `fd`: Specifies file descriptor from which bytes are to be read.
+2. `buf[.count]`: Specifies the location of buffer into which bytes are to be read.
+3. `count`: Specifies the number of bytes to be read.
+
+#### `fd` argument
+
+For the `fd` argument we have to use the file descriptor of the connection that we accepted using the Accept syscall.
+
+```
+===== Trace: Parent Process =====
+[✓] execve("/proc/self/fd/3", ["/proc/self/fd/3"], 0x7f56f63cd980 /* 0 vars */) = 0
+[✓] socket(AF_INET, SOCK_STREAM, IPPROTO_IP) = 3
+[✓] bind(3, {sa_family=AF_INET, sin_port=htons(80), sin_addr=inet_addr("0.0.0.0")}, 16) = 0
+[✓] listen(3, 0)                            = 0
+[✓] accept(3, NULL, NULL)                   = 4
+```
+
+As we can see the file descriptor for the accepted connection is `4`, which is stored in `rax`.
+
+#### `buf[.count]` argument
+
+For the `buf[.count]` argument, we have to set the location of the buffer. 
+We can set the location to the stack using the stack pointer `rsp` register.
+
+#### `count` argument
+
+For the `count` argument, we have to set it to the length of the message to be received which is `146` bytes. 
+Reading more bytes than necessay can use up unnecessary space and also allow the client to insert malicious data.
+
+```asm title="Read syscall"
+mov rdi, 4
+mov rsi, rsp
+mov rdx, 146
+mov rax, 0x00
+syscall
+```
+
 ```Assembly
 .intel_syntax noprefix
 .globl _start
@@ -567,7 +644,7 @@ _start:
     # Read syscall
     mov rdi, 4
     mov rsi, rsp
-    mov rdx, 140
+    mov rdx, 146
     mov rax, 0x00
     syscall
 
