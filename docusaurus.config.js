@@ -215,6 +215,10 @@ const config = {
         typoTolerance: false,
         maxResultsPerGroup: 9999,
       },
+      tableOfContents: {
+        minHeadingLevel: 2,
+        maxHeadingLevel: 5,
+      },
     }),
   
 };
