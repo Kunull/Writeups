@@ -15,8 +15,7 @@ It will be used in every level in this module.
 > In this challenge you will exit a program.
 
 Objectives:
-
-- [] Exit the program.
+	- [] Exit the program.
 
 ### Syscall calling convention
 
