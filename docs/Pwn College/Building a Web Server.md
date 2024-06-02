@@ -132,7 +132,7 @@ grep -r "IPPROTO_IP" /usr/include
 
 Now, we can move the required values in the relevant registers. 
 
-```txt title="Socket syscall"
+```asm title="Socket syscall"
 mov rdi, 2
 mov rsi, 1
 mov rdx, 0
@@ -256,7 +256,7 @@ mov rdx, 16
 
 The final Bind syscall will look as follows:
 
-```txt title="Bind syscall"
+```asm title="Bind syscall"
 mov rdi, 3
 lea rsi, [rip+sockaddr]
 mov rdx, 16
@@ -336,6 +336,8 @@ The Listen syscall returns a file descriptor and takes two arguments:
 1. `sockfd`: File descriptor that refers to the socket.
 2. `backlog`: Defines the maximum length to which the queue of pending connections for sockfd may grow.
 
+The file descriptor is 3.
+
 We already saw that the file descriptor of the any syscall is returned in the `rax` register. So the resultant file descriptor of Socket stored in `rax` is being overwritten by the result of the Bind syscall.
 
 In order to preserve it, we can push `rax` before making the Bind syscall and then pop it into `rdi` to set up the first argument of the Listen syscall.
@@ -356,7 +358,7 @@ pop rdi
 
 As for the `backlog`, we'll set it to zero, because we do not want a queue.
 
-```txt title="Listen ssycall"
+```asm title="Listen syscall"
 # Listen syscall
 pop rdi
 mov rsi, 0
@@ -440,8 +442,33 @@ The Accept syscall returns a file descriptor and takes two arguments:
 2. `addr`: Pointer to a `sockaddr` structure.
 3. `addrlen`: Contain the size (in bytes) of the structure pointed to by `addr`.
 
+For the `sockfd` argument, we have to set value to the file descriptor that we created. Again, we will `push` the value onto the stack so that it is not over-written when the Listen syscall is made. Then we `pop` it into the `rdi` register.
 
-```Assembly
+```
+# Listen syscall
+pop rdi
+push rdi
+mov rsi, 0
+mov rax, 0x32
+syscall
+
+# Accept syscall
+pop rdi
+```
+
+The `addr` argument will be zero, because we do not want any information about the remote address of the connected socket is returned.
+
+Thus, the `addrlen` argument will also be zero.
+
+```asm title="Accept syscall"
+pop rdi
+mov rsi, 0
+mov rdx, 0
+mov rax, 0x2b
+syscall
+```
+
+```asm title="webserver5.s"
 .intel_syntax noprefix
 .globl _start
 
@@ -455,21 +482,24 @@ _start:
     mov rax, 0x29						
     syscall
 
+    push rax
+
     # Bind syscall
-    mov rdi, 3
+    mov rdi, rax
     lea rsi, [rip+sockaddr]
     mov rdx, 16
     mov rax, 0x31
     syscall
 
     # Listen syscall
-    mov rdi, 3
+    pop rdi
+    push rdi
     mov rsi, 0
     mov rax, 0x32
     syscall
 
     # Accept syscall
-    mov rdi, 3
+    pop rdi
     mov rsi, 0
     mov rdx, 0
     mov rax, 0x2b
@@ -486,6 +516,14 @@ sockaddr:
     .2byte 0x5000
     .4byte 0
     .8byte 0
+```
+
+```
+hacker@building-a-web-server~level5:~$ as -o webserver5.o webserver5.s && ld -o webserver5 webserver5.o
+```
+
+```
+hacker@building-a-web-server~level5:~$ /challenge/run ./webserver5
 ```
 
 &nbsp;
