@@ -824,8 +824,10 @@ Now, we need a loop that parses through the respones and removes the `GET` part.
 Parse_GET:
     mov al, [r10]       # Move one byte from the stack into al
     cmp al, ' '         # Compare if the byte is an empty space ' '
-    je Done_1           # If yes: Jump out of the loop
-    add r10, 1          # Else: Make r10 point to the next byte
+                        # If yes:
+    je Done_1                  # Jump out of the loop
+                        # Else:
+    add r10, 1                 # Make r10 point to the next byte
     jmp Parse_GET       # Repeat loop 
 ```
 
@@ -854,9 +856,11 @@ Now, we are ready to parse through the filename.
 Parse_filename:
     mov al, byte ptr [r11]       # Move one byte from the stack into al
     cmp al, ' '                  # Compare if the byte is an empty space ' '
-    je Done_2                    # If yes: Jump out of the loop     
-    add r11, 1                   # Else: Make r11 point to the next byte
-    add r12, 1                   # Else: Add 1 to r12 (counter)
+                                 # If else:
+    je Done_2                           # Jump out of the loop     
+                                 # Else:
+    add r11, 1                          # Make r11 point to the next byte
+    add r12, 1                          # Add 1 to r12 (counter)
     jmp Parse_filename           # Repeat loop 
 ```
 
