@@ -842,9 +842,9 @@ Next, we need to create a setup first before we parse the actual filename.
 
 ```asm
 done1:
-    add r10, 1       # Make r10 point to the first character of filename (/)
+    add r10, 1              # Make r10 point to the first character of filename (/)
     mov r11, r10       # Make r11 point to the same byte
-    mov r12, 0       # Set r12 to 0, to use as a counter
+    mov r12, 0              # Set r12 to 0, to use as a counter
 ```
 
 #### Parsing through filename
@@ -853,11 +853,11 @@ Now, we are ready to parse through the filename.
 ```asm
 Parse_filename:
     mov al, byte ptr [r11]       # Move one byte from the stack into al
-    cmp al, ' '       # Compare if the byte is an empty space ' '
-    je Done_2       # If yes: Jump out of the loop     
-    add r11, 1       # Else: Make r11 point to the next byte
-    add r12, 1       # Else: Add 1 to r12 (counter)
-    jmp Parse_filename       # Repeat loop 
+    cmp al, ' '                  # Compare if the byte is an empty space ' '
+    je Done_2                    # If yes: Jump out of the loop     
+    add r11, 1                   # Else: Make r11 point to the next byte
+    add r12, 1                   # Else: Add 1 to r12 (counter)
+    jmp Parse_filename           # Repeat loop 
 ```
 
 Once this loop is done executing, this is how the relevant registers will look:
