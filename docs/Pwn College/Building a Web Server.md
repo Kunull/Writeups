@@ -82,6 +82,10 @@ hacker@building-a-web-server~level1:~$ /challenge/run ./webserver1
 
 ```c
 int socket(int domain, int type, int protocol);
+
+RETURN VALUE         top
+       On success, a file descriptor for the new socket is returned.  On
+       error, -1 is returned, and errno is set to indicate the error.
 ```
 
 The Socket syscall returns a file descriptor and takes three arguments:
@@ -401,6 +405,12 @@ hacker@building-a-web-server~level4:~$ /challenge/run ./webserver4
 
 ```c
 int accept(int sockfd, struct sockaddr *_Nullable restrict addr, socklen_t *_Nullable restrict addrlen);
+
+RETURN VALUE         top
+       On success, these system calls return a file descriptor for the
+       accepted socket (a nonnegative integer).  On error, -1 is
+       returned, errno is set to indicate the error, and addrlen is left
+       unchanged.
 ```
 
 The Accept syscall returns a file descriptor and takes two arguments:
