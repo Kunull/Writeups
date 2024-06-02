@@ -821,12 +821,12 @@ mov r10, rsp		# r10 also points to the response
 Now, we need a loop that parses through the respones and removes the `GET` part.
 
 ```asm
-parse_GET:
+Parse_GET:
     mov al, [r10]	# Move one byte from the stack into al
     cmp al, ' '		# Compare if the byte is an empty space ' '
-    je done1		# If yes: Jump out of the loop
+    je Done_1		# If yes: Jump out of the loop
     add r10, 1		# Else: Make r10 point to the next byte
-    jmp parse_GET	# Repeat loop 
+    jmp Parse_GET	# Repeat loop 
 ```
 
 Once this loop is done executing, this is how the relevant registers will look:
@@ -851,13 +851,13 @@ done1:
 Now, we are ready to parse through the filename.
 
 ```asm
-parse_filename:
+Parse_filename:
     mov al, byte ptr [r11]       # Move one byte from the stack into al
     cmp al, ' '       # Compare if the byte is an empty space ' '
-    je done2       # If yes: Jump out of the loop     
+    je Done_2       # If yes: Jump out of the loop     
     add r11, 1       # Else: Make r11 point to the next byte
     add r12, 1       # Else: Add 1 to r12 (counter)
-    jmp parse_filename       # Repeat loop 
+    jmp Parse_filename       # Repeat loop 
 ```
 
 Once this loop is done executing, this is how the relevant registers will look:
@@ -872,11 +872,11 @@ GET /tmp/tmpmslfupz4 HTTP/1.1\r\nHost: localhost\r\nUser-Agent: python-requests/
 Let's set a NULL byte at r11 is pointing. This will terminate the string while reading the filename.
 
 ```asm
-done2:
+Done_2:
     mov byte ptr [r11], 0
 ```
 
-```asm title=""
+```asm title="webserver7.asm"
 .intel_syntax noprefix
 .globl _start
 
@@ -918,27 +918,27 @@ _start:
 
     mov r10, rsp
 
-parse_GET:
+Parse_GET:
     mov al, byte ptr [r10]
     cmp al, ' '
-    je done1
+    je Done_1
     add r10, 1
-    jmp parse_GET
+    jmp Parse_GET
 
-done1:
+Done_1:
     add r10, 1
     mov r11, r10
     mov r12, 0
 
-parse_filename:
+Parse_filename:
     mov al, byte ptr [r11]
     cmp al, ' '
-    je done2
+    je Done_2
     add r11, 1
     add r12, 1
-    jmp parse_filename
+    jmp Parse_filename
 
-done2:
+Done_2:
     mov byte ptr [r11], 0
 
     # Open syscall
@@ -1052,27 +1052,27 @@ _start:
 
     mov r10, rsp
     
-loop1:
+Parse_GET:
     mov al, [r10]
     cmp al, ' '
-    je done1
+    je Done_1
     add r10, 1
-    jmp loop1
+    jmp Parse_GET
 
-done1:
+Done_1:
     add r10, 1
     mov r11, r10
     mov r12, 0
 
-loop2:
+Parse_filename:
     mov al, [r11]
     cmp al, ' '
-    je done2
+    je Parse_filename
     add r11, 1
     add r12, 1
     jmp loop2
 
-done2:
+Done_2:
     mov byte ptr [r12], 0
 
     # Open syscall
