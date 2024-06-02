@@ -218,7 +218,7 @@ If we check the Expected processes, we get more information.
 
 For the `bind` process, `{sa_family=AF_INET, sin_port=htons(<bind_port>), sin_addr=inet_addr("<bind_address>")}` is the `struct` required for `sockaddr`.
 
-In order to create the `sruct`, we need to use the `.data` section.
+In order to create the `struct`, we need to use the `.data` section.
 
 ```asm
 .section .data
@@ -229,12 +229,13 @@ sockaddr:
     .8byte 0	# Additional 8 bytes of padding
 ```
 
-#### `addrlen` argument
 We can now load the address of this `struct` into `rsi` using the `lea` instruction.
 
-```
+```asm
 lea rsi, [rip+sockaddr]
 ```
+
+#### `addrlen` argument
 
 The value of the `addlen` argument will be 16, as the `struct` is 16 bytes in length.
 
@@ -599,6 +600,76 @@ mov rdx, 146
 mov rax, 0x00
 syscall
 ```
+
+### Write syscall
+
+```c
+ssize_t write(int fd, const void buf[.count], size_t count);
+```
+
+```
+RETURN VALUE         top
+       On success, the number of bytes written is returned.  On error,
+       -1 is returned, and errno is set to indicate the error.
+
+       Note that a successful write() may transfer fewer than count
+       bytes.  Such partial writes can occur for various reasons; for
+       example, because there was insufficient space on the disk device
+       to write all of the requested bytes, or because a blocked write()
+       to a socket, pipe, or similar was interrupted by a signal handler
+       after it had transferred some, but before it had transferred all
+       of the requested bytes.  In the event of a partial write, the
+       caller can make another write() call to transfer the remaining
+       bytes.  The subsequent call will either transfer further bytes or
+       may result in an error (e.g., if the disk is now full).
+
+       If count is zero and fd refers to a regular file, then write()
+       may return a failure status if one of the errors below is
+       detected.  If no errors are detected, or error detection is not
+       performed, 0 is returned without causing any other effect.  If
+       count is zero and fd refers to a file other than a regular file,
+       the results are not specified.
+```
+The Read syscall returns the number of bytes that are written and takes three arguments:
+
+1. `fd`: Specifies file descriptor to which bytes are to be written.
+2. `buf[.count]`: Specifies the location of buffer from which bytes are to be written.
+3. `count`: Specifies the number of bytes to be written.
+
+#### `fd` argument
+For the `fd` argument we have to use the file descriptor of the connection that we accepted using the Accept syscall.
+We know that it is `4`.
+
+#### `buf[.count]` argument
+For this argument, we have to first store the response in the `.data` section. and 
+
+```asm
+.section .data
+response: 
+    .string "HTTP/1.0 200 OK\r\n\r\n"
+```
+
+We can now load the address of this `struct` into `rsi` using the `lea` instruction.
+
+```asm
+lea rsi, [rip+response]
+```
+
+#### `count` argument
+For the count argument, we have to set it to the length of the response to be written which is 19 bytes.
+
+```asm title="Write syscall"
+mov rdi, 4
+lea rsi, [rip+response]
+mov rdx, 19
+mov rax, 0x01
+syscall
+
+.section .data
+response: 
+    .string "HTTP/1.0 200 OK\r\n\r\n"
+```
+
 
 ```Assembly
 .intel_syntax noprefix
