@@ -817,6 +817,7 @@ Let's move the pointer into `r10` so that we can perform further operations with
 mov r10, rsp		# r10 also points to the response 
 ```
 
+#### Parsing through `GET`
 Now, we need a loop that parses through the respones and removes the `GET` part.
 
 ```asm
@@ -828,7 +829,12 @@ parse_GET:
     jmp parse_GET	# Repeat loop 
 ```
 
+Once this loop is done executing, this is how the relevant registers will look:
+
 ```
+rsp
+|  r10
+v  v
 GET /tmp/tmpmslfupz4 HTTP/1.1\r\nHost: localhost\r\nUser-Agent: python-requests/2.32.3\r\nAccept-Encoding: gzip, deflate, zstd\r\nAccept: */*\r\nConnection: keep-alive\r\n\r\n
    ^
    r10
