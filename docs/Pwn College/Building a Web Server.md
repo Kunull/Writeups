@@ -165,6 +165,8 @@ hacker@building-a-web-server~level2:~$ /challenge/run ./webserver2
 
 > In this challenge you will bind an address to a socket.
 
+### Bind syscall
+
 ```c
 int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 ```
