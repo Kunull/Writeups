@@ -32,6 +32,8 @@ The Exit syscall takes one argument:
 
 1. `status`: Status of the process' exit. 0 - for success / OK, 1 - non success / error.
 
+Let's look at how everything would be set up.
+
 | Register | Argument | Value | 
 |:-:|:-:|:-:|
 | rax | syscall id | 0x3c |
