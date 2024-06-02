@@ -82,7 +82,9 @@ hacker@building-a-web-server~level1:~$ /challenge/run ./webserver1
 
 ```c
 int socket(int domain, int type, int protocol);
+```
 
+```
 RETURN VALUE         top
        On success, a file descriptor for the new socket is returned.  On
        error, -1 is returned, and errno is set to indicate the error.
