@@ -174,7 +174,7 @@ int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 The Bind syscall returns a file descriptor and takes three arguments:
 
 1. `sockfd`: Refers to a socket by it's file descriptor.
-2. `sockaddr`: Specifies the address to be assigned to the socket. Requires a `struct` to be created for the socket.
+2. `*addr`: Points to the address to be assigned to the socket. Requires a `struct` to be created for the socket.
 3. `addrlen`: Specifies the size, in bytes, of the address structure pointed to by `addr`.
 
 In order to fill up the arguments, we need to know the file descriptor of the socket required for the `sockfd` argument.
