@@ -300,7 +300,9 @@ hacker@building-a-web-server~level3:~$ /challenge/run ./webserver3
 
 ## level 4
 
-```Assembly
+> In this challenge you will listen on a socket.
+
+```s title="webserver4.s"
 .intel_syntax noprefix
 .globl _start
 
@@ -338,6 +340,14 @@ sockaddr:
     .2byte 0x5000
     .4byte 0
     .8byte 0
+```
+
+```
+hacker@building-a-web-server~level4:~$ as -o webserver4.o webserver4.s && ld -o webserver4 webserver4.o
+```
+
+```
+hacker@building-a-web-server~level4:~$ /challenge/run ./webserver4
 ```
 
 &nbsp;
