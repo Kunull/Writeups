@@ -173,7 +173,7 @@ int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 
 The Bind syscall returns a file descriptor and takes three arguments:
 
-1. `sockfd`: Refers to a socket by it's file descriptor.
+1. `sockfd`: File descriptor that refers to the socket.
 2. `*addr`: Points to the address to be assigned to the socket. Requires a `struct` to be created for the socket.
 3. `addrlen`: Specifies the size, in bytes, of the address structure pointed to by `addr`.
 
@@ -269,7 +269,7 @@ _start:
     syscall
 
     # Bind syscall
-    mov rdi, 3
+    mov rdi, rax 	# 2 for the fd of socket
     lea rsi, [rip+sockaddr]
     mov rdx, 16
     mov rax, 0x31
@@ -302,7 +302,46 @@ hacker@building-a-web-server~level3:~$ /challenge/run ./webserver3
 
 > In this challenge you will listen on a socket.
 
-```s title="webserver4.s"
+### Listen syscall
+
+```c
+int listen(int sockfd, int backlog);
+```
+
+The Listen syscall returns a file descriptor and takes two arguments:
+
+1. `sockfd`: File descriptor that refers to the socket.
+2. `backlog`: Defines the maximum length to which the queue of pending connections for sockfd may grow.
+
+We already saw that the file descriptor of the any syscall is returned in the `rax` register. So the resultant file descriptor of Socket stored in `rax` is being overwritten by the result of the Bind syscall.
+
+In order to preserve it, we can push `rax` before making the Bind syscall and then pop it into `rdi` to set up the first argument of the Listen syscall.
+
+```
+# Socket syscall
+mov rdi, 2
+mov rsi, 1
+mov rdx, 0
+mov rax, 0x29
+syscall
+
+push rax
+
+# Listen syscall
+pop rdi
+```
+
+As for the `backlog`, we'll set it to zero, because we do not want a queue.
+
+```txt title="Listen ssycall"
+# Listen syscall
+pop rdi
+mov rsi, 0
+mov rax, 0x32
+syscall
+```
+
+```asm title="webserver4.s"
 .intel_syntax noprefix
 .globl _start
 
@@ -316,15 +355,17 @@ _start:
     mov rax, 0x29
     syscall
 
+    push rax
+
     # Bind syscall
-    mov rdi, 3
+    mov rdi, rax
     lea rsi, [rip+sockaddr]
     mov rdx, 16
     mov rax, 0x31
     syscall
 
     # Listen syscall
-    mov rdi, 3
+    pop rdi
     mov rsi, 0
     mov rax, 0x32
     syscall
