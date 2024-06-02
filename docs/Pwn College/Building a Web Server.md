@@ -16,6 +16,10 @@ It will be used in every level in this module.
 
 In order to make an exit syscall, we need to first set it up properly.
 
+[This](https://www.chromium.org/chromium-os/developer-library/reference/linux-constants/syscalls/) documentaion tells us what the calling convention is for x86_64.
+
+![image](https://github.com/Kunull/Write-ups/assets/110326359/b9f4db11-eb71-4cdf-9266-890bf718dbfc)
+
 ### Exit system call
 
 | Register | Argument | Value | 
