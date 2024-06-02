@@ -14,9 +14,6 @@ It will be used in every level in this module.
 
 > In this challenge you will exit a program.
 
-Objectives:
-	- [x] Exit the program.
-
 ### Syscall calling convention
 
 In order to make an exit syscall, we need to first set it up properly.
@@ -801,128 +798,163 @@ Objectives include:
 - [] Opening the file
 - [] Reading the content 
 
-### Reading the filename specified in the response
+### Extracting the filename specified in the response
 
 If we run the last program for this level, we can see that the response includes a filename.
 
-```Assembly
+```
+===== Trace: Parent Process =====
+[✓] execve("/proc/self/fd/3", ["/proc/self/fd/3"], 0x7f12180b2980 /* 0 vars */) = 0
+[✓] socket(AF_INET, SOCK_STREAM, IPPROTO_IP) = 3
+[✓] bind(3, {sa_family=AF_INET, sin_port=htons(80), sin_addr=inet_addr("0.0.0.0")}, 16) = 0
+[✓] listen(3, 0)                            = 0
+[✓] accept(3, NULL, NULL)                   = 4
+[✓] read(4, "GET /tmp/tmpbvxgqvrj HTTP/1.1\r\nHost: localhost\r\nUser-Agent: python-requests/2.32.3\r\nAccept-Encoding: gzip, deflate, zstd\r\nAccept: */*\r\nConnection: keep-alive\r\n\r\n", 161) = 161
+```
+
+We can see that the response include the `/tmp/tmpbvxgqvrj` filename, which seems to be a random name.
+
+In the Read syscall, we stored the data to be read onto the stack.
+So the `rsp` register currently acts a pointer to `GET /tmp/tmpbvxgqvrj HTTP/1.1\r\nHost: localhost\r\nUser-Agent: python-requests/2.32.3\r\nAccept-Encoding: gzip, deflate, zstd\r\nAccept: */*\r\nConnection: keep-alive\r\n\r\n`.
+
+Let's move the pointer into `r10`.
+
+```asm
+mov r10, rsp		# r10 also points to the response 
+```
+
+Now, we need a loop that prses through the respones and removes the `GET` part.
+
+```asm
+parse_GET:
+    mov al, [r10]	# Move one byte from the stack into al
+    cmp al, ' '		# Compare if the byte is an empty space ' '
+    je done1		# If yes: Jump out of the loop
+    add r10, 1		# Else: Make r10 point to the next byte
+    jmp parse_GET		# Repeat loop 
+```
+
+Next, we need to 
+
+```asm title=""
 .intel_syntax noprefix
 .globl _start
 
 .section .text
-
 _start:
-    # Socket syscall
-    mov rdi, 2
-    mov rsi, 1
-    mov rdx, 0
-    mov rax, 0x29
-    syscall
+	# Socket syscall
+	mov rdi, 2
+	mov rsi, 1
+	mov rdx, 0
+	mov rax, 0x29
+	syscall
 
-    # Bind syscall
-    mov rdi, 3
-    lea rsi, [rip+sockaddr]
-    mov rdx, 16
-    mov rax, 0x31
-    syscall
+	# Bind syscall
+	mov rdi, 3
+	lea rsi, [rip+sockaddr]
+	mov rdx, 16
+	mov rax, 0x31
+	syscall
 
-    # Listen syscall
-    mov rdi, 3
-    mov rsi, 0
-    mov rax, 0x32
-    syscall
+	# Listen syscall
+	mov rdi, 3
+	mov rsi, 0
+	mov rax, 0x32
+	syscall
 
-    # Accept syscall
-    mov rdi, 3
-    mov rsi, 0
-    mov rdx, 0
-    mov rax, 0x2b
-    syscall
+	# Accept syscall
+	mov rdi, 3
+	mov rsi, 0
+	mov rdx, 0
+	mov rax, 0x2b
+	syscall
 
-    # Read syscall
-    mov rdi, 4
-    mov rsi, rsp
-    mov rdx, 155
-    mov rax, 0x00
-    syscall
+	# Read syscall
+	mov rdi, 4
+	mov rsi, rsp
+	mov rdx, 256
+	mov rax, 0x00
+	syscall
 
-    mov r10, rsp
-	
+	mov r10, rsp
+
 loop1:
-    mov al, [r10]
-    cmp al, ' '
-    je done1
-    add r10, 1
-    jmp loop1
+	mov al, byte ptr [r10]
+	cmp al, ' '
+	je done1
+	add r10, 1
+	jmp loop1
 
 done1:
-    add r10, 1
-    mov r11, r10
-    mov r12, 0
+	add r10, 1
+	mov r11, r10
+	mov r12, 0
 
 loop2:
-    mov al, [r11]
-    cmp al, ' '
-    je done2
-    add r11, 1
-    add r12, 1
-    jmp loop2
+	mov al, byte ptr [r11]
+	cmp al, ' '
+	je done2
+	add r11, 1
+	add r12, 1
+	jmp loop2
 
 done2:
-    mov byte ptr [r12], 0
+	mov byte ptr [r11], 0
 
-    # Open syscall
-    mov rdi, r11
-    mov rsi, 0
-    mov rdx, 0
-    mov rax, 0x02
-    syscall
+	# Open syscall
+	mov rdi, r10
+	mov rsi, 0
+	mov rdx, 0
+	mov rax, 0x02
+	syscall
 
-    # Read syscall
-    mov rdi, 5
-    mov rsi, rsp
-    mov rdx, 256
-    mov rax, 0x00
-    syscall
+	# Read syscall
+	mov rdi, 5
+	mov rsi, rsp
+	mov rdx, 256
+	mov rax, 0x00
+	syscall
 
-    # Close syscall
-    mov rdi, 4
-    mov rax, 0x03
-    syscall
+	mov r12, rax
 
-    # Write syscall
-    mov rdi, 4
-    lea rsi, [rip+response]
-    mov rdx, 19
-    mov rax, 0x01
-    syscall
+	# Close syscall
+	mov rdi, 5
+	mov rax, 0x03
+	syscall
 
-    # Write syscall
-    mov rdi, 1
-    mov rsi, r10
-    mov rdx, r12
-    mov rax, 0x01
-    syscall
+	# Write syscall
+	mov rdi, 4
+	lea rsi, [rip+response]
+	mov rdx, 19
+	mov rax, 0x01
+	syscall
 
-    # Close syscall
-    mov rdi, 4
-    mov rax, 0x03
-    syscall
+	# Write syscall
+	mov rdi, 4
+	mov rsi, rsp
+	mov rdx, r12
+	mov rax, 0x01
+	syscall
 
-    # Exit syscall
+	# Close syscall
+	mov rdi, 4
+	mov rax, 0x03
+	syscall
+
+	# Exit syscall
     mov rdi, 0
-    mov rax, 0x3c        
+    mov rax, 0x3c    
     syscall
 
 .section .data
 sockaddr:
-    .2byte 2
-    .2byte 0x5000
-    .4byte 0
-    .8byte 0
+	.2byte 2
+	.2byte 0x5000
+	.4byte 0
+	.8byte 0
 
 response: 
-    .string "HTTP/1.0 200 OK\r\n\r\n"
+	.string "HTTP/1.0 200 OK\r\n\r\n"
 ```
 
 ```
