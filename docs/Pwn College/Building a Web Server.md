@@ -39,11 +39,6 @@ The Exit syscall does not return anything and takes one argument:
 
 Let's look at how everything would be set up.
 
-| Register | Argument | Value | 
-|:-:|:-:|:-:|
-| rax | syscall id | 0x3c |
-| rdi | status | 0 |
-
 Let's move the required values in the relevant registers.
 
 ```txt title="Exit syscall"
@@ -122,13 +117,6 @@ grep -r "#define AF_INET" /usr/include
 grep -r "#define SOCK_STREAM" /usr/include
 grep -r "IPPROTO_IP" /usr/include
 ```
-
-| Register | Argument | Value | 
-|:-:|:-:|:-:|
-| rax | syscall id | 0x29 |
-| rdi | domain | 2 (AF_INET) |
-| rsi | type | 1 (SOCK_STREAM) |
-| rdx | protocol | 0 (IPPROTO_IP) |
 
 Now, we can move the required values in the relevant registers. 
 
