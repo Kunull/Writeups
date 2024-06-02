@@ -182,6 +182,7 @@ The Bind syscall returns a file descriptor and takes three arguments:
 2. `*addr`: Points to the address to be assigned to the socket. Requires a `struct` to be created for the socket.
 3. `addrlen`: Specifies the size, in bytes, of the address structure pointed to by `addr`.
 
+#### `sockfd` argument
 For the `sockfd` argument, we need to know the file descriptor of the socket created using the Socket syscall.
 
 ```
@@ -200,6 +201,7 @@ We can move this value in the `rdi` register. Doing so, we do not have to specif
 mov rdi, 3
 ```
 
+#### `sockaddr` argument
 Next, for the `sockaddr` argument, we need to create a `struct` and create a pointer to that `struct`.
 
 If we check the Expected processes, we get more information.
@@ -227,6 +229,7 @@ sockaddr:
     .8byte 0	# Additional 8 bytes of padding
 ```
 
+#### `addrlen` argument
 We can now load the address of this `struct` into `rsi` using the `lea` instruction.
 
 ```
@@ -321,6 +324,7 @@ The Listen syscall returns a file descriptor and takes two arguments:
 1. `sockfd`: File descriptor that refers to the socket.
 2. `backlog`: Defines the maximum length to which the queue of pending connections for sockfd may grow.
 
+#### `sockfd` argument
 The file descriptor is 3.
 
 We already saw that the file descriptor of the any syscall is returned in the `rax` register. So the resultant file descriptor of Socket stored in `rax` is being overwritten by the result of the Bind syscall.
@@ -341,6 +345,7 @@ push rax
 pop rdi
 ```
 
+#### `backlog` argument
 As for the `backlog`, we'll set it to zero, because we do not want a queue.
 
 ```asm title="Listen syscall"
@@ -427,6 +432,7 @@ The Accept syscall returns a file descriptor and takes two arguments:
 2. `addr`: Pointer to a `sockaddr` structure.
 3. `addrlen`: Contain the size (in bytes) of the structure pointed to by `addr`.
 
+#### `sock` argument
 For the `sockfd` argument, we have to set value to the file descriptor that we created. Again, we will `push` the value onto the stack so that it is not over-written when the Listen syscall is made. Then we `pop` it into the `rdi` register.
 
 ```
@@ -441,8 +447,10 @@ syscall
 pop rdi
 ```
 
+#### `addr` argumet
 The `addr` argument will be zero, because we do not want any information about the remote address of the connected socket is returned.
 
+#### `addrlen` argument
 Thus, the `addrlen` argument will also be zero.
 
 ```asm title="Accept syscall"
@@ -563,7 +571,6 @@ The Read syscall returns the number of bytes that are read and takes three argum
 3. `count`: Specifies the number of bytes to be read.
 
 #### `fd` argument
-
 For the `fd` argument we have to use the file descriptor of the connection that we accepted using the Accept syscall.
 
 ```
@@ -578,12 +585,10 @@ For the `fd` argument we have to use the file descriptor of the connection that 
 As we can see the file descriptor for the accepted connection is `4`, which is stored in `rax`.
 
 #### `buf[.count]` argument
-
 For the `buf[.count]` argument, we have to set the location of the buffer. 
 We can set the location to the stack using the stack pointer `rsp` register.
 
 #### `count` argument
-
 For the `count` argument, we have to set it to the length of the message to be received which is `146` bytes. 
 Reading more bytes than necessay can use up unnecessary space and also allow the client to insert malicious data.
 
