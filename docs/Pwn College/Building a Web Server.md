@@ -103,6 +103,8 @@ grep -r "IPPROTO_IP" /usr/include
 | rsi | type | 1 (SOCK_STREAM) |
 | rdx | protocol | 0 (IPPROTO_IP) |
 
+Now, we can move the required values in the relevant registers. 
+
 ```txt title="Socket syscall"
 mov rdi, 2
 mov rsi, 1
