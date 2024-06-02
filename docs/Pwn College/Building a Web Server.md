@@ -47,6 +47,14 @@ _start:
 .section .data
 ```
 
+```
+hacker@building-a-web-server~level1:~$ as -o webserver1.o webserver1.s && ld -o webserver1 webserver1.o
+```
+
+```
+hacker@building-a-web-server~level1:~$ /challenge/run ./webserver1
+```
+
 &nbsp;
 
 ## level 2
