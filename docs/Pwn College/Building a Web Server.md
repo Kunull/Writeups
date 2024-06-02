@@ -24,14 +24,17 @@ In order to make an exit syscall, we need to first set it up properly.
 
 ### Exit syscall
 
-| Register | Argument | Value | 
-|:-:|:-:|:-:|
-| rax | syscall id | 0x3c |
-| rdi | error_code | 0 |
+```c
+void _exit(int status);
+```
 
 The Exit syscall takes one argument:
 
-1. error_code: Denotes whether the program exited successfully or unsuccessfully. 
+1. `status`: Status of the process' exit. 0 - for success / OK, 1 - non success / error.
+| Register | Argument | Value | 
+|:-:|:-:|:-:|
+| rax | syscall id | 0x3c |
+| rdi | status | 0 |
 
 Let's move the required values in the relevant registers.
 
@@ -80,11 +83,11 @@ int socket(int domain, int type, int protocol);
 
 The Socket syscall takes three arguments:
 
-1. domain: Specifies a communication domain; this selects the protocol family which will be used for communication.
-2. type: Specifies the communication semantics.
-3. protocol: Specifies a particular protocol to be used with the socket.
+1. `domain`: Specifies a communication domain; this selects the protocol family which will be used for communication.
+2. `type`: Specifies the communication semantics.
+3. `protocol`: Specifies a particular protocol to be used with the socket.
 
-In order to set up the Socket system call, we need to first find out the value of it's arguments.
+In order to set up the Socket system call, we need to first find out the value of it's relevant arguments.
 
 ```python
 >>> import pwn 
