@@ -792,38 +792,32 @@ For this level, we are expected to take the
 [ ] exit(0) = ?
 ```
 
-Objectives include: 
-
-- [] Read filename included in the response
-- [] Opening the file
-- [] Reading the content 
-
 ### Extracting the filename specified in the response
 
 If we run the last program for this level, we can see that the response includes a filename.
 
 ```
 ===== Trace: Parent Process =====
-[✓] execve("/proc/self/fd/3", ["/proc/self/fd/3"], 0x7f12180b2980 /* 0 vars */) = 0
+[✓] execve("/proc/self/fd/3", ["/proc/self/fd/3"], 0x7fd87944e980 /* 0 vars */) = 0
 [✓] socket(AF_INET, SOCK_STREAM, IPPROTO_IP) = 3
 [✓] bind(3, {sa_family=AF_INET, sin_port=htons(80), sin_addr=inet_addr("0.0.0.0")}, 16) = 0
 [✓] listen(3, 0)                            = 0
 [✓] accept(3, NULL, NULL)                   = 4
-[✓] read(4, "GET /tmp/tmpbvxgqvrj HTTP/1.1\r\nHost: localhost\r\nUser-Agent: python-requests/2.32.3\r\nAccept-Encoding: gzip, deflate, zstd\r\nAccept: */*\r\nConnection: keep-alive\r\n\r\n", 161) = 161
+[✓] read(4, "GET /tmp/tmpmslfupz4 HTTP/1.1\r\nHost: localhost\r\nUser-Agent: python-requests/2.32.3\r\nAccept-Encoding: gzip, deflate, zstd\r\nAccept: */*\r\nConnection: keep-alive\r\n\r\n", 256) = 161
 ```
 
-We can see that the response include the `/tmp/tmpbvxgqvrj` filename, which seems to be a random name.
+We can see that the response include the `/tmp/tmpmslfupz4` filename, which seems to be a random name.
 
 In the Read syscall, we stored the data to be read onto the stack.
-So the `rsp` register currently acts a pointer to `GET /tmp/tmpbvxgqvrj HTTP/1.1\r\nHost: localhost\r\nUser-Agent: python-requests/2.32.3\r\nAccept-Encoding: gzip, deflate, zstd\r\nAccept: */*\r\nConnection: keep-alive\r\n\r\n`.
+So the `rsp` register currently acts a pointer to `GET /tmp/tmpmslfupz4 HTTP/1.1\r\nHost: localhost\r\nUser-Agent: python-requests/2.32.3\r\nAccept-Encoding: gzip, deflate, zstd\r\nAccept: */*\r\nConnection: keep-alive\r\n\r\n`.
 
-Let's move the pointer into `r10`.
+Let's move the pointer into `r10` so that we can perform further operations with it.
 
 ```asm
 mov r10, rsp		# r10 also points to the response 
 ```
 
-Now, we need a loop that prses through the respones and removes the `GET` part.
+Now, we need a loop that parses through the respones and removes the `GET` part.
 
 ```asm
 parse_GET:
@@ -834,7 +828,33 @@ parse_GET:
     jmp parse_GET	# Repeat loop 
 ```
 
-Next, we need to 
+```
+GET /tmp/tmpmslfupz4 HTTP/1.1\r\nHost: localhost\r\nUser-Agent: python-requests/2.32.3\r\nAccept-Encoding: gzip, deflate, zstd\r\nAccept: */*\r\nConnection: keep-alive\r\n\r\n
+   ^
+   r10
+```
+
+Next, we need to create a setup first before we parse the actual filename.
+
+```asm
+done1:
+    add r10, 1       # Make r10 point to the first character of filename (/)
+    mov r11, r10       # Make r11 point to the same byte
+    mov r12, 0       # Set r12 to 0, to use as a counter
+```
+
+Now, we are ready to parse through the filename.
+
+```asm
+parse_filename:
+    mov al, byte ptr [r11]       # Move one byte from the stack into al
+    cmp al, ' '       # Compare if the byte is an empty space ' '
+    je done2       # If yes: Jump out of the loop     
+    add r11, 1       # Else: Make r11 point to the next byte
+    add r12, 1       # Else: Add 1 to r12 (counter)
+    jmp parse_filename       # Repeat loop 
+```
+
 
 ```asm title=""
 .intel_syntax noprefix
