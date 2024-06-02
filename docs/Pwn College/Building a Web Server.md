@@ -21,7 +21,7 @@ In order to make an exit syscall, we need to first set it up properly.
 | Register | Argument | Value | 
 |:-:|:-:|:-:|
 | rax | syscall id | 0x3c |
-| rdi | int error_code | 0 |
+| rdi | error_code | 0 |
 
 Let's move the required values in the relevant registers.
 
@@ -81,9 +81,9 @@ grep -r "IPPROTO_IP" /usr/include
 | Register | Argument | Value | 
 |:-:|:-:|:-:|
 | rax | syscall id | 0x29 |
-| rdi | int domain | 2 |
-| rsi | int type | 1 |
-| rdx | int protocol | 0 |
+| rdi | domain | 2 (AF_INET) |
+| rsi | type | 1 (SOCK_STREAM) |
+| rdx | protocol | 0 (IPPROTO_IP) |
 
 ```asm title="webserver2.asm"
 .intel_syntax noprefix
