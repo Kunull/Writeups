@@ -169,6 +169,77 @@ hacker@building-a-web-server~level2:~$ /challenge/run ./webserver2
 int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 ```
 
+The Bind syscall takes three arguments:
+
+1. `sockfd`: Refers to a socket by it's file descriptor.
+2. `sockaddr`: Specifies the address to be assigned to the socket.
+3. `addrlen`: Specifies the size, in bytes, of the address structure pointed to by `addr`.
+
+In order to fill up the arguments, we need to know the file descriptor of the socket required for the `sockfd` argument.
+For that we need to trace all the syscalls using the `strace` command.
+
+```
+hacker@building-a-web-server~level3:~/server$ strace ./webserver2
+execve("./server", ["./server"], 0x7ffd3e044280 /* 25 vars */) = 0
+socket(AF_INET, SOCK_STREAM, IPPROTO_IP) = 3
+exit(0)                                 = ?
++++ exited with 0 +++
+```
+
+As we can see, the Socket syscall returns a file descriptor `3`. This makes sense because the first three file descriptors, `0`, `1` and `2`, are mapped to STDIN, STDOUT, and STDERR respectively.
+
+Next, for the `sockaddr` argument, we need to create a `struct` and create a pointer to that `struct`.
+
+If we check the Expected processes, we get more information.
+
+```
+===== Expected: Parent Process =====
+[ ] execve(<execve_args>) = 0
+[ ] socket(AF_INET, SOCK_STREAM, IPPROTO_IP) = 3
+[ ] bind(3, {sa_family=AF_INET, sin_port=htons(<bind_port>), sin_addr=inet_addr("<bind_address>")}, 16) = 0
+    - Bind to port 80
+    - Bind to address 0.0.0.0
+[ ] exit(0) = ?
+```
+
+For the `bind` process, `{sa_family=AF_INET, sin_port=htons(<bind_port>), sin_addr=inet_addr("<bind_address>")}` is the `struct` required for `sockaddr`.
+
+In order to create the `sruct`, we need to use the `.data` section.
+
+```asm
+.section .data
+sockaddr:
+    .2byte 2	# AF_INET
+    .2byte 0x5000	# Port 80
+    .4byte 0	# Address 0.0.0.0
+    .8byte 0	# Additional 8 bytes
+```
+
+We can now load the address of this `struct` into `rsi` using the `lea` instruction.
+
+```
+lea rsi, [rip+sockaddr]
+```
+
+The value of the `addlen` argument will be 16, as the `struct` is 16 bytes in length.
+
+The final Bind syscall will look as follows:
+
+```txt title="Bind syscall"
+mov rdi, 3
+lea rsi, [rip+sockaddr]
+mov rdx, 16
+mov rax, 0x31
+syscall
+
+.section .data
+sockaddr:
+    .2byte 2
+    .2byte 0x5000
+    .4byte 0
+    .8byte 0
+```
+
 ```asm title="webserver3.s"
 .intel_syntax noprefix
 .globl _start
