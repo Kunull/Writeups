@@ -25,7 +25,7 @@ In order to make an exit syscall, we need to first set it up properly.
 ### Exit syscall
 
 ```c
-void _exit(int _status_);
+void _exit(int status);
 ```
 
 The Exit syscall does not return anything and takes one argument:
@@ -81,7 +81,7 @@ hacker@building-a-web-server~level1:~$ /challenge/run ./webserver1
 ### Socket syscall
 
 ```c
-int socket(int _domain_, int _type_, int _protocol_);
+int socket(int domain, int type, int protocol);
 ```
 
 The Socket syscall returns a file descriptor and takes three arguments:
@@ -168,7 +168,7 @@ hacker@building-a-web-server~level2:~$ /challenge/run ./webserver2
 ### Bind syscall
 
 ```c
-int bind(int _sockfd_, const struct sockaddr _*addr_, socklen_t _addrlen_);
+int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 ```
 
 The Bind syscall returns a file descriptor and takes three arguments:
