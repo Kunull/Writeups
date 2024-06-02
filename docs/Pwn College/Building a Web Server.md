@@ -28,7 +28,7 @@ In order to make an exit syscall, we need to first set it up properly.
 void _exit(int status);
 ```
 
-The Exit syscall takes one argument:
+The Exit syscall does not return anything and takes one argument:
 
 1. `status`: Status of the process' exit. 0 - for success / OK, 1 - non success / error.
 
@@ -84,7 +84,7 @@ hacker@building-a-web-server~level1:~$ /challenge/run ./webserver1
 int socket(int domain, int type, int protocol);
 ```
 
-The Socket syscall takes three arguments:
+The Socket syscall returns a file descriptor and takes three arguments:
 
 1. `domain`: Specifies a communication domain; this selects the protocol family which will be used for communication.
 2. `type`: Specifies the communication semantics.
@@ -171,10 +171,10 @@ hacker@building-a-web-server~level2:~$ /challenge/run ./webserver2
 int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 ```
 
-The Bind syscall takes three arguments:
+The Bind syscall returns a file descriptor and takes three arguments:
 
 1. `sockfd`: Refers to a socket by it's file descriptor.
-2. `sockaddr`: Specifies the address to be assigned to the socket.
+2. `sockaddr`: Specifies the address to be assigned to the socket. Requires a `struct` to be created for the socket.
 3. `addrlen`: Specifies the size, in bytes, of the address structure pointed to by `addr`.
 
 In order to fill up the arguments, we need to know the file descriptor of the socket required for the `sockfd` argument.
