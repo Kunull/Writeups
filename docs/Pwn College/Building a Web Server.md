@@ -190,7 +190,9 @@ exit(0)                                 = ?
 
 As we can see, the Socket syscall returns a file descriptor `3`. This makes sense because the first three file descriptors, `0`, `1` and `2`, are mapped to STDIN, STDOUT, and STDERR respectively.
 
-We can load this value in the `rdi` register.
+One thing to note from the [calling convention](#syscall-calling-convention) is that the result of a syscall is stored in the `rax` register. So the file descriptor, whish is the result of the Socket syscall would be found in the `rax` register.
+
+We can move this value in the `rdi` register. Doing so, we do not have to specifiy a fixed file descriptor value (3), making our program more dynamic.
 
 ```
 mov rdi, 3
