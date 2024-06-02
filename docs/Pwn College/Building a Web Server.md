@@ -869,6 +869,13 @@ v   v               v
 GET /tmp/tmpmslfupz4 HTTP/1.1\r\nHost: localhost\r\nUser-Agent: python-requests/2.32.3\r\nAccept-Encoding: gzip, deflate, zstd\r\nAccept: */*\r\nConnection: keep-alive\r\n\r\n
 ```
 
+Let's set a NULL byte at r11 is pointing. This will terminate the string while reading the filename.
+
+```asm
+done2:
+    mov byte ptr [r11], 0
+```
+
 ```asm title=""
 .intel_syntax noprefix
 .globl _start
@@ -911,25 +918,25 @@ _start:
 
     mov r10, rsp
 
-loop1:
+parse_GET:
     mov al, byte ptr [r10]
     cmp al, ' '
     je done1
     add r10, 1
-    jmp loop1
+    jmp parse_GET
 
 done1:
     add r10, 1
     mov r11, r10
     mov r12, 0
 
-loop2:
+parse_filename:
     mov al, byte ptr [r11]
     cmp al, ' '
     je done2
     add r11, 1
     add r12, 1
-    jmp loop2
+    jmp parse_filename
 
 done2:
     mov byte ptr [r11], 0
