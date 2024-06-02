@@ -29,6 +29,10 @@ In order to make an exit syscall, we need to first set it up properly.
 | rax | syscall id | 0x3c |
 | rdi | error_code | 0 |
 
+The Exit syscall takes one argument:
+
+1. error_code: Denotes whether the program exited successfully or unsuccessfully. 
+
 Let's move the required values in the relevant registers.
 
 ```txt title="Exit syscall"
@@ -73,6 +77,12 @@ hacker@building-a-web-server~level1:~$ /challenge/run ./webserver1
 ```c
 int socket(int domain, int type, int protocol);
 ```
+
+The Socket syscall takes three arguments:
+
+1. domain: Specifies a communication domain; this selects the protocol family which will be used for communication.
+2. type: Specifies the communication semantics.
+3. protocol: Specifies a particular protocol to be used with the socket.
 
 In order to set up the Socket system call, we need to first find out the value of it's arguments.
 
