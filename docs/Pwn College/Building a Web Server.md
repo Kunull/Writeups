@@ -76,9 +76,16 @@ grep -r "#define SOCK_STREAM" /usr/include
 grep -r "IPPROTO_IP" /usr/include
 ```
 
+### Socket system call
 
+| Register | Argument | Value | 
+|:-:|:-:|:-:|
+| rax | syscall id | 0x29 |
+| rdi | int domain | 2 |
+| rsi | int type | 1 |
+| rdx | int protocol | 0 |
 
-```Assembly
+```asm title="webserver2.asm"
 .intel_syntax noprefix
 .globl _start
 
@@ -98,6 +105,14 @@ _start:
     syscall
 
 .section .data
+```
+
+```
+hacker@building-a-web-server~level2:~$ as -o webserver2.o webserver2.s && ld -o webserver2 webserver2.o
+```
+
+```
+hacker@building-a-web-server~level2:~$ /challenge/run ./webserver2
 ```
 
 &nbsp;
