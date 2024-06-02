@@ -190,6 +190,12 @@ exit(0)                                 = ?
 
 As we can see, the Socket syscall returns a file descriptor `3`. This makes sense because the first three file descriptors, `0`, `1` and `2`, are mapped to STDIN, STDOUT, and STDERR respectively.
 
+We can load this value in the `rdi` register.
+
+```
+mov rdi, 3
+```
+
 Next, for the `sockaddr` argument, we need to create a `struct` and create a pointer to that `struct`.
 
 If we check the Expected processes, we get more information.
@@ -214,7 +220,7 @@ sockaddr:
     .2byte 2	# AF_INET
     .2byte 0x5000	# Port 80
     .4byte 0	# Address 0.0.0.0
-    .8byte 0	# Additional 8 bytes
+    .8byte 0	# Additional 8 bytes of padding
 ```
 
 We can now load the address of this `struct` into `rsi` using the `lea` instruction.
@@ -224,6 +230,10 @@ lea rsi, [rip+sockaddr]
 ```
 
 The value of the `addlen` argument will be 16, as the `struct` is 16 bytes in length.
+
+```
+mov rdx, 16
+```
 
 The final Bind syscall will look as follows:
 
