@@ -880,6 +880,56 @@ Done_2:
     mov byte ptr [r11], 0
 ```
 
+#### Final pointer values
+
+```
+rsp
+|   r10             r11
+v   v               v
+GET /tmp/tmpmslfupz40HTTP/1.1\r\nHost: localhost\r\nUser-Agent: python-requests/2.32.3\r\nAccept-Encoding: gzip, deflate, zstd\r\nAccept: */*\r\nConnection: keep-alive\r\n\r\n
+```
+
+### Open syscall
+
+```c
+int open(const char *pathname, int flags, .../* mode_t mode */ );
+```
+
+```
+RETURN VALUE         top
+       On success, open(), openat(), and creat() return the new file
+       descriptor (a nonnegative integer).  On error, -1 is returned and
+       errno is set to indicate the error.
+```
+
+The Open syscall returns a file descriptor and takes three arguemnts:
+
+1. `*pathname`: Points to the filename to be opened.
+2. `flags`: Must include one of the following access modes: O_RDONLY, O_WRONLY, or O_RDWR.  These request opening the file read-only, write-only, or read/write, respectively.
+3. `mode`: Access modes: O_RDONLY, O_WRONLY, or O_RDWR.
+
+#### `*pathname` argument
+If we look at the [this](#final-pointer-values) diagram, we can see that `r10` already points to the start of the filename.
+We can just move it into the `rdi` register.
+
+```asm
+mov rdi, r10
+```
+
+#### `flags` argument
+Set the `flag` to be `0`.
+
+#### `mode` argument
+Set the `mode` to me `0`.
+
+```asm title="Open syscall"
+mov rdi, r10
+mov rsi, 0
+mov rdx, 0
+mov rax, 0x02
+syscall
+```
+
 ```asm title="webserver7.asm"
 .intel_syntax noprefix
 .globl _start
