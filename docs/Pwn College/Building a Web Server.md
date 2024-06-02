@@ -438,7 +438,7 @@ The Accept syscall returns a file descriptor and takes two arguments:
 
 1. `sockfd`: Socket that has been created with [socket(2)](https://man7.org/linux/man-pages/man2/socket.2.html), bound to a local address with [bind(2)](https://man7.org/linux/man-pages/man2/bind.2.html), and is listening for connections after a [listen(2)](https://man7.org/linux/man-pages/man2/listen.2.html).
 2. `addr`: Pointer to a `sockaddr` structure.
-3. `addrlen`: Contain the size (in bytes) of the structure pointed to by `addr`;
+3. `addrlen`: Contain the size (in bytes) of the structure pointed to by `addr`.
 
 
 ```Assembly
