@@ -61,11 +61,16 @@ hacker@building-a-web-server~level1:~$ /challenge/run ./webserver1
 
 > In this challenge you will create a socket.
 
-```Python
-import pwn
+```python
+>>> import pwn 
+>>> pwn.constants.AF_INET
+Constant('AF_INET', 0x2)
+```
 
-pwn.constants.AF_INET
-pwn.constants.SOCK_STREAM
+```python
+>>> import pwn 
+>>> pwn.constants.SOCK_STREAM
+Constant('SOCK_STREAM', 0x1)
 ```
 
 OR
