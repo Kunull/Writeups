@@ -63,6 +63,10 @@ hacker@building-a-web-server~level1:~$ /challenge/run ./webserver1
 
 ### Socket system call
 
+```c
+int socket(int domain, int type, int protocol);
+```
+
 In order to set up the Socket system call, we need to first find out the value of it's arguments.
 
 ```python
