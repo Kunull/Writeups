@@ -223,10 +223,10 @@ In order to create the `struct`, we need to use the `.data` section.
 ```asm
 .section .data
 sockaddr:
-    .2byte 2	# AF_INET
-    .2byte 0x5000	# Port 80
-    .4byte 0	# Address 0.0.0.0
-    .8byte 0	# Additional 8 bytes of padding
+    .2byte 2    # AF_INET
+    .2byte 0x5000    # Port 80
+    .4byte 0    # Address 0.0.0.0
+    .8byte 0    # Additional 8 bytes of padding
 ```
 
 We can now load the address of this `struct` into `rsi` using the `lea` instruction.
@@ -275,7 +275,7 @@ _start:
     syscall
 
     # Bind syscall
-    mov rdi, rax 	# 2 for the fd of socket
+    mov rdi, rax     # 2 for the fd of socket
     lea rsi, [rip+sockaddr]
     mov rdx, 16
     mov rax, 0x31
@@ -371,7 +371,7 @@ _start:
     mov rax, 0x29
     syscall
 
-    push rax	# To be used in the Listen syscall
+    push rax		# To be used in the Listen syscall
 
     # Bind syscall
     mov rdi, rax
@@ -473,10 +473,10 @@ _start:
     mov rdi, 2
     mov rsi, 1
     mov rdx, 0
-    mov rax, 0x29						
+    mov rax, 0x29                        
     syscall
 
-    push rax	# To be used in the Listen syscall
+    push rax		# To be used in the Listen syscall
 
     # Bind syscall
     mov rdi, rax
@@ -487,7 +487,7 @@ _start:
 
     # Listen syscall
     pop rdi
-    push rdi	# To be used in the Accept syscall
+    push rdi		# To be used in the Accept syscall
     mov rsi, 0
     mov rax, 0x32
     syscall
@@ -831,7 +831,7 @@ parse_GET:
     cmp al, ' '		# Compare if the byte is an empty space ' '
     je done1		# If yes: Jump out of the loop
     add r10, 1		# Else: Make r10 point to the next byte
-    jmp parse_GET		# Repeat loop 
+    jmp parse_GET	# Repeat loop 
 ```
 
 Next, we need to 
@@ -842,119 +842,119 @@ Next, we need to
 
 .section .text
 _start:
-	# Socket syscall
-	mov rdi, 2
-	mov rsi, 1
-	mov rdx, 0
-	mov rax, 0x29
-	syscall
+    # Socket syscall
+    mov rdi, 2
+    mov rsi, 1
+    mov rdx, 0
+    mov rax, 0x29
+    syscall
 
-	# Bind syscall
-	mov rdi, 3
-	lea rsi, [rip+sockaddr]
-	mov rdx, 16
-	mov rax, 0x31
-	syscall
+    # Bind syscall
+    mov rdi, 3
+    lea rsi, [rip+sockaddr]
+    mov rdx, 16
+    mov rax, 0x31
+    syscall
 
-	# Listen syscall
-	mov rdi, 3
-	mov rsi, 0
-	mov rax, 0x32
-	syscall
+    # Listen syscall
+    mov rdi, 3
+    mov rsi, 0
+    mov rax, 0x32
+    syscall
 
-	# Accept syscall
-	mov rdi, 3
-	mov rsi, 0
-	mov rdx, 0
-	mov rax, 0x2b
-	syscall
+    # Accept syscall
+    mov rdi, 3
+    mov rsi, 0
+    mov rdx, 0
+    mov rax, 0x2b
+    syscall
 
-	# Read syscall
-	mov rdi, 4
-	mov rsi, rsp
-	mov rdx, 256
-	mov rax, 0x00
-	syscall
+    # Read syscall
+    mov rdi, 4
+    mov rsi, rsp
+    mov rdx, 256
+    mov rax, 0x00
+    syscall
 
-	mov r10, rsp
+    mov r10, rsp
 
 loop1:
-	mov al, byte ptr [r10]
-	cmp al, ' '
-	je done1
-	add r10, 1
-	jmp loop1
+    mov al, byte ptr [r10]
+    cmp al, ' '
+    je done1
+    add r10, 1
+    jmp loop1
 
 done1:
-	add r10, 1
-	mov r11, r10
-	mov r12, 0
+    add r10, 1
+    mov r11, r10
+    mov r12, 0
 
 loop2:
-	mov al, byte ptr [r11]
-	cmp al, ' '
-	je done2
-	add r11, 1
-	add r12, 1
-	jmp loop2
+    mov al, byte ptr [r11]
+    cmp al, ' '
+    je done2
+    add r11, 1
+    add r12, 1
+    jmp loop2
 
 done2:
-	mov byte ptr [r11], 0
+    mov byte ptr [r11], 0
 
-	# Open syscall
-	mov rdi, r10
-	mov rsi, 0
-	mov rdx, 0
-	mov rax, 0x02
-	syscall
+    # Open syscall
+    mov rdi, r10
+    mov rsi, 0
+    mov rdx, 0
+    mov rax, 0x02
+    syscall
 
-	# Read syscall
-	mov rdi, 5
-	mov rsi, rsp
-	mov rdx, 256
-	mov rax, 0x00
-	syscall
+    # Read syscall
+    mov rdi, 5
+    mov rsi, rsp
+    mov rdx, 256
+    mov rax, 0x00
+    syscall
 
-	mov r12, rax
+    mov r12, rax
 
-	# Close syscall
-	mov rdi, 5
-	mov rax, 0x03
-	syscall
+    # Close syscall
+    mov rdi, 5
+    mov rax, 0x03
+    syscall
 
-	# Write syscall
-	mov rdi, 4
-	lea rsi, [rip+response]
-	mov rdx, 19
-	mov rax, 0x01
-	syscall
+    # Write syscall
+    mov rdi, 4
+    lea rsi, [rip+response]
+    mov rdx, 19
+    mov rax, 0x01
+    syscall
 
-	# Write syscall
-	mov rdi, 4
-	mov rsi, rsp
-	mov rdx, r12
-	mov rax, 0x01
-	syscall
+    # Write syscall
+    mov rdi, 4
+    mov rsi, rsp
+    mov rdx, r12
+    mov rax, 0x01
+    syscall
 
-	# Close syscall
-	mov rdi, 4
-	mov rax, 0x03
-	syscall
+    # Close syscall
+    mov rdi, 4
+    mov rax, 0x03
+    syscall
 
-	# Exit syscall
+    # Exit syscall
     mov rdi, 0
     mov rax, 0x3c    
     syscall
 
 .section .data
 sockaddr:
-	.2byte 2
-	.2byte 0x5000
-	.4byte 0
-	.8byte 0
+    .2byte 2
+    .2byte 0x5000
+    .4byte 0
+    .8byte 0
 
 response: 
-	.string "HTTP/1.0 200 OK\r\n\r\n"
+    .string "HTTP/1.0 200 OK\r\n\r\n"
 ```
 
 ```
@@ -1011,7 +1011,7 @@ _start:
     syscall
 
     mov r10, rsp
-	
+    
 loop1:
     mov al, [r10]
     cmp al, ' '
