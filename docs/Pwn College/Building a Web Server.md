@@ -22,7 +22,7 @@ In order to make an exit syscall, we need to first set it up properly.
 
 ![image](https://github.com/Kunull/Write-ups/assets/110326359/b9f4db11-eb71-4cdf-9266-890bf718dbfc)
 
-### Exit system call
+### Exit syscall
 
 | Register | Argument | Value | 
 |:-:|:-:|:-:|
@@ -31,14 +31,15 @@ In order to make an exit syscall, we need to first set it up properly.
 
 Let's move the required values in the relevant registers.
 
-```
+```txt title="Exit syscall"
 mov rdi, 0
-mov rax, 0x3c 
+mov rax, 0x3c        
+syscall
 ```
 
 Once the setup is completed, we can use the `syscall` instruction.
 
-```asm title="webserver1.asm"
+```asm title="webserver1.s"
 .intel_syntax noprefix
 .globl _start
 
@@ -67,7 +68,7 @@ hacker@building-a-web-server~level1:~$ /challenge/run ./webserver1
 
 > In this challenge you will create a socket.
 
-### Socket system call
+### Socket syscall
 
 ```c
 int socket(int domain, int type, int protocol);
@@ -102,7 +103,15 @@ grep -r "IPPROTO_IP" /usr/include
 | rsi | type | 1 (SOCK_STREAM) |
 | rdx | protocol | 0 (IPPROTO_IP) |
 
-```asm title="webserver2.asm"
+```txt title="Socket syscall"
+mov rdi, 2
+mov rsi, 1
+mov rdx, 0
+mov rax, 0x29
+syscall
+```
+
+```asm title="webserver2.s"
 .intel_syntax noprefix
 .globl _start
 
@@ -136,7 +145,9 @@ hacker@building-a-web-server~level2:~$ /challenge/run ./webserver2
 
 ## level 3
 
-```Assembly
+> In this challenge you will bind an address to a socket.
+
+```asm title="webserver3.s"
 .intel_syntax noprefix
 .globl _start
 
@@ -168,6 +179,14 @@ sockaddr:
     .2byte 0x5000
     .4byte 0
     .8byte 0
+```
+
+```
+hacker@building-a-web-server~level3:~$ as -o webserver3.o webserver3.s && ld -o webserver3 webserver3.o
+```
+
+```
+hacker@building-a-web-server~level3:~$ /challenge/run ./webserver3
 ```
 
 &nbsp;
