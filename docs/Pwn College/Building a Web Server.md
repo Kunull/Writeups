@@ -14,6 +14,8 @@ It will be used in every level in this module.
 
 > In this challenge you will exit a program.
 
+### Syscall calling convention
+
 In order to make an exit syscall, we need to first set it up properly.
 
 [This](https://www.chromium.org/chromium-os/developer-library/reference/linux-constants/syscalls/) documentaion tells us what the calling convention is for x86_64.
