@@ -14,6 +14,10 @@ It will be used in every level in this module.
 
 > In this challenge you will exit a program.
 
+Objectives:
+
+- [] Exit the program.
+
 ### Syscall calling convention
 
 In order to make an exit syscall, we need to first set it up properly.
@@ -792,6 +796,16 @@ For this level, we are expected to take the
 [ ] exit(0) = ?
 ```
 
+Objectives include: 
+
+- [] Read filename included in the response
+- [] Opening the file
+- [] Reading the content 
+
+### Reading the filename specified in the response
+
+If we run the last program for this level, we can see that the response includes a filename.
+
 ```Assembly
 .intel_syntax noprefix
 .globl _start
@@ -843,9 +857,9 @@ loop1:
     jmp loop1
 
 done1:
-	add r10, 1
-	mov r11, r10
-	mov r12, 0
+    add r10, 1
+    mov r11, r10
+    mov r12, 0
 
 loop2:
     mov al, [r11]
