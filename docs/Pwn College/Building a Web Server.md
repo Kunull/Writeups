@@ -536,7 +536,7 @@ For this level, we are expected to perform multiple new syscalls.
 
 ### Read syscall
 
-```
+```c
 ssize_t read(int fd, void buf[.count], size_t count);
 ```
 
