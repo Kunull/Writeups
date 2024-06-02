@@ -814,7 +814,7 @@ So the `rsp` register currently acts a pointer to `GET /tmp/tmpmslfupz4 HTTP/1.1
 Let's move the pointer into `r10` so that we can perform further operations with it.
 
 ```asm
-mov r10, rsp		# r10 also points to the response 
+mov r10, rsp       # r10 also points to the response 
 ```
 
 #### Parsing through `GET`
@@ -822,11 +822,11 @@ Now, we need a loop that parses through the respones and removes the `GET` part.
 
 ```asm
 Parse_GET:
-    mov al, [r10]	# Move one byte from the stack into al
-    cmp al, ' '		# Compare if the byte is an empty space ' '
-    je Done_1		# If yes: Jump out of the loop
-    add r10, 1		# Else: Make r10 point to the next byte
-    jmp Parse_GET	# Repeat loop 
+    mov al, [r10]       # Move one byte from the stack into al
+    cmp al, ' '         # Compare if the byte is an empty space ' '
+    je Done_1           # If yes: Jump out of the loop
+    add r10, 1          # Else: Make r10 point to the next byte
+    jmp Parse_GET       # Repeat loop 
 ```
 
 Once this loop is done executing, this is how the relevant registers will look:
@@ -842,9 +842,9 @@ Next, we need to create a setup first before we parse the actual filename.
 
 ```asm
 done1:
-    add r10, 1              # Make r10 point to the first character of filename (/)
+    add r10, 1         # Make r10 point to the first character of filename (/)
     mov r11, r10       # Make r11 point to the same byte
-    mov r12, 0              # Set r12 to 0, to use as a counter
+    mov r12, 0         # Set r12 to 0, to use as a counter
 ```
 
 #### Parsing through filename
