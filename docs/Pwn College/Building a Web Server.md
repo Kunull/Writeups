@@ -824,7 +824,7 @@ Now, we need a loop that parses through the respones and removes the `GET` part.
 Parse_GET:
     mov al, [r10]       # Move one byte from the stack into al
     cmp al, ' '         # Compare if the byte is an empty space ' '
-                        # If yes:
+                        # If equal:
     je Done_1                  # Jump out of the loop
                         # Else:
     add r10, 1                 # Make r10 point to the next byte
@@ -856,7 +856,7 @@ Now, we are ready to parse through the filename.
 Parse_filename:
     mov al, byte ptr [r11]       # Move one byte from the stack into al
     cmp al, ' '                  # Compare if the byte is an empty space ' '
-                                 # If else:
+                                 # If equal:
     je Done_2                           # Jump out of the loop     
                                  # Else:
     add r11, 1                          # Make r11 point to the next byte
