@@ -61,6 +61,10 @@ hacker@building-a-web-server~level1:~$ /challenge/run ./webserver1
 
 > In this challenge you will create a socket.
 
+### Socket system call
+
+In order to set up the Socket system call, we need to first find out the value of it's arguments.
+
 ```python
 >>> import pwn 
 >>> pwn.constants.AF_INET
@@ -80,8 +84,6 @@ grep -r "#define AF_INET" /usr/include
 grep -r "#define SOCK_STREAM" /usr/include
 grep -r "IPPROTO_IP" /usr/include
 ```
-
-### Socket system call
 
 | Register | Argument | Value | 
 |:-:|:-:|:-:|
