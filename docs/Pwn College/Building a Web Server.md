@@ -670,8 +670,33 @@ response:
     .string "HTTP/1.0 200 OK\r\n\r\n"
 ```
 
+### Close syscall
 
-```Assembly
+```c
+int close(int fd);
+```
+
+```
+RETURN VALUE         top
+       close() returns zero on success.  On error, -1 is returned, and
+       errno is set to indicate the error.
+```
+
+The Close syscall returns a code and takes one argument:
+
+1. `fd`: Specidfies the file descriptor to be closed.
+
+#### `fd` argument
+
+The file descriptor that we want to close is `4` whic is the file descriptor of the accepted connection.
+
+```asm title="Close syscall"
+mov rdi, 4
+mov rax, 0x03
+syscall
+```
+
+```asm title="webserver6.s"
 .intel_syntax noprefix
 .globl _start
 
@@ -862,6 +887,14 @@ sockaddr:
 
 response: 
     .string "HTTP/1.0 200 OK\r\n\r\n"
+```
+
+```
+hacker@building-a-web-server~level6:~$ as -o webserver5.o webserver6.s && ld -o webserver6 webserver6.o
+```
+
+```
+hacker@building-a-web-server~level6:~$ /challenge/run ./webserver6
 ```
 
 &nbsp;
