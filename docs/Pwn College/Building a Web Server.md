@@ -860,7 +860,6 @@ Parse_filename:
     je Done_2                           # Jump out of the loop     
                                  # Else:
     add r11, 1                          # Make r11 point to the next byte
-    add r12, 1                          # Add 1 to r12 (counter)
     jmp Parse_filename           # Repeat loop 
 ```
 
@@ -930,6 +929,54 @@ mov rax, 0x02
 syscall
 ```
 
+### Reading file content
+
+The file descriptor of the Open syscall is `5`. That will be where we will read from.
+
+We want to read to the stack. So we will point to the location using `rsp`.
+
+```asm title="Reading file content"
+mov rdi, 5
+mov rsi, rsp
+mov rdx, 256
+mov rax, 0x00
+syscall
+```
+
+```
+[✓] read(5, "pM6ypGMUwpKdFw94HsUXn5woBxkD2hk2pViNTbWMSpaEVx8SBHH0CMYnSQj", 256) = 59
+```
+
+As we can see, we read 59 bytes from the file.
+
+#### File content
+```
+rsp
+v
+pM6ypGMUwpKdFw94HsUXn5woBxkD2hk2pViNTbWMSpaEVx8SBHH0CMYnSQj
+```
+
+### Writing file content
+
+The connection we wna tot write to has the file descriptor `4`.
+
+We are again going to write from the stack pointed to by `rsp`. 
+
+We have to write the exact number of bytes that we read from the file. This is the result of the Read syscall and is stored in the `rax` register. 
+We can preserve the reult by moving it into another register.
+
+```asm
+mov r12, rax
+```
+
+```asm title="Writing file content"
+mov rdi, 4
+mov rsi, rsp
+mov rdx, r12
+mov rax, 0x01
+syscall
+```
+
 ```asm title="webserver7.asm"
 .intel_syntax noprefix
 .globl _start
@@ -982,14 +1029,12 @@ Parse_GET:
 Done_1:
     add r10, 1
     mov r11, r10
-    mov r12, 0
 
 Parse_filename:
     mov al, byte ptr [r11]
     cmp al, ' '
     je Done_2
     add r11, 1
-    add r12, 1
     jmp Parse_filename
 
 Done_2:
