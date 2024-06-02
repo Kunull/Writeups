@@ -380,7 +380,7 @@ _start:
     mov rax, 0x29
     syscall
 
-    push rax
+    push rax	# To be used in the Listen syscall
 
     # Bind syscall
     mov rdi, rax
@@ -482,7 +482,7 @@ _start:
     mov rax, 0x29						
     syscall
 
-    push rax
+    push rax	# To be used in the Listen syscall
 
     # Bind syscall
     mov rdi, rax
@@ -493,7 +493,7 @@ _start:
 
     # Listen syscall
     pop rdi
-    push rdi
+    push rdi	# To be used in the Accept syscall
     mov rsi, 0
     mov rax, 0x32
     syscall
