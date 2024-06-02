@@ -836,8 +836,6 @@ rsp
 |  r10
 v  v
 GET /tmp/tmpmslfupz4 HTTP/1.1\r\nHost: localhost\r\nUser-Agent: python-requests/2.32.3\r\nAccept-Encoding: gzip, deflate, zstd\r\nAccept: */*\r\nConnection: keep-alive\r\n\r\n
-   ^
-   r10
 ```
 
 Next, we need to create a setup first before we parse the actual filename.
@@ -849,6 +847,7 @@ done1:
     mov r12, 0       # Set r12 to 0, to use as a counter
 ```
 
+#### Parsing through filename
 Now, we are ready to parse through the filename.
 
 ```asm
@@ -861,6 +860,14 @@ parse_filename:
     jmp parse_filename       # Repeat loop 
 ```
 
+Once this loop is done executing, this is how the relevant registers will look:
+
+```
+rsp
+|   r10             r11
+v   v               v
+GET /tmp/tmpmslfupz4 HTTP/1.1\r\nHost: localhost\r\nUser-Agent: python-requests/2.32.3\r\nAccept-Encoding: gzip, deflate, zstd\r\nAccept: */*\r\nConnection: keep-alive\r\n\r\n
+```
 
 ```asm title=""
 .intel_syntax noprefix
