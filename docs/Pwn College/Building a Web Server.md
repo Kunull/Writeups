@@ -433,7 +433,7 @@ The Accept syscall returns a file descriptor and takes two arguments:
 2. `addr`: Pointer to a `sockaddr` structure.
 3. `addrlen`: Contain the size (in bytes) of the structure pointed to by `addr`.
 
-#### `sock` argument
+#### `sockfd` argument
 For the `sockfd` argument, we have to set value to the file descriptor that we created. Again, we will `push` the value onto the stack so that it is not over-written when the Listen syscall is made. Then we `pop` it into the `rdi` register.
 
 ```
@@ -768,6 +768,29 @@ response:
 &nbsp;
 
 ## level 7
+
+> In this challenge you will respond to a GET request for the contents of a specified file.
+
+For this level, we are expected to take the 
+
+```
+===== Expected: Parent Process =====
+[ ] execve(<execve_args>) = 0
+[ ] socket(AF_INET, SOCK_STREAM, IPPROTO_IP) = 3
+[ ] bind(3, {sa_family=AF_INET, sin_port=htons(<bind_port>), sin_addr=inet_addr("<bind_address>")}, 16) = 0
+    - Bind to port 80
+    - Bind to address 0.0.0.0
+[ ] listen(3, 0) = 0
+[ ] accept(3, NULL, NULL) = 4
+[ ] read(4, <read_request>, <read_request_count>) = <read_request_result>
+[ ] open("<open_path>", O_RDONLY) = 5
+[ ] read(5, <read_file>, <read_file_count>) = <read_file_result>
+[ ] close(5) = 0
+[ ] write(4, "HTTP/1.0 200 OK\r\n\r\n", 19) = 19
+[ ] write(4, <write_file>, <write_file_count>) = <write_file_result>
+[ ] close(4) = 0
+[ ] exit(0) = ?
+```
 
 ```Assembly
 .intel_syntax noprefix
