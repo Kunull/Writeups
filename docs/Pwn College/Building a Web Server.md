@@ -1520,7 +1520,7 @@ hacker@building-a-web-server~level10:~/server$ grep -r "#define O_CREAT" /usr/in
 The Octal value of `O_WRONLY` is `00000100` which is `64` in Decimal.
 
 ```
-Flag			Ocatal		Decimal
+Flag			Octal		Decimal
 
 O_WRONLY		00000001	1
 O_CREAT			00000100	64
