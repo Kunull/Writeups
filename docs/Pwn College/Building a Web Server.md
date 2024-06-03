@@ -1499,7 +1499,9 @@ Since we have to set the `O_WRONLY` or the `O_CREAT` flag, we need to perform a 
 ```
 O_WRONLY	1
 O_CREAT		64
---------------------
+------------------
+Bitwise OR
+``````````````````
 		65
 ```
 
