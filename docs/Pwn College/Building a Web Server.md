@@ -1186,152 +1186,151 @@ Child_process:
 
 .section .text
 _start:
-	# Socket syscall
-	mov rdi, 2
-	mov rsi, 1
-	mov rdx, 0
-	mov rax, 0x29
-	syscall
+    # Socket syscall
+    mov rdi, 2
+    mov rsi, 1
+    mov rdx, 0
+    mov rax, 0x29
+    syscall
 
-	# Bind syscall
-	mov rdi, 3
-	lea rsi, [rip+sockaddr]
-	mov rdx, 16
-	mov rax, 0x31
-	syscall
+    # Bind syscall
+    mov rdi, 3
+    lea rsi, [rip+sockaddr]
+    mov rdx, 16
+    mov rax, 0x31
+    syscall
 
-	# Listen syscall
-	mov rdi, 3
-	mov rsi, 0
-	mov rax, 0x32
-	syscall
+    # Listen syscall
+    mov rdi, 3
+    mov rsi, 0
+    mov rax, 0x32
+    syscall
 
-Parent_process:
-	# Accept syscall
-	mov rdi, 3
-	mov rsi, 0
-	mov rdx, 0
-	mov rax, 0x2b
-	syscall
+    # Accept syscall
+    mov rdi, 3
+    mov rsi, 0
+    mov rdx, 0
+    mov rax, 0x2b
+    syscall
 
-	# Fork syscall
-	mov rax, 0x39
-	syscall
+    # Fork syscall
+    mov rax, 0x39
+    syscall
 
     cmp rax, 0
     je Child_process
 
 Parent_process:
     # Close syscall child
-	mov rdi, 4
-	mov rax, 0x03
-	syscall
+    mov rdi, 4
+    mov rax, 0x03
+    syscall
 
     # Accept syscall
-	mov rdi, 3
-	mov rsi, 0
-	mov rdx, 0
-	mov rax, 0x2b
-	syscall
+    mov rdi, 3
+    mov rsi, 0
+    mov rdx, 0
+    mov rax, 0x2b
+    syscall
 
 Child_process:
-	# Close syscall child
-	mov rdi, 3
-	mov rax, 0x03
-	syscall
+    # Close syscall child
+    mov rdi, 3
+    mov rax, 0x03
+    syscall
 
-	# Read syscall
-	mov rdi, 4
-	mov rsi, rsp
-	mov rdx, 256
-	mov rax, 0x00
-	syscall
+    # Read syscall
+    mov rdi, 4
+    mov rsi, rsp
+    mov rdx, 256
+    mov rax, 0x00
+    syscall
 
-	mov r10, rsp
+    mov r10, rsp
 
 Parse_GET:
-	mov al, byte ptr [r10]
-	cmp al, ' '
-	je Done_1
-	add r10, 1
-	jmp Parse_GET
+    mov al, byte ptr [r10]
+    cmp al, ' '
+    je Done_1
+    add r10, 1
+    jmp Parse_GET
 
 Done_1:
-	add r10, 1
-	mov r11, r10
+    add r10, 1
+    mov r11, r10
 
 Parse_filename:
-	mov al, byte ptr [r11]
-	cmp al, ' '
-	je Done_2
-	add r11, 1
-	add r12, 1
-	jmp Parse_filename
+    mov al, byte ptr [r11]
+    cmp al, ' '
+    je Done_2
+    add r11, 1
+    add r12, 1
+    jmp Parse_filename
 
 Done_2:
-	mov byte ptr [r11], 0
+    mov byte ptr [r11], 0
 
-	# Open syscall
-	mov rdi, r10
-	mov rsi, 0
-	mov rdx, 0
-	mov rax, 0x02
-	syscall
+    # Open syscall
+    mov rdi, r10
+    mov rsi, 0
+    mov rdx, 0
+    mov rax, 0x02
+    syscall
 
-	# Read syscall
-	mov rdi, 3
-	mov rsi, rsp
-	mov rdx, 256
-	mov rax, 0x00
-	syscall
+    # Read syscall
+    mov rdi, 3
+    mov rsi, rsp
+    mov rdx, 256
+    mov rax, 0x00
+    syscall
 
-	mov r12, rax
+    mov r12, rax
 
-	# Close syscall
-	mov rdi, 3
-	mov rax, 0x03
-	syscall
+    # Close syscall
+    mov rdi, 3
+    mov rax, 0x03
+    syscall
 
-	# Write syscall
-	mov rdi, 4
-	lea rsi, [rip+response]
-	mov rdx, 19
-	mov rax, 0x01
-	syscall
+    # Write syscall
+    mov rdi, 4
+    lea rsi, [rip+response]
+    mov rdx, 19
+    mov rax, 0x01
+    syscall
 
-	# Write syscall
-	mov rdi, 4
-	mov rsi, rsp
-	mov rdx, r12
-	mov rax, 0x01
-	syscall
+    # Write syscall
+    mov rdi, 4
+    mov rsi, rsp
+    mov rdx, r12
+    mov rax, 0x01
+    syscall
 
-	# Close syscall
-	mov rdi, 4
-	mov rax, 0x03
-	syscall
+    # Close syscall
+    mov rdi, 4
+    mov rax, 0x03
+    syscall
 
-	# Accept syscall
-	mov rdi, 3
-	mov rsi, 0
-	mov rdx, 0
-	mov rax, 0x2b
-	syscall
+    # Accept syscall
+    mov rdi, 3
+    mov rsi, 0
+    mov rdx, 0
+    mov rax, 0x2b
+    syscall
 
-	# Exit syscall
+    # Exit syscall
     mov rdi, 0
     mov rax, 0x3c    
     syscall
 
 .section .data
 sockaddr:
-	.2byte 2
-	.2byte 0x5000
-	.4byte 0
-	.8byte 0
+    .2byte 2
+    .2byte 0x5000
+    .4byte 0
+    .8byte 0
 
 response: 
-	.string "HTTP/1.0 200 OK\r\n\r\n"
+    .string "HTTP/1.0 200 OK\r\n\r\n"
 ```
 
 ```
@@ -1341,3 +1340,10 @@ hacker@building-a-web-server~level8:~$ as -o webserver8.o webserver8.s && ld -o 
 ```
 hacker@building-a-web-server~level8:~$ /challenge/run ./webserver8
 ```
+
+&nbsp;
+
+## level 10
+
+> In this challenge you will respond to a POST request with a specified file and update its contents.
+
