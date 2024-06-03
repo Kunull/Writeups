@@ -904,8 +904,8 @@ RETURN VALUE         top
 The Open syscall returns a file descriptor and takes three arguemnts:
 
 1. `*pathname`: Points to the filename to be opened.
-2. `flags`: Must include one of the following access modes: O_RDONLY, O_WRONLY, or O_RDWR.  These request opening the file read-only, write-only, or read/write, respectively.
-3. `mode`: Access modes: O_RDONLY, O_WRONLY, or O_RDWR.
+2. `flags`: Must include one of the following access modes: O_RDONLY, O_WRONLY, or O_RDWR. Other access modes also exist.
+3. `mode`: Specifies file permissions if file is being created.
 
 #### `*pathname` argument
 If we look at the [this](#final-pointer-values) diagram, we can see that `r10` already points to the start of the filename.
@@ -919,7 +919,7 @@ mov rdi, r10
 Set the `flag` to be `0`. This is the `O_RDONLY` flag.
 
 #### `mode` argument
-Set the `mode` to me `0`.
+Since we are not creating a new file, we have to set the `mode` to `0`.
 
 ```asm title="Open syscall"
 mov rdi, r10
