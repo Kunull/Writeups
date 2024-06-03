@@ -1538,10 +1538,19 @@ We also have to set the `mode` argument to `0777`.
 
 For this level, after the first parsing loop, our pointer will look as follows:
 
-#### First parser
+### First parser
 ```
 rsp
 |    r10             r11
 v    v               v
 POST /tmp/tmp4iy_qvbx0HTTP/1.1\r\nHost: localhost\r\nUser-Agent: python-requests/2.32.3\r\nAccept-Encoding: gzip, deflate, zstd\r\nAccept: */*\r\nConnection: keep-alive\r\nContent-Length: 215\r\n\r\nR15W1AHO2JHSZtB7k9A1LVbfUdHKw8c4mbCV9PjHhIAI5S715T2DltqVlaSONngT8OvACdzhp2tmD1WjTAttBKBpgU0FMEHGJh4NFPyzCTXmAFkUJZ7xyo5sHSWY46mM7ts2vgBmoO6smGMgvA3J4ciu14UIlWi4vM2O7ZryHHi8fiuSu3YQxRiLFZ4CXHCb75vR2LSsT5pXOkVwTa7rxj6
 ```
+
+We need to create two more parsers that do the following:
+
+- Parses through the POST header till it finds `/r/n/r/n`.
+- Parses through the content after `/r/n/r/n`.
+
+
+### Extracting POST content
+####
