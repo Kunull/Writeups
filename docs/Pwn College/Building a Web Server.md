@@ -916,7 +916,7 @@ mov rdi, r10
 ```
 
 #### `flags` argument
-Set the `flag` to be `0`.
+Set the `flag` to be `0`. This is the `O_RDONLY` flag.
 
 #### `mode` argument
 Set the `mode` to me `0`.
@@ -1110,7 +1110,140 @@ hacker@building-a-web-server~level7:~$ /challenge/run ./webserver7
 
 > In this challenge you will accept multiple requests.
 
-#### Fork syscall
+```asm title="webserver8.asm"
+.intel_syntax noprefix
+.globl _start
+
+.section .text
+_start:
+    # Socket syscall
+    mov rdi, 2
+    mov rsi, 1
+    mov rdx, 0
+    mov rax, 0x29
+    syscall
+
+    # Bind syscall
+    mov rdi, 3
+    lea rsi, [rip+sockaddr]
+    mov rdx, 16
+    mov rax, 0x31
+    syscall
+
+    # Listen syscall
+    mov rdi, 3
+    mov rsi, 0
+    mov rax, 0x32
+    syscall
+
+    # Accept syscall
+    mov rdi, 3
+    mov rsi, 0
+    mov rdx, 0
+    mov rax, 0x2b
+    syscall
+
+    # Read syscall
+    mov rdi, 4
+    mov rsi, rsp
+    mov rdx, 256
+    mov rax, 0x00
+    syscall
+
+    mov r10, rsp
+
+Parse_GET:
+    mov al, byte ptr [r10]
+    cmp al, ' '
+    je Done_1
+    add r10, 1
+    jmp Parse_GET
+
+Done_1:
+    add r10, 1
+    mov r11, r10
+
+Parse_filename:
+    mov al, byte ptr [r11]
+    cmp al, ' '
+    je Done_2
+    add r11, 1
+    jmp Parse_filename
+
+Done_2:
+    mov byte ptr [r11], 0
+
+    # Open syscall
+    mov rdi, r10
+    mov rsi, 0
+    mov rdx, 0
+    mov rax, 0x02
+    syscall
+
+    # Read syscall
+    mov rdi, 5
+    mov rsi, rsp
+    mov rdx, 256
+    mov rax, 0x00
+    syscall
+
+    mov r12, rax
+
+    # Close syscall
+    mov rdi, 5
+    mov rax, 0x03
+    syscall
+
+    # Write syscall
+    mov rdi, 4
+    lea rsi, [rip+response]
+    mov rdx, 19
+    mov rax, 0x01
+    syscall
+
+    # Write syscall
+    mov rdi, 4
+    mov rsi, rsp
+    mov rdx, r12
+    mov rax, 0x01
+    syscall
+
+    # Close syscall
+    mov rdi, 4
+    mov rax, 0x03
+    syscall
+
+    # Exit syscall
+    mov rdi, 0
+    mov rax, 0x3c    
+    syscall
+
+.section .data
+sockaddr:
+    .2byte 2
+    .2byte 0x5000
+    .4byte 0
+    .8byte 0
+
+response: 
+    .string "HTTP/1.0 200 OK\r\n\r\n"
+```
+
+```
+hacker@building-a-web-server~level:~$ as -o webserver8.o webserver8.s && ld -o webserver8 webserver8.o
+```
+
+```
+hacker@building-a-web-server~level8:~$ /challenge/run ./webserver8
+```
+
+&nbsp;
+
+## level 9
+
+> In this challenge you will accept multiple requests.
+
+### Fork syscall
 
 ```c
 pid_t fork(void);
@@ -1180,7 +1313,7 @@ Child_process:
 	# Code for child process
 ```
 
-```asm title="webserver8.asm"
+```asm title="webserver9.asm"
 .intel_syntax noprefix
 .globl _start
 
@@ -1264,7 +1397,6 @@ Parse_filename:
     cmp al, ' '
     je Done_2
     add r11, 1
-    add r12, 1
     jmp Parse_filename
 
 Done_2:
@@ -1334,11 +1466,11 @@ response:
 ```
 
 ```
-hacker@building-a-web-server~level8:~$ as -o webserver8.o webserver8.s && ld -o webserver8 webserver8.o
+hacker@building-a-web-server~level9:~$ as -o webserver9.o webserver9.s && ld -o webserver9 webserver9.o
 ```
 
 ```
-hacker@building-a-web-server~level8:~$ /challenge/run ./webserver8
+hacker@building-a-web-server~level9:~$ /challenge/run ./webserver9
 ```
 
 &nbsp;
@@ -1346,4 +1478,26 @@ hacker@building-a-web-server~level8:~$ /challenge/run ./webserver8
 ## level 10
 
 > In this challenge you will respond to a POST request with a specified file and update its contents.
+
+### Open syscall
+In this level, we have to modify the Open syscall slightly.
+
+```
+[ ] open("<open_path>", O_WRONLY|O_CREAT, 0777) = 3
+```
+
+#### `flag` argument
+Since we have to set the `O_WRONLY` or the `O_CREAT` flag, we need to perform a bitwise OR of both values.
+
+```
+O_WRONLY	1
+O_CREAT		64
+--------------------
+		65
+```
+
+Set the `flag` argument to `65`.
+
+#### `mode` argument
+We also have to set the `mode` argument to `0777`.
 
