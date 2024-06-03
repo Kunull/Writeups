@@ -15,6 +15,15 @@ By documenting my experiences and solutions in real-time, I aim to provide trans
 
 &nbsp;
 
+## Motivation
+
+- Storing important notes online and documenting personal development.
+- Giving back to the community in some form.
+- Gaining traffic to my website, thus increasing my internet reach.
+- Incentivising myself to learn every topic in-depth by teaching it through the form of my write-ups.
+
+&nbsp; 
+
 ## My CTF accounts
 
 [TryHackMe](https://tryhackme.com/p/Kunull)
