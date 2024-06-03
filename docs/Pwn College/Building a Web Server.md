@@ -1277,6 +1277,11 @@ The Fork syscall returns the PID of the child process and takes zero arguments.
 If we execute the code, we can check the PID that is returned.
 
 ```asm title="Fork syscall"
+mov rax, 0x39
+syscall
+```
+
+```
 [✓] fork()                                  = 7
 ```
 
