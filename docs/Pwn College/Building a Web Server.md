@@ -29,7 +29,7 @@ void _exit(int status);
 ```
 
 ```
-RETURN VALUE         top
+RETURN VALUE
        These functions do not return.
 ```
 
@@ -85,7 +85,7 @@ int socket(int domain, int type, int protocol);
 ```
 
 ```
-RETURN VALUE         top
+RETURN VALUE
        On success, a file descriptor for the new socket is returned.  On
        error, -1 is returned, and errno is set to indicate the error.
 ```
@@ -171,7 +171,7 @@ int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 ```
 
 ```
-RETURN VALUE         top
+RETURN VALUE
        On success, zero is returned.  On error, -1 is returned, and
        errno is set to indicate the error.
 ```
@@ -315,7 +315,7 @@ int listen(int sockfd, int backlog);
 ```
 
 ```
-RETURN VALUE         top
+RETURN VALUE
        On success, zero is returned.  On error, -1 is returned, and
        errno is set to indicate the error.
 ```
@@ -420,7 +420,7 @@ int accept(int sockfd, struct sockaddr *_Nullable restrict addr, socklen_t *_Nul
 ```
 
 ```
-RETURN VALUE         top
+RETURN VALUE
        On success, these system calls return a file descriptor for the
        accepted socket (a nonnegative integer).  On error, -1 is
        returned, errno is set to indicate the error, and addrlen is left
@@ -550,7 +550,7 @@ ssize_t read(int fd, void buf[.count], size_t count);
 ```
 
 ```
-RETURN VALUE         top
+RETURN VALUE
        On success, the number of bytes read is returned (zero indicates
        end of file), and the file position is advanced by this number.
        It is not an error if this number is smaller than the number of
@@ -608,7 +608,7 @@ ssize_t write(int fd, const void buf[.count], size_t count);
 ```
 
 ```
-RETURN VALUE         top
+RETURN VALUE
        On success, the number of bytes written is returned.  On error,
        -1 is returned, and errno is set to indicate the error.
 
@@ -677,7 +677,7 @@ int close(int fd);
 ```
 
 ```
-RETURN VALUE         top
+RETURN VALUE
        close() returns zero on success.  On error, -1 is returned, and
        errno is set to indicate the error.
 ```
@@ -895,7 +895,7 @@ int open(const char *pathname, int flags, .../* mode_t mode */ );
 ```
 
 ```
-RETURN VALUE         top
+RETURN VALUE
        On success, open(), openat(), and creat() return the new file
        descriptor (a nonnegative integer).  On error, -1 is returned and
        errno is set to indicate the error.
@@ -1257,7 +1257,7 @@ pid_t fork(void);
 ```
 
 ```
-RETURN VALUE         top
+RETURN VALUE
        On success, the PID of the child process is returned in the
        parent, and 0 is returned in the child.  On failure, -1 is
        returned in the parent, no child process is created, and errno is
