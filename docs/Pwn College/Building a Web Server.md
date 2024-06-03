@@ -1097,23 +1097,24 @@ response:
 ```
 
 ```
-hacker@building-a-web-server~level6:~$ as -o webserver5.o webserver6.s && ld -o webserver6 webserver6.o
+hacker@building-a-web-server~level7:~$ as -o webserver7.o webserver7.s && ld -o webserver7 webserver7.o
 ```
 
 ```
-hacker@building-a-web-server~level6:~$ /challenge/run ./webserver6
+hacker@building-a-web-server~level7:~$ /challenge/run ./webserver7
 ```
 
 &nbsp;
 
 ## level 8
 
-```Assembly
+> In this challenge you will accept multiple requests.
+
+```asm title="webserver8.asm"
 .intel_syntax noprefix
 .globl _start
 
 .section .text
-
 _start:
     # Socket syscall
     mov rdi, 2
@@ -1145,14 +1146,14 @@ _start:
     # Read syscall
     mov rdi, 4
     mov rsi, rsp
-    mov rdx, 155
+    mov rdx, 256
     mov rax, 0x00
     syscall
 
     mov r10, rsp
-    
+
 Parse_GET:
-    mov al, [r10]
+    mov al, byte ptr [r10]
     cmp al, ' '
     je Done_1
     add r10, 1
@@ -1161,21 +1162,19 @@ Parse_GET:
 Done_1:
     add r10, 1
     mov r11, r10
-    mov r12, 0
 
 Parse_filename:
-    mov al, [r11]
+    mov al, byte ptr [r11]
     cmp al, ' '
-    je Parse_filename
+    je Done_2
     add r11, 1
-    add r12, 1
-    jmp loop2
+    jmp Parse_filename
 
 Done_2:
-    mov byte ptr [r12], 0
+    mov byte ptr [r11], 0
 
     # Open syscall
-    mov rdi, r11
+    mov rdi, r10
     mov rsi, 0
     mov rdx, 0
     mov rax, 0x02
@@ -1188,8 +1187,10 @@ Done_2:
     mov rax, 0x00
     syscall
 
+    mov r12, rax
+
     # Close syscall
-    mov rdi, 4
+    mov rdi, 5
     mov rax, 0x03
     syscall
 
@@ -1201,8 +1202,8 @@ Done_2:
     syscall
 
     # Write syscall
-    mov rdi, 1
-    mov rsi, r10
+    mov rdi, 4
+    mov rsi, rsp
     mov rdx, r12
     mov rax, 0x01
     syscall
@@ -1212,9 +1213,16 @@ Done_2:
     mov rax, 0x03
     syscall
 
+	# Accept syscall
+	mov rdi, 3
+	mov rsi, 0
+	mov rdx, 0
+	mov rax, 0x2b
+	syscall
+
     # Exit syscall
     mov rdi, 0
-    mov rax, 0x3c        
+    mov rax, 0x3c    
     syscall
 
 .section .data
@@ -1226,4 +1234,12 @@ sockaddr:
 
 response: 
     .string "HTTP/1.0 200 OK\r\n\r\n"
+```
+
+```
+hacker@building-a-web-server~level8:~$ as -o webserver8.o webserver8.s && ld -o webserver8 webserver8.o
+```
+
+```
+hacker@building-a-web-server~level8:~$ /challenge/run ./webserver8
 ```
