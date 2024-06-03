@@ -1213,6 +1213,13 @@ Done_2:
     mov rax, 0x03
     syscall
 
+    # Accept syscall
+    mov rdi, 3
+    mov rsi, 0
+    mov rdx, 0
+    mov rax, 0x2b
+    syscall
+
     # Exit syscall
     mov rdi, 0
     mov rax, 0x3c    
