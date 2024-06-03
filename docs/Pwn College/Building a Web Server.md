@@ -916,7 +916,15 @@ mov rdi, r10
 ```
 
 #### `flags` argument
-Set the `flag` to be `0`. This is the `O_RDONLY` flag.
+Since we are only reading from the file, we need to set the flag to `O_RDONLY`.
+
+```
+hacker@building-a-web-server~level10:~/server$ grep -r "#define O_RDONLY" /usr/include/
+/usr/include/x86_64-linux-gnu/bits/fcntl-linux.h:#define O_RDONLY            00
+/usr/include/asm-generic/fcntl.h:#define O_RDONLY       00000000
+```
+
+The Octal value for `O_RDONLY` is `00000000` which is `0` in Decimal.
 
 #### `mode` argument
 Since we are not creating a new file, we have to set the `mode` to `0`.
@@ -1497,12 +1505,29 @@ In this level, we have to modify the Open syscall slightly.
 Since we have to set the `O_WRONLY` or the `O_CREAT` flag, we need to perform a bitwise OR of both values.
 
 ```
-O_WRONLY	1
-O_CREAT		64
-------------------
+hacker@building-a-web-server~level10:~/server$ grep -r "#define O_WRONLY" /usr/include/
+/usr/include/x86_64-linux-gnu/bits/fcntl-linux.h:#define O_WRONLY            01
+/usr/include/asm-generic/fcntl.h:#define O_WRONLY       00000001
+```
+
+The Octal value of `O_WRONLY` is `00000001` which is `1` in Decimal.
+
+```
+hacker@building-a-web-server~level10:~/server$ grep -r "#define O_CREAT" /usr/include/
+/usr/include/asm-generic/fcntl.h:#define O_CREAT                00000100        /* not fcntl */
+```
+
+The Octal value of `O_WRONLY` is `00000100` which is `64` in Decimal.
+
+```
+Flag			Ocatal		Decimal
+
+O_WRONLY		00000001	1
+O_CREAT			00000100	64
+------------------------------------------------
 Bitwise OR
-``````````````````
-		65
+------------------------------------------------
+O_WRONLY | O_CREAT	00000101	65
 ```
 
 Set the `flag` argument to `65`.
