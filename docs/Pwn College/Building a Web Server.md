@@ -49,7 +49,7 @@ syscall
 
 Once the setup is completed, we can use the `syscall` instruction.
 
-```asm title="webserver1.s" showLineNumbers
+```asm title="webserver1.s" 
 .intel_syntax noprefix
 .globl _start
 
@@ -1333,7 +1333,7 @@ Child_process:
 	# Code for child process
 ```
 
-```asm title="webserver9.asm" showLineNumbers
+```asm title="webserver9.asm" 
 .intel_syntax noprefix
 .globl _start
 
