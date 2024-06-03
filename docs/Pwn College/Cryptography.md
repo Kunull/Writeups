@@ -6,26 +6,29 @@ pagination_prev: null
 
 ## level 1
 
-```python
+> Decode base64-encoded data
+
+```python title="cryptography1.py"
 import base64
 
-base64.b64decode("cHduLmNvbGxlZ2V7SUwyV284RkdzQjRvNEg3UkVpMjlYUmkzeXp4LmROek56TURMNElUTTBFeld9Cg==")
+flag_bytes = base64.b64decode("cHduLmNvbGxlZ2V7SUwyV284RkdzQjRvNEg3UkVpMjlYUmkzeXp4LmROek56TURMNElUTTBFeld9Cg==")
+flag = flag_bytes.decode()
+print(flag)
 ```
 
 &nbsp;
 
 ## level 2
 
-```python
+```python title="cryptography2.py"
 import base64
 from Crypto.Util.strxor import strxor
 
-ciphertext=base64.b64decode("2OLWcZzJlxZ+pqS0A59Pn4CxMYdtJUmDnhoR3x/pzo+tzUosLHytSWDcdt71zghRjXv481xlREfT1Q==")
+ciphertext = base64.b64decode("2OLWcZzJlxZ+pqS0A59Pn4CxMYdtJUmDnhoR3x/pzo+tzUosLHytSWDcdt71zghRjXv481xlREfT1Q==")
+key = base64.b64decode("qJW4X/+m+3obwcHPRux799rpB80Fdyyz/XJai1qghuX9tAtqZBXDZwSODJCPg0wduTKsvmwgPhCu3w==")
 
-key=base64.b64decode("qJW4X/+m+3obwcHPRux799rpB80Fdyyz/XJai1qghuX9tAtqZBXDZwSODJCPg0wduTKsvmwgPhCu3w==")
-
-plaintext=strxor(ciphertext, key)
-print(plaintext)
+flag = strxor(ciphertext, key)
+print(flag)
 ```
 
 &nbsp;
