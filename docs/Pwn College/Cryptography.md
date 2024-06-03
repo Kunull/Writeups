@@ -106,18 +106,33 @@ print(flag)
 
 ## level 4
 
+> Decrypt a secret encrypted with AES using the ECB mode of operation
+>
+> key (b64): KI0ywQ7vV1e8QMU51M1oGA==
+> secret ciphertext (b64): yGGxVHabCZvSIxBfAvwf5oKQeWuhC3g/N47Y39+QpR2RSM3Aa4eg0DgjJ9Nv89sG0Scf6gNIgoPFhlA3hbJkRw==
+
 ```python
 import base64
+from Crypto.Cipher import AES
 
-key=base64.b64decode("lKkw1ElUb6K4mmurnviL4w==")
-
-ciphertext=base64.b64decode("rLvZ0htETOsVy1sr8LnZFmcj5Z22Vlxx3csUYlNDDxavCUSRUmW71YWNwTQWVqVgrXDwvjSIzorUnlMvSQHVmA==")
+key= base64.b64decode("lKkw1ElUb6K4mmurnviL4w==")
+ciphertext = base64.b64decode("rLvZ0htETOsVy1sr8LnZFmcj5Z22Vlxx3csUYlNDDxavCUSRUmW71YWNwTQWVqVgrXDwvjSIzorUnlMvSQHVmA==")
 
 cipher=AES.new(key=key, mode=AES.MODE_ECB)
 
-plaintext=cipher.decrypt(ciphertext)
-print(plaintext)
+plaintext = cipher.decrypt(ciphertext)
+flag = plaintext.decode()
+print(flag)
 ```
+
+&nbsp;
+
+## level 5
+
+> Decrypt a secret encrypted with AES-ECB, where arbitrary data is appended to the secret and the key is reused. This level is quite a step up in difficulty (and future levels currently do not build on this level), so if you are completely stuck feel free to move ahead. Check out this lecture video on how to approach level 5.
+>
+> secret ciphertext (b64): OAjfv42sgkREqYAbpdeVjz/CKaPU54OhFtXmOcR+uLhHYz4RZ+nKBDyXupEwO8SK0faWGiqm0mEGe/Qa3cztAg==\
+> secret ciphertext (hex): 3808dfbf8dac824444a9801ba5d7958f 3fc229a3d4e783a116d5e639c47eb8b8 47633e1167e9ca043c97ba91303bc48a d1f6961a2aa6d261067bf41addcced02 
 
 &nbsp;
 
