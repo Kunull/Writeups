@@ -1374,8 +1374,8 @@ _start:
     je Child_process
 
 Parent_process:
-    # Close syscall child
-    mov rdi, 4
+    # Close syscall
+    mov rdi, 4		# Close the accepted connection
     mov rax, 0x03
     syscall
 
@@ -1387,8 +1387,8 @@ Parent_process:
     syscall
 
 Child_process:
-    # Close syscall child
-    mov rdi, 3
+    # Close syscall 
+    mov rdi, 3		# Close the Socket listener
     mov rax, 0x03
     syscall
 
