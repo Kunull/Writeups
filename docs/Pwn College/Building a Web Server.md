@@ -1110,108 +1110,206 @@ hacker@building-a-web-server~level7:~$ /challenge/run ./webserver7
 
 > In this challenge you will accept multiple requests.
 
+#### Fork syscall
+
+```c
+pid_t fork(void);
+```
+
+```
+RETURN VALUE         top
+       On success, the PID of the child process is returned in the
+       parent, and 0 is returned in the child.  On failure, -1 is
+       returned in the parent, no child process is created, and errno is
+       set to indicate the error.
+```
+
+The Fork syscall returns the PID of the child process and takes zero arguments.
+
+If we execute the code, we can check the PID that is returned.
+
+```asm title="Fork syscall"
+[✓] fork()                                  = 7
+```
+
+As we can see, it is `7`, which means we are within the parent process.
+
+```
+===== Expected: Parent Process =====
+[ ] execve(<execve_args>) = 0
+[ ] socket(AF_INET, SOCK_STREAM, IPPROTO_IP) = 3
+[ ] bind(3, {sa_family=AF_INET, sin_port=htons(<bind_port>), sin_addr=inet_addr("<bind_address>")}, 16) = 0
+    - Bind to port 80
+    - Bind to address 0.0.0.0
+[ ] listen(3, 0) = 0
+[ ] accept(3, NULL, NULL) = 4
+[ ] fork() = <fork_result>
+[ ] close(4) = 0
+[ ] accept(3, NULL, NULL) = ?
+```
+
+```
+===== Expected: Child Process =====
+[ ] close(3) = 0
+[ ] read(4, <read_request>, <read_request_count>) = <read_request_result>
+[ ] open("<open_path>", O_RDONLY) = 3
+[ ] read(3, <read_file>, <read_file_count>) = <read_file_result>
+[ ] close(3) = 0
+[ ] write(4, "HTTP/1.0 200 OK\r\n\r\n", 19) = 19
+[ ] write(4, <write_file>, <write_file_count>) = <write_file_result>
+[ ] exit(0) = ?
+```
+
+After the Fork is done, we need to execute two syscalls in the parent process and then move onto the child process.
+In order to separate our control flow, we need to create a simple check to check if we are in a parent process or the child process.
+
+```
+cmp rax, 0		# Check if return value of Fork is zero
+			# If equal:
+je Child_process		# Move onto child process
+
+```
+
+Once this check is performed, we can separate the code using labels:
+
+```
+Parent_process:
+	# Code for parent process
+
+Child_process:
+	# Code for child process
+```
+
 ```asm title="webserver8.asm"
 .intel_syntax noprefix
 .globl _start
 
 .section .text
 _start:
-    # Socket syscall
-    mov rdi, 2
-    mov rsi, 1
-    mov rdx, 0
-    mov rax, 0x29
-    syscall
+	# Socket syscall
+	mov rdi, 2
+	mov rsi, 1
+	mov rdx, 0
+	mov rax, 0x29
+	syscall
 
-    # Bind syscall
-    mov rdi, 3
-    lea rsi, [rip+sockaddr]
-    mov rdx, 16
-    mov rax, 0x31
-    syscall
+	# Bind syscall
+	mov rdi, 3
+	lea rsi, [rip+sockaddr]
+	mov rdx, 16
+	mov rax, 0x31
+	syscall
 
-    # Listen syscall
-    mov rdi, 3
-    mov rsi, 0
-    mov rax, 0x32
-    syscall
+	# Listen syscall
+	mov rdi, 3
+	mov rsi, 0
+	mov rax, 0x32
+	syscall
+
+Parent_process:
+	# Accept syscall
+	mov rdi, 3
+	mov rsi, 0
+	mov rdx, 0
+	mov rax, 0x2b
+	syscall
+
+	# Fork syscall
+	mov rax, 0x39
+	syscall
+
+    cmp rax, 0
+    je Child_process
+
+Parent_process:
+    # Close syscall child
+	mov rdi, 4
+	mov rax, 0x03
+	syscall
 
     # Accept syscall
-    mov rdi, 3
-    mov rsi, 0
-    mov rdx, 0
-    mov rax, 0x2b
-    syscall
+	mov rdi, 3
+	mov rsi, 0
+	mov rdx, 0
+	mov rax, 0x2b
+	syscall
 
-    # Read syscall
-    mov rdi, 4
-    mov rsi, rsp
-    mov rdx, 256
-    mov rax, 0x00
-    syscall
+Child_process:
+	# Close syscall child
+	mov rdi, 3
+	mov rax, 0x03
+	syscall
 
-    mov r10, rsp
+	# Read syscall
+	mov rdi, 4
+	mov rsi, rsp
+	mov rdx, 256
+	mov rax, 0x00
+	syscall
+
+	mov r10, rsp
 
 Parse_GET:
-    mov al, byte ptr [r10]
-    cmp al, ' '
-    je Done_1
-    add r10, 1
-    jmp Parse_GET
+	mov al, byte ptr [r10]
+	cmp al, ' '
+	je Done_1
+	add r10, 1
+	jmp Parse_GET
 
 Done_1:
-    add r10, 1
-    mov r11, r10
+	add r10, 1
+	mov r11, r10
 
 Parse_filename:
-    mov al, byte ptr [r11]
-    cmp al, ' '
-    je Done_2
-    add r11, 1
-    jmp Parse_filename
+	mov al, byte ptr [r11]
+	cmp al, ' '
+	je Done_2
+	add r11, 1
+	add r12, 1
+	jmp Parse_filename
 
 Done_2:
-    mov byte ptr [r11], 0
+	mov byte ptr [r11], 0
 
-    # Open syscall
-    mov rdi, r10
-    mov rsi, 0
-    mov rdx, 0
-    mov rax, 0x02
-    syscall
+	# Open syscall
+	mov rdi, r10
+	mov rsi, 0
+	mov rdx, 0
+	mov rax, 0x02
+	syscall
 
-    # Read syscall
-    mov rdi, 5
-    mov rsi, rsp
-    mov rdx, 256
-    mov rax, 0x00
-    syscall
+	# Read syscall
+	mov rdi, 3
+	mov rsi, rsp
+	mov rdx, 256
+	mov rax, 0x00
+	syscall
 
-    mov r12, rax
+	mov r12, rax
 
-    # Close syscall
-    mov rdi, 5
-    mov rax, 0x03
-    syscall
+	# Close syscall
+	mov rdi, 3
+	mov rax, 0x03
+	syscall
 
-    # Write syscall
-    mov rdi, 4
-    lea rsi, [rip+response]
-    mov rdx, 19
-    mov rax, 0x01
-    syscall
+	# Write syscall
+	mov rdi, 4
+	lea rsi, [rip+response]
+	mov rdx, 19
+	mov rax, 0x01
+	syscall
 
-    # Write syscall
-    mov rdi, 4
-    mov rsi, rsp
-    mov rdx, r12
-    mov rax, 0x01
-    syscall
+	# Write syscall
+	mov rdi, 4
+	mov rsi, rsp
+	mov rdx, r12
+	mov rax, 0x01
+	syscall
 
-    # Close syscall
-    mov rdi, 4
-    mov rax, 0x03
-    syscall
+	# Close syscall
+	mov rdi, 4
+	mov rax, 0x03
+	syscall
 
 	# Accept syscall
 	mov rdi, 3
@@ -1220,20 +1318,20 @@ Done_2:
 	mov rax, 0x2b
 	syscall
 
-    # Exit syscall
+	# Exit syscall
     mov rdi, 0
     mov rax, 0x3c    
     syscall
 
 .section .data
 sockaddr:
-    .2byte 2
-    .2byte 0x5000
-    .4byte 0
-    .8byte 0
+	.2byte 2
+	.2byte 0x5000
+	.4byte 0
+	.8byte 0
 
 response: 
-    .string "HTTP/1.0 200 OK\r\n\r\n"
+	.string "HTTP/1.0 200 OK\r\n\r\n"
 ```
 
 ```
