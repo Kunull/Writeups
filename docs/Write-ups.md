@@ -28,10 +28,7 @@ If there are any write-ups for challenges created by you, that you want me to re
 
 ## My CTF accounts
 
-[TryHackMe](https://tryhackme.com/p/Kunull)
-
-[Hack The Box](https://app.hackthebox.com/profile/1158503)
-
-[CyberDefenders](https://cyberdefenders.org/p/Kunull)
-
-[RootMe](https://www.root-me.org/Kunull?lang=fr#715a5db3518744d717e43af1d56ba448)
+- [TryHackMe](https://tryhackme.com/p/Kunull)
+- [Hack The Box](https://app.hackthebox.com/profile/1158503)
+- [CyberDefenders](https://cyberdefenders.org/p/Kunull)
+- [RootMe](https://www.root-me.org/Kunull?lang=fr#715a5db3518744d717e43af1d56ba448)
