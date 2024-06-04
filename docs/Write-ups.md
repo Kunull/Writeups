@@ -28,7 +28,7 @@ By documenting my experiences and solutions in real-time, I aim to provide trans
 
 ## P.S.
 
-If there are any write-ups from your website, that you want me to remove for some reason, send me an [email](mailto:kunalw@skiff.com).
+If there are any write-ups for challenges created by you, that you want me to remove for a reason, send me an [email](mailto:kunalw@skiff.com).
 
 &nbsp; 
 
