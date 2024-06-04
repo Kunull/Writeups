@@ -111,14 +111,14 @@ In order to compute this equation, we need to understand the `mul` instruction.
 
 ### `mul` instruction
 
+![image](https://github.com/Kunull/Write-ups/assets/110326359/bb5c66b2-9808-42b7-bcac-71fc086cb6dd)
+
 The first operand is the location at which the original data is stored, while the second operand is the source of the data to be multiplied.
 
 ```wasm
-mul multiplicand, multiplier
-----(rax)      
+mul (multiplicand), multiplier
+    (rax)      
 ```
-
-#### Special condition for `mul`
 
 If both the registers are 64 bit registers, their multiplication result comes out to be more than 64 bits.
 
@@ -172,12 +172,19 @@ In order to compute the equation, we need to understand the `div` instruction.
 
 ### `div` instruction
 
+![image](https://github.com/Kunull/Write-ups/assets/110326359/c160c237-b604-4dbb-8279-49bbfa299913)
+
 ```wasm
-div dividend, divisor, quotient, resultant
-----(rax)              (rax)     (rdx)
+div (dividend), divisor, (quotient), (remainder)
+    (rax)                (rax)       (rdx)
 ```
 
-Similar to the `mov` instruction, the first operand of `div` is implicitly `rax` by default, i.e. location the dividend and quotient are always `rax`. We only have control over the source of the divisor. The resultant of the `div` instruction is always stored into `rdx` by default.
+Similar to the `mov` instruction, the first operand of `div` is implicitly `rax` by default, i.e. location the dividend and quotient are always `rax`. We only have control over the source of the divisor. The remainder of the `div` instruction is always stored into `rdx` by default.
+
+#### Special condition for `div`
+
+There is a special condition for the `div` instruction, which in not required for this level, but is important to know.
+
 
 So if we want to divide `rdi` by `rsi`, we would first have to move the value of `rdi` into `rax`.
 
