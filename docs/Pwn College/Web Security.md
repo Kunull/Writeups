@@ -26,3 +26,15 @@ import requests
 response = requests.get("http://challenge.localhost?path=/flag")
 print(response.text)
 ```
+
+&nbsp;
+
+## level 2
+
+> Exploit a command injection vulnerability
+
+```py title="level 2 source code"
+def level2():
+    timezone = request.args.get("timezone", "UTC")
+    return subprocess.check_output(f"TZ={timezone} date", shell=True, encoding="latin")
+```
