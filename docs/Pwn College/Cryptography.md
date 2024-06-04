@@ -134,6 +134,13 @@ print(flag)
 > secret ciphertext (b64): OAjfv42sgkREqYAbpdeVjz/CKaPU54OhFtXmOcR+uLhHYz4RZ+nKBDyXupEwO8SK0faWGiqm0mEGe/Qa3cztAg==\
 > secret ciphertext (hex): 3808dfbf8dac824444a9801ba5d7958f 3fc229a3d4e783a116d5e639c47eb8b8 47633e1167e9ca043c97ba91303bc48a d1f6961a2aa6d261067bf41addcced02 
 
+Let's check out how the program is encrypting the plain text.
+
+```python
+
+```
+
+
 &nbsp;
 
 ## level 9
