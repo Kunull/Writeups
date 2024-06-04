@@ -26,6 +26,12 @@ By documenting my experiences and solutions in real-time, I aim to provide trans
 
 &nbsp; 
 
+## P.S.
+
+If there are any write-ups from your website, that you want me to remove for some reason, send me an [email](mailto:kunalw@skiff.com).
+
+&nbsp; 
+
 ## My CTF accounts
 
 [TryHackMe](https://tryhackme.com/p/Kunull)
