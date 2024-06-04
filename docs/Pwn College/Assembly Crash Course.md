@@ -118,6 +118,27 @@ mul multiplicand, multiplier
 ----(rax)      
 ```
 
+#### Special condition for `mul`
+
+If both the registers are 64 bit registers, their multiplication result comes out to be more than 64 bits.
+
+```
+mov rax, 888888888
+mov rbx, 888888888
+mul ebx
+
+# Result will be longer than 64 bits
+```
+
+In this case, the result is stored in two different registers.
+
+```
+rdx:rax = rax * rbx
+
+# rdx stores the most significat 64 bits
+# rax stores the most significat 64 bits
+```
+
 The `mul` instruction is a bit different, i.e. the source of multiplicand is always `rax` by default and we only have control over the source of the multiplier.
 
 So if we want to multiply `rdi` with `rsi`, we would first have to move the value of `rdi` into `rax`.
