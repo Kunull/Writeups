@@ -1351,34 +1351,35 @@ nop
 > Therefore, the function foo accepts a byte as its first argument and returns a byte.
 
 ```asm title="assembly29.asm"
-mov rax, 0
-cmp rdi, 0
+mov rax, 0                # Set counter to 0
+
+cmp rdi, 0                # Check if src_addr = 0
 je done
 
-loop:
-mov rbx, 0
-mov bl, [rdi]
-cmp bl, 0
+while_loop:
+xor rbx, rbx        
+mov bl, [rdi]             # Move 1 byte of data into bl from src_addr
+cmp bl, 0                 # Check if [src_addr] = 0x00
 je done
 
-cmp bl, 90
-jg greater
+cmp bl, 90                # Check if [src_addr] <= 0x5a
+jg greater_than_0x5a
 
-push rdi
-push rax
+push rdi                  # Preserve src_addr
+push rax                  # Preserve counter
 mov rdi, 0
-mov dil, bl
+mov dil, bl               # Set up 1 byte as the argument for foo()
 mov r10, 0x403000
-call r10
-mov bl, al
-pop rax
-pop rdi
-mov [rdi], bl
-add rax, 1
+call r10                  # Call foo()
+mov bl, al                # Move result of foo() into bl
+pop rax                   # Restore counter
+pop rdi                   # Restore src_addr
+mov [rdi], bl             # Replace original byte by result of foo()
+add rax, 1                # Increase counter
 
-greater:
-add rdi, 1
-jmp loop
+greater_than_0x5a:
+add rdi, 1                # Point ot next byte at src_addr
+jmp while_loop            # Repear while loop
 
 done:
 ret
