@@ -219,3 +219,39 @@ If the `user` parameter is in the request arguments, the code fetches the user b
 ```
 hacker@web-security~level3:/$ curl 'http://challenge.localhost/?user=1'
 ```
+
+&nbsp;
+
+## level 4
+
+> Exploit a structured query language injection vulnerability to login
+
+```py title="level 4 source code"
+def level4():
+    db.execute(("CREATE TABLE IF NOT EXISTS users AS "
+                'SELECT "flag" AS username, ? as password'),
+               (flag,))
+
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        assert username, "Missing `username` form"
+        assert password, "Missing `password` form"
+
+        user = db.execute(f'SELECT rowid, * FROM users WHERE username = "{username}" AND password = "{password}"').fetchone()
+        assert user, "Invalid `username` or `password`"
+
+        session["user"] = int(user["rowid"])
+        return redirect(request.path)
+
+    if session.get("user"):
+        user_id = int(session.get("user", -1))
+        user = db.execute("SELECT * FROM users WHERE rowid = ?", (user_id,)).fetchone()
+        if user:
+            username = user["username"]
+            if username == "flag":
+                return f"{flag}\n"
+            return f"Hello, {username}!\n"
+
+    return form(["username", "password"])
+```
