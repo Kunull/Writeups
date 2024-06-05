@@ -16,7 +16,7 @@ def level1():
     return (pathlib.Path(app.root_path) / path).read_text()
 ```
 
-As we can see from the source code, the server takes the argument given to the `path` parameter and then returns the result.
+As we can see from the source code, the server takes the `path` parameter from the request arguments and then returns the result.
 
 So we can just send a request with the `path` parameter set to `/flag`.
 
@@ -36,7 +36,7 @@ def level2():
     return subprocess.check_output(f"TZ={timezone} date", shell=True, encoding="latin")
 ```
 
-As we can see, the server takes the argument given to the `timezone` parameter.
+As we can see, the server takes the value given to the `timezone` parameter.
 
 It then inserts the argument in the shell command to retrieve the date.
 
@@ -45,9 +45,9 @@ It then inserts the argument in the shell command to retrieve the date.
 TZ={timezone} date
 ```
 
-From the above command, the shell set the environment variable `TZ` to our inserted argument and then executes the `date` command in that context.
+From the above command, the shell set the environment variable `TZ` to our provided value and then executes the `date` command in that context.
 
-We can provide `UTC` as the argument and see what output it provides.
+We can provide `UTC` as the value and see what output it provides.
 
 ```
 ## Request
@@ -59,7 +59,7 @@ TZ=UTC date
 
 ![image](https://github.com/Kunull/Write-ups/assets/110326359/73567980-d93d-452c-af32-4b401ba92097)
 
-Now let's try the same with `MST` as the argument.
+Now let's try the same with `MST` as the value.
 
 ```
 ## Request
@@ -197,4 +197,23 @@ def level3():
             return f"Hello, {username}!\n"
 
     return form(["username", "password"])
+```
+
+The user retrieveal part of the code is what we are going to exploit.
+
+```py
+if "user" in request.args:
+    user_id = int(request.args["user"])
+    user = db.execute("SELECT * FROM users WHERE rowid = ?", (user_id,)).fetchone()
+    if user:
+        username = user["username"]
+        if username == "flag":
+            return f"{flag}\n"
+        return f"Hello, {username}!\n"
+```
+
+If the `user` parameter is in the request arguments, the code fetches the user by `rowid` and displays a message. If the username is `lag`, it returns the flag.
+
+```
+hacker@web-security~level3:/$ curl 'http://challenge.localhost/?user=1'
 ```
