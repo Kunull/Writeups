@@ -321,7 +321,7 @@ response = requests.post("http://challenge.localhost/", data = data)
 print(response.text)
 ```
 
-#### Login bypass by breacking password check
+#### Login bypass by breaking password check
 
 If we provide the following input:
 
