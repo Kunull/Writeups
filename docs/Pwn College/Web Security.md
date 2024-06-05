@@ -199,6 +199,8 @@ def level3():
     return form(["username", "password"])
 ```
 
+### Insecure Direct Object Reference (IDOR)
+
 The user retrieveal part of the code is what we are going to exploit.
 
 ```py
