@@ -78,9 +78,9 @@ As we can see in the third command of both examples and the `Result`, the `date`
 
 ### Injection
 
-#### Backticks `&#96`
+#### Backticks 
 
-If we provide the `whoami` command with backticks `&#96`, the shell executes the command within the backticks and substitutes it's result in the 
+If we provide the `whoami` command with backticks, the shell executes the command within the backticks and substitutes it's result in the 
 
 ```
 ## Request
