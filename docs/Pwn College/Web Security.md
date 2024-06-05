@@ -417,3 +417,30 @@ params={
 response = requests.get("http://challenge.localhost/", params = params)
 print(response.text)
 ```
+
+&nbsp;
+
+## level 6
+
+> Exploit a structured query language injection vulnerability with an unknown database structure
+
+```py title="level 6 source code"
+def level6():
+    table_name = f"table{hash(flag) & 0xFFFFFFFFFFFFFFFF}"
+    db.execute((f"CREATE TABLE IF NOT EXISTS {table_name} AS "
+                'SELECT "flag" AS username, ? AS password'),
+               (flag,))
+
+    query = request.args.get("query", "%")
+    users = db.execute(f'SELECT username FROM {table_name} WHERE username LIKE "{query}"').fetchall()
+    return "".join(f'{user["username"]}\n' for user in users)
+```
+
+This level creates the table using the hash of the flag. This means that the table name is randomly generated.
+
+In order to retrieve the flag, we frost need to retrieve the table name.
+
+#### Listing the tables present
+
+We know that the dtabase used is SQLite.
+In SQLite, the `sqlite_master`
