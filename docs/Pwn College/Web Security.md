@@ -45,7 +45,7 @@ It then inserts the argument in the shell command to retrieve the date.
 TZ={timezone} date
 ```
 
-From the abocve command, the shell set the environment variable `TZ` to our inserted argument and then executes the `date` command in that context.
+From the above command, the shell set the environment variable `TZ` to our inserted argument and then executes the `date` command in that context.
 
 We can provide `UTC` as the argument and see what output it provides.
 
