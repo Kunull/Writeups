@@ -128,6 +128,18 @@ const config = {
               },  
             ],
           },
+
+          {
+            type: 'dropdown',
+            label: 'Contact',
+            position: 'right',
+            items: [
+              {
+                label: 'Email',
+                href: 'mailto:kunalw@skiff.com',
+              },
+            ],
+          },
           
           // {
           //     href: 'https://kunalwalavalkarblog.vercel.app',
