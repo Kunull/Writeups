@@ -441,7 +441,7 @@ def level6():
 
 This level creates the table using the hash of the flag. This means that the table name is randomly generated.
 
-## SQL Injection
+### SQL Injection
 
 In order to retrieve the flag, we first need to retrieve the table name. We can refer this [PayloadsAllTheThings](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/SQL%20Injection/SQLite%20Injection.md) list.
 
