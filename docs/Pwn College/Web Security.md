@@ -73,7 +73,7 @@ TZ=MST date
 
 As we can see in the third command of both examples and the `Result`, the `date` command is influenced by the value of the `TZ` variable, which we control.
 
-### Injection
+### Command Injection
 
 #### Backticks 
 
@@ -199,7 +199,12 @@ def level3():
     return form(["username", "password"])
 ```
 
+Using POST method to make the request will acticvate the first conditional which we do not want.
+We only want to retrieve the flag wihout having to authenticate.
+
 ### Insecure Direct Object Reference (IDOR)
+
+IDOR allows attackers to reference data which they otherwise shouldn't be able to.
 
 The user retrieveal part of the code is what we are going to exploit.
 
@@ -255,3 +260,8 @@ def level4():
 
     return form(["username", "password"])
 ```
+
+### SQL Injection
+#### Login bypass by commnenting out password check
+
+#### Login bypass by breacking password check
