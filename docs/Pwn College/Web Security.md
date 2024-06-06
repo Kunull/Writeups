@@ -640,7 +640,7 @@ w
 
 ```
 ## Extract the one character from the string starting at the third position
-SUBSTR("pwn.college", 1, 3)
+SUBSTR("pwn.college", 3, 1)
 
 ## Result:
 n
