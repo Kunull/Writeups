@@ -10,21 +10,24 @@ pagination_prev: null
 This is a collection of write-ups for the CTF challenges that I have solved. 
 It is updated on most days and will continue to be for the foreseeable future.
 
-<!---
+
 Beyond serving as a documentation for my personal development, I hope that this collection serves as a helpful resource for others interested in CTF challenges.
 By documenting my experiences and solutions in real-time, I aim to provide transparency into the learning process and offer practical guidance to others who may be facing similar challenges.
--->
+
 
 :::note
 If there are any write-ups for challenges created by you, that you want me to remove for a reason, send me an [email](mailto:kunalw@skiff.com).
 :::
 
+<!---
 ## Motivation
 
 - Storing important notes online and documenting personal development.
 - Giving back to the community in some form.
 - Gaining traffic to my website, thus increasing my internet reach.
 - Incentivising myself to learn every topic in-depth by teaching it through the form of my write-ups.
+-->
+
 
 ## My CTF accounts
 
