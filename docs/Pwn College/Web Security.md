@@ -891,7 +891,7 @@ In this level, there are two different pages that we have to visit:
 	- Uses a browser automation tool to visit the login page of the challenge host, log in with the username "flag" and the provided password, then visit the provided URL.
 	- Returns "Visited".
 
-2. `/leak`:
+#### `/leak`:
 	- Retrieves the logged-in user's ID from the session.
 	- Fetches the user from the database using the rowid.
 	- If the user exists, updates the leak column to TRUE for that user.
