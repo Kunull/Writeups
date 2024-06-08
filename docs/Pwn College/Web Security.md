@@ -885,13 +885,14 @@ def level10():
 
 In this level, there are two different pages that we have to visit:
 
-1. `/visit`: 
-	- Checks that a url argument is provided in the query string.
-	- Parses the URL and ensures the hostname matches challenge_host.
-	- Uses a browser automation tool to visit the login page of the challenge host, log in with the username "flag" and the provided password, then visit the provided URL.
-	- Returns "Visited".
+1. `/login`:
+	- Retrieves username and password from the form.
+	- Checks that both are provided.
+	- Queries the database to find a user with the given username and password.
+	- If a matching user is found, saves the user's rowid in the session and redirects to the login page.
+	- If the request is not a POST, it returns a form asking for username and password.
 
-2. #### `/leak`:
+2. `/leak`:
 	- Retrieves the logged-in user's ID from the session.
 	- Fetches the user from the database using the rowid.
 	- If the user exists, updates the leak column to TRUE for that user.
@@ -903,6 +904,16 @@ In this level, there are two different pages that we have to visit:
 	- If the user exists, prepares a response containing the username.
 	- If the leak column is TRUE, also includes the password.
 	- Returns the collected info as a string.
+
+3. `/visit`: 
+	- Checks that a url argument is provided in the query string.
+	- Parses the URL and ensures the hostname matches challenge_host.
+	- Uses a browser automation tool to visit the login page of the challenge host, log in with the username "flag" and the provided password, then visit the provided URL.
+	- Returns "Visited".
+
+4. `/echo`:
+	- Checks that an echo argument is provided in the query string.
+	- Returns the echo argument as HTML.
 
 
 In order to retrieve the password, we need to visit the `/info` path. However, since the `leak` flag is set to `FALSE` by default, we won't be able to retrieve the password directly.
