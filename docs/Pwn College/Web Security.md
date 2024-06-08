@@ -875,8 +875,31 @@ def level10():
 
 In this level, there are two different pages that we have to visit:
 
-1. `/visit`: Validates the provided URL, performs a login and then visit the specified URL.
-2. `/info`: Fetches and returns user information based on a user ID provided as a query parameter `url`.
+1. `/visit`: 
+	- Checks that a url argument is provided in the query string.
+	- Parses the URL and ensures the hostname matches challenge_host.
+	- Uses a browser automation tool to visit the login page of the challenge host, log in with the username "flag" and the provided password, then visit the provided URL.
+	- Returns "Visited".
+
+2. `/leak`:
+	- Retrieves the logged-in user's ID from the session.
+	- Fetches the user from the database using the rowid.
+	- If the user exists, updates the leak column to TRUE for that user.
+	- Returns "Leaked".
+
+3. `/info`: 
+	- Checks that a user argument is provided in the query string.
+	- Fetches the user with the specified rowid from the database.
+	- If the user exists, prepares a response containing the username.
+	- If the leak column is TRUE, also includes the password.
+	- Returns the collected info as a string.
+
+
+In order to retrieve the password, we need to visit the `/info` path. However, since the `leak` flag is set to `FALSE` by default, we won't be able to retrieve the password directly.
+
+The `/leak` path checks if the logged in user exists and then sets the `leak` flag is set to `TRUE`.
+
+In order to login, we can exploit the automated login used at the `/visit` path.
 
 ```python
 import requests
@@ -900,3 +923,4 @@ response = requests.get("http://challenge.localhost/info", params = params)
 print(response.text)
 ```
 
+  
