@@ -872,3 +872,31 @@ def level10():
 
     return "Not Found\n", 404
 ```
+
+In this level, there are two different pages that we have to visit:
+
+1. `/visit`: Validates the provided URL, performs a login and then visit the specified URL.
+2. `/info`: Fetches and returns user information based on a user ID provided as a query parameter `url`.
+
+```python
+import requests
+
+params = {
+	"url": "http://challenge.localhost/leak"
+}
+
+response = requests.get("http://challenge.localhost/visit", params = params)
+print(response.text)
+```
+
+```python
+import requests
+
+params = {
+	"user": 1
+}
+
+response = requests.get("http://challenge.localhost/info", params = params)
+print(response.text)
+```
+
