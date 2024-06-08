@@ -718,7 +718,7 @@ It then checks if there is an alert on the page. If yes, it returns the flag.
 
 We can generate an alert using a `<script>` tag. Anything we put within the tag is treated as a script and executed.
 
-```
+```html
 <script>alert(1)</script>
 ```
 
@@ -775,7 +775,7 @@ return html(f"<textarea>{echo}</textarea>")
 
 If we provide the script it will not be executed because it is wihin the `<textarea>` tag.
 
-```
+```html
 <textarea><script>alert(1)</script></textarea>
 ```
 
@@ -783,7 +783,7 @@ If we provide the script it will not be executed because it is wihin the `<texta
 
 We can escape the outer `<textarea>` tag by closing out the opening tag before providing our script.
 
-```
+```html
 <textarea></textarea><script>alert(1)</script></textarea>
 ```
 
