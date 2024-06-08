@@ -901,6 +901,8 @@ The `/leak` path checks if the logged in user exists and then sets the `leak` fl
 
 In order to login, we can exploit the automated login used at the `/visit` path.
 
+We have to chain this using the `url` parameter.
+
 ```python
 import requests
 
