@@ -10,7 +10,7 @@ sidebar_position: 2
 We are provided with the SQL query:
 
 ```sql
-select id from prob_cobolt where id='{$_GET[id]}' and pw=md5('{$_GET[pw]}')`
+SELECT id FROM prob_cobolt WHERE id='{$_GET[id]}' AND pw=md5('{$_GET[pw]}')`
 ```
 
 This time the application requires us to query for the id `admin`.
