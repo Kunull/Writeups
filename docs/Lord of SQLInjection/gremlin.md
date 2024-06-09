@@ -9,7 +9,7 @@ sidebar_position: 1
 
 We are provided with the SQL query:
 
-```
+```sql
 SELECT id FROM prob_gremlin WHERE id='' AND pw=''
 ```
 
