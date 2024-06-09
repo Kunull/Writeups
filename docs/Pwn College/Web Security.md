@@ -544,7 +544,7 @@ CREATE TABLE table2652065454664187289(
 
 #### Retrieving the password
 
-Now that we know the table name is `table2652065454664187289``, we can easily retrieve the password from the table.
+Now that we know the table name is `table2652065454664187289`, we can easily retrieve the password from the table.
 
 If we provide the following request:
 
