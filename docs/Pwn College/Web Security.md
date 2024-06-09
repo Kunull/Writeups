@@ -500,7 +500,7 @@ print(response.text)
 
 #### Listing the tables
 
-For SQLite verions `3.33.0` and previous, the `sqlite_master` table contains the schema for the database including information about all the tables, indexes, views, and triggers that exist in the database.
+For SQLite versions `3.33.0` and previous, the `sqlite_master` table contains the schema for the database including information about all the tables, indexes, views, and triggers that exist in the database.
 
 ```
 SELECT sql FROM sqlite_master
