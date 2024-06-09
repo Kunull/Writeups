@@ -21,7 +21,7 @@ In order to make the result of this query `True`, we can provide the following U
 
 The resultant query then becomes:
 
-```
+```sql
 SELECT id FROM prob_gremlin WHERE id='' OR 1=1 -- -' AND pw=''
 
 ## Queried part
