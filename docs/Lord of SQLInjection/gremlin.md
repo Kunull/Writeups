@@ -5,12 +5,12 @@ pagination_prev: null
 sidebar_position: 1
 ---
 
-![1](https://github.com/Kunull/Write-ups/assets/110326359/b61527a1-dd8e-479b-b0e7-5cb6d58a8823)
+![1](https://github.com/Kunull/Write-ups/assets/110326359/18cc31d8-0f98-466a-84f6-3d68bf23ab5f)
 
 We are provided with the SQL query:
 
 ```sql
-SELECT id FROM prob_gremlin WHERE id='' AND pw=''
+SELECT id FROM prob_gremlin WHERE id='{$_GET[id]}' AND pw='{$_GET[pw]}'
 ```
 
 In order to make the result of this query `True`, we can provide the following URI:
@@ -33,4 +33,4 @@ AND pw=''
 
 Since 1=1 is always true, the result of the `OR` operation will always be `True`.
 
-![2](https://github.com/Kunull/Write-ups/assets/110326359/5c172a9d-3333-45b6-bd48-edc0e2def822)
+![2](https://github.com/Kunull/Write-ups/assets/110326359/002d0b4e-53d5-41f0-a173-50f3058c5302)
