@@ -950,6 +950,8 @@ print(response.text)
 
 ## level 11
 
+> Exploit a cross site request forgery vulnerability
+
 ### Source code
 ```py title="level 11 source code"
 def level11():
