@@ -42,14 +42,14 @@ Since 1=1 is always true, the result of the `OR` operation will always be `True`
 ### Method 2
 We can also make teh statement true using the following input:
 
-```sql
+```
 ?pw=') OR (id='admin
 ```
 
 The resultant query will be:
 
 ```sql
-SELECT id FROM prob_gremlin WHERE id='admin' -- -' AND pw=md5('') OR (id='admin')
+SELECT id FROM prob_gremlin WHERE id='admin' AND pw=md5('') OR (id='admin')
 ```
 
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/5c5d2723-8a7e-4ac1-81c4-67d5084b7506)
