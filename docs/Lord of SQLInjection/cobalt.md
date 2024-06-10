@@ -25,10 +25,10 @@ In order to make the result of this query `True`, we can provide the following U
 The resultant query then becomes:
 
 ```sql
-SELECT id FROM prob_gremlin WHERE id='admin' -- -' AND pw=md5('')
+SELECT id FROM prob_cobalt WHERE id='admin' -- -' AND pw=md5('')
 
 ## Queried part:
-SELECT id FROM prob_gremlin WHERE id='admin'
+SELECT id FROM prob_cobalt WHERE id='admin'
 
 ## Commented part:
 AND pw=md5('')
@@ -49,7 +49,7 @@ We can also make teh statement true using the following URI:
 The resultant query will be:
 
 ```sql
-SELECT id FROM prob_gremlin WHERE id='admin' AND pw=md5('') OR (id='admin')
+SELECT id FROM prob_cobalt WHERE id='admin' AND pw=md5('') OR (id='admin')
 ```
 
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/5c5d2723-8a7e-4ac1-81c4-67d5084b7506)
