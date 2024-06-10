@@ -35,7 +35,7 @@ In order to make the result of the first query `False`, we can provide the follo
 The resultant query then becomes:
 
 ```sql
-SELECT id FROM prob_goblin WHERE id='guest' AND no=0
+select id from prob_goblin where id='guest' and no=0
 ```
 
 Since no=0 is always false, the result of the `AND` operation will always be `False`.
