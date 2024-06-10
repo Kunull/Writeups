@@ -57,7 +57,7 @@ If we keep increasing the length and provide the following URI:
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND length(pw)=8 -- -''
+SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND length(pw)=8 -- -'
 
 ## Queried part:
 SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND length(pw)=8
