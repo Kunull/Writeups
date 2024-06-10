@@ -157,7 +157,7 @@ We can keep repeating this process until we get all the eight characters of the 
 Now, we can provide password URI:
 
 ```
-?pw=095a9852' %23
+?pw=095a9852
 ```
 
 The resultant query becomes:
