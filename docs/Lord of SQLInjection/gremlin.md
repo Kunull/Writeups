@@ -24,10 +24,10 @@ The resultant query then becomes:
 ```sql
 SELECT id FROM prob_gremlin WHERE id='' OR 1=1 -- -' AND pw=''
 
-## Queried part
+## Queried part:
 SELECT id FROM prob_gremlin WHERE id='' OR 1=1
 
-## Commented part
+## Commented part:
 AND pw=''
 ```
 
