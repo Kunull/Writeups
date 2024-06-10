@@ -40,7 +40,7 @@ Since 1=1 is always true, the result of the `OR` operation will always be `True`
 
 
 ### Method 2
-We can also make teh statement true using the following input:
+We can also make teh statement true using the following URI:
 
 ```
 ?pw=') OR (id='admin
