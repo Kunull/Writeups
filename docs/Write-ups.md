@@ -29,7 +29,7 @@ If there are any write-ups for challenges created by you, that you want me to re
 -->
 
 
-## My CTF accounts
+## CTF accounts
 
 - [TryHackMe](https://tryhackme.com/p/Kunull)
 - [Hack The Box](https://app.hackthebox.com/profile/1158503)
