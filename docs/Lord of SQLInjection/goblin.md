@@ -20,7 +20,7 @@ The code also performs two conditional checks:
 1. `if($result['id'])`: It checks if the statement is `True`. If yes, it prints the following message: `Hello {$result[id]}`.
 2. `if($result['id'] == 'admin')`: It then checks if the `id` is set to `admin`. If yes, it prints the flag.
 
-We want the first conditional statement to be skipped and the second one to be executed.
+We want the second conditional statement to be executed.
 
 There are two methods.
 
