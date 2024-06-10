@@ -14,7 +14,7 @@ import urllib.parse
 import string
 
 cookies = {'PHPSESSID': 'jeae4igtrh2cq92r63ob4kqmqr'}
-url = "https://los.rubiya.kr/chall/orc_60e5b360f95c1f9688e4f3a86c5dd494.php"
+url = "https://los.rubiya.kr/chall/orge_bad2f25db233a7542be75844e314e9f3.php"
 password_length = 0
 
 for x in range(0, 10):
