@@ -13,7 +13,7 @@ We are provided with the SQL query:
 SELECT id FROM prob_orc WHERE id='admin' AND pw='{$_GET[pw]}'
 ```
 
-The code also performs two conditional checks:
+The code performs two conditional checks:
 
 1. `if($result['id'])`: It checks if the statement is `True`. If yes, it prints the following message: `Hello admin`
 2. `if(($result['pw']) && ($result['pw'] == $_GET['pw']))`: It then checks if the `pw` that is provided is correct. If yes, it prints the flag.
