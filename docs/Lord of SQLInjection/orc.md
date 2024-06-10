@@ -19,7 +19,7 @@ The code also performs two conditional checks:
 2. `if(($result['pw']) && ($result['pw'] == $_GET['pw']))`: It then checks if the `pw` that is provided is correct. If yes, it prints the flag.
 
 
-In order to print out the flag, we need to first know the password. We have to perform a Blind SQL Injection.
+In order to print out the flag, we need to first know the password. For that we have to perform a Blind SQL Injection.
 
 ### Blind SQL Injection
 
