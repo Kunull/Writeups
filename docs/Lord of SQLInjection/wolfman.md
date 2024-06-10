@@ -13,7 +13,7 @@ We are provided with the SQL query:
 SELECT id FROM prob_wolfman WHERE id='guest' AND pw='{$_GET[pw]}'
 ```
 
-This level prints out the flag if the `ìd=admin`. 
+This level prints out the flag if the `id=admin`. 
 
 However, it also removes all space characters. In order to get around this, we need to use the Line Feed (`%0A`) character.
 
