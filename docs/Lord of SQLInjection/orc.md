@@ -34,7 +34,7 @@ If we provide the following URI:
 The resultant query becomes:
 
 ```sql
-select id from prob_orc where id='admin' and pw='' or length(pw)=1 -- -'
+SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR length(pw)=1 -- -'
 
 ## Queried part:
 SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR length(pw)=1
