@@ -27,10 +27,10 @@ The resultant query then becomes:
 ```sql
 SELECT id FROM prob_gremlin WHERE id='admin' -- -' AND pw=md5('')
 
-## Queried part
+## Queried part:
 SELECT id FROM prob_gremlin WHERE id='admin'
 
-## Commented part
+## Commented part:
 AND pw=md5('')
 ```
 
