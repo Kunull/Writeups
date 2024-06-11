@@ -27,7 +27,7 @@ In order to print out the flag, we need to first know the password. We have to p
 
 First we have to reveal the length of the flag.
 
-### Retrieving password length
+### Retrieving the password length
 
 If we provide the following URI:
 
