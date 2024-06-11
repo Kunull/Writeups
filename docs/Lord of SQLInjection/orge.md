@@ -19,13 +19,15 @@ The code performs two conditional checks:
 2. `if(($result['pw']) && ($result['pw'] == $_GET['pw']))`: It then checks if the `pw` that is provided is correct. If yes, it prints the flag.
 
 
-It is similar to [orc](https://writeups-kunull.vercel.app/Lord%20of%20SQLInjection/orc) but this level also blocks the `OR` and `AND` characters. So we will haveto use their alternatives `||` and `&&` respectively.
+It is similar to [orc](https://writeups-kunull.vercel.app/Lord%20of%20SQLInjection/orc) but this level also blocks the `OR` and `AND` characters. So we will have to use their alternatives `||` and `&&` respectively.
 
 In order to print out the flag, we need to first know the password. We have to perform a Blind SQL Injection.
 
-### Blind SQL Injection
+## Blind SQL Injection
 
 First we have to reveal the length of the flag.
+
+### Retrieving password length
 
 If we provide the following URI:
 
@@ -36,10 +38,10 @@ If we provide the following URI:
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_orge WHERE id='admin' || pw='' && length(pw)=1 -- -'
+SELECT id FROM prob_orc WHERE id='admin' AND pw='' || id='admin' && length(pw)=1 -- -'
 
 ## Queried part:
-SELECT id FROM prob_orge WHERE id='admin' || pw='' && length(pw)=1
+SELECT id FROM prob_orc WHERE id='admin' AND pw='' || id='admin' && length(pw)=1
 
 ## Commented part:
 '
@@ -174,7 +176,7 @@ SELECT id FROM prob_orge WHERE id='admin' AND pw='7b751aec'
 ```
 
 
-## Script
+### Script
 
 We can automate the entire process using a script.
 
