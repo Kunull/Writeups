@@ -269,3 +269,5 @@ $ python .\orge_script.py
 [!] Extracted password: 7b751aec
 [!] Final payload: ?pw=7b751aec
 ```
+
+![7](https://github.com/Kunull/Write-ups/assets/110326359/601ce708-c7b6-4486-be1d-faad595f9c14)
