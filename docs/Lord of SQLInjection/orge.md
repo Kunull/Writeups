@@ -19,7 +19,7 @@ The code performs two conditional checks:
 2. `if(($result['pw']) && ($result['pw'] == $_GET['pw']))`: It then checks if the `pw` that is provided is correct. If yes, it prints the flag.
 
 
-It also blocks the `OR` and `AND` characters. So we will haveto use their alternatives `||` and `&&` respectively.
+It is similar to [orc](https://writeups-kunull.vercel.app/Lord%20of%20SQLInjection/orc) but this level also blocks the `OR` and `AND` characters. So we will haveto use their alternatives `||` and `&&` respectively.
 
 In order to print out the flag, we need to first know the password. We have to perform a Blind SQL Injection.
 
