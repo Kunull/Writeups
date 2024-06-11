@@ -34,10 +34,10 @@ If we provide the following URI:
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR length(pw)=1 -- -'
+SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND length(pw)=1 -- -'
 
 ## Queried part:
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR length(pw)=1
+SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND length(pw)=1
 
 ## Commented part:
 '
