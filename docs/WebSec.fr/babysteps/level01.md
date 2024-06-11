@@ -75,7 +75,7 @@ There is a `users` table which has three columns: `id`, `username` and `password
 
 ### Retrieving the flag
 
-Now that we know the table name is `table2652065454664187289``, we can easily retrieve the password from the table.
+Now that we know the table name is `table2652065454664187289`, we can easily retrieve the password from the table.
 
 If we provide the following input:
 
