@@ -16,13 +16,13 @@ SELECT id FROM prob_vampire WHERE id='{$_GET[pw]}'
 This level uses the `str_replace()` function to replace `admin` with ` `. 
 
 
-This function is not recursive which means we can provide the following URI:
+However this function is not recursive which means when we provide the following URI:
 
 ```
 id=adadminmin
 ```
 
-When the application replaces `admin`, our URI becomes:
+The application replaces `admin`, and our URI becomes:
 
 ```
 id=admin
