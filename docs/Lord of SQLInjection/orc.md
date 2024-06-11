@@ -21,9 +21,11 @@ The code performs two conditional checks:
 
 In order to print out the flag, we need to first know the password. For that we have to perform a Blind SQL Injection.
 
-### Blind SQL Injection
+## Blind SQL Injection
 
 First we have to reveal the length of the flag.
+
+### Retrieving the password length
 
 If we provide the following URI:
 
@@ -166,7 +168,7 @@ The resultant query becomes:
 SELECT id FROM prob_orc WHERE id='admin' AND pw='095a9852'
 ```
 
-## Script
+### Script
 
 We can automate the entire process using a script.
 
