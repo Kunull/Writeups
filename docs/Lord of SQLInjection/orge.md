@@ -163,19 +163,6 @@ We can keep repeating this process until we get all the eight characters of the 
 7b751aec
 ```
 
-Now, we can provide password URI:
-
-```
-?pw=7b751aec
-```
-
-The resultant query becomes:
-
-```sql
-SELECT id FROM prob_orge WHERE id='admin' AND pw='7b751aec'
-```
-
-
 ### Script
 
 We can automate the entire process using a script.
@@ -270,6 +257,18 @@ $ python .\orge_script.py
 
 [!] Extracted password: 7b751aec
 [!] Final payload: ?pw=7b751aec
+```
+
+Now, we can provide password URI:
+
+```
+?pw=7b751aec
+```
+
+The resultant query becomes:
+
+```sql
+SELECT id FROM prob_orge WHERE id='admin' AND pw='7b751aec'
 ```
 
 ![7](https://github.com/Kunull/Write-ups/assets/110326359/601ce708-c7b6-4486-be1d-faad595f9c14)
