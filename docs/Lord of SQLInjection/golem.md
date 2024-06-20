@@ -157,18 +157,6 @@ We can keep repeating this process until we get all the eight characters of the 
 77d6290b
 ```
 
-Now, we can provide password URI:
-
-```
-?pw=77d6290b
-```
-
-The resultant query becomes:
-
-```sql
-SELECT id FROM prob_orc WHERE id='admin' AND pw='77d6290b'
-```
-
 ### Script
 
 ```py title="golem_script.md"
@@ -261,6 +249,18 @@ $ python .\golem_script.py.py
 
 [!] Extracted password: 77d6290b
 [!] Final payload: ?pw=77d6290b
+```
+
+Now, we can provide password URI:
+
+```
+?pw=77d6290b
+```
+
+The resultant query becomes:
+
+```sql
+SELECT id FROM prob_orc WHERE id='admin' AND pw='77d6290b'
 ```
 
 ![7](https://github.com/Kunull/Write-ups/assets/110326359/32bafc83-a76d-4d3d-98b0-8f47a4f83333)
