@@ -19,13 +19,13 @@ This level uses the `str_replace()` function to replace `admin` with ` `.
 However this function is not recursive which means when we provide the following URI:
 
 ```
-id=adadminmin
+?id=adadminmin
 ```
 
 The application replaces `admin`, and our URI becomes:
 
 ```
-id=admin
+?id=admin
 ```
 
 The resultant query then becomes:
