@@ -98,3 +98,5 @@ $ python .\losqli.py
 [!] Extracted password: 52dc3991
 [!] Final payload: ?pw=52dc3991
 ```
+
+![0](https://github.com/Kunull/Write-ups/assets/110326359/79e0068b-45ad-4d2e-a03d-791bb38cafce)
