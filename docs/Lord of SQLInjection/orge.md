@@ -62,7 +62,7 @@ If we keep increasing the length and provide the following URI:
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_orge WHERE id='admin' AND pw='' || id='admin' && length(pw)=8 -- -''
+SELECT id FROM prob_orge WHERE id='admin' AND pw='' || id='admin' && length(pw)=8 -- -'
 
 ## Queried part:
 SELECT id FROM prob_orge WHERE id='admin' AND pw='' || id='admin' && length(pw)=8
