@@ -159,6 +159,8 @@ We can keep repeating this process until we get all the eight characters of the 
 
 ### Script
 
+We can automate the entire process using a script.
+
 ```py title="golem_script.md"
 import requests
 import urllib.parse
