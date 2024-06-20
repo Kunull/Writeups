@@ -156,18 +156,6 @@ We can keep repeating this process until we get all the eight characters of the 
 095a9852
 ```
 
-Now, we can provide password URI:
-
-```
-?pw=095a9852
-```
-
-The resultant query becomes:
-
-```sql
-SELECT id FROM prob_orc WHERE id='admin' AND pw='095a9852'
-```
-
 ### Script
 
 We can automate the entire process using a script.
@@ -262,6 +250,18 @@ $ python .\orc_script.py
 
 [!] Extracted password: 095a9852
 [!] Final payload: ?pw=095a9852
+```
+
+Now, we can provide password URI:
+
+```
+?pw=095a9852
+```
+
+The resultant query becomes:
+
+```sql
+SELECT id FROM prob_orc WHERE id='admin' AND pw='095a9852'
 ```
 
 ![8](https://github.com/Kunull/Write-ups/assets/110326359/ef9ae213-af29-4450-8d2e-34d02565e928)
