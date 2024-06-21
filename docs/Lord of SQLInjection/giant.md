@@ -7,7 +7,7 @@ sidebar_position: 14
 
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/cf244332-a0d2-4992-a29d-c16c73b69db7)
 
-SQL query:
+We are provided with the SQL query:
 
 ```sql
 SELECT 1234 FROM{$_GET[shit]}prob_giant WHERE 1
