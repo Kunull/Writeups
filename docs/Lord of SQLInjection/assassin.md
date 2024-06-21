@@ -7,7 +7,7 @@ sidebar_position: 15
 
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/a4d30de7-86ed-4978-8c4c-38f8827700a5)
 
-SQL query:
+We are provided with theSQL query:
 
 ```sql
 SELECT id FROM prob_assassin WHERE pw LIKE '{$_GET[pw]}'
