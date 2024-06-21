@@ -27,7 +27,7 @@ The resultant query becomes:
 SELECT id FROM prob_succubus WHERE id='\' AND pw='{$_GET[pw]}'
 ```
 
-As we can see, now the `\' AND pw=` part is being treated as a string. This is because the `\` character tells the code to ignore the following character which was the closing single quote.
+As we can see, now the `\' AND pw=` part is being treated as a string. This is because the `\` character escapes the following character which was the closing single quote.
 
 Anything we insert into the `?pw` parameter will thus be treated as code.
 
