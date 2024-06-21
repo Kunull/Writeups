@@ -19,13 +19,15 @@ The code filters out the following characters:
 
 - Single quotes
 
-
-
-### Wildcard
+### Blind SQL Injection
 
 We have to use wildcards to leak out the password.
 
+#### Wildcard
+
 ![Pasted image 20240621082037](https://github.com/Kunull/Write-ups/assets/110326359/7c57a891-1577-4c2d-940d-556cac31d631)
+
+More specifically, we have to use the (`%`) wildcard.
 
 If we provide the following URI:
 
