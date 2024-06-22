@@ -13,7 +13,7 @@ We are provided with the SQL query:
 SELECT id FROM prob_skeleton WHERE id='guest' AND pw='{$_GET[pw]}' AND 1=0
 ```
 
-We can provide the following URI:
+We can provide the following URI parameter:
 
 ```
 ?pw=' OR id='admin' -- -
