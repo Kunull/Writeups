@@ -24,7 +24,7 @@ For this challenge, the password is in Korean. There are two ways of solving thi
 1. Assigning the password to a variable and leaking the variable
 2. Blind SQL Injection
 
-## Assigning the password a variable and leaking the variable
+## Assigning the password to a variable and leaking the variable
 
 If we provide the following URI parameter:
 
