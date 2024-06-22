@@ -13,7 +13,7 @@ We are provided with the SQL query:
 SELECT id FROM prob_gremlin WHERE id='{$_GET[id]}' AND pw='{$_GET[pw]}'
 ```
 
-In order to make the result of this query `True`, we can provide the following URI:
+In order to make the result of this query `True`, we can provide the following URI parameter:
 
 ```
 ?id=' OR 1=1 -- -
