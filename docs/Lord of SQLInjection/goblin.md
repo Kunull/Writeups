@@ -26,7 +26,7 @@ There are two methods.
 
 ### Method 1
 
-In order to make the result of the first query `False`, we can provide the following URI:
+In order to make the result of the first query `False`, we can provide the following URI parameter:
 
 ```
 ?no=0
@@ -44,7 +44,7 @@ Since no=0 is always false, the result of the `AND` operation will always be `Fa
 
 As expected, the `Hello {$result[id]}` message isn't printed.
 
-In order to execute the second conditional statement, we can provide the following URI:
+In order to execute the second conditional statement, we can provide the following URI parameter:
 
 ```
 ?no=0 OR id=0x61646d696e
@@ -65,7 +65,7 @@ The result of the first conditional is already `False` and because we just the `
 
 ### Method 2
 
-If we provide the following URI:
+If we provide the following URI parameter:
 
 ```
 ?no=no
