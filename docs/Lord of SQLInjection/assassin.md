@@ -29,7 +29,7 @@ We have to use wildcards to leak out the password.
 
 More specifically, we have to use the (`%`) wildcard.
 
-If we provide the following URI:
+If we provide the following URI parameter:
 
 ```
 ?pw=%
