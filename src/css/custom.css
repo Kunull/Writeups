@@ -247,11 +247,13 @@ nav.menu_SIkG {
     padding-left: 0.25rem;
 }
 
-/* Left padding */
+/* Left padding, Left border */
 .menu__list .menu__list {
+    border-left: 1px solid #333;
     flex: 0 0 100%;
-    margin-top: .25rem;
-    padding-left: 0;
+    margin-top: 0;
+    padding-left: 0.25rem;
+    margin-left: 0.75rem;
 }
 
 /* Selected item border radius */
