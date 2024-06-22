@@ -16,7 +16,7 @@ SELECT id FROM prob_cobolt WHERE id='{$_GET[id]}' AND pw=md5('{$_GET[pw]}
 This time the application requires us to query for the id `admin`.
 
 ### Method 1
-In order to make the result of this query `True`, we can provide the following URI:
+In order to make the result of this query `True`, we can provide the following URI parameter:
 
 ```
 ?id=admin' -- -
@@ -40,7 +40,7 @@ Since 1=1 is always true, the result of the `OR` operation will always be `True`
 
 
 ### Method 2
-We can also make teh statement true using the following URI:
+We can also make teh statement true using the following URI parameter:
 
 ```
 ?pw=') OR (id='admin
