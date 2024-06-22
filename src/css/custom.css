@@ -128,6 +128,12 @@ code {
     max-width: 100%;
 }
 
+/* Margin */
+.margin-top--lg, .margin-vert--lg {
+    margin-top: 1.5rem !important;
+}
+
+
 
 
 /* MAIN WRAPPER */
@@ -443,11 +449,6 @@ table tr:nth-child(2n) {
 /* Search bar color */
 html[data-theme=dark] {
   --docsearch-searchbox-focus-background: #111 !important;
-}
-
-/* Margin */
-.margin-top--lg, .margin-vert--lg {
-    margin-top: 1.5rem !important;
 }
 
 /* Logo (SEARCH PAGE) */
