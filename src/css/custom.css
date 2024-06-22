@@ -218,6 +218,15 @@ article {
 
 
 
+/* NAVBAR SIDEBAR */
+.navbar-sidebar--show .navbar-sidebar, .navbar-sidebar--show .navbar-sidebar__backdrop {
+    opacity: 1;
+    visibility: visible;
+    border-right: 1px solid #333;
+}
+
+
+
 /* SIDEBAR */
 
 aside.docSidebarContainer_YfHR {
