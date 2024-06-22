@@ -22,7 +22,7 @@ If we provide the following URI parameter:
 ?id=ADMIN
 ```
 
-The resultant query then becomes:
+The resultant query becomes:
 
 ```sql
 SELECT id FROM prob_troll WHERE id='ADMIN'
