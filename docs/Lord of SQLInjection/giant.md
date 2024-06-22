@@ -25,6 +25,8 @@ The code filters out the following characters:
 In order to solve the challenge, we have to separate the `FROMprob_giant`.
 Since Tabs are filtered out, we have to use the Vertical tab (`%0B`) character.
 
+If we provide the following URI parameter:
+
 ```
 ?shit=%0B
 ```
