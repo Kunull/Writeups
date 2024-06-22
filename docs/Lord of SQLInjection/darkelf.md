@@ -17,7 +17,7 @@ This level prints out the flag if the `id=admin`.
 
 However, it also removes the `OR` characters. In order to get around this, we need to use the double pipe (`||`) characters.
 
-If we provide the following URI:
+If we provide the following URI parameter:
 
 ```
 ?pw=' || id='admin
