@@ -15,7 +15,7 @@ SELECT id FROM prob_zombie_assassin WHERE id='{$_GET[id]}' AND pw='{$_GET
 
 This challenge use the `addslashes()` function to add a (`\`) before every input quote. It then reverses the string using the `strrev()`s function.
 
-If we provide the following URI:
+If we provide the following URI parameter:
 
 ```
 ?id="
@@ -30,7 +30,7 @@ SELECT id FROM prob_zombie_assassin WHERE id='"\' AND pw=''
 Our input double-quote (`"`) is escaped (`\"`) and then the entire character sequence is reversed (`"\`).
 This causes the original closing single-quote to be escaped (`"\'`) and the `"\' AND pw=` part is treated as a string.
 
-We can now provide the following URI:
+We can now provide the following URI parameter:
 
 ```
 ?id="&pw=- -- 1=1 RO 
