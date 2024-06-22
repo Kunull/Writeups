@@ -332,6 +332,11 @@ nav.menu_SIkG {
     display: none;
 }
 
+.tableOfContents_bqdL {
+    position: sticky;
+    top: calc(var(--ifm-navbar-height) + 1.5rem) !important;
+}
+
 
 
 /* BREADCRUMBS */
