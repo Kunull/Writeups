@@ -14,8 +14,9 @@ SELECT id FROM prob_troll WHERE id='{$_GET[id]}'
 ```
 
 This level blocks the `admin` word from the payload.
-
 However, SQL is not case sensitive. Therefore we can use `ADMIN` instead of `admin`.
+
+If we provide the following URI parameter:
 
 ```
 ?id=ADMIN
