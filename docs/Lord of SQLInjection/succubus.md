@@ -15,7 +15,7 @@ SELECT id FROM prob_succubus WHERE id='{$_GET[id]}' AND pw='{$_GET[pw]}'
 
 We cannot use single or double quotes in this challenge. Therefore, we need to find another way to modify the existing query.
 
-Let's provide the following URI:
+Let's provide the following URI parameter:
 
 ```
 ?id=\
@@ -31,7 +31,7 @@ As we can see, now the `\' AND pw=` part is being treated as a string. This is
 
 Anything we insert into the `?pw` parameter will thus be treated as code.
 
-If we provide the following URI:
+If we provide the following URI parameter:
 
 ```
 ?id=\&pw= OR 1=1 -- -
