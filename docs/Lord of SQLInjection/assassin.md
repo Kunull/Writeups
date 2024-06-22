@@ -13,13 +13,13 @@ We are provided with theSQL query:
 SELECT id FROM prob_assassin WHERE pw LIKE '{$_GET[pw]}'
 ```
 
-### Filter
+## Filter
 
 The code filters out the following characters:
 
 - Single quotes
 
-### Blind SQL Injection
+## Blind SQL Injection
 
 We have to use wildcards to leak out the password.
 
