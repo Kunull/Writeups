@@ -251,7 +251,7 @@ nav.menu_SIkG {
 .menu__list .menu__list {
     border-left: 1px solid #333;
     flex: 0 0 100%;
-    margin-top: 0;
+    margin-top: 0.25rem;
     padding-left: 0.25rem;
     margin-left: 0.75rem;
 }
