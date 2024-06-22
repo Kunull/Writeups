@@ -17,7 +17,7 @@ This level prints out the flag if the `id=admin`.
 
 However, it also removes all space characters. In order to get around this, we need to use the Line Feed (`%0A`) character.
 
-If we provide the following URI:
+If we provide the following URI parameter:
 
 ```
 ?pw='%0AOR%0Aid='admin
