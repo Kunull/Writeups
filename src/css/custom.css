@@ -235,6 +235,10 @@ article {
 
 /* SIDEBAR */
 
+.menu, .navbar__link {
+    font-weight: var(--ifm-font-weight-normal) !important;
+}
+
 aside.docSidebarContainer_YfHR {
     border-right: 0px;
 }
