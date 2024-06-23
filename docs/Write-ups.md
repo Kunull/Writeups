@@ -12,7 +12,7 @@ It is updated on most days and will continue to be for the foreseeable future.
 
 
 Beyond serving as a documentation for my personal development, I hope that this collection serves as a helpful resource for others interested in CTF challenges.
-By documenting my solutions in real-time, I aim to create a [Memex](https://en.wikipedia.org/wiki/Memex) which can be referredto by me or anyone else in the future.
+By documenting my solutions in real-time, I aim to create a [Memex](https://en.wikipedia.org/wiki/Memex) which can be referred to by me or anyone else in the future.
 
 
 :::note
