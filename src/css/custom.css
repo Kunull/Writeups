@@ -243,6 +243,10 @@ article {
     line-height: 1.5;
 }
 
+.menu {
+    font-weight: var(--ifm-font-weight-normal) !important;
+}
+
 aside.docSidebarContainer_YfHR {
     border-right: 0px;
 }
@@ -276,7 +280,7 @@ nav.menu_SIkG {
     margin-top: 0.25rem;
     padding-left: 0.25rem;
     margin-left: 0.75rem;
-    font-weight: var(--ifm-font-weight-semibold) !important;
+    font-weight: var(--ifm-font-weight-normal) !important;
 }
 
 /* Selected item border radius */
