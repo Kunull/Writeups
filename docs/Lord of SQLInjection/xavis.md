@@ -29,7 +29,7 @@ For this challenge, the password is in Korean. There are two ways of solving thi
 If we provide the following URI parameter:
 
 ```
-?pw=' or (SELECT @adminpassword:=pw WHERE id='admin') UNION SELECT @adminpassword %23
+?pw=' or (SELECT @adminpassword:=pw WHERE id='admin') UNION SELECT @adminpassword -- -
 ```
 
 The resultant query becomes:
