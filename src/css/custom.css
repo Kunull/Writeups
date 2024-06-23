@@ -6,6 +6,10 @@
 
 /* You can override the default Infima variables here. */
 :root {
+  --ifm-font-weight-light: 300;
+  --ifm-font-weight-normal: 400;
+  --ifm-font-weight-semibold: 600;
+  --ifm-font-weight-bold: 700;
   --ifm-color-emphasis-200: #ccc;
   --ifm-menu-color-background-active: #dadada;
   --ifm-menu-color-background-hover: #dadada;
