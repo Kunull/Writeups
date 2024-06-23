@@ -308,6 +308,10 @@ nav.menu_SIkG {
     width: calc(var(--ifm-navbar-sidebar-width));
 }
 
+.menu, .navbar__link {
+    font-weight: var(--ifm-font-weight-semibold);
+}
+
 
 
 /* BACK TO MAIN MENU */
