@@ -243,10 +243,6 @@ article {
     line-height: 1.5;
 }
 
-.menu {
-    font-weight: var(--ifm-font-weight-normal) !important;
-}
-
 aside.docSidebarContainer_YfHR {
     border-right: 0px;
 }
@@ -306,10 +302,6 @@ nav.menu_SIkG {
     flex-shrink: 0;
     padding: 1rem 1.5rem;
     width: calc(var(--ifm-navbar-sidebar-width));
-}
-
-.menu, .navbar__link {
-    font-weight: var(--ifm-font-weight-semibold) !important;
 }
 
 
