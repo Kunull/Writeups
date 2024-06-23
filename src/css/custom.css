@@ -235,7 +235,7 @@ article {
 
 /* SIDEBAR */
 
-.menu, .navbar__link {
+.menu {
     font-weight: var(--ifm-font-weight-normal) !important;
 }
 
