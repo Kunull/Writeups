@@ -276,7 +276,7 @@ nav.menu_SIkG {
     margin-top: 0.25rem;
     padding-left: 0.25rem;
     margin-left: 0.75rem;
-    font-weight: var(--ifm-font-weight-normal) !important;
+    font-weight: var(--ifm-font-weight-semibold) !important;
 }
 
 /* Selected item border radius */
