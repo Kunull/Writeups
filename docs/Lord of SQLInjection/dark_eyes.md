@@ -28,7 +28,7 @@ This level also exits when an error is invoked instead of revealing the error me
 
 ## Error-based Blind SQL Injection
 
-### Subquery returned more than 1 value error
+### ERROR: Subquery returned more than 1 value error
 
 In SQL the subquery can only return one value.
 
