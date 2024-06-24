@@ -7,10 +7,14 @@ sidebar_position: 23
 
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/50a38bf9-d127-4ab6-ad25-321eb0130c99)
 
-We are provided with the SQL query:
+We are provided with the SQL queries:
 
 ```sql
 SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY {$_GET[order]}
+```
+
+```sql
+SELECT email FROM prob_hell_fire WHERE id='admin' AND email='{$_GET[email]}'`
 ```
 
 This challenge returns the output in the form of a table.
@@ -291,4 +295,16 @@ $ python .\hell_fire_script.py
 
 [!] Extracted email: admin_secure_email@emai1.com
 [!] Final payload: ?email=admin_secure_email@emai1.com
+```
+
+If we provide the following URI parameter:
+
+```
+?email=admin%5Fsecure%5Femail@emai1.com
+```
+
+The resultant query becomes:
+
+```sql
+SELECT email FROM prob_hell_fire WHERE id='admin' AND email='admin_secure_email@emai1.com'
 ```
