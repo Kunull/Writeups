@@ -335,6 +335,8 @@ SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY if(id='admin' 
 
 If the first character of `email` for `id='admin'`, the rows will be sorted by `id`. Otherwise, they will be sorted by `score`.
 
+### Script
+
 ```python title="hell_fire_script.py"
 import requests
 import urllib.parse
