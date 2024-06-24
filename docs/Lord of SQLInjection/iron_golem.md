@@ -43,7 +43,7 @@ The above SQL query will perform the `0xFFFFFFFFFFFFFF*0xFFFFFFFFFFFFFF` operati
 
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/d98bd98b-8b29-49ba-a28e-3fcc8cb7177a)
 
-Since the error wasn't thrown, we know that the multiplication was not performed. This tells us that the length of the `pw` for `id='admin'` is more than 1.
+Since the error wasn't thrown, we know that the multiplication was not performed. This means that the length of the `pw` for `id='admin'` is more than 1.
 
 If we keep increasing the length and provide the following URI parameter:
 
