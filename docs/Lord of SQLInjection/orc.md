@@ -61,8 +61,7 @@ The resultant query becomes:
 SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, [index], 1)='[character]' -- -'
 ```
 
-If for `id='admin'`, the character of the `pw` at `[index]` is the same as the `[character]` that we provide, the query will result into `True`. This will cause the `Hello admin` message to be printed. We can brute force the length and use the message as an indicator of correct brute force value.
-
+If for `id='admin'`, the character of the `pw` at `[index]` is the same as the `[character]` that we provide, the query will result into `True`. This will cause the `Hello admin` message to be printed. We can brute force the password by changing the `[index]` and the `[character]`.
 ### Script
 
 We can automate the entire process using a script.
