@@ -268,7 +268,7 @@ _@.0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
 [!] Final payload: ?email=aasup3r_secure_email@emai1.com
 ```
 
-## Blind SQL Injection - (Sorting by ADC or DESC)
+## Blind SQL Injection - (Sorting by ASC or DESC)
 
 ### Retrieving the email length
 
