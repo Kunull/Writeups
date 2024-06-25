@@ -61,13 +61,12 @@ If we provide the following URI parameter:
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' %26%26 substring(pw, [index], 1) LIKE '[character]' -- -'
+SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' && substring(pw, [index], 1) LIKE '[character]' -- -'
 ```
 
 When the length of `pw` for `id='admin'` is equal to the `[length]` that we provide, the query will result into `True`. 
 This will cause the `Hello admin` message to be printed. 
 We can brute force the length and use the message as an indicator of correct brute force value.
-
 
 ### Script
 
