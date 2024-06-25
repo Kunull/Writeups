@@ -59,7 +59,9 @@ The resultant query becomes:
 SELECT id FROM prob_orge WHERE id='admin' AND pw='' || id='admin' && length(pw)=[lenght] -- -'
 ```
 
-When the length of `pw` for `id='admin'` is equal to the `[length]` that we provide, the query will result into `True`. This will cause the `Hello admin` message to be printed. We can brute force the length and use the message as an indicator of correct brute force value.
+When the length of `pw` for `id='admin'` is equal to the `[length]` that we provide, the query will result into `True`. 
+This will cause the `Hello admin` message to be printed. 
+We can brute force the length and use the message as an indicator of correct brute force value.
 
 ### Leaking the password
 
@@ -81,7 +83,9 @@ The resultant query becomes:
 SELECT id FROM prob_orge WHERE id='admin' AND pw='' || id='admin' && substr(pw, [index], 1)='[character]' -- -'
 ```
 
-If for `id='admin'`, the character of the `pw` at `[index]` is the same as the `[character]` that we provide, the query will result into `True`. This will cause the `Hello admin` message to be printed. We can brute force the password by changing the `[index]` and the `[character]`.
+If for `id='admin'`, the character of the `pw` at `[index]` is the same as the `[character]` that we provide, the query will result into `True`. 
+This will cause the `Hello admin` message to be printed. 
+We can brute force the password by changing the `[index]` and the `[character]`.
 
 ```
 7b751aec
