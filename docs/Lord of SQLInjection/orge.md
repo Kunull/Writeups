@@ -29,25 +29,7 @@ First we have to reveal the length of the flag.
 
 ### Retrieving the password length
 
-If we provide the following URI parameter:
-
-```
-?pw=' || id='admin' %26%26 length(pw)=1 -- -
-```
-
-The resultant query becomes:
-
-```sql
-SELECT id FROM prob_orc WHERE id='admin' AND pw='' || id='admin' && length(pw)=1 -- -'
-```
-
-![2](https://github.com/Kunull/Write-ups/assets/110326359/54dd9da3-f4bc-425a-99aa-719ad27b3fba)
-
-Since the `Hello admin` message is not printed, we know that the resultant query did not result in `True`.
-
-That tells us that the length of the `pw` column is more than 1.
-
-If we keep increasing the length and provide the following URI parameter:
+If provide the following URI parameter:
 
 ```
 ?pw=' || id='admin' %26%26 length(pw)=[length] -- -
