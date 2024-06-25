@@ -34,7 +34,7 @@ SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY id
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/d9f2eff9-6616-47e7-b691-7735f440149d)
 
 As we can see there are two users: `admin` and `rubiya`.
-In this challenge, the users are sorted in the same way regardless if we order by `id` or `score`.
+Unlike [hell_fire](https://writeups-kunull.vercel.app/Lord%20of%20SQLInjection/hell_fire), in this challenge the users are sorted in the same way regardless if we order by `id` or `score`.
 
 We can solve this using two different methods:
 
