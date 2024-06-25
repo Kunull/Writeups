@@ -38,8 +38,8 @@ In this challenge, the users are sorted in the same way regardless if we order b
 
 We can solve this using two different methods:
 
-- [Assigning sort value](#blind-sql-injection---assigning-different-sort-value)
-- [Sorting by ASC or DESC](
+- [Assigning different sort value](#blind-sql-injection---assigning-different-sort-value)
+- [Sorting by ASC or DESC](#blind-sql-injection---sorting-by-adc-or-desc)
 
 ## Blind SQL Injection - (Assigning different sort value)
 
