@@ -303,6 +303,8 @@ If the `id='admin'` and character of the `email` at `[index]` is the same as the
 
 So, if the `admin` user appears first, we know that the `[character]` at `[index]` was correct.
 
+### Script
+
 ```python title="evil_wizard_script.py"
 import requests
 import urllib.parse
