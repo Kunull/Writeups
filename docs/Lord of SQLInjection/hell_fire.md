@@ -43,6 +43,8 @@ We can solve this challenge using two different methods:
 
 ## Blind SQL Injection - (Assigning different sort value)
 
+In this method, we assign a lower sort value to the row which meets the condition. This will cause the row to be displayed first.
+
 ### Retrieving the email length
 
 If we provide the following URI parameter:
@@ -474,6 +476,8 @@ _@.0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
 ```
 
 ## Blind SQL Injection - (Sorting by ASC or DESC)
+
+In this method, we will sort in the ascending order if the condition is met. If the condition is not met, we will sort in the descending order.
 
 ### Retrieving the email length
 
