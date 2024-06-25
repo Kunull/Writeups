@@ -56,7 +56,7 @@ The resultant query becomes:
 SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY if(id='admin' AND length(email)=[length], 1, 2)
 ```
 
-Rows where the length of email for id='admin' is equal to the [length] that we provide, will be given the sort value 1. All other rows will be given the sort value 2. Rows with a lower sort value will appear first within the table.
+Rows where the length of `email` for `id='admin'` is equal to the `[length]` that we provide, will be given the sort value 1. All other rows will be given the sort value 2. Rows with a lower sort value will appear first within the table.
 
 So, if the admin user appears first, we know that the [length] was correct.
 
@@ -74,7 +74,7 @@ The resultant query becomes:
 SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY if(id='admin' AND ord(substr(email, 1, 1))='ord([character])', 1, 2)
 ```
 
-Rows where the id='admin' and character of the email at [index] is the same as the [character] that we provide, will be given the sort value 1. All other rows will be given sort value 2. Rows with a lower sort value will appear first within the table.
+Rows where the `id='admin'` and character of the `email` at `[index]` is the same as the `[character]` that we provide, will be given the sort value 1. All other rows will be given sort value 2. Rows with a lower sort value will appear first within the table.
 
 ### Script
 
@@ -273,7 +273,7 @@ The resultant query becomes:
 SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY if(id='admin' AND length(email)=28, 'id', 'score')
 ```
 
-If the length of email for id='admin' is equal to the [length] that we provide, the rows will be sorted by `id`. Otherwise, the rows will be sorted by `score`.
+If the length of `email` for `id='admin'` is equal to the `[length]` that we provide, the rows will be sorted by `id`. Otherwise, the rows will be sorted by `score`.
 
 So, if the admin user appears first, we know that the [length] was correct.
 
@@ -291,7 +291,7 @@ The resultant query becomes:
 SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY if(id='admin' AND substr(email, 1, 1)='a', 'id', 'score')
 ```
 
-If the id='admin' and character of the email at [index] is the same as the [character] that we provide, the rows will be sorted by `id`. Otherwise, the rows will be sorted by `score`.
+If the `id='admin'` and character of the `email` at `[index]` is the same as the `[character]` that we provide, the rows will be sorted by `id`. Otherwise, the rows will be sorted by `score`.
 
 So, if the admin user appears first, we know that the [character] at [index] was correct.
 
