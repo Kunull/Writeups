@@ -38,7 +38,7 @@ $_GET['pw']: ' UNION SELECT 1 -- -
 
 In order to make them the same, we have to use a [Quine](https://en.wikipedia.org/wiki/Quine_(computing)) program.
 
-### Quine
+## Quine
 
 An example of a SQL Quine is:
 
