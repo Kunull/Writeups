@@ -117,4 +117,4 @@ The resultant query becomes:
 SELECT id,pw FROM prob_frankenstein WHERE id='frankenstein' AND pw='0dc4efbb'
 ```
 
-![[2 210.png]]
+![Uploading 2.png…]()
