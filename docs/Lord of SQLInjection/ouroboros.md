@@ -65,7 +65,7 @@ Replace(
 Char(34), 
 Char(39)
 )
--- - ,CHAR(36),"$") AS Quine', Char(34), Char(39)), Char(36), 'SELECT REPLACE(REPLACE("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine') AS Quine -- -
+-- - , Char(36), 'SELECT REPLACE(REPLACE("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine') AS Quine -- -
 ```
 
 Replace all occurrences of `CHAR(34)` (double quote `"` character) with `CHAR(39)` (single quote `'` character):
@@ -73,7 +73,7 @@ Replace all occurrences of `CHAR(34)` (double quote `"` character) with `CHAR(39
 ```sql
 -- - SELECT Replace( -- -
 'SELECT Replace(Replace('$',Char(34),Char(39)),Char(36),'$') AS Quine'
--- - ,Char(36),"$") AS Quine', Char(34), Char(39)), Char(36), 'SELECT REPLACE(REPLACE("$",Char(34),Char(39)),Char(36),"$") AS Quine') AS Quine -- -
+-- - , Char(36), 'SELECT REPLACE(REPLACE("$",Char(34),Char(39)),Char(36),"$") AS Quine') AS Quine -- -
 ```
 ### Second replacement
 
