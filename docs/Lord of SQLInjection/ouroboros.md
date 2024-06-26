@@ -190,7 +190,7 @@ The final result of the query is the string after both replacements, as follows:
 %23
 ```
 
-When this SQL query is executed, it will produce a single column named `Quine` containing the following text:
+When this SQL query is executed, it will return the following text:
 
 ```sql
 ' UNION SELECT Replace(Replace(
