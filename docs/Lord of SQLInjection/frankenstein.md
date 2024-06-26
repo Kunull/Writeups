@@ -117,4 +117,4 @@ The resultant query becomes:
 SELECT id,pw FROM prob_frankenstein WHERE id='frankenstein' AND pw='0dc4efbb'
 ```
 
-![Uploading 2.png…]()
+![2](https://github.com/Kunull/Write-ups/assets/110326359/bef1ff18-ace7-4eed-ab14-e9584686da12)
