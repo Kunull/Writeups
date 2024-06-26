@@ -42,6 +42,7 @@ In order to make them the same, we have to use a [Quine](https://en.wikipedia.or
 
 ## Quine
 
+A Quine is a program that outputs its own souce code without having access to it.
 An example of a SQL Quine is:
 
 ```sql
