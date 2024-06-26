@@ -38,6 +38,8 @@ $_GET['pw']: ' UNION SELECT 1 -- -
 
 In order to make them the same, we have to use a [Quine](https://en.wikipedia.org/wiki/Quine_(computing)) program.
 
+&nbsp;
+
 ## Quine
 
 An example of a SQL Quine is:
@@ -107,6 +109,8 @@ SELECT Replace(Replace('SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"
 ```
 
 Thus, we can see how the query repeats itself.
+
+&nbsp;
 
 Now, we have to implement this for the challenge.
 We will have to modify this Quine to the following:
