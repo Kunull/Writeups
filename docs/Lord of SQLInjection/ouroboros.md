@@ -73,7 +73,7 @@ Replace all occurrences of `Char(34)` (double quote `"` Character) with `Char(39
 
 ```sql
 -- - SELECT Replace( -- -
-'SELECT Replace(Replace('$',Char(34),Char(39)),Char(36),'$') AS Quine'
+'SELECT Replace(Replace(\'$\',Char(34),Char(39)),Char(36),\'$\') AS Quine'
 -- - , Char(36), 'SELECT REPLACE(REPLACE("$",Char(34),Char(39)),Char(36),"$") AS Quine') AS Quine -- -
 ```
 ### Second replacement
