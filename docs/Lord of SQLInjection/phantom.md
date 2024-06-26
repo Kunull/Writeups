@@ -91,7 +91,11 @@ Replace all occurrences of `CHAR(36)` (dollar sign `$` character) with the origi
 
 ```sql
 -- - SELECT -- -
-'SELECT Replace(Replace('SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine', CHAR(34),CHAR(39)),CHAR(36), 'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine') AS Quine'
+'SELECT Replace(Replace(
+\'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine\',
+CHAR(34),CHAR(39)),CHAR(36),
+\'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine\')
+AS Quine'
 -- - AS Quine -- -
 ```
 ### Putting it All Together
@@ -99,13 +103,23 @@ Replace all occurrences of `CHAR(36)` (dollar sign `$` character) with the origi
 The final result of the query is the string after both replacements, as follows:
 
 ```sql
-SELECT Replace(Replace('SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine', CHAR(34), CHAR(39)), CHAR(36), 'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine') AS Quine
+SELECT
+'SELECT Replace(Replace(
+\'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine\',
+CHAR(34), CHAR(39)), CHAR(36),
+\'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine\')
+AS Quine'
+AS Quine
 ```
 
 When this SQL query is executed, it will produce a single column named `Quine` containing the following text:
 
 ```sql
-SELECT Replace(Replace('SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine', CHAR(34), CHAR(39)), CHAR(36), 'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine') AS Quine
+SELECT Replace(Replace(
+'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine',
+CHAR(34), CHAR(39)), CHAR(36),
+'SELECT Replace(Replace("$",CHAR(34),CHAR(39)),CHAR(36),"$") AS Quine')
+AS Quine
 ```
 
 Thus, we can see how the query repeats itself.
