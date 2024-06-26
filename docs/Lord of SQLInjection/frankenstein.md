@@ -104,3 +104,17 @@ $ python .\frankenstein_script.py
 [!] Extracted password: 0dc4efbb
 [!] Final payload: ?pw=0dc4efbb
 ```
+
+If we provide the following URI parameter:
+
+```
+?pw=0dc4efbb
+```
+
+The resultant query becomes:
+
+```sql
+SELECT id,pw FROM prob_frankenstein WHERE id='frankenstein' AND pw='0dc4efbb'
+```
+
+![[2 210.png]]
