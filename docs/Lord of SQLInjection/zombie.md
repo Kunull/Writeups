@@ -18,7 +18,7 @@ However, since `ace` is being filtered out, we have to find another way of craft
 
 &nbsp;
 
-## `information_schema.processlist`
+## `information_schema.processlist` table
 
 As noted by [this documentation](https://dev.mysql.com/doc/refman/8.4/en/information-schema-processlist-table.html), in MySQL, the `information_schema.processlist` is one source of process information which indicates the operations currently being performed by the set of threads executing within the server.
 
