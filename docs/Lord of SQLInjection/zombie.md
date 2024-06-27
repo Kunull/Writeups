@@ -20,7 +20,11 @@ However, since `ace` is being filtered out, we have to find another way of craft
 
 ## `information_schema.processlist`
 
-As noted by [this documentation](https://dev.mysql.com/doc/refman/8.4/en/information-schema-processlist-table.html), in MySQL, the `info` column of the `information_schema.processlist` contains the operation that is currently being executed.
+As noted by [this documentation](https://dev.mysql.com/doc/refman/8.4/en/information-schema-processlist-table.html), in MySQL, the `information_schema.processlist` is one source of process information which indicates the operations currently being performed by the set of threads executing within the server.
+
+### `info` column
+
+Within this table, the `info` column contains the statement that is being executed as show below.
 
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/883c41a1-9cb1-4b55-98b3-641f02529310)
 
