@@ -28,7 +28,7 @@ As noted by [this documentation](https://dev.mysql.com/doc/refman/8.4/en/informa
 SELECT info FROM information_schema.processlist
 ```
 
-Since the above query is being executed, the value returned from the `info` column of `information_schema.processlist` would be:
+Since the above query is being executed, the value present in the `info` column of `information_schema.processlist` would be:
 
 ```
 +-------------------------------------------------+
