@@ -24,6 +24,22 @@ As noted by [this documentation](https://dev.mysql.com/doc/refman/8.4/en/informa
 
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/883c41a1-9cb1-4b55-98b3-641f02529310)
 
+```sql
+SELECT info FROM information_schema.processlist
+```
+
+Since the above query is being executed, the value returned from the `info` column of `information_schema.processlist` would be:
+
+```
++-------------------------------------------------+
+| info                                            |
++-------------------------------------------------+
+| SELECT info FROM information_schema.processlist |
++-------------------------------------------------+
+```
+
+As we can see, the SQL query outputs itself, thus acting as a Quine.
+
 &nbsp;
 
 ## Modified Quine
@@ -33,10 +49,10 @@ As noted by [this documentation](https://dev.mysql.com/doc/refman/8.4/en/informa
 ```
 
 - **`substr(info,locate('1',info),length(info)-locate('1',info))`**:
-	- `locate('1', info)` finds the position of the first occurrence of the character `'1'` in the `info` column.
+    - `locate('1', info)` finds the position of the first occurrence of the character `'1'` in the `info` column.
     - `length(info)` gives the total length of the `info` column's content.
     - `length(info)-locate('1',info)` calculates the length of the substring starting from the first occurrence of `'1'` to the end of the `info` content.
-	- `substr(info, locate('1', info), length(info) - locate('1', info))` extracts this substring.
+    - `substr(info, locate('1', info), length(info) - locate('1', info))` extracts this substring.
 - **`from information_schema.processlist`**:   
     - This specifies the table from which the data is being selected. The `information_schema.processlist` table contains information about the currently running processes in the MySQL database server.
 
