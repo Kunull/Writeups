@@ -223,4 +223,4 @@ The resultant query becomes:
 SELECT pw FROM prob_ouroboros WHERE pw='' UNION SELECT Replace(Replace('" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") -- -',char(34),char( 39)),char(36),'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") -- -') -- -'
 ```
 
-![4](https://github.com/Kunull/Write-ups/assets/110326359/59ddb32a-fb39-4ff9-8bb3-74dc33119083)
+![4](https://github.com/Kunull/Write-ups/assets/110326359/075e1d88-9e46-4cd7-a829-b8c68814e9d7)
