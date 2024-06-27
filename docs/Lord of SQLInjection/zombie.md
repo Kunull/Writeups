@@ -18,7 +18,7 @@ However, since `ace` is being filtered out, we have to find another way of craft
 
 &nbsp;
 
-## 'information_schema.processlist`
+## `information_schema.processlist`
 
 As noted by [this documentation](https://dev.mysql.com/doc/refman/8.4/en/information-schema-processlist-table.html), in MySQL, the `info` column of the `information_schema.processlist` contains the operation that is currently being executed.
 
