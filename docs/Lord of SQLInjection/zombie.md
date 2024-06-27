@@ -32,7 +32,7 @@ As noted by [this documentation](https://dev.mysql.com/doc/refman/8.4/en/informa
 1' UNION SELECT substr(info,locate('1',info),length(info)-locate('1',info)) FROM information_schema.processlist %23
 ```
 
-- `substr(info,locate('1',info),length(info)-locate('1',info))`:
+- **`substr(info,locate('1',info),length(info)-locate('1',info))`**:
 	- `locate('1', info)` finds the position of the first occurrence of the character `'1'` in the `info` column.
     - `length(info)` gives the total length of the `info` column's content.
     - `length(info)-locate('1',info)` calculates the length of the substring starting from the first occurrence of `'1'` to the end of the `info` content.
