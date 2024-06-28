@@ -14,7 +14,7 @@ We are provided with the SQL query:
 SELECT id FROM prob_death WHERE id='{$_GET[id]}' AND pw=md5('{$_GET[pw]}')
 ```
 
-In this challenge as well, the Mod Security CRS is being used
+In this challenge as well, the Mod Security CRS is being used.
 
 &nbsp;
 
