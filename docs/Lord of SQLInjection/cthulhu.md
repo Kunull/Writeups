@@ -19,7 +19,7 @@ SELECT id FROM prob_cthulhu WHERE id='{$_GET[id]}' AND pw='{$_GET[pw]}'
 
 The MOD Security Core Rule Set, is a set of regex expressions that Web Application Firewalls can use to filter traffic. In this case, out input is being filtered based on this rule set.
 
-In order to bypass this, we can refer [this](https://github.com/SpiderLabs/owasp-modsecurity-crs/issues/1181)Github issue .
+In order to bypass this, we can refer [this](https://github.com/SpiderLabs/owasp-modsecurity-crs/issues/1181) Github issue .
 
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/7c4e4729-0eb9-45dd-b350-97556d0cd332)
 
