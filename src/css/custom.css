@@ -469,3 +469,15 @@ html[data-theme=dark] {
     max-width: 150px;
     filter: grayscale(1) !important;
 }
+
+
+
+/* TAGS page */
+
+.col--offset-2 {
+    margin-left: 20%;
+}
+
+.col--8 {
+    --ifm-col-width: 60%;
+}
