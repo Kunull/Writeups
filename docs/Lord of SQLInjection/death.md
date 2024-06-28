@@ -22,7 +22,7 @@ In this challenge as well, the Mod Security CRS is being used
 
 The MOD Security Core Rule Set, is a set of regex expressions that Web Application Firewalls can use to filter traffic. In this case, out input is being filtered based on this rule set.
 
-In order to bypass this, we can refer [this](https://github.com/SpiderLabs/owasp-modsecurity-crs/issues/1181)Github issue .
+In order to bypass this, we can refer [this](https://github.com/SpiderLabs/owasp-modsecurity-crs/issues/1181)Github issue.
 
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/31d7abb4-4869-4388-8db4-c0c69df40d67)
 
