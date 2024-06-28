@@ -46,4 +46,4 @@ The resultant query becomes:
 SELECT id FROM prob_death WHERE id='-1'<@=1 OR id LIKE 0x61646d696e OR '' AND pw=md5('')
 ```
 
-![3](https://github.com/Kunull/Write-ups/assets/110326359/fbb5b672-a29d-42bb-8cf5-20480dd42ddb)
+![3](https://github.com/Kunull/Write-ups/assets/110326359/b1beb237-820e-4e76-a770-5468e73b2512)
