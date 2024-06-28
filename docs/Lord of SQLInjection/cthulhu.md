@@ -29,7 +29,7 @@ In order to bypass this, we can refer [this](https://github.com/SpiderLabs/owasp
 If we provide the following URI parameter:
 
 ```
-?id=- -1'<@=1 OR {a 1}=1 OR '
+?id=-1'<@=1 OR {a 1}=1 OR '
 ```
 
 The resultant query becomes:
