@@ -3,7 +3,7 @@ custom_edit_url: null
 pagination_next: null
 pagination_prev: null
 sidebar_position: 2
-tags: SQLi
+tags: [SQLi]
 ---
 
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/a20d5977-f907-4582-8e92-88ff3b574002)
