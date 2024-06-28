@@ -23,7 +23,8 @@ SELECT id,username FROM users WHERE id=' . $injection . ' LIMIT 1
 ## SQL Injection
 
 In order to retrieve the flag, we first need to retrieve the table name. We can refer this [PayloadsAllTheThings](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/SQL%20Injection/SQLite%20Injection.md) list.
-### Retrieving SQLite version
+
+### Extracting SQLite version
 
 The SQLite version can be retrieved using the following query:
 
@@ -49,7 +50,7 @@ SELECT id,username FROM users WHERE id=1 UNION SELECT Null, sqlite_version(
 
 The version of SQLite being used is `3.27.2`.
 
-### Listing the tables
+### Extracting database structure
 
 For SQLite versions `3.33.0` and previous, the `sqlite_master` table contains the schema for the database including information about all the tables, indexes, views, and triggers that exist in the database.
 
@@ -73,7 +74,7 @@ SELECT id,username FROM users WHERE id=1 UNION SELECT Null, sql FROM sqlite
 
 There is a `users` table which has three columns: `id`, `username` and `password`.
 
-### Retrieving the flag
+### Extracting the flag
 
 Now that we know the table name is `users`, we can easily retrieve the password from the table.
 
