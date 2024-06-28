@@ -3,6 +3,7 @@ custom_edit_url: null
 pagination_next: null
 pagination_prev: null
 sidebar_position: 33
+tags: [cert, sqli]
 ---
 
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/a45d4dce-407b-416d-8625-dd9680076748)
