@@ -2,7 +2,7 @@
 custom_edit_url: null
 pagination_next: null
 pagination_prev: null
-sidebar_position: 32
+sidebar_position: 39
 tags: [SQLi, Blind SQL injection]
 ---
 
