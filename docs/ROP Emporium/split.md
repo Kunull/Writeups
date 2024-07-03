@@ -185,7 +185,7 @@ Let's provide this as input.
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-The `rbp` register points to `0x6161616161616165` which is the little endian (LSB at lowest address, MSB at highest address) represention of `eaaaaaaa` in ASCII.
+Once the frame is collapsed, the `rbp` register has the value `0x6161616161616165` which is the ASCII representaion of `eaaaaaaa` in little endian format.
 
 Let's find the offset of this value in our cyclic pattern.
 
@@ -422,7 +422,7 @@ Invalid address 0x6161616c
 ────────────────────────────────────────────────────────────────────────────
 ```
 
-The `ebp` register points to `0x6161616b` which is the little endian (LSB at lowest address, MSB at highest address) represention of `kaaa` in ASCII.
+When the frame is collaplsed, the `ebp` register has the value `0x6161616b` which is the ASCII representation of `kaaa` in little endian format.
 
 Let's find the offset of this value in our cyclic pattern.
 
