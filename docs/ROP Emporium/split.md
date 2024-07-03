@@ -134,7 +134,21 @@ aaaaaaaabaaaaaaacaaaaaaadaaaaaaaeaaaaaaafaaaaaaagaaaaaaahaaaaaaaiaaaaaaajaaaaaaa
 Let's provide this as input.
 
 ```
-───────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────────────────────────────────────────────
+pwndbg> run
+Starting program: /home/kunal/ropemporium/split/split
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+split by ROP Emporium
+x86_64
+
+Contriving a reason to ask user for data...
+> aaaaaaaabaaaaaaacaaaaaaadaaaaaaaeaaaaaaafaaaaaaagaaaaaaahaaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaamaaa
+Thank you!
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000000000400741 in pwnme ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+─────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────
  RAX  0xb
  RBX  0
  RCX  0x7ffff7ea1887 (write+23) ◂— cmp rax, -0x1000 /* 'H=' */
@@ -145,14 +159,14 @@ Let's provide this as input.
  R9   0x7ffff7fc9040 (_dl_fini) ◂— endbr64
  R10  0x7ffff7d935e8 ◂— 0xf001200001a64
  R11  0x246
- R12  0x7fffffffdda8 —▸ 0x7fffffffdfed ◂— '/home/kunal/ropemporium/split/split'
+ R12  0x7fffffffdda8 —▸ 0x7fffffffdfee ◂— '/home/kunal/ropemporium/split/split'
  R13  0x400697 (main) ◂— push rbp
  R14  0
  R15  0x7ffff7ffd040 (_rtld_global) —▸ 0x7ffff7ffe2e0 ◂— 0
  RBP  0x6161616161616165 ('eaaaaaaa')
  RSP  0x7fffffffdc88 ◂— 'faaaaaaagaaaaaaahaaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaa'
  RIP  0x400741 (pwnme+89) ◂— ret
-────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────
+──────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────
  ► 0x400741 <pwnme+89>    ret                                <0x6161616161616166>
     ↓
 
@@ -164,7 +178,7 @@ Let's provide this as input.
 
 
 
-─────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────
+───────────────────────────────────────────────────────[ STACK ]────────────────────────────────────────────────────────
 00:0000│ rsp 0x7fffffffdc88 ◂— 'faaaaaaagaaaaaaahaaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaa'
 01:0008│     0x7fffffffdc90 ◂— 'gaaaaaaahaaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaa'
 02:0010│     0x7fffffffdc98 ◂— 'haaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaa'
@@ -173,7 +187,7 @@ Let's provide this as input.
 05:0028│     0x7fffffffdcb0 ◂— 'kaaaaaaalaaaaaaa'
 06:0030│     0x7fffffffdcb8 ◂— 'laaaaaaa'
 07:0038│     0x7fffffffdcc0 ◂— 0
-───────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────
+─────────────────────────────────────────────────────[ BACKTRACE ]──────────────────────────────────────────────────────
  ► 0         0x400741 pwnme+89
    1 0x6161616161616166
    2 0x6161616161616167
@@ -182,7 +196,7 @@ Let's provide this as input.
    5 0x616161616161616a
    6 0x616161616161616b
    7 0x616161616161616c
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
 Once the frame is collapsed, the `rbp` register has the value `0x6161616161616165` which is the ASCII representaion of `eaaaaaaa` in little endian format.
@@ -379,17 +393,31 @@ aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaa
 Let's provide this as input.
 
 ```
-───────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────
+pwndbg> run
+Starting program: /home/kunal/ropemporium/split/split32
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+split by ROP Emporium
+x86
+
+Contriving a reason to ask user for data...
+> aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaayaaa
+Thank you!
+
+Program received signal SIGSEGV, Segmentation fault.
+0x6161616c in ?? ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+─────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────
  EAX  0xb
  EBX  0xf7fad000 (_GLOBAL_OFFSET_TABLE_) ◂— 0x229dac
  ECX  0xf7fae9b4 (_IO_stdfile_1_lock) ◂— 0
  EDX  1
  EDI  0xf7ffcb80 (_rtld_global_ro) ◂— 0
- ESI  0xffffcea4 —▸ 0xffffcfde ◂— '/home/kunal/ropemporium/split/split32'
+ ESI  0xffffceb4 —▸ 0xffffcfea ◂— '/home/kunal/ropemporium/split/split32'
  EBP  0x6161616b ('kaaa')
- ESP  0xffffcdd0 ◂— 'maaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaa'
+ ESP  0xffffcde0 ◂— 'maaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaa'
  EIP  0x6161616c ('laaa')
-─────────────────────[ DISASM / i386 / set emulate on ]─────────────────────
+───────────────────────────────────────────[ DISASM / i386 / set emulate on ]───────────────────────────────────────────
 Invalid address 0x6161616c
 
 
@@ -401,16 +429,16 @@ Invalid address 0x6161616c
 
 
 
-─────────────────────────────────[ STACK ]──────────────────────────────────
-00:0000│ esp 0xffffcdd0 ◂— 'maaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaa'
-01:0004│     0xffffcdd4 ◂— 'naaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaa'
-02:0008│     0xffffcdd8 ◂— 'oaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaa'
-03:000c│     0xffffcddc ◂— 'paaaqaaaraaasaaataaauaaavaaawaaaxaaa'
-04:0010│     0xffffcde0 ◂— 'qaaaraaasaaataaauaaavaaawaaaxaaa'
-05:0014│     0xffffcde4 ◂— 'raaasaaataaauaaavaaawaaaxaaa'
-06:0018│     0xffffcde8 ◂— 'saaataaauaaavaaawaaaxaaa'
-07:001c│     0xffffcdec ◂— 'taaauaaavaaawaaaxaaa'
-───────────────────────────────[ BACKTRACE ]────────────────────────────────
+───────────────────────────────────────────────────────[ STACK ]────────────────────────────────────────────────────────
+00:0000│ esp 0xffffcde0 ◂— 'maaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaa'
+01:0004│     0xffffcde4 ◂— 'naaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaa'
+02:0008│     0xffffcde8 ◂— 'oaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaa'
+03:000c│     0xffffcdec ◂— 'paaaqaaaraaasaaataaauaaavaaawaaaxaaa'
+04:0010│     0xffffcdf0 ◂— 'qaaaraaasaaataaauaaavaaawaaaxaaa'
+05:0014│     0xffffcdf4 ◂— 'raaasaaataaauaaavaaawaaaxaaa'
+06:0018│     0xffffcdf8 ◂— 'saaataaauaaavaaawaaaxaaa'
+07:001c│     0xffffcdfc ◂— 'taaauaaavaaawaaaxaaa'
+─────────────────────────────────────────────────────[ BACKTRACE ]──────────────────────────────────────────────────────
  ► 0 0x6161616c
    1 0x6161616d
    2 0x6161616e
@@ -419,7 +447,7 @@ Invalid address 0x6161616c
    5 0x61616171
    6 0x61616172
    7 0x61616173
-────────────────────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
 When the frame is collaplsed, the `ebp` register has the value `0x6161616b` which is the ASCII representation of `kaaa` in little endian format.
