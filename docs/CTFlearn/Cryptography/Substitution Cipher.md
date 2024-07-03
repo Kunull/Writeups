@@ -11,7 +11,7 @@ pagination_prev: null
 
 The characters in the text are encoded using simple Substitution cipher.
 
-We can use QuipQiup to decode the cipher.
+We can use [QuipQiup](https://quipqiup.com/) to decode the cipher.
 
 ![1](https://github.com/Knign/Write-ups/assets/110326359/16dcdae1-726a-493c-9c82-a88441e984b8)
 
