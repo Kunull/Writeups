@@ -6,6 +6,7 @@ sidebar_position: 1
 ---
 
 > I will be using pwndbg to solve the 64 bit and peda to solve the 32 bit. You can use this walkthrough to install both of those plugins. 
+
 ## 64 bit
 Let's run the executable to check what it does.
 ```
@@ -65,7 +66,8 @@ Non-debugging symbols:
 0x00000000004007f4  _fini
 ```
 The `pwnme` and `ret2win` functions look interesting. We can use the `disassemble` command to see the instructions.
-### pwnme()
+
+### `pwnme()`
 ```
 pwndbg> disassemble pwnme
 Dump of assembler code for function pwnme:
@@ -99,7 +101,8 @@ Dump of assembler code for function pwnme:
 End of assembler dump.
 ```
 This function seems kind of useless as it isn't accessing the `flag` file.
-### ret2win()
+
+### `ret2win()`
 ```
 pwndbg> disassemble ret2win
 Dump of assembler code for function ret2win:
@@ -122,7 +125,8 @@ pwndbg> x/s 0x400943
 On examining the argument, we can see that it is in executing `/bin/cat` with the `flag` file. Now we know that the `ret2win` function needs to be called in order to get the flag.
 
 Let's disassemble `main` to check if the `ret2win` or `pwnme` function is being called.
-### main()
+
+### `main()`
 ```
 pwndbg> disassemble main
 Dump of assembler code for function main:
@@ -247,7 +251,8 @@ ROPE{a_placeholder_32byte_flag}
 In order to create an exploit we need to know the following:
 	- [] Address of `ret2win`
 	- [] Distance between the buffer and return address
-### ret2win()
+
+### `ret2win()`
 Let's disassemble `ret1win`.
 ```
 pwndbg> disassemble ret2win
