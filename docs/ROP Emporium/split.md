@@ -187,7 +187,7 @@ address                               address
 |	|  66 61 61 61 61 61 61 61  | <== return address
 v	+---------------------------+
 low
-adddress
+address
 ```
 
 We can see that if we increment the `rbp` by 8, it will point to the saved return address.
@@ -398,7 +398,7 @@ address                   address
 |	|  6C 61 61 61  | <== return address
 v	+---------------+
 low
-adddress
+address
 ```
 
 We can see that if we increment the `ebp` by 4, it will point to the saved return address.
