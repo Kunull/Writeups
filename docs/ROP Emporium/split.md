@@ -154,7 +154,7 @@ Let's provide this as input.
 *RIP  0x400741 (pwnme+89) ◂— ret
 ```
 
-The `rbp` register points to `0x6161616161616165` which is the little endian `eaaaaaaa` in ASCII.
+The `rbp` register points to `0x6161616161616165` which is the little endian (LSB at lowest address, MSB at highest address) represention of `eaaaaaaa` in ASCII.
 
 Let's find the offset of this value in our cyclic pattern.
 
@@ -348,19 +348,19 @@ aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaa
 Let's provide this as input.
 
 ```
-──────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]──────────────────────────────
-*EAX  0xb
-*EBX  0xf7fad000 (_GLOBAL_OFFSET_TABLE_) ◂— 0x229dac
-*ECX  0xf7fae9b4 (_IO_stdfile_1_lock) ◂— 0x0
-*EDX  0x1
-*EDI  0xf7ffcb80 (_rtld_global_ro) ◂— 0x0
-*ESI  0xffffd104 —▸ 0xffffd231 ◂— '/home/kunal/ropEmporium/split32/split32'
-*EBP  0x61616166 ('faaa')
-*ESP  0xffffd030 ◂— 'gaaaaaaahaaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaa'
-*EIP  0x61616161 ('aaaa')
+───────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────
+ EAX  0xb
+ EBX  0xf7fad000 (_GLOBAL_OFFSET_TABLE_) ◂— 0x229dac
+ ECX  0xf7fae9b4 (_IO_stdfile_1_lock) ◂— 0
+ EDX  1
+ EDI  0xf7ffcb80 (_rtld_global_ro) ◂— 0
+ ESI  0xffffcea4 —▸ 0xffffcfeb ◂— '/home/kunal/ropemporium/split/split32'
+ EBP  0x6161616b ('kaaa')
+ ESP  0xffffcdd0 ◂— 'maaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaa'
+ EIP  0x6161616c ('laaa')
 ```
 
-The `ebp` register points to `0x61616166` which is the little endian `faaa` in ASCII.
+The `ebp` register points to `0x6161616b` which is the little endian (LSB at lowest address, MSB at highest address) represention of `kaaa` in ASCII.
 
 Let's find the offset of this value in our cyclic pattern.
 
