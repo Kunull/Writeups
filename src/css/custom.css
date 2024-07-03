@@ -25,6 +25,7 @@
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
   --ifm-breadcrumb-border-radius: 0.25rem;
   --ifm-spacing-horizontal: 1.5rem;
+  --ifm-dropdown-font-weight: var(--ifm-font-weight-normal);
 }
 
 html[data-theme='light'] .alert--info {
@@ -224,6 +225,10 @@ article {
     border: 1px solid #333;
 }
 
+.menu, .navbar__link {
+  font-weight: var(--ifm-font-weight-normal);
+}
+
 
 
 /* NAVBAR SIDEBAR */
@@ -274,7 +279,7 @@ nav.menu_SIkG {
     margin-top: 0.25rem;
     padding-left: 0.25rem;
     margin-left: 0.75rem;
-    font-weight: var(--ifm-font-weight-semibold) !important;
+    font-weight: var(--ifm-font-weight-normal) !important;
 }
 
 /* Selected item border radius */
