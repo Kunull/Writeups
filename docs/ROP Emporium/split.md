@@ -223,8 +223,8 @@ Stack:
 +---------------------------+
 
 ===================================================================================
-pwnme() return <-- rip
-## This gadget will pop the value pointed to by rsp into rip
+rip --> pwnme() return
+	## Pop the value pointed to by rsp into rip
 ===================================================================================
 
 Stack:
@@ -237,8 +237,8 @@ Stack:
 +---------------------------+
 
 ===================================================================================
-pop rdi <-- rip
-## pop rdi: pop the value pointed to by rsp into rdi and move the rsp 8 bytes higher
+rip --> pop rdi
+	## Pop the value pointed to by rsp into rdi and move the rsp 8 bytes higher
 ===================================================================================
 
 Stack:
@@ -251,8 +251,8 @@ Registers:
 rdi: 0x601060
 
 ===================================================================================
-ret <-- rip
-## This gadget will move the address of system@plt into rip, this executong it
+rip --> ret
+	## Move the address of system@plt into rip, this executong it
 ===================================================================================
 ```
 
@@ -425,8 +425,8 @@ Stack:-
 +--------------------------+
 
 =====================================================================
-pwnme() return <-- eip
-## This gadget will pop the value pointed to by the esp into eip
+eip --> pwnme() return
+	## This gadget will pop the value pointed to by the esp into eip
 =====================================================================
 
 Stack:-
@@ -436,8 +436,8 @@ Stack:-
 +--------------------------+
 
 =====================================================================
-call <system@plt> <-- eip
-## This gadget makes a system call based on the argument on the stack
+eip --> call <system@plt>
+	## This gadget makes a system call based on the argument on the stack
 =====================================================================
 
 ```
