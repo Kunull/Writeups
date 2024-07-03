@@ -6,7 +6,7 @@ sidebar_position: 1
 ---
 
 :::note
-I will be using pwndbg to solve the 64 bit and peda to solve the 32 bit. You can use this walkthrough to install both of those plugins. 
+I will be using pwndbg to solve the 64 bit and the 32 bit. You can use [this](https://infosecwriteups.com/pwndbg-gef-peda-one-for-all-and-all-for-one-714d71bf36b8) walkthrough to install both of those plugins. 
 :::
 
 ## 64 bit
