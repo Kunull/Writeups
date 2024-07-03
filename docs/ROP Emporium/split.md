@@ -1,4 +1,4 @@
-![image](https://github.com/Kunull/Write-ups/assets/110326359/52491080-2284-415a-a628-e3cce0e98649)---
+---
 custom_edit_url: null
 pagination_next: null
 pagination_prev: null
