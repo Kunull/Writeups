@@ -379,8 +379,8 @@ Let's see how this looks on the stack.
 <== Value is stored at that location
 <-- Points to the address
 
-┌ high    ----------------> low 
-└ address                   address  
+high    ----------------> low 
+address                   address  
 |	+---------------+ 
 |	|  61 61 61 61  | <== buffer (40 bytes) <-- esp
 |	|  62 61 61 61  | 
