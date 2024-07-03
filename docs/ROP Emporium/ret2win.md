@@ -257,8 +257,9 @@ ROPE{a_placeholder_32byte_flag}
 ## 32 bit
 
 In order to create an exploit we need to know the following:
-	* [] Address of `ret2win()`
-	* [] Distance between the buffer and return address
+	
+* [] Address of `ret2win()`
+* [] Distance between the buffer and return address
 
 ### `ret2win()`
 
