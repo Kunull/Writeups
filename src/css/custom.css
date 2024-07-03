@@ -6,7 +6,7 @@
 }
 
 :root {
-  --ifm-font-family-base: 'JetBrains Mono';
+  --ifm-font-family-base: 'Input Sans';
   --ifm-font-family-monospace: 'JetBrains Mono';
   --ifm-global-radius: 0.25rem;
   --ifm-code-border-radius: var(--ifm-global-radius);
