@@ -117,14 +117,14 @@ Dump of assembler code for function ret2win:
    0x0000000000400770 <+26>:    ret
 End of assembler dump.
 ```
-If we look at the instruction at `ret2win+19`, we can see a system call. The instruction at `ret2win+14` loads the argument for that same system call.
+If we look at the instruction at `ret2win()+19`, we can see a system call. The instruction at `ret2win()+14` loads the argument for that same system call.
 ```
 pwndbg> x/s 0x400943
 0x400943:       "/bin/cat flag.txt"
 ```
-On examining the argument, we can see that it is in executing `/bin/cat` with the `flag` file. Now we know that the `ret2win` function needs to be called in order to get the flag.
+On examining the argument, we can see that it is in executing `/bin/cat` with the `flag` file. Now we know that the `ret2win()` function needs to be called in order to get the flag.
 
-Let's disassemble `main` to check if the `ret2win` or `pwnme` function is being called.
+Let's disassemble `main()` to check if the `ret2win()` or `pwnme()` function is being called.
 
 ### `main()`
 ```
@@ -151,9 +151,10 @@ Dump of assembler code for function main:
    0x00000000004006e7 <+80>:    ret
 End of assembler dump.
 ```
-We can see that the `pwnme` function is being called but not the `ret2win` function. Therefore we will have to perform a buffer overflow in order to alter program flow and execute `ret2win`.
+We can see that the `pwnme()` function is being called but not the `ret2win()` function. Therefore we will have to perform a buffer overflow in order to alter program flow and execute `ret2win()`.
 
 We first have to find the distance between the buffer and the return address.
+
 ### Cyclic pattern
 
 We can use a cyclic pattern to find this.
@@ -249,11 +250,11 @@ ROPE{a_placeholder_32byte_flag}
 
 ## 32 bit
 In order to create an exploit we need to know the following:
-	- [] Address of `ret2win`
+	- [] Address of `ret2win()`
 	- [] Distance between the buffer and return address
 
 ### `ret2win()`
-Let's disassemble `ret1win`.
+Let's disassemble `ret2win()`.
 ```
 pwndbg> disassemble ret2win
 Dump of assembler code for function ret2win:
@@ -273,7 +274,7 @@ Dump of assembler code for function ret2win:
    0x08048654 <+40>:    ret
 End of assembler dump.
 ```
-So the address of `ret2win` is `0x0804862c` in the 32-bit executable. One thing to note is that the arguments for a 32-bit function call are pushed on the stack whereas the arguments for a 64-bit function call are stored in registers. 
+So the address of `ret2win()` is `0x0804862c` in the 32-bit executable. One thing to note is that the arguments for a 32-bit function call are pushed on the stack whereas the arguments for a 64-bit function call are stored in registers. 
 
 You can check out live overflow's video if you to know more differences in 64-bit and 32-bit assembly.
 ### Cyclic pattern
@@ -334,7 +335,7 @@ We can see that if we increment the `ebp` by 4, it will point to the saved retur
 Therefore the distance between the buffer and the saved return address is `offset+4` which is equal to 44.
 ### Exploit requirements
 We have all the information we need to create an exploit.
-	- [x] Address of `ret2win`: `0x0804862c`
+	- [x] Address of `ret2win()`: `0x0804862c`
 	- [x] Distance between the buffer and return address: `44`
 ### Exploit
 ```python
