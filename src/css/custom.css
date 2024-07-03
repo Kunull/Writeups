@@ -5,7 +5,11 @@
  */
 
 /* You can override the default Infima variables here. */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+
 :root {
+  --ifm-font-family-base: 'JetBrains Mono';
   --ifm-global-radius: 0.25rem;
   --ifm-code-border-radius: var(--ifm-global-radius);
   --ifm-font-weight-light: 300;
