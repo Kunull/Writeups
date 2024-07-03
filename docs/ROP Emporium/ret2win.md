@@ -5,7 +5,9 @@ pagination_prev: null
 sidebar_position: 1
 ---
 
-> I will be using pwndbg to solve the 64 bit and peda to solve the 32 bit. You can use this walkthrough to install both of those plugins. 
+:::note
+I will be using pwndbg to solve the 64 bit and peda to solve the 32 bit. You can use this walkthrough to install both of those plugins. 
+:::
 
 ## 64 bit
 Let's run the executable to check what it does.
