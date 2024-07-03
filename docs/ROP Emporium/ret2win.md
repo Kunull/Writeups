@@ -304,11 +304,11 @@ So the offset is 40 bytes.
 
 Let's see how this looks on the stack.
 ```
-<======: Value is stored at that location
-<------: Points to the address
+<==: Value is stored at that location
+<---: Points to the address
 
 +---------------+ 
-|  61 61 61 61  | <====== buffer (32 bytes) <------ esp
+|  61 61 61 61  | <=== buffer (32 bytes) <-- esp
 |  62 61 61 61  | 
 |  63 61 61 61  |
 |  64 61 61 61  |
@@ -318,10 +318,10 @@ Let's see how this looks on the stack.
 |  68 61 61 61  |
 |  69 61 61 61  |
 |  6A 61 61 61  |
-+---------------+
-|  6B 61 61 61  | <====== stored ebp <------ ebp
-+---------------+
-|  6C 61 61 61  | <====== return address
+|---------------|
+|  6B 61 61 61  | <== stored ebp <-- ebp
+|---------------|
+|  6C 61 61 61  | <== return address
 +---------------+
 ```
 We can see that if we increment the `ebp` by 4, it will point to the saved return address.
