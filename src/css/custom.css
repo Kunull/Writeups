@@ -210,7 +210,7 @@ article {
 }
 
 /* Title logo */
-.navbar__title .text--truncate {
+.text--truncate {
   font-family: 'VCR OSD Mono';
   text-transform: uppercase;
   font-weight: var(--ifm-font-weight-normal) !important;
