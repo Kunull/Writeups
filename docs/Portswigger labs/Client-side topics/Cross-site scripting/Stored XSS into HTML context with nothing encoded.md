@@ -9,7 +9,7 @@ sidebar_position: 2
 
 Let's comment the following payload below the post:
 
-```
+```html
 <script>alert("1");</script>
 ```
 
