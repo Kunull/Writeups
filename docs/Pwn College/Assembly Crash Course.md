@@ -844,7 +844,7 @@ The value of the stack pointer is stored in the `rbp` register.
 
 We have to pop the top of our stack into a register before replacing it.
 
-### Pop instruction
+### `pop` instruction
 
 The `pop` instruction is used to write data on the stack.
 
@@ -878,7 +878,7 @@ sub rax, rdi
 
 Only step remaining is to push the result of the subtraction into the location held by the original value, thus replacing it.
 
-### Push instruction
+### `push` instruction
 
 The `push` instruction is used to write data on the stack.
 
