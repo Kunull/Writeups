@@ -21,7 +21,7 @@ We can see that our `test_payload` has been inserted into the `value` attribute 
 
 In order to generate an alert, we need to first escape the `value` attribute and than add an `onmouseover` event attribute.
 
-```
+```html
 test_payload" onmouseover="alert(1)
 ```
 
