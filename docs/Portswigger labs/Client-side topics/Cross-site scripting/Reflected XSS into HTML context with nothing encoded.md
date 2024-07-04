@@ -9,7 +9,7 @@ sidebar_position: 1
 
 Let's enter the following payload into the search bar:
 
-```
+```html
 <script>alert("1");</script>
 ```
 
