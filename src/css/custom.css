@@ -219,6 +219,14 @@ article {
   font-weight: var(--ifm-font-weight-normal) !important;
 }
 
+.text--truncate::after {
+  content: "/ WRITE-UPS ►"
+}
+
+.text--truncate:hover::after {
+  content: "/ WR173-U95 ►"
+}
+
 
 
 /* NAVBAR DROPDOWN */
