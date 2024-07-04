@@ -6,8 +6,13 @@
   src: url('/font/InputSans/InputSans/InputSans-Regular.ttf') format("truetype");
 }
 
+@font-face {
+  font-family: 'VCR OSD Mono';
+  src: url('/font/VCR OSD Mono/VCR.ttf') format("truetype");
+}
+
 :root {
-  --ifm-font-family-base: 'Input Sans';
+  --ifm-font-family-base: 'VCR OSD Mono';
   --ifm-font-family-monospace: 'JetBrains Mono';
   --ifm-global-radius: 0.25rem;
   --ifm-code-border-radius: var(--ifm-global-radius);
