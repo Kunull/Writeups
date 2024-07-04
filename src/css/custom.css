@@ -12,7 +12,6 @@
 }
 
 :root {
-  --ifm-h1-font-size: 2.75rem !important;
   --ifm-navbar-height: 4rem;
   --ifm-toc-padding-vertical: 0.75rem;
   --ifm-toc-padding-horizontal: 0.5rem;
@@ -195,6 +194,10 @@ article {
 /* h1 */
 h1 {
   line-height: 1.1;
+}
+
+.title_f1Hy {
+  font-size: 2.75rem !important;
 }
 
 
