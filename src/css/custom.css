@@ -12,6 +12,8 @@
 }
 
 :root {
+  --ifm-menu-link-padding-horizontal: 0.6rem;
+  --ifm-menu-link-padding-vertical: 0.4rem;
   --ifm-font-family-base: 'Input Sans';
   --ifm-font-family-monospace: 'JetBrains Mono';
   --ifm-global-radius: 0.25rem;
