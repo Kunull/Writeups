@@ -216,7 +216,7 @@ article {
 
 /* Title logo */
 .text--truncate {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-family: 'VCR OSD Mono';
   text-transform: uppercase;
   font-weight: var(--ifm-font-weight-normal) !important;
