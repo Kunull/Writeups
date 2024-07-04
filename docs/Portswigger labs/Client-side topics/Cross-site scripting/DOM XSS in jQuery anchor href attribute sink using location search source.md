@@ -31,7 +31,7 @@ $(function() {
 
 Now that we know how the script works, we can set the `returnPath` parameter in the URI to the following:
 
-```
+```html
 javascript:alert(document.cookie)
 ```
 
