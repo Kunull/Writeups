@@ -38,7 +38,7 @@ if (query) {
 
 Now that we know how the DOM manipulation works, we can insert our final payload into the application which will generate an alert.
 
-```
+```html
 </span><script>alert("1")</script>
 ```
 
