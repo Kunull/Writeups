@@ -19,7 +19,7 @@ As we can see, it is being inserted in the `href` attribute of the `<a>` tag.
 
 In order to solve the lab, we have to use the following payload in the `Website` input field:
 
-```
+```html
 javascript:alert("1");
 ```
 
