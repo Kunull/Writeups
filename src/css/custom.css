@@ -13,8 +13,8 @@
 
 :root {
   --ifm-navbar-height: 4rem;
-  --ifm-toc-padding-vertical: 0.8rem;
   --ifm-toc-padding-horizontal: 0.5rem;
+  --ifm-toc-padding-vertical: 0.8rem;
   --ifm-menu-link-padding-horizontal: 0.6rem;
   --ifm-menu-link-padding-vertical: 0.5rem;
   --ifm-font-family-base: 'Input Sans';
