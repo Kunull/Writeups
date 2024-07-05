@@ -24,7 +24,10 @@ We can achieve this using ssh connection as follows:
 ssh century1@century.underthewire.tech -p 22
 ```
 
-The password for level 1 is: **century1**
+### Password for Century 1
+```
+century1
+```
 
 &nbsp;
 
@@ -49,7 +52,10 @@ SerializationVersion           1.1.0.1
 
 _\[$psVersionTable is **an automatic variable (whose type is System.**_ _**Collections.) that reveals some information about the PowerShell that runs the current session**.]_
 
-The password for level 2 is **10.0.14393.5127**
+### Password for Century 2
+```
+10.0.14393.5127
+```
 
 &nbsp;
 
@@ -84,7 +90,10 @@ Mode                LastWriteTime         Length Name
 
 _\[The Get-ChildItem cmdlet **gets the items in one or more specified locations**. If the item is a container, it gets the items inside the container, known as child items. You can use the Recurse parameter to get items in all child containers and use the Depth parameter to limit the number of levels to recurse.]_
 
-The password for level 3 is **Invoke-WebRequest443**
+### Password for Century 3
+```
+Invoke-WebRequest443
+```
 
 &nbsp;
 
@@ -102,7 +111,10 @@ PS C:\users\century3\desktop> (Get-ChildItem -File | Measure-Object).Count
 
 _\[The Measure-Object cmdlet **performs calculations on the property values of objects**. You can use Measure-Object to count objects or count objects with a specified Property. You can also use Measure-Object to calculate the Minimum, Maximum, Sum, Standard Deviation and Average of numeric values.]_
 
-The password for level 4 is **123**
+### Password for Century 4
+```
+123
+```
 
 &nbsp;
 
@@ -137,7 +149,10 @@ Mode                LastWriteTime         Length Name
 -a----        6/23/2022  10:24 PM             24 49125 
 ```
 
-The password for level 5 is **495125**
+### Password for Century 5
+```
+495125
+```
 
 &nbsp;
 
@@ -173,7 +188,10 @@ Mode                LastWriteTime         Length Name
 -a----        8/30/2018   3:29 AM             54 3347
 ```
 
-The password for level 6 is **underthewire3347**
+### Password for Century 6
+```
+underthewire3347
+```
 
 &nbsp;
 
@@ -193,7 +211,10 @@ PS C:\users\century6\desktop> (Get-ChildItem -Directory | Measure-Object).Count
 197
 ```
 
-The password for level 7 is **197**
+### Password for Century 7
+```
+197
+```
 
 &nbsp;
 
@@ -209,7 +230,10 @@ PS C:\users\century7\desktop> Get-ChildItem ..\ -Recurse -File -Filter readme* |
 7points
 ```
 
-The password for level 8 is **7points**
+### Password for Century 8
+```
+7points
+```
 
 &nbsp;
 
@@ -227,7 +251,10 @@ PS C:\users\century8\desktop> (Get-Content .\Unique.txt | Sort-Object | Get-Uniq
 
 _\[The Get-Content cmdlet **gets the content of the item at the location specified by the path, such as the text in a file or the content of a function**. For files, the content is read one line at a time and returns a collection of objects, each of which represents a line of content.]_
 
-The password for level 9 is **696**
+### Password for Century 9
+```
+696
+```
 
 &nbsp;
 
@@ -243,7 +270,10 @@ PS C:\users\century8\desktop> (Get-Content Word_File.txt)[161]
 pierid
 ```
 
-The password for level 10 is **pierid**
+### Password for Century 10
+```
+pierid
+```
 
 &nbsp;
 
@@ -274,7 +304,10 @@ Mode                LastWriteTime         Length Name
 -a----        8/30/2018   3:34 AM             43 110
 ```
 
-The password for level 11 is **windowsupdates110**
+### Password for Century 11
+```
+windowsupdates110
+```
 
 &nbsp;
 
@@ -294,7 +327,10 @@ Mode                LastWriteTime         Length Name
 -a-h--         6/8/2017   4:59 PM              0 secret_sauce
 ```
 
-The password for level 12 is **secret\_sauce**
+### Password for Century 12
+```
+secret\_sauce
+```
 
 &nbsp;
 
@@ -329,10 +365,13 @@ PS C:\users\century12\desktop> Get-ChildItem
 
 Mode                LastWriteTime         Length Name
 ----                -------------         ------ ----
--a----        8/30/2018   3:34 AM             30 _things
+-a----        8/30/2018   3:34 AM             30 i\_authenticate\_things
 ```
 
-The password for level 13 is **i\_authenticate\_things**
+### Password for Century 13
+```
+i\_authenticate\_things
+```
 
 &nbsp;
 
@@ -345,7 +384,10 @@ PS C:\users\century13\desktop> (Get-ChildItem | get-content | Measure-Object -Wo
 755
 ```
 
-The password for level 14 is **755**
+### Password for Century 14
+```
+755
+```
 
 &nbsp;
 
@@ -361,4 +403,7 @@ PS C:\Users\century14\Desktop> (Get-Content stuff.txt | Select-String -Pattern "
 10
 ```
 
-The password for level 15 is **10**
+### Password for Century 15
+```
+10
+```
