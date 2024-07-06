@@ -100,7 +100,7 @@ code {
     border-radius: var(--ifm-code-border-radius);
     font-family: var(--ifm-font-family-monospace);
     font-size: var(--ifm-code-font-size);
-    padding: 0.1rem;
+    padding: 0.1rem 0.25rem;
 }
 
 
