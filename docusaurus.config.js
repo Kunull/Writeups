@@ -136,7 +136,7 @@ const config = {
             items: [
               {
                 label: 'Email',
-                href: 'mailto:llunk@protonmail.com',
+                href: 'mailto:llunuk@protonmail.com',
               },
             ],
           },
