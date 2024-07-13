@@ -7,7 +7,7 @@ pagination_next: null
 pagination_prev: null
 ---
 
-This is a collection of write-ups for the CTF challenges and boot2root machines that I have solved. 
+This is a collection of writeups for the CTF challenges and boot2root machines that I have solved. 
 It is updated on most days and will continue to be for the foreseeable future.
 
 
