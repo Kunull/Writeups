@@ -112,7 +112,7 @@ const config = {
               },
               {
                 label: 'Main site',
-                href: 'https://kunalwalavalkar.vercel.app',
+                href: 'https://kunull.vercel.app',
               },
             ],
           },
