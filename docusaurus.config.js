@@ -107,6 +107,10 @@ const config = {
                 href: 'https://blog-kunull.vercel.app',
               },
               {
+                label: 'Reports',
+                href: 'https://reports-kunull.vercel.app',
+              },
+              {
                 label: 'Main site',
                 href: 'https://kunalwalavalkar.vercel.app',
               },
@@ -139,31 +143,7 @@ const config = {
                 href: 'mailto:llunuk@protonmail.com',
               },
             ],
-          },
-          
-          // {
-          //     href: 'https://kunalwalavalkarblog.vercel.app',
-          //     label: 'Blog',
-          //     position: 'right',
-          // },         
-
-          // {
-          //   href: 'https://kunalwalavalkar.vercel.app',
-          //   label: 'Main site',
-          //   position: 'right',
-          // },
-          
-          // {
-          //     href: 'https://github.com/kunull',
-          //     label: 'GitHub',
-          //     position: 'right',
-          // },
-          
-          // {
-          //     href: 'https://www.linkedin.com/in/kunalwalavalkar/',
-          //     label: 'LinkedIn',
-          //     position: 'right',
-          // },  
+          }, 
         ],
       },
       // footer: {
