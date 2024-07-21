@@ -128,7 +128,7 @@ const config = {
               },
               {
                 label: 'LinkedIn',
-                href: 'https://www.linkedin.com/in/kunalwalavalkar/',
+                href: 'https://www.linkedin.com/in/kunull/',
               },  
             ],
           },
