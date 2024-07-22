@@ -316,17 +316,18 @@ nav.menu_SIkG {
     margin-left: 0.75rem;
     margin-top: 0.25rem;
     padding-left: 0.4rem;
+    font-weight: var(--ifm-font-weight-normal) !important;
 }
 
 /* Left padding, Left border */
-.menu__list .menu__list {
+/* .menu__list .menu__list {
     border-left: 1px solid #333;
     flex: 0 0 100%;
     margin-top: 0.25rem;
     padding-left: 0.25rem;
     margin-left: 0.75rem;
     font-weight: var(--ifm-font-weight-normal) !important;
-}
+} */
 
 /* Selected item border radius */
 /* .menu__caret, .menu__link, .menu__list-item-collapsible {
