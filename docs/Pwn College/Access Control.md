@@ -793,3 +793,25 @@ while True:
 process.stdin.close()
 process.wait()
 ```
+
+&nbsp;
+
+## level 18
+
+> In this challenge you'll be answering many more questions about the category-based Bell–LaPadula model of Mandatory Access Control.
+>
+> Hint: Use pwntools to interact with this process and answer the questions.
+>
+> In this challenge, your goal is to answer 64 questions correctly in 1 seconds about the following Mandatory Access Control (MAC) system:\
+> 4 Levels (first is highest aka more sensitive):\
+> TS\
+> S\
+> C\
+> UC\
+> 4 Categories:\
+> NUC\
+> NATO\
+> UFO\
+> ACE
+
+Same script as [level 17](#level-17).
