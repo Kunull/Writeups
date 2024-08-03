@@ -606,7 +606,7 @@ Correct!
 > TS\
 > S\
 > C\
-> UC\
+> UC
 
 ```
 Q 1. Can a Subject with level S write an Object with level S?
