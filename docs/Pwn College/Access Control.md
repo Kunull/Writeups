@@ -651,7 +651,7 @@ Correct!
 
 &nbsp;
 
-## level 17
+## level 16
 
 > In this challenge, your goal is to answer 5 questions correctly in 120 seconds about the following Mandatory Access Control (MAC) system:
 > 4 Levels (first is highest aka more sensitive):
