@@ -118,7 +118,7 @@ hacker@intercepting-communication~level7:/$ nc -l 31337
 We can use `scapy` in order to create and send packets.
 
 ```
-hacker@intercepting-communication~level8:/$ scapy
+root@ip-10-0-0-2:/# scapy
 ```
 
 ```python
@@ -190,7 +190,9 @@ Now we just have to fill the correct fields.
 
 ## level 10
 
-> Manually send a Transmission Control Protocol packet
+> In this challenge you will manually send a Transmission Control Protocol packet.\
+> The packet should have `TCP sport=31337, dport=31337, seq=31337, ack=31337, flags=APRSF`.\
+> The packet should be sent to the remote host at `10.0.0.3`.
 
 We have to add another layer of encapsulation, which is TCP.
 
@@ -202,7 +204,9 @@ We have to add another layer of encapsulation, which is TCP.
 
 ## level 11
 
-> Manually perform a Transmission Control Protocol handshake
+> In this challenge you will manually perform a Transmission Control Protocol handshake.\
+> The initial packet should have `TCP sport=31337, dport=31337, seq=31337`.\
+> The handshake should occur with the remote host at `10.0.0.3`.
 
 A TCP handshake is really just a sequence of packets that establishes a secure and reliable connection between two devices.
 
@@ -230,7 +234,7 @@ QueryAnswer(
 
 As we can see, the response has `seq` field set to `3093962236` and the `ack` field set to `31338` which is our `seq+1`.
 
-So the host at 10.0.0.3 has acknowledged our SYN packet. Now we have to acknowledge theirs by setting our `ack` field to `3093962237` which is their `seq+1`.
+So the host at `10.0.0.3` has acknowledged our SYN packet. Now we have to acknowledge theirs by setting our `ack` field to `3093962237` which is their `seq+1`.
 
 ```python
 >>> sendp(Ether(src="1a:57:9e:f1:dd:33", dst="1e:c3:ea:f1:34:3e") / IP(src="10.0.0.2", dst="10.0.0.3") / TCP(sport=31337, dport=31337, seq=31338, ack=3093962237, flags="A"), iface="eth0")
@@ -240,9 +244,11 @@ So the host at 10.0.0.3 has acknowledged our SYN packet. Now we have to acknowle
 
 ## level 12
 
-> Manually send an Address Resolution Protocol packet
+> In this challenge you will manually send an Address Resolution Protocol packet.\
+> The packet should have `ARP op=is-at` and correctly inform the remote host of where the sender can be found.\
+> The packet should be sent to the remote host at `10.0.0.3`.
 
-We need to tell the host at 10.0.0.3 that we have the IP address that they want to talk to. For that we need to send an ARP `is-at` response.
+We need to tell the host at `10.0.0.3` that we have the IP address that they want to talk to. For that we need to send an ARP `is-at` response.
 
 Note that ARP encapsulates an Ethernet frame.
 
@@ -277,11 +283,13 @@ The packet fields represent the following:
 
 ## level 13
 
-> Hijack traffic from a remote host using ARP
+> In this challenge you will hijack traffic from a remote host using ARP.\
+> You do not have the capabilities of a NET ADMIN.\
+> The remote host at `10.0.0.4` is communicating with the remote host at `10.0.0.2` on port `31337`.
 
 In this level we have to achieve the same goal as level 7. However, we don't have the ability to add addresses as we are not the net admin.
 
-Therefore we will have to create an ARP packet from scratch and send it to the host on 10.0.0.4.
+Therefore we will have to create an ARP packet from scratch and send it to the host on `10.0.0.4`.
 
 ```python
 >>> sendp(Ether(src="76:45:f9:f1:45:de", dst="ff:ff:ff:ff:ff:ff") / ARP(op="is-at", psrc="10.0.0.2", hwsrc="76:45:f9:f1:45:de") / IP(src="10.0.0.3", dst="10.0.0.4"), iface="eth0")
