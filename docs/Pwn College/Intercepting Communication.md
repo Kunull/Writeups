@@ -218,7 +218,7 @@ We have to first send a SYN packet, represented by the `S` flag.
 >>> response = srp(Ether(src="1a:57:9e:f1:dd:33", dst="ff:ff:ff:ff:ff:ff") / IP(src="10.0.0.2", dst="10.0.0.3") / TCP(sport=31337, dport=31337, seq=31337, flags="S"), iface="eth0")
 ```
 
-Let's look at the response from the host at 10.0.0.3.
+Let's look at the response from the host at `10.0.0.3`.
 
 ```python
 >>> response[0][0]
