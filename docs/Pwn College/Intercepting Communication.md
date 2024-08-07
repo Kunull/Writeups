@@ -111,9 +111,15 @@ hacker@intercepting-communication~level7:/$ nc -l 31337
 
 ## level 8
 
-> Manually send an Ethernet packet
+> In this challenge you will manually send an Ethernet packet.\
+> The packet should have `Ether type=0xFFFF`.\
+> The packet should be sent to the remote host at `10.0.0.3`.
 
 We can use `scapy` in order to create and send packets.
+
+```
+hacker@intercepting-communication~level8:/$ scapy
+```
 
 ```python
 >>> Ether().display()
@@ -134,7 +140,7 @@ We have to change the default fields.
   type      = 0xffff
 ```
 
-Now that we have the correct fields, we are ready to send the packet.
+Now that we have the correct fields, we are ready to send the packet on the `eth0` interface.
 
 ```python
 >>> sendp(Ether(src="66:73:a8:6d:31:49", dst="ff:ff:ff:ff:ff:ff", type=0xFFFF), iface="eth0")
@@ -146,7 +152,9 @@ The remote host is connected to the `eth0` interface, so we send the packets out
 
 ## level 9
 
-> Manually send an Internet Protocol packet
+> In this challenge you will manually send an Internet Protocol packet.\
+> The packet should have `IP proto=0xFF`.\
+> The packet should be sent to the remote host at `10.0.0.3`.
 
 We can encapsulate a packet within another packet using the `/` separator.
 
