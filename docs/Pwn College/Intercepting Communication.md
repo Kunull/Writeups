@@ -12,7 +12,7 @@ sidebar_position: 7
 We can use `nc` to connect to the specified address on the port specified.
 
 ```
-$ nc 10.0.0.3 31337
+hacker@intercepting-communication~level1:/$ nc 10.0.0.3 31337
 ```
 
 &nbsp;
@@ -24,7 +24,7 @@ $ nc 10.0.0.3 31337
 The `l` option in `nc` allows users to listen on a specified port.
 
 ```
-$ nc -l 31337
+hacker@intercepting-communication~level2:/$ nc -l 31337
 ```
 
 &nbsp;
@@ -36,13 +36,13 @@ $ nc -l 31337
 `nmap` is a very useful tool that we can use to find open addressees and ports.
 
 ```
-$ nmap -v 10.0.0.0/24 -p 31337
+hacker@intercepting-communication~level3:/$ nmap -v 10.0.0.0/24 -p 31337
 ```
 
 After that we just have to connect on the open
 
 ```
-$ nc 10.0.0.245 31337
+hacker@intercepting-communication~level3:/$ nc 10.0.0.245 31337
 ```
 
 &nbsp;
@@ -56,7 +56,7 @@ This time we have to scan a `/16` so we need to speed up the process.
 The `T5` flag in `nmap` sets the scan speed to `insane` which is the fastest available speed.
 
 ```
-$ nmap -v 10.0.0.0/16 -p 31337 -T5
+hacker@intercepting-communication~level4:/$ nmap -v 10.0.0.0/16 -p 31337 -T5
 ```
 
 &nbsp;
@@ -68,7 +68,7 @@ $ nmap -v 10.0.0.0/16 -p 31337 -T5
 We can use `tcpdump` to look at the packets we are receiving.
 
 ```
-$ tcpdump -A
+hacker@intercepting-communication~level5:/$ tcpdump -A
 ```
 
 The `A` flag prints out every packet in ASCII.
@@ -78,8 +78,11 @@ The `A` flag prints out every packet in ASCII.
 ## level 6
 
 ```
-$ tcpdump -A > packet.txt
-$ cat packet.txt
+hacker@intercepting-communication~level6:/$ tcpdump -A > packet.txt
+```
+
+```
+hacker@intercepting-communication~level6:/$ cat packet.txt
 ```
 
 &nbsp;
@@ -93,7 +96,7 @@ In this level, the host at 10.0.0.4 is communicating with the host at 10.0.02.
 We can essentially become 10.0.0.2 so that we now receive those packets.
 
 ```
-$ ip address add 10.0.0.2/16 dev eth0
+hacker@intercepting-communication~level7:/$ ip address add 10.0.0.2/16 dev eth0
 ```
 
 We have added the address on our `eth0` interface.
@@ -101,7 +104,7 @@ We have added the address on our `eth0` interface.
 Now when we receive an ARP `who-has` request asking for 10.0.0.2, we can send a `is-at` reply with our MAC address.
 
 ```
-$ nc -l 31337
+hacker@intercepting-communication~level7:/$ nc -l 31337
 ```
 
 &nbsp;
