@@ -4,8 +4,8 @@ pagination_next: null
 pagination_prev: null
 ---
 
-## Enumeration
-### NMAP scan
+## Reconnaissance
+### Nmap scan
 
 Let's perform an `nmap` scan to find the open ports and the services running on the open ports.
 
@@ -69,7 +69,7 @@ There are five open ports:
 | 445  | netbios-ssn |
 | 8000 | http        |
 
-### Port 80 - HTTP
+### Port 80 (HTTP) enumeration
 
 Let's enumerate port 80 through our browser.
 
@@ -89,7 +89,7 @@ server-status           [Status: 403, Size: 279, Words: 20, Lines: 10, Duration:
 :: Progress: [220560/220560] :: Job [1/1] :: 623 req/sec :: Duration: [0:06:21] :: Errors: 0 ::
 ```
 
-### Port 135 - SMB
+### Port 135 (SMB) enumeration
 
 We can map out the SMB shares on the target using `smbclient`.
 
@@ -156,7 +156,7 @@ This tells us some potential credentials.
 | agi      | agi@photographer.com   |                  |
 | daisa    | daisa@photographer.com | secret, babygirl |
 
-### Port 8000 - HTTP
+### Port 8000 (HTTP) enumeration
 
 Let's enumerate port 8000 through our browser.
 
