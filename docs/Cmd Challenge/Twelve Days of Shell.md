@@ -5,8 +5,6 @@ pagination_prev: null
 sidebar_position: 3
 ---
 
----
-
 ## level 1
 > On the first day of Shell my true love gave to me
 > A list of files in the directory tree …
