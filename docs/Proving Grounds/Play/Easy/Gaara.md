@@ -4,9 +4,9 @@ pagination_next: null
 pagination_prev: null
 ---
 
-## Enumeration
+## Reconnaissance
 
-### NMAP scan
+### Nmap scan
 
 Let's perform an `nmap` scan to find the open ports and the services running on the open ports.
 
@@ -47,7 +47,7 @@ Let's visit the web server through our browser.
 
 Nothing useful, just a picture of the anime character [Gaara](https://en.wikipedia.org/wiki/Gaara).
 
-### Directory brute forcing
+### Directory enumeration
 
 We can use `ffuf` to brute force the web directories on the web server.
 
