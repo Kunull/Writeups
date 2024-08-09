@@ -4,8 +4,8 @@ pagination_next: null
 pagination_prev: null
 ---
 
-## Enumeration
-### NMAP scan
+## Reconnaissance
+### Nmap scan
 
 Let's perform an `nmap` scan to find the open ports and the services running on the open ports.
 
