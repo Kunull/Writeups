@@ -4,8 +4,8 @@ pagination_next: null
 pagination_prev: null
 ---
 
-## Enumeration
-### NMAP scan
+## Reconnaissance
+### Nmap scan
 
 Let's perform a simple `nmap` scan on the target.
 
@@ -50,7 +50,7 @@ Nmap done: 1 IP address (1 host up) scanned in 14.54 seconds
 
 An important piece of information is the Drupal version having been identified as 7.
 
-### Directory brute force
+### Directory enumeration
 
 Let's perform some directory brute forcing to check what web directories are present.
 
