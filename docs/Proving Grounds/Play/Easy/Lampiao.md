@@ -118,7 +118,7 @@ Upon visiting port 1898 on which Drupal is running, we find two posts from the t
 | tiago |
 | eder  |
 
-We have to save these usernames in a `usres.txt` file.
+We have to save these usernames in a `users.txt` file.
 
 ### Generating passwords
 
@@ -136,7 +136,7 @@ cewl http://192.168.167.48:1898/?q=node/3 -w passwords.txt
 
 &nbsp;
 
-## Exploitation vector 1
+## Exploitation (vector 1)
 
 ### Brute forcing SSH credentials
 
@@ -189,7 +189,7 @@ tiago@lampiao:~$
 
 &nbsp;
 
-## Exploitation vector 2
+## Exploitation (vector 2)
 
 We know that the Drupal service is running version 7. This version is vulnerable to the Drupalgeddon2 exploit.
 
