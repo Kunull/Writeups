@@ -4,8 +4,8 @@ pagination_next: null
 pagination_prev: null
 ---
 
-## Enumeration
-### NMAP scan
+## Reconnaissance
+### Nmap scan
 
 Let's perform a simple `nmap` scan on the target.
 
@@ -95,7 +95,7 @@ local: trytofind.jpg remote: trytofind.jpg
 
 We can use steghide to extract potentially stored files from the image, but for that we need a password.
 
-### Directory busting using FFUF
+### Directory enumeration
 
 Let's perform some directory brute forcing using `ffuf` to check what web directories are present.
 
