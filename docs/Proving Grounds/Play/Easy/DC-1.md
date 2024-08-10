@@ -7,7 +7,7 @@ pagination_prev: null
 ## Reconnaissance
 ### Nmap scan
 
-Let's perform a `nmap` scan on the target.
+Let's perform an nmap scan to find the open ports and the services running on the open ports.
 
 ```
 $ nmap -Pn -p- -A -T5 192.168.210.193
