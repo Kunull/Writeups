@@ -8,6 +8,7 @@ pagination_prev: null
 ### Nmap scan
 
 Let's perform an `nmap` scan to find the open ports and the services running on the open ports.
+
 ```
 $ nmap -Pn -p- -A -T5 192.168.167.230 
 Starting Nmap 7.92 ( https://nmap.org ) at 2024-05-06 11:03 IST
@@ -99,7 +100,8 @@ We can use steghide to extract potentially stored files from the image, but for 
 Let's perform some directory brute forcing using `ffuf` to check what web directories are present.
 
 ```
-$ ffuf -w /usr/share/wordlists/dirb/common.txt -u http://192.168.167.230/FUZZ      ________________________________________________
+$ ffuf -w /usr/share/wordlists/dirb/common.txt -u http://192.168.167.230/FUZZ
+________________________________________________
 
 .htpasswd               [Status: 403, Size: 280, Words: 20, Lines: 10, Duration: 115ms]
 .hta                    [Status: 403, Size: 280, Words: 20, Lines: 10, Duration: 115ms]
