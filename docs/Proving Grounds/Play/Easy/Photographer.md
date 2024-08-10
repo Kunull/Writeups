@@ -347,7 +347,7 @@ cat local.txt
 0efd95e22a381cfe8fb8ca1f970e8f34
 ```
 
-### Privilege escalation
+### Privilege Escalation
 
 We can use the find command to search for files on the system where the setuid bit is set.
 
