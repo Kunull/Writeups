@@ -154,7 +154,7 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 The `./finally.sh` file is executed every 5th minute with `root` privileges.
 
-We can verify this using [crontab guru](https://crontab.guru/)
+We can verify this using [crontab guru](https://crontab.guru/).
 
 ![5](https://github.com/user-attachments/assets/49a4c19a-6d43-435f-812a-b897baa8ee60)
 
