@@ -199,7 +199,7 @@ cat local.txt
 a5fb380401e95264349fabe9fe4a2f81
 ```
 
-### Privilege escalation
+### Privilege Escalation
 
 We can use the `find` command to search for files on the system where the `setuid` bit is set.
 
