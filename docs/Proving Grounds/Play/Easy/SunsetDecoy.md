@@ -210,7 +210,7 @@ The AV Scan will be launched in a minute or less.
 
 ```
 
-#### Enumeration Privilege Escalation vectors using pspy
+#### Enumerating Privilege Escalation vectors using pspy
 
 In order to find a privilege escalation vector we have to use the [pspy](https://github.com/DominicBreuker/pspy/releases/download/v1.2.1/pspy64) utility.
 
