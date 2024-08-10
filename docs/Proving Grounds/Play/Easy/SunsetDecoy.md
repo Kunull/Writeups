@@ -187,6 +187,29 @@ We can also escape the restriction by setting the PATH variable to the following
 
 ### Privilege escalation
 
+There is an executable called `honeypot.decoy` which we can run. 
+
+```
+296640a3b825115a47b68fc44501c828@60832e9f188106ec5bcc4eb7709ce592:~$ ./honeypot.decoy 
+--------------------------------------------------
+
+Welcome to the Honey Pot administration manager (HPAM). Please select an option.
+1 Date.
+2 Calendar.
+3 Shutdown.
+4 Reboot.
+5 Launch an AV Scan.
+6 Check /etc/passwd.
+7 Leave a note.
+8 Check all services status.
+
+Option selected:5
+
+The AV Scan will be launched in a minute or less.
+--------------------------------------------------
+
+```
+
 #### Enumeration Privilege Escalation vectors using pspy
 
 In order to find a privilege escalation vector we have to use the [pspy](https://github.com/DominicBreuker/pspy/releases/download/v1.2.1/pspy64) utility.
@@ -211,9 +234,19 @@ pspy64                                                     100%[================
 ```
 296640a3b825115a47b68fc44501c828@60832e9f188106ec5bcc4eb7709ce592:~/tmp$ ./pspy64
 
+<SNIP>
 
+2024/08/10 00:14:01 CMD: UID=0     PID=4436   | /bin/sh /root/chkrootkit-0.49/chkrootkit 
+2024/08/10 00:14:01 CMD: UID=0     PID=4440   | /bin/sh /root/chkrootkit-0.49/chkrootkit 
+2024/08/10 00:14:01 CMD: UID=0     PID=4439   | /bin/sh /root/chkrootkit-0.49/chkrootkit 
+2024/08/10 00:14:01 CMD: UID=0     PID=4443   | /bin/sh /root/chkrootkit-0.49/chkrootkit 
+2024/08/10 00:14:01 CMD: UID=0     PID=4442   | /bin/sh /root/chkrootkit-0.49/chkrootkit 
+2024/08/10 00:14:01 CMD: UID=0     PID=4441   | /bin/sh /root/chkrootkit-0.49/chkrootkit 
+
+<SNIP>
 ```
 
+It seems that the option we chose earlier set a Cron job. We can exploit this Cron job to gain privileged access.
 
 #### Chkrootkit exploit
 
