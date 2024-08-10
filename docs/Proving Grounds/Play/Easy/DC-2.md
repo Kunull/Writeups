@@ -374,7 +374,7 @@ tom@DC-2:~$ cat local.txt
 a5af626ceea9f79c26034c91502946ce
 ```
 
-### Switching to the jerry user
+### Logging in as the `jerry` user
 
 Let's switch to the user `jerry` using the `su` command.
 
