@@ -185,7 +185,7 @@ We can also escape the restriction by setting the PATH variable to the following
 0fc44c820a32214799707c05d1fabc6a
 ```
 
-### Privilege escalation
+### Privilege Escalation
 
 There is an executable called `honeypot.decoy` which we can run. 
 
