@@ -329,9 +329,9 @@ tom@funbox2:~$ cd tmp
 tom@funbox2:~/tmp$ 
 ```
 
-### Privilege Escalation
+### Privilege Escalation (vector 1)
 
-#### Enumerating Privilege Escalation vectors using Linpeas[​](https://writeups-kunull.vercel.app/Proving%20Grounds/Play/Easy/SunsetNoontide#enumerating-privilege-escalation-vectors-using-linpeas "Direct link to Enumerating Privilege Escalation vectors using Linpeas")
+#### Enumerating Privilege Escalation vectors using Linpeas
 
 In order to find a privilege escalation vector we have to use the [Linpeas](https://github.com/peass-ng/PEASS-ng/releases/tag/20240804-31b931f7) utility.
 
@@ -367,7 +367,7 @@ Now we can run the `./linpeas.sh` script.
 
 
 
-### Privilege Escalation (vector 1)
+### Privilege Escalation (vector 2)
 
 Let's look at the contents of the home directory.
 
