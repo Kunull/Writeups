@@ -349,6 +349,8 @@ cat local.txt
 
 ### Privilege Escalation
 
+#### SetUID binaries
+
 We can use the find command to search for files on the system where the setuid bit is set.
 
 ```
