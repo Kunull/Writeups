@@ -171,7 +171,7 @@ cat finally.sh
 
 So it execute another file called `./write.sh`.
 
-#### Exploiting scheduled Cron job
+#### Exploiting scheduled Cron job via shared object injection
 
 Let's delete this `./write.sh` file.
 
