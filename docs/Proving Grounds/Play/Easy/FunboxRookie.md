@@ -416,7 +416,7 @@ Seems like tom's password is `xx11yy22!`.
 | -------- | --------- |
 | tom      | xx11yy22! |
 
-#### Misconfigured `sudo` privileges
+#### Misconfigured Sudo privileges
 
 Let's check what commands `tom` can run with `root` privileges without needing a password. When prompted, we have to provide the password we just found.
 
