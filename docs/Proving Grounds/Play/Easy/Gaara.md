@@ -131,6 +131,8 @@ c728c520ab0c97b7ea9820a1b73a0254
 
 ### Privilege Escalation
 
+#### SetUID binaries
+
 We can use the `find` command to search for files on the system where the `setuid` bit is set.
 
 ```
