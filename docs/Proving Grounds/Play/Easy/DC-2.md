@@ -386,6 +386,8 @@ jerry@DC-2:/home/tom$
 
 ### Privilege Escalation
 
+#### Misconfigured Sudo privileges
+
 Let's check what commands `jerry` can run with `root` privileges without needing a password.
 
 ```
