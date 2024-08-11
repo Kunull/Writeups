@@ -273,6 +273,8 @@ lily@MoneyBox:~$
 
 ### Privilege Escalation
 
+#### Misconfigured Sudo privileges
+
 Let's check what commands `lily` can run with `root` privileges without needing a password.
 
 ```
