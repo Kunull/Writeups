@@ -297,7 +297,7 @@ aside.docSidebarContainer_YfHR {
 }
 
 nav.menu_SIkG {
-  padding: 1.5rem 1.5rem 2rem 1.5rem;
+  padding: 1.5rem 1rem 2rem 1rem;
 }
 
 .token-line {
@@ -315,7 +315,7 @@ nav.menu_SIkG {
     margin-bottom: 0;
     margin-left: 0.75rem;
     margin-top: 0.25rem;
-    padding-left: 0.4rem;
+    padding-left: 0.5rem;
     font-weight: var(--ifm-font-weight-normal) !important;
 }
 
