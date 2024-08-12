@@ -58,7 +58,17 @@ html[data-theme='light'] .alert--info {
   --ifm-alert-border-color: var(--ifm-color-emphasis-200);
 }
 
+.markdown>h2 {
+    --ifm-h2-font-size: 2.25rem !important;
+}
 
+.markdown>h3 {
+    --ifm-h3-font-size: 1.75rem !important;
+}
+
+.markdown>h4 {
+    --ifm-h4-font-size: 1.25rem !important;
+}
 
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
