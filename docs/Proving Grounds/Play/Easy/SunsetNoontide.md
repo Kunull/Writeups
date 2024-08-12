@@ -227,7 +227,7 @@ server@noontide:~$ ./linpeas.sh -a
 <SNIP>
 ```
 
-### Logging in as the `root` user
+#### Logging in as the `root` user
 
 ```
 server@noontide:~$ su root
