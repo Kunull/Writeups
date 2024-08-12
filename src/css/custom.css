@@ -70,7 +70,6 @@ html[data-theme='light'] .alert--info {
     --ifm-h4-font-size: 1.25rem !important;
 }
 
-
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
   --ifm-table-head-background: rgb(20,20,20);
