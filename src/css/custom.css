@@ -392,6 +392,7 @@ nav.menu_SIkG {
 /* Padding left */
 .col--3 {
     padding-left: 0;
+    padding-right: 1rem;
 }
 
 /* Display none (mobile version) */
