@@ -156,9 +156,9 @@ gaara@Gaara:~$ find / -perm -u=s -type f 2>/dev/null
 
 We can now use on of these files to escalate our privilege.
 
-Let's go to [GTFOBins](https://gtfobins.github.io) to search for an exploit for the `gdb` utility. 
+Let's go to [GTFOBins]([https://gtfobins.github.io](https://gtfobins.github.io/gtfobins/gdb/#suid)) to search for an exploit for the `gdb` utility. 
 
-![3](https://github.com/Kunull/Write-ups/assets/110326359/c41f68aa-fc93-40df-8122-a59d21ea374a)
+![3](https://github.com/user-attachments/assets/1e696a96-6647-4730-8162-bbf32d570d32)
 
 Since we want a Bash shell, we have to modify the exploit slightly.
 
