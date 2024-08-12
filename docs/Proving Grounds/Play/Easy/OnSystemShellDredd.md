@@ -216,7 +216,7 @@ hannah@ShellDredd:~$ find / -perm -u=s -type f 2>/dev/null
 
 We can now use on of these files to escalate our privilege.
 
-Let's go to [GTFOBins](https://gtfobins.github.io/) to search for an exploit for the `cpulimit` utility.
+Let's go to [GTFOBins]([https://gtfobins.github.io/](https://gtfobins.github.io/gtfobins/cpulimit/#suid)) to search for an exploit for the `cpulimit` utility.
 
 ![1](https://github.com/user-attachments/assets/10ba9487-da3c-4245-9227-5308cd063fa9)
 
