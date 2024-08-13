@@ -305,7 +305,7 @@ root@funbox3:~# whoami
 root
 ```
 
-#### proof.txt
+### proof.txt
 
 ```
 root@funbox3:~# cat /root/proof.txt
