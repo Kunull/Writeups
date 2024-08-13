@@ -231,7 +231,7 @@ find / -perm -u=s -type f 2>/dev/null
 
 We can now use on of these files to escalate our privilege.
 
-Let's go to [GTFOBins]([https://gtfobins.github.io](https://gtfobins.github.io/gtfobins/find/#suid)) to search for an exploit for the `find` utility. 
+Let's go to [GTFOBins](https://gtfobins.github.io/gtfobins/find/#suid) to search for an exploit for the `find` utility. 
 
 ![1](https://github.com/user-attachments/assets/8ae5500a-410b-43a1-96cb-2752538250da)
 
