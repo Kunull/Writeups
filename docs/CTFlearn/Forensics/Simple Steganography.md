@@ -1,7 +1,5 @@
 ---
 custom_edit_url: null
-pagination_next: null
-pagination_prev: null
 ---
 
 > Think the flag is somewhere in there. Would you help me find it? hint-" Steghide Might be Helpfull"

@@ -1,7 +1,5 @@
 ---
 custom_edit_url: null
-pagination_next: null
-pagination_prev: null
 ---
 
 > Someone gave me this, but I haven't the slightest idea as to what it says! https://mega.nz/#!iCBz2IIL!B7292dJSx1PGXoWhd9oFLk2g0NFqGApBaItI_2Gsp9w 

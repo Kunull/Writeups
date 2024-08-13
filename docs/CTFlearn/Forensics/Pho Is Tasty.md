@@ -1,8 +1,6 @@
 ---
 title: Pho Is Tasty!
 custom_edit_url: null
-pagination_next: null
-pagination_prev: null
 ---
 
 > The flag is hidden in the jpeg file. Good Luck! Have some Pho! Solve this challenge before solving my Scope challenge for 100 points.

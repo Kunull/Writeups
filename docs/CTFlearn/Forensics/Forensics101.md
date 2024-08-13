@@ -1,7 +1,5 @@
 ---
 custom_edit_url: null
-pagination_next: null
-pagination_prev: null
 ---
 
 > Think the flag is somewhere in there. Would you help me find it? https://mega.nz/#!OHohCbTa!wbg60PARf4u6E6juuvK9-aDRe_bgEL937VO01EImM7c

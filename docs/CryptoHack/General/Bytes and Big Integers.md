@@ -1,8 +1,6 @@
 ---
 sidebar_position: 4
 custom_edit_url: null
-pagination_next: null
-pagination_prev: null
 ---
 
 > Python's PyCryptodome library implements this with the methods `bytes_to_long()` and `long_to_bytes()`. You will first have to install PyCryptodome and import it with `from Crypto.Util.number import *`. For more details check the [FAQ](https://cryptohack.org/faq/#install).

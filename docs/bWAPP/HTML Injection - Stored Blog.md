@@ -1,8 +1,6 @@
 ---
 title: HTML Injection - Stored (Blog)
 custom_edit_url: null
-pagination_next: null
-pagination_prev: null
 ---
 
 ![1](https://github.com/Knign/Write-ups/assets/110326359/8be480d3-7c74-4c4f-945a-e650920c6794)

@@ -1,8 +1,6 @@
 ---
 title: CTF collection Vol.1
 custom_edit_url: null
-pagination_next: null
-pagination_prev: null
 ---
 
 ## Task 2: What does the base said?

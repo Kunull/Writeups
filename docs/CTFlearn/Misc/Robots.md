@@ -1,7 +1,5 @@
 ---
 custom_edit_url: null
-pagination_next: null
-pagination_prev: null
 ---
 
 > Where do robots find what pages are on a website?

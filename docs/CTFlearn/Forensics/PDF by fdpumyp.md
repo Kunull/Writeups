@@ -1,7 +1,5 @@
 ---
 custom_edit_url: null
-pagination_next: null
-pagination_prev: null
 ---
 
 > Hi, just as we talked during a break, you have this file here and check if something is wrong with it. That's the only thing we found strange with this suspect, I hope there will be a password for his external drive

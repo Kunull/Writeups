@@ -1,7 +1,5 @@
 ---
 custom_edit_url: null
-pagination_next: null
-pagination_prev: null
 ---
 
 ## Name the supply chain attack related to Java logging library in the end of 2021 (Format: AttackNickname)

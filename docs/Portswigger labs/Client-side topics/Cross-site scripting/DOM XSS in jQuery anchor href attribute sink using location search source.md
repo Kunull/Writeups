@@ -1,8 +1,6 @@
 ---
 title: DOM XSS in jQuery anchor href attribute sink using location.search source
 custom_edit_url: null
-pagination_next: null
-pagination_prev: null
 sidebar_position: 5
 ---
 

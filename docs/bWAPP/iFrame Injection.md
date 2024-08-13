@@ -1,7 +1,5 @@
 ---
 custom_edit_url: null
-pagination_next: null
-pagination_prev: null
 ---
 
 ![1](https://github.com/Knign/Write-ups/assets/110326359/2c6cebae-2df1-40d6-b57b-6f04d890c8d8)

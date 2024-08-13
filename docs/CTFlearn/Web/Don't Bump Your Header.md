@@ -1,8 +1,6 @@
 ---
 title: Don't Bump Your Head(er).md
 custom_edit_url: null
-pagination_next: null
-pagination_prev: null
 ---
 
 > Try to bypass my security measure on this site! http://165.227.106.113/header.php

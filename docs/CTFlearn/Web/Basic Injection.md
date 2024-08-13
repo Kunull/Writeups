@@ -1,7 +1,5 @@
 ---
 custom_edit_url: null
-pagination_next: null
-pagination_prev: null
 ---
 
 > See if you can leak the whole database using what you know about SQL Injections. [link](https://web.ctflearn.com/web4/)

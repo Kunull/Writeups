@@ -1,7 +1,5 @@
 ---
 custom_edit_url: null
-pagination_next: null
-pagination_prev: null
 ---
 
 > Extract the flag from the Gandalf.jpg file. You may need to write a quick script to solve this 

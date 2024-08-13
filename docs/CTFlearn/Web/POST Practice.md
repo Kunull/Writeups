@@ -1,7 +1,5 @@
 ---
 custom_edit_url: null
-pagination_next: null
-pagination_prev: null
 ---
 
 > This website requires authentication, via POST. However, it seems as if someone has defaced our site. Maybe there is still some way to authenticate? 

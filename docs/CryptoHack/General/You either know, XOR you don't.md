@@ -1,7 +1,5 @@
 ---
 custom_edit_url: null
-pagination_next: null
-pagination_prev: null
 ---
 
 > I've encrypted the flag with my secret key, you'll never be able to guess it.

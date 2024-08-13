@@ -1,7 +1,5 @@
 ---
 custom_edit_url: null
-pagination_next: null
-pagination_prev: null
 ---
 
 > Hi, I'm Noxtal! I have hidden a flag somewhere in my [Cyberworld](https://noxtal.com/) (AKA blog)... you may find a good **application** for your **memory**. ;)
