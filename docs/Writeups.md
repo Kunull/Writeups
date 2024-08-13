@@ -3,8 +3,6 @@ slug: /
 title: Writeups
 sidebar_position: 1
 custom_edit_url: null
-pagination_next: null
-pagination_prev: null
 ---
 
 This is a collection of writeups for the CTF challenges and boot2root machines that I have solved. 
