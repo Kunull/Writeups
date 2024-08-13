@@ -122,6 +122,10 @@ code {
 
 /* CODE BLOCK (Code) */
 
+.codeLineNumber_Tfdd {
+  background: #111 !important;
+}
+
 .markdown :where(pre):not(:where([class~=not-prose],[class~=not-prose] *)) {
   background-color: #111 !important;
 /*   border: 1px solid #333; */
