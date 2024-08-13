@@ -338,9 +338,9 @@ less  ls  scp  vi
 
 There is a way to escape restricted shell using the `vi` command.
 
-We can find the payload on [GTFOBins](https://gtfobins.github.io).
+We can find the payload on [GTFOBins](https://gtfobins.github.io/gtfobins/vi/#shell).
 
-![4](https://github.com/Kunull/Write-ups/assets/110326359/9af8dee2-32b0-47f0-9108-59b1b5cfedad)
+![4](https://github.com/user-attachments/assets/5602f0e2-9ed7-4b67-b999-ab3bda643899)
 
 Because we want a Bash shell, we will have to modify the payload slightly.
 
@@ -399,11 +399,11 @@ User jerry may run the following commands on DC-2:
     (root) NOPASSWD: /usr/bin/git
 ```
 
-We can  use this misconfigured SUID bit to escalaet our privileges.
+We can  use this misconfigured SUID bit to escalate our privileges.
 
-We can find the this payload on [GTFOBins](https://gtfobins.github.io) as well.
+We can find the this payload on [GTFOBins]([https://gtfobins.github.io](https://gtfobins.github.io/gtfobins/git/#sudo)) as well.
 
-![3](https://github.com/Kunull/Write-ups/assets/110326359/de7e39b6-c6a4-4235-b7b6-3930c18fb997)
+![3](https://github.com/user-attachments/assets/1df9d50e-4992-4ec1-81e8-c0afb5a8ec14)
 
 If we use the second payload, we get a `root` shell.
 
