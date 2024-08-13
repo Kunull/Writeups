@@ -401,7 +401,7 @@ User jerry may run the following commands on DC-2:
 
 We can  use this misconfigured SUID bit to escalate our privileges.
 
-We can find the this payload on [GTFOBins]([https://gtfobins.github.io](https://gtfobins.github.io/gtfobins/git/#sudo)) as well.
+We can find the this payload on [GTFOBins](https://gtfobins.github.io/gtfobins/git/#sudo) as well.
 
 ![3](https://github.com/user-attachments/assets/1df9d50e-4992-4ec1-81e8-c0afb5a8ec14)
 
