@@ -156,7 +156,7 @@ gaara@Gaara:~$ find / -perm -u=s -type f 2>/dev/null
 
 We can now use on of these files to escalate our privilege.
 
-Let's go to [GTFOBins]([https://gtfobins.github.io](https://gtfobins.github.io/gtfobins/gdb/#suid)) to search for an exploit for the `gdb` utility. 
+Let's go to [GTFOBins](https://gtfobins.github.io/gtfobins/gdb/#suid) to search for an exploit for the `gdb` utility. 
 
 ![3](https://github.com/user-attachments/assets/1e696a96-6647-4730-8162-bbf32d570d32)
 
