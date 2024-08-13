@@ -126,6 +126,10 @@ code {
   background: #111 !important;
 }
 
+.theme-code-block-highlighted-line {
+  background: #333 !important;
+}
+
 .markdown :where(pre):not(:where([class~=not-prose],[class~=not-prose] *)) {
   background-color: #111 !important;
 /*   border: 1px solid #333; */
