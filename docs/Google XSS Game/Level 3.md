@@ -17,7 +17,7 @@ edit_url: null
 
 ## Script
 
-```html {5, 8} showLineNumbers
+```html {5,8} showLineNumbers
     <script>
       function chooseTab(num) {
         // Dynamically load the appropriate image.
