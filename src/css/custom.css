@@ -127,7 +127,7 @@ code {
 }
 
 .theme-code-block-highlighted-line {
-  background: #333 !important;
+  background: #222 !important;
 }
 
 .markdown :where(pre):not(:where([class~=not-prose],[class~=not-prose] *)) {
