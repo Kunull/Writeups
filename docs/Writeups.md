@@ -15,7 +15,7 @@ By documenting my solutions in real-time, I aim to create a [Memex](https://en.w
 -->
 
 :::note
-If there are any write-ups for challenges created by you, that you want me to remove for a reason, send me an [email](mailto:kunull.contact@protonmail.com).
+If there are any write-ups for challenges created by you, that you want me to remove for a reason, send me an [email](mailto:contact@kunull.net).
 :::
 
 <!---
