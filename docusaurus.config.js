@@ -15,7 +15,7 @@ const config = {
   favicon: 'img/0_medium.png',
 
   // Set the production url of your site here
-  url: 'https://writeups-kunull.vercel.app/',
+  url: 'https://writeups.kunull.net/',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/',
@@ -23,7 +23,7 @@ const config = {
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'Kunull', // Usually your GitHub org/user name.
-  projectName: 'Write-ups', // Usually your repo name.
+  projectName: 'Writeups', // Usually your repo name.
 
   onBrokenLinks: 'ignore',
   onBrokenMarkdownLinks: 'ignore',
@@ -104,15 +104,15 @@ const config = {
             items: [
               {
                 label: 'Blog',
-                href: 'https://blog-kunull.vercel.app',
+                href: 'https://blog.kunull.net/',
               },
               {
                 label: 'Reports',
-                href: 'https://reports-kunull.vercel.app',
+                href: 'https://reports.kunull.net/',
               },
               {
                 label: 'Main site',
-                href: 'https://kunull.vercel.app',
+                href: 'https://kunull.net/',
               },
             ],
           },
@@ -140,7 +140,7 @@ const config = {
             items: [
               {
                 label: 'Email',
-                href: 'mailto:kunull.contact@protonmail.com',
+                href: 'mailto:contact@kunull.net',
               },
               {
                 label: 'Matrix',
