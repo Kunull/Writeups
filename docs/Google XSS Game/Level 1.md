@@ -1,5 +1,5 @@
 ---
-title: Level 1 Hello, world of XSS
+title: Level 1 - Hello, world of XSS
 custom_edit_url: null
 ---
 
