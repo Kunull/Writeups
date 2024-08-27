@@ -1,5 +1,5 @@
 ---
-title: Level 2 Persistence is key
+title: Level 2 - Persistence is key
 custom_edit_url: null
 ---
 
