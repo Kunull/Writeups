@@ -13,7 +13,9 @@ custom_edit_url: null
 
 > 3. Alright, one last hint: `<script> ... alert ...`
 
-## Payload
+## Exploitation
+
+### Payload
 
 The payload required to solve this level will be pretty simple.
 
