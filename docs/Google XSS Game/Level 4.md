@@ -13,11 +13,14 @@ edit_url: null
 
 > 3. Try entering a single quote (') and watch the error console.
 
+## Exploitation
 
-## Payload
+### Payload
+
+We can provide the following payload to solve this problem:
 
 ```
 1'); alert('1
 ```
 
-![3](https://github.com/user-attachments/assets/4a76a78f-a098-468f-87ee-0f0406f4ba0c)
+![3](https://github.com/user-attachments/assets/bea78ac7-e658-4188-b4fb-3a085648bdf3)
