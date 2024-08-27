@@ -92,8 +92,6 @@ num = 1
 The value of `num` is then inserted into the source address of the image.
 
 ```
-html += "<img src='/static/level3/cloud" + num + ".jpg' />";
-
 e.g.
 num = 1
 html += "<img src='/static/level3/cloud1.jpg' />";
