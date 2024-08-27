@@ -97,9 +97,11 @@ num = 1
 html += "<img src='/static/level3/cloud1.jpg' />";
 ```
 
-## Payload
+## Exploitation
 
 Since we can control the value of `window.location.hash`, we can control the source address of the image.
+
+### Payload
 
 In order to solve this level, we can provide the following URI: 
 
@@ -109,6 +111,6 @@ https://xss-game.appspot.com/level3/frame#4' onerror=alert(1) ";
 
 This will cause the source code to look as follows:
 
-![2](https://github.com/user-attachments/assets/932a645a-9fe7-466f-8b8c-f620b1e4f704)
+![2](https://github.com/user-attachments/assets/c345dba4-deb0-44ef-b5f9-008f1136bcdc)
 
-![3](https://github.com/user-attachments/assets/23e4f6c1-39bd-4b74-aaa9-7327aa06ebec)
+![3](https://github.com/user-attachments/assets/b82506c9-d1ed-484c-9e68-e7a52114b10c)
