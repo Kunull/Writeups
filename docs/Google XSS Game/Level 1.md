@@ -21,4 +21,4 @@ The payload required to solve this level will be pretty simple.
 <script>alert(1)</script>
 ```
 
-![2](https://github.com/user-attachments/assets/ceb6584c-7c67-44db-9ab1-f55d4389de74)
+![2](https://github.com/user-attachments/assets/1d6daca7-6eb9-4997-ba10-84a9ba89c626)
