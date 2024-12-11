@@ -184,8 +184,8 @@ code {
 @media (min-width: 1416px) {
     .main-wrapper {
         align-self: center;
-        max-width: 1500px;
-        width: 1500px;
+/*         max-width: 1500px;
+        width: 1500px; */
     }
 }
 
