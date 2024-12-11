@@ -192,7 +192,7 @@ code {
 /* Width */
 .mainWrapper_z2l0 {
     margin: 0 auto;
-/*     width: 98%; */
+    width: 100%;
     display: flex;
     flex: 1 0 auto;
     flex-direction: column;
