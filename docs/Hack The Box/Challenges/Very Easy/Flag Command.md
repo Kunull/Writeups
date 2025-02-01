@@ -1,5 +1,7 @@
 > Embark on the "Dimensional Escape Quest" where you wake up in a mysterious forest maze that's not quite of this world. Navigate singing squirrels, mischievous nymphs, and grumpy wizards in a whimsical labyrinth that may lead to otherworldly surprises. Will you conquer the enchanted maze or find yourself lost in a different dimension of magical challenges? The journey unfolds in this mystical escape!
 
+&nbsp;
+
 ![1](https://github.com/user-attachments/assets/7b4d5362-6a53-480d-a4fd-248fb7869a05)
 
 ```
