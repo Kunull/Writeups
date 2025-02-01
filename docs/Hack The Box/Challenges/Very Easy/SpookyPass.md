@@ -1,5 +1,7 @@
 > All the coolest ghosts in town are going to a Haunted Houseparty - can you prove you deserve to get in?
 
+&nbsp;
+
 After downloading the file, we can unzip it as follows:
 
 ```
