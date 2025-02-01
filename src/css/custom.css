@@ -553,3 +553,11 @@ html[data-theme=dark] {
 .col--8 {
     --ifm-col-width: 60%;
 }
+
+
+
+/* External link arrow */
+
+.iconExternalLink_nPIU {
+  display: none;
+}
