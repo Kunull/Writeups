@@ -11,7 +11,7 @@ We are provided with the SQL query:
 SELECT id FROM prob_dark_eyes WHERE id='admin' AND pw='{$_GET[pw]}'
 ```
 
-## Filter:
+## Filter
 
 This challenge filters out the following:
 - `col`
