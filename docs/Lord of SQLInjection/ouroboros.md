@@ -200,8 +200,6 @@ char(34),char(39)),char(36),
 
 We have successfully managed to create a Quine to solve this challenge.
 
-&nbsp;
-
 Now, we have to implement this for the challenge.
 We will have to modify this Quine to the following:
 
