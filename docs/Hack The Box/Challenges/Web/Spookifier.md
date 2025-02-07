@@ -84,7 +84,7 @@ The `change_font()` function simply converts user input into a list and replaces
 
 ### Payload
 
-Since there is no input validation being perfomred, we can run arbitrary commands.
+Since there is no input validation being performed, we can run arbitrary commands.
 
 Let's access the `os` module and find our user.
 
