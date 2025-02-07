@@ -58,8 +58,6 @@ As we can see, the SQL query outputs itself, thus acting as a Quine.
 - **`from information_schema.processlist`**:   
     - This specifies the table from which the data is being selected. The `information_schema.processlist` table contains information about the currently running processes in the MySQL database server.
 
-&nbsp;
-
 If we provide the following URI parameter:
 
 ```
