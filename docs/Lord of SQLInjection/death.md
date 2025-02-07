@@ -30,8 +30,6 @@ However, we have to modify the payload slightly.
 -1'<@=1 OR id LIKE 0x61646d696e OR '
 ```
 
-&nbsp;
-
 If we provide the following URI parameter:
 
 ```
