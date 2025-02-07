@@ -153,8 +153,6 @@ $ python .\godzilla_script.py
 [!] Final payload: ?pw=a18a6cc5
 ```
 
-&nbsp;
-
 If we provide the following URI parameter:
 
 ```
