@@ -55,8 +55,6 @@ UNION
 SELECT
 ```
 
-&nbsp;
-
 In order to get around the MOD Security filter, we can use the previously used bypass and modify it to our needs. We need to select the `first` and `second` columns in order to solve this challenge.
 
 If we provide the following URI parameter:
