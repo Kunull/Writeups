@@ -193,7 +193,7 @@ The final result of the query is the string after both replacements, as follows:
 When this SQL query is executed, it will return the following text:
 
 ```sql
-' UNION SELECT Replace(Replace(
+\' UNION SELECT Replace(Replace(
 '" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23',
 char(34),char(39)),char(36),
 '" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23'
