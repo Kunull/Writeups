@@ -144,8 +144,6 @@ $ python .\banshee_script.py
 [!] Final payload: ?pw=0313091b
 ```
 
-&nbsp;
-
 If we provide the following URI parameter:
 
 ```
