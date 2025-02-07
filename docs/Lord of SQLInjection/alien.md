@@ -56,8 +56,6 @@ In order to solve this challenge, we need to create a self-modifying query.
 	- If result of `sleep` is `1`, `concat(0x11,0x646d696e)` results in `bdmin`.
 	- If result of `sleep` is `0`, `concat(0x10,0x646d696e)` results in `admin`.
 
-&nbsp;
-
 If we provide the following URI parameter:
 
 ```
