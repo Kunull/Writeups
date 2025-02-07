@@ -53,7 +53,9 @@ AS Quine
 ### Initial string
 
 ```sql
+-- - SELECT Replace(Replace( -- -
 'SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") AS Quine'
+-- - char(34),char(39)),char(36),'SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") AS Quine') AS Quine -- -
 ```
 ### First replacement
 
@@ -64,7 +66,7 @@ Replace(
 char(34), 
 char(39)
 )
--- - , char(36), 'SELECT REPLACE(REPLACE("$",char(34),char(39)),char(36),"$") AS Quine') AS Quine -- -
+-- - ,char(36),'SELECT REPLACE(REPLACE("$",char(34),char(39)),char(36),"$") AS Quine') AS Quine -- -
 ```
 
 Replace all occurrences of `char(34)` (double quote `"` character) with `char(39)` (single quote `'` character):
@@ -72,15 +74,14 @@ Replace all occurrences of `char(34)` (double quote `"` character) with `char(39
 ```sql
 -- - SELECT Replace( -- -
 'SELECT Replace(Replace(\'$\',char(34),char(39)),char(36),\'$\') AS Quine'
-/* , char(36), 'SELECT REPLACE(REPLACE("$",char(34),char(39)),char(36),"$") AS Quine')
-AS Quine */
+-- - ,char(36),'SELECT REPLACE(REPLACE("$",char(34),char(39)),char(36),"$") AS Quine') AS Quine -- 
 ```
 ### Second replacement
 
 ```sql
 -- - SELECT -- -
 Replace(
-'SELECT Replace(Replace('$',char(34),char(39)),char(36),'$') AS Quine', 
+'SELECT Replace(Replace(\'$\',char(34),char(39)),char(36),\'$\') AS Quine', 
 char(36),
 'SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") AS Quine'
 )
@@ -143,7 +144,7 @@ Replace(
 char(34),
 char(39)
 )
--- -,char(36),'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23')%23 -- -
+-- - ,char(36),'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23')%23 -- -
 ```
 
 Replace all occurrences of `char(34)` (double quote `"` character) with `char(39)` (single quote `'` character):
@@ -151,14 +152,14 @@ Replace all occurrences of `char(34)` (double quote `"` character) with `ch
 ```sql
 -- - ' UNION SELECT Replace( -- -
 '\' UNION SELECT Replace(Replace(\'$\',char(34),char(39)),char(36),\'$\')%23'
--- -,char(36),'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23')%23 -- -
+-- - ,char(36),'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23')%23 -- -
 ```
 ### Second replacement
 
 ```sql
 -- - ' UNION SELECT -- -
 Replace(
-'\' UNION SELECT Replace(Replace('$',char(34),char(39)),char(36),'$')%23',
+'\' UNION SELECT Replace(Replace(\'$\',char(34),char(39)),char(36),\'$\')%23',
 char(36),
 '" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23')
 -- - %23 -- -
