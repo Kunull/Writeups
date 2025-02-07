@@ -22,8 +22,6 @@ In order to bypass this, we can refer [this](https://github.com/SpiderLabs/owasp
 
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/7c4e4729-0eb9-45dd-b350-97556d0cd332)
 
-&nbsp;
-
 If we provide the following URI parameter:
 
 ```
