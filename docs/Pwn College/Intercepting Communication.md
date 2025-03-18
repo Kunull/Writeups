@@ -89,9 +89,9 @@ hacker@intercepting-communication~level6:/$ cat packet.txt
 
 > Hijack traffic from a remote host by configuring your network interface
 
-In this level, the host at 10.0.0.4 is communicating with the host at 10.0.02.
+In this level, the host at `10.0.0.4` is communicating with the host at `10.0.0.2`.
 
-We can essentially become 10.0.0.2 so that we now receive those packets.
+We can essentially become `10.0.0.2` so that we now receive those packets.
 
 ```
 hacker@intercepting-communication~level7:/$ ip address add 10.0.0.2/16 dev eth0
@@ -99,7 +99,7 @@ hacker@intercepting-communication~level7:/$ ip address add 10.0.0.2/16 dev eth0
 
 We have added the address on our `eth0` interface.
 
-Now when we receive an ARP `who-has` request asking for 10.0.0.2, we can send a `is-at` reply with our MAC address.
+Now when we receive an ARP `who-has` request asking for `10.0.0.2`, we can send a `is-at` reply with our MAC address.
 
 ```
 hacker@intercepting-communication~level7:/$ nc -l 31337
