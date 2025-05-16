@@ -7,12 +7,6 @@ sidebar_position: 4
 
 > Use the command `continue`, or `c` for short, in order to continue program execution.
 
-Before we do anything else we need to open the file in GDB.
-
-```
-$ gdb embryogdb_level1
-```
-
 This challenge is fairly simple, we just have to run the file.
 
 ```
