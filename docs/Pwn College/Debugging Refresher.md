@@ -334,7 +334,7 @@ All we have to do now is put it all together in a script so that we don't have t
 
 The complete script looks like follows:
 
-```gdb title="script.gdb"
+```text title="script.gdb"
 start
 break *main+709
 commands
