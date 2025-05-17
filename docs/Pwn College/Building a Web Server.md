@@ -8,7 +8,7 @@ The `syscall` instruction invokes an OS system-call handler at privilege level 0
 It will be used in every level in this module.
 :::
 
-## Exit
+## level 1
 
 > In this challenge you will exit a program.
 
@@ -219,9 +219,9 @@ For the `sockfd` argument, we need to know the file descriptor of the socket cre
 
 As we can see, the Socket syscall returns a file descriptor `3`. This makes sense because the first three file descriptors, `0`, `1` and `2`, are mapped to STDIN, STDOUT, and STDERR respectively.
 
-One thing to note from the [calling convention](#syscall-calling-convention) is that the result of a syscall is stored in the `rax` register. So the file descriptor, whish is the result of the Socket syscall would be found in the `rax` register.
+One thing to note from the [calling convention](#syscall-calling-convention) is that the result of a syscall is stored in the `$rax` register. So the file descriptor, which is the result of the Socket syscall would be found in the `$rax` register.
 
-We can move this value in the `rdi` register. Doing so, we do not have to specifiy a fixed file descriptor value (3), making our program more dynamic.
+We can move this value in the `$rdi` register. Doing so, we do not have to specifiy a fixed file descriptor value (`3`), making our program more dynamic.
 
 ```
 mov rdi, 3
@@ -242,17 +242,17 @@ If we check the Expected processes, we get more information.
 [ ] exit(0) = ?
 ```
 
-For the `bind` process, `{sa_family=AF_INET, sin_port=htons(<bind_port>), sin_addr=inet_addr("<bind_address>")}` is the `struct` required for `sockaddr`.
+In the `bind` syscall, `{sa_family=AF_INET, sin_port=htons(<bind_port>), sin_addr=inet_addr("<bind_address>")}` is the `struct` required for `*addr`.
 
 In order to create the `struct`, we need to use the `.data` section.
 
 ```asm
 .section .data
 sockaddr:
-    .2byte 2    # AF_INET
-    .2byte 0x5000    # Port 80
-    .4byte 0    # Address 0.0.0.0
-    .8byte 0    # Additional 8 bytes of padding
+    .2byte 2		# AF_INET
+    .2byte 0x5000	# Port 80
+    .4byte 0    	# Address 0.0.0.0
+    .8byte 0		# Additional 8 bytes of padding
 ```
 
 We can now load the address of this `struct` into `rsi` using the `lea` instruction.
@@ -301,7 +301,7 @@ _start:
     syscall
 
     # Bind syscall
-    mov rdi, rax     # 2 for the fd of socket
+    mov rdi, rax		# 3 for the fd of socket
     lea rsi, [rip+sockaddr]
     mov rdx, 16
     mov rax, 0x31
