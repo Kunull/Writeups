@@ -408,18 +408,63 @@ Dump of assembler code for function main:
 # --- snip ---
 ```
 
+In order to automate the process, we will have to skip over the instruction at `main+625` as it calls `read` to read user input from STDIN.
+Then we will have to set the value in address where user input would have been read, i.e. `$rbp+0x10` as if the call actually happened.
+
 ```
 (gdb) break *(main+630)
 Breakpoint 1 at 0x57b68eaa1ce7
 ```
 
+### Test run
 
+Let's run the program and set two breakpoints:
+- `main+577`: Right after the program reads the value that user input is compared to.
+- `main+620`: Right before the `__isoc99_scanf@plt` function is called.
+
+```
+(gdb) break *(main+577)
+Breakpoint 1 at 0x6249c666ece7
+(gdb) break *(main+620)     
+Breakpoint 2 at 0x6249c666ed12
+```
+
+Now, let's print the value that user in input is being compared to as we did for the last level.
+
+```
+Breakpoint 1, 0x00006249c666ece7 in main ()
+(gdb) set $currentValue = *(unsigned long long*)($rbp - 0x18)
+(gdb) printf "Current value: %llx\n", $currentValue
+Current value: 45ab5c7cf3884275
+```
+
+When we hit the second breakpoint, we have to jump over the next instruction. For this, we can set the `$rip` to `main+630`, effectively skipping over the `__isoc99_scanf@plt` call.
+
+```
+(gdb) set $rip = *(main+630)
+```
+
+Now, we have to set the value of `$rbp-0x10` to the value that we printed.
+
+```
+(gdb) set *((unsigned long long *)($rbp - 0x10)) = $currentValue
+(gdb) printf "Input value switched to: %llx\n", *((unsigned long long *)($rbp - 0x10))
+Input value switched to: 45ab5c7cf3884275
+(gdb) continue
+Continuing.
+You input: 45ab5c7cf3884275
+The correct answer is: 45ab5c7cf3884275
+```
+
+We have successfully implemented the flow, now we simply have to convert this into a script.
+
+### GDB script
 
 ```text title="script.gdb"
 run
 
 break *(main+577)    
-break *(main+610)     
+break *(main+620)     
 
 commands 1
     silent
