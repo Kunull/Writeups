@@ -295,12 +295,14 @@ This process will repeat a couple of times but the method will be the same.
 
 > Use gdb scripting to help you collect the random values.
 
-From the previous level, we already know that the value that our input is being compared to is stored at `rbp-0x18`. This is the location of the `read` syscall's buffer.
+From the previous level, we already know that the value that our input is being compared to is stored at `$rbp-0x18`. This is the location of the `read` syscall's buffer.
 
 ```
-(gdb) disass main
+(gdb) disassemble main
 Dump of assembler code for function main:
----snip---;
+
+# --- snip ---
+
    0x00005556d00bdd56 <+688>:   mov    ecx,eax
    0x00005556d00bdd58 <+690>:   lea    rax,[rbp-0x18]
    0x00005556d00bdd5c <+694>:   mov    edx,0x8
@@ -308,25 +310,29 @@ Dump of assembler code for function main:
    0x00005556d00bdd64 <+702>:   mov    edi,ecx
    0x00005556d00bdd66 <+704>:   call   0x5556d00bd210 <read@plt>
    0x00005556d00bdd6b <+709>:   lea    rdi,[rip+0xd46]        # 0x5556d00beab8
----snip---;
+
+# --- snip ---
 ```
 
 This time the `read` syscall is made at `main+704`. Therefore in order to check the data that is read we need to set a breakpoint at the next instruction which is at `main+709`.
 
 ```
-break *(main+709)
+(gdb) break *(main+709)
+Breakpoint 1 at 0x60c9162cbd6b
 ```
 
 Next we want to display the current variable.
 
 ```
-set $currentValue = *(unsigned long long*)($rbp-0x18)
-printf "Current value: %llx\n", $currentValue
+Breakpoint 1, 0x000060c9162cbd6b in main ()
+(gdb) set $currentValue = *(unsigned long long*)($rbp-0x18)
+(gdb) printf "Current value: %llx\n", $currentValue
+Current value: 27e462979a3999c4
 ```
 
 These commands will be executed every time the breakpoint is hit.
 
-We defined a variable `currentValue` and set it's value equal to the local variable `rbp-0x18`.
+We defined a variable `currentValue` and set it's value equal to the local variable `$rbp-0x18`.
 
 All we have to do now is put it all together in a script so that we don't have to type it out over and over.
 
