@@ -339,7 +339,17 @@ hacker@building-a-web-server~level3:~$ /challenge/run ./webserver3
 
 ## level 4
 
-> In this challenge you will listen on a socket.
+> With your socket bound to an address, you now need to prepare it to accept incoming connections. The listen syscall transforms your socket into a passive one that awaits client connection requests. It requires the socket’s file descriptor and a backlog parameter, which sets the maximum number of queued connections. This step is vital because without marking the socket as listening, your server wouldn’t be able to receive any connection attempts.
+
+> ```
+> ===== Expected: Parent Process =====
+> [ ] execve(<execve_args>) = 0
+> [ ] socket(AF_INET, SOCK_STREAM, IPPROTO_IP) = 3
+> [ ] bind(3, {sa_family=AF_INET, sin_port=htons(<bind_port>), sin_addr=inet_addr("<bind_address>")}, 16) = 0
+>     - Bind to port 80
+>     - Bind to address 0.0.0.0
+> [ ] listen(3, 0) = 0
+> [ ] exit(0) = ?
 
 ### Listen syscall
 
@@ -359,11 +369,11 @@ The Listen syscall returns a file descriptor and takes two arguments:
 2. `backlog`: Defines the maximum length to which the queue of pending connections for sockfd may grow.
 
 #### `sockfd` argument
-The file descriptor is 3.
+The file descriptor is `3`.
 
-We already saw that the file descriptor of the any syscall is returned in the `rax` register. So the resultant file descriptor of Socket stored in `rax` is being overwritten by the result of the Bind syscall.
+We already saw that the file descriptor of the any syscall is returned in the `$rax` register. So the resultant file descriptor of Socket stored in `$rax` is being overwritten by the result of the Bind syscall.
 
-In order to preserve it, we can push `rax` before making the Bind syscall and then pop it into `rdi` to set up the first argument of the Listen syscall.
+In order to preserve it, we can push the value of `$rax` onto the stack before making the Bind syscall and then pop it into `$rdi` to set up the first argument of the `listen` syscall.
 
 ```
 # Socket syscall
