@@ -477,7 +477,7 @@ commands 2
     silent
     set $rip = *(main+630)
     set *((unsigned long long *)($rbp - 0x10)) = $currentValue
-    printf "Input value switched to: %llx\n", $currentValue
+    printf "Input value switched to: %llx\n", *((unsigned long long *)($rbp - 0x10))
     continue
 end
 
