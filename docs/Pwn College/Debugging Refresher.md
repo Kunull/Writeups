@@ -94,7 +94,7 @@ Now that the random value has been set, we begin to figure out the value.
 
 The contents of a file can be read using the `read` syscall.
 
-### Read syscall
+### `read@plt`
 
 ```c
 ssize_t read(int fd, void buf[.count], size_t count);
@@ -107,6 +107,9 @@ ssize_t read(int fd, void buf[.count], size_t count);
 We can see that the second argument is the location of the buffer in which the data is to be read. This argument is loaded in the `$rsi` register.
 
 Let's look at how this is loaded in our assembly code.
+
+One thing to note is that the program is calling `read()` function in the C standard library (`glibc`) through the Procedure Linkage Table (PLT). This internally sets up the syscall with `$rax=0` and executes the `syscall` instruction. 
+Hence, the `$rax` register does not have to be  explicitely set to 0 in the program.
 
 ```
 (gdb) disassemble main
@@ -228,7 +231,7 @@ So that tells us that `$rdx` is the register that holds user input and `$rax` is
 
 We have to restart the program again and disassemble main.
 
-### Read syscall
+### `read@plt`
 
 ```c
 ssize_t read(int fd, void buf[.count], size_t count);
@@ -332,7 +335,7 @@ Current value: 27e462979a3999c4
 
 These commands will be executed every time the breakpoint is hit.
 
-We defined a variable `currentValue` and set it's value equal to the local variable `$rbp-0x18`.
+We defined a variable `$currentValue` and set it's value equal to the local variable `$rbp-0x18`.
 
 All we have to do now is put it all together in a script so that we don't have to type it out over and over.
 
@@ -341,8 +344,8 @@ All we have to do now is put it all together in a script so that we don't have t
 The complete script looks like follows:
 
 ```text title="script.gdb"
-start
-break *main+709
+run
+break *(main+709)
 commands
     silent
     set $currentValue = *(unsigned long long*)($rbp-0x18)
@@ -353,6 +356,88 @@ continue
 ```
 
 The commands will be executed every time the breakpoint is hit.
+
+&nbsp;
+
+## level 6
+
+> In the previous level, your gdb scripting solution likely still required you to copy and paste your solutions.
+> This time, try to write a script that doesn't require you to ever talk to the program, and instead automatically solves each challenge by correctly modifying registers / memory.
+
+Let's disassemble `main`.
+
+```
+(gdb) disassemble main
+Dump of assembler code for function main:
+
+# --- snip ---
+
+   0x000057b68eaa1cd2 <+556>:   mov    ecx,eax
+   0x000057b68eaa1cd4 <+558>:   lea    rax,[rbp-0x18]
+   0x000057b68eaa1cd8 <+562>:   mov    edx,0x8
+   0x000057b68eaa1cdd <+567>:   mov    rsi,rax
+   0x000057b68eaa1ce0 <+570>:   mov    edi,ecx
+   0x000057b68eaa1ce2 <+572>:   call   0x57b68eaa1210 <read@plt>
+   0x000057b68eaa1ce7 <+577>:   lea    rdi,[rip+0xbf2]        # 0x57b68eaa28e0
+
+# --- snip ---
+```
+
+This time the `read` syscall is made at `main+572`. Therefore in order to check the data that is read we need to set a breakpoint at the next instruction which is at `main+577`.
+
+```
+(gdb) break *(main+577)
+Breakpoint 1 at 0x57b68eaa1ce7
+```
+
+In order to set the user input automatically, we have to figure out how the program is reading user input.
+
+```
+(gdb) disassemble main
+Dump of assembler code for function main:
+
+# --- snip ---
+
+   0x0000000000001d04 <+606>:   lea    rax,[rbp-0x10]
+   0x0000000000001d08 <+610>:   mov    rsi,rax
+   0x0000000000001d0b <+613>:   lea    rdi,[rip+0xbfd]        # 0x290f
+   0x0000000000001d12 <+620>:   mov    eax,0x0
+   0x0000000000001d17 <+625>:   call   0x1260 <__isoc99_scanf@plt>
+   0x0000000000001d1c <+630>:   mov    rax,QWORD PTR [rbp-0x10]
+
+# --- snip ---
+```
+
+```
+(gdb) break *(main+630)
+Breakpoint 1 at 0x57b68eaa1ce7
+```
+
+
+
+```text title="script.gdb"
+run
+
+break *(main+577)    
+break *(main+610)     
+
+commands 1
+    silent
+    set $currentValue = *(unsigned long long*)($rbp - 0x18)
+    printf "Current value: %llx\n", $currentValue
+    continue
+end
+
+commands 2
+    silent
+    set $rip = *(main+630)
+    set *((unsigned long long *)($rbp - 0x10)) = $currentValue
+    printf "Input value switched to: %llx\n", $currentValue
+    continue
+end
+
+continue
+```
 
 &nbsp;
 
