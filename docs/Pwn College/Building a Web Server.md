@@ -189,6 +189,7 @@ hacker@building-a-web-server~level2:~$ /challenge/run ./webserver2
 >     - Bind to port 80
 >     - Bind to address 0.0.0.0
 > [ ] exit(0) = ?
+> ```
 
 ### Bind syscall
 
@@ -350,6 +351,7 @@ hacker@building-a-web-server~level3:~$ /challenge/run ./webserver3
 >     - Bind to address 0.0.0.0
 > [ ] listen(3, 0) = 0
 > [ ] exit(0) = ?
+> ```
 
 ### Listen syscall
 
@@ -454,7 +456,19 @@ hacker@building-a-web-server~level4:~$ /challenge/run ./webserver4
 
 ## level 5
 
-> In this challenge you will accept a connection.
+> Once your socket is listening, it’s time to actively accept incoming connections. In this challenge, you will use the accept syscall, which waits for a client to connect. When a connection is established, it returns a new socket file descriptor dedicated to communication with that client and fills in a provided address structure (such as a struct sockaddr_in) with the client’s details. This process is a critical step in transforming your server from a passive listener into an active communicator.
+
+> ```
+> ===== Expected: Parent Process =====
+> [ ] execve(<execve_args>) = 0
+> [ ] socket(AF_INET, SOCK_STREAM, IPPROTO_IP) = 3
+> [ ] bind(3, {sa_family=AF_INET, sin_port=htons(<bind_port>), sin_addr=inet_addr("<bind_address>")}, 16) = 0
+>     - Bind to port 80
+>     - Bind to address 0.0.0.0
+> [ ] listen(3, 0) = 0
+> [ ] accept(3, NULL, NULL) = 4
+> [ ] exit(0) = ?
+> ```
 
 ### Accept syscall
 
@@ -477,7 +491,7 @@ The Accept syscall returns a file descriptor and takes two arguments:
 3. `addrlen`: Contain the size (in bytes) of the structure pointed to by `addr`.
 
 #### `sockfd` argument
-For the `sockfd` argument, we have to set value to the file descriptor that we created. Again, we will `push` the value onto the stack so that it is not over-written when the Listen syscall is made. Then we `pop` it into the `rdi` register.
+For the `sockfd` argument, we have to set value to the file descriptor that we created. Again, we will `push` the value onto the stack so that it is not over-written when the Listen syscall is made. Then we `pop` it into the `$rdi` register.
 
 ```
 # Listen syscall
