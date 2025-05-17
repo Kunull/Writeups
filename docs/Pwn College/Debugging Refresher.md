@@ -126,7 +126,7 @@ Dump of assembler code for function main:
 
 If we look at the address `main+423`, we can see that the value of `$rsi` is being copied from `$rax`.
 
-### lea instruction
+### `lea` instruction
 
 The `lea` instruction loads the effective address of the instruction being pointed to.
 
