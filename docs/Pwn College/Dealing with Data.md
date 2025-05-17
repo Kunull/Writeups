@@ -290,6 +290,12 @@ else:
     sys.exit(1)
 ```
 
+```python
+>>> s = "1010000010000000111000001100010010010111100011011100111111100101"
+>>> int.to_bytes(int(s, 2), length=len(s) // 8, byteorder="big")
+b'\xa0\x80\xe0\xc4\x97\x8d\xcf\xe5'
+```
+
 ```
 hacker@data-dealings~decoding-practice:/$ printf '\xa0\x80\xe0\xc4\x97\x8d\xcf\xe5' | /challenge/runme
 Enter the password:
