@@ -228,7 +228,14 @@ mov rdi, 3
 ```
 
 #### `*addr` argument
-Next, for the `*addr` argument, we need to create a `struct` and create a pointer to that `struct`.
+Next, for the `*addr` argument, we need to create a `sockaddr` struct and create a pointer to that struct.
+
+```c title="struct"
+struct sockaddr {
+    sa_family_t     sa_family;      /* Address family */
+    char            sa_data[];      /* Socket address */
+};
+```
 
 If we check the Expected processes, we get more information.
 
@@ -242,9 +249,9 @@ If we check the Expected processes, we get more information.
 [ ] exit(0) = ?
 ```
 
-In the `bind` syscall, `{sa_family=AF_INET, sin_port=htons(<bind_port>), sin_addr=inet_addr("<bind_address>")}` is the `struct` required for `*addr`.
+In the `bind` syscall, `{sa_family=AF_INET, sin_port=htons(<bind_port>), sin_addr=inet_addr("<bind_address>")}` is the struct required for `*addr`.
 
-In order to create the `struct`, we need to use the `.data` section.
+In order to create the struct, we need to use the `.data` section.
 
 ```asm
 .section .data
@@ -255,7 +262,7 @@ sockaddr:
     .8byte 0		# Additional 8 bytes of padding
 ```
 
-We can now load the address of this `struct` into `rsi` using the `lea` instruction.
+We can now load the address of this struct into `$rsi` using the `lea` instruction.
 
 ```asm
 lea rsi, [rip+sockaddr]
@@ -263,7 +270,7 @@ lea rsi, [rip+sockaddr]
 
 #### `addrlen` argument
 
-The value of the `addlen` argument will be 16, as the `struct` is 16 bytes in length.
+The value of the `addlen` argument will be 16, as the `sockaddr` struct is 16 bytes in length.
 
 ```
 mov rdx, 16
