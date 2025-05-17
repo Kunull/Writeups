@@ -8,9 +8,14 @@ The `syscall` instruction invokes an OS system-call handler at privilege level 0
 It will be used in every level in this module.
 :::
 
-## level 1
+## Exit
 
 > In this challenge you will exit a program.
+
+> ```
+> ===== Expected: Parent Process =====[ ] execve(<execve_args>) = 0
+> [ ] exit(0) = ?
+> ```
 
 ### Syscall calling convention
 
@@ -34,8 +39,6 @@ RETURN VALUE
 The Exit syscall does not return anything and takes one argument:
 
 1. `status`: Status of the process' exit. 0 - for success / OK, 1 - non success / error.
-
-Let's look at how everything would be set up.
 
 Let's move the required values in the relevant registers.
 
@@ -76,10 +79,24 @@ hacker@building-a-web-server~level1:~$ /challenge/run ./webserver1
 
 > In this challenge you will create a socket.
 
+> ```
+> ===== Expected: Parent Process =====
+> [ ] execve(<execve_args>) = 0
+> [ ] socket(AF_INET, SOCK_STREAM, IPPROTO_IP) = 3
+> [ ] exit(0) = ?
+> ```
+
 ### Socket syscall
 
 ```c
 int socket(int domain, int type, int protocol);
+```
+
+```
+socket() creates an endpoint for communication and returns a file
+       descriptor that refers to that endpoint.  The file descriptor
+       returned by a successful call will be the lowest-numbered file
+       descriptor not currently open for the process.
 ```
 
 ```
@@ -93,6 +110,8 @@ The Socket syscall returns a file descriptor and takes three arguments:
 1. `domain`: Specifies a communication domain; this selects the protocol family which will be used for communication.
 2. `type`: Specifies the communication semantics.
 3. `protocol`: Specifies a particular protocol to be used with the socket.
+
+Looking at the expected processes dump, we can see that the program expects `AF_INET` as domain, `SOCK_STREAM` as type, and `IPPROTO_IP` as protocol.
 
 In order to set up the Socket system call, we need to first find out the value of it's relevant arguments.
 
@@ -162,6 +181,15 @@ hacker@building-a-web-server~level2:~$ /challenge/run ./webserver2
 
 > In this challenge you will bind an address to a socket.
 
+> ```
+> ===== Expected: Parent Process =====
+> [ ] execve(<execve_args>) = 0
+> [ ] socket(AF_INET, SOCK_STREAM, IPPROTO_IP) = 3
+> [ ] bind(3, {sa_family=AF_INET, sin_port=htons(<bind_port>), sin_addr=inet_addr("<bind_address>")}, 16) = 0
+>     - Bind to port 80
+>     - Bind to address 0.0.0.0
+> [ ] exit(0) = ?
+
 ### Bind syscall
 
 ```c
@@ -199,8 +227,8 @@ We can move this value in the `rdi` register. Doing so, we do not have to specif
 mov rdi, 3
 ```
 
-#### `sockaddr` argument
-Next, for the `sockaddr` argument, we need to create a `struct` and create a pointer to that `struct`.
+#### `*addr` argument
+Next, for the `*addr` argument, we need to create a `struct` and create a pointer to that `struct`.
 
 If we check the Expected processes, we get more information.
 
