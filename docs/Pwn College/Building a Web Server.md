@@ -249,7 +249,7 @@ If we check the Expected processes, we get more information.
 [ ] exit(0) = ?
 ```
 
-In the `bind` syscall, `{sa_family=AF_INET, sin_port=htons(<bind_port>), sin_addr=inet_addr("<bind_address>")}` is the struct required for `*addr`.
+In the Bind syscall, `{sa_family=AF_INET, sin_port=htons(<bind_port>), sin_addr=inet_addr("<bind_address>")}` is the struct required for `*addr`.
 
 In order to create the struct, we need to use the `.data` section.
 
@@ -373,7 +373,7 @@ The file descriptor is `3`.
 
 We already saw that the file descriptor of the any syscall is returned in the `$rax` register. So the resultant file descriptor of Socket stored in `$rax` is being overwritten by the result of the Bind syscall.
 
-In order to preserve it, we can push the value of `$rax` onto the stack before making the Bind syscall and then pop it into `$rdi` to set up the first argument of the `listen` syscall.
+In order to preserve it, we can push the value of `$rax` onto the stack before making the Bind syscall and then pop it into `$rdi` to set up the first argument of the Listen syscall.
 
 ```
 # Socket syscall
