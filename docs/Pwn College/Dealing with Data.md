@@ -33,8 +33,6 @@ pwn.college{E0dk8pfSQBwE13ZE790cjercb0t.QXwUjN0EDL4ITM0EzW}
 In this level, we have to have to pass the input without using Newline, so we cannot use `Enter`.
 There are a few ways of working around this.
 
-### `CTRL` + `D`
-
 ```
 hacker@data-dealings~newline-troubles:/$ /challenge/runme 
 Enter the password:
@@ -43,8 +41,6 @@ Congrats! Here is your flag:
 pwn.college{83Yfzwc1-_dx46U81fdAkHxh-s4.QXxUjN0EDL4ITM0EzW}
 ```
 
-### `echo`
-
 ```
 hacker@data-dealings~newline-troubles:/$ echo -n "bzvrlubu" | /challenge/runme 
 Enter the password:
@@ -52,8 +48,6 @@ Read 8 bytes.
 Congrats! Here is your flag:
 pwn.college{83Yfzwc1-_dx46U81fdAkHxh-s4.QXxUjN0EDL4ITM0EzW}
 ```
-
-### File without newline
 
 ```
 hacker@data-dealings~newline-troubles:/$ echo -n "bzvrlubu" > ~/no-newline
@@ -246,5 +240,17 @@ else:
 ```
 
 ```
+hacker@data-dealings~decoding-hex:/$ echo -e -n "\x83\xa3\xc7\xdd\xdb\xee\xeb\xc2" | /challenge/runme
+Enter the password:
+Read 8 bytes.
+Congrats! Here is your flag:
+pwn.college{AT4B5MENT3pNgGM4OjIqiXu3M2T.QX2UjN0EDL4ITM0EzW} 
+```
 
+```
+hacker@data-dealings~decoding-hex:/$ python3 -c 'import sys; sys.stdout.buffer.write(bytes.fromhex("83a3c7dddbeeebc2"))' | /challenge/runme
+Enter the password:
+Read 8 bytes.
+Congrats! Here is your flag:
+pwn.college{AT4B5MENT3pNgGM4OjIqiXu3M2T.QX2UjN0EDL4ITM0EzW}
 ```
