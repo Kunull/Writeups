@@ -10,7 +10,7 @@ It will be used in every level in this module.
 
 ## level 1
 
-> In this challenge you will exit a program.
+> Your first task is to create the simplest possible program—one that immediately terminates when run. In this challenge, you will use the exit syscall, which is responsible for ending a process and returning an exit status to the operating system. This syscall takes a single argument: the exit status (with 0 typically indicating success). Understanding how to cleanly exit a program is crucial because it ensures your process communicates its completion state properly.
 
 > ```
 > ===== Expected: Parent Process =====[ ] execve(<execve_args>) = 0
@@ -77,7 +77,7 @@ hacker@building-a-web-server~level1:~$ /challenge/run ./webserver1
 
 ## level 2
 
-> In this challenge you will create a socket.
+> In this challenge, you’ll begin your journey into networking by creating a socket using the socket syscall. A socket is the basic building block for network communication; it serves as an endpoint for sending and receiving data. When you invoke socket, you provide three key arguments: the domain (for example, AF_INET for IPv4), the type (such as SOCK_STREAM for TCP), and the protocol (usually set to 0 to choose the default). Mastering this syscall is important because it lays the foundation for all subsequent network interactions.
 
 > ```
 > ===== Expected: Parent Process =====
@@ -179,7 +179,7 @@ hacker@building-a-web-server~level2:~$ /challenge/run ./webserver2
 
 ## level 3
 
-> In this challenge you will bind an address to a socket.
+> After creating a socket, the next step is to assign it a network identity. In this challenge, you will use the bind syscall to connect your socket to a specific IP address and port number. The call requires you to provide the socket file descriptor, a pointer to a struct sockaddr (specifically a struct sockaddr_in for IPv4 that holds fields like the address family, port, and IP address), and the size of that structure. Binding is essential because it ensures your server listens on a known address, making it reachable by clients.
 
 > ```
 > ===== Expected: Parent Process =====
