@@ -54,9 +54,21 @@ for _ in range(1):
         print(f"- { { k:row[k] for k in row.keys() } }")
 ```
 
+```
+hacker@sql-playground~sql-queries:/$ /challenge/sql 
+sql> 
+```
+
 ```sql
 hacker@sql-playground~sql-queries:/$ /challenge/sql 
 sql> SELECT record FROM assets
 Got 1 rows.
 - {'record': 'pwn.college{kxLLA-DqLK9Jq6rJWbhdotacK9J.QX5kzN0EDL4ITM0EzW}'}
 ```
+
+&nbsp;
+
+## level 2
+
+```python title="/challenge/sql"
+
