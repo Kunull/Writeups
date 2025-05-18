@@ -303,3 +303,85 @@ Read 8 bytes.
 Congrats! Here is your flag:
 pwn.college{I3JkNU8KLUR7UzAFIiARrACAUm0.QX3UjN0EDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## level 10
+
+```python title="/challenge/runme"
+#!/usr/bin/exec-suid -- /bin/python3 -I
+
+import sys
+
+
+def decode_from_bits(s):
+    s = s.decode("latin1")
+    assert set(s) <= {"0", "1"}, "non-binary characters found in bitstream!"
+    assert len(s) % 8 == 0, "must enter data in complete bytes (each byte is 8 bits)"
+    return int.to_bytes(int(s, 2), length=len(s) // 8, byteorder="big")
+
+
+print("Enter the password:")
+entered_password = sys.stdin.buffer.read1()
+correct_password = b"\x86\xe2\x85\xfd\x9c\xe1\xbb\xb9"
+
+print(f"Read {len(entered_password)} bytes.")
+
+
+entered_password = decode_from_bits(entered_password)
+
+
+if entered_password == correct_password:
+    print("Congrats! Here is your flag:")
+    print(open("/flag").read().strip())
+else:
+    print("Incorrect!")
+    sys.exit(1)
+```
+
+```python
+>>> correct_password = b"\x86\xe2\x85\xfd\x9c\xe1\xbb\xb9"
+>>> binary = ''.join(f"{byte:08b}" for byte in correct_password)
+>>> print(binary)
+1000011011100010100001011111110110011100111000011011101110111001
+```
+
+```
+hacker@data-dealings~encoding-practice:/$ printf "1000011011100010100001011111110110011100111000011011101110111001" | /challenge/runme 
+Enter the password:
+Read 64 bytes.
+Congrats! Here is your flag:
+pwn.college{kIMSZVE154Tz6GXwjt7y2mlL7o5.QX4UjN0EDL4ITM0EzW}
+```
+
+&nbsp;
+
+## level 11
+
+```python title="/challenge/runme"
+#!/usr/bin/exec-suid -- /bin/python3 -I
+
+import sys
+
+
+print("Enter the password:")
+entered_password = sys.stdin.buffer.read1()
+correct_password = b"zruejoef"
+
+print(f"Read {len(entered_password)} bytes.")
+
+
+entered_password = bytes.fromhex(entered_password.decode("l1"))
+
+
+if entered_password == correct_password:
+    print("Congrats! Here is your flag:")
+    print(open("/flag").read().strip())
+else:
+    print("Incorrect!")
+    sys.exit(1)
+```
+
+```
+echo -e -n "\xzr\xue\xjo\xef" | /challenge/runme
+```
