@@ -626,3 +626,246 @@ sql> SELECT SUBSTR(value, 57, 4) FROM archive WHERE SUBSTR(value, 1, 3) = "pwn"
 Got 1 rows.
 - {'SUBSTR(value, 57, 4)': 'zW}'}
 ```
+
+&nbsp;
+
+## level 8
+
+```python title="/challenge/sql"
+#!/opt/pwn.college/python
+
+import sys
+import string
+import random
+import sqlite3
+import tempfile
+
+
+# Don't panic about the TemporaryDB class. It simply implements a temporary database
+# in which this application can store data. You don't need to understand its internals,
+# just that it processes SQL queries using db.execute().
+class TemporaryDB:
+    def __init__(self):
+        self.db_file = tempfile.NamedTemporaryFile("x", suffix=".db")
+
+    def execute(self, sql, parameters=()):
+        connection = sqlite3.connect(self.db_file.name)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        result = cursor.execute(sql, parameters)
+        connection.commit()
+        return result
+
+
+db = TemporaryDB()
+
+
+def random_word(length):
+    return "".join(random.sample(string.ascii_letters * 10, length))
+
+
+flag = open("/flag").read().strip()
+
+# https://www.sqlite.org/lang_createtable.html
+db.execute("""CREATE TABLE logs AS SELECT 1 as flag_tag, ? as field""", [random_word(len(flag))])
+# https://www.sqlite.org/lang_insert.html
+for i in range(random.randrange(5, 42)):
+    db.execute("""INSERT INTO logs VALUES(1, ?)""", [random_word(len(flag))])
+db.execute("""INSERT INTO logs VALUES(?, ?)""", [1337, flag])
+
+for i in range(random.randrange(5, 21)):
+    db.execute("""INSERT INTO logs VALUES(1337, ?)""", [random_word(len(flag))])
+for i in range(random.randrange(5, 21)):
+    db.execute(
+        """INSERT INTO logs VALUES(1, ?)""", ["pwn.college{" + random_word(len(flag) - len("pwn.college{}")) + "}"]
+    )
+
+for i in range(random.randrange(5, 42)):
+    db.execute("""INSERT INTO logs VALUES(1, ?)""", [random_word(len(flag))])
+
+# HINT: https://www.geeksforgeeks.org/sql-and-and-or-operators/
+for _ in range(1):
+    query = input("sql> ")
+
+    try:
+        results = db.execute(query).fetchall()
+    except sqlite3.Error as e:
+        print("SQL ERROR:", e)
+        sys.exit(1)
+
+    if len(results) == 0:
+        print("No results returned!")
+        sys.exit(0)
+
+    if len(results) > 1:
+        print("You're not allowed to read this many rows!")
+        sys.exit(1)
+    if len(results[0].keys()) > 1:
+        print("You're not allowed to read this many columns!")
+        sys.exit(1)
+    print(f"Got {len(results)} rows.")
+    for row in results:
+        print(f"- { { k:row[k] for k in row.keys() } }")
+```
+
+```sql
+sql> SELECT field FROM logs WHERE SUBSTR(field, 1, 3) = "pwn" AND flag_tag = 1337
+Got 1 rows.
+- {'field': 'pwn.college{QXLaokhF4hnbk8Vy3rzJYkvEAt-.QX2ADO0EDL4ITM0EzW}'}
+```
+
+&nbsp;
+
+## level 9
+
+```python title="/challenge/sql"
+#!/opt/pwn.college/python
+
+import sys
+import string
+import random
+import sqlite3
+import tempfile
+
+
+# Don't panic about the TemporaryDB class. It simply implements a temporary database
+# in which this application can store data. You don't need to understand its internals,
+# just that it processes SQL queries using db.execute().
+class TemporaryDB:
+    def __init__(self):
+        self.db_file = tempfile.NamedTemporaryFile("x", suffix=".db")
+
+    def execute(self, sql, parameters=()):
+        connection = sqlite3.connect(self.db_file.name)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        result = cursor.execute(sql, parameters)
+        connection.commit()
+        return result
+
+
+db = TemporaryDB()
+
+
+def random_word(length):
+    return "".join(random.sample(string.ascii_letters * 10, length))
+
+
+flag = open("/flag").read().strip()
+
+# https://www.sqlite.org/lang_createtable.html
+db.execute("""CREATE TABLE repository AS SELECT ? as content""", [random_word(len(flag))])
+# https://www.sqlite.org/lang_insert.html
+for i in range(random.randrange(5, 42)):
+    db.execute("""INSERT INTO repository VALUES(?)""", [random_word(len(flag))])
+db.execute("""INSERT INTO repository VALUES(?)""", [flag])
+
+for i in range(random.randrange(5, 21)):
+    db.execute("""INSERT INTO repository VALUES(?)""", [random_word(len(flag))])
+for i in range(random.randrange(5, 21)):
+    db.execute(
+        """INSERT INTO repository VALUES(?)""", ["pwn.college{" + random_word(len(flag) - len("pwn.college{}")) + "}"]
+    )
+
+for i in range(random.randrange(5, 42)):
+    db.execute("""INSERT INTO repository VALUES(?)""", [random_word(len(flag))])
+
+# HINT: https://www.sqlite.org/lang_select.html#limitoffset
+for _ in range(1):
+    query = input("sql> ")
+
+    try:
+        results = db.execute(query).fetchall()
+    except sqlite3.Error as e:
+        print("SQL ERROR:", e)
+        sys.exit(1)
+
+    if len(results) == 0:
+        print("No results returned!")
+        sys.exit(0)
+
+    if len(results) > 1:
+        print("You're not allowed to read this many rows!")
+        sys.exit(1)
+    if len(results[0].keys()) > 1:
+        print("You're not allowed to read this many columns!")
+        sys.exit(1)
+    print(f"Got {len(results)} rows.")
+    for row in results:
+        print(f"- { { k:row[k] for k in row.keys() } }")
+```
+
+```sql
+sql> SELECT content FROM repository WHERE SUBSTR(content, 1, 3) = "pwn" LIMIT 1
+Got 1 rows.
+- {'content': 'pwn.college{QVj2iV7YM-xzyOqZXqnaIAS54Ze.QX3ADO0EDL4ITM0EzW}'}
+```
+
+&nbsp;
+
+## level 10
+
+```python title="/challenge/sql"
+#!/opt/pwn.college/python
+
+import sys
+import string
+import random
+import sqlite3
+import tempfile
+
+
+# Don't panic about the TemporaryDB class. It simply implements a temporary database
+# in which this application can store data. You don't need to understand its internals,
+# just that it processes SQL queries using db.execute().
+class TemporaryDB:
+    def __init__(self):
+        self.db_file = tempfile.NamedTemporaryFile("x", suffix=".db")
+
+    def execute(self, sql, parameters=()):
+        connection = sqlite3.connect(self.db_file.name)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        result = cursor.execute(sql, parameters)
+        connection.commit()
+        return result
+
+
+db = TemporaryDB()
+
+table_name = "".join(random.sample(string.ascii_letters, 8))
+db.execute(f"""CREATE TABLE {table_name} AS SELECT ? as solution""", [open("/flag").read().strip()])
+
+# HINT: https://www.sqlite.org/schematab.html
+for _ in range(2):
+    query = input("sql> ")
+
+    try:
+        results = db.execute(query).fetchall()
+    except sqlite3.Error as e:
+        print("SQL ERROR:", e)
+        sys.exit(1)
+
+    if len(results) == 0:
+        print("No results returned!")
+        sys.exit(0)
+
+    if len(results[0].keys()) > 1:
+        print("You're not allowed to read this many columns!")
+        sys.exit(1)
+    print(f"Got {len(results)} rows.")
+    for row in results:
+        print(f"- { { k:row[k] for k in row.keys() } }")
+```
+
+```sql
+sql> SELECT tbl_name FROM sqlite_master
+Got 1 rows.
+- {'tbl_name': 'pfKDXJgv'}
+```
+
+```sql
+sql> SELECT solution FROM pfKDXJgv
+Got 1 rows.
+- {'solution': 'pwn.college{8tkKZYkiGORpytDs-x7j362q7QH.QX4ADO0EDL4ITM0EzW}'}
+```
