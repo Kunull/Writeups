@@ -1,6 +1,5 @@
 ---
 custom_edit_url: null
-sidebar_position: 10
 ---
 
 ## level 1
