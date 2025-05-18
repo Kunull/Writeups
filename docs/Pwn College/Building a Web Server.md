@@ -1,6 +1,5 @@
 ---
 custom_edit_url: null
-sidebar_position: 6
 ---
 
 :::note
