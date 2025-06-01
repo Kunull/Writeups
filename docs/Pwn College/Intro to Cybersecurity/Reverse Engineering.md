@@ -204,7 +204,7 @@ Let's decompile it using [Binary Ninja Cloud](https://cloud.binary.ninja/).
 
 #### `main()`
 
-![image](https://github.com/user-attachments/assets/2a27245d-a489-474b-b7ab-8c4d44713e4a)
+![image](https://github.com/user-attachments/assets/566b6ae6-e0dc-4e4f-9cac-24950f07a701)
 
 The challenge performs the following checks:
 1. File ends with the `.cimg` extension.
