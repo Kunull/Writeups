@@ -528,11 +528,13 @@ The value of `rax` is `0x0`, and we are not allowed to access that memory locati
 ```
 (gdb) disassemble win
 
--- snip --;
+# --- snip ----
+
    0x0000564b61ea295d <+12>:    mov    QWORD PTR [rbp-0x8],0x0
    0x0000564b61ea2965 <+20>:    mov    rax,QWORD PTR [rbp-0x8]
 => 0x0000564b61ea2969 <+24>:    mov    eax,DWORD PTR [rax]
--- snip --;
+
+# --- snip ---
 ```
 
 On disassembling `win`, we can see that `0x0` is being stored on the stack, and being moved to `rax`.
@@ -548,12 +550,14 @@ Let's disassemble `win`.
 ```
 (gdb) disassemble win
 
----snip---;
+# --- snip ---
+
    0x0000556ccb267980 <+47>:    mov    esi,0x0
    0x0000556ccb267985 <+52>:    lea    rdi,[rip+0x749]        # 0x556ccb2680d5
    0x0000556ccb26798c <+59>:    mov    eax,0x0
    0x0000556ccb267991 <+64>:    call   0x556ccb267240 <open@plt>
----snip---;
+
+# --- snip ---
 ```
 
 This time we have stopped execution before the code-breaking instructions.
