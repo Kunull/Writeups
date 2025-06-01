@@ -42,9 +42,9 @@ if __name__ == "__main__":
         sys.exit(-1)
 ```
 
-The challenge checks if the input file:
-1. Ends with the `.cimg` extension.
-2. Has the magic number `CMge`.
+The challenge performs the following checks:
+1. File ends with the `.cimg` extension.
+2. File has the magic number `CMge`.
 
 ```
 hacker@reverse-engineering~file-formats-magic-numbers-python:/$ echo "CMge" > ~/solution.cimg
@@ -174,15 +174,47 @@ int main(int argc, char **argv, char **envp)
 }
 ```
 
-The challenge checks if the input file:
-1. Ends with the `.cimg` extension.
-2. Has the magic number `cn~R`.
+The challenge performs the following checks:
+1. File ends with the `.cimg` extension.
+2. File has the magic number `cn~R`.
 
 ```
-hacker@reverse-engineering~file-formats-magic-numbers-python:/$ echo "cn~R" > ~/solution.cimg
+hacker@reverse-engineering~file-formats-magic-numbers-c:/$ echo "cn~R" > ~/solution.cimg
 ```
 
 ```
-hacker@reverse-engineering~file-formats-magic-numbers-python:/$ /challenge/cimg ~/solution.cimg 
-pwn.college{gnCrQDFokTc18WCgwd5eHW6GcYc.QX1ATN2EDL4ITM0EzW}
+hacker@reverse-engineering~file-formats-magic-numbers-c:/$ /challenge/cimg ~/solution.cimg 
+pwn.college{IxtdOuGoBMdBfHrqJNAjzZ96L1h.QX2ATN2EDL4ITM0EzW}
+```
+
+&nbsp;
+
+## File Formats: magic Numbers (x86)
+
+```
+hacker@reverse-engineering~file-formats-magic-numbers-x86:/$ file /challenge/cimg 
+/challenge/cimg: setuid ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=47edd63950d3f7b9b5c95bf4c93080ff12b75711, for GNU/Linux 3.2.0, not stripped
+```
+
+This time the code is a binary executable in little endian format.
+
+### Decompilation
+
+Let's decompile it using [Binary Ninja Cloud](https://cloud.binary.ninja/).
+
+#### `main()`
+
+![image](https://github.com/user-attachments/assets/3088f4cf-7cac-47dd-bf18-e7f184f537e5)
+
+The challenge performs the following checks:
+1. File ends with the `.cimg` extension.
+2. File has the magic number `0x287e6d36` which is `(~m6` in ASCII.
+
+```
+hacker@reverse-engineering~file-formats-magic-numbers-x86:/$ echo "(~m6" > ~/solution.cimg
+```
+
+```
+hacker@reverse-engineering~file-formats-magic-numbers-x86:/$ /challenge/cimg ~/solution.cimg 
+pwn.college{U45kfQ4KNJIp6KwDH0lQRHdpFeL.QXwAzMwEDL4ITM0EzW}
 ```
