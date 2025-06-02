@@ -6,6 +6,7 @@ sidebar_position: 3
 > Nana told me that buffer overflow is one of the most common software vulnerability.\c
 > Is that true?
 
+## File properties
 
 Let's check the file's properties.
 
@@ -13,6 +14,8 @@ Let's check the file's properties.
 bof@ubuntu:~$ file ./bof
 ./bof: ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, BuildID[sha1]=1cabd158f67491e9edb3df0219ac3a4ef165dc76, for GNU/Linux 3.2.0, not stripped
 ```
+
+We can see that it is a little-endian 32-bit ELF executable.
 
 There is a readme as well, let's check it out.
 
@@ -24,7 +27,7 @@ bof binary is running at "nc 0 9000" under bof_pwn privilege. get shell and read
 Ok, so we have to exploit the challenge which is listening on `nc 0 9000`, not the local binary.
 [I definitely did not waste a lot of time doing the latter.](https://en.wikipedia.org/wiki/Sarcasm)
 
-We can see that it is a little-endian 32-bit ELF executable.
+## Source code
 
 ```c title="bof.c"
 #include <stdio.h>
