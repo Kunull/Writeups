@@ -56,7 +56,7 @@ If the `key` is equal to `0xcafebabe`, we gat a shell. However the `key` is set 
 
 Basically we have to overflow the `overflowme` buffer and overwrite the `key` variable.
 
-### `gets()`
+### [`gets()`](https://man7.org/linux/man-pages/man3/gets.3.html)
 
 The program uses `get()` which is deprecated and vulnerable because it does not take into account the length of the input.
 
