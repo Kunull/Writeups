@@ -13,7 +13,7 @@ sidebar_position: 2
 Let's check the nature of our challenge file.
 
 ```
-col@ubuntu:~$ file col
+col@ubuntu:~$ file ./col
 col: setgid ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, BuildID[sha1]=48d83f055c56d12dc4762db539bf8840e5b4f6cc, for GNU/Linux 3.2.0, not stripped
 ```
 
