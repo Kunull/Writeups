@@ -239,7 +239,7 @@ cat ./flag
 Daddy_I_just_pwned_a_buff3r!
 ```
 
-#### Stuff I was trying unnecessarily
+### Stuff I was trying unnecessarily
 
 > I am leaving this here, as a reminder to myself and as a note to others.
 
