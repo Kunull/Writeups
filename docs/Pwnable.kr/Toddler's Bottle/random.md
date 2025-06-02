@@ -102,9 +102,6 @@ End of assembler dump.
 ```
 
 ```python
-random@ubuntu:~$ python
-Python 3.10.12 (main, Feb  4 2025, 14:57:36) [GCC 11.4.0] on linux
-Type "help", "copyright", "credits" or "license" for more information.
 >>> a = 0x6b8b4567
 >>> b = 0xcafebabe
 >>> result = a ^ b
