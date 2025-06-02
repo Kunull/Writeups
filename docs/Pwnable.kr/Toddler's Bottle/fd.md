@@ -10,6 +10,15 @@ sidebar_position: 1
 >
 > ssh fd@pwnable.kr -p2222 (pw:guest)
 
+## File properties
+
+```
+fd@ubuntu:~$ file ./fd
+fd: setgid ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, BuildID[sha1]=156ca9c174df927ecd7833a27d18d0dd5e413656, for GNU/Linux 3.2.0, not stripped
+```
+
+## Source code
+
 ```c title="fd.c"
 #include <stdio.h>
 #include <stdlib.h>
