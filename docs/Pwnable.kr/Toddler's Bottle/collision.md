@@ -8,6 +8,8 @@ sidebar_position: 2
 >
 > ssh col@pwnable.kr -p2222 (pw:guest)
 
+## File properties
+
 Let's check the nature of our challenge file.
 
 ```
@@ -16,6 +18,8 @@ col: setgid ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynami
 ```
 
 We can see that it is a little-endian 32-bit ELF executable.
+
+## Source code
 
 ```c title="col.c"
 #include <stdio.h>
