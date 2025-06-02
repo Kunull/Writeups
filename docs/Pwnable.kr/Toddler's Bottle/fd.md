@@ -85,7 +85,7 @@ It then reads 32 bytes from the file descriptor `fd` into the buffer buf.
 
 If the string that is read is "LETMEWIN", it cats out the flag.
 
-Knowing all this, we have to provide the second argument such that when subtracted by `0x1234` the answer is `0` (0 is the file descriptor for STDIN).
+Knowing all this, we have to provide the second argument such that when subtracted by `0x1234` the answer is `0`, which is the file descriptor for STDIN.
 That way, the program will read from STDIN, and we can provide the string "LETMEWIN".
 
 `0x1234` in decimal is `4660`.
