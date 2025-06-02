@@ -52,12 +52,29 @@ int main(int argc, char* argv[]){
 ```
 
 So the challenge uses `gets()` to read user input into the `overflowme` buffer, which is 32 bytes long.
-
 If the `key` is equal to `0xcafebabe`, we gat a shell. However the `key` is set to `0xdeadbeef` while calling the `func()` function.
 
 Basically we have to overflow the `overflowme` buffer and overwrite the `key` variable.
 
-### Disassembly
+### `gets()`
+
+The program uses `get()` which is deprecated and vulnerable because it does not take into account the length of the input.
+
+```c
+[[deprecated]] char *gets(char *s);
+```
+
+```
+DESCRIPTION         
+       Never use this function.
+
+       gets() reads a line from stdin into the buffer pointed to by s
+       until either a terminating newline or EOF, which it replaces with
+       a null byte ('\0').  No check for buffer overrun is performed (see
+       BUGS below).
+```
+
+## Disassembly
 
 Let's disassemble the `main()` function within GDB.
 
@@ -180,7 +197,7 @@ Finding cyclic pattern of 4 bytes: b'laaa' (hex: 0x6c616161)
 Found at offset 44
 ```
 
-### Stack
+## Stack
 
 ```
 <==: Value is stored at the address
