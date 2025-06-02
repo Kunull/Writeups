@@ -198,16 +198,19 @@ So the offset is 32 bytes.
 
 Let's see how this looks on the stack.
 ```
-+---------------------------+ 
-|  61 61 61 61 61 61 61 61  | <====== buffer (32 bytes) <------ rsp
-|  62 61 61 61 61 61 61 61  | 
-|  63 61 61 61 61 61 61 61  |
-|  64 61 61 61 61 61 61 61  |
-+---------------------------+
-|  65 61 61 61 61 61 61 61  | <====== stored rbp <------ rbp
-+---------------------------+
-|  66 61 61 61 61 61 61 61  | <====== return address
-+---------------------------+
+<==: Value is stored at the address
+<--: Points to the address
+
+                              +---------------------------+ 
+rsp --> buffer (32 bytes) ==> |  61 61 61 61 61 61 61 61  | 
+                              |  62 61 61 61 61 61 61 61  | 
+                              |  63 61 61 61 61 61 61 61  |
+                              |  64 61 61 61 61 61 61 61  |
+                              +---------------------------+
+       rbp --> stored rbp ==> |  65 61 61 61 61 61 61 61  | 
+                              +---------------------------+
+           return address ==> |  66 61 61 61 61 61 61 61  |
+                              +---------------------------+
 ```
 We can see that if we increment the `rbp` by 8, it will point to the saved return address.
 
@@ -322,25 +325,25 @@ So the offset is 40 bytes.
 Let's see how this looks on the stack.
 
 ```
-<==: Value is stored at that location
+<==: Value is stored at the address
 <--: Points to the address
 
-+---------------+ 
-|  61 61 61 61  | <== buffer (32 bytes) <-- esp
-|  62 61 61 61  | 
-|  63 61 61 61  |
-|  64 61 61 61  |
-|  65 61 61 61  |
-|  66 61 61 61  |
-|  67 61 61 61  |
-|  68 61 61 61  |
-|  69 61 61 61  |
-|  6A 61 61 61  |
-+---------------+
-|  6B 61 61 61  | <== stored ebp <-- ebp
-+---------------+
-|  6C 61 61 61  | <== return address
-+---------------+
+                               +---------------+ 
+esp --> buffer (32 bytes) ==>  |  61 61 61 61  |
+                               |  62 61 61 61  | 
+                               |  63 61 61 61  |
+                               |  64 61 61 61  |
+                               |  65 61 61 61  |
+                               |  66 61 61 61  |
+                               |  67 61 61 61  |
+                               |  68 61 61 61  |
+                               |  69 61 61 61  |
+                               |  6A 61 61 61  |
+                               +---------------+
+        ebp --> stored ebp ==> |  6B 61 61 61  | 
+                               +---------------+
+            return address ==> |  6C 61 61 61  | <== return address
+                               +---------------+
 ```
 
 We can see that if we increment the `ebp` by 4, it will point to the saved return address.
