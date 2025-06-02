@@ -188,9 +188,6 @@ Input:
 Let's use Python to calculate our input.
 
 ```python
-col@ubuntu:~$ python
-Python 3.10.12 (main, Feb  4 2025, 14:57:36) [GCC 11.4.0] on linux
-Type "help", "copyright", "credits" or "license" for more information.
 >>> target = 0xEC09DD21
 >>> value = 0x01010101
 >>> x = target - (4 * value)
