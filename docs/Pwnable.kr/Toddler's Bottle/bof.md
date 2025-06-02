@@ -21,7 +21,7 @@ bof@ubuntu:~$ cat readme
 bof binary is running at "nc 0 9000" under bof_pwn privilege. get shell and read flag
 ```
 
-Ok, so we have to exploit the challenge is running at `nc 0 9000`, not locally.
+Ok, so we have to exploit the challenge which is listening on `nc 0 9000`, not the local binary.
 [I definitely did not waste a lot of time doing the latter.](https://en.wikipedia.org/wiki/Sarcasm)
 
 We can see that it is a little-endian 32-bit ELF executable.
