@@ -37,7 +37,7 @@ We can use the `mov` instruction in order to store a value in a register.
 ### `mov` instruction
 
 ```assembly
-mov destination, sourcew
+mov destination, source
 ```
 
 The first operand is the location where data is stored, while the second operand is the source of the data.
