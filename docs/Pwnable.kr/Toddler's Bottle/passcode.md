@@ -79,7 +79,7 @@ Ideally, user input should be stored at the address which points to `passcode1`,
 
 Note at this applies for `passcode2` as well.
 
-```title="Incorrect representation
+```title="❌ ❎ Incorrect representation"
 int passcode1, passcode2;
 scanf("%d", passcode1);  // WRONG: passing uninitialized value
 
@@ -93,7 +93,7 @@ scanf("%d", passcode1);  // WRONG: passing uninitialized value
 
 ```
 
-```title="Correct representation
+```title="✅ ✔️ Correct representation"
 int passcode1, passcode2;
 scanf("%d", &passcode1);  // ✅ CORRECT: passing address
 
