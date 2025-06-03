@@ -78,9 +78,7 @@ The implementation of `scanf()` in the challenge is incorrect.
 
 In this case, it is treating the value inside of `passcode1` as a memory address and storing user input at that address.
 
-#### Incorrect usage
-
-```
+```text title="Incorrect usage"
 int passcode1, passcode2;
 scanf("%d", passcode1);  
 
@@ -95,9 +93,7 @@ scanf("%d", passcode1);
 
 Ideally, user input should be stored at the address which points to `passcode1`, 
 
-#### Correct usage
-
-```
+```text title="Correct usage"
 int passcode1, passcode2;
 scanf("%d", &passcode1); 
 
