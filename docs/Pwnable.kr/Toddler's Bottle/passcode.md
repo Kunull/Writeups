@@ -84,11 +84,11 @@ In this case, it is treating the value inside of `passcode1` as a memory address
 int passcode1, passcode2;
 scanf("%d", passcode1);  
 
-+---------------------+
-|     0xdeadbeef      |  ← passcode2 at 0xffffd1ac (garbage)
-+---------------------+
-|     0xcafebabe      |  ← passcode1 at 0xffffd1b0 (garbage)
-+---------------------+
+┌─────────────────────┐ 
+│     0xdeadbeef      │  ← passcode2 at 0xffffd1ac (garbage)
+├─────────────────────┤
+│     0xcafebabe      │  ← passcode1 at 0xffffd1b0 (garbage)
+└─────────────────────┘
 
 // scanf() tries to write to 0xcafebabe, which is the garbage value in passcode1
 ```
@@ -101,11 +101,11 @@ Ideally, user input should be stored at the address which points to `passcode1`,
 int passcode1, passcode2;
 scanf("%d", &passcode1); 
 
-+---------------------+
-|     0xdeadbeef      |  ← passcode2 at 0xffffd1ac (garbage)
-+---------------------+
-|     0xcafebabe      |  ← passcode1 at 0xffffd1b0 (garbage)
-+---------------------+
+┌─────────────────────┐  
+│     0xdeadbeef      │  ← passcode2 at 0xffffd1ac (garbage)
+├─────────────────────┤
+│     0xcafebabe      │  ← passcode1 at 0xffffd1b0 (garbage)
+└─────────────────────┘
 
 // scanf() writes to 0xffffd1b0, which is the valid address of passcode1
 ```
@@ -173,38 +173,38 @@ This means that the program is reusing th stack and that the last 4 bytes of `na
 <==: Value is stored at the address
 <--: Points to the address
 
-                       +---------------+
-                  *==> |  61 61 61 61  |
-                 /     |  62 61 61 61  | 
-                /      |  63 61 61 61  |
-               |       |  64 61 61 61  |
-               |       |  65 61 61 61  |
-               |       |  66 61 61 61  |
-               |       |  67 61 61 61  |
-               |       |  68 61 61 61  |
-               |       |  69 61 61 61  |
-               |       |  6A 61 61 61  |
-               |       |  6B 61 61 61  |
-               |       |  6C 61 61 61  | 
-        name ==|       |  6D 61 61 61  |
-               |       |  6E 61 61 61  |
-               |       |  6F 61 61 61  |
-               |       |  70 61 61 61  |
-               |       |  71 61 61 61  |
-               |       |  72 61 61 61  |
-               |       |  73 61 61 61  |
-               |       |  74 61 61 61  |
-               |       |  75 61 61 61  |
-               |       |  76 61 61 61  |
-                \      |  77 61 61 61  |
-                 \     |  78 61 61 61  |
-                  *==> |  79 61 61 61  | <== passcode1
-                       |  00 00 00 00  |
-                       |  00 00 00 00  |
-                       |  00 00 00 00  |
-                       +---------------+
-               ebp --> |  6C 61 61 61  | 
-                       +---------------+
+                       ┌───────────────┐   
+                  *==> │  61 61 61 61  │
+                 /     │  62 61 61 61  │
+                /      │  63 61 61 61  │
+               │       │  64 61 61 61  │
+               │       │  65 61 61 61  │
+               │       │  66 61 61 61  │
+               │       │  67 61 61 61  │
+               │       │  68 61 61 61  │
+               │       │  69 61 61 61  │
+               │       │  6A 61 61 61  │
+               │       │  6B 61 61 61  │
+               │       │  6C 61 61 61  │ 
+        name ==│       │  6D 61 61 61  │
+               │       │  6E 61 61 61  │
+               │       │  6F 61 61 61  │
+               │       │  70 61 61 61  │
+               │       │  71 61 61 61  │
+               │       │  72 61 61 61  │
+               │       │  73 61 61 61  │
+               │       │  74 61 61 61  │
+               │       │  75 61 61 61  │
+               │       │  76 61 61 61  │
+                \      │  77 61 61 61  │
+                 \     │  78 61 61 61  │
+                  *==> │  79 61 61 61  │ <== passcode1
+                       │  00 00 00 00  │
+                       │  00 00 00 00  │
+                       │  00 00 00 00  │
+                       ├───────────────┤
+               ebp --> │  6C 61 61 61  │ 
+                       └───────────────┘
 ```
 
 Let's verify.
