@@ -80,7 +80,7 @@ In this case, it is treating the value inside of `passcode1` as a memory address
 
 ```text title="Incorrect usage"
 int passcode1, passcode2;
-scanf("%d", passcode1);  // WRONG: passing uninitialized value
+scanf("%d", passcode1);  
 
 +---------------------+
 |     0xdeadbeef      |  ← passcode2 at 0xffffd1ac (garbage)
@@ -107,3 +107,53 @@ scanf("%d", &passcode1);
 ```
 
 Note at this applies for `passcode2` as well.
+
+## Disassembly
+
+We can even verify this by disassembling the challenge.
+
+```
+pwndbg> disassemble welcome
+Dump of assembler code for function welcome:
+
+# --- snip ---
+
+   0x08049324 <+50>:	lea    eax,[ebp-0x70]
+   0x08049327 <+53>:	push   eax
+   0x08049328 <+54>:	lea    eax,[ebx-0x1f8b]
+   0x0804932e <+60>:	push   eax
+   0x0804932f <+61>:	call   0x80490d0 <__isoc99_scanf@plt>
+
+# --- snip ----
+
+End of assembler dump
+```
+
+In `welcome()`, which has the correct usage of `scanf()`, the address of the buffer (`ebp-0x70`) is computed and pushed as the first argument. This allows `scanf()` to correctly write the input into that memory.
+
+```
+pwndbg> disassemble login
+Dump of assembler code for function login:
+
+# --- snip ---
+
+   0x0804921e <+40>:	push   DWORD PTR [ebp-0x10]
+   0x08049221 <+43>:	lea    eax,[ebx-0x1fe5]
+   0x08049227 <+49>:	push   eax
+   0x08049228 <+50>:	call   0x80490d0 <__isoc99_scanf@plt>
+
+# --- snip ----
+
+   0x08049259 <+99>:	push   DWORD PTR [ebp-0xc]
+   0x0804925c <+102>:	lea    eax,[ebx-0x1fe5]
+   0x08049262 <+108>:	push   eax
+   0x08049263 <+109>:	call   0x80490d0 <__isoc99_scanf@plt>
+
+# --- snip ---
+
+End of assembler dump
+```
+
+In `login()`, which has the incorrect usage of `scanf()`, the code pushes the value at `[ebp-0x10]` and `[ebp-0xc]`, that is, the contents of `passcode1` and `passcode2`, not their addresses.
+
+This results in `scanf()` treating those integer values as pointers and trying to write user input to those potentially invalid addresses, which can cause a segmentation fault or undefined behavior.
