@@ -205,6 +205,11 @@ This means that the program is reusing th stack and that the last 4 bytes of `na
                        ├───────────────┤
                ebp --> │  6C 61 61 61  │ 
                        └───────────────┘
+
+┆
+┊
+╎
+|
 ```
 
 Let's verify.
