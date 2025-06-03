@@ -225,7 +225,7 @@ ebp --> stored ebp ==> |  6C 61 61 61  |
                        +---------------+
 ```
 
-### Exploit requirements
+## Exploit requirements
 
 We have all the information we need to create an exploit.
 	- [x] Value of `key` to overwrite: `0xcafebabe`
@@ -257,7 +257,7 @@ cat ./flag
 Daddy_I_just_pwned_a_buff3r!
 ```
 
-### Stuff I was trying unnecessarily
+## Stuff I was trying unnecessarily
 
 > I am leaving this here, as a reminder to myself and as a note to others.
 
