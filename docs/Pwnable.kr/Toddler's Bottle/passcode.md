@@ -175,8 +175,8 @@ This means that the program is reusing th stack and that the last 4 bytes of `na
 
                        ┌───────────────┐   
                   *==> │  61 61 61 61  │
-                 /     │  62 61 61 61  │
-                /      │  63 61 61 61  │
+                 ╱     │  62 61 61 61  │
+                ╱      │  63 61 61 61  │
                *       │  64 61 61 61  │
                │       │  65 61 61 61  │
                │       │  66 61 61 61  │
@@ -186,7 +186,7 @@ This means that the program is reusing th stack and that the last 4 bytes of `na
                │       │  6A 61 61 61  │
                │       │  6B 61 61 61  │
                │       │  6C 61 61 61  │ 
-        name ==│       │  6D 61 61 61  │
+        name ==╡       │  6D 61 61 61  │
                │       │  6E 61 61 61  │
                │       │  6F 61 61 61  │
                │       │  70 61 61 61  │
@@ -196,8 +196,8 @@ This means that the program is reusing th stack and that the last 4 bytes of `na
                │       │  74 61 61 61  │
                │       │  75 61 61 61  │
                *       │  76 61 61 61  │
-                \      │  77 61 61 61  │
-                 \     │  78 61 61 61  │
+                ╲      │  77 61 61 61  │
+                 ╲     │  78 61 61 61  │
                   *==> │  79 61 61 61  │ <== passcode1
                        │  00 00 00 00  │
                        │  00 00 00 00  │
