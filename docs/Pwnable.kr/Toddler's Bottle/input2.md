@@ -16,7 +16,7 @@ This time we are dealing with a little-endian 64-bit ELF executable.
 
 ## Source code
 
-```c title-"input2.c"
+```c title="input2.c"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
