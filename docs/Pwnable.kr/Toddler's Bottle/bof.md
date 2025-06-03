@@ -81,9 +81,9 @@ Let's disassemble the `main()` function within GDB.
 ```
 pwndbg> disassemble main
 Dump of assembler code for function main:
-   0x0000129d <+0>:	  lea    ecx,[esp+0x4]
-   0x000012a1 <+4>:	  and    esp,0xfffffff0
-   0x000012a4 <+7>:	  push   DWORD PTR [ecx-0x4]
+   0x0000129d <+0>:     lea    ecx,[esp+0x4]
+   0x000012a1 <+4>:     and    esp,0xfffffff0
+   0x000012a4 <+7>:     push   DWORD PTR [ecx-0x4]
    0x000012a7 <+10>:	push   ebp
    0x000012a8 <+11>:	mov    ebp,esp
    0x000012aa <+13>:	push   ecx
