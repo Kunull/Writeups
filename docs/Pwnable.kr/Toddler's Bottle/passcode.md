@@ -35,7 +35,7 @@ void login(){
     printf("checking...\n");
     if(passcode1==123456 && passcode2==13371337){
         printf("Login OK!\n");
-    setregid(getegid(), getegid());
+        setregid(getegid(), getegid());
         system("/bin/cat flag");
     }
     else{
@@ -260,4 +260,12 @@ pwndbg> x/wx $ebp-0x10
 ```
 
 We can see that is the same word `yaaa`. This proves that we have overwritten the value of `passcode1`.
+So, we can overwrite the location at which `scanf()` will read our input for the 1st passcode. This is because of the [incorrect usage](#incorrect-usage) of `scanf()`.
 
+This opens up and exploit path for us.
+If we look at the code, we can see that it calls `system()` in order to `cat` out the flag.
+We need to somehow execute this code.
+
+```
+
+```
