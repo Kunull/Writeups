@@ -110,7 +110,7 @@ Note at this applies for `passcode2` as well.
 
 ## Disassembly
 
-We can even verify this by disassembling the challenge.
+We can even see the difference in the disassembled code.
 
 ```
 pwndbg> disassemble welcome
