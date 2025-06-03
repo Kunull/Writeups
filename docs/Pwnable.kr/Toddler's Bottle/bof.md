@@ -189,6 +189,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
+If we observe teh registers, we can see that out of iyr cyclic pattern the string `laaa` ended up overwriting the value pointed to by `$ebp`, which is the stored `$ebp`.
 Let's calculate the offset of `laaa`.
 
 ```
