@@ -62,3 +62,46 @@ int main(){
     return 0;
 }
 ```
+
+The chellenge has two functions:
+
+- `welcome()`:
+    - Sets a buffer `name` which is 100 bytes long.
+    - Reads 100 bytes of user input into the buffer.
+- `login()`:
+    - Initializes two variables `passcode1` and `passcode2` but does not assign them any value.
+    - Uses `scanf()` to read user input digits into the address pointed to by the value of `passcode1` and `passcode2`.
+ 
+### [`scanf()`](https://man7.org/linux/man-pages/man3/scanf.3.html)
+
+The implementation of `scanf()` in the challenge is incorrect.
+Ideally, user input should be stored at the address which points to `passcode1`, not the address which is in `passscode1`.
+
+Note at this applies for `passcode2` as well.
+
+```title="Incorrect representation
+int passcode1, passcode2;
+scanf("%d", passcode1);  // WRONG: passing uninitialized value
+
++---------------------+
+|     0xdeadbeef      |  ← passcode2 at 0xffffd1ac (garbage)
++---------------------+
+|     0xcafebabe      |  ← passcode1 at 0xffffd1b0 (garbage)
++---------------------+
+
+// scanf() tries to write to 0xcafebabe, which is the garbage value in passcode1
+
+```
+
+```title="Correct representation
+int passcode1, passcode2;
+scanf("%d", &passcode1);  // ✅ CORRECT: passing address
+
++---------------------+
+|     0xdeadbeef      |  ← passcode2 at 0xffffd1ac (garbage)
++---------------------+
+|     0xcafebabe      |  ← passcode1 at 0xffffd1b0 (garbage)
++---------------------+
+
+// scanf() writes to 0xffffd1b0, which is the valid address of passcode1
+```
