@@ -87,3 +87,4 @@ cmd1@ubuntu:~$ ./cmd1 "/usr/bin/cat fla*"
 PATH_environment?_Now_I_really_g3t_it,_mommy!
 ```
 
+There are a TON of other way to solve this challenge.
