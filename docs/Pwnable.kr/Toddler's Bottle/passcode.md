@@ -76,6 +76,8 @@ The chellenge has two functions:
 
 The implementation of `scanf()` in the challenge is incorrect.
 
+#### Incorrect usage
+
 In this case, it is treating the value inside of `passcode1` as a memory address and storing user input at that address.
 
 ```text title="Incorrect usage"
@@ -90,6 +92,8 @@ scanf("%d", passcode1);
 
 // scanf() tries to write to 0xcafebabe, which is the garbage value in passcode1
 ```
+
+#### Correct usage
 
 Ideally, user input should be stored at the address which points to `passcode1`, 
 
