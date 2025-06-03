@@ -129,7 +129,7 @@ Dump of assembler code for function welcome:
 End of assembler dump
 ```
 
-In `welcome()`, which has the correct usage of `scanf()`, the address of the buffer (`ebp-0x70`) is computed and pushed as the first argument. This allows `scanf()` to correctly write the input into that memory.
+In `welcome()`, which has the correct usage of `scanf()`, the address `ebp-0x70` is pushed as the first argument. This allows `scanf()` to correctly write the input into that memory.
 
 ```
 pwndbg> disassemble login
@@ -154,6 +154,6 @@ Dump of assembler code for function login:
 End of assembler dump
 ```
 
-In `login()`, which has the incorrect usage of `scanf()`, the code pushes the value at `[ebp-0x10]` and `[ebp-0xc]`, that is, the contents of `passcode1` and `passcode2`, not their addresses.
+In `login()`, which has the incorrect usage of `scanf()`, the first argument is the value at address `ebp-0x10` for `passcode1` and the value address `ebp-0xc` for `passcode2` respectively, instead of their adresses.
 
 This results in `scanf()` treating those integer values as pointers and trying to write user input to those potentially invalid addresses, which can cause a segmentation fault or undefined behavior.
