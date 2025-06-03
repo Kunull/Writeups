@@ -78,7 +78,7 @@ The implementation of `scanf()` in the challenge is incorrect.
 
 In this case, it is treating the value inside of `passcode1` as a memory address and storing user input at that address.
 
-```title="Incorrect usage"
+```text title="Incorrect usage"
 int passcode1, passcode2;
 scanf("%d", passcode1);  // WRONG: passing uninitialized value
 
@@ -93,7 +93,7 @@ scanf("%d", passcode1);  // WRONG: passing uninitialized value
 
 Ideally, user input should be stored at the address which points to `passcode1`, 
 
-```title="Correct usage"
+```text title="Correct usage"
 int passcode1, passcode2;
 scanf("%d", &passcode1); 
 
