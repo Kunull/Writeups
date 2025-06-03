@@ -75,11 +75,10 @@ The chellenge has two functions:
 ### [`scanf()`](https://man7.org/linux/man-pages/man3/scanf.3.html)
 
 The implementation of `scanf()` in the challenge is incorrect.
-Ideally, user input should be stored at the address which points to `passcode1`, not the address which is in `passscode1`.
 
-Note at this applies for `passcode2` as well.
+In this case, it is treating the value inside of `passcode1` as a memory address and storing user input at that address.
 
-```title="❌ ❎ Incorrect representation"
+```title="Incorrect usage"
 int passcode1, passcode2;
 scanf("%d", passcode1);  // WRONG: passing uninitialized value
 
@@ -90,12 +89,13 @@ scanf("%d", passcode1);  // WRONG: passing uninitialized value
 +---------------------+
 
 // scanf() tries to write to 0xcafebabe, which is the garbage value in passcode1
-
 ```
 
-```title="✅ ✔️ Correct representation"
+Ideally, user input should be stored at the address which points to `passcode1`, 
+
+```title="Correct usage"
 int passcode1, passcode2;
-scanf("%d", &passcode1);  // ✅ CORRECT: passing address
+scanf("%d", &passcode1); 
 
 +---------------------+
 |     0xdeadbeef      |  ← passcode2 at 0xffffd1ac (garbage)
@@ -105,3 +105,5 @@ scanf("%d", &passcode1);  // ✅ CORRECT: passing address
 
 // scanf() writes to 0xffffd1b0, which is the valid address of passcode1
 ```
+
+Note at this applies for `passcode2` as well.
