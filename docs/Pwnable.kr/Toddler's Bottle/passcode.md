@@ -167,6 +167,8 @@ There is also something else we can observe in the disassembled code.
 The `name` buffer which is 100 bytes long, is initialized at address `ebp-0x70`, while `passcode1` is stored at `ebp-0x10`.
 This means that the program is reusing th stack and that the last 4 bytes of `name` overlap with `passcode`.
 
+## Stack
+
 ```
 <==: Value is stored at the address
 <--: Points to the address
@@ -203,8 +205,6 @@ This means that the program is reusing th stack and that the last 4 bytes of `na
                        +---------------+
                ebp --> |  6C 61 61 61  | 
                        +---------------+
-    
-
 ```
 
 Let's verify.
@@ -259,5 +259,5 @@ pwndbg> x/wx $ebp-0x10
 0xffd33f68:	0x61616179
 ```
 
-We can see that is the same word `yaaa`. This proves that we can overwrite the value of `passcode1`.
+We can see that is the same word `yaaa`. This proves that we have overwritten the value of `passcode1`.
 
