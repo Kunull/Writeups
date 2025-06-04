@@ -19,7 +19,7 @@ We can see that it is a little-endian 32-bit ELF executable.
 
 ## Source code
 
-```c title="col.c"
+```c title="col.c" showLineNumbers
 #include <stdio.h>
 #include <string.h>
 unsigned long hashcode = 0x21DD09EC;
