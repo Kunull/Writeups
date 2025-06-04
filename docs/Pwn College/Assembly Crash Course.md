@@ -739,7 +739,7 @@ mov [rsi], rax
 
 In order to solve this level we have understand the use offsets and little endian format.
 
-Let's say the address of `0x1337` is stored with `0x00000000deadbeef`.
+Let's say the address of `0x1337` is stored with `0xcafebabedeadbeef`.
 
 ```wasm
 [0x1337] = 0x00000000deadbeef
@@ -747,28 +747,28 @@ Let's say the address of `0x1337` is stored with `0x00000000deadbeef`.
 
 The address `0x1337` is in fact a byte address. i.e. it can only store one byte from our entire data.
 
-### Big endian
+### Endianness
+
+#### Big endian
 
 ```
-+--------+--------+--------+--------+--------+--------+--------+--------+
-| 0x1337 | 0x1338 | 0x1339 | 0x1340 | 0x1341 | 0x1342 | 0x1343 | 0x1344 |
-+--------+--------+--------+--------+--------+--------+--------+--------+
-|   00   |   00   |   00   |   00   |   de   |   ad   |   be   |   af   |
-+--------+--------+--------+--------+--------+--------+--------+--------+
+  0x1337   0x1338   0x1339   0x1340   0x1341   0x1342   0x1343   0x1344 
+┌────────┬────────┬────────┬────────┬────────┬────────┬────────┬────────┐
+│   ca   │   fe   │   ba   │   be   │   de   │   ad   │   be   │   af   │
+└────────┴────────┴────────┴────────┴────────┴────────┴────────┴────────┘
 ```
 
 The LSB is stored in the high memory address (`0x1344`) while the MSB is stored in the low memory address (`0x1337`).
 
 This is the format in which humans write numbers. Network traffic is also sent in big endian format.
 
-### Little endian
+#### Little endian
 
 ```
-+--------+--------+--------+--------+--------+--------+--------+--------+
-| 0x1337 | 0x1338 | 0x1339 | 0x1340 | 0x1341 | 0x1342 | 0x1343 | 0x1344 |
-+--------+--------+--------+--------+--------+--------+--------+--------+
-|   ef   |   be   |   ad   |   de   |   00   |   00   |   00   |   00   |
-+--------+--------+--------+--------+--------+--------+--------+--------+
+  0x1337   0x1338   0x1339   0x1340   0x1341   0x1342   0x1343   0x1344 
+┌────────┬────────┬────────┬────────┬────────┬────────┬────────┬────────┐
+│   ef   │   be   │   ad   │   de   │   be   │   ba   │   fe   │   ca   │
+└────────┴────────┴────────┴────────┴────────┴────────┴────────┴────────┘
 ```
 
 The LSB is stored in the low memory address (`0x1337`) while the MSB is stored in the high memory address (`0x1344`).
