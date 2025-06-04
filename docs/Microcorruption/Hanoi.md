@@ -3,8 +3,6 @@ custom_edit_url: null
 sidebar_position: 3
 ---
 
-![image](https://github.com/user-attachments/assets/f2cd32cd-5696-4db2-8cdd-141215e75ad2)
-
 ![image](https://github.com/user-attachments/assets/78b6bc11-a104-46ae-b754-f05aaa60226c)
 
 ## User Manual
@@ -157,3 +155,5 @@ Let's try that out. This time we will enter user input in hexadecimal.
 ![image](https://github.com/user-attachments/assets/7d0e8f48-17d4-4d33-931b-d31ddceb1dcf)
 
 ![image](https://github.com/user-attachments/assets/a6ae8415-07c8-41e3-ae2c-386a9ca7de03)
+
+![image](https://github.com/user-attachments/assets/f2cd32cd-5696-4db2-8cdd-141215e75ad2)
