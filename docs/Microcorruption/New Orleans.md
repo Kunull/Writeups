@@ -56,7 +56,7 @@ DETAILS
 
 We can set a breakpoint at `main`.
 
-```title="Debugger console"
+```text title="Debugger console"
 > break main
   Breakpoint set
 ```
@@ -83,7 +83,7 @@ The program calls the following functions:
 
 The `create_password` function seems interesting. Let's set a breakpoint there using and the continue execution flow.
 
-```title="Debugger console"
+```text title="Debugger console"
 > break create_password
   Breakpoint set
 > continue
@@ -98,7 +98,7 @@ It then treats `r15` as memory pointer and moves some characters which seem to b
 
 Let's set a breakpoint at `44b0` and continue the execution. 
 
-```title="Debugger console"
+```text title="Debugger console"
 > break 0x44b0
   Breakpoint set
 > continue
@@ -106,7 +106,7 @@ Let's set a breakpoint at `44b0` and continue the execution.
 
 Once we hit the breakpoint we can check the memory location using the `R 2400` command.
 
-```title="Debugger console"
+```text title="Debugger console"
 > R 0x2400
 2400 697a 3746 727a 2a00 0000 0000 0000 0000  iz7Frz*.........
 2410 0000 0000 0000 0000 0000 0000 0000 0000  ................
@@ -120,8 +120,7 @@ So the string that was read into memory was `iz7Frz*`.
 
 Let's continue to where we are prompted for the passsword.
 
-```
-title="Debugger console"
+```text title="Debugger console"
 > solve
 ```
 
