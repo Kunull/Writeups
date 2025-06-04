@@ -16,7 +16,7 @@ passcode@ubuntu:~$ file ./passcode
 
 ## Source code
 
-```c title="passcode.c"
+```c title="passcode.c" showLineNumbers
 #include <stdio.h>
 #include <stdlib.h>
 
