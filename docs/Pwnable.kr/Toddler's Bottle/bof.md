@@ -29,7 +29,7 @@ Ok, so we have to exploit the challenge which is listening on `nc 0 9000`, not t
 
 ## Source code
 
-```c title="bof.c"
+```c title="bof.c" showLineNumbers
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
