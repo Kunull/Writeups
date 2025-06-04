@@ -3,9 +3,6 @@ custom_edit_url: null
 sidebar_position: 2
 ---
 
-![image](https://github.com/user-attachments/assets/9b24aaac-4762-44a0-8a50-31808f4b2473)
-
-
 ![image](https://github.com/user-attachments/assets/df92d5bb-3a2a-4d6b-b874-603890c77ef1)
 
 ## User Manual
@@ -187,3 +184,5 @@ Therefore our input should actually be `gU%k>%>y`.
 ![image](https://github.com/user-attachments/assets/b05a1cf5-1afb-4032-b344-d5191ead7a14)
 
 ![image](https://github.com/user-attachments/assets/c51e9e1b-955e-4a24-80a3-1be1e1590869)
+
+![image](https://github.com/user-attachments/assets/9b24aaac-4762-44a0-8a50-31808f4b2473)
