@@ -491,7 +491,7 @@ Let's see how this looks on the stack.
                        ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
 ebp --> stored ebp ==> │  6B 61 61 61  │ 
                        ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤ 
-     return address==> │  6C 61 61 61  │ 
+    return address ==> │  6C 61 61 61  │ 
                        └───────────────┘
                        ╎  .. .. .. ..  ╎
 ```
