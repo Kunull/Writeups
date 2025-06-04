@@ -17,7 +17,7 @@ fd@ubuntu:~$ file ./fd
 
 ## Source code
 
-```c title="fd.c"
+```c title="fd.c" showLineNumbers
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
