@@ -71,9 +71,9 @@ cmd1@ubuntu:~$ echo $PATH
 ```
 
 When `cat` is run, each of paths are prepended to it once by one. 
-Wherever, `cat` is located in the system, that path will work.
+Based on the location of `cat` in the system, that corresponding path will work.
 
-Let's check it is located.
+Let's check where it is located.
 
 ```
 cmd1@ubuntu:~$ which cat
