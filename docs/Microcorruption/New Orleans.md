@@ -67,7 +67,7 @@ We can see that the breakpoint has been set.
 
 If we continue through the program using the `continue` or `c` command, the program stops execution at the breakpoint.
 
-```title="Debugger console"
+```text title="Debugger console"
 > continue
 ```
 
