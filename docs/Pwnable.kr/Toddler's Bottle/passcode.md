@@ -270,13 +270,9 @@ This opens up and exploit path for us.
 
 If we look at the code, we can see that it calls `system()` in order to `cat` out the flag. Before that it sets both the real group ID and effective group ID to the current effective group ID.
 
-```c title="passcode.c"
-# --- snip ---
-
+```c title="passcode.c" showLineNumbers=19
         setregid(getegid(), getegid());
         system("/bin/cat flag");
-
-# --- snip ---
 ```
 
 We need to somehow execute this code.
@@ -313,13 +309,9 @@ But we still haven't decided where we want to read this address.
 
 Looking at the challenge code, we can see that the `fflush()` call is made right after `scanf()`.
 
-```c title="passcode.c"
-# --- snip ---
-
+```c title="passcode.c" showLineNumbers=9
     scanf("%d", passcode1);
     fflush(stdin);
-
-# --- snip ---
 ```
 
 It does not have any conditions either, which means it will be executed no matter what.
