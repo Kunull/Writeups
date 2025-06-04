@@ -14,7 +14,7 @@ random@ubuntu:~$ file ./random
 
 ## Source code
 
-```c title="random.c"
+```c title="random.c" showLineNumbers
 #include <stdio.h>
 
 int main(){
