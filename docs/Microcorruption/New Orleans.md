@@ -8,6 +8,24 @@ We can set a breakpoint at main using the `break main` command.
 
 ![neworleans2](https://github.com/Knign/Write-ups/assets/110326359/ad256531-9cdb-4691-901b-4664b42ac1c1)
 
+```text title="Disassembly"
+4438 <main>
+// highlight-next-line
+4438:  3150 9cff      add	#0xff9c, sp
+443c:  b012 7e44      call	#0x447e <create_password>
+4440:  3f40 e444      mov	#0x44e4 "Enter the password to continue", r15
+4444:  b012 9445      call	#0x4594 <puts>
+4448:  0f41           mov	sp, r15
+444a:  b012 b244      call	#0x44b2 <get_password>
+444e:  0f41           mov	sp, r15
+4450:  b012 bc44      call	#0x44bc <check_password>
+4454:  0f93           tst	r15
+4456:  0520           jnz	$+0xc <main+0x2a>
+4458:  3f40 0345      mov	#0x4503 "Invalid password; try again.", r15
+445c:  b012 9445      call	#0x4594 <puts>
+4460:  063c           jmp	$+0xe <main+0x36>
+```
+
 We can see that the breakpoint has been set.
 
 If we continue through the program using the `continue` or `c` command, the program has stopped execution at the breakpoint.
