@@ -3,8 +3,57 @@ custom_edit_url: null
 sidebar_position: 1
 ---
 
+```
+Lockitall                                            LOCKIT PRO r a.01
+______________________________________________________________________
 
-We can set a breakpoint at main using the `break main` command.
+              User Manual: Lockitall LockIT Pro, rev a.01              
+______________________________________________________________________
+
+
+OVERVIEW
+
+    - This is the first LockIT Pro Lock.
+    - This lock is not attached to any hardware security module.
+
+
+DETAILS
+
+    The LockIT Pro a.01  is the first of a new series  of locks. It is
+    controlled by a  MSP430 microcontroller, and is  the most advanced
+    MCU-controlled lock available on the  market. The MSP430 is a very
+    low-power device which allows the LockIT  Pro to run in almost any
+    environment.
+
+    The  LockIT  Pro   contains  a  Bluetooth  chip   allowing  it  to
+    communiciate with the  LockIT Pro App, allowing the  LockIT Pro to
+    be inaccessable from the exterior of the building.
+
+    There is  no default password  on the LockIT  Pro---upon receiving
+    the LockIT Pro, a new password must be set by connecting it to the
+    LockIT Pro  App and  entering a password  when prompted,  and then
+    restarting the LockIT Pro using the red button on the back.
+    
+    This is Hardware  Version A.  It contains  the Bluetooth connector
+    built in, and one available port  to which the LockIT Pro Deadbolt
+    should be connected.
+
+    This is Software Revision 01.
+
+    
+
+
+(c) 2013 LOCKITALL                                            Page 1/1
+```
+
+<img width="1440" alt="image" src="https://github.com/user-attachments/assets/d202968b-d8f7-460d-aaac-8f5742c24f73" />
+
+We can set a breakpoint at `main`.
+
+```title="Debugger console"
+> break main
+  Breakpoint set
+```
 
 ![neworleans2](https://github.com/Knign/Write-ups/assets/110326359/ad256531-9cdb-4691-901b-4664b42ac1c1)
 
@@ -28,7 +77,7 @@ We can set a breakpoint at main using the `break main` command.
 
 We can see that the breakpoint has been set.
 
-If we continue through the program using the `continue` or `c` command, the program has stopped execution at the breakpoint.
+If we continue through the program using the `continue` or `c` command, the program stops execution at the breakpoint.
 
 ![neworleans3](https://github.com/Knign/Write-ups/assets/110326359/fc57a6e7-b8c5-4040-ab82-d4a3104e3bba)
 
@@ -36,20 +85,36 @@ The program calls the following functions:
 	- `create_password`: Creates and sets a password for the lock. 
 	- `get_password`: Takes user input.
 	- `check_password`: Checks if user input is correct.
-The `create_password` function seems interesting. Let's set a breakpoint there using `break 447e` and continue execution flow using `c`.
+
+
+The `create_password` function seems interesting. Let's set a breakpoint there using and the continue execution flow.
+
+```title="Debugger console"
+> break create_password
+  Breakpoint set
+> continue
+```
 
 ![neworleans4](https://github.com/Knign/Write-ups/assets/110326359/865e0914-7374-4a92-8d5c-863529908837)
 
-We can see that we are now inside the `create_password` function. Note that we could have directly jumped into this program using `let pc = 447e` command.
+We can see that we are now inside the `create_password` function.
 
-So this function sets the value of `r15` to be equal to the address `0x2400` in memory.And then it moves some characters which seem to be our password into that memory address.
+So this function sets the value of `r15` to be equal to the address `0x2400` in memory.
+It then treats `r15` as memory pointer and moves some characters which seem to be our password into that memory address.
 
-Let's set a breakpoint at `44ac` and `continue` the execution. 
+Let's set a breakpoint at `44ac` and continue the execution. 
 
-Once we hit the breakpoint we can check the memory location using the `R 2400` command
+```title="Debugger console"
+> break 0x44ac
+  Breakpoint set
+> continue
 ```
-> R 2400
-2400 5f6a 6b70 214d 7200 0000 0000 0000 0000  _jkp!Mr.........
+
+Once we hit the breakpoint we can check the memory location using the `R 2400` command.
+
+```title="Debugger console"
+> R 0x2400
+2400 697a 3746 727a 2a00 0000 0000 0000 0000  iz7Frz*.........
 2410 0000 0000 0000 0000 0000 0000 0000 0000  ................
 ```
 
@@ -57,7 +122,7 @@ Or we can just look in the Live Memory Dump section.
 
 ![neworleans5](https://github.com/Knign/Write-ups/assets/110326359/10f11ac0-0212-47ae-a898-cb3481003bd7)
 
-So the string that was read into memory was `_jkp!Mr`.
+So the string that was read into memory was `iz7Frz*`.
 
 Let's continue to where we are prompted for the passsword.
 
