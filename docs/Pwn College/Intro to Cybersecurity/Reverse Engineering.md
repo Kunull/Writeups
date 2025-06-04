@@ -6,8 +6,8 @@ sidebar_position: 5
 ## File Formats: Magic Numbers (Python)
 
 
-```python title="/challenge/cimg"
-#!/opt/pwn.college/python
+```python title="/challenge/cimg" showLineNumbers
+#!/opt/pwn.college/python 
 
 import os
 import sys
@@ -43,8 +43,8 @@ if __name__ == "__main__":
 ```
 
 The challenge performs the following checks:
-1. File ends with the `.cimg` extension.
-2. File has the magic number `CMge`.
+- File ends with the `.cimg` extension.
+- File has the magic number `CMge`.
 
 ```
 hacker@reverse-engineering~file-formats-magic-numbers-python:/$ echo "CMge" > ~/solution.cimg
@@ -59,7 +59,7 @@ pwn.college{gnCrQDFokTc18WCgwd5eHW6GcYc.QX1ATN2EDL4ITM0EzW}
 
 ## File Formats: Magic Numbers (C)
 
-```c title="/challenge/cimg.c"
+```c title="/challenge/cimg.c" showLineNumbers
 #define _GNU_SOURCE 1
 
 #include <stdlib.h>
@@ -175,8 +175,8 @@ int main(int argc, char **argv, char **envp)
 ```
 
 The challenge performs the following checks:
-1. File ends with the `.cimg` extension.
-2. File has the magic number `cn~R`.
+- File ends with the `.cimg` extension.
+- File has the magic number `cn~R`.
 
 ```
 hacker@reverse-engineering~file-formats-magic-numbers-c:/$ echo "cn~R" > ~/solution.cimg
@@ -207,8 +207,8 @@ Let's decompile it using [Binary Ninja Cloud](https://cloud.binary.ninja/).
 ![image](https://github.com/user-attachments/assets/566b6ae6-e0dc-4e4f-9cac-24950f07a701)
 
 The challenge performs the following checks:
-1. File ends with the `.cimg` extension.
-2. File has the magic number `0x287e6d36` which is `(~m6` in ASCII.
+- File ends with the `.cimg` extension.
+- File has the magic number `0x287e6d36` which is `(~m6` in ASCII.
 
 ```
 hacker@reverse-engineering~file-formats-magic-numbers-x86:/$ echo "(~m6" > ~/solution.cimg
@@ -217,4 +217,97 @@ hacker@reverse-engineering~file-formats-magic-numbers-x86:/$ echo "(~m6" > ~/sol
 ```
 hacker@reverse-engineering~file-formats-magic-numbers-x86:/$ /challenge/cimg ~/solution.cimg 
 pwn.college{U45kfQ4KNJIp6KwDH0lQRHdpFeL.QXwAzMwEDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Reading Endianness (Python)
+
+```python title="/challenge/cimg" showLineNumbers
+#!/opt/pwn.college/python
+
+import os
+import sys
+from collections import namedtuple
+
+Pixel = namedtuple("Pixel", ["ascii"])
+
+
+def main():
+    if len(sys.argv) >= 2:
+        path = sys.argv[1]
+        assert path.endswith(".cimg"), "ERROR: file has incorrect extension"
+        file = open(path, "rb")
+    else:
+        file = sys.stdin.buffer
+
+    header = file.read1(4)
+    assert len(header) == 4, "ERROR: Failed to read header!"
+
+    assert int.from_bytes(header[:4], "little") == 0x474D215B, "ERROR: Invalid magic number!"
+
+    with open("/flag", "r") as f:
+        flag = f.read()
+        print(flag)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except AssertionError as e:
+        print(e, file=sys.stderr)
+        sys.exit(-1)
+```
+
+The challenge performs the following checks:
+- File ends with the `.cimg` extension.
+- File has the magic number `0x474D215B`, which is `GM![` in ASCII. However, it also checks whether the first four bytes are in little-endian format.
+
+### Endianness
+
+#### Big endian
+
+```
+  0x1337   0x1338   0x1339   0x1340   
+┌────────┬────────┬────────┬────────┐
+│   47   │   4D   │   21   │   5B   │
+│  ( G ) │  ( M ) │  ( ! ) │  ( [ ) │ 
+└────────┴────────┴────────┴────────┘
+```
+
+The LSB is stored in the high memory address (`0x1340`) while the MSB is stored in the low memory address (`0x1337`).
+
+This is the format in which humans write numbers. Network traffic is also sent in big endian format.
+
+#### Little endian
+
+```
+  0x1337   0x1338   0x1339   0x1340   
+┌────────┬────────┬────────┬────────┐
+│   5B   │   21   │   4D   │   47   │
+│  ( [ ) │  ( ! ) │  ( M ) │  ( G ) │ 
+└────────┴────────┴────────┴────────┘
+```
+
+The LSB is stored in the low memory address (`0x1337`) while the MSB is stored in the high memory address (`0x1340`).
+
+This is the format in which machines store data. This is the relevant format for our level.
+
+Therefore, we have to set the first 4 bytes of the solution to `[!MG`.
+
+```
+hacker@reverse-engineering~reading-endianness-python:/$ echo "[!MG" > ~/solution.cimg
+bash: !MG: event not found
+```
+
+This is happening because Bash uses `!` for history expansion. So Bash tries to expand.`!MG` as a previous command, but can't find one.
+We can easily get around this by using single quotes (`'`)/
+
+```
+hacker@reverse-engineering~reading-endianness-python:/$ echo '[!MG' > ~/solution.cimg
+```
+
+```
+hacker@reverse-engineering~reading-endianness-python:/$ /challenge/cimg ~/solution.cimg
+pwn.college{UeceXp6n13KASFhim5T8GOhpq63.QX3ATN2EDL4ITM0EzW}
 ```
