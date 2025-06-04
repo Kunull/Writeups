@@ -3,8 +3,6 @@ custom_edit_url: null
 sidebar_position: 1
 ---
 
-![image](https://github.com/user-attachments/assets/9df44578-3853-4f7c-9322-131707f7c24a)
-
 ![image](https://github.com/user-attachments/assets/887a4d5c-9766-47f1-9e0a-e09ebe456193)
 
 ## User Manual
@@ -127,3 +125,5 @@ Let's continue to where we are prompted for the passsword.
 ![image](https://github.com/user-attachments/assets/9d93dff2-606b-46c5-a668-715f1bdf5122)
 
 ![image](https://github.com/user-attachments/assets/6fc6ca78-b1e4-4a08-9c41-4a0e9a641e12)
+
+![image](https://github.com/user-attachments/assets/9df44578-3853-4f7c-9322-131707f7c24a)
