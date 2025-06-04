@@ -96,7 +96,7 @@ We can see the `getsn` call is what reads in the user input.
 It set the user input character limit to `0x1c`, which is 28 bytes.
 As for the location, it is set to `0x2400`.
 
-This tells us that we caan write upto 28 bytes to `0x2400`.
+This tells us that we can write upto 28 bytes to `0x2400`.
 
 The instruction at `0x455a` compares the byte at memory address `0x2410` with `0x2c`. 
 
