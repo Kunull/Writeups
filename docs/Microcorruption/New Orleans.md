@@ -5,6 +5,10 @@ sidebar_position: 1
 
 ![image](https://github.com/user-attachments/assets/9df44578-3853-4f7c-9322-131707f7c24a)
 
+![image](https://github.com/user-attachments/assets/887a4d5c-9766-47f1-9e0a-e09ebe456193)
+
+## User Manual
+
 ```
 Lockitall                                            LOCKIT PRO r a.01
 ______________________________________________________________________
@@ -48,7 +52,7 @@ DETAILS
 (c) 2013 LOCKITALL                                            Page 1/1
 ```
 
-![image](https://github.com/user-attachments/assets/887a4d5c-9766-47f1-9e0a-e09ebe456193)
+## `main`
 
 We can set a breakpoint at `main`.
 
@@ -74,6 +78,8 @@ The program calls the following functions:
 	- `get_password`: Takes user input.
 	- `check_password`: Checks if user input is correct.
 
+
+## `create_password`
 
 The `create_password` function seems interesting. Let's set a breakpoint there using and the continue execution flow.
 
