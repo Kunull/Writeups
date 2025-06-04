@@ -3,6 +3,8 @@ custom_edit_url: null
 sidebar_position: 1
 ---
 
+![image](https://github.com/user-attachments/assets/9df44578-3853-4f7c-9322-131707f7c24a)
+
 ```
 Lockitall                                            LOCKIT PRO r a.01
 ______________________________________________________________________
@@ -46,7 +48,7 @@ DETAILS
 (c) 2013 LOCKITALL                                            Page 1/1
 ```
 
-<img width="1440" alt="image" src="https://github.com/user-attachments/assets/d202968b-d8f7-460d-aaac-8f5742c24f73" />
+![image](https://github.com/user-attachments/assets/887a4d5c-9766-47f1-9e0a-e09ebe456193)
 
 We can set a breakpoint at `main`.
 
@@ -55,31 +57,17 @@ We can set a breakpoint at `main`.
   Breakpoint set
 ```
 
-![neworleans2](https://github.com/Knign/Write-ups/assets/110326359/ad256531-9cdb-4691-901b-4664b42ac1c1)
-
-```text title="Disassembly"
-4438 <main>
-// highlight-next-line
-4438:  3150 9cff      add	#0xff9c, sp
-443c:  b012 7e44      call	#0x447e <create_password>
-4440:  3f40 e444      mov	#0x44e4 "Enter the password to continue", r15
-4444:  b012 9445      call	#0x4594 <puts>
-4448:  0f41           mov	sp, r15
-444a:  b012 b244      call	#0x44b2 <get_password>
-444e:  0f41           mov	sp, r15
-4450:  b012 bc44      call	#0x44bc <check_password>
-4454:  0f93           tst	r15
-4456:  0520           jnz	$+0xc <main+0x2a>
-4458:  3f40 0345      mov	#0x4503 "Invalid password; try again.", r15
-445c:  b012 9445      call	#0x4594 <puts>
-4460:  063c           jmp	$+0xe <main+0x36>
-```
+![image](https://github.com/user-attachments/assets/33eb383b-d6fd-4dac-9fae-df07c57ca23a)
 
 We can see that the breakpoint has been set.
 
 If we continue through the program using the `continue` or `c` command, the program stops execution at the breakpoint.
 
-![neworleans3](https://github.com/Knign/Write-ups/assets/110326359/fc57a6e7-b8c5-4040-ab82-d4a3104e3bba)
+```title="Debugger console"
+> continue
+```
+
+![image](https://github.com/user-attachments/assets/41a9556d-e48d-43de-9a33-a4774c8fcd19)
 
 The program calls the following functions:
 	- `create_password`: Creates and sets a password for the lock. 
@@ -95,17 +83,17 @@ The `create_password` function seems interesting. Let's set a breakpoint there u
 > continue
 ```
 
-![neworleans4](https://github.com/Knign/Write-ups/assets/110326359/865e0914-7374-4a92-8d5c-863529908837)
+![image](https://github.com/user-attachments/assets/a9ef00a3-a974-4051-a302-d46da28787a1)
 
 We can see that we are now inside the `create_password` function.
 
 So this function sets the value of `r15` to be equal to the address `0x2400` in memory.
 It then treats `r15` as memory pointer and moves some characters which seem to be our password into that memory address.
 
-Let's set a breakpoint at `44ac` and continue the execution. 
+Let's set a breakpoint at `44b0` and continue the execution. 
 
 ```title="Debugger console"
-> break 0x44ac
+> break 0x44b0
   Breakpoint set
 > continue
 ```
@@ -120,18 +108,17 @@ Once we hit the breakpoint we can check the memory location using the `R 2400` c
 
 Or we can just look in the Live Memory Dump section.
 
-![neworleans5](https://github.com/Knign/Write-ups/assets/110326359/10f11ac0-0212-47ae-a898-cb3481003bd7)
+![image](https://github.com/user-attachments/assets/f8c31497-4f34-4775-ac0a-e0bd178aa4cc)
 
 So the string that was read into memory was `iz7Frz*`.
 
 Let's continue to where we are prompted for the passsword.
 
-![neworleans6](https://github.com/Knign/Write-ups/assets/110326359/68d9622c-6f2d-416c-88e1-d1344e808bd7)
+```
+title="Debugger console"
+> solve
+```
 
-If we `send` this password to the lock, we get the following message:
+![image](https://github.com/user-attachments/assets/9d93dff2-606b-46c5-a668-715f1bdf5122)
 
-![neworleans7](https://github.com/Knign/Write-ups/assets/110326359/8d1d6268-4b42-485f-9397-d177cb47ba10)
-
-We have successfully unlocked the door and can get the `Cy Yombinator bearer bonds` or whatever they are called.
-
-Let's go to the `check_password` function to see how it works.
+![image](https://github.com/user-attachments/assets/6fc6ca78-b1e4-4a08-9c41-4a0e9a641e12)
