@@ -14,7 +14,7 @@ cmd1@ubuntu:~$ file ./cmd1
 
 ## Source code
 
-```c title="cmd1.c"
+```c title="cmd1.c" showLineNumbers
 #include <stdio.h>
 #include <string.h>
 
