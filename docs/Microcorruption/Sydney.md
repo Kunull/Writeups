@@ -116,15 +116,7 @@ If we continue execution, the program exits. We can find the cause by looking th
 
 Let's set a breakpoint at the instruction right after the first comparison.
 
-```text title="Disassembly"
-# --- snip ---
-
-448a <check_password>
-448a:  bf90 6755 0000 cmp	#0x5567, 0x0(r15)
-4490:  0d20           jnz	$+0x1c <check_password+0x22>
-
-# --- snip ---
-```
+![image](https://github.com/user-attachments/assets/201b4689-f577-4de3-a0e0-2fbf3ef0c095)
 
 ```text title="Debugger Console"
 > break 0x4490
@@ -132,7 +124,7 @@ Let's set a breakpoint at the instruction right after the first comparison.
 > continue
 ```
 
-Next, let's reset the program.
+Next, let's reset the program, and repeat the steps.
 
 ```text title="Debugger Console"
 > reset
@@ -140,15 +132,7 @@ Next, let's reset the program.
 
 Once we hit the breakpoint at `0x4490`, we can see that the `sr` register is modified.
 
-```text title="Disassembly"
-# --- snip ---
-
-448a <check_password>
-448a:  bf90 6755 0000 cmp	#0x5567, 0x0(r15)
-4490:  0d20           jnz	$+0x1c <check_password+0x22>
-
-# --- snip ---
-```
+![image](https://github.com/user-attachments/assets/42d15f0a-7372-473e-bd4a-eea068342f51)
 
 ![image](https://github.com/user-attachments/assets/c730e840-2335-4e5e-b660-8401f7df86f8)
 
