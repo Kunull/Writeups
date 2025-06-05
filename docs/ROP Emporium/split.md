@@ -217,7 +217,6 @@ Let's see how this looks on the stack.
 <==: Value is stored at the address
 <--: Points to the address
 
-                        ╎  .. .. .. .. .. .. .. ..  ╎
                         ┌───────────────────────────┐
      rsp --> buffer ==> │  61 61 61 61 61 61 61 61  │ 
                         │  62 61 61 61 61 61 61 61  │ 
@@ -261,7 +260,6 @@ This is what the ROP chain would look like on the stack.
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
-			   ╎  .. .. .. .. .. .. .. ..  ╎
                            ┌───────────────────────────┐
 rsp --> return address ==> │  00 00 00 00 00 40 07 c3  │ --> pop rdi ; ret
 			   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
@@ -273,12 +271,11 @@ rsp --> return address ==> │  00 00 00 00 00 40 07 c3  │ --> pop rdi ; ret
 
 ═══════════════════════════════════════════════════════════════════════════════════
 rip --> pwnme() return
-	## Pop the value pointed to by rsp into rip nd move rsp by 8 bytes.
+	## Pop the value pointed to by rsp into rip and move rsp by 8 bytes.
            The intruction now pointed to by rip will be to be executed next.
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
-                           ╎  .. .. .. .. .. .. .. ..  ╎
 			   ┌───────────────────────────┐
          	   rsp --> │  00 00 00 00 00 60 10 60  │ --> /bin/cat flag.txt
 			   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
@@ -292,7 +289,6 @@ rip --> pop rdi
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
-			   ╎  .. .. .. .. .. .. .. ..  ╎
 			   ┌───────────────────────────┐
 		   rsp --> │  00 00 00 00 00 40 07 4b  │ --> system@plt
 			   └───────────────────────────┘
@@ -472,7 +468,6 @@ Let's see how this looks on the stack.
 <== Value is stored at the address
 <-- Points to the address
 
-                       ╎  .. .. .. ..  ╎
                        ┌───────────────┐   
     esp --> buffer ==> │  61 61 61 61  │ 
                        │  62 61 61 61  │ 
@@ -520,7 +515,6 @@ This is what the ROP chain would look like on the stack.
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
-			   ╎  .. .. .. ..  ╎
 			   ┌───────────────┐   
 esp --> return address ==> │  08 04 86 1a  │ --> system@plt() 
 			   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
@@ -530,12 +524,11 @@ esp --> return address ==> │  08 04 86 1a  │ --> system@plt()
 
 ═══════════════════════════════════════════════════════════════════════════════════
 eip --> pwnme() return
-	## Pop the value pointed to by esp into eip nd move esp by 4 bytes.
+	## Pop the value pointed to by esp into eip and move esp by 4 bytes.
            The intruction now pointed to by eip will be to be executed next.
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
-			   ╎  .. .. .. ..  ╎
 			   ┌───────────────┐
 		   esp --> │  08 04 a0 30  │ --> /bin/cat flag.txt
 			   └───────────────┘
