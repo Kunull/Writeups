@@ -58,7 +58,7 @@ html[data-theme='light'] .alert--info {
   --ifm-alert-border-color: var(--ifm-color-emphasis-200);
 }
 
-.markdown h1:first-child {
+.markdown h1{
     --ifm-h1-font-size: 2.5rem !important;
 }
 
