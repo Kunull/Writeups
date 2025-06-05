@@ -209,9 +209,6 @@ Let's decompile it using [Binary Ninja Cloud](https://cloud.binary.ninja/).
 ![image](https://github.com/user-attachments/assets/566b6ae6-e0dc-4e4f-9cac-24950f07a701)
 
 The challenge performs the following checks:
-- File ends with the `.cimg` extension.
-- The first 4 bytes have the magic number `0x287e6d36` which is `(~m6` in ASCII.
-
 - File Extension: Must end with `.cimg`
 - Header (4 bytes total):
     - Magic number (4 bytes): Must be `0x474D215B`, which is ASCII `GM![` in little-endian
