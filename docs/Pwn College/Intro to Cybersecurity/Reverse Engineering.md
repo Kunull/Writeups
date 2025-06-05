@@ -200,13 +200,13 @@ hacker@reverse-engineering~file-formats-magic-numbers-x86:/$ file /challenge/cim
 
 This time the code is a binary executable in little endian format.
 
-### Decompilation
-
 Let's decompile it using [Binary Ninja Cloud](https://cloud.binary.ninja/).
+
+### Decompilation
 
 #### `main()`
 
-![image](https://github.com/user-attachments/assets/566b6ae6-e0dc-4e4f-9cac-24950f07a701)
+![image](https://github.com/user-attachments/assets/3521b5de-c1d3-437d-9198-f8d1e3cba764)
 
 The challenge performs the following checks:
 - File Extension: Must end with `.cimg`
@@ -466,7 +466,9 @@ pwn.college{Iz_N1i6LBqszqfN70WeEVNJzFd9.QX4ATN2EDL4ITM0EzW}
 
 ## Reading Endianness (x86)
 
-![image](https://github.com/user-attachments/assets/f199f39a-7ab5-485e-8ef1-9cc64b6142e0)
+### Decompilation
+
+![image](https://github.com/user-attachments/assets/89b4ee75-a998-4673-b449-5d947415bb00)
 
 - File Extension: Must end with `.cimg`
 - Header (4 bytes total):
@@ -732,7 +734,9 @@ pwn.college{MX7npfEYKHEaMMoN-13n0RYXQiX.QXwETN2EDL4ITM0EzW}
 
 ## Version Information (x86)
 
-![image](https://github.com/user-attachments/assets/a741e68c-1078-4c0b-80a3-ec9b16f6f63b)
+### Decompilation
+
+![image](https://github.com/user-attachments/assets/38fb9dd4-0572-4468-8c0b-d5639826695e)
 
 - File Extension: Must end with `.cimg`
 - Header (8 bytes total):
@@ -1068,7 +1072,9 @@ pwn.college{UiHnq7dEOB75oBiYdd31IiDPdHG.QXyETN2EDL4ITM0EzW}
 
 ## Metadata and Data (x86)
 
-![image](https://github.com/user-attachments/assets/699f7902-92c8-406b-9499-8663d9184b44)
+### Decompilation
+
+![image](https://github.com/user-attachments/assets/d2c306ff-3b97-400a-9521-1a81000944f6)
 
 The challenge performs the following checks:
 - File Extension: Must end with `.cimg`
