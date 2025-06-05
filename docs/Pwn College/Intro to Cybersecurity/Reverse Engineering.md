@@ -263,6 +263,11 @@ The challenge performs the following checks:
 - File ends with the `.cimg` extension.
 - File has the magic number `0x474D215B`, which is `GM![` in ASCII. However, it also checks whether the first four bytes are in little-endian format.
 
+```python
+>>> bytearray.fromhex("474D215B").decode()
+'GM!['
+```
+
 ### Endianness
 
 #### Big endian
@@ -430,3 +435,55 @@ int main(int argc, char **argv, char **envp)
 
 }
 ```
+
+The challenge performs the following checks:
+- File ends with the `.cimg` extension.
+- File has the magic number `1733109083` in decimal, which is `gM%[` in ASCII. However, it also checks whether the first four bytes are in little-endian format.
+
+```python
+>>> print('{0:x}'.format(1733109083))
+674d255b
+>>> bytearray.fromhex("674d255b").decode()
+'gM%['
+```
+
+The same concept of endianness applies here.
+
+```
+hacker@reverse-engineering~reading-endianness-c:/$ echo '[%Mg' > ~/solution.cimg
+```
+
+```
+hacker@reverse-engineering~reading-endianness-c:/$ /challenge/cimg ~/solution.cimg
+pwn.college{Iz_N1i6LBqszqfN70WeEVNJzFd9.QX4ATN2EDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Reading Endianness (x86)
+
+![image](https://github.com/user-attachments/assets/f199f39a-7ab5-485e-8ef1-9cc64b6142e0)
+
+The challenge performs the following checks:
+- File ends with the `.cimg` extension.
+- File has the magic number `0x72254f3c`, which is `r%O<` in ASCII. However, it also checks whether the first four bytes are in little-endian format.
+
+```python
+>>> bytearray.fromhex("72254f3c").decode()
+'r%O<'
+```
+
+The same concept of endianness applies here.
+
+```
+hacker@reverse-engineering~reading-endianness-c:/$ echo '<0%r' > ~/solution.cimg
+```
+
+```
+hacker@reverse-engineering~reading-endianness-x86:/$ /challenge/cimg ~/solution.cimg
+pwn.college{Et6nh45-ta1HCaJmdwJf5eDGBdd.QXxAzMwEDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Version Information (Python)
