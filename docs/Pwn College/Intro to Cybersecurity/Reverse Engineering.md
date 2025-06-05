@@ -305,7 +305,7 @@ hacker@reverse-engineering~reading-endianness-python:/$ echo "[!MG" > ~/solution
 bash: !MG: event not found
 ```
 
-This is happening because Bash uses `!` for history expansion. So Bash tries to expand.`!MG` as a previous command, but can't find one.
+This is happening because Bash uses `!` for history expansion. So Bash tries to expand `!MG` as a previous command, but can't find one.
 We can easily get around this by using single quotes (`'`)/
 
 ```
@@ -487,3 +487,265 @@ pwn.college{Et6nh45-ta1HCaJmdwJf5eDGBdd.QXxAzMwEDL4ITM0EzW}
 &nbsp;
 
 ## Version Information (Python)
+
+```python title="/challenge/cimg"
+#!/opt/pwn.college/python
+
+import os
+import sys
+from collections import namedtuple
+
+Pixel = namedtuple("Pixel", ["ascii"])
+
+
+def main():
+    if len(sys.argv) >= 2:
+        path = sys.argv[1]
+        assert path.endswith(".cimg"), "ERROR: file has incorrect extension"
+        file = open(path, "rb")
+    else:
+        file = sys.stdin.buffer
+
+    header = file.read1(8)
+    assert len(header) == 8, "ERROR: Failed to read header!"
+
+    assert header[:4] == b"<0%R", "ERROR: Invalid magic number!"
+
+    assert int.from_bytes(header[4:8], "little") == 11, "ERROR: Invalid version!"
+
+    with open("/flag", "r") as f:
+        flag = f.read()
+        print(flag)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except AssertionError as e:
+        print(e, file=sys.stderr)
+        sys.exit(-1)
+```
+
+The challenge performs the following checks:
+- File ends with the `.cimg` extension.
+- File has the magic number `<0%R` in the first 4 bytes.
+- File has version `11` in little-endian in the next 4 bytes.
+
+
+```python title="~/script.py"
+import struct
+
+magic_bytes = b"<0%R"
+version_bytes = struct.pack("<I", 11)
+bytes = magic_bytes + version_bytes
+solution_file = "/home/hacker/solution.cimg"
+
+with open(solution_file, "wb+") as file:
+    file.write(bytes)
+
+print(f"Wrote bytes: {bytes} to file: '{solution_file}'")
+```
+
+```
+hacker@reverse-engineering~version-information-python:/$ python3 ~/script.py
+Wrote bytes: b'<0%R\x0b\x00\x00\x00' to file: '/home/hacker/solution.cimg'
+```
+
+```
+hacker@reverse-engineering~version-information-python:/$ /challenge/cimg ~/solution.cimg 
+pwn.college{QE3tgVGh7hvrbDbs175V291MQid.QX5ATN2EDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Version Information (C)
+
+```c title="/challenge/cimg.c"
+#define _GNU_SOURCE 1
+
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <time.h>
+#include <errno.h>
+#include <assert.h>
+#include <libgen.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <sys/signal.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <sys/sendfile.h>
+#include <sys/prctl.h>
+#include <sys/personality.h>
+#include <arpa/inet.h>
+
+void win()
+{
+    char flag[256];
+    int flag_fd;
+    int flag_length;
+
+    flag_fd = open("/flag", 0);
+    if (flag_fd < 0)
+    {
+        printf("\n  ERROR: Failed to open the flag -- %s!\n", strerror(errno));
+        if (geteuid() != 0)
+        {
+            printf("  Your effective user id is not 0!\n");
+            printf("  You must directly run the suid binary in order to have the correct permissions!\n");
+        }
+        exit(-1);
+    }
+    flag_length = read(flag_fd, flag, sizeof(flag));
+    if (flag_length <= 0)
+    {
+        printf("\n  ERROR: Failed to read the flag -- %s!\n", strerror(errno));
+        exit(-1);
+    }
+    write(1, flag, flag_length);
+    printf("\n\n");
+}
+
+void read_exact(int fd, void *dst, int size, char *msg, int exitcode)
+{
+    int n = read(fd, dst, size);
+    if (n != size)
+    {
+        fprintf(stderr, msg);
+        fprintf(stderr, "\n");
+        exit(exitcode);
+    }
+}
+
+struct cimg_header
+{
+    char magic_number[4];
+    uint16_t version;
+} __attribute__((packed));
+
+typedef struct
+{
+    uint8_t ascii;
+} pixel_bw_t;
+typedef pixel_bw_t pixel_t;
+
+struct cimg
+{
+    struct cimg_header header;
+};
+
+void __attribute__ ((constructor)) disable_buffering()
+{
+    setvbuf(stdin, NULL, _IONBF, 0);
+    setvbuf(stdout, NULL, _IONBF, 1);
+}
+
+int main(int argc, char **argv, char **envp)
+{
+
+    struct cimg cimg = { 0 };
+    int won = 1;
+
+    if (argc > 1)
+    {
+        if (strcmp(argv[1]+strlen(argv[1])-5, ".cimg"))
+        {
+            printf("ERROR: Invalid file extension!");
+            exit(-1);
+        }
+        dup2(open(argv[1], O_RDONLY), 0);
+    }
+
+    read_exact(0, &cimg.header, sizeof(cimg.header), "ERROR: Failed to read header!", -1);
+
+    if (cimg.header.magic_number[0] != 'c' || cimg.header.magic_number[1] != 'm' || cimg.header.magic_number[2] != '6' || cimg.header.magic_number[3] != 'e')
+    {
+        puts("ERROR: Invalid magic number!");
+        exit(-1);
+    }
+
+    if (cimg.header.version != 135)
+    {
+        puts("ERROR: Unsupported version!");
+        exit(-1);
+    }
+
+    if (won) win();
+
+}
+```
+
+The challenge performs the following checks:
+- File ends with the `.cimg` extension.
+- File has the magic number `cm6e` in the first 4 bytes.
+- File has version `135` in little-endian in the next 4 bytes.
+
+```python title="~/script.py"
+import struct
+
+magic_bytes = b"cm6e"
+version_bytes = struct.pack("<I", 135)
+bytes = magic_bytes + version_bytes
+solution_file = "/home/hacker/solution.cimg"
+
+with open(solution_file, "wb+") as file:
+    file.write(bytes)
+
+print(f"Wrote bytes: {bytes} to file: '{solution_file}'")
+```
+
+```
+hacker@reverse-engineering~version-information-c:/$ python ~/script.py 
+Wrote bytes: b'cm6e\x87\x00\x00\x00' to file: '/home/hacker/solution.cimg'
+```
+
+```
+hacker@reverse-engineering~version-information-c:/$ /challenge/cimg ~/solution.cimg
+pwn.college{MX7npfEYKHEaMMoN-13n0RYXQiX.QXwETN2EDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Version Information (x86)
+
+![image](https://github.com/user-attachments/assets/dc80e211-1646-458e-b97b-47f285be2a3f)
+
+The challenge performs the following checks:
+- File ends with the `.cimg` extension.
+- File has the magic number `0x5b6e6e52` in the first 4 bytes.
+- File has version `0xaa` in little-endian in the next 4 bytes.
+
+```python title="~/script.py"
+import struct
+
+magic_bytes = bytes.fromhex("5b6e6e52")
+version_bytes = struct.pack("<I", 0xaa)
+bytes = magic_bytes + version_bytes
+solution_file = "/home/hacker/solution.cimg"
+
+with open(solution_file, "wb+") as file:
+    file.write(bytes)
+
+print(f"Wrote bytes: {bytes} to file: '{solution_file}'")
+```
+
+```
+hacker@reverse-engineering~version-information-x86:/$ python ~/script.py
+Wrote bytes: b'[nnR\xaa\x00\x00\x00' to file: '/home/hacker/solution.cimg'
+```
+
+```
+hacker@reverse-engineering~version-information-x86:/$ /challenge/cimg ~/solution.cimg
+pwn.college{MS8bIZFkAQQ3-xwFV98pplsoCa7.QXyAzMwEDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Metadata and Data (Python)
