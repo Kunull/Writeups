@@ -540,7 +540,7 @@ The challenge performs the following checks:
     - Magic number (4 bytes): Must be `b"<0%R"`
     - Version (4 bytes): Must be `11` in little-endian
 
-```python title="~/script.py"
+```python title="~/script.py" showLineNumbers
 import struct
 
 # Build the header (8 bytes total)
@@ -702,7 +702,7 @@ The challenge performs the following checks:
     - Magic number (4 bytes): Must be `b"cm6e"`
     - Version (4 bytes): Must be `135` in little-endian
  
-```python title="~/script.py"
+```python title="~/script.py" showLineNumbers
 import struct
 
 # Build the header (8 bytes total)
@@ -747,7 +747,7 @@ pwn.college{MX7npfEYKHEaMMoN-13n0RYXQiX.QXwETN2EDL4ITM0EzW}
     - Magic number (4 bytes): Must be `0x5b6e6e52`
     - Version (4 bytes): Must be `0xaa` in little-endian
 
-```python title="~/script.py"
+```python title="~/script.py" showLineNumbers
 import struct
 
 # Build the header (8 bytes total)
@@ -840,7 +840,7 @@ The challenge performs the following checks:
 - Pixel Data:
     - Must be exactly `59 × 21 = 1239` bytes
 
-```python title="~/script.py"
+```python title="~/script.py" showLineNumbers
 import struct
 
 # Build the header (20 bytes total)
@@ -1037,7 +1037,7 @@ The challenge performs the following checks:
 - Pixel Data:
     - Must be exactly `66 × 17 = 1122` bytes
 
-```python title="~/script.py"
+```python title="~/script.py" showLineNumbers
 import struct
 
 # Build the header (10 bytes total)
@@ -1092,7 +1092,7 @@ The challenge performs the following checks:
 - Pixel Data:
     - Must be exactly `66 × 17 = 1122` bytes
 
-```python title="~/script.py"
+```python title="~/script.py" showLineNumbers
 import struct
 
 # Build the header (14 bytes total)
