@@ -468,6 +468,8 @@ pwn.college{Iz_N1i6LBqszqfN70WeEVNJzFd9.QX4ATN2EDL4ITM0EzW}
 
 ### Decompilation
 
+#### `main()`
+
 ![image](https://github.com/user-attachments/assets/89b4ee75-a998-4673-b449-5d947415bb00)
 
 - File Extension: Must end with `.cimg`
@@ -735,6 +737,8 @@ pwn.college{MX7npfEYKHEaMMoN-13n0RYXQiX.QXwETN2EDL4ITM0EzW}
 ## Version Information (x86)
 
 ### Decompilation
+
+#### `main()`
 
 ![image](https://github.com/user-attachments/assets/38fb9dd4-0572-4468-8c0b-d5639826695e)
 
@@ -1073,6 +1077,8 @@ pwn.college{UiHnq7dEOB75oBiYdd31IiDPdHG.QXyETN2EDL4ITM0EzW}
 ## Metadata and Data (x86)
 
 ### Decompilation
+
+#### `main()`
 
 ![image](https://github.com/user-attachments/assets/d2c306ff-3b97-400a-9521-1a81000944f6)
 
