@@ -565,3 +565,10 @@ html[data-theme=dark] {
 .iconExternalLink_nPIU {
   display: none;
 }
+
+
+
+/* Hide pages */
+.hidden {
+  display: none !important;
+}
