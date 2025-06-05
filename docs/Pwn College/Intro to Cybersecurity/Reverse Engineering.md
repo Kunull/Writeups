@@ -539,10 +539,16 @@ The challenge performs the following checks:
 ```python title="~/script.py"
 import struct
 
-magic_bytes = b"<0%R"
-version_bytes = struct.pack("<I", 11)
-bytes = magic_bytes + version_bytes
+# File
 solution_file = "/home/hacker/solution.cimg"
+
+# Headers
+magic_bytes = b"<0%R"
+version = 11
+version_bytes = struct.pack("<I", version)
+
+# All bytes
+bytes = magic_bytes + version_bytes
 
 with open(solution_file, "wb+") as file:
     file.write(bytes)
@@ -695,10 +701,15 @@ The challenge performs the following checks:
 ```python title="~/script.py"
 import struct
 
+# File
+solution_file = "/home/hacker/solution.cimg"
+
+# Headers
 magic_bytes = b"cm6e"
 version_bytes = struct.pack("<I", 135)
+
+# All bytes
 bytes = magic_bytes + version_bytes
-solution_file = "/home/hacker/solution.cimg"
 
 with open(solution_file, "wb+") as file:
     file.write(bytes)
@@ -730,10 +741,15 @@ pwn.college{MX7npfEYKHEaMMoN-13n0RYXQiX.QXwETN2EDL4ITM0EzW}
 ```python title="~/script.py"
 import struct
 
+# File
+solution_file = "/home/hacker/solution.cimg"
+
+# Headers
 magic_bytes = bytes.fromhex("5b6e6e52")
 version_bytes = struct.pack("<I", 0xaa)
+
+# All bytes
 bytes = magic_bytes + version_bytes
-solution_file = "/home/hacker/solution.cimg"
 
 with open(solution_file, "wb+") as file:
     file.write(bytes)
@@ -817,6 +833,10 @@ The challenge performs the following checks:
 ```python title="~/script.py"
 import struct
 
+# File
+solution_file = "/home/hacker/solution.cimg"
+
+# Headers
 magic_bytes = b"CmgE"
 version = 1
 version_bytes = struct.pack("<Q", version)
@@ -825,11 +845,12 @@ width_bytes = struct.pack("<I", width)
 height = 21
 height_bytes = struct.pack("<I", height)
 
+# Pixels
 number_of_pixels = width * height
 pixel_bytes = b"\x00" * number_of_pixels
 
+# All bytes
 bytes = magic_bytes + version_bytes + width_bytes + height_bytes + pixel_bytes
-solution_file = "/home/hacker/solution.cimg"
 
 with open(solution_file, "wb+") as file:
     file.write(bytes)
