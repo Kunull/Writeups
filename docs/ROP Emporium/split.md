@@ -273,7 +273,8 @@ rsp --> return address ==> │  00 00 00 00 00 40 07 c3  │ --> pop rdi ; ret
 
 ═══════════════════════════════════════════════════════════════════════════════════
 rip --> pwnme() return
-	## Pop the value pointed to by rsp into rip
+	## Pop the value pointed to by rsp into rip nd move rsp by 8 bytes.
+           The intruction now pointed to by rip will be to be executed next.
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
@@ -287,7 +288,7 @@ Stack:
 
 ═══════════════════════════════════════════════════════════════════════════════════
 rip --> pop rdi
-	## Pop the value pointed to by rsp into rdi and move the rsp 8 bytes higher
+	## Pop the value pointed to by rsp into rdi and move the rsp by 8 bytes.
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
@@ -302,7 +303,8 @@ rdi: 0x601060
 
 ═══════════════════════════════════════════════════════════════════════════════════
 rip --> ret
-	## Move the address of system@plt into rip, thus executong it
+	## Move the address of system@plt into rip, thus executing it with the
+           argument that is in rdi.
 ═══════════════════════════════════════════════════════════════════════════════════
 ```
 
@@ -528,7 +530,8 @@ esp --> return address ==> │  08 04 86 1a  │ --> system@plt()
 
 ═══════════════════════════════════════════════════════════════════════════════════
 eip --> pwnme() return
-	## This gadget will pop the value pointed to by the esp into eip
+	## Pop the value pointed to by esp into eip nd move esp by 4 bytes.
+           The intruction now pointed to by eip will be to be executed next.
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
@@ -540,7 +543,8 @@ Stack:
 
 ═══════════════════════════════════════════════════════════════════════════════════
 eip --> call <system@plt>
-	## This gadget makes a system call based on the argument on the stack
+	## Move the address of system@plt into rip, thus executing it with
+           the argument that is pointed to by the esp.
 ═══════════════════════════════════════════════════════════════════════════════════
 ```
 
