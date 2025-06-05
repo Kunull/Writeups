@@ -539,26 +539,26 @@ The challenge performs the following checks:
 ```python title="~/script.py"
 import struct
 
-# File
-solution_file = "/home/hacker/solution.cimg"
+# Build the header (8 bytes total)
+magic = b"<0%R"                  # 4 bytes
+version = struct.pack("<I", 11)  # 4 bytes 
 
-# Headers
-magic_bytes = b"<0%R"
-version = 11
-version_bytes = struct.pack("<I", version)
+header = magic + version
 
-# All bytes
-bytes = magic_bytes + version_bytes
+# Full file content
+cimg_data = header
 
-with open(solution_file, "wb+") as file:
-    file.write(bytes)
+# Write to disk
+filename = "/home/hacker/solution.cimg"
+with open(filename, "wb") as f:
+    f.write(cimg_data)
 
-print(f"Wrote bytes: {bytes} to file: '{solution_file}'")
+print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to file: '{filename}'")
 ```
 
 ```
-hacker@reverse-engineering~version-information-python:/$ python3 ~/script.py
-Wrote bytes: b'<0%R\x0b\x00\x00\x00' to file: '/home/hacker/solution.cimg'
+hacker@reverse-engineering~version-information-python:/$ python ~/script.py
+Wrote 8 bytes: b'<0%R\x0b\x00\x00\x00' to file: '/home/hacker/solution.cimg'
 ```
 
 ```
@@ -697,29 +697,30 @@ The challenge performs the following checks:
 - Header (8 bytes total):
     - Magic number (4 bytes): Must be `b"cm6e"`
     - Version (4 bytes): Must be `135` in little-endian
-
+ 
 ```python title="~/script.py"
 import struct
 
-# File
-solution_file = "/home/hacker/solution.cimg"
+# Build the header (8 bytes total)
+magic = b"cm6e"                   # 4 bytes
+version = struct.pack("<I", 135)  # 4 bytes 
 
-# Headers
-magic_bytes = b"cm6e"
-version_bytes = struct.pack("<I", 135)
+header = magic + version
 
-# All bytes
-bytes = magic_bytes + version_bytes
+# Full file content
+cimg_data = header
 
-with open(solution_file, "wb+") as file:
-    file.write(bytes)
+# Write to disk
+filename = "/home/hacker/solution.cimg"
+with open(filename, "wb") as f:
+    f.write(cimg_data)
 
-print(f"Wrote bytes: {bytes} to file: '{solution_file}'")
+print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to file: '{filename}'")
 ```
 
 ```
-hacker@reverse-engineering~version-information-c:/$ python ~/script.py 
-Wrote bytes: b'cm6e\x87\x00\x00\x00' to file: '/home/hacker/solution.cimg'
+hacker@reverse-engineering~version-information-c:/$ python ~/script.py
+Wrote 8 bytes: b'cm6e\x87\x00\x00\x00' to file: '/home/hacker/solution.cimg'
 ```
 
 ```
@@ -731,7 +732,7 @@ pwn.college{MX7npfEYKHEaMMoN-13n0RYXQiX.QXwETN2EDL4ITM0EzW}
 
 ## Version Information (x86)
 
-![image](https://github.com/user-attachments/assets/dc80e211-1646-458e-b97b-47f285be2a3f)
+![image](https://github.com/user-attachments/assets/a741e68c-1078-4c0b-80a3-ec9b16f6f63b)
 
 - File Extension: Must end with `.cimg`
 - Header (8 bytes total):
@@ -741,25 +742,26 @@ pwn.college{MX7npfEYKHEaMMoN-13n0RYXQiX.QXwETN2EDL4ITM0EzW}
 ```python title="~/script.py"
 import struct
 
-# File
-solution_file = "/home/hacker/solution.cimg"
+# Build the header (8 bytes total)
+magic = bytes.fromhex("5b6e6e52")  # 4 bytes
+version = struct.pack("<I", 0xaa)  # 4 bytes 
 
-# Headers
-magic_bytes = bytes.fromhex("5b6e6e52")
-version_bytes = struct.pack("<I", 0xaa)
+header = magic + version
 
-# All bytes
-bytes = magic_bytes + version_bytes
+# Full file content
+cimg_data = header
 
-with open(solution_file, "wb+") as file:
-    file.write(bytes)
+# Write to disk
+filename = "/home/hacker/solution.cimg"
+with open(filename, "wb") as f:
+    f.write(cimg_data)
 
-print(f"Wrote bytes: {bytes} to file: '{solution_file}'")
+print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to file: '{filename}'")
 ```
 
 ```
 hacker@reverse-engineering~version-information-x86:/$ python ~/script.py
-Wrote bytes: b'[nnR\xaa\x00\x00\x00' to file: '/home/hacker/solution.cimg'
+Wrote 8 bytes: b'[nnR\xaa\x00\x00\x00' to file: '/home/hacker/solution.cimg'
 ```
 
 ```
@@ -833,34 +835,31 @@ The challenge performs the following checks:
 ```python title="~/script.py"
 import struct
 
-# File
-solution_file = "/home/hacker/solution.cimg"
+# Build the header (20 bytes total)
+magic = b"CMgE"                 # 4 bytes
+version = struct.pack("<H", 1)  # 8 bytes 
+width = struct.pack("<H", 59)   # 4 bytes 
+height = struct.pack("<H", 21)  # 4 bytes
 
-# Headers
-magic_bytes = b"CmgE"
-version = 1
-version_bytes = struct.pack("<Q", version)
-width = 59
-width_bytes = struct.pack("<I", width)
-height = 21
-height_bytes = struct.pack("<I", height)
+header = magic + version + width + height
 
-# Pixels
-number_of_pixels = width * height
-pixel_bytes = b"\x00" * number_of_pixels
+# Build the pixel data (59 * 21 = 1239 bytes)
+pixel_data = b"." * (59 * 21)
 
-# All bytes
-bytes = magic_bytes + version_bytes + width_bytes + height_bytes + pixel_bytes
+# Full file content
+cimg_data = header + pixel_data
 
-with open(solution_file, "wb+") as file:
-    file.write(bytes)
+# Write to disk
+filename = "/home/hacker/solution.cimg"
+with open(filename, "wb") as f:
+    f.write(cimg_data)
 
-print(f"Wrote bytes: {bytes} to file: '{solution_file}'")
+print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to file: '{filename}'")
 ```
 
 ```
 hacker@reverse-engineering~metadata-and-data-python:/$ python ~/script.py
-Wrote bytes: b'CmgE\x01\x00\x00\x00\x00\x00\x00\x00;\x00\x00\x00\x15\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' to file: '/home/hacker/solution.cimg'
+Wrote 1249 bytes: b'CMgE\x01\x00;\x00\x15\x00.......................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................' to file: '/home/hacker/solution.cimg'
 ```
 
 ```
@@ -872,3 +871,195 @@ pwn.college{gmcsTJSAE9Fvci5d7be0NM7T0Af.QXxETN2EDL4ITM0EzW}
 
 ## Metadata and Data (C)
 
+```c title="/challenge/cimg.c"
+#define _GNU_SOURCE 1
+
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <time.h>
+#include <errno.h>
+#include <assert.h>
+#include <libgen.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <sys/signal.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <sys/sendfile.h>
+#include <sys/prctl.h>
+#include <sys/personality.h>
+#include <arpa/inet.h>
+
+void win()
+{
+    char flag[256];
+    int flag_fd;
+    int flag_length;
+
+    flag_fd = open("/flag", 0);
+    if (flag_fd < 0)
+    {
+        printf("\n  ERROR: Failed to open the flag -- %s!\n", strerror(errno));
+        if (geteuid() != 0)
+        {
+            printf("  Your effective user id is not 0!\n");
+            printf("  You must directly run the suid binary in order to have the correct permissions!\n");
+        }
+        exit(-1);
+    }
+    flag_length = read(flag_fd, flag, sizeof(flag));
+    if (flag_length <= 0)
+    {
+        printf("\n  ERROR: Failed to read the flag -- %s!\n", strerror(errno));
+        exit(-1);
+    }
+    write(1, flag, flag_length);
+    printf("\n\n");
+}
+
+void read_exact(int fd, void *dst, int size, char *msg, int exitcode)
+{
+    int n = read(fd, dst, size);
+    if (n != size)
+    {
+        fprintf(stderr, msg);
+        fprintf(stderr, "\n");
+        exit(exitcode);
+    }
+}
+
+struct cimg_header
+{
+    char magic_number[4];
+    uint16_t version;
+    uint16_t width;
+    uint16_t height;
+} __attribute__((packed));
+
+typedef struct
+{
+    uint8_t ascii;
+} pixel_bw_t;
+typedef pixel_bw_t pixel_t;
+
+struct cimg
+{
+    struct cimg_header header;
+};
+
+#define CIMG_NUM_PIXELS(cimg) ((cimg)->header.width * (cimg)->header.height)
+#define CIMG_DATA_SIZE(cimg) (CIMG_NUM_PIXELS(cimg) * sizeof(pixel_t))
+
+void __attribute__ ((constructor)) disable_buffering()
+{
+    setvbuf(stdin, NULL, _IONBF, 0);
+    setvbuf(stdout, NULL, _IONBF, 1);
+}
+
+int main(int argc, char **argv, char **envp)
+{
+
+    struct cimg cimg = { 0 };
+    int won = 1;
+
+    if (argc > 1)
+    {
+        if (strcmp(argv[1]+strlen(argv[1])-5, ".cimg"))
+        {
+            printf("ERROR: Invalid file extension!");
+            exit(-1);
+        }
+        dup2(open(argv[1], O_RDONLY), 0);
+    }
+
+    read_exact(0, &cimg.header, sizeof(cimg.header), "ERROR: Failed to read header!", -1);
+
+    if (cimg.header.magic_number[0] != 'C' || cimg.header.magic_number[1] != 'N' || cimg.header.magic_number[2] != 'm' || cimg.header.magic_number[3] != 'G')
+    {
+        puts("ERROR: Invalid magic number!");
+        exit(-1);
+    }
+
+    if (cimg.header.version != 1)
+    {
+        puts("ERROR: Unsupported version!");
+        exit(-1);
+    }
+
+    if (cimg.header.width != 66)
+    {
+        puts("ERROR: Incorrect width!");
+        exit(-1);
+    }
+
+    if (cimg.header.height != 17)
+    {
+        puts("ERROR: Incorrect height!");
+        exit(-1);
+    }
+
+    unsigned long data_size = cimg.header.width * cimg.header.height * sizeof(pixel_t);
+    pixel_t *data = malloc(data_size);
+    if (data == NULL)
+    {
+        puts("ERROR: Failed to allocate memory for the image data!");
+        exit(-1);
+    }
+    read_exact(0, data, data_size, "ERROR: Failed to read data!", -1);
+
+    if (won) win();
+
+}
+```
+
+The challenge performs the following checks:
+- File Extension: Must end with `.cimg`
+- Header (10 bytes total):
+    - Magic number (4 bytes): Must be `b"CNmG"`
+    - Version (2 bytes): Must be `1` in little-endian
+    - Width (2 bytes): Must be `66` in little-endian
+    - Height (2 bytes): Must be `17` in little-endian
+- Pixel Data:
+    - Must be exactly `66 × 17 = 1122` bytes
+
+```python title="~/script.py"
+import struct
+
+# Build the header (10 bytes total)
+magic = b"CNmG"                 # 4 bytes
+version = struct.pack("<H", 1)  # 2 bytes
+width = struct.pack("<H", 66)   # 2 bytes 
+height = struct.pack("<H", 17)  # 2 bytes 
+
+header = magic + version + width + height
+
+# Build the pixel data (66 * 17 = 1122 bytes)
+pixel_data = b"." * (66 * 17)
+
+# Full file content
+cimg_data = header + pixel_data
+
+# Write to disk
+filename = "/home/hacker/solution.cimg"
+with open(filename, "wb") as f:
+    f.write(cimg_data)
+
+print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to file: '{filename}'")
+```
+
+```
+hacker@reverse-engineering~metadata-and-data-c:/$ python ~/script.py
+Wrote 1132 bytes: b'CNmG\x01\x00B\x00\x11\x00..................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................' to file: '/home/hacker/solution.cimg'
+```
+
+```
+hacker@reverse-engineering~metadata-and-data-c:/$ /challenge/cimg ~/solution.cimg 
+pwn.college{UiHnq7dEOB75oBiYdd31IiDPdHG.QXyETN2EDL4ITM0EzW}
+```
