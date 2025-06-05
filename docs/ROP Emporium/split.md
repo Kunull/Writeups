@@ -271,8 +271,7 @@ rsp --> return address ==> │  00 00 00 00 00 40 07 c3  │ --> pop rdi ; ret
 
 ═══════════════════════════════════════════════════════════════════════════════════
 rip --> pwnme() return
-	## Pop the value pointed to by rsp into rip and move rsp by 8 bytes.
-           The intruction now pointed to by rip will be to be executed next.
+	// Pop the value pointed to by rsp into rip and move rsp by 8 bytes.
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
@@ -285,7 +284,7 @@ Stack:
 
 ═══════════════════════════════════════════════════════════════════════════════════
 rip --> pop rdi
-	## Pop the value pointed to by rsp into rdi and move the rsp by 8 bytes.
+	// Pop the value pointed to by rsp into rdi and move the rsp by 8 bytes.
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
@@ -299,8 +298,22 @@ rdi: 0x601060
 
 ═══════════════════════════════════════════════════════════════════════════════════
 rip --> ret
-	## Move the address of system@plt into rip, thus executing it with the
-           argument that is in rdi.
+	// Pop the address of system@plt pointed to by rsp into rip and move rsp
+        // by 8 bytes.
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+			   ┌───────────────────────────┐
+		   rsp --> │  .. .. .. .. .. .. .. ..  │ 
+			   └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x601060
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> <system@plt>
+	// Call system@plt with the argument that is stored in the rdi register.
 ═══════════════════════════════════════════════════════════════════════════════════
 ```
 
@@ -524,8 +537,7 @@ esp --> return address ==> │  08 04 86 1a  │ --> system@plt()
 
 ═══════════════════════════════════════════════════════════════════════════════════
 eip --> pwnme() return
-	## Pop the value pointed to by esp into eip and move esp by 4 bytes.
-           The intruction now pointed to by eip will be to be executed next.
+	// Pop the value pointed to by esp into eip and move esp by 4 bytes.
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
@@ -536,8 +548,7 @@ Stack:
 
 ═══════════════════════════════════════════════════════════════════════════════════
 eip --> call <system@plt>
-	## Move the address of system@plt into rip, thus executing it with
-           the argument that is pointed to by the esp.
+	// Call system@plt with the argument that is pointed to by the esp.
 ═══════════════════════════════════════════════════════════════════════════════════
 ```
 
