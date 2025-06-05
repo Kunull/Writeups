@@ -544,8 +544,8 @@ The challenge performs the following checks:
 import struct
 
 # Build the header (8 bytes total)
-magic = b"<0%R"                  # 4 bytes
-version = struct.pack("<I", 11)  # 4 bytes 
+magic = b"<0%R"                   # 4 bytes
+version = struct.pack("<I", 11)   # 4 bytes 
 
 header = magic + version
 
@@ -844,10 +844,10 @@ The challenge performs the following checks:
 import struct
 
 # Build the header (20 bytes total)
-magic = b"CMgE"                 # 4 bytes
-version = struct.pack("<H", 1)  # 8 bytes 
-width = struct.pack("<H", 59)   # 4 bytes 
-height = struct.pack("<H", 21)  # 4 bytes
+magic = b"CMgE"                    # 4 bytes
+version = struct.pack("<H", 1)     # 8 bytes 
+width = struct.pack("<H", 59)      # 4 bytes 
+height = struct.pack("<H", 21)     # 4 bytes
 
 header = magic + version + width + height
 
@@ -1041,10 +1041,10 @@ The challenge performs the following checks:
 import struct
 
 # Build the header (10 bytes total)
-magic = b"CNmG"                 # 4 bytes
-version = struct.pack("<H", 1)  # 2 bytes
-width = struct.pack("<H", 66)   # 2 bytes 
-height = struct.pack("<H", 17)  # 2 bytes 
+magic = b"CNmG"                    # 4 bytes
+version = struct.pack("<H", 1)     # 2 bytes
+width = struct.pack("<H", 66)      # 2 bytes 
+height = struct.pack("<H", 17)     # 2 bytes 
 
 header = magic + version + width + height
 
@@ -1098,8 +1098,8 @@ import struct
 # Build the header (14 bytes total)
 magic = bytes.fromhex("284e6e72")  # 4 bytes
 version = struct.pack("<H", 1)     # 2 bytes
-width = struct.pack("<I", 0x40)      # 4 bytes 
-height = struct.pack("<I", 0xc)     # 4 bytes 
+width = struct.pack("<I", 0x40)    # 4 bytes 
+height = struct.pack("<I", 0xc)    # 4 bytes 
 
 header = magic + version + width + height
 
@@ -1125,4 +1125,114 @@ Wrote 782 bytes: b'(Nnr\x01\x00@\x00\x00\x00\x0c\x00\x00\x00....................
 ```
 hacker@reverse-engineering~metadata-and-data-x86:/$ /challenge/cimg ~/solution.cimg 
 pwn.college{UB4Rk1u_RCBjfYamRdf9nAU0tlF.QXzAzMwEDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Input Restrictions (Python)
+
+```python title="/challenge/cimg" showLineNumbers
+#!/opt/pwn.college/python
+
+import os
+import sys
+from collections import namedtuple
+
+Pixel = namedtuple("Pixel", ["ascii"])
+
+
+def main():
+    if len(sys.argv) >= 2:
+        path = sys.argv[1]
+        assert path.endswith(".cimg"), "ERROR: file has incorrect extension"
+        file = open(path, "rb")
+    else:
+        file = sys.stdin.buffer
+
+    header = file.read1(16)
+    assert len(header) == 16, "ERROR: Failed to read header!"
+
+    assert header[:4] == b"cIMG", "ERROR: Invalid magic number!"
+
+    assert int.from_bytes(header[4:12], "little") == 1, "ERROR: Invalid version!"
+
+    width = int.from_bytes(header[12:14], "little")
+    assert width == 66, "ERROR: Incorrect width!"
+
+    height = int.from_bytes(header[14:16], "little")
+    assert height == 17, "ERROR: Incorrect height!"
+
+    data = file.read1(width * height)
+    assert len(data) == width * height, "ERROR: Failed to read data!"
+
+    pixels = [Pixel(character) for character in data]
+
+    invalid_character = next((pixel.ascii for pixel in pixels if not (0x20 <= pixel.ascii <= 0x7E)), None)
+    assert invalid_character is None, f"ERROR: Invalid character {invalid_character:#04x} in data!"
+
+    with open("/flag", "r") as f:
+        flag = f.read()
+        print(flag)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except AssertionError as e:
+        print(e, file=sys.stderr)
+        sys.exit(-1)
+```
+
+The challenge performs the following checks:
+- File Extension: Must end with `.cimg`
+- Header (16 bytes total):
+    - Magic number (4 bytes): Must be `b"cIMG"`
+    - Version (8 bytes): Must be `1` in little-endian
+    - Width (2 bytes): Must be `66` in little-endian
+    - Height (2 bytes): Must be `17` in little-endian
+- Pixel Data:
+    - Must be exactly `66 × 17 = 1122` bytes
+    - Must be an between `0x20` and `0x7E`
+ 
+```python title="~/script.py" showLineNumbers
+import struct
+
+# Build the header (16 bytes total)
+magic = b"cIMG"                    # 4 bytes
+version = struct.pack("<Q", 1)     # 8 bytes
+width = struct.pack("<H", 66)    # 2 bytes 
+height = struct.pack("<H", 17)    # 2 bytes 
+
+header = magic + version + width + height
+
+# Build the pixel data (66 * 17 = 1122 bytes)
+pixel_data = b"." * (66 * 17)
+
+# Full file content
+cimg_data = header + pixel_data
+
+# Write to disk
+filename = "/home/hacker/solution.cimg"
+with open(filename, "wb") as f:
+    f.write(cimg_data)
+
+print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to file: '{filename}'")
+```
+
+```
+hacker@reverse-engineering~input-restrictions-python:/$ python ~/script.py 
+Wrote 1138 bytes: b'cIMG\x01\x00\x00\x00\x00\x00\x00\x00B\x00\x11\x00..................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................' to file: '/home/hacker/solution.cimg'
+```
+
+```
+hacker@reverse-engineering~input-restrictions-python:/$ /challenge/cimg ~/solution.cimg 
+pwn.college{89KE9mKkbzytvUe2ab0YCyPzt55.QXzETN2EDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Input Restrictions (C)
+
+```c title="/challenge/cimg.c"
+
 ```
