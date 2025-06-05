@@ -1063,3 +1063,54 @@ Wrote 1132 bytes: b'CNmG\x01\x00B\x00\x11\x00...................................
 hacker@reverse-engineering~metadata-and-data-c:/$ /challenge/cimg ~/solution.cimg 
 pwn.college{UiHnq7dEOB75oBiYdd31IiDPdHG.QXyETN2EDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## Metadata and Data (x86)
+
+![image](https://github.com/user-attachments/assets/699f7902-92c8-406b-9499-8663d9184b44)
+
+The challenge performs the following checks:
+- File Extension: Must end with `.cimg`
+- Header (14 bytes total):
+    - Magic number (4 bytes): Must be `0x284e6e72`
+    - Version (2 bytes): Must be `1` in little-endian
+    - Width (4 bytes): Must be `0x40` (`64`) in little-endian
+    - Height (4 bytes): Must be `0xc` (`12`) in little-endian
+- Pixel Data:
+    - Must be exactly `66 × 17 = 1122` bytes
+
+```python title="~/script.py"
+import struct
+
+# Build the header (14 bytes total)
+magic = bytes.fromhex("284e6e72")  # 4 bytes
+version = struct.pack("<H", 1)     # 2 bytes
+width = struct.pack("<I", 0x40)      # 4 bytes 
+height = struct.pack("<I", 0xc)     # 4 bytes 
+
+header = magic + version + width + height
+
+# Build the pixel data (64 * 12 = 768 bytes)
+pixel_data = b"." * (64 * 12)
+
+# Full file content
+cimg_data = header + pixel_data
+
+# Write to disk
+filename = "/home/hacker/solution.cimg"
+with open(filename, "wb") as f:
+    f.write(cimg_data)
+
+print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to file: '{filename}'")
+```
+
+```
+hacker@reverse-engineering~metadata-and-data-x86:/$ python ~/script.py
+Wrote 782 bytes: b'(Nnr\x01\x00@\x00\x00\x00\x0c\x00\x00\x00................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................' to file: '/home/hacker/solution.cimg'
+```
+
+```
+hacker@reverse-engineering~metadata-and-data-x86:/$ /challenge/cimg ~/solution.cimg 
+pwn.college{UB4Rk1u_RCBjfYamRdf9nAU0tlF.QXzAzMwEDL4ITM0EzW}
+```
