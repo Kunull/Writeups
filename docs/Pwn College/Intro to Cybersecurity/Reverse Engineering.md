@@ -867,3 +867,8 @@ Wrote bytes: b'CmgE\x01\x00\x00\x00\x00\x00\x00\x00;\x00\x00\x00\x15\x00\x00\x00
 hacker@reverse-engineering~metadata-and-data-python:/$ /challenge/cimg ~/solution.cimg 
 pwn.college{gmcsTJSAE9Fvci5d7be0NM7T0Af.QXxETN2EDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## Metadata and Data (C)
+
