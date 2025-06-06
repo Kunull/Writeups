@@ -1567,7 +1567,7 @@ The challenge performs the following checks:
     - Height (2 bytes): Must be in little-endian
 - Pixel Data:
     - Must be an between `0x20` and `0x7E`
-    - The number of non-space character must be `275`
+    - The number of non-space characters must be `275`
  
 Based on the number of pixels (`275`) we want, we can reverse engineer some values for the height (`25`) and weight (`11`).
  
@@ -1801,7 +1801,7 @@ The challenge performs the following checks:
     - Height (2 bytes): Must be in little-endian
 - Pixel Data:
     - Must be an between `0x20` and `0x7E`
-    - The number of non-space character must be `275`
+    - The number of non-space characters must be `275`
  
 Based on the number of pixels (`275`) we want, we can reverse engineer some values for the height (`25`) and weight (`11`).
  
