@@ -1200,8 +1200,8 @@ import struct
 # Build the header (16 bytes total)
 magic = b"cIMG"                    # 4 bytes
 version = struct.pack("<Q", 1)     # 8 bytes
-width = struct.pack("<H", 66)    # 2 bytes 
-height = struct.pack("<H", 17)    # 2 bytes 
+width = struct.pack("<H", 66)      # 2 bytes 
+height = struct.pack("<H", 17)     # 2 bytes 
 
 header = magic + version + width + height
 
@@ -1234,5 +1234,263 @@ pwn.college{89KE9mKkbzytvUe2ab0YCyPzt55.QXzETN2EDL4ITM0EzW}
 ## Input Restrictions (C)
 
 ```c title="/challenge/cimg.c"
+#define _GNU_SOURCE 1
+
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <time.h>
+#include <errno.h>
+#include <assert.h>
+#include <libgen.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <sys/signal.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <sys/sendfile.h>
+#include <sys/prctl.h>
+#include <sys/personality.h>
+#include <arpa/inet.h>
+
+void win()
+{
+    char flag[256];
+    int flag_fd;
+    int flag_length;
+
+    flag_fd = open("/flag", 0);
+    if (flag_fd < 0)
+    {
+        printf("\n  ERROR: Failed to open the flag -- %s!\n", strerror(errno));
+        if (geteuid() != 0)
+        {
+            printf("  Your effective user id is not 0!\n");
+            printf("  You must directly run the suid binary in order to have the correct permissions!\n");
+        }
+        exit(-1);
+    }
+    flag_length = read(flag_fd, flag, sizeof(flag));
+    if (flag_length <= 0)
+    {
+        printf("\n  ERROR: Failed to read the flag -- %s!\n", strerror(errno));
+        exit(-1);
+    }
+    write(1, flag, flag_length);
+    printf("\n\n");
+}
+
+void read_exact(int fd, void *dst, int size, char *msg, int exitcode)
+{
+    int n = read(fd, dst, size);
+    if (n != size)
+    {
+        fprintf(stderr, msg);
+        fprintf(stderr, "\n");
+        exit(exitcode);
+    }
+}
+
+struct cimg_header
+{
+    char magic_number[4];
+    uint32_t version;
+    uint8_t width;
+    uint8_t height;
+} __attribute__((packed));
+
+typedef struct
+{
+    uint8_t ascii;
+} pixel_bw_t;
+typedef pixel_bw_t pixel_t;
+
+struct cimg
+{
+    struct cimg_header header;
+};
+
+#define CIMG_NUM_PIXELS(cimg) ((cimg)->header.width * (cimg)->header.height)
+#define CIMG_DATA_SIZE(cimg) (CIMG_NUM_PIXELS(cimg) * sizeof(pixel_t))
+
+void __attribute__ ((constructor)) disable_buffering()
+{
+    setvbuf(stdin, NULL, _IONBF, 0);
+    setvbuf(stdout, NULL, _IONBF, 1);
+}
+
+int main(int argc, char **argv, char **envp)
+{
+
+    struct cimg cimg = { 0 };
+    int won = 1;
+
+    if (argc > 1)
+    {
+        if (strcmp(argv[1]+strlen(argv[1])-5, ".cimg"))
+        {
+            printf("ERROR: Invalid file extension!");
+            exit(-1);
+        }
+        dup2(open(argv[1], O_RDONLY), 0);
+    }
+
+    read_exact(0, &cimg.header, sizeof(cimg.header), "ERROR: Failed to read header!", -1);
+
+    if (cimg.header.magic_number[0] != 'c' || cimg.header.magic_number[1] != 'I' || cimg.header.magic_number[2] != 'M' || cimg.header.magic_number[3] != 'G')
+    {
+        puts("ERROR: Invalid magic number!");
+        exit(-1);
+    }
+
+    if (cimg.header.version != 1)
+    {
+        puts("ERROR: Unsupported version!");
+        exit(-1);
+    }
+
+    if (cimg.header.width != 80)
+    {
+        puts("ERROR: Incorrect width!");
+        exit(-1);
+    }
+
+    if (cimg.header.height != 13)
+    {
+        puts("ERROR: Incorrect height!");
+        exit(-1);
+    }
+
+    unsigned long data_size = cimg.header.width * cimg.header.height * sizeof(pixel_t);
+    pixel_t *data = malloc(data_size);
+    if (data == NULL)
+    {
+        puts("ERROR: Failed to allocate memory for the image data!");
+        exit(-1);
+    }
+    read_exact(0, data, data_size, "ERROR: Failed to read data!", -1);
+
+    for (int i = 0; i < cimg.header.width * cimg.header.height; i++)
+    {
+        if (data[i].ascii < 0x20 || data[i].ascii > 0x7e)
+        {
+            fprintf(stderr, "ERROR: Invalid character 0x%x in the image data!\n", data[i].ascii);
+            exit(-1);
+        }
+    }
+
+    if (won) win();
+
+}
+```
+
+The challenge performs the following checks:
+- File Extension: Must end with `.cimg`
+- Header (10 bytes total):
+    - Magic number (4 bytes): Must be `b"cIMG"`
+    - Version (4 bytes): Must be `1` in little-endian
+    - Width (1 bytes): Must be `80` in little-endian
+    - Height (1 bytes): Must be `13` in little-endian
+- Pixel Data:
+    - Must be exactly `80 × 13 = 1040` bytes
+    - Must be an between `0x20` and `0x7e`
+ 
+```python title="~/script.py" showLineNumbers
+import struct
+
+# Build the header (10 bytes total)
+magic = b"cIMG"                    # 4 bytes
+version = struct.pack("<I", 1)     # 4 bytes
+width = struct.pack("<B", 80)      # 1 bytes 
+height = struct.pack("<B", 13)     # 1 bytes 
+
+header = magic + version + width + height
+
+# Build the pixel data (80 * 13 = 1040 bytes)
+pixel_data = b"." * (80 * 13)
+
+# Full file content
+cimg_data = header + pixel_data
+
+# Write to disk
+filename = "/home/hacker/solution.cimg"
+with open(filename, "wb") as f:
+    f.write(cimg_data)
+
+print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to file: '{filename}'")
+```
 
 ```
+hacker@reverse-engineering~input-restrictions-c:/$ python ~/script.py
+Wrote 1050 bytes: b'cIMG\x01\x00\x00\x00P\r................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................' to file: '/home/hacker/solution.cimg'
+```
+
+```
+hacker@reverse-engineering~input-restrictions-c:/$ /challenge/cimg ~/solution.cimg 
+pwn.college{MncM_uybJBUtPMNqnf4uUZTvN38.QX0ETN2EDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Input Restrictions (x86)
+
+### Disassembly
+
+![image](https://github.com/user-attachments/assets/4ab77906-8298-42b6-a503-f65d754f6df1)
+
+![image](https://github.com/user-attachments/assets/edb9f500-c170-4c07-9f8d-39f30c4f4bd8)
+
+The challenge performs the following checks:
+- File Extension: Must end with `.cimg`
+- Header (10 bytes total):
+    - Magic number (4 bytes): Must be `0x63494d47"`
+    - Version (4 bytes): Must be `1` in little-endian
+    - Width (1 bytes): Must be `0x3b` (`59`) in little-endian
+    - Height (1 bytes): Must be `0x15` (`21`) in little-endian
+- Pixel Data:
+    - Must be exactly `80 × 13 = 1040` bytes
+    - Must be an between `0x20` and `0x7e`
+ 
+```python title="~/script.py" showLineNumbers
+import struct
+
+# Build the header (8 bytes total)
+magic = bytes.fromhex("63494d47")  # 4 bytes
+version = struct.pack("<H", 1)     # 2 bytes
+width = struct.pack("<B", 0x3b)    # 1 bytes 
+height = struct.pack("<B", 0x15)   # 1 bytes 
+
+header = magic + version + width + height
+
+# Build the pixel data (59 * 21 = 1239 bytes)
+pixel_data = b"." * (59 * 21)
+
+# Full file content
+cimg_data = header + pixel_data
+
+# Write to disk
+filename = "/home/hacker/solution.cimg"
+with open(filename, "wb") as f:
+    f.write(cimg_data)
+
+print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to file: '{filename}'")
+```
+
+```
+hacker@reverse-engineering~input-restrictions-x86:/$ python ~/script.py 
+Wrote 1247 bytes: b'cIMG\x01\x00;\x15.......................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................' to file: '/home/hacker/solution.cimg'
+```
+
+```
+hacker@reverse-engineering~input-restrictions-x86:/$ /challenge/cimg ~/solution.cimg 
+pwn.college{Qr3ER4NieY66DXLbO5a4RvjVuTi.QX0AzMwEDL4ITM0EzW}
+```
+
+&nbsp;
+
