@@ -1576,9 +1576,9 @@ import struct
 
 # Build the header (8 bytes total)
 magic = b"cIMG"                   # 4 bytes
-version = struct.pack("<L", 1)    # 2 bytes
-width = struct.pack("<L", 25)     # 1 bytes 
-height = struct.pack("<H", 11)    # 1 bytes 
+version = struct.pack("<L", 1)    # 4 bytes
+width = struct.pack("<L", 25)     # 4 bytes 
+height = struct.pack("<H", 11)    # 2 bytes 
 
 header = magic + version + width + height
 
@@ -1860,14 +1860,30 @@ pwn.college{Y9UIwcU8PAlWDhlav3ieIczJPrB.QX2ETN2EDL4ITM0EzW}
 
 #### `main()`
 
+![image](https://github.com/user-attachments/assets/758b28f6-19b4-4a8a-b050-c200df02f3b3)
+
+![image](https://github.com/user-attachments/assets/b502a631-3b3b-4f6f-b394-fe4fa8d21379)
+
+The challenge performs the following checks:
+- File Extension: Must end with `.cimg`
+- Header (14 bytes total):
+    - Magic number (4 bytes): Must be `0x63494d47"`
+    - Version (4 bytes): Must be `1` in little-endian
+    - Width (4 bytes): Must be in little-endian
+    - Height (2 bytes): Must be in little-endian
+- Pixel Data:
+    - Must be an between `0x20` and `0x7E`
+    - The number of non-space characters must be `275`
+ 
+
 ```python title="~/script.py" showLineNumbers
 import struct
 from pwn import *
 
-# Build the header (15 bytes total)
-magic = bytes.fromhex("284e6e72")  # 4 bytes
-version = struct.pack("<B", 1)     # 1 bytes
-width = struct.pack("<Q", 25)      # 8 bytes 
+# Build the header (14 bytes total)
+magic = bytes.fromhex("63494d47")  # 4 bytes
+version = struct.pack("<L", 1)     # 4 bytes
+width = struct.pack("<L", 25)      # 4 bytes 
 height = struct.pack("<H", 11)     # 2 bytes 
 
 header = magic + version + width + height
@@ -1884,5 +1900,25 @@ with open(filename, "wb") as f:
     f.write(cimg_data)
 
 print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to file: '{filename}'")
-``` the cIMG! (x86)
+```
 
+```
+hacker@reverse-engineering~behold-the-cimg-x86:/$ python ~/script.py 
+Wrote 289 bytes: b'cIMG\x01\x00\x00\x00\x19\x00\x00\x00\x0b\x00...................................................................................................................................................................................................................................................................................' to file: '/home/hacker/solution.cimg'
+```
+
+```
+hacker@reverse-engineering~behold-the-cimg-x86:/$ /challenge/cimg ~/solution.cimg 
+.........................
+.........................
+.........................
+.........................
+.........................
+.........................
+.........................
+.........................
+.........................
+.........................
+.........................
+pwn.college{8tyvsR_873aVBQOOVrrdXDT1h4x.QX1AzMwEDL4ITM0EzW}
+```
