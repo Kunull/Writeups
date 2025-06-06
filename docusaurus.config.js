@@ -79,6 +79,10 @@ const config = {
             position: 'right',
             items: [
               {
+                label: 'CTFtime',
+                href: 'https://ctftime.org/user/172878',
+              },
+              {
                 label: 'TryHackMe',
                 href: 'https://tryhackme.com/p/Kunull',
               },
