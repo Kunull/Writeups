@@ -1794,7 +1794,7 @@ int main(int argc, char **argv, char **envp)
 
 The challenge performs the following checks:
 - File Extension: Must end with `.cimg`
-- Header (14 bytes total):
+- Header (15 bytes total):
     - Magic number (4 bytes): Must be `b"cIMG"`
     - Version (1 bytes): Must be `1` in little-endian
     - Width (8 bytes): Must be in little-endian
@@ -1808,7 +1808,7 @@ Based on the number of pixels (`275`) we want, we can reverse engineer some valu
 ```python title="~/script.py" showLineNumbers
 import struct
 
-# Build the header (8 bytes total)
+# Build the header (15 bytes total)
 magic = b"cIMG"                   # 4 bytes
 version = struct.pack("<B", 1)    # 1 bytes
 width = struct.pack("<Q", 25)     # 8 bytes 
