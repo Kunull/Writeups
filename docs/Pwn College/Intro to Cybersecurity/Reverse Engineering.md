@@ -1796,8 +1796,8 @@ The challenge performs the following checks:
 - File Extension: Must end with `.cimg`
 - Header (14 bytes total):
     - Magic number (4 bytes): Must be `b"cIMG"`
-    - Version (4 bytes): Must be `1` in little-endian
-    - Width (4 bytes): Must be in little-endian
+    - Version (1 bytes): Must be `1` in little-endian
+    - Width (8 bytes): Must be in little-endian
     - Height (2 bytes): Must be in little-endian
 - Pixel Data:
     - Must be an between `0x20` and `0x7E`
@@ -1810,9 +1810,9 @@ import struct
 
 # Build the header (8 bytes total)
 magic = b"cIMG"                   # 4 bytes
-version = struct.pack("<L", 1)    # 2 bytes
-width = struct.pack("<L", 25)     # 1 bytes 
-height = struct.pack("<H", 11)    # 1 bytes 
+version = struct.pack("<B", 1)    # 1 bytes
+width = struct.pack("<Q", 25)     # 8 bytes 
+height = struct.pack("<H", 11)    # 2 bytes 
 
 header = magic + version + width + height
 
@@ -1829,3 +1829,29 @@ with open(filename, "wb") as f:
 
 print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to file: '{filename}'")
 ```
+
+```
+hacker@reverse-engineering~behold-the-cimg-c:/$ python ~/script.py 
+Wrote 290 bytes: b'cIMG\x01\x19\x00\x00\x00\x00\x00\x00\x00\x0b\x00...................................................................................................................................................................................................................................................................................' to file: '/home/hacker/solution.cimg'
+```
+
+```
+hacker@reverse-engineering~behold-the-cimg-c:/$ /challenge/cimg ~/solution.cimg 
+.........................
+.........................
+.........................
+.........................
+.........................
+.........................
+.........................
+.........................
+.........................
+.........................
+.........................
+pwn.college{Y9UIwcU8PAlWDhlav3ieIczJPrB.QX2ETN2EDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Behold the cIMG! (x86)
+
