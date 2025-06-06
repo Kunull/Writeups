@@ -496,7 +496,7 @@ pwn.college{Et6nh45-ta1HCaJmdwJf5eDGBdd.QXxAzMwEDL4ITM0EzW}
 
 ## Version Information (Python)
 
-```python title="/challenge/cimg"
+```python title="/challenge/cimg" showLineNumbers
 #!/opt/pwn.college/python
 
 import os
@@ -574,7 +574,7 @@ pwn.college{QE3tgVGh7hvrbDbs175V291MQid.QX5ATN2EDL4ITM0EzW}
 
 ## Version Information (C)
 
-```c title="/challenge/cimg.c"
+```c title="/challenge/cimg.c" showLineNumbers
 #define _GNU_SOURCE 1
 
 #include <stdlib.h>
@@ -781,7 +781,7 @@ pwn.college{MS8bIZFkAQQ3-xwFV98pplsoCa7.QXyAzMwEDL4ITM0EzW}
 
 ## Metadata and Data (Python)
 
-```python title="/challenge/cimg"
+```python title="/challenge/cimg" showLineNumbers
 #!/opt/pwn.college/python
 
 import os
@@ -844,10 +844,10 @@ The challenge performs the following checks:
 import struct
 
 # Build the header (20 bytes total)
-magic = b"CMgE"                    # 4 bytes
-version = struct.pack("<H", 1)     # 8 bytes 
-width = struct.pack("<H", 59)      # 4 bytes 
-height = struct.pack("<H", 21)     # 4 bytes
+magic = b"CmgE"                    # 4 bytes
+version = struct.pack("<Q", 1)     # 8 bytes 
+width = struct.pack("<L", 59)      # 4 bytes 
+height = struct.pack("<L", 21)     # 4 bytes
 
 header = magic + version + width + height
 
@@ -867,7 +867,7 @@ print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to file: '{filename}'")
 
 ```
 hacker@reverse-engineering~metadata-and-data-python:/$ python ~/script.py
-Wrote 1249 bytes: b'CMgE\x01\x00;\x00\x15\x00.......................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................' to file: '/home/hacker/solution.cimg'
+Wrote 1259 bytes: b'CmgE\x01\x00\x00\x00\x00\x00\x00\x00;\x00\x00\x00\x15\x00\x00\x00.......................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................' to file: '/home/hacker/solution.cimg'
 ```
 
 ```
@@ -879,7 +879,7 @@ pwn.college{gmcsTJSAE9Fvci5d7be0NM7T0Af.QXxETN2EDL4ITM0EzW}
 
 ## Metadata and Data (C)
 
-```c title="/challenge/cimg.c"
+```c title="/challenge/cimg.c" showLineNumbers
 #define _GNU_SOURCE 1
 
 #include <stdlib.h>
@@ -1233,7 +1233,7 @@ pwn.college{89KE9mKkbzytvUe2ab0YCyPzt55.QXzETN2EDL4ITM0EzW}
 
 ## Input Restrictions (C)
 
-```c title="/challenge/cimg.c"
+```c title="/challenge/cimg.c" showLineNumbers
 #define _GNU_SOURCE 1
 
 #include <stdlib.h>
@@ -1442,6 +1442,8 @@ pwn.college{MncM_uybJBUtPMNqnf4uUZTvN38.QX0ETN2EDL4ITM0EzW}
 
 ### Disassembly
 
+#### `main()`
+
 ![image](https://github.com/user-attachments/assets/4ab77906-8298-42b6-a503-f65d754f6df1)
 
 ![image](https://github.com/user-attachments/assets/edb9f500-c170-4c07-9f8d-39f30c4f4bd8)
@@ -1494,3 +1496,336 @@ pwn.college{Qr3ER4NieY66DXLbO5a4RvjVuTi.QX0AzMwEDL4ITM0EzW}
 
 &nbsp;
 
+## Behold the cIMG! (Python)
+
+```python title="/challenge/cimg" showLineNumbers
+#!/opt/pwn.college/python
+
+import os
+import sys
+from collections import namedtuple
+
+Pixel = namedtuple("Pixel", ["ascii"])
+
+
+def main():
+    if len(sys.argv) >= 2:
+        path = sys.argv[1]
+        assert path.endswith(".cimg"), "ERROR: file has incorrect extension"
+        file = open(path, "rb")
+    else:
+        file = sys.stdin.buffer
+
+    header = file.read1(14)
+    assert len(header) == 14, "ERROR: Failed to read header!"
+
+    assert header[:4] == b"cIMG", "ERROR: Invalid magic number!"
+
+    assert int.from_bytes(header[4:8], "little") == 1, "ERROR: Invalid version!"
+
+    width = int.from_bytes(header[8:12], "little")
+
+    height = int.from_bytes(header[12:14], "little")
+
+    data = file.read1(width * height)
+    assert len(data) == width * height, "ERROR: Failed to read data!"
+
+    pixels = [Pixel(character) for character in data]
+
+    invalid_character = next((pixel.ascii for pixel in pixels if not (0x20 <= pixel.ascii <= 0x7E)), None)
+    assert invalid_character is None, f"ERROR: Invalid character {invalid_character:#04x} in data!"
+
+    framebuffer = "".join(
+        bytes(pixel.ascii for pixel in pixels[row_start : row_start + width]).decode() + "\n"
+        for row_start in range(0, len(pixels), width)
+    )
+    print(framebuffer)
+
+    nonspace_count = sum(1 for pixel in pixels if chr(pixel.ascii) != " ")
+    if nonspace_count != 275:
+        return
+
+    with open("/flag", "r") as f:
+        flag = f.read()
+        print(flag)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except AssertionError as e:
+        print(e, file=sys.stderr)
+        sys.exit(-1)
+```
+
+The challenge performs the following checks:
+- File Extension: Must end with `.cimg`
+- Header (14 bytes total):
+    - Magic number (4 bytes): Must be `b"cIMG"`
+    - Version (4 bytes): Must be `1` in little-endian
+    - Width (4 bytes): Must be in little-endian
+    - Height (2 bytes): Must be in little-endian
+- Pixel Data:
+    - Must be an between `0x20` and `0x7E`
+    - The number of non-space chaacter must be `275`
+ 
+Based on the number of pixels (`275`) we want, we can reverse engineer some values for the height (`25`) and weight (`11`).
+ 
+```python title="~/script.py" showLineNumbers
+import struct
+
+# Build the header (8 bytes total)
+magic = b"cIMG"                   # 4 bytes
+version = struct.pack("<L", 1)    # 2 bytes
+width = struct.pack("<L", 25)     # 1 bytes 
+height = struct.pack("<H", 11)    # 1 bytes 
+
+header = magic + version + width + height
+
+# Build the pixel data (25 * 11 = 275 bytes)
+pixel_data = b"." * (25 * 11)
+
+# Full file content
+cimg_data = header + pixel_data
+
+# Write to disk
+filename = "/home/hacker/solution.cimg"
+with open(filename, "wb") as f:
+    f.write(cimg_data)
+
+print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to file: '{filename}'")
+```
+
+```
+hacker@reverse-engineering~behold-the-cimg-python:/$ python ~/script.py 
+Wrote 289 bytes: b'cIMG\x01\x00\x00\x00\x19\x00\x00\x00\x0b\x00...................................................................................................................................................................................................................................................................................' to file: '/home/hacker/solution.cimg'
+```
+
+```
+hacker@reverse-engineering~behold-the-cimg-python:/$ /challenge/cimg ~/solution.cimg 
+.........................
+.........................
+.........................
+.........................
+.........................
+.........................
+.........................
+.........................
+.........................
+.........................
+.........................
+
+pwn.college{Q-1xYEjUKjuKBEfHIV5c_J4d_fu.QX1ETN2EDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Behold the cIMG! (C)
+
+```c title="/challenge/cimg.c" showLineNumbers
+#define _GNU_SOURCE 1
+
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <time.h>
+#include <errno.h>
+#include <assert.h>
+#include <libgen.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <sys/signal.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <sys/sendfile.h>
+#include <sys/prctl.h>
+#include <sys/personality.h>
+#include <arpa/inet.h>
+
+void win()
+{
+    char flag[256];
+    int flag_fd;
+    int flag_length;
+
+    flag_fd = open("/flag", 0);
+    if (flag_fd < 0)
+    {
+        printf("\n  ERROR: Failed to open the flag -- %s!\n", strerror(errno));
+        if (geteuid() != 0)
+        {
+            printf("  Your effective user id is not 0!\n");
+            printf("  You must directly run the suid binary in order to have the correct permissions!\n");
+        }
+        exit(-1);
+    }
+    flag_length = read(flag_fd, flag, sizeof(flag));
+    if (flag_length <= 0)
+    {
+        printf("\n  ERROR: Failed to read the flag -- %s!\n", strerror(errno));
+        exit(-1);
+    }
+    write(1, flag, flag_length);
+    printf("\n\n");
+}
+
+void read_exact(int fd, void *dst, int size, char *msg, int exitcode)
+{
+    int n = read(fd, dst, size);
+    if (n != size)
+    {
+        fprintf(stderr, msg);
+        fprintf(stderr, "\n");
+        exit(exitcode);
+    }
+}
+
+struct cimg_header
+{
+    char magic_number[4];
+    uint8_t version;
+    uint64_t width;
+    uint16_t height;
+} __attribute__((packed));
+
+typedef struct
+{
+    uint8_t ascii;
+} pixel_bw_t;
+typedef pixel_bw_t pixel_t;
+
+struct cimg
+{
+    struct cimg_header header;
+};
+
+#define CIMG_NUM_PIXELS(cimg) ((cimg)->header.width * (cimg)->header.height)
+#define CIMG_DATA_SIZE(cimg) (CIMG_NUM_PIXELS(cimg) * sizeof(pixel_t))
+
+void display(struct cimg *cimg, pixel_t *data)
+{
+    int idx = 0;
+    for (int y = 0; y < cimg->header.height; y++)
+    {
+        for (int x = 0; x < cimg->header.width; x++)
+        {
+            idx = (0+y)*((cimg)->header.width) + ((0+x)%((cimg)->header.width));
+            putchar(data[y * cimg->header.width + x].ascii);
+
+        }
+        puts("");
+    }
+
+}
+
+void __attribute__ ((constructor)) disable_buffering()
+{
+    setvbuf(stdin, NULL, _IONBF, 0);
+    setvbuf(stdout, NULL, _IONBF, 1);
+}
+
+int main(int argc, char **argv, char **envp)
+{
+
+    struct cimg cimg = { 0 };
+    int won = 1;
+
+    if (argc > 1)
+    {
+        if (strcmp(argv[1]+strlen(argv[1])-5, ".cimg"))
+        {
+            printf("ERROR: Invalid file extension!");
+            exit(-1);
+        }
+        dup2(open(argv[1], O_RDONLY), 0);
+    }
+
+    read_exact(0, &cimg.header, sizeof(cimg.header), "ERROR: Failed to read header!", -1);
+
+    if (cimg.header.magic_number[0] != 'c' || cimg.header.magic_number[1] != 'I' || cimg.header.magic_number[2] != 'M' || cimg.header.magic_number[3] != 'G')
+    {
+        puts("ERROR: Invalid magic number!");
+        exit(-1);
+    }
+
+    if (cimg.header.version != 1)
+    {
+        puts("ERROR: Unsupported version!");
+        exit(-1);
+    }
+
+    unsigned long data_size = cimg.header.width * cimg.header.height * sizeof(pixel_t);
+    pixel_t *data = malloc(data_size);
+    if (data == NULL)
+    {
+        puts("ERROR: Failed to allocate memory for the image data!");
+        exit(-1);
+    }
+    read_exact(0, data, data_size, "ERROR: Failed to read data!", -1);
+
+    for (int i = 0; i < cimg.header.width * cimg.header.height; i++)
+    {
+        if (data[i].ascii < 0x20 || data[i].ascii > 0x7e)
+        {
+            fprintf(stderr, "ERROR: Invalid character 0x%x in the image data!\n", data[i].ascii);
+            exit(-1);
+        }
+    }
+
+    display(&cimg, data);
+
+    int num_nonspace = 0;
+    for (int i = 0; i < cimg.header.width * cimg.header.height; i++)
+    {
+        if (data[i].ascii != ' ') num_nonspace++;
+    }
+    if (num_nonspace != 275) won = 0;
+
+    if (won) win();
+
+}
+```
+
+The challenge performs the following checks:
+- File Extension: Must end with `.cimg`
+- Header (14 bytes total):
+    - Magic number (4 bytes): Must be `b"cIMG"`
+    - Version (4 bytes): Must be `1` in little-endian
+    - Width (4 bytes): Must be in little-endian
+    - Height (2 bytes): Must be in little-endian
+- Pixel Data:
+    - Must be an between `0x20` and `0x7E`
+    - The number of non-space chaacter must be `275`
+ 
+Based on the number of pixels (`275`) we want, we can reverse engineer some values for the height (`25`) and weight (`11`).
+ 
+```python title="~/script.py" showLineNumbers
+import struct
+
+# Build the header (8 bytes total)
+magic = b"cIMG"                   # 4 bytes
+version = struct.pack("<L", 1)    # 2 bytes
+width = struct.pack("<L", 25)     # 1 bytes 
+height = struct.pack("<H", 11)    # 1 bytes 
+
+header = magic + version + width + height
+
+# Build the pixel data (25 * 11 = 275 bytes)
+pixel_data = b"." * (25 * 11)
+
+# Full file content
+cimg_data = header + pixel_data
+
+# Write to disk
+filename = "/home/hacker/solution.cimg"
+with open(filename, "wb") as f:
+    f.write(cimg_data)
+
+print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to file: '{filename}'")
+```
