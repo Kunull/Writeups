@@ -1810,10 +1810,10 @@ import struct
 from pwn import *
 
 # Build the header (15 bytes total)
-magic = b"cIMG"                   # 4 bytes
-version = struct.pack("<B", 1)    # 1 bytes
-width = struct.pack("<Q", 25)     # 8 bytes 
-height = struct.pack("<H", 11)    # 2 bytes 
+magic = b"cIMG"                    # 4 bytes
+version = struct.pack("<B", 1)     # 1 bytes
+width = struct.pack("<Q", 25)      # 8 bytes 
+height = struct.pack("<H", 11)     # 2 bytes 
 
 header = magic + version + width + height
 
@@ -1855,4 +1855,34 @@ pwn.college{Y9UIwcU8PAlWDhlav3ieIczJPrB.QX2ETN2EDL4ITM0EzW}
 &nbsp;
 
 ## Behold the cIMG! (x86)
+
+### Disassembly
+
+#### `main()`
+
+```python title="~/script.py" showLineNumbers
+import struct
+from pwn import *
+
+# Build the header (15 bytes total)
+magic = bytes.fromhex("284e6e72")  # 4 bytes
+version = struct.pack("<B", 1)     # 1 bytes
+width = struct.pack("<Q", 25)      # 8 bytes 
+height = struct.pack("<H", 11)     # 2 bytes 
+
+header = magic + version + width + height
+
+# Build the pixel data (25 * 11 = 275 bytes)
+pixel_data = b"." * (25 * 11)
+
+# Full file content
+cimg_data = header + pixel_data
+
+# Write to disk
+filename = "/home/hacker/solution.cimg"
+with open(filename, "wb") as f:
+    f.write(cimg_data)
+
+print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to file: '{filename}'")
+``` the cIMG! (x86)
 
