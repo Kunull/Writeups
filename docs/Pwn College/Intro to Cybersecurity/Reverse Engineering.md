@@ -1807,6 +1807,7 @@ Based on the number of pixels (`275`) we want, we can reverse engineer some valu
  
 ```python title="~/script.py" showLineNumbers
 import struct
+from pwn import *
 
 # Build the header (15 bytes total)
 magic = b"cIMG"                   # 4 bytes
