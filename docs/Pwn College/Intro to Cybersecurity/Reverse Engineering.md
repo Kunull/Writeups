@@ -1439,9 +1439,9 @@ pwn.college{MncM_uybJBUtPMNqnf4uUZTvN38.QX0ETN2EDL4ITM0EzW}
 
 #### `main()`
 
-![image](https://github.com/user-attachments/assets/4ab77906-8298-42b6-a503-f65d754f6df1)
+![image](https://github.com/user-attachments/assets/58e06064-6ea6-4060-8abf-68b8e7e20e3e)
 
-![image](https://github.com/user-attachments/assets/edb9f500-c170-4c07-9f8d-39f30c4f4bd8)
+![image](https://github.com/user-attachments/assets/516cbc5a-64ee-42dc-a872-f73e2ae2cb99)
 
 The challenge performs the following checks:
 - File Extension: Must end with `.cimg`
