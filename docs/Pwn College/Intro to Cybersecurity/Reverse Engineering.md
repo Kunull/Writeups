@@ -191,7 +191,7 @@ pwn.college{IxtdOuGoBMdBfHrqJNAjzZ96L1h.QX2ATN2EDL4ITM0EzW}
 
 &nbsp;
 
-## File Formats: magic Numbers (x86)
+## File Formats: Magic Numbers (x86)
 
 ```
 hacker@reverse-engineering~file-formats-magic-numbers-x86:/$ file /challenge/cimg 
