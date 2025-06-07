@@ -2288,7 +2288,7 @@ The challenge performs the following checks:
 - Pixel Data:
     - The number of non-space ASCII pixels must be `51 * 24 = 1224`, i.e. the number of bytes must be `1224 * 4 = 4896`
     - Non-space ASCII must be between `0x20` and `0x7E`
-    - Must have the non-space ASCII character in ASU maroon `(0x8C, 0x1D, 0x40)` color when 4 consecutive bytes are chunked
+    - Must have the non-space ASCII character in ASU maroon `(0x8c, 0x1d, 0x40)` color when 4 consecutive bytes are chunked
  
 ```python title="~/script.py" showLineNumbers
 import struct
