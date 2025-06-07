@@ -202,11 +202,13 @@ This time the code is a binary executable in little endian format.
 
 Let's decompile it using [Binary Ninja Cloud](https://cloud.binary.ninja/).
 
+After some variable renaming, we are left with the following: 
+
 ### Decompilation
 
 #### `main()`
 
-![image](https://github.com/user-attachments/assets/3521b5de-c1d3-437d-9198-f8d1e3cba764)
+![image](https://github.com/user-attachments/assets/3461de42-2d8b-4851-bb88-f0d28558c942)
 
 The challenge performs the following checks:
 - File Extension: Must end with `.cimg`
