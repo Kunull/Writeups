@@ -202,7 +202,7 @@ This time the code is a binary executable in little endian format.
 
 Let's decompile it using [Binary Ninja Cloud](https://cloud.binary.ninja/).
 
-After some variable renaming, we are left with the following: 
+After some variable renaming and type editing, we are left with the following: 
 
 ### Decompilation
 
@@ -735,7 +735,7 @@ pwn.college{MX7npfEYKHEaMMoN-13n0RYXQiX.QXwETN2EDL4ITM0EzW}
 
 #### `main()`
 
-![image](https://github.com/user-attachments/assets/38fb9dd4-0572-4468-8c0b-d5639826695e)
+![image](https://github.com/user-attachments/assets/8e03222f-a902-493b-9da2-2bca5c8287de)
 
 - File Extension: Must end with `.cimg`
 - Header (8 bytes total):
