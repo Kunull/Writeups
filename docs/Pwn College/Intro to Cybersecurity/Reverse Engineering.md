@@ -2445,7 +2445,7 @@ pwn.college{UtFfALQAM2u-0NsYhnUJCQXPUZc.QX2AzMwEDL4ITM0EzW}
 
 ## Internal State Mini (C)
 
-```c title="/challenge/cimg.c" showlineNumbers
+```c title="/challenge/cimg.c" showLineNumbers
 #define _GNU_SOURCE 1
 
 #include <stdlib.h>
