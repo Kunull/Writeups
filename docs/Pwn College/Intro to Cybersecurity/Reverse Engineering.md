@@ -472,18 +472,11 @@ pwn.college{Iz_N1i6LBqszqfN70WeEVNJzFd9.QX4ATN2EDL4ITM0EzW}
 
 #### `main()`
 
-![image](https://github.com/user-attachments/assets/89b4ee75-a998-4673-b449-5d947415bb00)
+![image](https://github.com/user-attachments/assets/7eaea94a-9f4b-439d-890c-67cc3ccd778b)
 
 - File Extension: Must end with `.cimg`
 - Header (4 bytes total):
     - Magic number (4 bytes): Must be `0x72254f3c`, which is ASCII `<0%r` in little-endian
-
-```python
->>> bytearray.fromhex("72254f3c").decode()
-'r%O<'
-```
-
-The same concept of endianness applies here.
 
 ```
 hacker@reverse-engineering~reading-endianness-c:/$ echo '<0%r' > ~/solution.cimg
