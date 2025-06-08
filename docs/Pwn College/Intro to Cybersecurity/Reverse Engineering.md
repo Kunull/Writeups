@@ -5,7 +5,7 @@ sidebar_position: 5
 
 ## File Formats: Magic Numbers (Python)
 
-
+### Source code
 ```python title="/challenge/cimg" showLineNumbers
 #!/opt/pwn.college/python 
 
@@ -60,6 +60,7 @@ pwn.college{gnCrQDFokTc18WCgwd5eHW6GcYc.QX1ATN2EDL4ITM0EzW}
 
 ## File Formats: Magic Numbers (C)
 
+### Source code
 ```c title="/challenge/cimg.c" showLineNumbers
 #define _GNU_SOURCE 1
 
@@ -228,6 +229,7 @@ pwn.college{U45kfQ4KNJIp6KwDH0lQRHdpFeL.QXwAzMwEDL4ITM0EzW}
 
 ## Reading Endianness (Python)
 
+### Source code
 ```python title="/challenge/cimg" showLineNumbers
 #!/opt/pwn.college/python
 
@@ -327,6 +329,7 @@ pwn.college{UeceXp6n13KASFhim5T8GOhpq63.QX3ATN2EDL4ITM0EzW}
 
 ## Reading Endianness (C)
 
+### Source code
 ```c title="/challenge/cimg.c" showLineNumbers
 #define _GNU_SOURCE 1
 
@@ -491,6 +494,7 @@ pwn.college{Et6nh45-ta1HCaJmdwJf5eDGBdd.QXxAzMwEDL4ITM0EzW}
 
 ## Version Information (Python)
 
+### Source code
 ```python title="/challenge/cimg" showLineNumbers
 #!/opt/pwn.college/python
 
@@ -569,6 +573,7 @@ pwn.college{QE3tgVGh7hvrbDbs175V291MQid.QX5ATN2EDL4ITM0EzW}
 
 ## Version Information (C)
 
+### Source code
 ```c title="/challenge/cimg.c" showLineNumbers
 #define _GNU_SOURCE 1
 
@@ -776,6 +781,7 @@ pwn.college{MS8bIZFkAQQ3-xwFV98pplsoCa7.QXyAzMwEDL4ITM0EzW}
 
 ## Metadata and Data (Python)
 
+### Source code
 ```python title="/challenge/cimg" showLineNumbers
 #!/opt/pwn.college/python
 
@@ -874,6 +880,7 @@ pwn.college{gmcsTJSAE9Fvci5d7be0NM7T0Af.QXxETN2EDL4ITM0EzW}
 
 ## Metadata and Data (C)
 
+### Source code
 ```c title="/challenge/cimg.c" showLineNumbers
 #define _GNU_SOURCE 1
 
@@ -1126,6 +1133,7 @@ pwn.college{UB4Rk1u_RCBjfYamRdf9nAU0tlF.QXzAzMwEDL4ITM0EzW}
 
 ## Input Restrictions (Python)
 
+### Source code
 ```python title="/challenge/cimg" showLineNumbers
 #!/opt/pwn.college/python
 
@@ -1228,6 +1236,7 @@ pwn.college{89KE9mKkbzytvUe2ab0YCyPzt55.QXzETN2EDL4ITM0EzW}
 
 ## Input Restrictions (C)
 
+### Source code
 ```c title="/challenge/cimg.c" showLineNumbers
 #define _GNU_SOURCE 1
 
@@ -1493,6 +1502,7 @@ pwn.college{Qr3ER4NieY66DXLbO5a4RvjVuTi.QX0AzMwEDL4ITM0EzW}
 
 ## Behold the cIMG! (Python)
 
+### Source code
 ```python title="/challenge/cimg" showLineNumbers
 #!/opt/pwn.college/python
 
@@ -1618,6 +1628,7 @@ pwn.college{Q-1xYEjUKjuKBEfHIV5c_J4d_fu.QX1ETN2EDL4ITM0EzW}
 
 ## Behold the cIMG! (C)
 
+### Source code
 ```c title="/challenge/cimg.c" showLineNumbers
 #define _GNU_SOURCE 1
 
@@ -1924,6 +1935,7 @@ pwn.college{8tyvsR_873aVBQOOVrrdXDT1h4x.QX1AzMwEDL4ITM0EzW}
 
 ## A Basic cIMG (Python)
 
+### Source code
 ```python title="/chalenge/cimg" showLineNumbers
 #!/opt/pwn.college/python
 
@@ -2078,6 +2090,7 @@ pwn.college{Q6Dv1cf7dB1UwYRL2Mzcu_E967L.QX3ETN2EDL4ITM0EzW}
 
 ## A Basic cIMG (C)
 
+### Source code
 ```c title="/challenge/cimg.c" showLineNumbers
 #define _GNU_SOURCE 1
 
@@ -2445,6 +2458,7 @@ pwn.college{UtFfALQAM2u-0NsYhnUJCQXPUZc.QX2AzMwEDL4ITM0EzW}
 
 ## Internal State Mini (C)
 
+### Source code
 ```c title="/challenge/cimg.c" showLineNumbers
 #define _GNU_SOURCE 1
 
