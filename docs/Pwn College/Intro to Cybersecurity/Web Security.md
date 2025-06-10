@@ -86,7 +86,7 @@ app.config["SERVER_NAME"] = f"challenge.localhost:80"
 app.run("challenge.localhost", 80)
 ```
 
-This cahllenge strips the `/.` charaacters from the beginning and the end of the `<path:path>` string.
+This challenge strips the `/.` characters from the beginning and the end of the `<path:path>` string.
 
 ```
 ## Request:
