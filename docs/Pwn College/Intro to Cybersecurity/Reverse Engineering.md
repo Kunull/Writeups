@@ -2704,3 +2704,30 @@ int main(int argc, char **argv, char **envp)
 
 }
 ```
+
+```python title="~/script.py" showLineNumbers
+import struct
+from pwn import *
+
+# Build the header (10 bytes total)
+magic = b"cIMG"                    # 4 bytes
+version = struct.pack("<H", 2)     # 2 bytes
+width = struct.pack("<B", 39)      # 1 bytes 
+height = struct.pack("<B", 21)     # 1 bytes 
+
+header = magic + version + width + height
+
+# Build the pixel data (39 * 21 * 4 = 3276 bytes)
+pixel = b"\x8C\x1D\x40."   
+pixel_data = pixel * (39 * 21)  
+
+# Full file content
+cimg_data = header + pixel_data
+
+# Write to disk
+filename = "/home/hacker/solution.cimg"
+with open(filename, "wb") as f:
+    f.write(cimg_data)
+
+print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to file: '{filename}'")
+```
