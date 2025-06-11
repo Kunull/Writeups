@@ -1722,6 +1722,6 @@ hacker@web-security~sqli-5:/$ python ~/script.py
 ## XSS 1
 
 ### Source code
-```
+```py title="
 
 ```
