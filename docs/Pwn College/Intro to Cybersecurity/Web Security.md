@@ -807,7 +807,7 @@ if username == "admin":
 This blindly trusts the user-controlled session_user parameter with no validation.
 This insecure session handling causes IDOR.
 
-#### IDOR
+### IDOR
 
 ```
 hacker@web-security~authentication-bypass-1:/$ curl "challenge.localhost:80/?session_user=admin"
