@@ -4379,7 +4379,7 @@ time.sleep(3)
 print("Visited! Go check if the attack worked!")
 ```
 
-#### CSRF > XSS
+### CSRF > XSS
 
 This time, we cannot steal cookies through Javascript. We can, however, steal them through the headers.
 - Craft a malicious HTML page that triggers a CSRF to `/ephemeral`, injecting an XSS payload.
@@ -4388,6 +4388,7 @@ This time, we cannot steal cookies through Javascript. We can, however, steal th
 - Use the injected JavaScript to fetch the contents of the challenge site’s homepage and send it to our listener.
 - Rely on the `admin` (automatically simulated via `/challenge/victim`) to visit our malicious page and trigger the attack.
 
+#### Exploit
 ```html title="~/index.html" showLineNumbers
 <!DOCTYPE html>
 <html>
