@@ -592,7 +592,7 @@ We also have to set the flag to `A`, which represents an ACK packet.
 
 We also know the MAC address of the host at `10.0.0.2`, `32:ed:40:fe:96:eb`.
 
-```
+```py
 >>> sendp(Ether(src="3a:83:ca:64:a4:88", dst="32:ed:40:fe:96:eb") / IP(src="10.0.0.1", dst="10.0.0.2") / TCP(sport=31337, dport=31337, seq=31338, ack=24000825, flags="A"), iface="eth0")
 .
 Sent 1 packets.
