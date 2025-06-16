@@ -1010,7 +1010,36 @@ pwn.college{kNuF6XCFRDDJxedKpxAlQ9yb0uV.ddjNzMDL4ITM0EzW}
 
 ### Source code
 ```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
 
+import os
+
+import psutil
+import scapy.all as scapy
+from dojjail import Host, Network
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+class RawPacketHost(Host):
+    def entrypoint(self):
+        scapy.conf.ifaces.reload()
+        scapy.sniff(prn=self.handle_packet, iface="eth0")
+
+    def handle_packet(self, packet):
+        if "TCP" not in packet:
+            return
+        if (packet["TCP"].sport == 31337 and packet["TCP"].dport == 31337 and
+            packet["TCP"].seq == 31337 and packet["TCP"].ack == 31337 and
+            packet["TCP"].flags == "APRSF"):
+            print(flag, flush=True)
+
+user_host = Host("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+raw_packet_host = RawPacketHost("ip-10-0-0-2")
+network = Network(hosts={user_host: "10.0.0.1", raw_packet_host: "10.0.0.2"}, subnet="10.0.0.0/24")
+network.run()
+
+user_host.interactive(environ=parent_process.environ())
 ```
 
 ```
@@ -1119,6 +1148,7 @@ pwn.college{8StjcaVle85KYtysso8f0NwHhkx.dhjNzMDL4ITM0EzW}
 
 > Manually perform a Transmission Control Protocol handshake. The initial packet should have `TCP sport=31337, dport=31337, seq=31337`. The handshake should occur with the remote host at `10.0.0.2`.
 
+### Source code
 ```py title="/challenge/run" showLineNumbers
 #!/usr/bin/exec-suid --real -- /usr/bin/python -I
 
