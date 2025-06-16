@@ -132,28 +132,76 @@ pwn.college{w5xqRA9L9VqC5wgnj0y2NJf5Zd5.dNjNzMDL4ITM0EzW}
 
 ## Monitor 2
 
-This time the flag is being sent one character per request.
-We can craft the flag using a simple Python script.
+&nbsp;
 
-```py
-In [1]: from scapy.all import sniff, Raw
-   ...: 
-   ...: buffer = b""
-   ...: 
-   ...: def handle_packet(packet):
-   ...:     global buffer
-   ...:     if packet.haslayer(Raw):
-   ...:         buffer += bytes(packet[Raw])
-   ...:         if b'pwn.college{' in buffer and b'}' in buffer:
-   ...:             start = buffer.find(b'pwn.college{')
-   ...:             end = buffer.find(b'}', start)
-   ...:             if end != -1:
-   ...:                 flag = buffer[start:end+1]
-   ...:                 print(f"\nFlag captured: {flag.decode(errors='ignore')}")
-   ...:                 exit(0)  # stop sniffing
-   ...: 
-   ...: sniff(filter="tcp dst port 31337", prn=handle_packet)
-   ...: 
+## Network Configuration
 
-Flag captured: pwn.college{I4fIyKwkQexXwA6EYgWabI6ocRG.dRjNzMDL4ITM0EzW}
+In this level, the host at `10.0.0.2` is communicating with the host at `10.0.0.3`.
+We can essentially become `10.0.0.3` so that we now receive those packets.
+
 ```
+root@ip-10-0-0-1:/# ip address add 10.0.0.3/16 dev eth0
+```
+
+We have added the address on our `eth0` interface.
+
+Now when we receive an ARP `who-has` request asking for `10.0.0.3`, we can send a `is-at` reply with our MAC address.
+
+```
+root@ip-10-0-0-1:/# nc -l 31337
+pwn.college{Ij1Vds7KoGcIewEjDEEof1oBvmi.dVjNzMDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Firewall 1
+
+This time we have to block traffic on port `31337`.
+
+We can do that using the `iptabes` command.
+
+```
+root@ip-10-0-0-1:/# iptables -A INPUT -p tcp --dport 31337 -j DROP
+root@ip-10-0-0-1:/# pwn.college{4gzO4ofTkOcR06polLF21wrKAru.QX4QDM2EDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Firewall 2
+
+In this challenge, we have to only block traffic from `10.0.0.3` on `31337`.
+
+```
+root@ip-10-0-0-1:/# iptables -A INPUT -p tcp -s 10.0.0.3 --dport 31337 -j DROP
+root@ip-10-0-0-1:/# pwn.college{k1UUolaE-mtHzfAEzyJtlXZsqNT.QX5QDM2EDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Firewall 3
+
+Thios time we have to open up port `31337` for outbound connections.
+
+```
+root@ip-10-0-0-1:/# iptables -I OUTPUT -p tcp -d 10.0.0.2 --dport 31337 -j ACCEPT
+```
+
+We can verify that our rule has been created.
+
+```
+root@ip-10-0-0-1:/# iptables -L OUTPUT -v -n --line-numbers
+Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
+num   pkts bytes target     prot opt in     out     source               destination         
+1        0     0 ACCEPT     tcp  --  *      *       0.0.0.0/0            10.0.0.2             tcp dpt:31337
+2        0     0 DROP       tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:31337
+```
+
+```
+root@ip-10-0-0-1:/# nc 10.0.0.2 31337
+pwn.college{8T7GpLSG0UQsqNItYdCt1AztxCN.QXwUDM2EDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Denial of Service 1
+
