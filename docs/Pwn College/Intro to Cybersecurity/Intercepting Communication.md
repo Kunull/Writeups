@@ -1119,6 +1119,71 @@ pwn.college{8StjcaVle85KYtysso8f0NwHhkx.dhjNzMDL4ITM0EzW}
 
 > Manually perform a Transmission Control Protocol handshake. The initial packet should have `TCP sport=31337, dport=31337, seq=31337`. The handshake should occur with the remote host at `10.0.0.2`.
 
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import os
+import random
+import subprocess
+
+import psutil
+import scapy.all as scapy
+from dojjail import Host, Network
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+def drop_rst_packets(sport):
+    subprocess.run(["/usr/sbin/iptables",
+                    "-A", "OUTPUT",
+                    "-p", "tcp",
+                    "--tcp-flags", "RST", "RST",
+                    "--sport", str(sport),
+                    "-j", "DROP"],
+                   stdin=subprocess.DEVNULL,
+                   capture_output=True,
+                   check=True)
+
+class RawPacketHost(Host):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.seq = None
+
+    def entrypoint(self):
+        scapy.conf.ifaces.reload()
+        scapy.conf.route.resync()
+        drop_rst_packets(31337)
+        scapy.sniff(prn=self.handle_packet, iface="eth0")
+
+    def handle_packet(self, packet):
+        if "TCP" not in packet:
+            return
+        if not (packet["TCP"].sport == 31337 and packet["TCP"].dport == 31337):
+            return
+
+        if packet["TCP"].seq == 31337 and packet["TCP"].flags == "S":
+            self.seq = random.randrange(0, 2**32)
+            response_packet = (scapy.IP(src=packet["IP"].dst, dst=packet["IP"].src) /
+                               scapy.TCP(sport=packet["TCP"].dport, dport=packet["TCP"].sport,
+                                         seq=self.seq, ack=(packet["TCP"].seq + 1) % (2**32),
+                                         flags="SA"))
+            scapy.send(response_packet, verbose=False)
+
+        if (packet["TCP"].seq == (31337 + 1) and
+            packet["TCP"].ack == ((self.seq + 1) % (2**32)) and
+            packet["TCP"].flags == "A"):
+            print(flag, flush=True)
+
+user_host = Host("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+raw_packet_host = RawPacketHost("ip-10-0-0-2")
+network = Network(hosts={user_host: "10.0.0.1", raw_packet_host: "10.0.0.2"}, subnet="10.0.0.0/24")
+network.run()
+
+user_host.exec(lambda: drop_rst_packets(31337))
+
+user_host.interactive(environ=parent_process.environ())
+```
+
 A TCP handshake is really just a sequence of packets that establishes a secure and reliable connection between two devices.
 
 It includes three packets:
@@ -1290,3 +1355,6 @@ Finished sending 1 packets
 Received 2 packets, got 1 answers, remaining 0 packets
 <IP  version=4 ihl=5 tos=0x0 len=88 id=42364 flags=DF frag=0 ttl=64 proto=udp chksum=0x8116 src=10.0.0.2 dst=10.0.0.1 |<UDP  sport=31337 dport=31337 len=68 chksum=0x1458 |<Raw  load=b'pwn.college{IyEug8PTvV4SRHm8XPCrNxSUihI.QXyQDM2EDL4ITM0EzW}\n' |>>>
 ```
+
+&nbsp;
+
