@@ -490,4 +490,111 @@ Let's fill the correct fields.
 >>> sendp(Ether(src="86:58:ac:24:7e:03", dst="ff:ff:ff:ff:ff:ff") / IP(src="10.0.0.1", dst="10.0.0.2") / TCP(sport=31337, dport=31337, seq=31337, ack=31337, flags="APRSF"), iface="eth0")
 .
 Sent 1 packets.
-pwn.college{8StjcaVle85KYtysso8f0NwHhkx.dhjNzMDL4ITM0EzW}```
+pwn.college{8StjcaVle85KYtysso8f0NwHhkx.dhjNzMDL4ITM0EzW}
+```
+
+&nbsp;
+
+## TCP Handshake
+
+> Manually perform a Transmission Control Protocol handshake. The initial packet should have `TCP sport=31337, dport=31337, seq=31337`. The handshake should occur with the remote host at `10.0.0.2`.
+
+A TCP handshake is really just a sequence of packets that establishes a secure and reliable connection between two devices.
+
+It includes three packets:
+
+1. SYN
+2. SYN-ACK
+3. ACK
+
+```
+root@ip-10-0-0-1:/# ifconfig
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 10.0.0.1  netmask 255.255.255.0  broadcast 0.0.0.0
+        inet6 fe80::3883:caff:fe64:a488  prefixlen 64  scopeid 0x20<link>
+        ether 3a:83:ca:64:a4:88  txqueuelen 1000  (Ethernet)
+        RX packets 18  bytes 1536 (1.5 KiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 6  bytes 516 (516.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        inet6 ::1  prefixlen 128  scopeid 0x10<host>
+        loop  txqueuelen 1000  (Local Loopback)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+```
+
+We have to first send a SYN packet, represented by `S` as the flag.
+
+```py
+>>> (Ether(src="3a:83:ca:64:a4:88", dst="ff:ff:ff:ff:ff:ff") / IP(src="10.0.0.1", dst="10.0.0.2") / TCP(sport=31337, dport=31337, seq=31337, flags="S")).display()
+###[ Ethernet ]###
+  dst       = ff:ff:ff:ff:ff:ff
+  src       = 3a:83:ca:64:a4:88
+  type      = IPv4
+###[ IP ]###
+     version   = 4
+     ihl       = None
+     tos       = 0x0
+     len       = None
+     id        = 1
+     flags     = 
+     frag      = 0
+     ttl       = 64
+     proto     = tcp
+     chksum    = None
+     src       = 10.0.0.1
+     dst       = 10.0.0.2
+     \options   \
+###[ TCP ]###
+        sport     = 31337
+        dport     = 31337
+        seq       = 31337
+        ack       = 0
+        dataofs   = None
+        reserved  = 0
+        flags     = S
+        window    = 8192
+        chksum    = None
+        urgptr    = 0
+        options   = []
+```
+
+We can send the packet over using `srp`.
+
+```py
+>>> response = srp(Ether(src="3a:83:ca:64:a4:88", dst="ff:ff:ff:ff:ff:ff") / IP(src="10.0.0.1", dst="10.0.0.2") / TCP(sport=31337, dport=31337, seq=31337, flags="S"), iface="eth0")
+Begin emission
+
+Finished sending 1 packets
+.*
+Received 2 packets, got 1 answers, remaining 0 packets
+```
+
+Let's look at the response from the host at `10.0.0.2`.
+
+```py
+>>> response[0][0]
+QueryAnswer(
+    query=<Ether  dst=ff:ff:ff:ff:ff:ff src=3a:83:ca:64:a4:88 type=IPv4 |<IP  frag=0 proto=tcp src=10.0.0.1 dst=10.0.0.2 |<TCP  sport=31337 dport=31337 seq=31337 flags=S |>>>,
+    answer=<Ether  dst=3a:83:ca:64:a4:88 src=32:ed:40:fe:96:eb type=IPv4 |<IP  version=4 ihl=5 tos=0x0 len=40 id=1 flags= frag=0 ttl=64 proto=tcp chksum=0x66cd src=10.0.0.2 dst=10.0.0.1 |<TCP  sport=31337 dport=31337 seq=24000824 ack=31338 dataofs=5 reserved=0 flags=SA window=8192 chksum=0xd1ec urgptr=0 |>>>
+)
+```
+
+As we can see, the response has `seq` field set to `24000824` and the `ack` field set to `31338` which is our `seq+1`.
+So the host at `10.0.0.2` has acknowledged our SYN packet. Now we have to acknowledge theirs by setting our `ack` field to `24000825` which is their `seq+1`.
+
+We also have to set the flag to `A`, which represents an ACK packet.
+
+```
+>>> sendp(Ether(src="3a:83:ca:64:a4:88", dst="1e:c3:ea:f1:34:3e") / IP(src="10.0.0.1", dst="10.0.0.2") / TCP(sport=31337, dport=31337, seq=31338, ack=24000825, flags="A"), iface="eth0")
+.
+Sent 1 packets.
+pwn.college{MFeq4__GaD1i7X6t5G_hJxNRVsy.dljNzMDL4ITM0EzW}
+```
+
+&nbsp;
