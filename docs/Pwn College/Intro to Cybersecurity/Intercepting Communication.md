@@ -5,6 +5,40 @@ sidebar_position: 2
 
 ## Connect
 
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import os
+import socket
+
+import psutil
+from dojjail import Host, Network
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+class ServerHost(Host):
+    def entrypoint(self):
+        server_socket = socket.socket()
+        server_socket.bind(("0.0.0.0", 31337))
+        server_socket.listen()
+        while True:
+            try:
+                connection, _ = server_socket.accept()
+                connection.sendall(flag.encode())
+                connection.close()
+            except ConnectionError:
+                continue
+
+user_host = Host("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+server_host = ServerHost("ip-10-0-0-2")
+network = Network(hosts={user_host: "10.0.0.1", server_host: "10.0.0.2"}, subnet="10.0.0.0/24")
+network.run()
+
+user_host.interactive(environ=parent_process.environ())
+```
+
 In this challegne, we have to connect to `10.0.0.2` on port `31337`.
 
 ```
@@ -21,6 +55,46 @@ pwn.college{wbLEvztIH-MlyXZbTzR3-bhhAwh.dlTNzMDL4ITM0EzW}
 
 ## Send
 
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import os
+import socket
+
+import psutil
+from dojjail import Host, Network
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+class ServerHost(Host):
+    def entrypoint(self):
+        server_socket = socket.socket()
+        server_socket.bind(("0.0.0.0", 31337))
+        server_socket.listen()
+        while True:
+            try:
+                connection, _ = server_socket.accept()
+                while True:
+                    client_message = connection.recv(1024).decode()
+                    if not client_message:
+                        break
+                    if client_message == "Hello, World!\n":
+                        connection.sendall(flag.encode())
+                        break
+                connection.close()
+            except ConnectionError:
+                continue
+
+user_host = Host("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+server_host = ServerHost("ip-10-0-0-2")
+network = Network(hosts={user_host: "10.0.0.1", server_host: "10.0.0.2"}, subnet="10.0.0.0/24")
+network.run()
+
+user_host.interactive(environ=parent_process.environ())
+```
+
 This time we have to send a message containing `"Hello, World!""` to the remote host `10.0.0.2` on port `31337`.
 
 ```
@@ -32,6 +106,43 @@ pwn.college{0Hb11t9ijpcF9e3tDdE_3W2fDWk.QX1IDM2EDL4ITM0EzW}
 &nbsp;
 
 ## Shutdown
+
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import os
+import socket
+
+import psutil
+from dojjail import Host, Network
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+class ServerHost(Host):
+    def entrypoint(self):
+        server_socket = socket.socket()
+        server_socket.bind(("0.0.0.0", 31337))
+        server_socket.listen()
+        while True:
+            try:
+                connection, _ = server_socket.accept()
+                while True:
+                    if not connection.recv(1):
+                        connection.sendall(flag.encode())
+                        break
+                connection.close()
+            except ConnectionError:
+                continue
+
+user_host = Host("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+server_host = ServerHost("ip-10-0-0-2")
+network = Network(hosts={user_host: "10.0.0.1", server_host: "10.0.0.2"}, subnet="10.0.0.0/24")
+network.run()
+
+user_host.interactive(environ=parent_process.environ())
+```
 
 We can use the `-N` option in `nc` so that it shuts down on `CTRL-D`.
 
@@ -49,6 +160,40 @@ pwn.college{M0ZqQvNQkxl9FGLlvmqyp4DYcoE.QX2IDM2EDL4ITM0EzW}
 
 ## Listen
 
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import os
+import socket
+import time
+
+import psutil
+from dojjail import Host, Network
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+class ClientHost(Host):
+    def entrypoint(self):
+        while True:
+            time.sleep(1)
+            try:
+                client_socket = socket.socket()
+                client_socket.connect(("10.0.0.1", 31337))
+                client_socket.sendall(flag.encode())
+                client_socket.close()
+            except (ConnectionError, TimeoutError):
+                continue
+
+user_host = Host("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+server_host = ClientHost("ip-10-0-0-2")
+network = Network(hosts={user_host: "10.0.0.1", server_host: "10.0.0.2"}, subnet="10.0.0.0/24")
+network.run()
+
+user_host.interactive(environ=parent_process.environ())
+```
+
 This time we have to listn for a connection on port `31337`.
 
 ```
@@ -61,9 +206,46 @@ root@ip-10-0-0-1:/# nc -l 31337
 pwn.college{YEg8RQOuKAnFvEr1BPhIXGL7y1c.dBjNzMDL4ITM0EzW}
 ```
 
-&nbsp
+&nbsp;
 
 ## Scan 1
+
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import os
+import random
+import socket
+
+import psutil
+from dojjail import Host, Network
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+class ServerHost(Host):
+    def entrypoint(self):
+        server_socket = socket.socket()
+        server_socket.bind(("0.0.0.0", 31337))
+        server_socket.listen()
+        while True:
+            try:
+                connection, _ = server_socket.accept()
+                connection.sendall(flag.encode())
+                connection.close()
+            except ConnectionError:
+                continue
+
+unknown_ip = f"10.0.0.{random.randint(10, 254)}"
+
+user_host = Host("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+server_host = ServerHost("ip-10-0-0-?")
+network = Network(hosts={user_host: "10.0.0.1", server_host: unknown_ip}, subnet="10.0.0.0/24")
+network.run()
+
+user_host.interactive(environ=parent_process.environ())
+```
 
 In this challenge, we have to find the host which is up in our subnet, and then connect to it on port `31337`.
 
@@ -87,6 +269,43 @@ pwn.college{w9cEDV2HoE3YNa5SUNShEMZAcfA.dFjNzMDL4ITM0EzW}
 &nbsp;
 
 ## Scan 2
+
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import os
+import random
+import socket
+
+import psutil
+from dojjail import Host, Network
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+class ServerHost(Host):
+    def entrypoint(self):
+        server_socket = socket.socket()
+        server_socket.bind(("0.0.0.0", 31337))
+        server_socket.listen()
+        while True:
+            try:
+                connection, _ = server_socket.accept()
+                connection.sendall(flag.encode())
+                connection.close()
+            except ConnectionError:
+                continue
+
+unknown_ip = f"10.0.{random.randint(1, 255)}.{random.randint(1, 254)}"
+
+user_host = Host("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+server_host = ServerHost("ip-10-0-?-?")
+network = Network(hosts={user_host: "10.0.0.1", server_host: unknown_ip}, subnet="10.0.0.0/16")
+network.run()
+
+user_host.interactive(environ=parent_process.environ())
+```
 
 This time we have to scan the `/16` subnet using NMAP.
 
@@ -120,6 +339,53 @@ pwn.college{gpJ1hkttpIQi_Dr58v9ReQoWsFD.dJjNzMDL4ITM0EzW}
 
 ## Monitor 1
 
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import os
+import socket
+import time
+
+import psutil
+from dojjail import Host, Network
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+class ClientHost(Host):
+    def entrypoint(self):
+        while True:
+            time.sleep(1)
+            try:
+                client_socket = socket.socket()
+                client_socket.connect(("10.0.0.2", 31337))
+                client_socket.sendall(flag.encode())
+                client_socket.close()
+            except (ConnectionError, TimeoutError):
+                continue
+
+class ServerHost(Host):
+    def entrypoint(self):
+        server_socket = socket.socket()
+        server_socket.bind(("0.0.0.0", 31337))
+        server_socket.listen()
+        while True:
+            try:
+                connection, _ = server_socket.accept()
+                connection.recv(1024)
+                connection.close()
+            except ConnectionError:
+                continue
+
+user_host = ClientHost("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+server_host = ServerHost("ip-10-0-0-2")
+network = Network(hosts={user_host: "10.0.0.1", server_host: "10.0.0.2"}, subnet="10.0.0.0/24")
+network.run()
+
+user_host.interactive(environ=parent_process.environ())
+```
+
 For this challenge, we have to observe network traffic using Wireshark, and find the flag.
 
 ![image](https://github.com/user-attachments/assets/6ae68ef1-a095-4b66-972c-8cdc3ef42193)
@@ -132,9 +398,118 @@ pwn.college{w5xqRA9L9VqC5wgnj0y2NJf5Zd5.dNjNzMDL4ITM0EzW}
 
 ## Monitor 2
 
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import os
+import socket
+import time
+
+import psutil
+from dojjail import Host, Network
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+class ClientHost(Host):
+    def entrypoint(self):
+        while True:
+            time.sleep(1)
+            try:
+                client_socket = socket.socket()
+                client_socket.connect(("10.0.0.2", 31337))
+                for c in flag:
+                    client_socket.sendall(c.encode())
+                    time.sleep(1)
+                client_socket.close()
+            except (ConnectionError, TimeoutError):
+                continue
+
+class ServerHost(Host):
+    def entrypoint(self):
+        server_socket = socket.socket()
+        server_socket.bind(("0.0.0.0", 31337))
+        server_socket.listen()
+        while True:
+            try:
+                connection, _ = server_socket.accept()
+                while connection.recv(1):
+                    pass
+                connection.close()
+            except ConnectionError:
+                continue
+
+user_host = ClientHost("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+server_host = ServerHost("ip-10-0-0-2")
+network = Network(hosts={user_host: "10.0.0.1", server_host: "10.0.0.2"}, subnet="10.0.0.0/24")
+network.run()
+
+user_host.interactive(environ=parent_process.environ())
+```
+
+We can use a simple Python script to capture the flag byte by byte and craft the complete flag.
+
+```py
+In [1]: from scapy.all import sniff, Raw
+   ...: 
+   ...: buffer = b""
+   ...: 
+   ...: def handle_packet(packet):
+   ...:     global buffer
+   ...:     if packet.haslayer(Raw):
+   ...:         buffer += bytes(packet[Raw])
+   ...:         if b'pwn.college{' in buffer and b'}' in buffer:
+   ...:             start = buffer.find(b'pwn.college{')
+   ...:             end = buffer.find(b'}', start)
+   ...:             if end != -1:
+   ...:                 flag = buffer[start:end+1]
+   ...:                 print(f"\nFlag captured: {flag.decode(errors='ignore')}")
+   ...:                 exit(0)  # stop sniffing
+   ...: 
+   ...: sniff(filter="tcp dst port 31337", prn=handle_packet)
+   ...: 
+
+Flag captured: pwn.college{I4fIyKwkQexXwA6EYgWabI6ocRG.dRjNzMDL4ITM0EzW}
+```
+
 &nbsp;
 
 ## Network Configuration
+
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import os
+import socket
+import time
+
+import psutil
+from dojjail import Host, Network
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+class ClientHost(Host):
+    def entrypoint(self):
+        while True:
+            time.sleep(1)
+            try:
+                client_socket = socket.socket()
+                client_socket.connect(("10.0.0.3", 31337))
+                client_socket.sendall(flag.encode())
+                client_socket.close()
+            except (OSError, ConnectionError, TimeoutError):
+                continue
+
+user_host = Host("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+client_host = ClientHost("ip-10-0-0-2")
+network = Network(hosts={user_host: "10.0.0.1", client_host: "10.0.0.2"}, subnet="10.0.0.0/24")
+network.run()
+
+user_host.interactive(environ=parent_process.environ())
+```
 
 In this level, the host at `10.0.0.2` is communicating with the host at `10.0.0.3`.
 We can essentially become `10.0.0.3` so that we now receive those packets.
@@ -603,3 +978,70 @@ pwn.college{MFeq4__GaD1i7X6t5G_hJxNRVsy.dljNzMDL4ITM0EzW}
 
 ## UDP
 
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import psutil
+import socket
+import os
+
+from dojjail import Host, Network
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+class ServerHost(Host):
+    def entrypoint(self):
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        server_socket.bind(("0.0.0.0", 31337))
+        while True:
+            try:
+                client_message, (client_host, client_port) = server_socket.recvfrom(1024)
+                if client_message == b"Hello, World!\n":
+                    server_socket.sendto(flag.encode(), (client_host, client_port))
+            except ConnectionError:
+                continue
+
+user_host = Host("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+server_host = ServerHost("ip-10-0-0-2")
+network = Network(hosts={user_host: "10.0.0.1", server_host: "10.0.0.2"}, subnet="10.0.0.0/24")
+network.run()
+
+user_host.interactive(environ=parent_process.environ())
+```
+
+Let's craft a UDP packet.
+
+```
+>>> (IP(dst="10.0.0.2") / UDP(sport=31337, dport=31337)).display()
+###[ IP ]###
+  version   = 4
+  ihl       = None
+  tos       = 0x0
+  len       = None
+  id        = 1
+  flags     = 
+  frag      = 0
+  ttl       = 64
+  proto     = udp
+  chksum    = None
+  src       = 10.0.0.1
+  dst       = 10.0.0.2
+  \options   \
+###[ UDP ]###
+     sport     = 31337
+     dport     = 31337
+     len       = None
+     chksum    = None
+```
+
+```
+>>> sr1(IP(dst="10.0.0.2") / UDP(sport=31337, dport=31337) / Raw(load="Hello, World!\n"))
+Begin emission
+.
+Finished sending 1 packets
+*
+Received 2 packets, got 1 answers, remaining 0 packets
+<IP  version=4 ihl=5 tos=0x0 len=88 id=42364 flags=DF frag=0 ttl=64 proto=udp chksum=0x8116 src=10.0.0.2 dst=10.0.0.1 |<UDP  sport=31337 dport=31337 len=68 chksum=0x1458 |<Raw  load=b'pwn.college{IyEug8PTvV4SRHm8XPCrNxSUihI.QXyQDM2EDL4ITM0EzW}\n' |>>>
+```
