@@ -1603,7 +1603,7 @@ user_host.interactive(environ=parent_process.environ())
 The challenge sets up a virtual network where a client periodically sends `"ACTION?"` to a server over UDP, and if it ever receives a `FLAG:ip:port` response, it sends the actual flag to that address.
 Our goal is to trick the client into sending us the flag by spoofing a UDP packet from the server with our IP and port.
 
-We will have to put the listener in the background, and then send the packet in the same shell. 
+We will have to put the listener in the background, and then send the packet in the same shell. If we split our terminal, the sessions are treated as separate and the MAC address of teh host is different.
 
 ```
 root@ip-10-0-0-1:/# nc -u -lvp 9999 &
@@ -1644,3 +1644,6 @@ pwn.college{Qa7I7oqR_1wCI546RKLcU_CW77L.QX1QDM2EDL4ITM0EzW}
 ```
 
 &nbsp;
+
+## UDP Spoofing 3
+
