@@ -475,6 +475,10 @@ Flag captured: pwn.college{I4fIyKwkQexXwA6EYgWabI6ocRG.dRjNzMDL4ITM0EzW}
 
 &nbsp;
 
+## Sniffing Cookies
+
+&nbsp;
+
 ## Network Configuration
 
 ### Source code
@@ -531,6 +535,65 @@ pwn.college{Ij1Vds7KoGcIewEjDEEof1oBvmi.dVjNzMDL4ITM0EzW}
 
 ## Firewall 1
 
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import multiprocessing
+import os
+import socket
+import socketserver
+import time
+
+import psutil
+from dojjail import Host, Network
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+class ServerHost(Host):
+    def entrypoint(self):
+        last_connected_time = multiprocessing.Value("d", time.time())
+
+        def watchdog():
+            while True:
+                with last_connected_time.get_lock():
+                    if time.time() - last_connected_time.value > 2:
+                        print(flag, flush=True)
+                        break
+                time.sleep(1)
+
+        watchdog_process = multiprocessing.Process(target=watchdog)
+        watchdog_process.daemon = True
+        watchdog_process.start()
+
+        class ForkingTCPHandler(socketserver.BaseRequestHandler):
+            def handle(self):
+                with last_connected_time.get_lock():
+                    last_connected_time.value = time.time()
+                self.request.recv(1024)
+
+        with socketserver.ForkingTCPServer(("0.0.0.0", 31337), ForkingTCPHandler) as server:
+            server.serve_forever()
+
+class ClientHost(Host):
+    def entrypoint(self):
+        while True:
+            time.sleep(1)
+            try:
+                with socket.create_connection(("10.0.0.1", 31337)) as client_socket:
+                    client_socket.sendall(b"Hello, World!\n")
+            except (OSError, ConnectionError, TimeoutError):
+                continue
+
+user_host = ServerHost("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+client_host = ClientHost("ip-10-0-0-2")
+network = Network(hosts={user_host: "10.0.0.1", client_host: "10.0.0.2"}, subnet="10.0.0.0/24")
+network.run()
+
+user_host.interactive(environ=parent_process.environ())
+```
+
 This time we have to block traffic on port `31337`.
 
 We can do that using the `iptabes` command.
@@ -544,6 +607,71 @@ root@ip-10-0-0-1:/# pwn.college{4gzO4ofTkOcR06polLF21wrKAru.QX4QDM2EDL4ITM0EzW}
 
 ## Firewall 2
 
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import multiprocessing
+import os
+import socket
+import socketserver
+import time
+
+import psutil
+from dojjail import Host, Network
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+class ServerHost(Host):
+    def entrypoint(self):
+        manager = multiprocessing.Manager()
+        last_connected_times = manager.dict()
+
+        def watchdog():
+            while True:
+                time.sleep(1)
+                current_time = time.time()
+                if current_time - last_connected_times.get("10.0.0.2", current_time) > 2:
+                    continue
+                if current_time - last_connected_times.get("10.0.0.3", current_time) < 2:
+                    continue
+                print(flag, flush=True)
+                break
+
+        watchdog_process = multiprocessing.Process(target=watchdog)
+        watchdog_process.daemon = True
+        watchdog_process.start()
+
+        class ForkingTCPHandler(socketserver.BaseRequestHandler):
+            def handle(self):
+                client_ip, _ = self.client_address
+                last_connected_times[client_ip] = time.time()
+                self.request.recv(1024)
+
+        with socketserver.ForkingTCPServer(("0.0.0.0", 31337), ForkingTCPHandler) as server:
+            server.serve_forever()
+
+class ClientHost(Host):
+    def entrypoint(self):
+        while True:
+            time.sleep(1)
+            try:
+                with socket.create_connection(("10.0.0.1", 31337)) as client_socket:
+                    client_socket.sendall(b"Hello, World!\n")
+            except (OSError, ConnectionError, TimeoutError):
+                continue
+
+user_host = ServerHost("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+client_host_1 = ClientHost("ip-10-0-0-2")
+client_host_2 = ClientHost("ip-10-0-0-3")
+network = Network(hosts={user_host: "10.0.0.1", client_host_1: "10.0.0.2", client_host_2: "10.0.0.3"},
+                  subnet="10.0.0.0/24")
+network.run()
+
+user_host.interactive(environ=parent_process.environ())
+```
+
 In this challenge, we have to only block traffic from `10.0.0.3` on `31337`.
 
 ```
@@ -554,6 +682,54 @@ root@ip-10-0-0-1:/# pwn.college{k1UUolaE-mtHzfAEzyJtlXZsqNT.QX5QDM2EDL4ITM0EzW}
 &nbsp;
 
 ## Firewall 3
+
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import os
+import random
+import socket
+import subprocess
+
+import psutil
+from dojjail import Host, Network
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+def drop_packets(dport):
+    subprocess.run(["/usr/sbin/iptables",
+                    "-A", "OUTPUT",
+                    "-p", "tcp",
+                    "--dport", str(dport),
+                    "-j", "DROP"],
+                   stdin=subprocess.DEVNULL,
+                   capture_output=True,
+                   check=True)
+
+class ServerHost(Host):
+    def entrypoint(self):
+        server_socket = socket.socket()
+        server_socket.bind(("0.0.0.0", 31337))
+        server_socket.listen()
+        while True:
+            try:
+                connection, _ = server_socket.accept()
+                connection.sendall(flag.encode())
+                connection.close()
+            except ConnectionError:
+                continue
+
+user_host = Host("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+server_host = ServerHost("ip-10-0-0-2")
+network = Network(hosts={user_host: "10.0.0.1", server_host: "10.0.0.2"}, subnet="10.0.0.0/24")
+network.run()
+
+user_host.exec(lambda: drop_packets(31337))
+
+user_host.interactive(environ=parent_process.environ())
+```
 
 Thios time we have to open up port `31337` for outbound connections.
 
@@ -593,6 +769,38 @@ pwn.college{8T7GpLSG0UQsqNItYdCt1AztxCN.QXwUDM2EDL4ITM0EzW}
 ## Ethernet
 
 > Manually send an Ethernet packet. The packet should have `Ether type=0xFFFF`. The packet should be sent to the remote host at `10.0.0.2`.
+
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import os
+
+import psutil
+import scapy.all as scapy
+from dojjail import Host, Network
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+class RawPacketHost(Host):
+    def entrypoint(self):
+        scapy.conf.ifaces.reload()
+        scapy.sniff(prn=self.handle_packet, iface="eth0")
+
+    def handle_packet(self, packet):
+        if "Ether" not in packet:
+            return
+        if packet["Ether"].type == 0xFFFF:
+            print(flag, flush=True)
+
+user_host = Host("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+raw_packet_host = RawPacketHost("ip-10-0-0-2")
+network = Network(hosts={user_host: "10.0.0.1", raw_packet_host: "10.0.0.2"}, subnet="10.0.0.0/24")
+network.run()
+
+user_host.interactive(environ=parent_process.environ())
+```
 
 In this challenge, we have to Ethernet packet with `type=0xFFFF` to the remote host `10.0.0.2`.
 
@@ -686,6 +894,38 @@ The remote host is connected to the `eth0` interface, so we send the packets out
 
 > Manually send an Internet Protocol packet. The packet should have `IP proto=0xFF`. The packet should be sent to the remote host at `10.0.0.2`.
 
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import os
+
+import psutil
+import scapy.all as scapy
+from dojjail import Host, Network
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+class RawPacketHost(Host):
+    def entrypoint(self):
+        scapy.conf.ifaces.reload()
+        scapy.sniff(prn=self.handle_packet, iface="eth0")
+
+    def handle_packet(self, packet):
+        if "IP" not in packet:
+            return
+        if packet["IP"].proto == 0xFF:
+            print(flag, flush=True)
+
+user_host = Host("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+raw_packet_host = RawPacketHost("ip-10-0-0-2")
+network = Network(hosts={user_host: "10.0.0.1", raw_packet_host: "10.0.0.2"}, subnet="10.0.0.0/24")
+network.run()
+
+user_host.interactive(environ=parent_process.environ())
+```
+
 ```
 root@ip-10-0-0-1:/# ifconfig
 eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
@@ -767,6 +1007,11 @@ pwn.college{kNuF6XCFRDDJxedKpxAlQ9yb0uV.ddjNzMDL4ITM0EzW}
 ## TCP
 
 > Manually send a Transmission Control Protocol packet. The packet should have `TCP sport=31337, dport=31337, seq=31337, ack=31337, flags=APRSF`. The packet should be sent to the remote host at `10.0.0.2`.
+
+### Source code
+```py title="/challenge/run" showLineNumbers
+
+```
 
 ```
 root@ip-10-0-0-1:/# ifconfig
