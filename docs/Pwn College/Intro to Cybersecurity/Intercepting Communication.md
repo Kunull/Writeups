@@ -205,3 +205,289 @@ pwn.college{8T7GpLSG0UQsqNItYdCt1AztxCN.QXwUDM2EDL4ITM0EzW}
 
 ## Denial of Service 1
 
+&nbsp;
+
+## Denial of Service 2
+
+&nbsp;
+
+## Denial of Service 3
+
+&nbsp;
+
+## Ethernet
+
+> Manually send an Ethernet packet. The packet should have `Ether type=0xFFFF`. The packet should be sent to the remote host at `10.0.0.2`.
+
+In this challenge, we have to Ethernet packet with `type=0xFFFF` to the remote host `10.0.0.2`.
+
+```
+hacker@intercepting-communication~ethernet:/$ /challenge/run
+root@ip-10-0-0-1:/# 
+```
+
+```
+root@ip-10-0-0-1:/# scapy
+INFO: Couldn't write cache into /home/hacker/.cache/scapy/services: [Errno 13] Permission denied: '/home/hacker/.cache/scapy/services'
+INFO: Couldn't write cache into /home/hacker/.cache/scapy/ethertypes: [Errno 13] Permission denied: '/home/hacker/.cache/scapy/ethertypes'
+INFO: Couldn't write cache into /home/hacker/.cache/scapy/manufdb: [Errno 13] Permission denied: '/home/hacker/.cache/scapy/manufdb'
+INFO: Can't import PyX. Won't be able to use psdump() or pdfdump().
+                                      
+                     aSPY//YASa       
+             apyyyyCY//////////YCa       |
+            sY//////YSpcs  scpCY//Pp     | Welcome to Scapy
+ ayp ayyyyyyySCP//Pp           syY//C    | Version 2.6.1
+ AYAsAYYYYYYYY///Ps              cY//S   |
+         pCCCCY//p          cSSps y//Y   | https://github.com/secdev/scapy
+         SPPPP///a          pP///AC//Y   |
+              A//A            cyP////C   | Have fun!
+              p///Ac            sC///a   |
+              P////YCpc           A//A   | Craft packets before they craft
+       scccccp///pSP///p          p//Y   | you.
+      sY/////////y  caa           S//P   |                      -- Socrate
+       cayCyayP//Ya              pY/Ya   |
+        sY/PsY////YCc          aC//Yp 
+         sc  sccaCY//PCypaapyCP//YSs  
+                  spCPY//////YPSps    
+                       ccaacs         
+                                      
+>>>
+```
+
+```py
+>>> Ether().display()
+###[ Ethernet ]###
+  dst       = None
+  src       = 00:00:00:00:00:00
+  type      = 0x9000
+```
+
+We have to change the default fields.
+But before we do that, we will have to find the MAC address of `10.0.0.1`.
+
+```
+root@ip-10-0-0-1:/# ifconfig
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 10.0.0.1  netmask 255.255.255.0  broadcast 0.0.0.0
+        inet6 fe80::48ae:54ff:feb8:cb8a  prefixlen 64  scopeid 0x20<link>
+        ether 4a:ae:54:b8:cb:8a  txqueuelen 1000  (Ethernet)
+        RX packets 28  bytes 2276 (2.2 KiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 9  bytes 726 (726.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        inet6 ::1  prefixlen 128  scopeid 0x10<host>
+        loop  txqueuelen 1000  (Local Loopback)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+```
+
+```python
+>>> Ether(src="42:5a:15:d0:61:a3", dst="ff:ff:ff:ff:ff:ff", type=0xFFFF).display()
+###[ Ethernet ]###
+  dst       = ff:ff:ff:ff:ff:ff
+  src       = 42:5a:15:d0:61:a3
+  type      = 0xffff
+```
+
+Now that we have a valid Ethernet packet, we just have to send it over.
+
+```py
+>>> sendp(Ether(src="42:5a:15:d0:61:a3", dst="ff:ff:ff:ff:ff:ff", type=0xFFFF), iface="eth0")
+.
+Sent 1 packets.
+pwn.college{YApxHV8YC_dydQ2cfeE93_ZIgfi.dZjNzMDL4ITM0EzW}
+```
+
+The remote host is connected to the `eth0` interface, so we send the packets out of the `eth0` interface.
+
+&nbsp;
+
+## IP
+
+> Manually send an Internet Protocol packet. The packet should have `IP proto=0xFF`. The packet should be sent to the remote host at `10.0.0.2`.
+
+```
+root@ip-10-0-0-1:/# ifconfig
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 10.0.0.1  netmask 255.255.255.0  broadcast 0.0.0.0
+        inet6 fe80::f497:f7ff:fe5f:eea9  prefixlen 64  scopeid 0x20<link>
+        ether f6:97:f7:5f:ee:a9  txqueuelen 1000  (Ethernet)
+        RX packets 28  bytes 2276 (2.2 KiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 9  bytes 726 (726.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        inet6 ::1  prefixlen 128  scopeid 0x10<host>
+        loop  txqueuelen 1000  (Local Loopback)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+```
+
+We can encapsulate a packet within another packet using the `/` separator.
+
+```py
+>>> (Ether(src="f6:97:f7:5f:ee:a9", dst="ff:ff:ff:ff:ff:ff") / IP()).display()
+###[ Ethernet ]###
+  dst       = ff:ff:ff:ff:ff:ff
+  src       = f6:97:f7:5f:ee:a9
+  type      = IPv4
+###[ IP ]###
+     version   = 4
+     ihl       = None
+     tos       = 0x0
+     len       = None
+     id        = 1
+     flags     = 
+     frag      = 0
+     ttl       = 64
+     proto     = hopopt
+     chksum    = None
+     src       = 127.0.0.1
+     dst       = 127.0.0.1
+     \options   \
+```
+
+Now we just have to fill the correct fields.
+
+```py
+>>> (Ether(src="f6:97:f7:5f:ee:a9", dst="ff:ff:ff:ff:ff:ff") / IP(src="10.0.0.1", dst="10.0.0.2", proto=0xFF)).display()
+###[ Ethernet ]###
+  dst       = ff:ff:ff:ff:ff:ff
+  src       = f6:97:f7:5f:ee:a9
+  type      = IPv4
+###[ IP ]###
+     version   = 4
+     ihl       = None
+     tos       = 0x0
+     len       = None
+     id        = 1
+     flags     = 
+     frag      = 0
+     ttl       = 64
+     proto     = 255
+     chksum    = None
+     src       = 10.0.0.1
+     dst       = 10.0.0.2
+     \options   \
+```
+
+```py
+>>> sendp(Ether(src="f6:97:f7:5f:ee:a9", dst="ff:ff:ff:ff:ff:ff") / IP(src="10.0.0.1", dst="10.0.0.2", proto=0xFF), iface="eth0")
+.
+Sent 1 packets.
+pwn.college{kNuF6XCFRDDJxedKpxAlQ9yb0uV.ddjNzMDL4ITM0EzW}
+```
+
+&nbsp;
+
+## TCP
+
+> Manually send a Transmission Control Protocol packet. The packet should have `TCP sport=31337, dport=31337, seq=31337, ack=31337, flags=APRSF`. The packet should be sent to the remote host at `10.0.0.2`.
+
+```
+root@ip-10-0-0-1:/# ifconfig
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 10.0.0.1  netmask 255.255.255.0  broadcast 0.0.0.0
+        inet6 fe80::8458:acff:fe24:7e03  prefixlen 64  scopeid 0x20<link>
+        ether 86:58:ac:24:7e:03  txqueuelen 1000  (Ethernet)
+        RX packets 31  bytes 2486 (2.4 KiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 10  bytes 796 (796.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        inet6 ::1  prefixlen 128  scopeid 0x10<host>
+        loop  txqueuelen 1000  (Local Loopback)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+```
+
+We have to add another layer of encapsulation, which is TCP.
+
+```py
+>>> (Ether(src="86:58:ac:24:7e:03", dst="ff:ff:ff:ff:ff:ff") / IP(src="10.0.0.1", dst="10.0.0.2") / TCP()).display()
+###[ Ethernet ]###
+  dst       = ff:ff:ff:ff:ff:ff
+  src       = 86:58:ac:24:7e:03
+  type      = IPv4
+###[ IP ]###
+     version   = 4
+     ihl       = None
+     tos       = 0x0
+     len       = None
+     id        = 1
+     flags     = 
+     frag      = 0
+     ttl       = 64
+     proto     = tcp
+     chksum    = None
+     src       = 10.0.0.1
+     dst       = 10.0.0.2
+     \options   \
+###[ TCP ]###
+        sport     = ftp_data
+        dport     = http
+        seq       = 0
+        ack       = 0
+        dataofs   = None
+        reserved  = 0
+        flags     = S
+        window    = 8192
+        chksum    = None
+        urgptr    = 0
+        options   = []
+```
+
+Let's fill the correct fields.
+
+```py
+>>> (Ether(src="86:58:ac:24:7e:03", dst="ff:ff:ff:ff:ff:ff") / IP(src="10.0.0.1", dst="10.0.0.2") / TCP(sport=31337, dport=31337, seq=31337, ack=31337, flags="APRSF")).display()
+###[ Ethernet ]###
+  dst       = ff:ff:ff:ff:ff:ff
+  src       = 86:58:ac:24:7e:03
+  type      = IPv4
+###[ IP ]###
+     version   = 4
+     ihl       = None
+     tos       = 0x0
+     len       = None
+     id        = 1
+     flags     = 
+     frag      = 0
+     ttl       = 64
+     proto     = tcp
+     chksum    = None
+     src       = 10.0.0.1
+     dst       = 10.0.0.2
+     \options   \
+###[ TCP ]###
+        sport     = 31337
+        dport     = 31337
+        seq       = 31337
+        ack       = 31337
+        dataofs   = None
+        reserved  = 0
+        flags     = FSRPA
+        window    = 8192
+        chksum    = None
+        urgptr    = 0
+        options   = []
+```
+
+```py
+>>> sendp(Ether(src="86:58:ac:24:7e:03", dst="ff:ff:ff:ff:ff:ff") / IP(src="10.0.0.1", dst="10.0.0.2") / TCP(sport=31337, dport=31337, seq=31337, ack=31337, flags="APRSF"), iface="eth0")
+.
+Sent 1 packets.
+pwn.college{8StjcaVle85KYtysso8f0NwHhkx.dhjNzMDL4ITM0EzW}```
