@@ -31,7 +31,9 @@ CORRECT! Your flag:
 pwn.college{I0fIIbzFrXKLaqwpVcvpw0ySDFR.ddjM3kDL4ITM0EzW}
 ```
 
-```
+Let's automate the process so that it works for any input.
+
+```py title="~/auto_script.py" showLineNumbers
 #!/usr/bin/env python3
 
 import subprocess
@@ -66,13 +68,39 @@ for line in proc.stdout:
 ```
 hacker@cryptography~xoring-hex:/$ /challenge/run 
 Challenge number 0...
-The key: 0xab
-Encrypted secret: 0x07
+The key: 0x11
+Encrypted secret: 0xfd
 Decrypted secret? 
 ```
-### Automatic solver
 
-```py title="~/script.py" showLineNumbers
+```py
+In [1]: key = 0x11
+   ...: encrypted_secret = 0xfd
+   ...: decrypted_secret = hex(key ^ encrypted_secret)
+   ...: print(f"Decrypted secret: {decrypted_secret}")
+Decrypted secret: 0xec
+```
+
+Let's enter this.
+
+```
+hacker@cryptography~xoring-hex:/$ /challenge/run 
+Challenge number 0...
+The key: 0x11
+Encrypted secret: 0xfd
+Decrypted secret? 0xec
+You entered: 0xec, decimal 236.
+Correct! Moving on.
+Challenge number 1...
+The key: 0x9a
+Encrypted secret: 0xe5
+Decrypted secret? 
+```
+
+We can see that loops over and asks the same question.
+Let's automate the process.
+
+```py title="~/auto_script.py" showLineNumbers
 #!/usr/bin/env python3
 
 import subprocess
@@ -110,3 +138,64 @@ while True:
             print(out_line, end="")
         break
 ```
+
+```
+hacker@cryptography~xoring-hex:/$ python ~/script.py
+Challenge number 0...
+The key: 0xde
+Encrypted secret: 0x5d
+Decrypted secret? You entered: 0x83, decimal 131.
+Correct! Moving on.
+Challenge number 1...
+The key: 0x2c
+Encrypted secret: 0x09
+Decrypted secret? You entered: 0x25, decimal 37.
+Correct! Moving on.
+Challenge number 2...
+The key: 0x1f
+Encrypted secret: 0x30
+Decrypted secret? You entered: 0x2f, decimal 47.
+Correct! Moving on.
+Challenge number 3...
+The key: 0x38
+Encrypted secret: 0x0e
+Decrypted secret? You entered: 0x36, decimal 54.
+Correct! Moving on.
+Challenge number 4...
+The key: 0x74
+Encrypted secret: 0xe6
+Decrypted secret? You entered: 0x92, decimal 146.
+Correct! Moving on.
+Challenge number 5...
+The key: 0x08
+Encrypted secret: 0xd9
+Decrypted secret? You entered: 0xd1, decimal 209.
+Correct! Moving on.
+Challenge number 6...
+The key: 0x2b
+Encrypted secret: 0x09
+Decrypted secret? You entered: 0x22, decimal 34.
+Correct! Moving on.
+Challenge number 7...
+The key: 0x38
+Encrypted secret: 0xa4
+Decrypted secret? You entered: 0x9c, decimal 156.
+Correct! Moving on.
+Challenge number 8...
+The key: 0xf1
+Encrypted secret: 0x21
+Decrypted secret? You entered: 0xd0, decimal 208.
+Correct! Moving on.
+Challenge number 9...
+The key: 0xcf
+Encrypted secret: 0x30
+Decrypted secret? You entered: 0xff, decimal 255.
+Correct! Moving on.
+CORRECT! Your flag:
+pwn.college{kSOtmx6AacMeAc4SYmd-sZa4sAf.dBzM3kDL4ITM0EzW}
+```
+
+&nbsp;
+
+## XORing ASCII
+
