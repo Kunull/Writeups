@@ -5,6 +5,27 @@ sidebar_position: 3
 
 ## XOR
 
+### Source code
+```py title="/challenge/run"
+#!/opt/pwn.college/python
+
+import random
+import sys
+
+key = random.randrange(1, 256)
+plain_secret = random.randrange(0, 256)
+cipher_secret = plain_secret ^ key
+
+print(f"The key: {key}")
+print(f"Encrypted secret: {cipher_secret}")
+if int(input("Decrypted secret? ")) == plain_secret:
+    print("CORRECT! Your flag:")
+    print(open("/flag").read())
+else:
+    print("INCORRECT!")
+    sys.exit(1)
+```
+
 ```
 hacker@cryptography~xor:/$ /challenge/run 
 The key: 17
@@ -64,6 +85,34 @@ for line in proc.stdout:
 &nbsp;
 
 ## XORing Hex
+
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/opt/pwn.college/python
+
+import random
+import sys
+
+for n in range(10):
+    print(f"Challenge number {n}...")
+
+    key = random.randrange(1, 256)
+    plain_secret = random.randrange(0, 256)
+    cipher_secret = plain_secret ^ key
+
+    print(f"The key: {key:#04x}")
+    print(f"Encrypted secret: {cipher_secret:#04x}")
+    answer = int(input("Decrypted secret? "), 16)
+    print(f"You entered: {answer:#04x}, decimal {answer}.")
+    if answer != plain_secret:
+        print("INCORRECT!")
+        sys.exit(1)
+
+    print("Correct! Moving on.")
+
+print("CORRECT! Your flag:")
+print(open("/flag").read())
+```
 
 ```
 hacker@cryptography~xoring-hex:/$ /challenge/run 
@@ -333,4 +382,9 @@ pwn.college{w4z-Se86BfDzuA00U686p_yy3aR.dhjM3kDL4ITM0EzW}
 
 &nbsp;
 
-## 
+## XORing ASCII Strings
+
+### Source code
+```py title="/challenge/run" showLineNumbers
+
+```
