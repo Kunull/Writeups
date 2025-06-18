@@ -386,5 +386,169 @@ pwn.college{w4z-Se86BfDzuA00U686p_yy3aR.dhjM3kDL4ITM0EzW}
 
 ### Source code
 ```py title="/challenge/run" showLineNumbers
+#!/opt/pwn.college/python
 
+import random
+import string
+import sys
+
+from Crypto.Util.strxor import strxor
+
+valid_keys = "!#$%&()"
+valid_chars = ''.join(
+    c for c in string.ascii_letters
+    if all(chr(ord(k)^ord(c)) in string.ascii_letters for k in valid_keys)
+)
+
+print(valid_keys, valid_chars)
+
+for n in range(1, 10):
+    print(f"Challenge number {n}...")
+
+    key_str = ''.join(random.sample(valid_keys*10, 10))
+    pt_str = ''.join(random.sample(valid_chars*10, 10))
+    ct_str = strxor(pt_str.encode(), key_str.encode()).decode()
+
+    print(f"- Encrypted String: {ct_str}")
+    print(f"- XOR Key String: {key_str}")
+    answer = input("- Decrypted String? ").strip()
+    if answer != pt_str:
+        print("Incorrect!")
+        sys.exit(1)
+
+    print("Correct! Moving on.")
+
+print("You have mastered XORing ASCII! Your flag:")
+print(open("/flag").read())
+```
+
+```
+hacker@cryptography~xoring-ascii-strings:/$ /challenge/run 
+!#$%&() bgjklmnopqBGJKLMNOPQ
+Challenge number 1...
+- Encrypted String: iEndTdkaTB
+- XOR Key String: $)#(%#&&$)
+- Decrypted String? 
+```
+
+```py
+In [1]: from Crypto.Util.strxor import strxor
+   ...: encrypted_string = b"iEndTdkaTB"
+   ...: key = b"$)#(%#&&$)"
+   ...: decrypted_string = strxor(encrypted_string, key)
+   ...: print(f"Decrypted string: {decrypted_string}")
+Decrypted string: b'MlMLqGMGpk'
+```
+
+```
+hacker@cryptography~xoring-ascii-strings:/$ /challenge/run 
+!#$%&() bgjklmnopqBGJKLMNOPQ
+Challenge number 1...
+- Encrypted String: iEndTdkaTB
+- XOR Key String: $)#(%#&&$)
+- Decrypted String? MlMLqGMGpk
+Correct! Moving on.
+Challenge number 2...
+- Encrypted String: jjPGSLDkfF
+- XOR Key String: !$!%##)!))
+- Decrypted String? 
+```
+
+Let's automate.
+
+```py title="~/auto_script.py" showLineNumbers
+#!/usr/bin/env python3
+
+import subprocess
+from Crypto.Util.strxor import strxor
+
+# Start the challenge process
+proc = subprocess.Popen(
+    ["/challenge/run"],
+    stdin=subprocess.PIPE,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE,
+    text=True,
+    bufsize=1 
+)
+
+while True:
+    line = proc.stdout.readline()
+    if not line:
+        break
+    print(line, end="")
+
+    if line.startswith("- Encrypted String:"):
+        encrypted_str = line.strip().split(": ", 1)[1]
+
+        key_line = proc.stdout.readline()
+        print(key_line, end="")
+        key_str = key_line.strip().split(": ", 1)[1]
+
+        # Read until the exact string prompt, not a full line
+        prompt = ""
+        while not prompt.endswith("- Decrypted String? "):
+            char = proc.stdout.read(1)
+            if not char:
+                break
+            prompt += char
+            print(char, end="")
+
+        # XOR and decode
+        decrypted = strxor(
+            encrypted_str.encode("latin1"),
+            key_str.encode("latin1")
+        ).decode("latin1")
+
+        proc.stdin.write(decrypted + "\n")
+        proc.stdin.flush()
+
+    elif "Incorrect!" in line or "Your flag:" in line:
+        for out_line in proc.stdout:
+            print(out_line, end="")
+        break
+```
+
+```
+hacker@cryptography~xoring-ascii-strings:/$ nano ~/script.py
+hacker@cryptography~xoring-ascii-strings:/$ python ~/script.py
+!#$%&() bgjklmnopqBGJKLMNOPQ
+Challenge number 1...
+- Encrypted String: WUNKDbHUHK
+- XOR Key String: &%!&#)%%#$
+- Decrypted String? Correct! Moving on.
+Challenge number 2...
+- Encrypted String: GTOLCfubob
+- XOR Key String: (%!#)$$%!(
+- Decrypted String? Correct! Moving on.
+Challenge number 3...
+- Encrypted String: OBovGMfWfi
+- XOR Key String: !($&%!!&)$
+- Decrypted String? Correct! Moving on.
+Challenge number 4...
+- Encrypted String: JhHMFiCkjM
+- XOR Key String: $#$#(#)%(&
+- Decrypted String? Correct! Moving on.
+Challenge number 5...
+- Encrypted String: ICSnhGkySK
+- XOR Key String: #!#%#)))#$
+- Decrypted String? Correct! Moving on.
+Challenge number 6...
+- Encrypted String: IDJFcIjdCk
+- XOR Key String: $#%!!&!&(&
+- Decrypted String? Correct! Moving on.
+Challenge number 7...
+- Encrypted String: KmlxeHnfMe
+- XOR Key String: &#!()&!)#(
+- Decrypted String? Correct! Moving on.
+Challenge number 8...
+- Encrypted String: iBftYGYIfF
+- XOR Key String: %%)%(()$((
+- Decrypted String? Correct! Moving on.
+Challenge number 9...
+- Encrypted String: joJfCjYJSi
+- XOR Key String: %#!!)%(%#%
+- Decrypted String? Correct! Moving on.
+You have mastered XORing ASCII! Your flag:
+pwn.college{Mu8QkjC0REoDOGVQrHicFcg9hJ7.dljM3kDL4ITM0EzW}
 ```
