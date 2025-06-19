@@ -660,7 +660,7 @@ Sleeping!
 
 Let's script the solution.
 
-```PY title="~/script" showLineNumbers
+```PY title="~/script.py" showLineNumbers
 from Crypto.Util.strxor import strxor
 
 # Known ciphertext
@@ -722,3 +722,40 @@ while True:
     ciphertext = strxor(plaintext, key[:len(plaintext)])
     print(f"Ciphertext (hex): {ciphertext.hex()}")
 ```
+
+```
+hacker@cryptography~many-time-pad:/$ /challenge/run
+Flag Ciphertext (hex): a7cd55d0b293a2dd60c1d2ca382f0b3ccf14b9a500cc14a4f11faa2569f598a9da94a803cd064726b504e1f8e5752e46610d6ba2a15865968dac
+Plaintext (hex): 
+```
+
+The challenge XORs the raw bytes of flag with the raw bytes of key, and then prints out the cipher flag in hex. 
+It then asks for plaintext in hex format, which it converts into raw bytes.
+
+We know that XOR is commutative.
+
+```
+flag plaintext = flag ciphertext ^ key 
+
+key = flag plaintext ^ flag ciphertext  
+```
+
+So, if we just give back the `Flag Ciphertext (hex)`, we would het back `Key (hex)`, which we simply have to convert into bytes.
+
+```
+hacker@cryptography~many-time-pad:/$ /challenge/run
+Flag Ciphertext (hex): a7cd55d0b293a2dd60c1d2ca382f0b3ccf14b9a500cc14a4f11faa2569f598a9da94a803cd064726b504e1f8e5752e46610d6ba2a15865968dac
+Plaintext (hex): a7cd55d0b293a2dd60c1d2ca382f0b3ccf14b9a500cc14a4f11faa2569f598a9da94a803cd064726b504e1f8e5752e46610d6ba2a15865968dac
+Ciphertext (hex): 70776e2e636f6c6c6567657b4568673834787048625133486451307a6d6853705849763272716a2e64567a4e7a4d444c3449544d30457a577d0a
+Plaintext (hex): 
+```
+
+```py
+In [1]: flag = bytes.fromhex("70776e2e636f6c6c6567657b4568673834787048625133486451307a6d6853705849763272716a2e64567a4e7a4d444c3449544d30457a577d0a").decode()
+   ...: print(flag)
+pwn.college{Ehg84xpHbQ3HdQ0zmhSpXIv2rqj.dVzNzMDL4ITM0EzW}
+```
+
+&nbsp;
+
+## AES
