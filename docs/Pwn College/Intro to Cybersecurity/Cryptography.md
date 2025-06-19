@@ -54,7 +54,7 @@ pwn.college{I0fIIbzFrXKLaqwpVcvpw0ySDFR.ddjM3kDL4ITM0EzW}
 
 Let's automate the process so that it works for any input.
 
-```py title="~/auto_script.py" showLineNumbers
+```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
 
 import subprocess
@@ -149,7 +149,7 @@ Decrypted secret?
 We can see that loops over and asks the same question.
 Let's automate the process.
 
-```py title="~/auto_script.py" showLineNumbers
+```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
 
 import subprocess
@@ -314,7 +314,7 @@ The challenge tries to prevent automation by requiring that the script be run in
 
 However, we can use `pexpect` which emulates a terminal (PTY), so `isatty()` returns `True`.
 
-```py title="~/auto_script.py" showLineNumbers
+```py title="~/script.py" showLineNumbers
 import pexpect
 
 p = pexpect.spawn("/challenge/run", encoding="utf-8")
@@ -456,7 +456,7 @@ Challenge number 2...
 
 Let's automate.
 
-```py title="~/auto_script.py" showLineNumbers
+```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
 
 import subprocess
@@ -510,7 +510,6 @@ while True:
 ```
 
 ```
-hacker@cryptography~xoring-ascii-strings:/$ nano ~/script.py
 hacker@cryptography~xoring-ascii-strings:/$ python ~/script.py
 !#$%&() bgjklmnopqBGJKLMNOPQ
 Challenge number 1...
@@ -551,4 +550,49 @@ Challenge number 9...
 - Decrypted String? Correct! Moving on.
 You have mastered XORing ASCII! Your flag:
 pwn.college{Mu8QkjC0REoDOGVQrHicFcg9hJ7.dljM3kDL4ITM0EzW}
+```
+
+&nbsp;
+
+## One-time Pad
+
+```py title="/challenge/run" showLineNumbers
+#!/opt/pwn.college/python
+
+from Crypto.Random import get_random_bytes
+from Crypto.Util.strxor import strxor
+
+flag = open("/flag", "rb").read()
+
+key = get_random_bytes(len(flag))
+ciphertext = strxor(flag, key)
+
+print(f"One-Time Pad Key (hex): {key.hex()}")
+print(f"Flag Ciphertext (hex): {ciphertext.hex()}")
+```
+
+```
+hacker@cryptography~one-time-pad:/$ /challenge/run
+One-Time Pad Key (hex): 7d29459b4f15aa95736ac4a5a348a95ed9c7df9e745f2147572e59385df9918e15b73ffc160d0b27ba0b460c821752ff15f26b39e15bb6a9da3d
+Flag Ciphertext (hex): 0d5e2bb52c7ac6f9160da1dee63b9d36839fe9d41c0d44773446126c18b0d9e445ce7eba5e646509de593c42f85a16b321bb3f74d11eccfea737
+```
+
+This time, we the flag is encrypted using One-time pad.
+In order to get the original, we have to get XOR the bits of the plaintext with the bits of the key one by one.
+
+```py title="~/script.py" showLineNumbers
+key_hex = "7d29459b4f15aa95736ac4a5a348a95ed9c7df9e745f2147572e59385df9918e15b73ffc160d0b27ba0b460c821752ff15f26b39e15bb6a9da3d"
+cipher_hex = "0d5e2bb52c7ac6f9160da1dee63b9d36839fe9d41c0d44773446126c18b0d9e445ce7eba5e646509de593c42f85a16b321bb3f74d11eccfea737"
+
+key = bytes.fromhex(key_hex)
+cipher = bytes.fromhex(cipher_hex)
+
+plaintext = bytes([c ^ k for c, k in zip(cipher, key)])
+
+print("Decrypted flag:", plaintext.decode())
+```
+
+```
+hacker@cryptography~one-time-pad:/$ python ~/script.py
+Decrypted flag: pwn.college{Es4hZX6JhRe0chKTEIHjPyAFHin.dRzNzMDL4ITM0EzW}
 ```
