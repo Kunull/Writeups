@@ -596,3 +596,128 @@ print("Decrypted flag:", plaintext.decode())
 hacker@cryptography~one-time-pad:/$ python ~/script.py
 Decrypted flag: pwn.college{Es4hZX6JhRe0chKTEIHjPyAFHin.dRzNzMDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## One-time Pad tampering
+
+### Source code
+```py title="/challenge/dispatcher" showLineNumbers
+#!/opt/pwn.college/python
+
+from Crypto.Util.strxor import strxor
+
+key = open("/challenge/.key", "rb").read()
+ciphertext = strxor(b"sleep", key[:5])
+```
+
+```py title="/challenge/worker" showLineNumbers
+#!/opt/pwn.college/python
+
+from Crypto.Util.strxor import strxor
+
+import time
+import sys
+
+key = open("/challenge/.key", "rb").read()
+
+while line := sys.stdin.readline():
+    if not line.startswith("TASK: "):
+        continue
+    data = bytes.fromhex(line.split()[1])
+    cipher_len = min(len(data), len(key))
+    plaintext = strxor(data[:cipher_len], key[:cipher_len])
+
+    print(f"Hex of plaintext: {plaintext.hex()}")
+    print(f"Received command: {plaintext}")
+    if plaintext == b"sleep":
+        print("Sleeping!")
+        time.sleep(1)
+    elif plaintext == b"flag!":
+        print("Victory! Your flag:")
+        print(open("/flag").read())
+    else:
+        print("Unknown command!")
+```
+
+The `/challenge/dispatcher` script gives us the cipher task in hex.
+
+```
+hacker@cryptography~one-time-pad-tampering:/$ /challenge/dispatcher 
+TASK: 6286bb6ab5
+```
+
+If we provide this as input to /challenge/worker, it will first convert the hex string into bytes, then XOR it with the key to recover the plaintext, print the hex of the plaintext, and finally execute the resulting command.
+
+```
+hacker@cryptography~one-time-pad-tampering:/$ /challenge/worker 
+TASK: 6286bb6ab5
+Hex of plaintext: 736c656570
+Received command: b'sleep'
+Sleeping!
+```
+
+Let's script the solution.
+
+```PY title="/challenge/script.py showLineNumbers
+from Crypto.Util.strxor import strxor
+
+# Known ciphertext
+sleep_cipher_hex = "6286bb6ab5"
+sleep_cipher = bytes.fromhex(sleep_cipher_hex)
+
+# Known plaintext
+known_plaintext_hex = "736c656570"
+known_plaintext = bytes.fromhex(known_plaintext_hex)
+
+# Or just use the following:
+# known_plaintext = b"sleep"
+
+# XOR to get key fragment
+key_fragment = strxor(sleep_cipher, known_plaintext)
+
+# Encrypt "flag!" with recovered key
+command = b"flag!"
+encrypted = strxor(command, key_fragment[:len(command)])
+
+# Print encrypted hex
+print(encrypted.hex())
+```
+
+```
+hacker@cryptography~one-time-pad-tampering:/$ python ~/script.py
+7786bf68e4
+```
+
+```
+hacker@cryptography~one-time-pad-tampering:/$ /challenge/worker 
+TASK: 7786bf68e4
+Hex of plaintext: 666c616721
+Received command: b'flag!'
+Victory! Your flag:
+pwn.college{sHPpXIo63DeFuiDt1Qm6aBHZXv_.QXzcTO2EDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Many-time Pad
+
+### Source
+```py title="/challenge/run" showLineNumbers
+#!/opt/pwn.college/python
+
+from Crypto.Random import get_random_bytes
+from Crypto.Util.strxor import strxor
+
+flag = open("/flag", "rb").read()
+
+key = get_random_bytes(256)
+ciphertext = strxor(flag, key[:len(flag)])
+
+print(f"Flag Ciphertext (hex): {ciphertext.hex()}")
+
+while True:
+    plaintext = bytes.fromhex(input("Plaintext (hex): "))
+    ciphertext = strxor(plaintext, key[:len(plaintext)])
+    print(f"Ciphertext (hex): {ciphertext.hex()}")
+```
