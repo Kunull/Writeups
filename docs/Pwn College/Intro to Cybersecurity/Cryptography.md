@@ -660,7 +660,7 @@ Sleeping!
 
 Let's script the solution.
 
-```PY title="/challenge/script.py showLineNumbers
+```PY title="~/script" showLineNumbers
 from Crypto.Util.strxor import strxor
 
 # Known ciphertext
