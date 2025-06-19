@@ -556,6 +556,7 @@ pwn.college{Mu8QkjC0REoDOGVQrHicFcg9hJ7.dljM3kDL4ITM0EzW}
 
 ## One-time Pad
 
+### Source code
 ```py title="/challenge/run" showLineNumbers
 #!/opt/pwn.college/python
 
@@ -647,7 +648,7 @@ hacker@cryptography~one-time-pad-tampering:/$ /challenge/dispatcher
 TASK: 6286bb6ab5
 ```
 
-If we provide this as input to /challenge/worker, it will first convert the hex string into bytes, then XOR it with the key to recover the plaintext, print the hex of the plaintext, and finally execute the resulting command.
+If we provide this as input to `/challenge/worker`, it will first convert the hex string into bytes, then XOR it with the key to recover the plaintext, print the hex of the plaintext, and finally execute the resulting command.
 
 ```
 hacker@cryptography~one-time-pad-tampering:/$ /challenge/worker 
