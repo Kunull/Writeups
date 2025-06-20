@@ -854,6 +854,7 @@ Then, For each flag index `i`:
 #!/usr/bin/env python3
 
 from pwn import *
+import string
 
 context.log_level = 'error'
 p = process("/challenge/run")
@@ -875,7 +876,6 @@ def encrypt_flag_byte(index):
     return bytes.fromhex(p.recvlineS().strip())
 
 # Only safe printable characters
-import string
 charset = string.printable.strip()
 
 # Build lookup
@@ -911,7 +911,7 @@ while True:
 
     i += 1
 
-print(f"\n[✔] Final flag: {flag}")
+print(f"\n[*] Final flag: {flag}")
 ```
 
 ```
@@ -979,3 +979,129 @@ hacker@cryptography~aes-ecb-cpa:/$ python ~/script.py
 
 [*] Final flag: pwn.college{0GUWKpOuOD7x095YQkHYHNXF105.dFzM3kDL4ITM0EzW}
 ```
+
+## AES-ECB-CPA-HTTP
+
+### Source code
+```py title="~/script" showLinenNmbers
+#!/usr/bin/env python3
+
+import requests
+import string
+
+url = "http://challenge.localhost/"
+
+# Safer charset: avoids single quote, backslash, etc.
+charset = string.printable.strip()
+
+print("[*] Building lookup table...")
+lookup = {}
+
+for ch in charset:
+    try:
+        # Avoid breaking the SQL string with unsafe chars
+        query_param = f"'{ch}'"
+        r = requests.get(url, params={"query": query_param})
+
+        parts = r.text.split("<pre>")
+        if len(parts) < 3:
+            print(f"[!] Skipping char: {repr(ch)} — malformed response")
+            continue
+
+        ct = parts[2].split("</pre>")[0].strip()
+        lookup[ct] = ch
+    except Exception as e:
+        print(f"[!] Error with char {repr(ch)}: {e}")
+
+print(f"[+] Lookup table built with {len(lookup)} entries")
+
+# Step 2: Extract flag
+flag = "pwn.college{"
+i = len(flag) + 1
+
+while True:
+    try:
+        r = requests.get(url, params={"query": f"substr(flag,{i},1)"})
+        parts = r.text.split("<pre>")
+        if len(parts) < 3:
+            print(f"[!] Failed to extract flag[{i}] — malformed response")
+            break
+
+        ct = parts[2].split("</pre>")[0].strip()
+        ch = lookup.get(ct)
+
+        if not ch:
+            print(f"[!] Unknown character at position {i}, ciphertext: {ct}")
+            break
+
+        flag += ch
+        print(f"[+] {flag}")
+
+        if ch == "}":
+            break
+
+        i += 1
+
+    except Exception as e:
+        print(f"[!] Error on index {i}: {e}")
+        break
+
+print(f"\n[*] Final flag: {flag}")
+```
+
+```
+hacker@cryptography~aes-ecb-cpa-http:/$ python ~/script.py
+[*] Building lookup table...
+[+] Lookup table built with 87 entries
+[+] pwn.college{c
+[+] pwn.college{cM
+[+] pwn.college{cMH
+[+] pwn.college{cMHT
+[+] pwn.college{cMHTy
+[+] pwn.college{cMHTyv
+[+] pwn.college{cMHTyvr
+[+] pwn.college{cMHTyvrP
+[+] pwn.college{cMHTyvrP_
+[+] pwn.college{cMHTyvrP_6
+[+] pwn.college{cMHTyvrP_6V
+[+] pwn.college{cMHTyvrP_6Vg
+[+] pwn.college{cMHTyvrP_6VgT
+[+] pwn.college{cMHTyvrP_6VgTc
+[+] pwn.college{cMHTyvrP_6VgTc5
+[+] pwn.college{cMHTyvrP_6VgTc5N
+[+] pwn.college{cMHTyvrP_6VgTc5NU
+[+] pwn.college{cMHTyvrP_6VgTc5NUM
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3G
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gd
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdn
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdns
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj8
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj8x
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj8x.
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj8x.Q
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj8x.QX
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj8x.QX3
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj8x.QX3E
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj8x.QX3Ez
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj8x.QX3EzM
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj8x.QX3EzM2
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj8x.QX3EzM2E
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj8x.QX3EzM2ED
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj8x.QX3EzM2EDL
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj8x.QX3EzM2EDL4
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj8x.QX3EzM2EDL4I
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj8x.QX3EzM2EDL4IT
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj8x.QX3EzM2EDL4ITM
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj8x.QX3EzM2EDL4ITM0
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj8x.QX3EzM2EDL4ITM0E
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj8x.QX3EzM2EDL4ITM0Ez
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj8x.QX3EzM2EDL4ITM0EzW
+[+] pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj8x.QX3EzM2EDL4ITM0EzW}
+
+[*] Final flag: pwn.college{cMHTyvrP_6VgTc5NUMc3Gdnsj8x.QX3EzM2EDL4ITM0EzW}
+```
+
+## AES-ECB-CPA-HTTP (base64) 
