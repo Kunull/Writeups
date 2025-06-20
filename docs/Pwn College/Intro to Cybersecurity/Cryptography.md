@@ -759,3 +759,223 @@ pwn.college{Ehg84xpHbQ3HdQ0zmhSpXIv2rqj.dVzNzMDL4ITM0EzW}
 &nbsp;
 
 ## AES
+
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/opt/pwn.college/python
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+from Crypto.Random import get_random_bytes
+
+flag = open("/flag", "rb").read()
+
+key = get_random_bytes(16)
+cipher = AES.new(key=key, mode=AES.MODE_ECB)
+ciphertext = cipher.encrypt(pad(flag, cipher.block_size))
+
+print(f"AES Key (hex): {key.hex()}")
+print(f"Flag Ciphertext (hex): {ciphertext.hex()}")
+```
+
+```
+hacker@cryptography~aes:/$ /challenge/run 
+AES Key (hex): 5ad958b13b3f977f623de7e7a4f57345
+Flag Ciphertext (hex): 5792b94f7f852e4f87caaef91abbfdb724c3e6cd6010bffeefa06c33ae48e3975538da1de3e1f269c82eaaccad6456b24aef08329cf3e41b0bfaae5c82eb6ad2
+```
+
+We can simply decode the flag cipher using the `Crypto` library.
+
+```py title="~/script.py" showLineNumber
+#!/opt/pwn.college/python
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad
+
+key_hex = "5ad958b13b3f977f623de7e7a4f57345"
+key = bytes.fromhex(key_hex)
+
+flag_cipher_hex = "5792b94f7f852e4f87caaef91abbfdb724c3e6cd6010bffeefa06c33ae48e3975538da1de3e1f269c82eaaccad6456b24aef08329cf3e41b0bfaae5c82eb6ad2"
+flag_cipher = bytes.fromhex(flag_cipher_hex)
+
+cipher = AES.new(key=key, mode=AES.MODE_ECB)
+flag_plain = unpad(cipher.decrypt(flag_cipher), cipher.block_size)
+
+print(flag_plain.decode())
+```
+
+```
+hacker@cryptography~aes:/$ python ~/script.py
+pwn.college{4mDLEMrwZcIDc7LzmbiYfdSlcYV.dZzNzMDL4ITM0EzW}
+```
+
+&nbsp;
+
+## AES-ECB-CPA
+
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/opt/pwn.college/python
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+from Crypto.Random import get_random_bytes
+
+flag = open("/flag", "rb").read()
+
+key = get_random_bytes(16)
+cipher = AES.new(key=key, mode=AES.MODE_ECB)
+
+while True:
+    print("Choose an action?")
+    print("1. Encrypt chosen plaintext.")
+    print("2. Encrypt part of the flag.")
+    if (choice := int(input("Choice? "))) == 1:
+        pt = input("Data? ").strip().encode()
+    elif choice == 2:
+        index = int(input("Index? "))
+        length = int(input("Length? "))
+        pt = flag[index:index+length]
+    else:
+        break
+
+    ct = cipher.encrypt(pad(pt, cipher.block_size))
+    print(f"Result: {ct.hex()}")
+```
+
+We have to build a lookup table of 1 byte encrypted outputs for every possible printable flag character (e.g., `a-zA-Z0-9_{}-`, etc.).
+
+Then, For each flag index `i`:
+- Use Option 2 to encrypt 1 byte: `flag[i]`.
+- Compare with our table.
+- Recover the flag character at that position.
+
+```py title="~/script.py" showLineNumbers
+#!/usr/bin/env python3
+
+from pwn import *
+
+context.log_level = 'error'
+p = process("/challenge/run")
+
+def send_choice(choice):
+    p.sendlineafter("Choice?", str(choice))
+
+def encrypt_custom(pt: bytes):
+    send_choice(1)
+    p.sendlineafter("Data?", pt.decode())  # safe since we're only using printable
+    p.recvuntil("Result: ")
+    return bytes.fromhex(p.recvlineS().strip())
+
+def encrypt_flag_byte(index):
+    send_choice(2)
+    p.sendlineafter("Index?", str(index))
+    p.sendlineafter("Length?", "1")
+    p.recvuntil("Result: ")
+    return bytes.fromhex(p.recvlineS().strip())
+
+# Only safe printable characters
+import string
+charset = string.printable.strip()
+
+# Build lookup
+print("[*] Building lookup table of printable characters...")
+lookup = {}
+for ch in charset:
+    ct = encrypt_custom(ch.encode())
+    lookup[ct] = ch
+
+# Add '}' manually (may be missed by .strip())
+if '}' not in charset:
+    ct = encrypt_custom(b'}')
+    lookup[ct] = '}'
+
+# Recover flag
+flag = "pwn.college{"
+i = len(flag)
+
+while True:
+    ct = encrypt_flag_byte(i)
+    ch = lookup.get(ct)
+
+    if not ch:
+        flag += '?'
+        print(f"[!] Unknown character at index {i}")
+        break
+
+    flag += ch
+    print(f"[+] {flag}")
+
+    if ch == '}':
+        break
+
+    i += 1
+
+print(f"\n[✔] Final flag: {flag}")
+```
+
+```
+hacker@cryptography~aes-ecb-cpa:/$ python ~/script.py
+[*] Building lookup table of printable characters...
+/home/hacker/script.py:9: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.sendlineafter("Choice?", str(choice))
+/nix/store/mjsfqdhpiqz69xczkhcycqmzs4x0xgk6-python3-3.12.8-env/lib/python3.12/site-packages/pwnlib/tubes/tube.py:841: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  res = self.recvuntil(delim, timeout=timeout)
+/home/hacker/script.py:13: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.sendlineafter("Data?", pt.decode())  # safe since we're only using printable
+/home/hacker/script.py:14: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.recvuntil("Result: ")
+/home/hacker/script.py:19: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.sendlineafter("Index?", str(index))
+/home/hacker/script.py:20: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.sendlineafter("Length?", "1")
+/home/hacker/script.py:21: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.recvuntil("Result: ")
+[+] pwn.college{0
+[+] pwn.college{0G
+[+] pwn.college{0GU
+[+] pwn.college{0GUW
+[+] pwn.college{0GUWK
+[+] pwn.college{0GUWKp
+[+] pwn.college{0GUWKpO
+[+] pwn.college{0GUWKpOu
+[+] pwn.college{0GUWKpOuO
+[+] pwn.college{0GUWKpOuOD
+[+] pwn.college{0GUWKpOuOD7
+[+] pwn.college{0GUWKpOuOD7x
+[+] pwn.college{0GUWKpOuOD7x0
+[+] pwn.college{0GUWKpOuOD7x09
+[+] pwn.college{0GUWKpOuOD7x095
+[+] pwn.college{0GUWKpOuOD7x095Y
+[+] pwn.college{0GUWKpOuOD7x095YQ
+[+] pwn.college{0GUWKpOuOD7x095YQk
+[+] pwn.college{0GUWKpOuOD7x095YQkH
+[+] pwn.college{0GUWKpOuOD7x095YQkHY
+[+] pwn.college{0GUWKpOuOD7x095YQkHYH
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHN
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHNX
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHNXF
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHNXF1
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHNXF10
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHNXF105
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHNXF105.
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHNXF105.d
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHNXF105.dF
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHNXF105.dFz
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHNXF105.dFzM
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHNXF105.dFzM3
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHNXF105.dFzM3k
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHNXF105.dFzM3kD
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHNXF105.dFzM3kDL
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHNXF105.dFzM3kDL4
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHNXF105.dFzM3kDL4I
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHNXF105.dFzM3kDL4IT
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHNXF105.dFzM3kDL4ITM
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHNXF105.dFzM3kDL4ITM0
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHNXF105.dFzM3kDL4ITM0E
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHNXF105.dFzM3kDL4ITM0Ez
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHNXF105.dFzM3kDL4ITM0EzW
+[+] pwn.college{0GUWKpOuOD7x095YQkHYHNXF105.dFzM3kDL4ITM0EzW}
+
+[*] Final flag: pwn.college{0GUWKpOuOD7x095YQkHYHNXF105.dFzM3kDL4ITM0EzW}
+```
