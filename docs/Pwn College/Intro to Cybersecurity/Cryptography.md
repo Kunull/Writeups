@@ -1238,3 +1238,127 @@ app.config['SERVER_NAME'] = f"challenge.localhost:80"
 app.run("challenge.localhost", 80)
 ```
 
+This time the output is given to us after Base64 encoding.
+We just need to modify the last level's script slightly.
+
+```py title="~/script.py" showLineNumbers
+#!/usr/bin/env python3
+
+import requests
+import string
+import base64
+
+url = "http://challenge.localhost/"
+
+# Safer charset: avoids single quote, backslash, etc.
+safe_charset = string.printable.strip()
+
+print("[*] Building lookup table...")
+lookup = {}
+
+for ch in safe_charset:
+    try:
+        query_param = f"'{ch}'"
+        r = requests.get(url, params={"query": query_param})
+
+        parts = r.text.split("<pre>")
+        if len(parts) < 3:
+            print(f"[!] Skipping char: {repr(ch)} — malformed response")
+            continue
+
+        ct_b64 = parts[2].split("</pre>")[0].strip()
+        ct = base64.b64decode(ct_b64)
+        lookup[ct] = ch
+    except Exception as e:
+        print(f"[!] Error with char {repr(ch)}: {e}")
+
+print(f"[+] Lookup table built with {len(lookup)} entries")
+
+# Step 2: Extract flag
+flag = "pwn.college{"
+i = len(flag) + 1
+
+while True:
+    try:
+        r = requests.get(url, params={"query": f"substr(flag,{i},1)"})
+        parts = r.text.split("<pre>")
+        if len(parts) < 3:
+            print(f"[!] Failed to extract flag[{i}] — malformed response")
+            break
+
+        ct_b64 = parts[2].split("</pre>")[0].strip()
+        ct = base64.b64decode(ct_b64)
+        ch = lookup.get(ct)
+
+        if not ch:
+            print(f"[!] Unknown character at position {i}, ciphertext: {ct_b64}")
+            break
+
+        flag += ch
+        print(f"[+] {flag}")
+
+        if ch == "}":
+            break
+
+        i += 1
+
+    except Exception as e:
+        print(f"[!] Error on index {i}: {e}")
+        break
+
+print(f"\n[*] Final flag: {flag}")
+```
+
+```
+hacker@cryptography~aes-ecb-cpa-http-base64:/$ python ~/script.py
+[*] Building lookup table...
+[!] Skipping char: "'" — malformed response
+[+] Lookup table built with 93 entries
+[+] pwn.college{c
+[+] pwn.college{c5
+[+] pwn.college{c5U
+[+] pwn.college{c5U6
+[+] pwn.college{c5U68
+[+] pwn.college{c5U68P
+[+] pwn.college{c5U68PE
+[+] pwn.college{c5U68PEU
+[+] pwn.college{c5U68PEUt
+[+] pwn.college{c5U68PEUtD
+[+] pwn.college{c5U68PEUtD5
+[+] pwn.college{c5U68PEUtD57
+[+] pwn.college{c5U68PEUtD57I
+[+] pwn.college{c5U68PEUtD57I9
+[+] pwn.college{c5U68PEUtD57I9r
+[+] pwn.college{c5U68PEUtD57I9rE
+[+] pwn.college{c5U68PEUtD57I9rEW
+[+] pwn.college{c5U68PEUtD57I9rEW5
+[+] pwn.college{c5U68PEUtD57I9rEW5l
+[+] pwn.college{c5U68PEUtD57I9rEW5ly
+[+] pwn.college{c5U68PEUtD57I9rEW5lyj
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjw
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjwk
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjwk9
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjwk9B
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjwk9B_
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjwk9B_8
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjwk9B_8.
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjwk9B_8.d
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjwk9B_8.dJ
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjwk9B_8.dJz
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjwk9B_8.dJzM
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjwk9B_8.dJzM3
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjwk9B_8.dJzM3k
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjwk9B_8.dJzM3kD
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjwk9B_8.dJzM3kDL
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjwk9B_8.dJzM3kDL4
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjwk9B_8.dJzM3kDL4I
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjwk9B_8.dJzM3kDL4IT
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjwk9B_8.dJzM3kDL4ITM
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjwk9B_8.dJzM3kDL4ITM0
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjwk9B_8.dJzM3kDL4ITM0E
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjwk9B_8.dJzM3kDL4ITM0Ez
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjwk9B_8.dJzM3kDL4ITM0EzW
+[+] pwn.college{c5U68PEUtD57I9rEW5lyjwk9B_8.dJzM3kDL4ITM0EzW}
+
+[*] Final flag: pwn.college{c5U68PEUtD57I9rEW5lyjwk9B_8.dJzM3kDL4ITM0EzW}
+```
