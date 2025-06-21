@@ -813,3 +813,99 @@ process.wait()
 > ACE
 
 Same script as [level 17](#level-17).
+
+&nbsp;
+
+## level 19
+
+> Automate Answering 128 Mandatory Access Control questions with random levels and categories in one second
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+import re
+import time
+
+context.log_level = 'error'  # Silence pwntools unless error occurs
+
+p = process("/challenge/run")
+
+# Wait until the MAC system prompt appears
+p.recvuntil(b"Mandatory Access Control (MAC) system")
+
+# --- Step 1: Parse 40 levels ---
+levels = []
+while len(levels) < 40:
+    line = p.recvline(timeout=1).decode(errors="ignore").strip()
+    if re.fullmatch(r'\w+', line):  # avoid blank or malformed lines
+        levels.append(line)
+
+# Sensitivity: highest (line 1) = 40 → lowest (line 40) = 1
+level_map = {lvl: 40 - i for i, lvl in enumerate(levels)}
+
+# --- Step 2: Parse 5 categories ---
+categories = []
+while len(categories) < 5:
+    line = p.recvline(timeout=1).decode(errors="ignore").strip()
+    if re.fullmatch(r'\w+', line):
+        categories.append(line)
+
+# --- Step 3: Prepare regex for question parsing ---
+question_re = re.compile(
+    r'Q \d+\. Can a Subject with level (\w+) and categories \{(.*?)\} '
+    r'(read|write) an Object with level (\w+) and categories \{(.*?)\}\?'
+)
+
+# --- Step 4: Answer all 128 questions ---
+start = time.time()
+answered = 0
+
+while answered < 128:
+    try:
+        line = p.recvline(timeout=1).decode(errors="ignore")
+    except EOFError:
+        break
+
+    match = question_re.match(line)
+    if not match:
+        continue  # Ignore unrelated lines
+
+    subj_lvl, subj_cats_str, access, obj_lvl, obj_cats_str = match.groups()
+
+    try:
+        subj_level = level_map[subj_lvl]
+        obj_level = level_map[obj_lvl]
+    except KeyError as e:
+        print(f"[!] Unknown level: {e.args[0]}")
+        continue
+
+    subj_cats = set(subj_cats_str.split(", ")) if subj_cats_str else set()
+    obj_cats = set(obj_cats_str.split(", ")) if obj_cats_str else set()
+
+    if access == "read":
+        allowed = subj_level >= obj_level and obj_cats.issubset(subj_cats)
+    else:  # write
+        allowed = subj_level <= obj_level and subj_cats.issubset(obj_cats)
+
+    p.sendline(b"yes" if allowed else b"no")
+    answered += 1
+
+# --- Step 5: Capture and display the flag ---
+try:
+    out = p.recvall(timeout=2).decode(errors="ignore")
+except EOFError:
+    out = ""
+
+flag = re.search(r'pwn\.college\{.*?\}', out)
+if flag:
+    print(flag.group(0))
+else:
+    print("[!] Flag not found.")
+
+print(f"Answered {answered} questions in {time.time() - start:.3f} seconds")
+```
+
+```
+hacker@access-control~level19:/$ /run/workspace/bin/python3 /home/hacker/script.py
+pwn.college{kznjy32Xv0we3xgiiKO_HkMQIS0.dBDN4MDL4ITM0EzW}
+Answered 128 questions in 0.083 seconds
+```
