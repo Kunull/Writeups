@@ -641,7 +641,7 @@ while line := sys.stdin.readline():
         print("Unknown command!")
 ```
 
-The `/challenge/dispatcher` script gives us the cipher task in hex.
+The `/challenge/dispatcher` script gives us the cipher task in hex. This is the `sleep` task which was XOR'd with a secret key.
 
 ```
 hacker@cryptography~one-time-pad-tampering:/$ /challenge/dispatcher 
@@ -658,7 +658,7 @@ Received command: b'sleep'
 Sleeping!
 ```
 
-Let's script the solution.
+Let's write a script that determines the secret key and then gives us `flag!` as XOR'd with it.
 
 ```PY title="~/script.py" showLineNumbers
 from Crypto.Util.strxor import strxor
@@ -689,6 +689,8 @@ print(encrypted.hex())
 hacker@cryptography~one-time-pad-tampering:/$ python ~/script.py
 7786bf68e4
 ```
+
+We can now provide this hex string to the `/challenge/worker`, and get the flag.
 
 ```
 hacker@cryptography~one-time-pad-tampering:/$ /challenge/worker 
