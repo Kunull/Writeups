@@ -737,12 +737,12 @@ It then asks for plaintext in hex format, which it converts into raw bytes.
 We know that XOR is commutative.
 
 ```
-flag plaintext = flag ciphertext ^ key 
+flag ciphertext = flag plaintext ^ key 
 
-key = flag plaintext ^ flag ciphertext  
+flag plaintext = flag ciphertext ^ key
 ```
 
-So, if we just give back the `Flag Ciphertext (hex)`, we would het back `Key (hex)`, which we simply have to convert into bytes.
+So, if we just give back the `Flag Ciphertext (hex)`, we would get back `Flag Plaintext (hex)`, which we simply have to convert into bytes.
 
 ```
 hacker@cryptography~many-time-pad:/$ /challenge/run
