@@ -1398,3 +1398,155 @@ while True:
     ct = cipher.encrypt(pad(pt, cipher.block_size))
     print(f"Result: {ct.hex()}")
 ```
+
+In this level, we cannot choose the index, only the length from the end of the flag.
+
+That is no problem however, because we can simply fuzz out the last (`n`), (`n-1`,`n`), (`n-2`,`n-1`,`n`) character sets by creating the lookup tables iteratively.
+
+```
+Lookup table for flag[-1] (last character):
+┌─────┬────────────────────────────────────┐
+│  a  ┆  481aca4f6c7b13a7d16c05af68e430ad  │ 
+│  b  ┆  43ddaee5346068b3d6b5abd2432444b1  │
+....
+│  z  ┆  598f9bbf4d450e2391236aa9629ffdf7  │
+└─────┴────────────────────────────────────┘
+
+We find out that flag[-1] character is "b".
+
+Lookup table for flag[-2:] (last two characters):
+┌──────┬────────────────────────────────────┐
+│  ab  ┆  a174e55dff9609ca8497354bc1ccbdcc  │ 
+│  bb  ┆  ccdf8d11170a497e8139f8c35643e7e4  │
+....
+│  zb  ┆  9afbf086b650105c646b5a7cd8642e50  │
+└──────┴────────────────────────────────────┘
+
+We then repeat this step for flag[-3:], flag[-4:].....
+```
+
+```py title="~/script.py" showLineNumbers
+#!/usr/bin/env python3
+
+from pwn import *
+import string
+
+context.log_level = 'error'
+p = process("/challenge/run")
+
+# You must use printable ASCII characters due to .encode() in challenge
+CHARSET = string.printable.strip().encode()
+
+def send_choice(choice):
+    p.sendlineafter(b"Choice?", str(choice).encode())
+
+def encrypt_custom(pt: bytes) -> bytes:
+    """
+    Encrypt arbitrary plaintext using Option 1.
+    Must be valid UTF-8 input, because the challenge uses input().encode().
+    """
+    send_choice(1)
+    try:
+        plaintext = pt.decode('utf-8')
+    except UnicodeDecodeError:
+        return b''  # skip non-UTF-8 bytes
+    p.sendlineafter(b"Data?", plaintext.encode())
+    p.recvuntil(b"Result: ")
+    return bytes.fromhex(p.recvlineS().strip())
+
+def encrypt_flag_tail(length: int) -> bytes:
+    send_choice(2)
+    p.sendlineafter(b"Length?", str(length).encode())
+    p.recvuntil(b"Result: ")
+    return bytes.fromhex(p.recvlineS().strip())
+
+# Start with last char of flag
+recovered = b"}"
+print("[*] Recovering flag from the end...")
+
+max_len = 64  # reasonable max
+while len(recovered) < max_len:
+    suffix_len = len(recovered) + 1
+    target_ct = encrypt_flag_tail(suffix_len)
+
+    found = False
+    for ch in CHARSET:
+        guess = bytes([ch]) + recovered
+        ct = encrypt_custom(guess)
+        if ct == target_ct:
+            recovered = bytes([ch]) + recovered
+            print(f"[+] Flag so far: {recovered.decode(errors='replace')}")
+            found = True
+            break
+
+    if not found:
+        print(f"[!] Could not determine byte at position -{suffix_len}")
+        break
+
+    if recovered.startswith(b"pwn.college{"):
+        print(f"\n[*] Final flag: {recovered.decode(errors='replace')}")
+        break
+```
+
+```
+hacker@cryptography~aes-ecb-cpa-suffix:/$ python ~/script.py
+[*] Recovering flag from the end...
+[+] Flag so far: W}
+[+] Flag so far: zW}
+[+] Flag so far: EzW}
+[+] Flag so far: 0EzW}
+[+] Flag so far: M0EzW}
+[+] Flag so far: TM0EzW}
+[+] Flag so far: ITM0EzW}
+[+] Flag so far: 4ITM0EzW}
+[+] Flag so far: L4ITM0EzW}
+[+] Flag so far: DL4ITM0EzW}
+[+] Flag so far: kDL4ITM0EzW}
+[+] Flag so far: 3kDL4ITM0EzW}
+[+] Flag so far: M3kDL4ITM0EzW}
+[+] Flag so far: zM3kDL4ITM0EzW}
+[+] Flag so far: NzM3kDL4ITM0EzW}
+[+] Flag so far: dNzM3kDL4ITM0EzW}
+[+] Flag so far: .dNzM3kDL4ITM0EzW}
+[+] Flag so far: K.dNzM3kDL4ITM0EzW}
+[+] Flag so far: YK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: tYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: ItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: vItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: rvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: srvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: TsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: 6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: F6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: MF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: 3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: M3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: cM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: YcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: kYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: OkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: ZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: WZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: 3WZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: 43WZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: V43WZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: VV43WZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: oVV43WZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: soVV43WZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: {soVV43WZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: e{soVV43WZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: ge{soVV43WZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: ege{soVV43WZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: lege{soVV43WZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: llege{soVV43WZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: ollege{soVV43WZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: college{soVV43WZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: .college{soVV43WZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: n.college{soVV43WZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: wn.college{soVV43WZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+[+] Flag so far: pwn.college{soVV43WZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+
+[*] Final flag: pwn.college{soVV43WZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+```
