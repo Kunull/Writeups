@@ -1488,6 +1488,12 @@ while len(recovered) < max_len:
         break
 ```
 
+&nbsp;
+
+## AES-ECB-CPA-Prefix
+
+### Source code
+
 ```
 hacker@cryptography~aes-ecb-cpa-suffix:/$ python ~/script.py
 [*] Recovering flag from the end...
@@ -1550,4 +1556,82 @@ hacker@cryptography~aes-ecb-cpa-suffix:/$ python ~/script.py
 [+] Flag so far: pwn.college{soVV43WZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
 
 [*] Final flag: pwn.college{soVV43WZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
+```
+
+```
+#!/usr/bin/env python3
+
+from pwn import *
+import string
+
+context.log_level = 'error'
+p = process("/challenge/run")
+
+CHARSET = string.printable.strip().encode()
+BLOCK_SIZE = 16
+TARGET_BLOCK_NUM = 5  # zero-indexed = block 4
+TOTAL_PAD = TARGET_BLOCK_NUM * BLOCK_SIZE  # 80 bytes = prefix + flag
+MAX_FLAG_LEN = 64
+
+def send_choice(choice):
+    p.sendline(str(choice).encode())
+
+def encrypt_custom(pt: bytes) -> bytes:
+    """
+    Encrypt attacker-controlled input (Option 1)
+    """
+    send_choice(1)
+    try:
+        s = pt.decode('utf-8')
+    except UnicodeDecodeError:
+        return b''
+    p.sendline(s.encode())
+    p.recvuntil(b"Result: ")
+    return p.recvline().strip()
+
+def encrypt_prepended_flag(prefix: bytes) -> bytes:
+    """
+    Encrypt prefix + flag (Option 2)
+    """
+    send_choice(2)
+    p.sendline(prefix.decode('utf-8', errors='ignore').encode())
+    p.recvuntil(b"Result: ")
+    return p.recvline().strip()
+
+def get_block(ct: bytes, n: int) -> bytes:
+    """
+    Return the nth 16-byte block (1-indexed).
+    """
+    start = (n - 1) * BLOCK_SIZE
+    end = start + BLOCK_SIZE
+    return ct[start:end]
+
+recovered = b""
+print("[*] Recovering flag from the start...")
+
+while len(recovered) < MAX_FLAG_LEN:
+    pad_len = TOTAL_PAD - (len(recovered) + 1)
+    prefix = b"A" * pad_len
+
+    # Get target block with unknown byte at end
+    target_ct = encrypt_prepended_flag(prefix)
+    target_block = get_block(target_ct, TARGET_BLOCK_NUM)
+
+    # Build lookup table
+    lookup = {}
+    for ch in CHARSET:
+        guess = prefix + recovered + bytes([ch])
+        ct = encrypt_custom(guess)
+        guess_block = get_block(ct, TARGET_BLOCK_NUM)
+        lookup[guess_block] = ch
+
+    if target_block in lookup:
+        recovered += bytes([lookup[target_block]])
+        print(f"[+] Flag so far: {recovered.decode(errors='replace')}")
+        if recovered.endswith(b"}"):
+            print(f"\n[*] Final flag: {recovered.decode(errors='replace')}")
+            break
+    else:
+        print("[!] Failed to match block — maybe wrong block index or alignment.")
+        break
 ```
