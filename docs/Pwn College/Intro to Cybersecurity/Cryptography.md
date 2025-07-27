@@ -1488,12 +1488,6 @@ while len(recovered) < max_len:
         break
 ```
 
-&nbsp;
-
-## AES-ECB-CPA-Prefix
-
-### Source code
-
 ```
 hacker@cryptography~aes-ecb-cpa-suffix:/$ python ~/script.py
 [*] Recovering flag from the end...
@@ -1557,6 +1551,12 @@ hacker@cryptography~aes-ecb-cpa-suffix:/$ python ~/script.py
 
 [*] Final flag: pwn.college{soVV43WZOkYcM3uMF6WTsrvItYK.dNzM3kDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## AES-ECB-CPA-Prefix
+
+### Source code
 
 ```
 #!/usr/bin/env python3
