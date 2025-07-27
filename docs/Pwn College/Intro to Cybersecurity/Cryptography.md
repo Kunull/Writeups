@@ -1558,7 +1558,47 @@ hacker@cryptography~aes-ecb-cpa-suffix:/$ python ~/script.py
 
 ### Source code
 
+```py title="/challenge/run" showLineNumbers
+#!/opt/pwn.college/python
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+from Crypto.Random import get_random_bytes
+
+flag = open("/flag", "rb").read().strip()
+
+key = get_random_bytes(16)
+cipher = AES.new(key=key, mode=AES.MODE_ECB)
+
+for n in range(31337):
+    print("")
+    print("Choose an action?")
+    print("1. Encrypt chosen plaintext.")
+    print("2. Prepend something to the flag.")
+    if (choice := int(input("Choice? "))) == 1:
+        pt = input("Data? ").strip().encode()
+    elif choice == 2:
+        pt = input("Data? ").strip().encode() + flag
+    else:
+        break
+
+    padded_pt = pad(pt, cipher.block_size) if len(pt)%cipher.block_size else pt
+    ct = cipher.encrypt(padded_pt)
+    print(f"Result: {ct.hex()}")
+
+    if n == 0:
+        print("I'm here to help!")
+        print("For the first 10, I will split them into blocks for you!")
+        print("After this, you'll have to split them yourself.")
+    if n < 10:
+        print(f"# of blocks: {len(ct)//16}.")
+        for n,i in enumerate(range(0, len(ct)-15, 16), start=1):
+            print(f"Block {n}: {ct[i:i+16].hex()}")
 ```
+
+### Forward decoding
+
+```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
 
 from pwn import *
@@ -1602,8 +1642,8 @@ def get_block(ct: bytes, n: int) -> bytes:
     """
     Return the nth 16-byte block (1-indexed).
     """
-    start = (n - 1) * BLOCK_SIZE
-    end = start + BLOCK_SIZE
+    start = (n - 1) * BLOCK_SIZE * 2
+    end = start + BLOCK_SIZE * 2
     return ct[start:end]
 
 recovered = b""
@@ -1634,4 +1674,212 @@ while len(recovered) < MAX_FLAG_LEN:
     else:
         print("[!] Failed to match block — maybe wrong block index or alignment.")
         break
+```
+
+```
+hacker@cryptography~aes-ecb-cpa-prefix:/$ python ~/script.py
+[*] Recovering flag from the start...
+[+] Flag so far: p
+[+] Flag so far: pw
+[+] Flag so far: pwn
+[+] Flag so far: pwn.
+[+] Flag so far: pwn.c
+[+] Flag so far: pwn.co
+[+] Flag so far: pwn.col
+[+] Flag so far: pwn.coll
+[+] Flag so far: pwn.colle
+[+] Flag so far: pwn.colleg
+[+] Flag so far: pwn.college
+[+] Flag so far: pwn.college{
+[+] Flag so far: pwn.college{0
+[+] Flag so far: pwn.college{0H
+[+] Flag so far: pwn.college{0H2
+[+] Flag so far: pwn.college{0H2p
+[+] Flag so far: pwn.college{0H2pG
+[+] Flag so far: pwn.college{0H2pGi
+[+] Flag so far: pwn.college{0H2pGid
+[+] Flag so far: pwn.college{0H2pGida
+[+] Flag so far: pwn.college{0H2pGida-
+[+] Flag so far: pwn.college{0H2pGida-V
+[+] Flag so far: pwn.college{0H2pGida-VG
+[+] Flag so far: pwn.college{0H2pGida-VGi
+[+] Flag so far: pwn.college{0H2pGida-VGiW
+[+] Flag so far: pwn.college{0H2pGida-VGiWY
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7S
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7St
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7Stl
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2j
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jm
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jml
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jmld
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jmldE
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jmldEf
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jmldEfK
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jmldEfK.
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jmldEfK.d
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jmldEfK.dR
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jmldEfK.dRz
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jmldEfK.dRzM
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3k
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kD
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4I
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4IT
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0E
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0Ez
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+
+[*] Final flag: pwn.college{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+```
+
+### Backward decoding
+
+```py title="~/script.py" showLineNumbers
+#!/usr/bin/env python3
+
+from pwn import *
+import string
+
+context.log_level = 'error'
+p = process("/challenge/run")
+
+CHARSET = string.printable.strip().encode()
+BLOCK_SIZE = 16
+TARGET_BLOCK_NUM = 5  # zero-indexed = block 4
+TOTAL_PAD = 8  # 80 bytes = prefix + flag
+MAX_FLAG_LEN = 64
+
+def send_choice(choice):
+    p.sendline(str(choice).encode())
+
+def encrypt_custom(pt: bytes) -> bytes:
+    """
+    Encrypt attacker-controlled input (Option 1)
+    """
+    send_choice(1)
+    try:
+        s = pt.decode('utf-8')
+    except UnicodeDecodeError:
+        return b''
+    p.sendline(s.encode())
+    p.recvuntil(b"Result: ")
+    return p.recvline().strip()
+
+def encrypt_prepended_flag(prefix: bytes) -> bytes:
+    """
+    Encrypt prefix + flag (Option 2)
+    """
+    send_choice(2)
+    p.sendline(prefix.decode('utf-8', errors='ignore').encode())
+    p.recvuntil(b"Result: ")
+    return p.recvline().strip()
+
+def get_block(ct: bytes, n: int) -> bytes:
+    """
+    Return the nth 16-byte block (1-indexed).
+    """
+    start = (n - 1) * BLOCK_SIZE * 2
+    end = start + BLOCK_SIZE * 2
+    return ct[start:end]
+
+recovered = b""
+print("[*] Recovering flag from the end...")
+
+while len(recovered) < MAX_FLAG_LEN:
+    pad_len = TOTAL_PAD + len(recovered)
+    prefix = b"A" * pad_len
+
+    # Get target block with unknown byte at end
+    target_ct = encrypt_prepended_flag(prefix)
+    target_block = get_block(target_ct, TARGET_BLOCK_NUM)
+
+    # Build lookup table
+    lookup = {}
+    for ch in CHARSET:
+        guess = bytes([ch]) + recovered
+        ct = encrypt_custom(guess)
+        guess_block = get_block(ct, 1)
+        lookup[guess_block] = ch
+
+    if target_block in lookup:
+        recovered = bytes([lookup[target_block]]) + recovered
+        print(f"[+] Flag so far: {recovered.decode(errors='replace')}")
+        if recovered.startswith(b"pwn"):
+            print(f"\n[*] Final flag: {recovered.decode(errors='replace')}")
+            break
+    else:
+        print("[!] Failed to match block — maybe wrong block index or alignment.")
+        break
+```
+
+```
+hacker@cryptography~aes-ecb-cpa-prefix:/$ python ~/script.py
+[*] Recovering flag from the end...
+[+] Flag so far: }
+[+] Flag so far: W}
+[+] Flag so far: zW}
+[+] Flag so far: EzW}
+[+] Flag so far: 0EzW}
+[+] Flag so far: M0EzW}
+[+] Flag so far: TM0EzW}
+[+] Flag so far: ITM0EzW}
+[+] Flag so far: 4ITM0EzW}
+[+] Flag so far: L4ITM0EzW}
+[+] Flag so far: DL4ITM0EzW}
+[+] Flag so far: kDL4ITM0EzW}
+[+] Flag so far: 3kDL4ITM0EzW}
+[+] Flag so far: M3kDL4ITM0EzW}
+[+] Flag so far: zM3kDL4ITM0EzW}
+[+] Flag so far: RzM3kDL4ITM0EzW}
+[+] Flag so far: dRzM3kDL4ITM0EzW}
+[+] Flag so far: .dRzM3kDL4ITM0EzW}
+[+] Flag so far: K.dRzM3kDL4ITM0EzW}
+[+] Flag so far: fK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: EfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: dEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: ldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: mldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: 2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: P2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: lP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: tlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: 7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: Y7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: WY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: iWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: GiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: -VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: a-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: da-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: ida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: Gida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: 2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: 0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: {0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: e{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: ge{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: ege{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: lege{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: llege{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: ollege{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: college{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: .college{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: n.college{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: wn.college{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+[+] Flag so far: pwn.college{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
+
+[*] Final flag: pwn.college{0H2pGida-VGiWY7StlP2jmldEfK.dRzM3kDL4ITM0EzW}
 ```
