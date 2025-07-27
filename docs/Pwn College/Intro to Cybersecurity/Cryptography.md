@@ -1461,7 +1461,7 @@ def encrypt_flag_tail(length: int) -> bytes:
     return bytes.fromhex(p.recvlineS().strip())
 
 # Start with last char of flag
-recovered = b"}"
+recovered = b""
 print("[*] Recovering flag from the end...")
 
 max_len = 64  # reasonable max
@@ -1491,6 +1491,7 @@ while len(recovered) < max_len:
 ```
 hacker@cryptography~aes-ecb-cpa-suffix:/$ python ~/script.py
 [*] Recovering flag from the end...
+[+] Flag so far: }
 [+] Flag so far: W}
 [+] Flag so far: zW}
 [+] Flag so far: EzW}
