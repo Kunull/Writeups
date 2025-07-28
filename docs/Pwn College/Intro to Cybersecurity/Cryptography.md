@@ -2267,3 +2267,251 @@ hacker@cryptography~aes-ecb-cpa-prefix-miniboss:/$ python ~/script.py
 
 [*] Final flag: pwn.college{UpjPat3sTR8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## AES-ECB-CPA-Prefix-Boss
+
+### Source code
+
+```py title="/challenge/run" showLineNumbers
+#!/opt/pwn.college/python
+
+from base64 import b64encode
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+from Crypto.Random import get_random_bytes
+
+import tempfile
+import sqlite3
+import flask
+import os
+
+app = flask.Flask(__name__)
+
+class TemporaryDB:
+    def __init__(self):
+        self.db_file = tempfile.NamedTemporaryFile("x", suffix=".db")
+
+    def execute(self, sql, parameters=()):
+        connection = sqlite3.connect(self.db_file.name)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        result = cursor.execute(sql, parameters)
+        connection.commit()
+        return result
+
+key = get_random_bytes(16)
+cipher = AES.new(key=key, mode=AES.MODE_ECB)
+
+db = TemporaryDB()
+# https://www.sqlite.org/lang_createtable.html
+db.execute("""CREATE TABLE posts AS SELECT ? AS content""", [open("/flag", "rb").read().strip()])
+
+@app.route("/", methods=["POST"])
+def challenge_post():
+    content = flask.request.form.get("content").encode('latin1')
+    db.execute("INSERT INTO posts VALUES (?)", [content])
+    return flask.redirect(flask.request.path)
+
+@app.route("/reset", methods=["POST"])
+def challenge_reset():
+    db.execute("DELETE FROM posts WHERE ROWID > 1")
+    return flask.redirect("/")
+
+@app.route("/", methods=["GET"])
+def challenge_get():
+    pt = b"|".join(post["content"] for post in db.execute("SELECT content FROM posts ORDER BY ROWID DESC").fetchall())
+    ct = cipher.encrypt(pad(pt, cipher.block_size))
+
+    return f"""
+        <html><body>Welcome to pwn.secret!
+        <form method=post>Post a secret:<input type=text name=content><input type=submit value=Submit></form>
+        <form method=post action=reset><input type=submit value="Reset Database"></form>
+        <hr>
+        <b>Encrypted backup:</b><pre>{b64encode(ct).decode()}</pre>
+        </body></html>
+    """
+
+app.secret_key = os.urandom(8)
+app.config['SERVER_NAME'] = "challenge.localhost:80"
+app.run("challenge.localhost", 80)
+```
+
+Let's first find the number of byte required to push last byte of flag into new block.
+
+```
+hacker@cryptography~aes-ecb-cpa-prefix-boss:/$ for i in $(seq 1 32); do
+  curl -s -X POST \
+    -F "content=$(printf '\x0f%.0s' $(seq 1 $i))" \
+    http://challenge.localhost/ > /dev/null
+  echo -n "Len $i: "
+  curl -s http://challenge.localhost/ \
+    | grep -oP '(?<=<pre>).*?(?=</pre>)' \
+    | base64 -d | wc -c
+done
+Len 1: 128
+Len 2: 128
+Len 3: 128
+Len 4: 144
+Len 5: 144
+Len 6: 144
+Len 7: 160
+Len 8: 176
+Len 9: 176
+Len 10: 192
+Len 11: 208
+Len 12: 208
+Len 13: 224
+Len 14: 240
+Len 15: 256
+Len 16: 272
+Len 17: 288
+Len 18: 320
+Len 19: 336
+Len 20: 352
+Len 21: 384
+Len 22: 400
+Len 23: 416
+Len 24: 448
+Len 25: 480
+Len 26: 496
+Len 27: 528
+Len 28: 560
+Len 29: 592
+Len 30: 624
+Len 31: 656
+Len 32: 688
+```
+
+As we can see, it takes 5 bytes of padding to push the last byte in new block.
+
+Now, we can craft our script.
+
+```py title="~/script.py" showLineNumbers
+#!/usr/bin/env python3
+import requests
+import base64
+import string
+
+URL = "http://challenge.localhost"
+CHARSET = string.printable.strip().encode()
+BLOCK_SIZE = 16
+REF_BLOCK_NUM = 1
+TARGET_BLOCK_NUM = 6
+TOTAL_PAD = 22
+MAX_FLAG_LEN = 64
+
+session = requests.Session()
+
+def reset_db():
+    session.post(f"{URL}/reset")
+
+def encrypt_prefix(prefix: bytes) -> bytes:
+    # Insert attacker-controlled input
+    session.post(URL, data={'content': prefix.decode('latin1')})
+    # Retrieve ciphertext
+    resp = session.get(URL).text
+    ct_b64 = resp.split("<pre>")[1].split("</pre>")[0].strip()
+    return base64.b64decode(ct_b64).hex()
+
+def get_block(ct: bytes, n: int) -> bytes:
+    start = (n - 1) * BLOCK_SIZE * 2
+    end = start + BLOCK_SIZE * 2
+    return ct[start:end]
+
+recovered = b""
+print("[*] Recovering flag from the end...")
+
+while len(recovered) < MAX_FLAG_LEN:
+    # PKCS#7 padding byte dynamically decreases
+    pkcs_byte = max(15 - len(recovered), 0)
+    padding = bytes([pkcs_byte]) * TOTAL_PAD
+    found = False
+
+    for ch in CHARSET:
+        guess = bytes([ch]) + recovered + padding
+        reset_db()  # keep DB small each try
+        ct = encrypt_prefix(guess)
+
+        block_ref = get_block(ct, REF_BLOCK_NUM)
+        block_target = get_block(ct, TARGET_BLOCK_NUM)
+
+        if block_ref == block_target:
+            recovered = bytes([ch]) + recovered
+            print(f"[+] Flag so far: {recovered.decode(errors='replace')}")
+            found = True
+            break
+
+    if not found:
+        print("[!] Failed to match any byte – check block index/alignment.")
+        break
+
+    if recovered.startswith(b"pwn") and recovered.endswith(b"}"):
+        print(f"\n[*] Final flag: {recovered.decode(errors='replace')}")
+        break
+```
+
+```
+hacker@cryptography~aes-ecb-cpa-prefix-boss:/$ python ~/script.py 
+[*] Recovering flag from the end...
+[+] Flag so far: }
+[+] Flag so far: W}
+[+] Flag so far: zW}
+[+] Flag so far: EzW}
+[+] Flag so far: 0EzW}
+[+] Flag so far: M0EzW}
+[+] Flag so far: TM0EzW}
+[+] Flag so far: ITM0EzW}
+[+] Flag so far: 4ITM0EzW}
+[+] Flag so far: L4ITM0EzW}
+[+] Flag so far: DL4ITM0EzW}
+[+] Flag so far: kDL4ITM0EzW}
+[+] Flag so far: 3kDL4ITM0EzW}
+[+] Flag so far: M3kDL4ITM0EzW}
+[+] Flag so far: zM3kDL4ITM0EzW}
+[+] Flag so far: ZzM3kDL4ITM0EzW}
+[+] Flag so far: dZzM3kDL4ITM0EzW}
+[+] Flag so far: .dZzM3kDL4ITM0EzW}
+[+] Flag so far: C.dZzM3kDL4ITM0EzW}
+[+] Flag so far: iC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: biC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: SbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: nSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: hnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: NhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: XNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: rXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: FrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: WFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: EWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: FEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: 9EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: 69EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: 269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: y269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: ay269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: Way269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: DWay269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: 8DWay269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: g8DWay269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: Vg8DWay269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: KVg8DWay269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: lKVg8DWay269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: ElKVg8DWay269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: {ElKVg8DWay269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: e{ElKVg8DWay269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: ge{ElKVg8DWay269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: ege{ElKVg8DWay269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: lege{ElKVg8DWay269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: llege{ElKVg8DWay269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: ollege{ElKVg8DWay269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: college{ElKVg8DWay269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: .college{ElKVg8DWay269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: n.college{ElKVg8DWay269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: wn.college{ElKVg8DWay269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+[+] Flag so far: pwn.college{ElKVg8DWay269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+
+[*] Final flag: pwn.college{ElKVg8DWay269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
+```
