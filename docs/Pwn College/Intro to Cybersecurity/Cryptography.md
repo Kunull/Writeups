@@ -1919,7 +1919,7 @@ for n in range(31337):
     print(f"Result: {ct.hex()}")
 ```
 
-Our (backward decoding)[#backward-decoding] script from the last challenge would work here as well, as we only concern ourselves with the 5th block.
+Our [backward decoding](#backward-decoding) script from the last challenge would work here as well, as we only concern ourselves with the 5th block.
 
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
@@ -2098,7 +2098,7 @@ Data? 0f0f0f0f0f0f0f0f
 Ciphertext: c3286195bd04de381b405f7de8bcd3963fdcca82533782293589a91f39d6dc831320a97b43f30a0b35a1ef12063d76a76a17c4c4debafd66bd7ef446bff954fc5014fb3c8d608deab62f32ccf2f6c6a2
 ```
 
-This shows us that that a padding of 8 bytes pushes the last byte of the flag in the new, 5th block. (7 bytes of padding would also give us a 5th block, however that would be a block entirely filled with (PKCS#7)[https://en.wikipedia.org/wiki/Padding_(cryptography)#PKCS#5_and_PKCS#7] padding as noted in the last challenge.)
+This shows us that that a padding of 8 bytes pushes the last byte of the flag in the new, 5th block. (7 bytes of padding would also give us a 5th block, however that would be a block entirely filled with [PKCS#7](https://en.wikipedia.org/wiki/Padding_(cryptography)#PKCS#5_and_PKCS#7) padding as noted in the last challenge.)
 
 > But wait... What if exactly 16 bytes of plaintext are encrypted (e.g., no padding needed), but the plaintext byte has a value of 0x01? Left to its own devices, PKCS7 would chop off that byte during unpadding, leaving us with a corrupted plaintext. The solution to this is slightly silly: if the last block of the plaintext is exactly 16 bytes, we add a block of all padding (e.g., 16 padding bytes, each with a value of 0x10). PKCS7 removes the whole block during unpadding, and the sanctity of the plaintext is preserved at the expense of a bit more data.
 
