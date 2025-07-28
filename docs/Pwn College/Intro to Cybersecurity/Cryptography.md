@@ -2148,3 +2148,122 @@ Block 6: 88659faf2ea78c203983aa76e5dbda3c --> flag[-1] + b'\x0f\x0f\x0f\x0f\x0f\
 
 Finally! We have managed to create a valid lookup table in the 1st block using our padding. Let's create a solution script for this.
 
+```py title="~/script.py" showLineNumbers
+#!/usr/bin/env python3
+from pwn import *
+import string
+
+context.log_level = 'error'
+p = process("/challenge/run")
+
+# Printable chars are fine since they get hex-encoded automatically
+CHARSET = string.printable.strip().encode()
+BLOCK_SIZE = 16
+REF_BLOCK_NUM = 1       # Lookup table block
+TARGET_BLOCK_NUM = 6    # Flag byte block
+TOTAL_PAD = 23          # Static padding
+MAX_FLAG_LEN = 64
+
+def encrypt_prefix(prefix: bytes) -> bytes:
+    p.sendline(prefix.hex().encode())   # send hex-encoded
+    p.recvuntil(b"Ciphertext: ")
+    return p.recvline().strip()
+
+def get_block(ct: bytes, n: int) -> bytes:
+    start = (n - 1) * BLOCK_SIZE * 2
+    end = start + BLOCK_SIZE * 2
+    return ct[start:end]
+
+recovered = b""
+print("[*] Recovering flag from the end...")
+
+while len(recovered) < MAX_FLAG_LEN:
+    pkcs_byte = max(15 - len(recovered), 0)
+    padding = bytes([pkcs_byte]) * TOTAL_PAD
+    found = False
+
+    for ch in CHARSET:
+        guess = bytes([ch]) + recovered + padding
+        ct = encrypt_prefix(guess)
+        block_1 = get_block(ct, REF_BLOCK_NUM)
+        block_6 = get_block(ct, TARGET_BLOCK_NUM)
+
+        if block_1 == block_6:
+            recovered = bytes([ch]) + recovered
+            print(f"[+] Flag so far: {recovered.decode(errors='replace')}")
+            found = True
+            break
+
+    if not found:
+        print("[!] Failed to match any byte – check block index/alignment.")
+        break
+
+    # Stop when full flag structure is detected
+    if recovered.startswith(b"pwn") and recovered.endswith(b"}"):
+        print(f"\n[*] Final flag: {recovered.decode(errors='replace')}")
+        break
+```
+
+```
+hacker@cryptography~aes-ecb-cpa-prefix-miniboss:/$ python ~/script.py 
+[*] Recovering flag from the end...
+[+] Flag so far: }
+[+] Flag so far: W}
+[+] Flag so far: zW}
+[+] Flag so far: EzW}
+[+] Flag so far: 0EzW}
+[+] Flag so far: M0EzW}
+[+] Flag so far: TM0EzW}
+[+] Flag so far: ITM0EzW}
+[+] Flag so far: 4ITM0EzW}
+[+] Flag so far: L4ITM0EzW}
+[+] Flag so far: DL4ITM0EzW}
+[+] Flag so far: MDL4ITM0EzW}
+[+] Flag so far: zMDL4ITM0EzW}
+[+] Flag so far: NzMDL4ITM0EzW}
+[+] Flag so far: zNzMDL4ITM0EzW}
+[+] Flag so far: dzNzMDL4ITM0EzW}
+[+] Flag so far: ddzNzMDL4ITM0EzW}
+[+] Flag so far: .ddzNzMDL4ITM0EzW}
+[+] Flag so far: c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: 7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: y7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: my7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: rmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: qrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: eqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: Feqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: -IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: P-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: VP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: 2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: -m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: 8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: R8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: TR8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: sTR8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: 3sTR8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: t3sTR8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: at3sTR8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: Pat3sTR8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: jPat3sTR8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: pjPat3sTR8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: UpjPat3sTR8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: {UpjPat3sTR8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: e{UpjPat3sTR8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: ge{UpjPat3sTR8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: ege{UpjPat3sTR8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: lege{UpjPat3sTR8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: llege{UpjPat3sTR8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: ollege{UpjPat3sTR8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: college{UpjPat3sTR8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: .college{UpjPat3sTR8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: n.college{UpjPat3sTR8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: wn.college{UpjPat3sTR8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+[+] Flag so far: pwn.college{UpjPat3sTR8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+
+[*] Final flag: pwn.college{UpjPat3sTR8-m2LVP-IFeqrmy7c.ddzNzMDL4ITM0EzW}
+```
