@@ -2085,3 +2085,66 @@ while True:
     ct = cipher.encrypt(pad(pt, cipher.block_size))
     print(f"Ciphertext: {ct.hex()}")
 ```
+
+This time, the challenge expects our input to be in hex format. 
+
+Also, we cannot create a separate lookup table. Therefore, we will have to use the block in the padded flag's output in order to create the lookup table.
+
+```
+hacker@cryptography~aes-ecb-cpa-prefix-miniboss:/$ /challenge/run 
+Data? 0f
+Ciphertext: 00a3c19a94ec6269f8dcb210b3eaedbb3b3186d87e9c81e822b044acf91c877326594fc26f986ba5bb17ceff011bf8c79a914706c64e516c4030c7d3c51e53bf
+Data? 0f0f0f0f0f0f0f0f
+Ciphertext: c3286195bd04de381b405f7de8bcd3963fdcca82533782293589a91f39d6dc831320a97b43f30a0b35a1ef12063d76a76a17c4c4debafd66bd7ef446bff954fc5014fb3c8d608deab62f32ccf2f6c6a2
+```
+
+This shows us that that a padding of 8 bytes pushes the last byte of the flag in the new, 5th block. (7 bytes of padding would also give us a 5th block, however that would be a block entirely filled with #PKC7 padding as noted in the last challenge.)
+
+> But wait... What if exactly 16 bytes of plaintext are encrypted (e.g., no padding needed), but the plaintext byte has a value of 0x01? Left to its own devices, PKCS7 would chop off that byte during unpadding, leaving us with a corrupted plaintext. The solution to this is slightly silly: if the last block of the plaintext is exactly 16 bytes, we add a block of all padding (e.g., 16 padding bytes, each with a value of 0x10). PKCS7 removes the whole block during unpadding, and the sanctity of the plaintext is preserved at the expense of a bit more data.
+
+```
+Block 1: c3286195bd04de381b405f7de8bcd396 --> b'\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f' + flag[:8]
+Block 2: 3fdcca82533782293589a91f39d6dc83
+Block 3: 1320a97b43f30a0b35a1ef12063d76a7
+Block 4: 6a17c4c4debafd66bd7ef446bff954fc
+Block 5: 5014fb3c8d608deab62f32ccf2f6c6a2 --> flag[-1] + b'\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f'
+```
+
+In this case, the first block can be used as the reference lookup block. However, we have to push the `flag[:8]` bytes into the next block so that we can standardize the first block. In order to do that, we can simply add 16 more bytes of padding.
+
+```
+Data? 0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f
+Ciphertext: 655242cbfe80f893d6bc8c064acf7c8ff53d8c0a577545e2cad3e1bd50172916eea1729a41246495debbcc9ad79e134151335e55511e0aeff2d19c41c4a911bd53a22dc4391093e9f9395c0cdd966b472e0c5da7f0bd741b7813d831deac420d
+```
+
+We can see that the last byte of the flag is now pushed in the 6th block.
+
+```
+Block 1: 655242cbfe80f893d6bc8c064acf7c8f --> b'\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f'
+Block 2: f53d8c0a577545e2cad3e1bd50172916 --> b'\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f' + flag[:8]
+Block 3: eea1729a41246495debbcc9ad79e1341
+Block 4: 51335e55511e0aeff2d19c41c4a911bd
+Block 5: 53a22dc4391093e9f9395c0cdd966b47
+Block 6: 2e0c5da7f0bd741b7813d831deac420d --> flag[-1] + b'\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f'
+```
+
+Now, our first block has been standardized and is entirely under our control.
+
+We know that the last char of the flag is "`}`", hence we can use it while creating the padding, such that the 1st block matches the 6th block.
+
+```
+Data? 7d0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f
+Ciphertext: 88659faf2ea78c203983aa76e5dbda3c7d8795481949358dc0a87b47df93ab65e53be7ee2cc95b12eaec38e97e89e9cd0b651c7e05af13d57cf46b7b3b3c1920dca5561f8e23fe4b077d80e725e433d288659faf2ea78c203983aa76e5dbda3c
+```
+
+```
+Block 1: 88659faf2ea78c203983aa76e5dbda3c --> flag[-1] + b'\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f'
+Block 2: 7d8795481949358dc0a87b47df93ab65 --> b'\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f' + flag[:8]
+Block 3: e53be7ee2cc95b12eaec38e97e89e9cd
+Block 4: 0b651c7e05af13d57cf46b7b3b3c1920
+Block 5: dca5561f8e23fe4b077d80e725e433d2
+Block 6: 88659faf2ea78c203983aa76e5dbda3c --> flag[-1] + b'\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f'
+```
+
+Finally! We have managed to create a valid lookup table in the 1st block using our padding. Let's create a solution script for this.
+
