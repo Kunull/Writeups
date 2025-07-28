@@ -2515,3 +2515,67 @@ hacker@cryptography~aes-ecb-cpa-prefix-boss:/$ python ~/script.py
 
 [*] Final flag: pwn.college{ElKVg8DWay269EFEWFrXNhnSbiC.dZzM3kDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## AES-CBC
+
+### Source code
+
+```py title="/challenge/run" showLineNumbers
+#!/opt/pwn.college/python
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+from Crypto.Random import get_random_bytes
+
+flag = open("/flag", "rb").read()
+
+key = get_random_bytes(16)
+cipher = AES.new(key=key, mode=AES.MODE_CBC)
+ciphertext = cipher.iv + cipher.encrypt(pad(flag, cipher.block_size))
+
+print(f"AES Key (hex): {key.hex()}")
+print(f"Flag Ciphertext (hex): {ciphertext.hex()}")
+```
+
+```
+hacker@cryptography~aes-cbc:/$ /challenge/run 
+AES Key (hex): f3f251ecb272915ab2b231bc8252e633
+Flag Ciphertext (hex): e8ffadd10cf2fab51748d9976a83d710bcc067dae2d95d627e6882161a26702566368d2427da2da58937cd6aa8850a3bb5acaec25ccf1065c699a3b67f9b89378b0d06afb23e254cd5ed09bf8b1e7b1f
+```
+
+In order to decrypt the flag, we have to use the `MODE_CBC` in AES. Also we have to separate the Initialization Vector and the cipher text.
+
+`cipher.iv` is always 16 bytes for AES, so we can split there.
+
+```py title="~/script.py" showLineNumbers
+#!/opt/pwn.college/python
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad
+
+key_hex = "f3f251ecb272915ab2b231bc8252e633"
+key = bytes.fromhex(key_hex)
+
+flag_cipher_hex = "e8ffadd10cf2fab51748d9976a83d710bcc067dae2d95d627e6882161a26702566368d2427da2da58937cd6aa8850a3bb5acaec25ccf1065c699a3b67f9b89378b0d06afb23e254cd5ed09bf8b1e7b1f"
+flag_cipher = bytes.fromhex(flag_cipher_hex)
+
+# Extract IV and ciphertext
+iv = flag_cipher[:16]
+ciphertext = flag_cipher[16:]
+
+cipher = AES.new(key, AES.MODE_CBC, iv)
+flag_plain = unpad(cipher.decrypt(ciphertext), AES.block_size)
+
+print(flag_plain.decode())
+```
+
+```
+hacker@cryptography~aes-cbc:/$ python ~/script.py 
+pwn.college{EclMIdT_XkgnVQ3DjKo6norcpJ6.ddzM3kDL4ITM0EzW}
+```
+
+&nbsp;
+
+## AES-CBC Tampering
