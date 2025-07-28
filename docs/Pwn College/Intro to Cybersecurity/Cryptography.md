@@ -2062,3 +2062,26 @@ hacker@cryptography~aes-ecb-cpa-prefix-2:/$ python ~/script.py
 
 [*] Final flag: pwn.college{giHqgYC7FaEbacmS45v9HHj0i7t.dVzM3kDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## AES-ECB-CPA-Prefix-Miniboss
+
+### Source code
+
+```py title="/challenge/run" showLineNumbers
+#!/opt/pwn.college/python
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+from Crypto.Random import get_random_bytes
+
+flag = open("/flag", "rb").read().strip()
+key = get_random_bytes(16)
+cipher = AES.new(key=key, mode=AES.MODE_ECB)
+
+while True:
+    pt = bytes.fromhex(input("Data? ").strip()) + flag
+    ct = cipher.encrypt(pad(pt, cipher.block_size))
+    print(f"Ciphertext: {ct.hex()}")
+```
