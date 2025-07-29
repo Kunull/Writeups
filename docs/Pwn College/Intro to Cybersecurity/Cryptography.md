@@ -2618,3 +2618,46 @@ Received command: flag!
 Victory! Your flag:
 pwn.college{E562wrmpXmo5PkCokLzflg4-OxM.dhzM3kDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## AES-CBC Resizing
+
+```py title="~/script.py" showLineNumbers
+#!/usr/bin/env python3
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+from Crypto.Util.strxor import strxor
+import binascii
+
+# Original ciphertext (from the task)
+ciphertext_hex = "afc288546a0a07ee57e23e3d98ec732858b35fac004b6eb3c39d881f46aada7b"
+ciphertext = bytes.fromhex(ciphertext_hex)
+
+# Split IV and ciphertext block
+iv = ciphertext[:16]
+print(iv)
+c0 = ciphertext[16:]
+
+# Known original plaintext and desired plaintext, auto-padded
+P1 = pad(b"sleep", AES.block_size)
+print(P1)
+GP1 = pad(b"flag", AES.block_size)
+print(GP1)
+
+# Modified IV calculation using full-block XOR
+modified_iv = strxor(iv, strxor(P1, GP1))
+
+# Construct modified ciphertext
+tampered_ciphertext = modified_iv + c0
+print("TASK:", tampered_ciphertext.hex())
+```
+
+```
+hacker@cryptography~aes-cbc-resizing:/$ /challenge/worker 
+TASK: bac28c56160d00e950e5393a9feb742f58b35fac004b6eb3c39d881f46aada7b
+Hex of plaintext: 666c6167
+Received command: flag
+Victory! Your flag:
+pwn.college{M-SmN7np6M8gKce-S1gTI95eeh0.dlzM3kDL4ITM0EzW}
+```
