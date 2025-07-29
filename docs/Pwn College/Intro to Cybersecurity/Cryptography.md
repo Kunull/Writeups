@@ -2545,7 +2545,7 @@ AES Key (hex): f3f251ecb272915ab2b231bc8252e633
 Flag Ciphertext (hex): e8ffadd10cf2fab51748d9976a83d710bcc067dae2d95d627e6882161a26702566368d2427da2da58937cd6aa8850a3bb5acaec25ccf1065c699a3b67f9b89378b0d06afb23e254cd5ed09bf8b1e7b1f
 ```
 
-In order to decrypt the flag, we have to use the `MODE_CBC` in AES. Also we have to separate the Initialization Vector and the cipher text.
+In order to decrypt the flag, we have to use the `MODE_CBC` in AES. Also we have to separate the Initialization vector and the cipher text.
 
 `cipher.iv` is always 16 bytes for AES, so we can split there.
 
@@ -2580,6 +2580,146 @@ pwn.college{EclMIdT_XkgnVQ3DjKo6norcpJ6.ddzM3kDL4ITM0EzW}
 
 ## AES-CBC Tampering
 
+### Source code
+
+```py title="/challenge/dispatcher" showLineNumbers
+#!/opt/pwn.college/python
+
+import os
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+from Crypto.Random import get_random_bytes
+
+key = open("/challenge/.key", "rb").read()
+cipher = AES.new(key=key, mode=AES.MODE_CBC)
+ciphertext = cipher.iv + cipher.encrypt(pad(b"sleep", cipher.block_size))
+
+print(f"TASK: {ciphertext.hex()}")
+```
+
+```py title="/challenge/worker" showLineNumbers
+#!/opt/pwn.college/python
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad
+from Crypto.Random import get_random_bytes
+
+import time
+import sys
+
+key = open("/challenge/.key", "rb").read()
+
+while line := sys.stdin.readline():
+    if not line.startswith("TASK: "):
+        continue
+    data = bytes.fromhex(line.split()[1])
+    iv, ciphertext = data[:16], data[16:]
+
+    cipher = AES.new(key=key, mode=AES.MODE_CBC, iv=iv)
+    try:
+        plaintext = unpad(cipher.decrypt(ciphertext), cipher.block_size).decode('latin1')
+    except ValueError as e:
+        print("Error:", e)
+        continue
+
+    print(f"Hex of plaintext: {plaintext.encode('latin1').hex()}")
+    print(f"Received command: {plaintext}")
+    if plaintext == "sleep":
+        print("Sleeping!")
+        time.sleep(1)
+    elif plaintext == "flag!":
+        print("Victory! Your flag:")
+        print(open("/flag").read())
+    else:
+        print("Unknown command!")
+```
+
+```
+hacker@cryptography~aes-cbc-tampering:/$ /challenge/dispatcher 
+TASK: a28438ea597316483da08726f8f246546c66dbb5e901ad7ba356de83b0804833
+hacker@cryptography~aes-cbc-tampering:/$ /challenge/worker 
+TASK: a28438ea597316483da08726f8f246546c66dbb5e901ad7ba356de83b0804833
+Hex of plaintext: 736c656570
+Received command: sleep
+Sleeping!
+```
+
+The `/challenge/dispatcher` gives an output `iv + ciphertext` where ciphertext is AES-CBC encryption of `sleep`, which is then decoded by the `/challenge/worker`.
+
+Once we send the cipher text to the `/challenge/worker`, it first splits it.
+
+```
+Ciphertext (CT_1): a28438ea597316483da08726f8f246546c66dbb5e901ad7ba356de83b0804833
+Initialization Vector (IV_1): a28438ea597316483da08726f8f24654
+AES Encoded text (AE): 6c66dbb5e901ad7ba356de83b0804833
+```
+
+Next, `AE` is run through the AES function where it is decrypted to give us the AES decoded text (`AD`). This is then XOR'd with the Intialization vector (`IV_1`), to give us the Plaintext (`PT_1`) which is `sleep`.
+
+```
+CT_1 == IV_1 + AE
+
+                      AE
+                      ║               
+                      ║
+              ┌───────╨───────┐
+              │  AES_Decrypt  │
+              └───────╥───────┘
+                      ║     
+                      ║    
+                      ⌄    
+                      AD 
+                      ║ 
+             IV_1 ==> ⊕    
+                      ║    
+                      ⌄   
+                     PT_1 (sleep)
+```
+
+We want the plaintext (`PT_1`) to be `flag!`, so that the `/challenge/worker` gives us the flag. Let's call that (`PT_2`).
+We can make use of the various XOR properties to achieve this.
+
+```
+AD ⊕ IV_1 ==> PT_1
+
+## XOR both sides with same values
+AD ⊕ IV_1 ⊕ PT_1 ⊕ PT_2 ==> PT_1 ⊕ PT_1 ⊕ PT_2   
+
+## Identity property
+AD ⊕ IV_1 ⊕ PT_1 ⊕ PT_2 ==> 0 ⊕ PT_2
+
+## Self inverse property
+AD ⊕ IV_1 ⊕ PT_1 ⊕ PT_2 ==> PT_2
+
+## Commutative property
+AD ⊕ [IV_1 ⊕ (PT_1 ⊕ PT_2)] ==> PT_2
+```
+
+Looking at the above expressions, we can see that in order to get `PT_2` from `AD`, we have to use a new Initialization vector: `[IV_1 ⊕ (PT_1 ⊕ PT_2)]`.
+So, we have to create a new cipher text (`CT_2`) as follows:
+
+```
+CT_2 == [IV_1 ⊕ (PT_1 ⊕ PT_2)] + AE
+IV_2 == [IV_1 ⊕ (PT_1 ⊕ PT_2)]
+
+                      AE
+                      ║               
+                      ║
+              ┌───────╨───────┐
+              │  AES_Decrypt  │
+              └───────╥───────┘
+                      ║     
+                      ║    
+                      ⌄    
+                      AD
+                      ║ 
+             IV_2 ==> ⊕    
+                      ║    
+                      ⌄   
+                     PT_2 (flag!)
+```
+
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
 from Crypto.Cipher import AES
@@ -2588,31 +2728,39 @@ from Crypto.Util.strxor import strxor
 import binascii
 
 # Original ciphertext (from the task)
-ciphertext_hex = "c0ca068085920cea73bb310d5382f64953460102828b1399e986d879bb1b86d9"
-ciphertext = bytes.fromhex(ciphertext_hex)
+ct_1_hex = "a28438ea597316483da08726f8f246546c66dbb5e901ad7ba356de83b0804833"
+ct_1 = bytes.fromhex(ct_1_hex)
 
 # Split IV and ciphertext block
-iv = ciphertext[:16]
-print(iv)
-c0 = ciphertext[16:]
+iv_1 = ct_1[:16]
+print(iv_1)
+ae = ct_1[16:]
 
 # Known original plaintext and desired plaintext, auto-padded
-P1 = pad(b"sleep", AES.block_size)
-print(P1)
-GP1 = pad(b"flag!", AES.block_size)
-print(GP1)
+pt_1 = pad(b"sleep", AES.block_size)
+print(pt_1)
+pt_2 = pad(b"flag!", AES.block_size)
+print(pt_2)
 
 # Modified IV calculation using full-block XOR
-modified_iv = strxor(iv, strxor(P1, GP1))
+iv_2 = strxor(iv_1, strxor(pt_1, pt_2))
 
 # Construct modified ciphertext
-tampered_ciphertext = modified_iv + c0
-print("TASK:", tampered_ciphertext.hex())
+ct_2 = iv_2 + ae
+print("TASK:", ct_2.hex())
 ```
 
 ```
-hacker@cryptography~aes-cbc-tampering:/$ /challenge/worker
-TASK: d5ca0282d4920cea73bb310d5382f64953460102828b1399e986d879bb1b86d9
+hacker@cryptography~aes-cbc-tampering:/$ python ~/script.py
+b'\xa2\x848\xeaYs\x16H=\xa0\x87&\xf8\xf2FT'
+b'sleep\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b'
+b'flag!\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b'
+TASK: b7843ce8087316483da08726f8f246546c66dbb5e901ad7ba356de83b0804833
+```
+
+```
+hacker@cryptography~aes-cbc-tampering:/$ /challenge/worker 
+TASK: b7843ce8087316483da08726f8f246546c66dbb5e901ad7ba356de83b0804833
 Hex of plaintext: 666c616721
 Received command: flag!
 Victory! Your flag:
