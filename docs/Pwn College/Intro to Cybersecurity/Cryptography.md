@@ -2780,26 +2780,26 @@ from Crypto.Util.strxor import strxor
 import binascii
 
 # Original ciphertext (from the task)
-ciphertext_hex = "afc288546a0a07ee57e23e3d98ec732858b35fac004b6eb3c39d881f46aada7b"
-ciphertext = bytes.fromhex(ciphertext_hex)
+ct_1_hex = "afc288546a0a07ee57e23e3d98ec732858b35fac004b6eb3c39d881f46aada7b"
+ct_1 = bytes.fromhex(ct_1_hex)
 
 # Split IV and ciphertext block
-iv = ciphertext[:16]
-print(iv)
-c0 = ciphertext[16:]
+iv_1 = ct_1[:16]
+print(iv_1)
+ae = ct_1[16:]
 
 # Known original plaintext and desired plaintext, auto-padded
-P1 = pad(b"sleep", AES.block_size)
-print(P1)
-GP1 = pad(b"flag", AES.block_size)
-print(GP1)
+pt_1 = pad(b"sleep", AES.block_size)
+print(pt_1)
+pt_2 = pad(b"flag", AES.block_size)
+print(pt_2)
 
 # Modified IV calculation using full-block XOR
-modified_iv = strxor(iv, strxor(P1, GP1))
+iv_2 = strxor(iv_1, strxor(pt_1, pt_2))
 
 # Construct modified ciphertext
-tampered_ciphertext = modified_iv + c0
-print("TASK:", tampered_ciphertext.hex())
+ct_2 = iv_2 + ae
+print("TASK:", ct_2.hex())
 ```
 
 ```
