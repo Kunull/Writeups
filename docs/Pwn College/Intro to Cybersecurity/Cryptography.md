@@ -2579,3 +2579,42 @@ pwn.college{EclMIdT_XkgnVQ3DjKo6norcpJ6.ddzM3kDL4ITM0EzW}
 &nbsp;
 
 ## AES-CBC Tampering
+
+```py title="~/script.py" showLineNumbers
+#!/usr/bin/env python3
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+from Crypto.Util.strxor import strxor
+import binascii
+
+# Original ciphertext (from the task)
+ciphertext_hex = "c0ca068085920cea73bb310d5382f64953460102828b1399e986d879bb1b86d9"
+ciphertext = bytes.fromhex(ciphertext_hex)
+
+# Split IV and ciphertext block
+iv = ciphertext[:16]
+print(iv)
+c0 = ciphertext[16:]
+
+# Known original plaintext and desired plaintext, auto-padded
+P1 = pad(b"sleep", AES.block_size)
+print(P1)
+GP1 = pad(b"flag!", AES.block_size)
+print(GP1)
+
+# Modified IV calculation using full-block XOR
+modified_iv = strxor(iv, strxor(P1, GP1))
+
+# Construct modified ciphertext
+tampered_ciphertext = modified_iv + c0
+print("TASK:", tampered_ciphertext.hex())
+```
+
+```
+hacker@cryptography~aes-cbc-tampering:/$ /challenge/worker
+TASK: d5ca0282d4920cea73bb310d5382f64953460102828b1399e986d879bb1b86d9
+Hex of plaintext: 666c616721
+Received command: flag!
+Victory! Your flag:
+pwn.college{E562wrmpXmo5PkCokLzflg4-OxM.dhzM3kDL4ITM0EzW}
+```
