@@ -705,7 +705,8 @@ pwn.college{sHPpXIo63DeFuiDt1Qm6aBHZXv_.QXzcTO2EDL4ITM0EzW}
 
 ## Many-time Pad
 
-### Source
+### Source code
+
 ```py title="/challenge/run" showLineNumbers
 #!/opt/pwn.college/python
 
