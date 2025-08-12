@@ -450,7 +450,7 @@ We have all the requirements to craft a successfull exploit.
 	- [x] GOT address of `fflush()`: `0x0804c014`
  	- [x] Address of `system("/bin/cat flag");` setup: `0x0804929e`. We have to pass this as a decimal.
 
-```python title="/tmp/passcode.py"
+```python title="/tmp/passcode.py" showLineNumbers
 from pwn import *
 
 padding = b"A" * 96
