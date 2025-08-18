@@ -2772,6 +2772,63 @@ pwn.college{E562wrmpXmo5PkCokLzflg4-OxM.dhzM3kDL4ITM0EzW}
 
 ## AES-CBC Resizing
 
+### Source code
+
+```py title="/challenge/dispatcher" showLineNumbers
+#!/opt/pwn.college/python
+
+import os
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+from Crypto.Random import get_random_bytes
+
+key = open("/challenge/.key", "rb").read()
+cipher = AES.new(key=key, mode=AES.MODE_CBC)
+ciphertext = cipher.iv + cipher.encrypt(pad(b"sleep", cipher.block_size))
+
+print(f"TASK: {ciphertext.hex()}")
+```
+
+```py title="/challenge/worker" showLineNumbers
+#!/opt/pwn.college/python
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad
+from Crypto.Random import get_random_bytes
+
+import time
+import sys
+
+key = open("/challenge/.key", "rb").read()
+
+while line := sys.stdin.readline():
+    if not line.startswith("TASK: "):
+        continue
+    data = bytes.fromhex(line.split()[1])
+    iv, ciphertext = data[:16], data[16:]
+
+    cipher = AES.new(key=key, mode=AES.MODE_CBC, iv=iv)
+    try:
+        plaintext = unpad(cipher.decrypt(ciphertext), cipher.block_size).decode('latin1')
+    except ValueError as e:
+        print("Error:", e)
+        continue
+
+    print(f"Hex of plaintext: {plaintext.encode('latin1').hex()}")
+    print(f"Received command: {plaintext}")
+    if plaintext == "sleep":
+        print("Sleeping!")
+        time.sleep(1)
+    elif plaintext == "flag":
+        print("Victory! Your flag:")
+        print(open("/flag").read())
+    else:
+        print("Unknown command!")
+```
+
+Our last solution should word with very minute changes.
+
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
 from Crypto.Cipher import AES
