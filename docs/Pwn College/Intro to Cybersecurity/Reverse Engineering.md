@@ -1195,7 +1195,7 @@ The challenge performs the following checks:
     - Height (2 bytes): Must be `17` in little-endian
 - Pixel Data:
     - The number of non-space ASCII characters must be `66 * 17 = 1122` 
-    - Non-space ASCII must be an between `0x20` and `0x7E`
+    - Non-space ASCII must be in between `0x20` and `0x7E`
  
 ```python title="~/script.py" showLineNumbers
 import struct
@@ -1403,7 +1403,7 @@ The challenge performs the following checks:
     - Height (1 bytes): Must be `13` in little-endian
 - Pixel Data:
     - The number of non-space ASCII characters must be `80 * 13 = 1040` 
-    - Non-space ASCII must be an between `0x20` and `0x7e`
+    - Non-space ASCII must be in between `0x20` and `0x7e`
  
 ```python title="~/script.py" showLineNumbers
 import struct
@@ -1461,7 +1461,7 @@ The challenge performs the following checks:
     - Height (1 bytes): Must be `0x15` (`21`) in little-endian
 - Pixel Data:
     - The number of non-space ASCII bytes must be `80 * 13 = 1040` 
-    - Non-space ASCII must be an between `0x20` and `0x7e`
+    - Non-space ASCII must be in between `0x20` and `0x7e`
  
 ```python title="~/script.py" showLineNumbers
 import struct
@@ -1572,7 +1572,7 @@ The challenge performs the following checks:
     - Height (2 bytes): Must be in little-endian
 - Pixel Data:
     - The number of non-space ASCII characters must be `275`
-    - Non-space ASCII must be an between `0x20` and `0x7E`
+    - Non-space ASCII must be in between `0x20` and `0x7E`
 
  
 Based on the number of pixels (`275`) we want, we can reverse engineer some values for the height (`25`) and weight (`11`).
@@ -1808,7 +1808,7 @@ The challenge performs the following checks:
     - Height (2 bytes): Must be in little-endian
 - Pixel Data:
     - The number of non-space ASCII characters must be `275`
-    - Non-space ASCII must be an between `0x20` and `0x7E`
+    - Non-space ASCII must be in between `0x20` and `0x7E`
 
  
 Based on the number of pixels (`275`) we want, we can reverse engineer some values for the height (`25`) and weight (`11`).
@@ -1881,7 +1881,7 @@ The challenge performs the following checks:
     - Height (2 bytes): Must be in little-endian
 - Pixel Data:
     - The number of non-space ASCII characters must be `275`
-    - Non-space ASCII must be an between `0x20` and `0x7E`
+    - Non-space ASCII must be in between `0x20` and `0x7E`
  
 
 ```python title="~/script.py" showLineNumbers
