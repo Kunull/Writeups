@@ -1599,6 +1599,76 @@ for n in range(31337):
 
 ### Forward decoding
 
+```
+hacker@cryptography~aes-ecb-cpa-prefix:/$ /challenge/run 
+
+Choose an action?
+1. Encrypt chosen plaintext.
+2. Prepend something to the flag.
+Choice? 2
+Data? AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+Result: fb4907570e3c905e3939d7e4d1940408fb4907570e3c905e3939d7e4d1940408fb4907570e3c905e3939d7e4d1940408fb4907570e3c905e3939d7e4d194040857bcc8ab04c42d5dc5a378454174980c2b38812fc0041a65592e97d34c219a4665b7acc96e86f9c3e3a309d7292bb22d8e4ac0109de872c80768789854af6ead8e9fb7c0324b57a107d89f4e62d3d3f6
+I'm here to help!
+For the first 10, I will split them into blocks for you!
+After this, you'll have to split them yourself.
+# of blocks: 9.
+Block 1: fb4907570e3c905e3939d7e4d1940408
+Block 2: fb4907570e3c905e3939d7e4d1940408
+Block 3: fb4907570e3c905e3939d7e4d1940408
+Block 4: fb4907570e3c905e3939d7e4d1940408
+Block 5: 57bcc8ab04c42d5dc5a378454174980c
+Block 6: 2b38812fc0041a65592e97d34c219a46
+Block 7: 65b7acc96e86f9c3e3a309d7292bb22d
+Block 8: 8e4ac0109de872c80768789854af6ead
+Block 9: 8e9fb7c0324b57a107d89f4e62d3d3f6
+
+Choose an action?
+1. Encrypt chosen plaintext.
+2. Prepend something to the flag.
+Choice? 2
+Data? AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+Result: fb4907570e3c905e3939d7e4d1940408fb4907570e3c905e3939d7e4d1940408fb4907570e3c905e3939d7e4d1940408fb4907570e3c905e3939d7e4d1940408fb4907570e3c905e3939d7e4d1940408b0b8d070502b3008e5bb3e25ec35678bc5a8b3fdb9b3151b19b9844b5b9dbb91ab2c0fed38c63b77df08f03eea6e0f22083365c81f90e552a8859b9d526022c7
+# of blocks: 9.
+Block 1: fb4907570e3c905e3939d7e4d1940408
+Block 2: fb4907570e3c905e3939d7e4d1940408
+Block 3: fb4907570e3c905e3939d7e4d1940408
+Block 4: fb4907570e3c905e3939d7e4d1940408
+Block 5: fb4907570e3c905e3939d7e4d1940408
+Block 6: b0b8d070502b3008e5bb3e25ec35678b
+Block 7: c5a8b3fdb9b3151b19b9844b5b9dbb91
+Block 8: ab2c0fed38c63b77df08f03eea6e0f22
+Block 9: 083365c81f90e552a8859b9d526022c7
+```
+
+It takes 80 bytes of padding for us to get fully controlled blocks. We would use the 5th block to decode the flag.
+For our lookup table we would utilize the option of encrypting our chosen plaintext. 
+
+```
+## flag[0] (first character)
+5th block:
+┌────────────────────────────────────┐
+│  5d14951d3280c83e9d3fa1af613f3534  │ ==> "AAAAAAAAAAAAAAA" + flag[0]
+└────────────────────────────────────┘
+Custom block:
+┌────────────────────────────────────┐
+│  5d14951d3280c83e9d3fa1af613f3534  │ ==> "AAAAAAAAAAAAAAA" + "p"
+└────────────────────────────────────┘
+
+We find out that flag[0] character is "p".
+
+## flag[:2] (first two characters):
+5th block:
+┌────────────────────────────────────┐
+│  2d6277ea4428df717ed338299c87cfff  │ ==> "AAAAAAAAAAAAAA" + flag[:2]
+└────────────────────────────────────┘
+Custom block:
+┌────────────────────────────────────┐
+│  2d6277ea4428df717ed338299c87cfff  │ ==> "AAAAAAAAAAAAAA" + "pw"
+└────────────────────────────────────┘
+
+We then repeat this step for flag[:3], flag[:4].....
+```
+
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
 
@@ -1742,6 +1812,67 @@ hacker@cryptography~aes-ecb-cpa-prefix:/$ python ~/script.py
 ```
 
 ### Backward decoding
+
+```
+hacker@cryptography~aes-ecb-cpa-prefix:/$ /challenge/run 
+
+Choose an action?
+1. Encrypt chosen plaintext.
+2. Prepend something to the flag.
+Choice? 2
+Data? AAAAAAA
+Result: 0cd3e1bfc0780a4d6c8be3dd9462223ad6b738a499a8eb2c4887d6b86d00ebf96486bcabb33f1c4972a9de2ac4712317815c0ef9526fafc0bba017a4b46acae6
+I'm here to help!
+For the first 10, I will split them into blocks for you!
+After this, you'll have to split them yourself.
+# of blocks: 4.
+Block 1: 0cd3e1bfc0780a4d6c8be3dd9462223a
+Block 2: d6b738a499a8eb2c4887d6b86d00ebf9
+Block 3: 6486bcabb33f1c4972a9de2ac4712317
+Block 4: 815c0ef9526fafc0bba017a4b46acae6
+
+Choose an action?
+1. Encrypt chosen plaintext.
+2. Prepend something to the flag.
+Choice? 2
+Data? AAAAAAAA
+Result: cbdccf7fccf0773a651a567f43363db02b5922fac95649c5b4163ac16247463c19907823a495b6a53c64c77e92e511d4b11232a78b47a6aa416eb171b9141a3f37aba17e7d0921f462278dea33b1f097
+# of blocks: 5.
+Block 1: cbdccf7fccf0773a651a567f43363db0
+Block 2: 2b5922fac95649c5b4163ac16247463c
+Block 3: 19907823a495b6a53c64c77e92e511d4
+Block 4: b11232a78b47a6aa416eb171b9141a3f
+Block 5: 37aba17e7d0921f462278dea33b1f097
+```
+
+It takes 8 bytes of padding to push the last flag character `}` into a new block (5th). We would use this block to decode the flag.
+For our lookup table we would utilize the option of encrypting our chosen plaintext. 
+
+```
+## flag[-1] (last character)
+5th block:
+┌────────────────────────────────────┐
+│  a90b328b65de1c2fea2c293771e853c6  │ ==> flag[-1] + b'\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f'
+└────────────────────────────────────┘
+Custom block:
+┌────────────────────────────────────┐
+│  a90b328b65de1c2fea2c293771e853c6  │ ==> "}" + b'\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f'
+└────────────────────────────────────┘
+
+We find out that flag[-1] character is "}".
+
+## flag[-2:] (last two characters):
+5th block:
+┌────────────────────────────────────┐
+│  3893f3cf94c0dd7e7afd1e45be9687aa  │ ==> flag[-2:] + b'\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f'
+└────────────────────────────────────┘
+Custom block:
+┌────────────────────────────────────┐
+│  3893f3cf94c0dd7e7afd1e45be9687aa  │ ==> "W}" + b'\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f'
+└────────────────────────────────────┘
+
+We then repeat this step for flag[-3:], flag[-4:].....
+```
 
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
