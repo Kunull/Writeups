@@ -1052,7 +1052,7 @@ app.config['SERVER_NAME'] = f"challenge.localhost:80"
 app.run("challenge.localhost", 80)
 ```
 
-```py title="~/script" showLineNumbers
+```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
 
 import requests
