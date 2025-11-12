@@ -2270,7 +2270,7 @@ Ciphertext: 88659faf2ea78c203983aa76e5dbda3c7d8795481949358dc0a87b47df93ab65e53b
 ```
 
 ```
-Block 1: 88659faf2ea78c203983aa76e5dbda3c --> flag[-1] + b'\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f'
+Block 1: 88659faf2ea78c203983aa76e5dbda3c --> "}" + b'\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f'
 Block 2: 7d8795481949358dc0a87b47df93ab65 --> b'\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f' + flag[:8]
 Block 3: e53be7ee2cc95b12eaec38e97e89e9cd
 Block 4: 0b651c7e05af13d57cf46b7b3b3c1920
