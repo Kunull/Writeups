@@ -2516,7 +2516,7 @@ Len 31: 656
 Len 32: 688
 ```
 
-As we can see, it takes 5 bytes of padding to push the last byte in new block.
+As we can see, it takes 5 bytes of padding to push the last byte of the flag into a new block.
 
 Now, we can craft our script.
 
