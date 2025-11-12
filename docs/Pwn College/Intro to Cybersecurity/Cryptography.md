@@ -2242,7 +2242,7 @@ Block 4: 6a17c4c4debafd66bd7ef446bff954fc
 Block 5: 5014fb3c8d608deab62f32ccf2f6c6a2 --> flag[-1] + b'\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f'
 ```
 
-In this case, the first block can be used as the reference lookup block. However, we have to push the `flag[:8]` bytes into the next block so that we can standardize the first block. In order to do that, we can simply add 16 more bytes of padding.
+In this case, the first block can be used as the reference lookup block. However, we have to push the `flag[:8]` bytes into the next block so that we can standardize the first block, and fully control it's content. In order to do that, we can simply add 16 more bytes of padding.
 
 ```
 Data? 0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f
