@@ -2865,14 +2865,14 @@ ct_1 = bytes.fromhex(ct_1_hex)
 
 # Split IV and ciphertext block
 iv_1 = ct_1[:16]
-print(iv_1)
+print(f"IV_1: {iv_1}")
 ae = ct_1[16:]
 
 # Known original plaintext and desired plaintext, auto-padded
 pt_1 = pad(b"sleep", AES.block_size)
-print(pt_1)
+print(f"PT_1: {pt_1}")
 pt_2 = pad(b"flag!", AES.block_size)
-print(pt_2)
+print(f"PT_2: {pt_2}")
 
 # Modified IV calculation using full-block XOR
 iv_2 = strxor(iv_1, strxor(pt_1, pt_2))
@@ -2884,9 +2884,9 @@ print("TASK:", ct_2.hex())
 
 ```
 hacker@cryptography~aes-cbc-tampering:/$ python ~/script.py
-b'\xa2\x848\xeaYs\x16H=\xa0\x87&\xf8\xf2FT'
-b'sleep\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b'
-b'flag!\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b'
+IV_1: b'\xa2\x848\xeaYs\x16H=\xa0\x87&\xf8\xf2FT'
+PT_1: b'sleep\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b'
+PT_2: b'flag!\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b'
 TASK: b7843ce8087316483da08726f8f246546c66dbb5e901ad7ba356de83b0804833
 ```
 
@@ -2973,14 +2973,14 @@ ct_1 = bytes.fromhex(ct_1_hex)
 
 # Split IV and ciphertext block
 iv_1 = ct_1[:16]
-print(iv_1)
+print(f"IV_1: {iv_1}")
 ae = ct_1[16:]
 
 # Known original plaintext and desired plaintext, auto-padded
 pt_1 = pad(b"sleep", AES.block_size)
-print(pt_1)
+print(f"PT_1: {pt_1}")
 pt_2 = pad(b"flag", AES.block_size)
-print(pt_2)
+print(f"PT_2: {pt_2}")
 
 # Modified IV calculation using full-block XOR
 iv_2 = strxor(iv_1, strxor(pt_1, pt_2))
