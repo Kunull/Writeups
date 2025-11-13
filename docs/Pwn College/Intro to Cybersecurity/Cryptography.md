@@ -2790,7 +2790,7 @@ AES Encoded text (AE): 6c66dbb5e901ad7ba356de83b0804833
 Next, `AE` is run through the AES function where it is decrypted to give us the AES decoded text (`AD`). This is then XOR'd with the Intialization vector (`IV_1`), to give us the Plaintext (`PT_1`) which is `sleep`.
 
 ```
-CT_1 == IV_1 + AE
+CT_1 = IV_1 + AE
 
                       AE
                       ║               
@@ -2832,8 +2832,8 @@ Looking at the above expressions, we can see that in order to get `PT_2` from `A
 So, we have to create a new cipher text (`CT_2`) as follows:
 
 ```
-CT_2 == [IV_1 ⊕ (PT_1 ⊕ PT_2)] + AE
-IV_2 == [IV_1 ⊕ (PT_1 ⊕ PT_2)]
+CT_2 = IV_2 + AE
+IV_2 = [IV_1 ⊕ (PT_1 ⊕ PT_2)]
 
                       AE
                       ║               
