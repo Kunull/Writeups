@@ -3062,7 +3062,7 @@ A = 0x776d7f2cfd9c66791e6920fdc1bf9ab8425c11be28aad6001913bdd47fa49c373b386236b6
 B? 
 ```
 
-We just need to perform the discreet logrithmic operation on our end.
+We just need to calculate the intermediate logarithmic modulus.
 
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/exec-suid -- /usr/bin/python3 -I
