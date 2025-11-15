@@ -3115,3 +3115,120 @@ s? 0x50b6ae92661f4a424752310aa9e81912ca6a27fe6be5698a6aa0858ce173eb01cb35c9f0119
 Correct! Here is your flag:
 pwn.college{UxMYt-UysLwgfy3zgOXhtbbrEGg.dhzNzMDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## DHKE-to-AES
+
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+import sys
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+from Crypto.Random.random import getrandbits
+
+flag = open("/flag", "rb").read()
+assert len(flag) <= 256
+
+# 2048-bit MODP Group from RFC3526
+p = int.from_bytes(bytes.fromhex(
+    "FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1 "
+    "29024E08 8A67CC74 020BBEA6 3B139B22 514A0879 8E3404DD "
+    "EF9519B3 CD3A431B 302B0A6D F25F1437 4FE1356D 6D51C245 "
+    "E485B576 625E7EC6 F44C42E9 A637ED6B 0BFF5CB6 F406B7ED "
+    "EE386BFB 5A899FA5 AE9F2411 7C4B1FE6 49286651 ECE45B3D "
+    "C2007CB8 A163BF05 98DA4836 1C55D39A 69163FA8 FD24CF5F "
+    "83655D23 DCA3AD96 1C62F356 208552BB 9ED52907 7096966D "
+    "670C354E 4ABC9804 F1746C08 CA18217C 32905E46 2E36CE3B "
+    "E39E772C 180E8603 9B2783A2 EC07A28F B5C55DF0 6F4C52C9 "
+    "DE2BCBF6 95581718 3995497C EA956AE5 15D22618 98FA0510 "
+    "15728E5A 8AACAA68 FFFFFFFF FFFFFFFF"
+), "big")
+g = 2
+print(f"p = {p:#x}")
+print(f"g = {g:#x}")
+
+a = getrandbits(2048)
+A = pow(g, a, p)
+print(f"A = {A:#x}")
+
+try:
+    B = int(input("B? "), 16)
+except ValueError:
+    print("Invalid B value (not a hex number)", file=sys.stderr)
+    sys.exit(1)
+if B <= 2**1024:
+    print("Invalid B value (B <= 2**1024)", file=sys.stderr)
+    sys.exit(1)
+
+s = pow(B, a, p)
+key = s.to_bytes(256, "little")[:16]
+
+# friendship ended with DHKE, AES is my new best friend
+cipher = AES.new(key=key, mode=AES.MODE_CBC)
+flag = open("/flag", "rb").read()
+ciphertext = cipher.iv + cipher.encrypt(pad(flag, cipher.block_size))
+print(f"Flag Ciphertext (hex): {ciphertext.hex()}")
+```
+
+```
+hacker@cryptography~dhke-to-aes:/$ /challenge/run 
+p = 0xffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd129024e088a67cc74020bbea63b139b22514a08798e3404ddef9519b3cd3a431b302b0a6df25f14374fe1356d6d51c245e485b576625e7ec6f44c42e9a637ed6b0bff5cb6f406b7edee386bfb5a899fa5ae9f24117c4b1fe649286651ece45b3dc2007cb8a163bf0598da48361c55d39a69163fa8fd24cf5f83655d23dca3ad961c62f356208552bb9ed529077096966d670c354e4abc9804f1746c08ca18217c32905e462e36ce3be39e772c180e86039b2783a2ec07a28fb5c55df06f4c52c9de2bcbf6955817183995497cea956ae515d2261898fa051015728e5a8aacaa68ffffffffffffffff
+g = 0x2
+A = 0xcad3b10018745d0936249e79b6a0086d3aefd969b095a78cb07687f38ce570b5a1f34d4208887de02dcb8db3c1d90805cf00d9f01dcaa245eb1309c0682c815b2979a7d799a490b89e86d33262e4caa38ae43f757149f6b06a526532edf5b60e06adabbf11d477af53a2b1571e72c7dcc751f840d33b7d6b8ef6bb24ea92d046c2b1c87c7dbd56e525cb47e3f7ab11b601a2347704d44462a1325a387ff40777d201aeb336afeaaf6ffd910f97a0bd727c0465d4ac4add2243b0fd1d3fcc12b4358f3e5a75e31517e86f9bc1adf9cf342a60b9d2a9f9431776b0c5a97d101e529fe452def9b293fec236e181ccc827787b210164aa64e6f4ac8c71869728faa3
+B? 
+```
+
+This time the secret (`s`) will be the AES encoded flag.
+
+```python title="~/script.py" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+from pwn import *
+import re
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad
+
+context.log_level = "error"
+io = process("/challenge/run")
+
+# Grab everything printed at start
+start = io.recvuntil(b"A = ")
+
+# Extract p, g, A using regex on whole buffer
+p = int(re.search(r"p\s*=\s*(0x[0-9a-fA-F]+)", start.decode()).group(1), 16)
+g = int(re.search(r"g\s*=\s*(0x[0-9a-fA-F]+)", start.decode()).group(1), 16)
+A = int(re.search(r"g\s*=\s*(0x[0-9a-fA-F]+)", start.decode()).group(1), 16)
+
+# Exploit: B = p + 1 → shared secret = 1
+B = p + 1
+io.sendlineafter(b"B?", hex(B).encode())
+
+# Read everything the program prints after sending B
+out = io.recvall(timeout=2)
+
+# Extract ciphertext
+m = re.search(rb"Flag Ciphertext\s*\(hex\)\s*:\s*([0-9a-fA-F]+)", out)
+if not m:
+    print("[-] Failed to find ciphertext. Output was:")
+    print(out.decode(errors="replace"))
+    exit(1)
+
+ct = bytes.fromhex(m.group(1).decode())
+
+# Split IV & ciphertext and decrypt
+iv = ct[:16]
+ciphertext = ct[16:]
+key = (1).to_bytes(256, "little")[:16]
+
+cipher = AES.new(key, AES.MODE_CBC, iv)
+flag = unpad(cipher.decrypt(ciphertext), AES.block_size)
+
+print("FLAG:", flag.decode(errors="replace"))
+```
+
+```
+hacker@cryptography~dhke-to-aes:/$ python ~/script.py 
+FLAG: pwn.college{AV5q8typYMd4AQiAMRZiN3zq4l_.dNDN3kDL4ITM0EzW}
+```
