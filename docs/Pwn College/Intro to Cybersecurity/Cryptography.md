@@ -3232,3 +3232,62 @@ print("FLAG:", flag.decode(errors="replace"))
 hacker@cryptography~dhke-to-aes:/$ python ~/script.py 
 FLAG: pwn.college{AV5q8typYMd4AQiAMRZiN3zq4l_.dNDN3kDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## RSA 1
+
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+from Crypto.PublicKey import RSA
+
+flag = open("/flag", "rb").read()
+assert len(flag) <= 256
+
+key = RSA.generate(2048)
+print(f"(public)  n = {key.n:#x}")
+print(f"(public)  e = {key.e:#x}")
+print(f"(private) d = {key.d:#x}")
+
+ciphertext = pow(int.from_bytes(flag, "little"), key.e, key.n).to_bytes(256, "little")
+print(f"Flag Ciphertext (hex): {ciphertext.hex()}")
+```
+
+```
+hacker@cryptography~rsa-1:/$ /challenge/run 
+(public)  n = 0x932f4eb6d627ae22947f36fdb81861137003b4c23cc4c2f1e41b70b53a7ea5fd9d08d4cbbdf2b1d98cf63ec67a75d0dab6ba9f5a385462275350aca3a1da1210052e54b4db9b7cddad4def27eb44638ec2cd56e7aad91c703a3ff5f332a7b03806f3a3cd61c96185dc03ba8e5341cd3eef478b8f40bbfee68b574f38fe897cfbfd094a91d0d2acbe789450191c83cb12eb268f05445e583bd3c22334f2552bbdc80eca5debba4945f2db7b207b8c4e1158ef74eec04c670b68166de0410a5713b14b9b23bcfe9595af166b02afa204c075407806e76899fb44e66d3a72570d89a4b6bef23dd6163cf5b3e14ce29429df820c0a4f3ab0b07baaf85063720708d5
+(public)  e = 0x10001
+(private) d = 0x359b9f71dca26b3c5115dcb3a09fd08bc1dab7b59f6893108362b3346eefbe09976ea602e756440cd6d8c1988cf5e87220e7ec2e7221d9f634d4476cfa00715fc063559ae1f9ca0afb9a4d271efbb3bf459880b4b4778b721ce53af1af5b804587d2a9b09e9338a006b89cf445c2cbbcc66e2a98ac9d4c842ff046fc9d48fa6a482259b8a8234cc498f41bc3c571701d9a4c0f465dc569e7db27790062ec0cbdea5661e901cb9caae04d46807cd21db92957d440210452fa142a927891548ffdf718020b8f86ee371e9bde72b57fa898271449390d5d485b3085d1b85421e0615b694ff42d1e8e36cf2b26ed567999c955edba513875c33eabf6b7871a87a469
+Flag Ciphertext (hex): ea1b7ab0d106385263dfe2b21f6e907c076714c1632bde8d26e47d04515e3181b23ab4a87c6b651282047e5e4188fb4a5042a04a6a093f0fcf21889917e81f8e91a1bbbf1643b1777b453177b8df8299850fa3ddb73990bcec4d9ce7990c7b304861483816d5d70c510125b9ac820b39c212051a8a77d7b36b7bfff84eba1b376d2941f1ed5e35c5f44af26b996feeeb03b00c079785aee5097eaaf1b7bf16140e1fa3cb1347571f80388a5f3b759f21e66cc57bdae032dfde026bf554c44fcedd395b3364b5e7887d575ebbfcb4b422976449dd23c300d99cf1533f678d110970eebf5e717991f9925c0af90fab7febfdb0fd4f6ec84296d71dd01bd2fa7908
+```
+
+Since we have been provided with the decryption key as well (`d`), we can simply write a script to get the decrypted flag.
+
+```python title="~/script.py" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+from Crypto.PublicKey import RSA
+
+ciphertext_hex = "ea1b7ab0d106385263dfe2b21f6e907c076714c1632bde8d26e47d04515e3181b23ab4a87c6b651282047e5e4188fb4a5042a04a6a093f0fcf21889917e81f8e91a1bbbf1643b1777b453177b8df8299850fa3ddb73990bcec4d9ce7990c7b304861483816d5d70c510125b9ac820b39c212051a8a77d7b36b7bfff84eba1b376d2941f1ed5e35c5f44af26b996feeeb03b00c079785aee5097eaaf1b7bf16140e1fa3cb1347571f80388a5f3b759f21e66cc57bdae032dfde026bf554c44fcedd395b3364b5e7887d575ebbfcb4b422976449dd23c300d99cf1533f678d110970eebf5e717991f9925c0af90fab7febfdb0fd4f6ec84296d71dd01bd2fa7908"
+
+n = 0x932f4eb6d627ae22947f36fdb81861137003b4c23cc4c2f1e41b70b53a7ea5fd9d08d4cbbdf2b1d98cf63ec67a75d0dab6ba9f5a385462275350aca3a1da1210052e54b4db9b7cddad4def27eb44638ec2cd56e7aad91c703a3ff5f332a7b03806f3a3cd61c96185dc03ba8e5341cd3eef478b8f40bbfee68b574f38fe897cfbfd094a91d0d2acbe789450191c83cb12eb268f05445e583bd3c22334f2552bbdc80eca5debba4945f2db7b207b8c4e1158ef74eec04c670b68166de0410a5713b14b9b23bcfe9595af166b02afa204c075407806e76899fb44e66d3a72570d89a4b6bef23dd6163cf5b3e14ce29429df820c0a4f3ab0b07baaf85063720708d5
+e = 0x10001
+d = 0x359b9f71dca26b3c5115dcb3a09fd08bc1dab7b59f6893108362b3346eefbe09976ea602e756440cd6d8c1988cf5e87220e7ec2e7221d9f634d4476cfa00715fc063559ae1f9ca0afb9a4d271efbb3bf459880b4b4778b721ce53af1af5b804587d2a9b09e9338a006b89cf445c2cbbcc66e2a98ac9d4c842ff046fc9d48fa6a482259b8a8234cc498f41bc3c571701d9a4c0f465dc569e7db27790062ec0cbdea5661e901cb9caae04d46807cd21db92957d440210452fa142a927891548ffdf718020b8f86ee371e9bde72b57fa898271449390d5d485b3085d1b85421e0615b694ff42d1e8e36cf2b26ed567999c955edba513875c33eabf6b7871a87a469
+
+ciphertext = bytes.fromhex(ciphertext_hex)
+
+# Decrypt using little endian (matches encryption)
+flag_full = pow(int.from_bytes(ciphertext, "little"), d, n).to_bytes(256, "little")
+
+# Strip trailing null bytes and the newline at the end
+flag = flag_full.rstrip(b"\x00").rstrip(b"\n")
+
+print("Flag:", flag.decode())
+```
+
+```
+hacker@cryptography~rsa-1:/$ python ~/script.py 
+Flag: pwn.college{ISQNrKg1YuSVjLUKzY4tPKJoBXH.dlzNzMDL4ITM0EzW}
+```
