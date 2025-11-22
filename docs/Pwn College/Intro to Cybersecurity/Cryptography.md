@@ -3291,3 +3291,33 @@ print("Flag:", flag.decode())
 hacker@cryptography~rsa-1:/$ python ~/script.py 
 Flag: pwn.college{ISQNrKg1YuSVjLUKzY4tPKJoBXH.dlzNzMDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## RSA 2
+
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+from Crypto.PublicKey import RSA
+
+flag = open("/flag", "rb").read()
+assert len(flag) <= 256
+
+key = RSA.generate(2048)
+print(f"e = {key.e:#x}")
+print(f"p = {key.p:#x}")
+print(f"q = {key.q:#x}")
+
+ciphertext = pow(int.from_bytes(flag, "little"), key.e, key.n).to_bytes(256, "little")
+print(f"Flag Ciphertext (hex): {ciphertext.hex()}")
+```
+
+```
+hacker@cryptography~rsa-2:/$ /challenge/run 
+e = 0x10001
+p = 0xc0343343c40501bbdfa9f080ed26cfb265b28cf5b800dc8681bc473ab73dc38bc588bc6f0a1fe3f24893a7c769031bc28fdf9b30f80d10ebba19113bdaf8a8e70151a531bc1234129afb743ba9ef80f0719c136ff0d692e6cd0625fbfb6abfc28bf307e194f45bc8ac8acf84db77317baf821b1369dc2d90949b39ece197cc0d
+q = 0xfd2e4b8b73a147472f03859b6f4635b7ba5975c12c86f4eeb8bc1fa5a980b361c13ade390728e0711bca24577952de00aceeab3c1faa18ed07e3951d3314ee6fe412f30037bbbef4e31437e8226f137a4f22462f8f8d3b63f49c101e71f6d4421c151c19f8f01ad07952da15b1c30dc1c62b457fc00db8e01dbb1f2eacb43507
+Flag Ciphertext (hex): 761988a204bd4aa10cdf51fd84d0b70059c337b0b3cedd2e1c0a3693117757bbadefef6c50ff2affe306f928cf9885e7bb5c2f0654a40456943f481be9dbc0c773ea8dfeb942a712f9aa357d9749acb03b2f478d77f959188118e6dfce5c2738242632074dc21e95bebec644bdb888cde038512cee1264e302d60b589fc7904474694d1482649ba28547fc10aae597ef2ae1f876d488a5d5a6cfd3a8dfe05e443977801a73386a60d00a7dff77f059d7ed8fd7e69b80aa7739babe4ce5fdc261f9bc06dad847d4249a31b41dcddbec2d3101b05b3864f6a9227f893f496d507185c23998a2516a2749c59ad2689c07e201c9048c9e7d0cb42b5f276e77213620
+```
