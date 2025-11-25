@@ -3317,7 +3317,653 @@ print(f"Flag Ciphertext (hex): {ciphertext.hex()}")
 ```
 hacker@cryptography~rsa-2:/$ /challenge/run 
 e = 0x10001
-p = 0xc0343343c40501bbdfa9f080ed26cfb265b28cf5b800dc8681bc473ab73dc38bc588bc6f0a1fe3f24893a7c769031bc28fdf9b30f80d10ebba19113bdaf8a8e70151a531bc1234129afb743ba9ef80f0719c136ff0d692e6cd0625fbfb6abfc28bf307e194f45bc8ac8acf84db77317baf821b1369dc2d90949b39ece197cc0d
-q = 0xfd2e4b8b73a147472f03859b6f4635b7ba5975c12c86f4eeb8bc1fa5a980b361c13ade390728e0711bca24577952de00aceeab3c1faa18ed07e3951d3314ee6fe412f30037bbbef4e31437e8226f137a4f22462f8f8d3b63f49c101e71f6d4421c151c19f8f01ad07952da15b1c30dc1c62b457fc00db8e01dbb1f2eacb43507
-Flag Ciphertext (hex): 761988a204bd4aa10cdf51fd84d0b70059c337b0b3cedd2e1c0a3693117757bbadefef6c50ff2affe306f928cf9885e7bb5c2f0654a40456943f481be9dbc0c773ea8dfeb942a712f9aa357d9749acb03b2f478d77f959188118e6dfce5c2738242632074dc21e95bebec644bdb888cde038512cee1264e302d60b589fc7904474694d1482649ba28547fc10aae597ef2ae1f876d488a5d5a6cfd3a8dfe05e443977801a73386a60d00a7dff77f059d7ed8fd7e69b80aa7739babe4ce5fdc261f9bc06dad847d4249a31b41dcddbec2d3101b05b3864f6a9227f893f496d507185c23998a2516a2749c59ad2689c07e201c9048c9e7d0cb42b5f276e77213620
+p = 0xbf2d3affdef500aaf039aec8c60d275b8077ec5a3e7016eaa9428fda6d01a45acf8770f1f1488e04130bd4c1a9f858b2f46d8ad6e3160af2ba151131d3764d1755e6edf4857651215236bf070488c5a3b762a6969609920745c291c566294d7bf8ef7d2008055d004f9d7c10d3bd55795e434c1746d4dab0f554fdeb9d768dd7
+q = 0xbfe1734af8c0b4d66cda8dce2ccc32106d2d0d14665c51baddc6a0da16f5fba82e7773275ecaa1458fd7a093ca80d6821161a5ca1803e9a3c8af1983ee7b792c0fc6b0e589b64baa6b1532224387f5f3e34e4ec7c2a77e2d4aa6fe2716301b7d29406d8716ab0ebe2aac13afce771600092e14e0b61d6a65bd85376447c771a3
+Flag Ciphertext (hex): 87ad16387c48ce5ee9fabb30f125b48c637ac296a04f5e26ce02b46ebd07b30ce51611467983272e299ac75789790f03955984cf0a52f059323977cd703ce8e45239cfe798836f994e7594baf9cdcfed7055357b829fb3dc897abdb44d038bffaad24856ca5f32848021a1b10f3889fd004ffce2310755fc429fd75847e6fedd10280568439e78a07d7c4fc7dd267ed7ad97ba093b504e1e4d32c4493c2eba006c4988118b9293514731f7b2febf12e905e3a1ce78e01c10aa543e06bf102f97d226a879e50d0c14e453f509f9573c9fa8b4c15a90926861b2c92dc6e916cdeacd591a02f097fa43bf9484f522e3df723b99754cb021f7f3f2a91b0730bb4f0d
+```
+
+This time, instead of `n` and `d`, we have been provided with `p` and `q`.
+
+```py title="~/script.py" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+from Crypto.PublicKey import RSA
+from Crypto.Util.number import inverse
+
+ciphertext_hex = "87ad16387c48ce5ee9fabb30f125b48c637ac296a04f5e26ce02b46ebd07b30ce51611467983272e299ac75789790f03955984cf0a52f059323977cd703ce8e45239cfe798836f994e7594baf9cdcfed7055357b829fb3dc897abdb44d038bffaad24856ca5f32848021a1b10f3889fd004ffce2310755fc429fd75847e6fedd10280568439e78a07d7c4fc7dd267ed7ad97ba093b504e1e4d32c4493c2eba006c4988118b9293514731f7b2febf12e905e3a1ce78e01c10aa543e06bf102f97d226a879e50d0c14e453f509f9573c9fa8b4c15a90926861b2c92dc6e916cdeacd591a02f097fa43bf9484f522e3df723b99754cb021f7f3f2a91b0730bb4f0d"
+
+p = 0xbf2d3affdef500aaf039aec8c60d275b8077ec5a3e7016eaa9428fda6d01a45acf8770f1f1488e04130bd4c1a9f858b2f46d8ad6e3160af2ba151131d3764d1755e6edf4857651215236bf070488c5a3b762a6969609920745c291c566294d7bf8ef7d2008055d004f9d7c10d3bd55795e434c1746d4dab0f554fdeb9d768dd7
+q = 0xbfe1734af8c0b4d66cda8dce2ccc32106d2d0d14665c51baddc6a0da16f5fba82e7773275ecaa1458fd7a093ca80d6821161a5ca1803e9a3c8af1983ee7b792c0fc6b0e589b64baa6b1532224387f5f3e34e4ec7c2a77e2d4aa6fe2716301b7d29406d8716ab0ebe2aac13afce771600092e14e0b61d6a65bd85376447c771a3
+e = 0x10001
+
+# Calculate `n`
+n = p * q
+
+# Calculate Euler's totient `phi_n`
+phi_n = (p - 1) * (q - 1)
+
+# Calculate `d`
+d = inverse(e, phi_n)
+
+ciphertext = bytes.fromhex(ciphertext_hex)
+
+# Decrypt using little endian (matches encryption)
+flag_full = pow(int.from_bytes(ciphertext, "little"), d, n).to_bytes(256, "little")
+
+# Strip trailing null bytes and the newline at the end
+flag = flag_full.rstrip(b"\x00").rstrip(b"\n")
+
+print("Flag:", flag.decode())
+```
+
+```
+hacker@cryptography~rsa-2:/$ python ~/script.py 
+Flag: pwn.college{kvHnhBPZ6yStB5IhjIqNOIEP33t.dBDOzMDL4ITM0EzW}
+```
+
+&nbsp;
+
+## RSA 3
+
+### Source code
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+import sys
+import string
+import random
+import pathlib
+import base64
+import json
+import textwrap
+
+from Crypto.Cipher import AES
+from Crypto.Hash.SHA256 import SHA256Hash
+from Crypto.PublicKey import RSA
+from Crypto.Random import get_random_bytes
+from Crypto.Random.random import getrandbits, randrange
+from Crypto.Util.strxor import strxor
+from Crypto.Util.Padding import pad, unpad
+
+
+flag = open("/flag", "rb").read()
+config = (pathlib.Path(__file__).parent / ".config").read_text()
+level = int(config)
+
+
+def show(name, value, *, b64=True):
+    print(f"{name}: {value}")
+
+
+def show_b64(name, value):
+    show(f"{name} (b64)", base64.b64encode(value).decode())
+
+def show_hex_block(name, value, byte_block_size=16):
+    value_to_show = ""
+
+    for i in range(0, len(value), byte_block_size):
+        value_to_show += f"{value[i:i+byte_block_size].hex()}"
+        value_to_show += " "
+    show(f"{name} (hex)", value_to_show)
+
+
+def show_hex(name, value):
+    show(name, hex(value))
+
+
+def input_(name):
+    try:
+        return input(f"{name}: ")
+    except (KeyboardInterrupt, EOFError):
+        print()
+        exit(0)
+
+
+def input_b64(name):
+    data = input_(f"{name} (b64)")
+    try:
+        return base64.b64decode(data)
+    except base64.binascii.Error:
+        print(f"Failed to decode base64 input: {data!r}", file=sys.stderr)
+        exit(1)
+
+
+def input_hex(name):
+    data = input_(name)
+    try:
+        return int(data, 16)
+    except Exception:
+        print(f"Failed to decode hex input: {data!r}", file=sys.stderr)
+        exit(1)
+
+
+def level1():
+    """
+    In this challenge you will decode base64 data.
+    Despite base64 data appearing "mangled", it is not an encryption scheme.
+    It is an encoding, much like base2, base10, base16, and ascii.
+    It is a popular way of encoding raw bytes.
+    """
+    show_b64("flag", flag)
+
+
+def level2():
+    """
+    In this challenge you will decrypt a secret encrypted with a one-time pad.
+    Although simple, this is the most secure encryption mechanism, if you could just securely transfer the key.
+    """
+    key = get_random_bytes(len(flag))
+    ciphertext = strxor(flag, key)
+    show_b64("key", key)
+    show_b64("secret ciphertext", ciphertext)
+
+
+def level3():
+    """
+    In this challenge you will decrypt a secret encrypted with a one-time pad.
+    You can encrypt arbitrary data, with the key being reused each time.
+    """
+    key = get_random_bytes(256)
+    assert len(flag) <= len(key)
+
+    ciphertext = strxor(flag, key[:len(flag)])
+    show_b64("secret ciphertext", ciphertext)
+
+    while True:
+        plaintext = input_b64("plaintext")
+        ciphertext = strxor(plaintext, key[:len(plaintext)])
+        show_b64("ciphertext", ciphertext)
+
+
+def level4():
+    """
+    In this challenge you will decrypt a secret encrypted with Advanced Encryption Standard (AES).
+    The Electronic Codebook (ECB) block cipher mode of operation is used.
+    """
+    key = get_random_bytes(16)
+    cipher = AES.new(key=key, mode=AES.MODE_ECB)
+    ciphertext = cipher.encrypt(pad(flag, cipher.block_size))
+    show_b64("key", key)
+    show_b64("secret ciphertext", ciphertext)
+
+
+
+def level5():
+    """
+    In this challenge you will decrypt a secret encrypted with Advanced Encryption Standard (AES).
+    The Electronic Codebook (ECB) block cipher mode of operation is used.
+    You can encrypt arbitrary data, which has the secret appended to it, with the key being reused each time.
+    """
+    key = get_random_bytes(16)
+    cipher = AES.new(key=key, mode=AES.MODE_ECB)
+
+    ciphertext = cipher.encrypt(pad(flag, cipher.block_size))
+    show_b64("secret ciphertext", ciphertext)
+    show_hex_block("secret ciphertext", ciphertext)
+
+    while True:
+        plaintext_prefix = input_b64("plaintext prefix")
+        ciphertext = cipher.encrypt(pad(plaintext_prefix + flag, cipher.block_size))
+        show_b64("ciphertext", ciphertext)
+        show_hex_block("ciphertext", ciphertext)
+
+
+def level6():
+    """
+    In this challenge you will perform a Diffie-Hellman key exchange.
+    """
+    # 2048-bit MODP Group from RFC3526
+    p = int.from_bytes(bytes.fromhex(
+        "FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1 "
+        "29024E08 8A67CC74 020BBEA6 3B139B22 514A0879 8E3404DD "
+        "EF9519B3 CD3A431B 302B0A6D F25F1437 4FE1356D 6D51C245 "
+        "E485B576 625E7EC6 F44C42E9 A637ED6B 0BFF5CB6 F406B7ED "
+        "EE386BFB 5A899FA5 AE9F2411 7C4B1FE6 49286651 ECE45B3D "
+        "C2007CB8 A163BF05 98DA4836 1C55D39A 69163FA8 FD24CF5F "
+        "83655D23 DCA3AD96 1C62F356 208552BB 9ED52907 7096966D "
+        "670C354E 4ABC9804 F1746C08 CA18217C 32905E46 2E36CE3B "
+        "E39E772C 180E8603 9B2783A2 EC07A28F B5C55DF0 6F4C52C9 "
+        "DE2BCBF6 95581718 3995497C EA956AE5 15D22618 98FA0510 "
+        "15728E5A 8AACAA68 FFFFFFFF FFFFFFFF"
+    ), "big")
+    g = 2
+
+    show_hex("p", p)
+    show_hex("g", g)
+
+    a = getrandbits(2048)
+    A = pow(g, a, p)
+    show_hex("A", A)
+
+    B = input_hex("B")
+    if not (B > 2**1024):
+        print("Invalid B value (B <= 2**1024)", file=sys.stderr)
+        exit(1)
+
+    s = pow(B, a, p)
+
+    key = s.to_bytes(256, "little")
+    assert len(flag) <= len(key)
+    ciphertext = strxor(flag, key[:len(flag)])
+    show_b64("secret ciphertext", ciphertext)
+
+
+def level7():
+    """
+    In this challenge you will decrypt a secret encrypted with RSA (Rivest–Shamir–Adleman).
+    You will be provided with both the public key and private key.
+    """
+    key = RSA.generate(2048)
+    assert len(flag) <= 256
+    ciphertext = pow(int.from_bytes(flag, "little"), key.e, key.n).to_bytes(256, "little")
+    show_hex("e", key.e)
+    show_hex("d", key.d)
+    show_hex("n", key.n)
+    show_b64("secret ciphertext", ciphertext)
+
+
+def level8():
+    """
+    In this challenge you will decrypt a secret encrypted with RSA (Rivest–Shamir–Adleman).
+    You will be provided with the prime factors of n.
+    """
+    key = RSA.generate(2048)
+    assert len(flag) <= 256
+    ciphertext = pow(int.from_bytes(flag, "little"), key.e, key.n).to_bytes(256, "little")
+    show_hex("e", key.e)
+    show_hex("p", key.p)
+    show_hex("q", key.q)
+    show_b64("secret ciphertext", ciphertext)
+
+
+def level9():
+    """
+    In this challenge you will hash data with a Secure Hash Algorithm (SHA256).
+    You will find a small hash collision.
+    Your goal is to find data, which when hashed, has the same hash as the secret.
+    Only the first 2 bytes of the SHA256 hash are considered.
+    """
+    prefix_length = 2
+    sha256 = SHA256Hash(flag).digest()
+    show_b64(f"secret sha256[:{prefix_length}]", sha256[:prefix_length])
+
+    collision = input_b64("collision")
+    if SHA256Hash(collision).digest()[:prefix_length] == sha256[:prefix_length]:
+        show("flag", flag.decode())
+
+
+def level10():
+    """
+    In this challenge you will hash data with a Secure Hash Algorithm (SHA256).
+    You will compute a small proof-of-work.
+    Your goal is to find response data, which when appended to the challenge data and hashed, begins with 2 null-bytes.
+    """
+    difficulty = 2
+
+    challenge = get_random_bytes(32)
+    show_b64("challenge", challenge)
+
+    response = input_b64("response")
+    if SHA256Hash(challenge + response).digest()[:difficulty] == (b'\0' * difficulty):
+        show("flag", flag.decode())
+
+
+def level11():
+    """
+    In this challenge you will complete an RSA challenge-response.
+    You will be provided with both the public key and private key.
+    """
+    key = RSA.generate(2048)
+
+    show_hex("e", key.e)
+    show_hex("d", key.d)
+    show_hex("n", key.n)
+
+    challenge = int.from_bytes(get_random_bytes(256), "little") % key.n
+    show_hex("challenge", challenge)
+
+    response = input_hex("response")
+    if pow(response, key.e, key.n) == challenge:
+        show("flag", flag.decode())
+
+
+def level12():
+    """
+    In this challenge you will complete an RSA challenge-response.
+    You will provide the public key.
+    """
+    e = input_hex("e")
+    n = input_hex("n")
+
+    if not (e > 2):
+        print("Invalid e value (e > 2)", file=sys.stderr)
+        exit(1)
+
+    if not (2**512 < n < 2**1024):
+        print("Invalid n value (2**512 < n < 2**1024)", file=sys.stderr)
+        exit(1)
+
+    challenge = int.from_bytes(get_random_bytes(64), "little")
+    show_hex("challenge", challenge)
+
+    response = input_hex("response")
+    if pow(response, e, n) == challenge:
+        ciphertext = pow(int.from_bytes(flag, "little"), e, n).to_bytes(256, "little")
+        show_b64("secret ciphertext", ciphertext)
+
+
+def level13():
+    """
+    In this challenge you will work with public key certificates.
+    You will be provided with a self-signed root certificate.
+    You will also be provided with the root private key, and must use that to sign a user certificate.
+    """
+    root_key = RSA.generate(2048)
+
+    show_hex("root key d", root_key.d)
+
+    root_certificate = {
+        "name": "root",
+        "key": {
+            "e": root_key.e,
+            "n": root_key.n,
+        },
+        "signer": "root",
+    }
+
+    root_trusted_certificates = {
+        "root": root_certificate,
+    }
+
+    root_certificate_data = json.dumps(root_certificate).encode()
+    root_certificate_hash = SHA256Hash(root_certificate_data).digest()
+    root_certificate_signature = pow(
+        int.from_bytes(root_certificate_hash, "little"),
+        root_key.d,
+        root_key.n
+    ).to_bytes(256, "little")
+
+    show_b64("root certificate", root_certificate_data)
+    show_b64("root certificate signature", root_certificate_signature)
+
+    user_certificate_data = input_b64("user certificate")
+    user_certificate_signature = input_b64("user certificate signature")
+
+    try:
+        user_certificate = json.loads(user_certificate_data)
+    except json.JSONDecodeError:
+        print("Invalid user certificate", file=sys.stderr)
+        exit(1)
+
+    user_name = user_certificate.get("name")
+    if user_name in root_trusted_certificates:
+        print(f"Invalid user certificate name: `{user_name}`", file=sys.stderr)
+        exit(1)
+
+    user_key = user_certificate.get("key", {})
+    if not (isinstance(user_key.get("e"), int) and isinstance(user_key.get("n"), int)):
+        print(f"Invalid user certificate key: `{user_key}`", file=sys.stderr)
+        exit(1)
+
+    if not (user_key["e"] > 2):
+        print("Invalid user certificate key e value (e > 2)", file=sys.stderr)
+        exit(1)
+
+    if not (2**512 < user_key["n"] < 2**1024):
+        print("Invalid user certificate key n value (2**512 < n < 2**1024)", file=sys.stderr)
+        exit(1)
+
+    user_signer = user_certificate.get("signer")
+    if user_signer not in root_trusted_certificates:
+        print(f"Untrusted user certificate signer: `{user_signer}`", file=sys.stderr)
+        exit(1)
+
+    user_signer_key = root_trusted_certificates[user_signer]["key"]
+    user_certificate_hash = SHA256Hash(user_certificate_data).digest()
+    user_certificate_check = pow(
+        int.from_bytes(user_certificate_signature, "little"),
+        user_signer_key["e"],
+        user_signer_key["n"]
+    ).to_bytes(256, "little")[:len(user_certificate_hash)]
+
+    if user_certificate_check != user_certificate_hash:
+        print("Untrusted user certificate: invalid signature", file=sys.stderr)
+        exit(1)
+
+    ciphertext = pow(int.from_bytes(flag, "little"), user_key["e"], user_key["n"]).to_bytes(256, "little")
+    show_b64("secret ciphertext", ciphertext)
+
+
+def level14():
+    """
+    In this challenge you will perform a simplified Transport Layer Security (TLS) handshake, acting as the server.
+    You will be provided with Diffie-Hellman parameters, a self-signed root certificate, and the root private key.
+    The client will request to establish a secure channel with a particular name, and initiate a Diffie-Hellman key exchange.
+    The server must complete the key exchange, and derive an AES-128 key from the exchanged secret.
+    Then, using the encrypted channel, the server must supply the requested user certificate, signed by root.
+    Finally, using the encrypted channel, the server must sign the handshake to prove ownership of the private user key.
+    """
+    # 2048-bit MODP Group from RFC3526
+    p = int.from_bytes(bytes.fromhex(
+        "FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1 "
+        "29024E08 8A67CC74 020BBEA6 3B139B22 514A0879 8E3404DD "
+        "EF9519B3 CD3A431B 302B0A6D F25F1437 4FE1356D 6D51C245 "
+        "E485B576 625E7EC6 F44C42E9 A637ED6B 0BFF5CB6 F406B7ED "
+        "EE386BFB 5A899FA5 AE9F2411 7C4B1FE6 49286651 ECE45B3D "
+        "C2007CB8 A163BF05 98DA4836 1C55D39A 69163FA8 FD24CF5F "
+        "83655D23 DCA3AD96 1C62F356 208552BB 9ED52907 7096966D "
+        "670C354E 4ABC9804 F1746C08 CA18217C 32905E46 2E36CE3B "
+        "E39E772C 180E8603 9B2783A2 EC07A28F B5C55DF0 6F4C52C9 "
+        "DE2BCBF6 95581718 3995497C EA956AE5 15D22618 98FA0510 "
+        "15728E5A 8AACAA68 FFFFFFFF FFFFFFFF"
+    ), "big")
+    g = 2
+
+    show_hex("p", p)
+    show_hex("g", g)
+
+    root_key = RSA.generate(2048)
+
+    show_hex("root key d", root_key.d)
+
+    root_certificate = {
+        "name": "root",
+        "key": {
+            "e": root_key.e,
+            "n": root_key.n,
+        },
+        "signer": "root",
+    }
+
+    root_trusted_certificates = {
+        "root": root_certificate,
+    }
+
+    root_certificate_data = json.dumps(root_certificate).encode()
+    root_certificate_hash = SHA256Hash(root_certificate_data).digest()
+    root_certificate_signature = pow(
+        int.from_bytes(root_certificate_hash, "little"),
+        root_key.d,
+        root_key.n
+    ).to_bytes(256, "little")
+
+    show_b64("root certificate", root_certificate_data)
+    show_b64("root certificate signature", root_certificate_signature)
+
+    name = ''.join(random.choices(string.ascii_lowercase, k=16))
+    show("name", name)
+
+    a = getrandbits(2048)
+    A = pow(g, a, p)
+    show_hex("A", A)
+
+    B = input_hex("B")
+    if not (B > 2**1024):
+        print("Invalid B value (B <= 2**1024)", file=sys.stderr)
+        exit(1)
+
+    s = pow(B, a, p)
+    key = SHA256Hash(s.to_bytes(256, "little")).digest()[:16]
+    cipher_encrypt = AES.new(key=key, mode=AES.MODE_CBC, iv=b"\0"*16)
+    cipher_decrypt = AES.new(key=key, mode=AES.MODE_CBC, iv=b"\0"*16)
+
+    def decrypt_input_b64(name):
+        data = input_b64(name)
+        try:
+            return unpad(cipher_decrypt.decrypt(data), cipher_decrypt.block_size)
+        except ValueError as e:
+            print(f"{name}: {e}", file=sys.stderr)
+            exit(1)
+
+    user_certificate_data = decrypt_input_b64("user certificate")
+    user_certificate_signature = decrypt_input_b64("user certificate signature")
+    user_signature = decrypt_input_b64("user signature")
+
+    try:
+        user_certificate = json.loads(user_certificate_data)
+    except json.JSONDecodeError:
+        print("Invalid user certificate", file=sys.stderr)
+        exit(1)
+
+    user_name = user_certificate.get("name")
+    if user_name != name:
+        print(f"Invalid user certificate name: `{user_name}`", file=sys.stderr)
+        exit(1)
+
+    user_key = user_certificate.get("key", {})
+    if not (isinstance(user_key.get("e"), int) and isinstance(user_key.get("n"), int)):
+        print(f"Invalid user certificate key: `{user_key}`", file=sys.stderr)
+        exit(1)
+
+    if not (user_key["e"] > 2):
+        print("Invalid user certificate key e value (e > 2)", file=sys.stderr)
+        exit(1)
+
+    if not (2**512 < user_key["n"] < 2**1024):
+        print("Invalid user certificate key n value (2**512 < n < 2**1024)", file=sys.stderr)
+        exit(1)
+
+    user_signer = user_certificate.get("signer")
+    if user_signer not in root_trusted_certificates:
+        print(f"Untrusted user certificate signer: `{user_signer}`", file=sys.stderr)
+        exit(1)
+
+    user_signer_key = root_trusted_certificates[user_signer]["key"]
+    user_certificate_hash = SHA256Hash(user_certificate_data).digest()
+    user_certificate_check = pow(
+        int.from_bytes(user_certificate_signature, "little"),
+        user_signer_key["e"],
+        user_signer_key["n"]
+    ).to_bytes(256, "little")[:len(user_certificate_hash)]
+
+    if user_certificate_check != user_certificate_hash:
+        print("Untrusted user certificate: invalid signature", file=sys.stderr)
+        exit(1)
+
+    user_signature_data = (
+        name.encode().ljust(256, b"\0") +
+        A.to_bytes(256, "little") +
+        B.to_bytes(256, "little")
+    )
+    user_signature_hash = SHA256Hash(user_signature_data).digest()
+    user_signature_check = pow(
+        int.from_bytes(user_signature, "little"),
+        user_key["e"],
+        user_key["n"]
+    ).to_bytes(256, "little")[:len(user_signature_hash)]
+
+    if user_signature_check != user_signature_hash:
+        print("Untrusted user: invalid signature", file=sys.stderr)
+        exit(1)
+
+    ciphertext = cipher_encrypt.encrypt(pad(flag, cipher_encrypt.block_size))
+    show_b64("secret ciphertext", ciphertext)
+
+
+def challenge():
+    challenge_level = globals()[f"level{level}"]
+    description = textwrap.dedent(challenge_level.__doc__)
+
+    print("===== Welcome to Cryptography! =====")
+    print("In this series of challenges, you will be working with various cryptographic mechanisms.")
+    print(description)
+    print()
+
+    challenge_level()
+
+
+challenge()
+```
+
+```
+hacker@cryptography~rsa-3:/$ /challenge/run 
+===== Welcome to Cryptography! =====
+In this series of challenges, you will be working with various cryptographic mechanisms.
+
+In this challenge you will complete an RSA challenge-response.
+You will be provided with both the public key and private key.
+
+
+e: 0x10001
+d: 0x2afe6a1e38a39329a17a5c0302b1e20037fab7a0b67c336f88c7dd788d77fe46f176c39fcef64756ae56e11f69bb775ccad87930c92d82a88b37b642b622aa8a2dc511b4ad057f88a27457b008283bca10de79d0546224314e9dc97acdc951fef742ffa32f45f7ad193b1e75420e91c8789d3501e7a8e9ab6d1aa4e6b04632b90cf27df10df1a87279b4c7acbb87f61c3be71b1fd3feeb70dc2fc674542a78c8a5eaea2832d17ec4335aea58dfcc461b7c211a91e075309aeef9b6f9a6a125acbf0cb450fad855db0559caa8e9ae5f7a77a60f17b15d4b335072a7b37f6a40e6c652cea8476d0918491cecbe1a7117bb225019b309be7c824bdfcf8e6c09161
+n: 0xcc985f1c3b380f1dc0df9c0508320d924a6888b9d96d68fb8af4bd760dd706bf159825e4d5a83b210b54adceaea2dae6fbdc167a6e291d55649afb10376b4e164fd78ab3c384361846ba84e08ba42c0f674995f307682e29d6ca8a9b3caccb49db4e4627fb6956f9fe84580ab76d721d7d181eea270384f36952cb02b2d657e111a2aae9ef9914cb183a25b7095ffe5acd5241ae48e03f35793d8ef1fe5556854434befe7dc40ec0def10f5e939545dfc1f03391d5b24e7d0d13d0e2b5df387eea7129be352aae0864ad915cba2eb63d1ad2b58ab4e4aabada97182944e3437383fd0070906d825d885734c7854e84874e6cb7b7ff737e4dfaa57c2d2ca46389
+challenge: 0x7b60b5b649f6dabdae49c1126d2d49655705ac35686fd06e591b284ac980f8c2be83c25d605394d5ad0e8c88c157ada5f7d33e81a3f1d20f000626eddb8daeccfdda14ddb8455f014cff30568055d665d57bc47a423aaf7deed6bf61caefd816144d94f0250bdbdcd44c9322afaf4fdd99e22d46aefdd7ccd138c7b7cefcbad30c9cf30da0767106d3a5ddd1bfec60ff03f4b18046d00db54629f302fce6c1d79cc2e4b4e2e89e9383f38d7d1284562fefb5c3fd71b6252b69ef9838dddfc19a4036393c4d5c82c4fdaceef561cfe2d84c6da4dee0eda81627bf2b031f9db422d4c38a6cbd9c73e7163d8f10be0085accdd41717a0d897d675ba7a64f1638073
+response: 
+```
+
+```py title="~/script.py" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+from pwn import *
+import re
+
+context.log_level = "error"
+io = process("/challenge/run")
+
+# -------- Read header --------
+start = io.recvuntil(b"challenge: ")
+challenge_line = io.recvline()
+data = (start + challenge_line).decode()
+
+# -------- Extract values --------
+e_hex  = re.search(r"e:\s*(0x[0-9a-fA-F]+)", data).group(1)
+d_hex  = re.search(r"d:\s*(0x[0-9a-fA-F]+)", data).group(1)
+n_hex  = re.search(r"n:\s*(0x[0-9a-fA-F]+)", data).group(1)
+challenge_hex = re.search(r"challenge:\s*(0x[0-9a-fA-F]+)", data).group(1)
+
+# Convert to integers
+d_int = int(d_hex, 16)
+n_int = int(n_hex, 16)
+
+# Convert challenge to bytes
+challenge_bytes = bytes.fromhex(challenge_hex[2:])
+
+# Convert challenge to integer (BIG ENDIAN RSA)
+challenge_int = int.from_bytes(challenge_bytes, "big")
+
+# Compute modulus byte length
+mod_len = (n_int.bit_length() + 7) // 8
+
+# -------- RSA private decrypt --------
+response_int = pow(challenge_int, d_int, n_int)
+response_bytes = response_int.to_bytes(mod_len, "big")
+
+# Strip padding/nulls
+response_bytes = response_bytes.lstrip(b"\x00")
+
+# Convert to hex for sending
+response_hex = "0x" + response_bytes.hex()
+
+print("Response =", response_hex)
+
+# -------- Send response --------
+io.sendline(response_hex.encode())
+
+# Print output of challenge
+print(io.recvall().decode(errors="ignore"))
+```
+
+```
+hacker@cryptography~rsa-3:/$ python ~/script.py 
+Response = 0xb3335118063ae19ce8186195159b62cdd36db34bcbbcfafc47c6af4b0366f18699353a89700257fc6ee23ae02b0f9b7fd3485ced1ccb598fd37452fd67b8479dd47f83c67ad019d9b5ff02a67e21815d5f78f89bebe15580e5959847bfdcc3b6dfee4ce6f9ebac24785732b51ef16adb168dcf905edc098300a0377ec1c7a55c5b565cc3d6b6a6983dcb30e3ba5b448c33e5cf32225af1016073865a2027d57b036f685225dde3eb1d81feef9e7a2e68b08468238847f8c0a7bf5b9cece46c75bdfaf1dd5391fea267836db2cb8d771268cf2507ca79abae5f5140c46e9c2a3a06a2141e0a37d4c608195d46da1b90dfe1cf66bffcdd0ca590431667fd0b73a8
+response: flag: pwn.college{QkUuIiUWRHVN5wMhVDT_Ee2YTVC.dNDOzMDL4ITM0EzW}
 ```
