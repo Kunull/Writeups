@@ -3290,7 +3290,7 @@ flag_int = pow(ciphertext_int, d, n)
 flag_bytes = flag_int.to_bytes(mod_len, "little")
 
 # Strip trailing null bytes and the newline at the end
-flag = flag_bytes.lstrip(b"\x00")
+flag = flag_bytes.rstrip(b"\x00").rstrip(b"\n")
 
 print("Flag:", flag.decode())
 ```
@@ -3353,13 +3353,21 @@ phi_n = (p - 1) * (q - 1)
 # Calculate `d`
 d = inverse(e, phi_n)
 
-ciphertext = bytes.fromhex(ciphertext_hex)
+# Convert ciphertext to bytes
+ciphertext_bytes = bytes.fromhex(ciphertext_hex)
 
-# Decrypt using little endian (matches encryption)
-flag_full = pow(int.from_bytes(ciphertext, "little"), d, n).to_bytes(256, "little")
+# Convert ciphertext to integer
+ciphertext_int = int.from_bytes(ciphertext_bytes, "little")
+
+# Compute modulus byte length
+mod_len = (n.bit_length() + 7) // 8
+
+# -------- RSA private decrypt --------
+flag_int = pow(ciphertext_int, d, n)
+flag_bytes = flag_int.to_bytes(mod_len, "little")
 
 # Strip trailing null bytes and the newline at the end
-flag = flag_full.rstrip(b"\x00").rstrip(b"\n")
+flag = flag_bytes.rstrip(b"\x00").rstrip(b"\n")
 
 print("Flag:", flag.decode())
 ```
