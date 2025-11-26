@@ -269,11 +269,16 @@ if __name__ == "__main__":
 The challenge performs the following checks:
 - File Extension: Must end with `.cimg`
 - Header (4 bytes total):
-    - Magic number (4 bytes): Must be `0x474D215B`, which is ASCII `GM![` in little-endian
+    - Magic number (4 bytes): Must be `0x474D215B`, which is `GM![` in big-endian or `[!MG` in little-endian ASCII.
 
 ```python
->>> bytearray.fromhex("474D215B").decode()
-'GM!['
+>>> big_endian = bytearray.fromhex("474D215B").decode()
+>>> print(f"Big endian ASCII: {big_endian}")
+Big endian ASCII: GM![
+
+>>> little_endian = bytearray.fromhex("474D215B")[::-1].decode()
+>>> print(f"Little endian ASCII: {little_endian}")
+Little endian ASCII: [!MG
 ```
 
 ### Endianness
