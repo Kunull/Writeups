@@ -269,7 +269,7 @@ if __name__ == "__main__":
 The challenge performs the following checks:
 - File Extension: Must end with `.cimg`
 - Header (4 bytes total):
-    - Magic number (4 bytes): Must be `0x474D215B`, which is `GM![` in big-endian or `[!MG` in little-endian ASCII.
+    - Magic number (4 bytes): Must be `0x474D215B`, which is `GM![` in big-endian or `[!MG` in little-endian ASCII
 
 ```python
 >>> big_endian = bytearray.fromhex("474D215B").decode()
@@ -452,13 +452,14 @@ int main(int argc, char **argv, char **envp)
 
 - File Extension: Must end with `.cimg`
 - Header (4 bytes total):
-    - Magic number (4 bytes): Must be `1733109083`, which is ASCII `gM%[` in little-endian
+    - Magic number (4 bytes): Must be `1733109083`, which is `[%Mg` in little-endian ASCII
 
 ```python
 >>> print('{0:x}'.format(1733109083))
 674d255b
->>> bytearray.fromhex("674d255b").decode()
-'gM%['
+>>> little_endian = bytearray.fromhex("674d255b")[::-1].decode()
+>>> print(f"Little endian ASCII: {little_endian}")
+Little endian ASCII: [%Mg
 ```
 
 The same concept of endianness applies here.
@@ -484,7 +485,13 @@ pwn.college{Iz_N1i6LBqszqfN70WeEVNJzFd9.QX4ATN2EDL4ITM0EzW}
 
 - File Extension: Must end with `.cimg`
 - Header (4 bytes total):
-    - Magic number (4 bytes): Must be `0x72254f3c`, which is ASCII `<0%r` in little-endian
+    - Magic number (4 bytes): Must be `0x72254f3c`, which is `<0%r` in little-endian ASCII
+
+```python
+>>> little_endian = bytearray.fromhex("72254f3c")[::-1].decode()
+>>> print(f"Little endian ASCII: {little_endian}")
+Little endian ASCII: <O%r
+```
 
 ```
 hacker@reverse-engineering~reading-endianness-c:/$ echo '<0%r' > ~/solution.cimg
