@@ -1456,7 +1456,7 @@ pwn.college{MncM_uybJBUtPMNqnf4uUZTvN38.QX0ETN2EDL4ITM0EzW}
 
 ## Input Restrictions (x86)
 
-### Disassembly
+### Decompilation
 
 #### `main()`
 
@@ -1876,7 +1876,7 @@ pwn.college{Y9UIwcU8PAlWDhlav3ieIczJPrB.QX2ETN2EDL4ITM0EzW}
 
 ## Behold the cIMG! (x86)
 
-### Disassembly
+### Decompilation
 
 #### `main()`
 
@@ -2377,7 +2377,7 @@ pwn.college{4IY_xVT2BdscpfYAibCo97rS48E.QX4ETN2EDL4ITM0EzW}
 
 ## A Basic cIMG (x86)
 
-### Disassembly
+### Decompilation
 
 #### `main()`
 
