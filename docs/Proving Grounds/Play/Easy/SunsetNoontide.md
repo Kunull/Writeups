@@ -28,7 +28,7 @@ Nmap done: 1 IP address (1 host up) scanned in 330.87 seconds
 There are three open ports:
 
 | Port | Service |
-| ---- | ------- |
+| :--- | :------ |
 | 6667 | irc     |
 | 6697 | irc     |
 | 8067 | irc     |

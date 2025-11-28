@@ -48,7 +48,7 @@ Nmap done: 1 IP address (1 host up) scanned in 460.14 seconds
 There are three open ports:
 
 | Port | Service |
-| :-: | :-: |
+| :--- | :------ |
 | 21   | ftp     |
 | 22   | ssh     |
 | 80   | http    |
@@ -150,7 +150,7 @@ Don't Underestimate it.......
 This tells us that maybe there is a user named `renu` on the machine.
 
 | Users |
-| :-: |
+| :---- |
 | renu  |
 
 &nbsp;
@@ -173,7 +173,7 @@ Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2024-05-06 11:24:
 ```
 
 | Username | Password  |
-| :-: | :-: |
+| :------- | :-------- |
 | renu     | 987654321 |
 
 ### SSH login
@@ -216,7 +216,7 @@ renu@MoneyBox:~$ cat local.txt
 Upon listing the `/home` directory, we can find that there is another user `lily`.
 
 | Users |
-| :-: |
+| :---- |
 | renu  |
 | lily  |
 

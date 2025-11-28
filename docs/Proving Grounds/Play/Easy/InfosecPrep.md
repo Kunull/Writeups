@@ -38,7 +38,7 @@ Nmap done: 1 IP address (1 host up) scanned in 357.13 seconds
 There are three open ports:
 
 | Port  | Service    |
-| ----- | ---------- |
+| :---- | :--------- |
 | 22    | ssh        |
 | 80    | http       |
 | 33060 | tcpwrapped |
@@ -87,7 +87,7 @@ Scrolling down tells us who the user on the target is.
 ![2](https://github.com/user-attachments/assets/62e3214f-1176-4eda-9d0d-9149619afd08)
 
 | Username |
-| -------- |
+| :------- |
 | oscp     |
 
 Let's visit the `robots.txt` page to see if we can find some more information.

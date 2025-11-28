@@ -49,7 +49,7 @@ Nmap done: 1 IP address (1 host up) scanned in 312.65 seconds
 There are three open ports:
 
 | Port | Service |
-| ---- | ------- |
+| :--- | :------ |
 | 21   | ftp     |
 | 22   | ssh     |
 | 80   | http    |
@@ -59,7 +59,7 @@ There are three open ports:
 From the Nmap scan we can see that Anonymous login is allowed for FTP. Let's try it.
 
 | Username  | Password  |
-| --------- | --------- |
+| :-------- | :-------- |
 | anonymous | anonymous |
 
 ```

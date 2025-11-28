@@ -70,12 +70,6 @@ Nmap done: 1 IP address (1 host up) scanned in 345.55 seconds
 There are three open ports:
 
 | Port  | Service |
-| ----- | ------- |
-| 22    | ssh     |
-| 80    | http    |
-| 33060 | mysqlx  |
-
-| Port  | Service |
 | :---- | :------ |
 | 22    | ssh     |
 | 80    | http    |
@@ -210,7 +204,7 @@ tony
 There is a user `tony` on the target machine.
 
 | Username |
-| -------- |
+| :------- |
 | tony     |
 
 Let's check if there is anything useful in the home directory.

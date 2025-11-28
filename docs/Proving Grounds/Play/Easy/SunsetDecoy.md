@@ -37,7 +37,7 @@ Nmap done: 1 IP address (1 host up) scanned in 313.86 seconds
 There are two open ports:
 
 | Port | Service |
-| ---- | ------- |
+| :--- | :------ |
 | 22   | ssh     |
 | 80   | http    |
 
@@ -119,7 +119,7 @@ server           (296640a3b825115a47b68fc44501c828)
 We have the following credentials
 
 | User                             | Password |
-| -------------------------------- | -------- |
+| :------------------------------- | :------- |
 | 296640a3b825115a47b68fc44501c828 | server   |
 
 Using these credentials, we can login to the target via SSH.
