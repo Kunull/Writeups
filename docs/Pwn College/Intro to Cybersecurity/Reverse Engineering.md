@@ -319,7 +319,7 @@ bash: !MG: event not found
 ```
 
 This is happening because Bash uses `!` for history expansion. So Bash tries to expand `!MG` as a previous command, but can't find one.
-We can easily get around this by using single quotes (`'`)/
+We can easily get around this by using single quotes (`'`).
 
 ```
 hacker@reverse-engineering~reading-endianness-python:/$ echo '[!MG' > ~/solution.cimg
