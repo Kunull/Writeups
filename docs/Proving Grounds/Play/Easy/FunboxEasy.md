@@ -75,6 +75,12 @@ There are three open ports:
 | 80    | http    |
 | 33060 | mysqlx  |
 
+| Port  | Service |
+| :---- | :------ |
+| 22    | ssh     |
+| 80    | http    |
+| 33060 | mysqlx  |
+
 ### Port 80 (HTTP)
 
 #### Directory enumeration
