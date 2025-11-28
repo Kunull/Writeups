@@ -2722,8 +2722,9 @@ The challenge performs the following checks:
 - Header (8 bytes total):
     - Magic number (4 bytes): Must be `cIMG"`
     - Version (2 bytes): Must be `2` in little-endian
-    - Width (1 bytes): Must be `4` in little-endian
-    - Height (1 bytes): Must be `1` in little-endian
+    - Dimensions (2 bytes total): Must be 4 bytes
+        - Width (1 bytes): Must be either `4` (if `width = 1`), `2` (if `width = 2`) or `1` (if `width = 4`) in little-endian
+        - Height (1 bytes): Must be either `1` (if `height = 4`), `2` (if `height = 2`) or `4` (if `height = 1`) in little-endian
 - Pixel Data:
     - The number of non-space ASCII pixels must be `4 * 1 = 4`, i.e. the number of bytes must be `4 * 4 = 16`
     - When pixel data is loaded into the ANSII template: `"\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m"` one by one and appended together, it should match the following: `"\x1b[38;2;200;040;131mc\x1b[0m\x1b[38;2;001;019;165mI\x1b[0m\x1b[38;2;160;134;059mM\x1b[0m\x1b[38;2;195;046;079mG\x1b[0m\x00";`
