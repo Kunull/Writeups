@@ -2717,21 +2717,53 @@ int main(int argc, char **argv, char **envp)
 }
 ```
 
+The challenge performs the following checks:
+- File Extension: Must end with `.cimg`
+- Header (8 bytes total):
+    - Magic number (4 bytes): Must be `cIMG"`
+    - Version (2 bytes): Must be `2` in little-endian
+    - Width (1 bytes): Must be `4` in little-endian
+    - Height (1 bytes): Must be `1` in little-endian
+- Pixel Data:
+    - The number of non-space ASCII pixels must be `4 * 1 = 4`, i.e. the number of bytes must be `4 * 4 = 16`
+    - When pixel data is loaded into the ANSII template: `"\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m"` one by one and appended together, it should match the following: `"\x1b[38;2;200;040;131mc\x1b[0m\x1b[38;2;001;019;165mI\x1b[0m\x1b[38;2;160;134;059mM\x1b[0m\x1b[38;2;195;046;079mG\x1b[0m\x00";`
+
+If we write the first pixel as `b"xc8(\x83c"`, the challenge fills in the pixel RGB bytes using the `%03d` placeholder and fills the ASCII character byte with the `%c` placeholder.
+
+```
+## Template:
+\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m
+
+## First pixel (c)
+%03d -> 200 -> "200"
+%03d -> 40  -> "040"
+%03d -> 131 -> "131"
+%c   -> 'c'
+
+## Final ANSII pixel
+\x1b[38;2;200;040;131mc\x1b[0m
+```
+
 ```python title="~/script.py" showLineNumbers
 import struct
-from pwn import *
 
-# Build the header (10 bytes total)
-magic = b"cIMG"                    # 4 bytes
-version = struct.pack("<H", 2)     # 2 bytes
-width = struct.pack("<B", 39)      # 1 bytes 
-height = struct.pack("<B", 21)     # 1 bytes 
+# Build the header (8 bytes total)
+magic = b"cIMG"                     # 4 bytes
+version = struct.pack("<H", 2)      # 2 bytes
+width  = struct.pack("<B", 4)       # 1 bytes
+height = struct.pack("<B", 1)       # 1 bytes
 
 header = magic + version + width + height
 
-# Build the pixel data (39 * 21 * 4 = 3276 bytes)
-pixel = b"\x8C\x1D\x40."   
-pixel_data = pixel * (39 * 21)  
+# Build the pixel data (51 * 24 * 4 = 4896 bytes)
+pixels = [
+    (200, 40, 131, ord('c')),
+    (1, 19, 165, ord('I')),
+    (160, 134, 59, ord('M')),
+    (195, 46, 79, ord('G')),
+]
+
+pixel_data = b"".join(struct.pack("BBBB", r, g, b, a) for r, g, b, a in pixels)
 
 # Full file content
 cimg_data = header + pixel_data
@@ -2741,5 +2773,18 @@ filename = "/home/hacker/solution.cimg"
 with open(filename, "wb") as f:
     f.write(cimg_data)
 
-print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to file: '{filename}'")
+print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to: {filename}")
 ```
+
+```
+hacker@reverse-engineering~internal-state-mini-c:/$ python ~/script.py 
+Wrote 24 bytes: b'cIMG\x02\x00\x04\x01\xc8(\x83c\x01\x13\xa5I\xa0\x86;M\xc3.OG' to: /home/hacker/solution.cimg
+```
+
+```
+hacker@reverse-engineering~internal-state-mini-c:/$ /challenge/cimg ~/solution.cimg 
+cIMG
+pwn.college{sxObMoehMoum3fSzW12W3zqJsBu.QX5ETN2EDL4ITM0EzW}
+```
+
+![img]("https://github.com/user-attachments/assets/cd40f570-0a31-49cd-a0e2-e78c82b75d94")
