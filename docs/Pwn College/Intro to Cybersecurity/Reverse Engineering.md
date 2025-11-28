@@ -2787,4 +2787,4 @@ cIMG
 pwn.college{sxObMoehMoum3fSzW12W3zqJsBu.QX5ETN2EDL4ITM0EzW}
 ```
 
-![img]("https://github.com/user-attachments/assets/cd40f570-0a31-49cd-a0e2-e78c82b75d94")
+![image]("https://github.com/user-attachments/assets/cd40f570-0a31-49cd-a0e2-e78c82b75d94")
