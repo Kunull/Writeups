@@ -2731,7 +2731,17 @@ The challenge performs the following checks:
 
 The template that the challenge enforces isn't just a random template, it is the the ANSI SGR.
 
-### ANSI SGR (Select Graphic Rendition)
+### [ANSI SGR (Select Graphic Rendition) Escape code](https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797#rgb-colors)
+
+Modern terminals supports Truecolor (24-bit RGB), which allows you to set foreground and background colors using RGB.
+
+| Escape Code Sequence | Description |
+|---|---|
+| `ESC[38;2;{r};{g};{b}m` | Set foreground color as RGB. |
+
+| Escape Code Sequence | Description | 
+|:---|:---|
+| `ESC[38;2;{r};{g};{b}m` | Set foreground color as RGB. |
 
 ```
 \x1b            --> ESC character
