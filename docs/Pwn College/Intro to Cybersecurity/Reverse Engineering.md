@@ -2727,17 +2727,13 @@ The challenge performs the following checks:
         - Height (1 bytes): Must be either `1` (if `height = 4`), `2` (if `height = 2`) or `4` (if `height = 1`) in little-endian
 - Pixel Data:
     - The number of non-space ASCII pixels must be `4 * 1 = 4`, i.e. the number of bytes must be `4 * 4 = 16`
-    - When pixel data is loaded into the [ANSI colour template](https://talyian.github.io/ansicolors/): `"\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m"` one by one and appended together, it should match the following: `"\x1b[38;2;200;040;131mc\x1b[0m\x1b[38;2;001;019;165mI\x1b[0m\x1b[38;2;160;134;059mM\x1b[0m\x1b[38;2;195;046;079mG\x1b[0m\x00";`
+    - When pixel data is loaded into the [ANSI escape code](https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit): `"\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m"` one by one and appended together, it should match the following: `"\x1b[38;2;200;040;131mc\x1b[0m\x1b[38;2;001;019;165mI\x1b[0m\x1b[38;2;160;134;059mM\x1b[0m\x1b[38;2;195;046;079mG\x1b[0m\x00";`
 
 The template that the challenge enforces isn't just a random template, it is the the ANSI SGR.
 
-### [ANSI SGR (Select Graphic Rendition) Escape code](https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797#rgb-colors)
+### [ANSI SGR 24-bit escape code](https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit)
 
 Modern terminals supports Truecolor (24-bit RGB), which allows you to set foreground and background colors using RGB.
-
-| Escape Code Sequence | Description |
-|---|---|
-| `ESC[38;2;{r};{g};{b}m` | Set foreground color as RGB. |
 
 | Escape Code Sequence | Description | 
 |:---|:---|
