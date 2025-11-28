@@ -2731,7 +2731,7 @@ The challenge performs the following checks:
 
 The template that the challenge enforces isn't just a random template, it is the the ANSI SGR.
 
-### [ANSI SGR 24-bit escape code](https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit)
+### [ANSI 24-bit escape code](https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit)
 
 Modern terminals supports Truecolor (24-bit RGB), which allows you to set foreground and background colors using RGB.
 
