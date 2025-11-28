@@ -2727,7 +2727,20 @@ The challenge performs the following checks:
         - Height (1 bytes): Must be either `1` (if `height = 4`), `2` (if `height = 2`) or `4` (if `height = 1`) in little-endian
 - Pixel Data:
     - The number of non-space ASCII pixels must be `4 * 1 = 4`, i.e. the number of bytes must be `4 * 4 = 16`
-    - When pixel data is loaded into the ANSII template: `"\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m"` one by one and appended together, it should match the following: `"\x1b[38;2;200;040;131mc\x1b[0m\x1b[38;2;001;019;165mI\x1b[0m\x1b[38;2;160;134;059mM\x1b[0m\x1b[38;2;195;046;079mG\x1b[0m\x00";`
+    - When pixel data is loaded into the [ANSI colour template](https://talyian.github.io/ansicolors/): `"\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m"` one by one and appended together, it should match the following: `"\x1b[38;2;200;040;131mc\x1b[0m\x1b[38;2;001;019;165mI\x1b[0m\x1b[38;2;160;134;059mM\x1b[0m\x1b[38;2;195;046;079mG\x1b[0m\x00";`
+
+The template that the challenge enforces isn't just a random template, it is the the ANSI SGR.
+
+### ANSI SGR (Select Graphic Rendition)
+
+```
+\x1b            --> ESC character
+[               --> CSI (Control Sequence Initiator)
+38;2;R;G;B      --> ANSI SGR parameter meaning “Set 24-bit foreground color”
+m               --> End of SGR
+.               --> Character printed in RGB colours
+\x1b[0m         --> Reset terminal formatting
+```
 
 If we write the first pixel as `b"xc8(\x83c"`, the challenge fills in the pixel RGB bytes using the `%03d` placeholder and fills the ASCII character byte with the `%c` placeholder.
 
