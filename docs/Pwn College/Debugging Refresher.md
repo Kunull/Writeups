@@ -40,7 +40,7 @@ Let's run the challenge.
 (gdb) run
 ```
 
-We can find the value of the `$r12` register using the `p` command which is a short from of print.
+We can find the value of the `r12` register using the `p` command which is a short from of print.
 
 ```
 (gdb) p/x $r12
@@ -103,12 +103,12 @@ ssize_t read(int fd, void buf[.count], size_t count);
 | - | - | - | - |
 | 0x00 | unsigned int fd | char *buf | size_t count |
 
-We can see that the second argument is the location of the buffer in which the data is to be read. This argument is loaded in the `$rsi` register.
+We can see that the second argument is the location of the buffer in which the data is to be read. This argument is loaded in the `rsi` register.
 
 Let's look at how this is loaded in our assembly code.
 
-One thing to note is that the program is calling `read()` function in the C standard library (`glibc`) through the Procedure Linkage Table (PLT). This internally sets up the syscall with `$rax=0` and executes the `syscall` instruction. 
-Hence, the `$rax` register does not have to be  explicitely set to 0 in the program.
+One thing to note is that the program is calling `read` function in the C standard library (`glibc`) through the Procedure Linkage Table (PLT). This internally sets up the syscall with `rax=0` and executes the `syscall` instruction. 
+Hence, the `rax` register does not have to be  explicitely set to 0 in the program.
 
 ```
 (gdb) disassemble main
@@ -126,15 +126,15 @@ Dump of assembler code for function main:
 # --- snip ---
 ```
 
-If we look at the address `main+423`, we can see that the value of `$rsi` is being copied from `$rax`.
+If we look at the address `main+423`, we can see that the value of `rsi` is being copied from `rax`.
 
 ### `lea` instruction
 
 The `lea` instruction loads the effective address of the instruction being pointed to.
 
-This value in `$rax` is set to `$rbp-0x18` as seen in the instruction at `main+414` address.
+This value in `rax` is set to `rbp-0x18` as seen in the instruction at `main+414` address.
 
-Now that we know the location of the buffer is `$rbp-0x18`, we can now check the data copied there using the `x` command.
+Now that we know the location of the buffer is `rbp-0x18`, we can now check the data copied there using the `x` command.
 
 ```
 (gdb) x/gx $rbp-0x18
@@ -192,7 +192,7 @@ Dump of assembler code for function main:
 # --- snip ---
 ```
 
-We can see that the instruction at `main+626` compares the value of the `$rax` register with the value of the `$rdx` register.
+We can see that the instruction at `main+626` compares the value of the `rax` register with the value of the `rdx` register.
 
 If the values are equal, it skips over the `exit` syscall.
 
@@ -226,7 +226,7 @@ $1 = 0x1
 $2 = 0xce9eccd975bcd430
 ```
 
-So that tells us that `$rdx` is the register that holds user input and `$rax` is the one that holds the value it is to be compared to. We also know that the value in `$rax` is copied from `$rbp-0x18` by looking at the instruction at `main+622`.
+So that tells us that `rdx` is the register that holds user input and `rax` is the one that holds the value it is to be compared to. We also know that the value in `rax` is copied from `rbp-0x18` by looking at the instruction at `main+622`.
 
 We have to restart the program again and disassemble main.
 
@@ -240,7 +240,7 @@ ssize_t read(int fd, void buf[.count], size_t count);
 | - | - | - | - |
 | 0x00 | unsigned int fd | char *buf | size_t count |
 
-We know that the `read` syscall reads data into a buffer pointed to by it's second argument. We also know that this second argument is loaded into the `$rsi` register.
+We know that the `read` syscall reads data into a buffer pointed to by it's second argument. We also know that this second argument is loaded into the `rsi` register.
 
 ```
 (gdb) disassemble main
@@ -259,7 +259,7 @@ Dump of assembler code for function main:
 # --- snip ---
 ```
 
-In this case the buffer is located at `$rbp-0x18`, which is moved into `$rax` and then into `$rsi` as shown by the instructions at `main+498` and `main+507`.
+In this case the buffer is located at `$rbp-0x18`, which is moved into `rax` and then into `rsi` as shown by the instructions at `main+498` and `main+507`.
 
 All we have to do now is to set a breakpoint at the instruction after the `read` syscall is made, at `main+517`.
 
@@ -297,7 +297,7 @@ This process will repeat a couple of times but the method will be the same.
 
 > Use gdb scripting to help you collect the random values.
 
-From the previous level, we already know that the value that our input is being compared to is stored at `$rbp-0x18`. This is the location of the `read` syscall's buffer.
+From the previous level, we already know that the value that our input is being compared to is stored at `rbp-0x18`. This is the location of the `read` syscall's buffer.
 
 ```
 (gdb) disassemble main
@@ -334,7 +334,7 @@ Current value: 27e462979a3999c4
 
 These commands will be executed every time the breakpoint is hit.
 
-We defined a variable `$currentValue` and set it's value equal to the local variable `$rbp-0x18`.
+We defined a variable `currentValue` and set it's value equal to the local variable `rbp-0x18`.
 
 All we have to do now is put it all together in a script so that we don't have to type it out over and over.
 
@@ -408,7 +408,7 @@ Dump of assembler code for function main:
 ```
 
 In order to automate the process, we will have to skip over the instruction at `main+625` as it calls `read` to read user input from STDIN.
-Then we will have to set the value in address where user input would have been read, i.e. `$rbp+0x10` as if the call actually happened.
+Then we will have to set the value in address where user input would have been read, i.e. `rbp+0x10` as if the call actually happened.
 
 ```
 (gdb) break *(main+630)
@@ -437,13 +437,13 @@ Breakpoint 1, 0x00006249c666ece7 in main ()
 Current value: 45ab5c7cf3884275
 ```
 
-When we hit the second breakpoint, we have to jump over the next instruction. For this, we can set the `$rip` to `main+630`, effectively skipping over the `__isoc99_scanf@plt` call.
+When we hit the second breakpoint, we have to jump over the next instruction. For this, we can set the `rip` to `main+630`, effectively skipping over the `__isoc99_scanf@plt` call.
 
 ```
 (gdb) set $rip = *(main+630)
 ```
 
-Now, we have to set the value of `$rbp-0x10` to the value that we printed.
+Now, we have to set the value of `rbp-0x10` to the value that we printed.
 
 ```
 (gdb) set *((unsigned long long *)($rbp - 0x10)) = $currentValue

@@ -323,7 +323,7 @@ It does not have any conditions either, which means it will be executed no matte
 >
 > — Wikipedia
 
-In layman's terms, the GOT (Global Offset Table) is needed to help programs find and use functions and variables that are not defined in the program itself but are instead found in shared libraries (like libc.so on Linux).
+In layman's terms, the GOT (Global Offset Table) is needed to help programs find and use functions and variables that are not defined in the program itself but are instead found in shared libraries (like `libc.so` on Linux).
 
 The GOT is filled in at runtime, usually by the dynamic linker and stores the real memory addresses of these shared library functions.
 
@@ -368,7 +368,7 @@ Commands:
    0x080492c4 <+206>:	call   0x80490a0 <system@plt>
 ```
 
-If we find the GOT address of `fflush()` and pass as the last 4 bytes in the `name` buffer, we can overwrite the GOT entry at the address of `fflush()` with the address of `system("/bin/cat flag");` setup.
+If we find the GOT address of `fflush()` and pass as it the last 4 bytes in the `name` buffer, we can overwrite the GOT entry at the address of `fflush()` with the address of the `system("/bin/cat flag");` setup.
 
 This will cause the setup of `system("/bin/cat flag");` to be executed when the program calls `fflush()`
 
