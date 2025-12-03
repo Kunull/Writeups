@@ -99,9 +99,9 @@ The contents of a file can be read using the `read` syscall.
 ssize_t read(int fd, void buf[.count], size_t count);
 ```
 
-| %rax | arg0 (%rdi) | arg1 (%rsi) | arg2 (%rdx) | 
-| - | - | - | - |
-| 0x00 | unsigned int fd | char *buf | size_t count |
+| %rax | arg0 (%rdi)     | arg1 (%rsi) | arg2 (%rdx)  | 
+| :--- | :----------     | :---------- | :----------- |
+| 0x00 | unsigned int fd | char *buf   | size_t count |
 
 We can see that the second argument is the location of the buffer in which the data is to be read. This argument is loaded in the `rsi` register.
 
