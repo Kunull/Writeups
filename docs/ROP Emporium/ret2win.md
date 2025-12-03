@@ -290,7 +290,7 @@ End of assembler dump.
 
 So the address of `ret2win()` is `0x0804862c` in the 32-bit executable. One thing to note is that the arguments for a 32-bit function call are pushed on the stack whereas the arguments for a 64-bit function call are stored in registers. 
 
-You can check out live overflow's video if you to know more differences in 64-bit and 32-bit assembly.
+You can check out [Live overflow's video](https://www.youtube.com/watch?v=vXWHmucgZW0&list=PLhixgUqwRTjxglIswKp9mpkfPNfHkzyeN) if want you to know more differences in 64-bit and 32-bit assembly.
 
 ### Cyclic pattern
 
