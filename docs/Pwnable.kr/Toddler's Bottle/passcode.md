@@ -63,7 +63,7 @@ int main(){
 }
 ```
 
-The chellenge has two functions:
+The challenge has two functions:
 
 - `welcome()`:
     - Sets a buffer `name` which is 100 bytes long.
@@ -158,14 +158,14 @@ Dump of assembler code for function login:
 End of assembler dump
 ```
 
-In `login()`, which has the incorrect usage of `scanf()`, the first argument is the value at address `ebp-0x10` for `passcode1` and the value address `ebp-0xc` for `passcode2` respectively, instead of their adresses.
+In `login()`, which has the incorrect usage of `scanf()`, the second argument (pushed first) is the value at address `ebp-0x10` for `passcode1` and the value address `ebp-0xc` for `passcode2` respectively, instead of their addresses.
 
 This results in `scanf()` treating those integer values as pointers and trying to write user input to those potentially invalid addresses, which can cause a segmentation fault or undefined behavior.
 
 There is also something else we can observe in the disassembled code.
 
 The `name` buffer which is 100 bytes long, is initialized at address `ebp-0x70`, while `passcode1` is stored at `ebp-0x10`.
-This means that the program is reusing th stack and that the last 4 bytes of `name` overlap with `passcode`.
+This means that the program is reusing the stack and that the last 4 bytes of `name` overlap with `passcode`.
 
 ## Stack
 
@@ -445,7 +445,7 @@ Importantly, it also does not have any terminating bytes (`0x00`, `0x0a`, `0x09`
 
 ## Exploit
 
-We have all the requirements to craft a successfull exploit.
+We have all the requirements to craft a succesfull exploit.
 	- [x] Number padding bytes: `96`
 	- [x] GOT address of `fflush()`: `0x0804c014`
  	- [x] Address of `system("/bin/cat flag");` setup: `0x0804929e`. We have to pass this as a decimal.
