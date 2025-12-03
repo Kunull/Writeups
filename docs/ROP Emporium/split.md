@@ -462,13 +462,13 @@ Invalid address 0x6161616c
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-When the frame is collaplsed, the `ebp` register has the value `0x6161616b` which is the ASCII representation of `kaaa` in little endian format.
+When the frame is collapsed, the `ebp` register has the value `0x6161616b` which is the ASCII representation of `kaaa` in little endian format.
 
 Let's find the offset of this value in our cyclic pattern.
 
 ```
-pwndbg> cyclic -l 0x61616166
-Finding cyclic pattern of 8 bytes: b'faaa' (hex: 0x61616166)
+pwndbg> cyclic -l 0x6161616b
+Finding cyclic pattern of 8 bytes: b'kaaa' (hex: 0x6161616b)
 Found at offset 40
 ```
 
