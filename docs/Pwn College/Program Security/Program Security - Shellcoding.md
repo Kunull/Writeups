@@ -3,8 +3,6 @@ custom_edit_url: null
 sidebar_position: 1
 ---
 
-&nbsp;
-
 ## ello ackers!
 
 > Write and execute shellcode to read the flag, but your inputted data is filtered before execution.
