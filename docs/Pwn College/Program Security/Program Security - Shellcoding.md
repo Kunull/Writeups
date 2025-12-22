@@ -103,7 +103,7 @@ This challenge requires that your shellcode have no H bytes!
 Failed filter at byte 0!
 ```
 
-We can see that the program requires that our shell code has no `[REX.W prefix](https://en.wikipedia.org/wiki/REX_prefix)`.
+We can see that the program requires that our shell code has no `[REX.W prefix]`(https://en.wikipedia.org/wiki/REX_prefix).
 
 ```
 ## REX:
@@ -379,3 +379,25 @@ Executing shellcode!
 
 pwn.college{4rDXk944HRYc-LzoHZ_apv9MDgT.0VMyIDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## Syscall Shenanigans
+
+>  Write and execute shellcode to read the flag, but the inputted data cannot contain any form of system call bytes (syscall, sysenter, int), this challenge adds an extra layer of difficulty!
+
+```
+hacker@program-security~syscall-shenanigans:/$ /challenge/syscall-shenanigans 
+###
+### Welcome to /challenge/syscall-shenanigans!
+###
+
+This challenge reads in some bytes, modifies them (depending on the specific challenge configuration), and executes them
+as code! This is a common exploitation scenario, called `code injection`. Through this series of challenges, you will
+practice your shellcode writing skills under various constraints! To ensure that you are shellcoding, rather than doing
+other tricks, this will sanitize all environment variables and arguments and close all file descriptors > 2.
+
+Mapped 0x2000 bytes for shellcode at 0x2b033000!
+Reading 0x2000 bytes from stdin.
+```
+
