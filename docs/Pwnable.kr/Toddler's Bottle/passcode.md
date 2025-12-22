@@ -266,7 +266,7 @@ pwndbg> x/wx $ebp-0x10
 We can see that is the same word `yaaa`. This proves that we have overwritten the value of `passcode1`.
 So, we can overwrite the location at which `scanf()` will read our input for the 1st passcode. This is because of the [incorrect usage](#incorrect-usage) of `scanf()`.
 
-This opens up and exploit path for us.
+This opens up an exploit path for us.
 
 If we look at the code, we can see that it calls `system()` in order to `cat` out the flag. Before that it sets both the real group ID and effective group ID to the current effective group ID.
 
