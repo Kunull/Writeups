@@ -2466,6 +2466,24 @@ We need to provide two numbers whose mathematical product is very large, but whe
 
 To find these numbers, we look for a product that equals:
 
-$$a^2 + b^2 = c^2$$
+$$(2^32 * n) + remainder$$
 
-$a^2 + b^2 = c^2$
+Where $n$ is any integer (usually 1 is easiest) and $\text{remainder} \le 98$.
+
+Possible value:
+- 65536 $n \e 1$, $\text{remainder} \e 0$
+
+When 65536 is multiplied with 65536, the result is $4,294,967,296$, whose hexadecimal representation is as follows:
+
+```
+64:         32:
+0x100000000 0x00000000
+```
+
+As we can see, even if the result is a huge number ($4,294,967,296$), the value within `eax` is $0$.
+
+### Exploit.
+
+```
+
+```
