@@ -2331,3 +2331,139 @@ pwn.college{c2QK8MySIcrTr1cBw5ue9GWyXo8.0lN5IDL4ITM0EzW}
 [*] Got EOF while reading in interactive
 $  
 ```
+
+&nbsp;
+
+## Casting Catastrophe (Easy)
+
+> Overflow a buffer and smash the stack to obtain the flag, but this time bypass another check designed to prevent you from doing so!
+
+```
+hacker@program-security~casting-catastrophe-easy:~$ /challenge/casting-catastrophe-easy 
+###
+### Welcome to /challenge/casting-catastrophe-easy!
+###
+
+The challenge() function has just been launched!
+Before we do anything, let's take a look at challenge()'s stack frame:
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007ffc78442700 (rsp+0x0000) | 1c 00 00 00 00 00 00 00 | 0x000000000000001c |
+| 0x00007ffc78442708 (rsp+0x0008) | e8 38 44 78 fc 7f 00 00 | 0x00007ffc784438e8 |
+| 0x00007ffc78442710 (rsp+0x0010) | d8 38 44 78 fc 7f 00 00 | 0x00007ffc784438d8 |
+| 0x00007ffc78442718 (rsp+0x0018) | 23 17 e1 2f 01 00 00 00 | 0x000000012fe11723 |
+| 0x00007ffc78442720 (rsp+0x0020) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007ffc78442728 (rsp+0x0028) | 51 49 cb 2f c7 78 00 00 | 0x000078c72fcb4951 |
+| 0x00007ffc78442730 (rsp+0x0030) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffc78442738 (rsp+0x0038) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffc78442740 (rsp+0x0040) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffc78442748 (rsp+0x0048) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffc78442750 (rsp+0x0050) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffc78442758 (rsp+0x0058) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffc78442760 (rsp+0x0060) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffc78442768 (rsp+0x0068) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffc78442770 (rsp+0x0070) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffc78442778 (rsp+0x0078) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffc78442780 (rsp+0x0080) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffc78442788 (rsp+0x0088) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffc78442790 (rsp+0x0090) | 00 00 40 00 00 00 00 00 | 0x0000000000400000 |
+| 0x00007ffc78442798 (rsp+0x0098) | 50 2b 40 00 00 00 00 00 | 0x0000000000402b50 |
+| 0x00007ffc784427a0 (rsp+0x00a0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffc784427a8 (rsp+0x00a8) | 30 27 44 78 fc 7f 00 00 | 0x00007ffc78442730 |
+| 0x00007ffc784427b0 (rsp+0x00b0) | e0 37 44 78 fc 7f 00 00 | 0x00007ffc784437e0 |
+| 0x00007ffc784427b8 (rsp+0x00b8) | 32 2b 40 00 00 00 00 00 | 0x0000000000402b32 |
++---------------------------------+-------------------------+--------------------+
+Our stack pointer points to 0x7ffc78442700, and our base pointer points to 0x7ffc784427b0.
+This means that we have (decimal) 24 8-byte words in our stack frame,
+including the saved base pointer and the saved return address, for a
+total of 192 bytes.
+The input buffer begins at 0x7ffc78442730, partway through the stack frame,
+("above" it in the stack are other local variables used by the function).
+Your input will be read into this buffer.
+The buffer is 98 bytes long, but the program will let you provide an arbitrarily
+large input length, and thus overflow the buffer.
+
+In this level, there is no "win" variable.
+You will need to force the program to execute the win() function
+by directly overflowing into the stored return address back to main,
+which is stored at 0x7ffc784427b8, 136 bytes after the start of your input buffer.
+That means that you will need to input at least 144 bytes (98 to fill the buffer,
+38 to fill other stuff stored between the buffer and the return address,
+and 8 that will overwrite the return address).
+
+We have disabled the following standard memory corruption mitigations for this challenge:
+- the canary is disabled, otherwise you would corrupt it before
+overwriting the return address, and the program would abort.
+- the binary is *not* position independent. This means that it will be
+located at the same spot every time it is run, which means that by
+analyzing the binary (using objdump or reading this output), you can
+know the exact value that you need to overwrite the return address with.
+
+This challenge will let you send multiple payload records concatenated together.
+It will make sure that the total payload size fits in the allocated buffer
+on the stack. Can you send a carefully crafted input to break this calculation?
+Number of payload records to send: 100
+Size of each payload record: 100
+casting-catastrophe-easy: /challenge/babymem-level-5-0.c:147: challenge: Assertion `record_size * record_num <= 98' failed.
+Aborted
+```
+
+This program accepts the `record_size` and `record_num` from the user, and if the multiplication result is greater that `98` which is the buffer size, it exits.
+
+Let's see how this check is performed.
+
+### `challenge()`
+
+```
+pwndbg> disassemble challenge
+
+# --- snip ---
+
+   0x00000000004026e4 <+774>:   lea    rax,[rbp-0x84]
+   0x00000000004026eb <+781>:   mov    rsi,rax
+   0x00000000004026ee <+784>:   lea    rdi,[rip+0x12cf]        # 0x4039c4
+   0x00000000004026f5 <+791>:   mov    eax,0x0
+   0x00000000004026fa <+796>:   call   0x4011a0 <__isoc99_scanf@plt>
+
+# --- snip ---
+
+   0x0000000000402739 <+859>:   lea    rax,[rbp-0x88]
+   0x0000000000402740 <+866>:   mov    rsi,rax
+   0x0000000000402743 <+869>:   lea    rdi,[rip+0x127a]        # 0x4039c4
+   0x000000000040274a <+876>:   mov    eax,0x0
+   0x000000000040274f <+881>:   call   0x4011a0 <__isoc99_scanf@plt>
+
+# --- snip ---
+
+   0x000000000040277d <+927>:   mov    edx,DWORD PTR [rbp-0x88]
+   0x0000000000402783 <+933>:   mov    eax,DWORD PTR [rbp-0x84]
+   0x0000000000402789 <+939>:   imul   eax,edx
+   0x000000000040278c <+942>:   cmp    eax,0x62
+   0x000000000040278f <+945>:   jbe    0x4027b0 <challenge+978>
+   0x0000000000402791 <+947>:   lea    rcx,[rip+0x1868]        # 0x404000 <__PRETTY_FUNCTION__.5728>
+   0x0000000000402798 <+954>:   mov    edx,0x93
+   0x000000000040279d <+959>:   lea    rsi,[rip+0x1224]        # 0x4039c8
+   0x00000000004027a4 <+966>:   lea    rdi,[rip+0x127d]        # 0x403a28
+   0x00000000004027ab <+973>:   call   0x401150 <__assert_fail@plt>
+   0x00000000004027b0 <+978>:   mov    eax,DWORD PTR [rbp-0x84]
+
+# --- snip ---
+```
+
+If we look at the disassembly, we can see the variables, `record_num` and `record_size` are stored at the 4 bytes pointed to by `rbp-0x84` and `rbp-0x88` respectively.
+Later, these values are moved into `edx` and `eax`, which are used with a `mul` instruction.
+The result of the `mul` instruction, which is stored in `eax`, is compared with `0x62` using the `jbe` instruction. 
+
+Since the progam is using `jbe`, which interprets the numbers as unsigned integers, we cannot pull the [same trick from the last challenge](#bounds-breaker-easy).
+Moving ahead, if the result of the multiplication greater than `0x62`, the program exits.
+
+However, the vulnerability here is an [Integer Overflow](https://en.wikipedia.org/wiki/Integer_overflow). The instruction `imul eax, edx` performs 32-bit multiplication. If the result is larger than what 32 bits can hold, the "extra" bits are simply discarded (truncated), and only the lower 32 bits remain in `eax` for the `cmp` instruction.
+
+### Integer overflow
+
+We need to provide two numbers whose mathematical product is very large, but when truncated to 32 bits, the result is between `0` and `0x62` (98 in decimal).
+
+To find these numbers, we look for a product that equals:
+
+$$a^2 + b^2 = c^2$$
