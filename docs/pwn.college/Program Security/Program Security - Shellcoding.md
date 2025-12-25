@@ -2467,3 +2467,5 @@ We need to provide two numbers whose mathematical product is very large, but whe
 To find these numbers, we look for a product that equals:
 
 $$a^2 + b^2 = c^2$$
+
+$a^2 + b^2 = c^2$
