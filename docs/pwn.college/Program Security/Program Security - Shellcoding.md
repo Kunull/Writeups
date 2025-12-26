@@ -2471,7 +2471,7 @@ However, the vulnerability here is an [Integer Overflow](https://en.wikipedia.or
 
 We need to provide two numbers whose mathematical product is very large, but when truncated to 32 bits, the result is between `0` and `0x62` (98 in decimal).
 
-To find these numbers, we look for a product that equals:
+<!-- To find these numbers, we look for a product that equals:
 
 $$(2^{32} \cdot n) + \text{remainder}$$
 
@@ -2487,7 +2487,7 @@ When 65536 is multiplied with 65536, the result is $4,294,967,296$, whose hexade
 0x100000000 0x00000000
 ```
 
-As we can see, even if the result is a huge number ($4,294,967,296$), the value within `eax` is $0$.
+As we can see, even if the result is a huge number ($4,294,967,296$), the value within `eax` is $0$. -->
 
 Before we craft our exploit, we need the address of `win()`.
 
