@@ -2475,7 +2475,7 @@ To find these numbers, we look for a product that equals:
 
 $$(2^{32} \cdot n) + \text{remainder}$$
 
-Where $n$ is any integer (usually 1 is easiest) and $\text{remainder} <= 98$.
+Where $n$ is any integer (usually 1 is easiest) and $\text{remainder} \le 98$.
 
 Possible value:
 - 65536 ($n = 1$, $\text{remainder} = 0$)
