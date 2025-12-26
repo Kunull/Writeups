@@ -2473,12 +2473,12 @@ We need to provide two numbers whose mathematical product is very large, but whe
 
 To find these numbers, we look for a product that equals:
 
-$$(2^(32) * n) + remainder$$
+$$(2^{32} \cdot n) + \text{remainder}$$
 
-Where $n$ is any integer (usually 1 is easiest) and $\text{remainder} \le 98$.
+Where $n$ is any integer (usually 1 is easiest) and $\text{remainder} <= 98$.
 
 Possible value:
-- 65536 ($n \eq 1$, $\text{remainder} \eq 0$)
+- 65536 ($n = 1$, $\text{remainder} = 0$)
 
 When 65536 is multiplied with 65536, the result is $4,294,967,296$, whose hexadecimal representation is as follows:
 
