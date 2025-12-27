@@ -596,7 +596,7 @@ listening on any, link-type LINUX_SLL2 (Linux cooked v2), snapshot length 262144
 Cookie: session=eyJ1c2VyIjoiYWRtaW4ifQ.aFEq0w.LW1TQizb2Gju_C90GXMogivpu1g
 Cookie: session=eyJ1c2VyIjoiYWRtaW4ifQ.aFEq0w.LW1TQizb2Gju_C90GXMogivpu1g
 
-# --- snip ---
+# ---- snip ----
 ```
 
 Now we can use the cookie to get the flag from `http://10.0.0.2/flag`.
@@ -1056,7 +1056,7 @@ root@ip-10-0-0-1:/# python ~/script.py
 Held 0 connections
 Held 1 connections
 
-# --- snip ---
+# ---- snip ----
 
 Held 44 connections
 Held 45 connections

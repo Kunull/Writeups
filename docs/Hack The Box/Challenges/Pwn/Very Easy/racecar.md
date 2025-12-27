@@ -32,7 +32,7 @@ Now that we know the basic details about the file, let't execute it.
 ┌─[us-dedivip-1]─[10.10.14.129]─[kunull@htb-w0a6ami5sw]─[~/Downloads]
 └──╼ [★]$ ./racecar 
 
-# --- snip ---
+# ---- snip ----
 
 Insert your data:
 
@@ -80,7 +80,7 @@ Since playing nice does not get us the flag, we must move on to debugging the ex
 ┌─[us-dedivip-1]─[10.10.14.129]─[kunull@htb-w0a6ami5sw]─[~/Downloads]
 └──╼ [★]$ gdb racecar
 
-# --- snip ---
+# ---- snip ----
 
 (gdb) set disassembly-flavor intel
 (gdb) disass main

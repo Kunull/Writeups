@@ -11,7 +11,7 @@ This challenge is fairly simple, we just have to run the file.
 ```
 (gdb) run
 
-# --- snip ---
+# ---- snip ----
 
 Program received signal SIGTRAP, Trace/breakpoint trap.
 0x00005cb7b7319be3 in main ()
@@ -114,7 +114,7 @@ Hence, the `rax` register does not have to be  explicitely set to 0 in the progr
 (gdb) disassemble main
 Dump of assembler code for function main:
 
-# --- snip ---
+# ---- snip ----
 
    0x000055ca6a9e5c42 <+412>:   mov    ecx,eax
    0x000055ca6a9e5c44 <+414>:   lea    rax,[rbp-0x18]
@@ -123,7 +123,7 @@ Dump of assembler code for function main:
    0x000055ca6a9e5c50 <+426>:   mov    edi,ecx
    0x000055ca6a9e5c52 <+428>:   call   0x55ca6a9e5210 <read@plt>
 
-# --- snip ---
+# ---- snip ----
 ```
 
 If we look at the address `main+423`, we can see that the value of `rsi` is being copied from `rax`.
@@ -179,7 +179,7 @@ Let's begin by disassembling the `main` function.
 (gdb) disassemble main
 Dump of assembler code for function main:
 
-# --- snip ---
+# ---- snip ----
 
    0x00005603fc3b4d10 <+618>:   mov    rdx,QWORD PTR [rbp-0x10]
    0x00005603fc3b4d14 <+622>:   mov    rax,QWORD PTR [rbp-0x18]
@@ -189,7 +189,7 @@ Dump of assembler code for function main:
    0x0000561c94d1bd22 <+636>:   call   0x561c94d1b280 <exit@plt>
    0x0000561c94d1bd27 <+641>:   add    DWORD PTR [rbp-0x1c],0x1
 
-# --- snip ---
+# ---- snip ----
 ```
 
 We can see that the instruction at `main+626` compares the value of the `rax` register with the value of the `rdx` register.
@@ -246,7 +246,7 @@ We know that the `read` syscall reads data into a buffer pointed to by it's seco
 (gdb) disassemble main
 Dump of assembler code for function main:
 
-# --- snip ---
+# ---- snip ----
 
    0x00005603fc3b4c96 <+496>:   mov    ecx,eax
    0x00005603fc3b4c98 <+498>:   lea    rax,[rbp-0x18]
@@ -256,7 +256,7 @@ Dump of assembler code for function main:
    0x00005603fc3b4ca6 <+512>:   call   0x5603fc3b4210 <read@plt>
    0x00005603fc3b4cab <+517>:   lea    rdi,[rip+0xe26]        # 0x5603fc3b5ad8
 
-# --- snip ---
+# ---- snip ----
 ```
 
 In this case the buffer is located at `$rbp-0x18`, which is moved into `rax` and then into `rsi` as shown by the instructions at `main+498` and `main+507`.
@@ -303,7 +303,7 @@ From the previous level, we already know that the value that our input is being 
 (gdb) disassemble main
 Dump of assembler code for function main:
 
-# --- snip ---
+# ---- snip ----
 
    0x00005556d00bdd56 <+688>:   mov    ecx,eax
    0x00005556d00bdd58 <+690>:   lea    rax,[rbp-0x18]
@@ -313,7 +313,7 @@ Dump of assembler code for function main:
    0x00005556d00bdd66 <+704>:   call   0x5556d00bd210 <read@plt>
    0x00005556d00bdd6b <+709>:   lea    rdi,[rip+0xd46]        # 0x5556d00beab8
 
-# --- snip ---
+# ---- snip ----
 ```
 
 This time the `read` syscall is made at `main+704`. Therefore in order to check the data that is read we need to set a breakpoint at the next instruction which is at `main+709`.
@@ -369,7 +369,7 @@ Let's disassemble `main`.
 (gdb) disassemble main
 Dump of assembler code for function main:
 
-# --- snip ---
+# ---- snip ----
 
    0x000057b68eaa1cd2 <+556>:   mov    ecx,eax
    0x000057b68eaa1cd4 <+558>:   lea    rax,[rbp-0x18]
@@ -379,7 +379,7 @@ Dump of assembler code for function main:
    0x000057b68eaa1ce2 <+572>:   call   0x57b68eaa1210 <read@plt>
    0x000057b68eaa1ce7 <+577>:   lea    rdi,[rip+0xbf2]        # 0x57b68eaa28e0
 
-# --- snip ---
+# ---- snip ----
 ```
 
 This time the `read` syscall is made at `main+572`. Therefore in order to check the data that is read we need to set a breakpoint at the next instruction which is at `main+577`.
@@ -395,7 +395,7 @@ In order to set the user input automatically, we have to figure out how the prog
 (gdb) disassemble main
 Dump of assembler code for function main:
 
-# --- snip ---
+# ---- snip ----
 
    0x0000000000001d04 <+606>:   lea    rax,[rbp-0x10]
    0x0000000000001d08 <+610>:   mov    rsi,rax
@@ -404,7 +404,7 @@ Dump of assembler code for function main:
    0x0000000000001d17 <+625>:   call   0x1260 <__isoc99_scanf@plt>
    0x0000000000001d1c <+630>:   mov    rax,QWORD PTR [rbp-0x10]
 
-# --- snip ---
+# ---- snip ----
 ```
 
 In order to automate the process, we will have to skip over the instruction at `main+625` as it calls `read` to read user input from STDIN.
@@ -528,13 +528,13 @@ The value of `rax` is `0x0`, and we are not allowed to access that memory locati
 ```
 (gdb) disassemble win
 
-# --- snip ----
+# ---- snip -----
 
    0x0000564b61ea295d <+12>:    mov    QWORD PTR [rbp-0x8],0x0
    0x0000564b61ea2965 <+20>:    mov    rax,QWORD PTR [rbp-0x8]
 => 0x0000564b61ea2969 <+24>:    mov    eax,DWORD PTR [rax]
 
-# --- snip ---
+# ---- snip ----
 ```
 
 On disassembling `win`, we can see that `0x0` is being stored on the stack, and being moved to `rax`.
@@ -550,14 +550,14 @@ Let's disassemble `win`.
 ```
 (gdb) disassemble win
 
-# --- snip ---
+# ---- snip ----
 
    0x0000556ccb267980 <+47>:    mov    esi,0x0
    0x0000556ccb267985 <+52>:    lea    rdi,[rip+0x749]        # 0x556ccb2680d5
    0x0000556ccb26798c <+59>:    mov    eax,0x0
    0x0000556ccb267991 <+64>:    call   0x556ccb267240 <open@plt>
 
-# --- snip ---
+# ---- snip ----
 ```
 
 This time we have stopped execution before the code-breaking instructions.

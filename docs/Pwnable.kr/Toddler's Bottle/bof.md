@@ -108,13 +108,13 @@ We can see that the instruction at `main+35` calls `func()`. Let's disassemble t
 pwndbg> disassemble func
 Dump of assembler code for function func:
 
-# --- snip ---
+# ---- snip ----
    
    0x00001230 <+51>:	lea    eax,[ebp-0x2c]
    0x00001233 <+54>:	push   eax
    0x00001234 <+55>:	call   0x1060 <gets@plt>
 
-# --- snip ---
+# ---- snip ----
 
 End of assembler dump.
 ```

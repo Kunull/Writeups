@@ -560,7 +560,7 @@ print(disasm(shellcode), file=sys.stderr)
 ```
 hacker@program-security~syscall-shenanigans:/$ python ~/script.py | /challenge/syscall-shenanigans 
 
-# --- snip ---
+# ---- snip ----
 
 0x000000002b034003 | 90                                            | nop 
 0x000000002b034004 | 90                                            | nop 
@@ -1142,7 +1142,7 @@ Starting program: /challenge/login-leakage-easy
 The challenge() function has just been launched!
 Before we do anything, let's take a look at challenge()'s stack frame:
 
-# --- snip ---
+# ---- snip ----
 
 Our stack pointer points to 0x7ffc037530b0, and our base pointer points to 0x7ffc03753850.
 This means that we have (decimal) 246 8-byte words in our stack frame,
@@ -1168,7 +1168,7 @@ abcdefgh
 You sent 8 bytes!
 Let's see what happened with the stack:
 
-# --- snip ---
+# ---- snip ----
 
 The program's memory status:
 - the input buffer starts at 0x7ffc037530e0
@@ -1298,7 +1298,7 @@ hacker@program-security~login-leakage-easy:/$ python ~/script.py
 You sent 1886 bytes!
 Let's see what happened with the stack:
 
-# --- snip ---
+# ---- snip ----
 
 The program's memory status:
 - the input buffer starts at 0x7ffe8b13d3b0
@@ -1799,7 +1799,7 @@ It does hint somehting about using a two's complement but we'll se when we get t
 ```
 pwndbg> disassemble challenge
 
-# --- snip ---
+# ---- snip ----
 
    0x00000000004024fc <+770>:   call   0x401180 <__isoc99_scanf@plt>
    0x0000000000402501 <+775>:   lea    rdi,[rip+0x13b0]        # 0x4038b8
@@ -1821,7 +1821,7 @@ pwndbg> disassemble challenge
    0x0000000000402559 <+863>:   call   0x401110 <puts@plt>
    0x000000000040255e <+868>:   lea    rdi,[rip+0x149b]        # 0x403a00
 
-# --- snip ---
+# ---- snip ----
 
    0x00000000004026b3 <+1209>:  mov    eax,DWORD PTR [rbp-0x84]
    0x00000000004026b9 <+1215>:  mov    edx,eax
@@ -1830,7 +1830,7 @@ pwndbg> disassemble challenge
    0x00000000004026c2 <+1224>:  mov    edi,0x0
    0x00000000004026c7 <+1229>:  call   0x401150 <read@plt>
 
-# --- snip ---
+# ---- snip ----
 ```
 
 Whatever payload size we send, is stored at the address pointed to by `rbp-0x84`. 
@@ -1883,19 +1883,19 @@ Therefore the 64-bit two's compliment of -1 is `0xffffffffffffffff`.
 Let's look at how the program behaves if we provide the `-1` as the length of our payload size.
 
 ```
-# --- snip ---
+# ---- snip ----
 
    0x0000000000402531 <+823>:   mov    eax,DWORD PTR [rbp-0x84]
    0x0000000000402537 <+829>:   cmp    eax,0x6a
    0x000000000040253a <+832>:   jle    0x402552 <challenge+856>
 
-# --- snip ---
+# ---- snip ----
 ```
 
 In the above snippet, `jle` is used for signed comparison. As `-1 < 0x6a`, the condition will be satisfied, the program will not exit.
 
 ```
-# --- snip ---
+# ---- snip ----
 
    0x00000000004026b3 <+1209>:  mov    eax,DWORD PTR [rbp-0x84]
    0x00000000004026b9 <+1215>:  mov    edx,eax
@@ -1904,7 +1904,7 @@ In the above snippet, `jle` is used for signed comparison. As `-1 < 0x6a`, the c
    0x00000000004026c2 <+1224>:  mov    edi,0x0
    0x00000000004026c7 <+1229>:  call   0x401150 <read@plt>
 
-# --- snip ---
+# ---- snip ----
 ```
 
 As we saw before, `edx` holds the argument which specifies the number of bytes to be read. The problem is, number of bytes can never be negative, so `read@plt` treats this argument as an unsigned integer. Thus `0xffffffffffffffff` is not interpreted as `-1` but rather as `18446744073709551615`.
@@ -2423,7 +2423,7 @@ Let's see how this check is performed.
 pwndbg> disassemble challenge
 Dump of assembler code for function challenge:
 
-# --- snip ---
+# ---- snip ----
 
    0x00000000004026e4 <+774>:   lea    rax,[rbp-0x84]
    0x00000000004026eb <+781>:   mov    rsi,rax
@@ -2431,7 +2431,7 @@ Dump of assembler code for function challenge:
    0x00000000004026f5 <+791>:   mov    eax,0x0
    0x00000000004026fa <+796>:   call   0x4011a0 <__isoc99_scanf@plt>
 
-# --- snip ---
+# ---- snip ----
 
    0x0000000000402739 <+859>:   lea    rax,[rbp-0x88]
    0x0000000000402740 <+866>:   mov    rsi,rax
@@ -2439,7 +2439,7 @@ Dump of assembler code for function challenge:
    0x000000000040274a <+876>:   mov    eax,0x0
    0x000000000040274f <+881>:   call   0x4011a0 <__isoc99_scanf@plt>
 
-# --- snip ---
+# ---- snip ----
 
    0x000000000040277d <+927>:   mov    edx,DWORD PTR [rbp-0x88]
    0x0000000000402783 <+933>:   mov    eax,DWORD PTR [rbp-0x84]
@@ -2453,7 +2453,7 @@ Dump of assembler code for function challenge:
    0x00000000004027ab <+973>:   call   0x401150 <__assert_fail@plt>
    0x00000000004027b0 <+978>:   mov    eax,DWORD PTR [rbp-0x84]
 
-# --- snip ---
+# ---- snip ----
 
 End of assembler dump.
 ```
@@ -2623,7 +2623,7 @@ Goodbye!
 pwndbg> disassemble challenge
 Dump of assembler code for function challenge:
 
-# --- snip ---
+# ---- snip ----
 
    0x0000000000401653 <+99>:    lea    rax,[rbp-0x44]
    0x0000000000401657 <+103>:   mov    rsi,rax
@@ -2631,7 +2631,7 @@ Dump of assembler code for function challenge:
    0x0000000000401661 <+113>:   mov    eax,0x0
    0x0000000000401666 <+118>:   call   0x4011a0 <__isoc99_scanf@plt>
 
-# --- snip ---
+# ---- snip ----
 
    0x00000000004016a2 <+178>:   lea    rax,[rbp-0x48]
    0x00000000004016a6 <+182>:   mov    rsi,rax
@@ -2639,7 +2639,7 @@ Dump of assembler code for function challenge:
    0x00000000004016b0 <+192>:   mov    eax,0x0
    0x00000000004016b5 <+197>:   call   0x4011a0 <__isoc99_scanf@plt>
 
-# --- snip ---
+# ---- snip ----
 
    0x00000000004016e0 <+240>:   mov    edx,DWORD PTR [rbp-0x48]
    0x00000000004016e3 <+243>:   mov    eax,DWORD PTR [rbp-0x44]
@@ -2653,7 +2653,7 @@ Dump of assembler code for function challenge:
    0x0000000000401708 <+280>:   call   0x401150 <__assert_fail@plt>
    0x000000000040170d <+285>:   mov    eax,DWORD PTR [rbp-0x44]
 
-# --- snip ---
+# ---- snip ----
 
 End of assembler dump.
 ```
@@ -2667,7 +2667,7 @@ This challenge makes the same mistake of multiplying two 32-bit registers, and t
 Let's set a breakpoit right before the call to `read@plt`.
 
 ```
-# --- snip ---
+# ---- snip ----
 
    0x000000000040173f <+335>:   mov    rdx,QWORD PTR [rbp-0x10]
    0x0000000000401743 <+339>:   mov    rax,QWORD PTR [rbp-0x8]
@@ -2675,7 +2675,7 @@ Let's set a breakpoit right before the call to `read@plt`.
    0x000000000040174a <+346>:   mov    edi,0x0
    0x000000000040174f <+351>:   call   0x401170 <read@plt>
 
-# --- snip ---
+# ---- snip ----
 ```
 
 ```
@@ -3085,7 +3085,7 @@ p.interactive()
 hacker@program-security~anomalous-array-easy:~$ /challenge/anomalous-array-easy 
 The challenge() function has just been launched!
 
-# --- snip ---
+# ---- snip ----
 
 Our stack pointer points to 0x7ffee60f7980, and our base pointer points to 0x7ffee60f8b40.
 This means that we have (decimal) 570 8-byte words in our stack frame,
@@ -3111,7 +3111,7 @@ You have selected index 0, which is 0 bytes into the array.
 Your hacker number is ffffffffdeadbeef
 Let's see what happened with the stack:
 
-# --- snip ---
+# ---- snip ----
 
 The program's memory status:
 - the array starts at 0x7ffee60f8978
@@ -3148,13 +3148,13 @@ Let's provide this as the index.
 hacker@program-security~anomalous-array-easy:~$ /challenge/anomalous-array-easy 
 The challenge() function has just been launched!
 
-# --- snip ---
+# ---- snip ----
 
 Which number would you like to view? -495
 You have selected index -495, which is -3960 bytes into the array.
 Your hacker number is 6c6c6f632e6e7770
 
-# --- snip ---
+# ---- snip ----
 ```
 
 ```py
@@ -3344,7 +3344,7 @@ End of assembler dump.
 ```
 
 ```
-# --- snip ---
+# ---- snip ----
 
    0x000000000000159e <+77>:    mov    esi,0x0
    0x00000000000015a3 <+82>:    lea    rdi,[rip+0xa5e]        # 0x2008
@@ -3357,7 +3357,7 @@ End of assembler dump.
    0x00000000000015c2 <+113>:   mov    edi,ecx
    0x00000000000015c4 <+115>:   call   0x10c0 <read@plt>
 
-# --- snip ---
+# ---- snip ----
 ```
 
 The program opens a file, and then reads the contents of said file.
@@ -3493,7 +3493,7 @@ So we have the location where is flag is stored in memory.
 Later in the assembly, we can see that the program calls `scanf` to read the `index` from the user, performs some operations using that index, and then prints the data.
 
 ```
-# --- snip ---
+# ---- snip ----
 
    0x00000000000016fb <+426>:   lea    rax,[rbp-0x614]
    0x0000000000001702 <+433>:   mov    rsi,rax
@@ -3509,7 +3509,7 @@ Later in the assembly, we can see that the program calls `scanf` to read the `in
    0x0000000000001734 <+483>:   mov    eax,0x0
    0x0000000000001739 <+488>:   call   0x10b0 <printf@plt>
 
-# --- snip ---   
+# ---- snip ----   
 ```
 
 Specifically, if we look at these instruction: 

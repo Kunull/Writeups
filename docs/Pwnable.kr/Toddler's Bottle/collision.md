@@ -61,12 +61,12 @@ The the passcode indirectly is compared to `hashcode` using the `check_password(
 ### `check_password()`
 
 ```c
-# --- snip ---
+# ---- snip ----
 
 unsigned long check_password(const char* p){
     int* ip = (int*)p;
 
-# --- snip ---
+# ---- snip ----
 ```
 
 This function takes the `char` pointer `p` and casts it to an `int` pointer.
@@ -110,7 +110,7 @@ After casting `p` into an `int*`, it points to integer, which is 4 bytes long.
 Next the `check_password()` function adds all the 5 integers now pointed to by the `ip` pointer.
 
 ```c
-# --- snip ----
+# ---- snip -----
 
     int i;
     int res=0;
@@ -119,7 +119,7 @@ Next the `check_password()` function adds all the 5 integers now pointed to by t
     }
     return res;
 
-# --- snip ----
+# ---- snip -----
 ```
 
 This sum has to be equal to the `hashcode` which is `0x21DD09EC` for us to get the flag.

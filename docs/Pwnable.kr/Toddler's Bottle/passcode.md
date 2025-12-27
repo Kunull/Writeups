@@ -120,7 +120,7 @@ We can even see the difference in the disassembled code.
 pwndbg> disassemble welcome
 Dump of assembler code for function welcome:
 
-# --- snip ---
+# ---- snip ----
 
    0x08049324 <+50>:	lea    eax,[ebp-0x70]
    0x08049327 <+53>:	push   eax
@@ -128,7 +128,7 @@ Dump of assembler code for function welcome:
    0x0804932e <+60>:	push   eax
    0x0804932f <+61>:	call   0x80490d0 <__isoc99_scanf@plt>
 
-# --- snip ---
+# ---- snip ----
 
 End of assembler dump
 ```
@@ -139,21 +139,21 @@ In `welcome()`, which has the correct usage of `scanf()`, the address `ebp-0x70`
 pwndbg> disassemble login
 Dump of assembler code for function login:
 
-# --- snip ---
+# ---- snip ----
 
    0x0804921e <+40>:	push   DWORD PTR [ebp-0x10]
    0x08049221 <+43>:	lea    eax,[ebx-0x1fe5]
    0x08049227 <+49>:	push   eax
    0x08049228 <+50>:	call   0x80490d0 <__isoc99_scanf@plt>
 
-# --- snip ---
+# ---- snip ----
 
    0x08049259 <+99>:	push   DWORD PTR [ebp-0xc]
    0x0804925c <+102>:	lea    eax,[ebx-0x1fe5]
    0x08049262 <+108>:	push   eax
    0x08049263 <+109>:	call   0x80490d0 <__isoc99_scanf@plt>
 
-# --- snip ---
+# ---- snip ----
 
 End of assembler dump
 ```
@@ -238,7 +238,7 @@ Welcome aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaa
 
 Breakpoint 1, 0x080491fb in login ()
 
-# --- snip ---
+# ---- snip ----
 ```
 
 Once our breakpoint within `login()` is hit, we can display the stack.
@@ -281,7 +281,7 @@ We need to somehow execute this code.
 pwndbg> disassemble login
 Dump of assembler code for function login:
 
-# --- snip ---
+# ---- snip ----
 
    0x0804929e <+168>:	add    esp,0x10
    0x080492a1 <+171>:	call   0x8049080 <getegid@plt>
@@ -297,7 +297,7 @@ Dump of assembler code for function login:
    0x080492c3 <+205>:	push   eax
    0x080492c4 <+206>:	call   0x80490a0 <system@plt>
 
-# --- snip ---
+# ---- snip ----
 
 End of assembler dump.
 ```
@@ -420,7 +420,7 @@ Let's checkout the GOT for the challenge program.
 ```
 passcode@ubuntu:~$ objdump -R ./passcode
 
-# --- snip ---
+# ---- snip ----
 
 DYNAMIC RELOCATION RECORDS
 OFFSET   TYPE              VALUE
@@ -437,7 +437,7 @@ OFFSET   TYPE              VALUE
 0804c02c R_386_JUMP_SLOT   setregid@GLIBC_2.0
 0804c030 R_386_JUMP_SLOT   __isoc99_scanf@GLIBC_2.7
 
-# --- snip ---
+# ---- snip ----
 ```
 
 We can see that the address of `fflush()` is `0x0804c014`.
