@@ -128,7 +128,7 @@ Dump of assembler code for function welcome:
    0x0804932e <+60>:	push   eax
    0x0804932f <+61>:	call   0x80490d0 <__isoc99_scanf@plt>
 
-# --- snip ----
+# --- snip ---
 
 End of assembler dump
 ```
