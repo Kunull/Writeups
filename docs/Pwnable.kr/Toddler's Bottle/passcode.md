@@ -146,7 +146,7 @@ Dump of assembler code for function login:
    0x08049227 <+49>:	push   eax
    0x08049228 <+50>:	call   0x80490d0 <__isoc99_scanf@plt>
 
-# --- snip ----
+# --- snip ---
 
    0x08049259 <+99>:	push   DWORD PTR [ebp-0xc]
    0x0804925c <+102>:	lea    eax,[ebx-0x1fe5]
