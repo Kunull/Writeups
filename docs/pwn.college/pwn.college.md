@@ -1,4 +1,4 @@
 ---
-displayed_sidebar: null
+sidebar_display: none
 slug: /pwn-college
 ---
