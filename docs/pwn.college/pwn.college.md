@@ -1,4 +1,4 @@
 ---
 displayed_sidebar: null
-slug: pwn-college
+slug: /pwn-college
 ---
