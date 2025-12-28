@@ -58,13 +58,13 @@ server-status           [Status: 403, Size: 279, Words: 20, Lines: 10, Duration:
 
 Let's visit the `robots.txt` page. There's usually something useful there.
 
-![1](https://github.com/user-attachments/assets/6d51d15a-54a7-4127-9843-1d6e0b4560fb)
+![1](https://github.com/user-attachments/assets/6d51d15a-54a7-4127-9843-1d6e0b4560fb?raw=1)
 
 The `sar2HTML` page is being blocked for crawlers. That is why it did not show up in the `ffuf` scan. 
 
 Let's visit the page.
 
-![2](https://github.com/user-attachments/assets/caf167bf-bfa6-4c50-9fcb-bda6f94fe510)
+![2](https://github.com/user-attachments/assets/caf167bf-bfa6-4c50-9fcb-bda6f94fe510?raw=1)
 
 &nbsp;
 
@@ -75,7 +75,7 @@ Let's visit the page.
 We can look up exploits for sar2HTML version `3.2.1`.
 [This](https://www.exploit-db.com/exploits/47204) exploit shows up:
 
-![3](https://github.com/user-attachments/assets/233e3976-00af-41cd-9de9-098ffd8186b8)
+![3](https://github.com/user-attachments/assets/233e3976-00af-41cd-9de9-098ffd8186b8?raw=1)
 
 Let's check the exploit using the following URI:
 
@@ -83,7 +83,7 @@ Let's check the exploit using the following URI:
 192.168.179.35/sar2HTML/index.php?plot=;ls
 ```
 
-![4](https://github.com/user-attachments/assets/a27a511b-071a-465f-ac79-c29c960bcabf)
+![4](https://github.com/user-attachments/assets/a27a511b-071a-465f-ac79-c29c960bcabf?raw=1)
 
 ### Obtaining a reverse shell
 
@@ -154,7 +154,7 @@ The `./finally.sh` file is executed every 5th minute with `root` privileges.
 
 We can verify this using [crontab guru](https://crontab.guru/).
 
-![5](https://github.com/user-attachments/assets/49a4c19a-6d43-435f-812a-b897baa8ee60)
+![5](https://github.com/user-attachments/assets/49a4c19a-6d43-435f-812a-b897baa8ee60?raw=1)
 
 Unfortunately, we cannot edit the `./finally.sh` file.
 Let's check what it is doing.

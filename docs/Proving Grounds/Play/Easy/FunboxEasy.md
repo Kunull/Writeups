@@ -101,7 +101,7 @@ store                   [Status: 301, Size: 318, Words: 20, Lines: 10, Duration:
 
 Let's visit the page through our browser.
 
-![2](https://github.com/user-attachments/assets/67638f6c-9b38-41ad-9259-efd898d1d688)
+![2](https://github.com/user-attachments/assets/67638f6c-9b38-41ad-9259-efd898d1d688?raw=1)
 
 &nbsp;
 
@@ -111,7 +111,7 @@ Let's visit the page through our browser.
 
 On searching for exploits for "CSE bookstore", we can find [this](https://www.exploit-db.com/exploits/47887) exploit on ExploitDB.
 
-![3](https://github.com/user-attachments/assets/9639e233-9160-408d-b0b6-c9f8962eed48)
+![3](https://github.com/user-attachments/assets/9639e233-9160-408d-b0b6-c9f8962eed48?raw=1)
 
 ```python title="47887.py"
 # Exploit Title: Online Book Store 1.0 - Unauthenticated Remote Code Execution
@@ -295,7 +295,7 @@ We can use this misconfigured SUID bit to escalate our privileges.
 
 We can find the this payload on [GTFOBins](https://gtfobins.github.io/gtfobins/pkexec/#sudo).
 
-![4](https://github.com/user-attachments/assets/605f39e5-87fd-4e73-92c8-b19e6a430553)
+![4](https://github.com/user-attachments/assets/605f39e5-87fd-4e73-92c8-b19e6a430553?raw=1)
 
 ```
 tony@funbox3:~$ sudo pkexec /bin/bash

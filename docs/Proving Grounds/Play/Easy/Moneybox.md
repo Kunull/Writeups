@@ -288,7 +288,7 @@ We can use this misconfigured SUID bit to escalate our privileges.
 
 We can find the this payload on [GTFOBins](https://gtfobins.github.io/gtfobins/perl/#sudo).
 
-![6](https://github.com/user-attachments/assets/8f5d4d78-47e4-44b7-a3b3-eae0841acf19)
+![6](https://github.com/user-attachments/assets/8f5d4d78-47e4-44b7-a3b3-eae0841acf19?raw=1)
 
 ```
 lily@MoneyBox:~$ sudo perl -e 'exec "/bin/sh";'

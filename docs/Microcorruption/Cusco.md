@@ -3,7 +3,7 @@ custom_edit_url: null
 sidebar_position: 4
 ---
 
-![image](https://github.com/user-attachments/assets/ebea8e3a-41d2-4a48-bdc5-8bac2d5eee02)
+![image](https://github.com/user-attachments/assets/ebea8e3a-41d2-4a48-bdc5-8bac2d5eee02?raw=1)
 
 ## User Manual
 
@@ -66,7 +66,7 @@ DETAILS
 > continue
 ```
 
-![image](https://github.com/user-attachments/assets/28314ad4-90b6-4b25-8e3a-c417cb4858a6)
+![image](https://github.com/user-attachments/assets/28314ad4-90b6-4b25-8e3a-c417cb4858a6?raw=1)
 
 This time, the `main` function only calls the `login` function.
 
@@ -80,7 +80,7 @@ Let's set a breakpoint at the `login` function.
 > continue
 ```
 
-![image](https://github.com/user-attachments/assets/37ae776f-fdf7-40d3-9d65-48013de7e62f)
+![image](https://github.com/user-attachments/assets/37ae776f-fdf7-40d3-9d65-48013de7e62f?raw=1)
 
 Once inside the `login` function, we can see that it asks the user to input the password into a buffer using `getsn`.
 The buffer is 48 bytes wide and is located at the location of the stack pointer `sp`.
@@ -93,9 +93,9 @@ Let's set a breakpoint at `0x451a`.
 > continue
 ```
 
-![image](https://github.com/user-attachments/assets/4ac47849-daba-463b-bf9a-b10a27ac6d0f)
+![image](https://github.com/user-attachments/assets/4ac47849-daba-463b-bf9a-b10a27ac6d0f?raw=1)
 
-![image](https://github.com/user-attachments/assets/ba490eaf-4c9d-46b0-9a63-b4aef48b6797)
+![image](https://github.com/user-attachments/assets/ba490eaf-4c9d-46b0-9a63-b4aef48b6797?raw=1)
 
 That tells us that the input buffer us stored at `0x45ee`
 
@@ -109,7 +109,7 @@ Let's set a breakpoint right before the function returns at `0x453a`.
 
 ![cusco4](https://github.com/Knign/Write-ups/assets/110326359/01bc3ec0-6c12-4921-9b5a-91228bf5eac5)
 
-![image](https://github.com/user-attachments/assets/16c3f220-b3ae-4066-89d0-90e82a18d3c9)
+![image](https://github.com/user-attachments/assets/16c3f220-b3ae-4066-89d0-90e82a18d3c9?raw=1)
 
 We can continue execution after providing the input.
 
@@ -119,7 +119,7 @@ We can continue execution after providing the input.
 
 While examining our input in memory, we can see something interesting.
 
-![image](https://github.com/user-attachments/assets/a2d8217e-f8e6-4e70-a98f-144bb2e23e48)
+![image](https://github.com/user-attachments/assets/a2d8217e-f8e6-4e70-a98f-144bb2e23e48?raw=1)
 
 As we can see the stack pointer `sp` now points to the beginning of our input.
 
@@ -129,9 +129,9 @@ Let's step once to the `ret` instruction using the `s` command.
 > continue
 ```
 
-![image](https://github.com/user-attachments/assets/07ad7e5f-b94c-44b2-84c8-6a39a1623ae1)
+![image](https://github.com/user-attachments/assets/07ad7e5f-b94c-44b2-84c8-6a39a1623ae1?raw=1)
 
-![image](https://github.com/user-attachments/assets/3527477a-834b-453f-9f5b-a57eebbad590)
+![image](https://github.com/user-attachments/assets/3527477a-834b-453f-9f5b-a57eebbad590?raw=1)
 
 The stack pointer now points at the location 16 bytes after the start of the buffer because the `add 0x10, sp` instruction just got executed.
 
@@ -172,14 +172,14 @@ Let's check if there is any interesting function that we want to return executio
 
 ## `unlock_door`
 
-![image](https://github.com/user-attachments/assets/ee1836db-7db3-4772-ba5b-c74f925be4a0)
+![image](https://github.com/user-attachments/assets/ee1836db-7db3-4772-ba5b-c74f925be4a0?raw=1)
 
 There's an `unlock_door` function at `0x4446`. This is something we would really like to execute.
 
 If we pass the 17th and 18th bytes as `0x46` and `0x44` respectively, we can hijack execution flow and cause `unlock_door` to be executed after `login`. 
 
-![image](https://github.com/user-attachments/assets/4ea11e43-7b39-4977-976d-60186a1d13d4)
+![image](https://github.com/user-attachments/assets/4ea11e43-7b39-4977-976d-60186a1d13d4?raw=1)
 
-![image](https://github.com/user-attachments/assets/73924c08-3d1c-4b1e-802e-94f1127b047f)
+![image](https://github.com/user-attachments/assets/73924c08-3d1c-4b1e-802e-94f1127b047f?raw=1)
 
-![image](https://github.com/user-attachments/assets/f1b86111-12ff-48e8-b776-7edc21fa36f3)
+![image](https://github.com/user-attachments/assets/f1b86111-12ff-48e8-b776-7edc21fa36f3?raw=1)

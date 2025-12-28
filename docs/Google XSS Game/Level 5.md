@@ -3,7 +3,7 @@ title:  Level 5 - Breaking protocol
 edit_url: null
 ---
 
-![1](https://github.com/user-attachments/assets/ca8fd8e8-273c-43ac-800e-1484cbcfc8f8)
+![1](https://github.com/user-attachments/assets/ca8fd8e8-273c-43ac-800e-1484cbcfc8f8?raw=1)
 
 ## Hints
 
@@ -21,11 +21,11 @@ edit_url: null
 Open the frame in a different tab using the following URI:
 https://xss-game.appspot.com/level5/frame/
 
-![4](https://github.com/user-attachments/assets/f4037355-827e-41ca-8caf-fefa6c8901cb)
+![4](https://github.com/user-attachments/assets/f4037355-827e-41ca-8caf-fefa6c8901cb?raw=1)
 
 Click on the `Sign up` link.
 
-![2](https://github.com/user-attachments/assets/e3e6f000-56f4-4c61-93c3-9f1aa2576f61)
+![2](https://github.com/user-attachments/assets/e3e6f000-56f4-4c61-93c3-9f1aa2576f61?raw=1)
 
 ### Payload
 
@@ -37,4 +37,4 @@ Change the `next` parameter to the following:
 
 Click on the `Next` button.
 
-![3](https://github.com/user-attachments/assets/fa283492-a378-4440-83ee-5f4a02d952b1)
+![3](https://github.com/user-attachments/assets/fa283492-a378-4440-83ee-5f4a02d952b1?raw=1)

@@ -120,7 +120,7 @@ _init
 .comment
 ```
 
-![1](https://github.com/user-attachments/assets/fe77e2b8-4a24-4f77-a084-cd637c5e80e0)
+![1](https://github.com/user-attachments/assets/fe77e2b8-4a24-4f77-a084-cd637c5e80e0?raw=1)
 
 ```
 s3cr3t_p455_f0r_gh05t5_4nd_gh0ul5

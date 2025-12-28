@@ -3,7 +3,7 @@ custom_edit_url: null
 sidebar_position: 3
 ---
 
-![image](https://github.com/user-attachments/assets/78b6bc11-a104-46ae-b754-f05aaa60226c)
+![image](https://github.com/user-attachments/assets/78b6bc11-a104-46ae-b754-f05aaa60226c?raw=1)
 
 ## User Manual
 
@@ -68,7 +68,7 @@ Let's set a breakpoint at `main` and continue execution.
 > continue
 ```
 
-![image](https://github.com/user-attachments/assets/2979d941-5f61-4ff9-8255-be02867c0443)
+![image](https://github.com/user-attachments/assets/2979d941-5f61-4ff9-8255-be02867c0443?raw=1)
 
 This time it only calls one function:
 	- `login`
@@ -83,13 +83,13 @@ Let's investigate how this function exactly works.
 > continue
 ```
 
-![image](https://github.com/user-attachments/assets/9dcf7d14-ce36-4f68-84b1-4e98896206e3)
+![image](https://github.com/user-attachments/assets/9dcf7d14-ce36-4f68-84b1-4e98896206e3?raw=1)
 
 We can see the `getsn` call is what reads in the user input. 
 
 ## `getsn`
 
-![image](https://github.com/user-attachments/assets/a9834706-0327-4352-8002-d012c3f2cdf9)
+![image](https://github.com/user-attachments/assets/a9834706-0327-4352-8002-d012c3f2cdf9?raw=1)
 
 It set the user input character limit to `0x1c`, which is 28 bytes.
 As for the location, it is set to `0x2400`.
@@ -98,7 +98,7 @@ This tells us that we can write upto 28 bytes to `0x2400`.
 
 The instruction at `0x455a` compares the byte at memory address `0x2410` with `0x2c`. 
 
-![image](https://github.com/user-attachments/assets/60c9f88c-c289-4f95-ae05-16f4a596bf10)
+![image](https://github.com/user-attachments/assets/60c9f88c-c289-4f95-ae05-16f4a596bf10?raw=1)
 
 If the values are equal, the message `"Access granted."` is printed and the `unlock_door` function is called.
 If the values are unequal, the message `"That password is not correct."` is printed and the program exits.
@@ -152,8 +152,8 @@ Since our input is stored at `0x2400`, we can overwrite the byte at `0x2410` wit
 
 Let's try that out. This time we will enter user input in hexadecimal.
 
-![image](https://github.com/user-attachments/assets/7d0e8f48-17d4-4d33-931b-d31ddceb1dcf)
+![image](https://github.com/user-attachments/assets/7d0e8f48-17d4-4d33-931b-d31ddceb1dcf?raw=1)
 
-![image](https://github.com/user-attachments/assets/a6ae8415-07c8-41e3-ae2c-386a9ca7de03)
+![image](https://github.com/user-attachments/assets/a6ae8415-07c8-41e3-ae2c-386a9ca7de03?raw=1)
 
-![image](https://github.com/user-attachments/assets/f2cd32cd-5696-4db2-8cdd-141215e75ad2)
+![image](https://github.com/user-attachments/assets/f2cd32cd-5696-4db2-8cdd-141215e75ad2?raw=1)

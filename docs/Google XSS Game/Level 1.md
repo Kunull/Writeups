@@ -3,7 +3,7 @@ title: Level 1 - Hello, world of XSS
 custom_edit_url: null
 ---
 
-![1](https://github.com/user-attachments/assets/e4599026-d77c-4ab9-8a58-109f243305c6)
+![1](https://github.com/user-attachments/assets/e4599026-d77c-4ab9-8a58-109f243305c6?raw=1)
 
 ## Hints
 
@@ -23,4 +23,4 @@ The payload required to solve this level will be pretty simple.
 <script>alert(1)</script>
 ```
 
-![2](https://github.com/user-attachments/assets/1d6daca7-6eb9-4997-ba10-84a9ba89c626)
+![2](https://github.com/user-attachments/assets/1d6daca7-6eb9-4997-ba10-84a9ba89c626?raw=1)

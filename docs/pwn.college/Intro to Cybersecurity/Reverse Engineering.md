@@ -209,7 +209,7 @@ After some variable renaming and type editing, we are left with the following:
 
 #### `main()`
 
-![image](https://github.com/user-attachments/assets/3461de42-2d8b-4851-bb88-f0d28558c942)
+![image](https://github.com/user-attachments/assets/3461de42-2d8b-4851-bb88-f0d28558c942?raw=1)
 
 The challenge performs the following checks:
 - File Extension: Must end with `.cimg`
@@ -481,7 +481,7 @@ pwn.college{Iz_N1i6LBqszqfN70WeEVNJzFd9.QX4ATN2EDL4ITM0EzW}
 
 #### `main()`
 
-![image](https://github.com/user-attachments/assets/7eaea94a-9f4b-439d-890c-67cc3ccd778b)
+![image](https://github.com/user-attachments/assets/7eaea94a-9f4b-439d-890c-67cc3ccd778b?raw=1)
 
 - File Extension: Must end with `.cimg`
 - Header (4 bytes total):
@@ -752,7 +752,7 @@ pwn.college{MX7npfEYKHEaMMoN-13n0RYXQiX.QXwETN2EDL4ITM0EzW}
 
 #### `main()`
 
-![image](https://github.com/user-attachments/assets/8e03222f-a902-493b-9da2-2bca5c8287de)
+![image](https://github.com/user-attachments/assets/8e03222f-a902-493b-9da2-2bca5c8287de?raw=1)
 
 - File Extension: Must end with `.cimg`
 - Header (8 bytes total):
@@ -1094,7 +1094,7 @@ pwn.college{UiHnq7dEOB75oBiYdd31IiDPdHG.QXyETN2EDL4ITM0EzW}
 
 #### `main()`
 
-![image](https://github.com/user-attachments/assets/d0700b9b-d388-4af9-9d10-791a4cf4922a)
+![image](https://github.com/user-attachments/assets/d0700b9b-d388-4af9-9d10-791a4cf4922a?raw=1)
 
 The challenge performs the following checks:
 - File Extension: Must end with `.cimg`
@@ -1460,9 +1460,9 @@ pwn.college{MncM_uybJBUtPMNqnf4uUZTvN38.QX0ETN2EDL4ITM0EzW}
 
 #### `main()`
 
-![image](https://github.com/user-attachments/assets/58e06064-6ea6-4060-8abf-68b8e7e20e3e)
+![image](https://github.com/user-attachments/assets/58e06064-6ea6-4060-8abf-68b8e7e20e3e?raw=1)
 
-![image](https://github.com/user-attachments/assets/516cbc5a-64ee-42dc-a872-f73e2ae2cb99)
+![image](https://github.com/user-attachments/assets/516cbc5a-64ee-42dc-a872-f73e2ae2cb99?raw=1)
 
 The challenge performs the following checks:
 - File Extension: Must end with `.cimg`
@@ -1880,9 +1880,9 @@ pwn.college{Y9UIwcU8PAlWDhlav3ieIczJPrB.QX2ETN2EDL4ITM0EzW}
 
 #### `main()`
 
-![image](https://github.com/user-attachments/assets/cc0aa45c-21d0-4585-8a1d-4117c9e7ee58)
+![image](https://github.com/user-attachments/assets/cc0aa45c-21d0-4585-8a1d-4117c9e7ee58?raw=1)
 
-![image](https://github.com/user-attachments/assets/e6be3c7d-46dd-41e2-ac83-6c34d1d4eb43)
+![image](https://github.com/user-attachments/assets/e6be3c7d-46dd-41e2-ac83-6c34d1d4eb43?raw=1)
 
 The challenge performs the following checks:
 - File Extension: Must end with `.cimg`
@@ -2096,7 +2096,7 @@ hacker@reverse-engineering~a-basic-cimg-python:/$ /challenge/cimg ~/solution.cim
 pwn.college{Q6Dv1cf7dB1UwYRL2Mzcu_E967L.QX3ETN2EDL4ITM0EzW}
 ```
 
-![image](https://github.com/user-attachments/assets/2252eb4a-5c7f-4e33-a513-32544ddf404d)
+![image](https://github.com/user-attachments/assets/2252eb4a-5c7f-4e33-a513-32544ddf404d?raw=1)
 
 &nbsp;
 
@@ -2371,7 +2371,7 @@ hacker@reverse-engineering~a-basic-cimg-c:/$ /challenge/cimg ~/solution.cimg
 pwn.college{4IY_xVT2BdscpfYAibCo97rS48E.QX4ETN2EDL4ITM0EzW}
 ```
 
-![image](https://github.com/user-attachments/assets/cc4e60e6-03e5-4c85-9095-7ae05ba948d8)
+![image](https://github.com/user-attachments/assets/cc4e60e6-03e5-4c85-9095-7ae05ba948d8?raw=1)
 
 &nbsp;
 
@@ -2381,19 +2381,19 @@ pwn.college{4IY_xVT2BdscpfYAibCo97rS48E.QX4ETN2EDL4ITM0EzW}
 
 #### `main()`
 
-![image](https://github.com/user-attachments/assets/05c4947a-f48f-4982-aa69-6de50094baa4)
+![image](https://github.com/user-attachments/assets/05c4947a-f48f-4982-aa69-6de50094baa4?raw=1)
 
-![image](https://github.com/user-attachments/assets/062d20f5-50bf-4835-94b7-11a3eaa2ce0a)
+![image](https://github.com/user-attachments/assets/062d20f5-50bf-4835-94b7-11a3eaa2ce0a?raw=1)
 
-![image](https://github.com/user-attachments/assets/10c4250a-2b6d-407e-a978-9b2ffe72700a)
+![image](https://github.com/user-attachments/assets/10c4250a-2b6d-407e-a978-9b2ffe72700a?raw=1)
 
-![image](https://github.com/user-attachments/assets/86fb2186-ca81-419b-8acc-9f568ceb313a)
+![image](https://github.com/user-attachments/assets/86fb2186-ca81-419b-8acc-9f568ceb313a?raw=1)
 
-![image](https://github.com/user-attachments/assets/b135b9fb-e0c2-4909-abc1-e3ddda07d7f5)
+![image](https://github.com/user-attachments/assets/b135b9fb-e0c2-4909-abc1-e3ddda07d7f5?raw=1)
 
-![image](https://github.com/user-attachments/assets/891b2f52-5057-409f-ad44-845d20c65cc2)
+![image](https://github.com/user-attachments/assets/891b2f52-5057-409f-ad44-845d20c65cc2?raw=1)
 
-![image](https://github.com/user-attachments/assets/836db900-117c-4ed9-8741-ad054dead51b)
+![image](https://github.com/user-attachments/assets/836db900-117c-4ed9-8741-ad054dead51b?raw=1)
 
 The challenge performs the following checks:
 - File Extension: Must end with `.cimg`
@@ -2466,7 +2466,7 @@ hacker@reverse-engineering~a-basic-cimg-x86:/$ /challenge/cimg ~/solution.cimg
 pwn.college{UtFfALQAM2u-0NsYhnUJCQXPUZc.QX2AzMwEDL4ITM0EzW}
 ```
 
-![image](https://github.com/user-attachments/assets/d20bdde0-c41b-4e8a-bb09-df1cb2363a9d)
+![image](https://github.com/user-attachments/assets/d20bdde0-c41b-4e8a-bb09-df1cb2363a9d?raw=1)
 
 ## Internal State Mini (C)
 
@@ -2720,11 +2720,11 @@ int main(int argc, char **argv, char **envp)
 The challenge performs the following checks:
 - File Extension: Must end with `.cimg`
 - Header (8 bytes total):
-    - Magic number (4 bytes): Must be `cIMG"`
+    - Magic number (4 bytes): Must be "`cIMG`"
     - Version (2 bytes): Must be `2` in little-endian
     - Dimensions (2 bytes total): Must be 4 bytes
-        - Width (1 bytes): Must be either `4` (if `width = 1`), `2` (if `width = 2`) or `1` (if `width = 4`) in little-endian
-        - Height (1 bytes): Must be either `1` (if `height = 4`), `2` (if `height = 2`) or `4` (if `height = 1`) in little-endian
+        - Width (1 bytes): Must be either `4` (if `height = 1`), `2` (if `height = 2`) or `1` (if `height = 4`) in little-endian
+        - Height (1 bytes): Must be either `1` (if `width = 4`), `2` (if `width = 2`) or `4` (if `width = 1`) in little-endian
 - Pixel Data:
     - The number of non-space ASCII pixels must be `4 * 1 = 4`, i.e. the number of bytes must be `4 * 4 = 16`
     - When pixel data is loaded into the [ANSI escape code](https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit): `"\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m"` one by one and appended together, it should match the following: `"\x1b[38;2;200;040;131mc\x1b[0m\x1b[38;2;001;019;165mI\x1b[0m\x1b[38;2;160;134;059mM\x1b[0m\x1b[38;2;195;046;079mG\x1b[0m\x00";`

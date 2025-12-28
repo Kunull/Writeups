@@ -4,7 +4,7 @@ sidebar_position: 5
 ---
 
 
-![image](https://github.com/user-attachments/assets/432b7a93-2754-4bc0-836f-4d70f5b61a72)
+![image](https://github.com/user-attachments/assets/432b7a93-2754-4bc0-836f-4d70f5b61a72?raw=1)
 
 ## User Manual
 
@@ -64,7 +64,7 @@ DETAILS
 
 If we look at the `main` function, we can see that it is much shorter now.
 
-![image](https://github.com/user-attachments/assets/89b4db84-aaa6-42b6-bce3-203336851cab)
+![image](https://github.com/user-attachments/assets/89b4db84-aaa6-42b6-bce3-203336851cab?raw=1)
 
 It makes the following calls:
 	- `enc`: Encodes the passwords.
@@ -79,11 +79,11 @@ Let's set a breakpoint where the call is made and continue execution.
 > continue
 ```
 
-![image](https://github.com/user-attachments/assets/215083cc-1bc3-4161-a004-b025fc0f0083)
+![image](https://github.com/user-attachments/assets/215083cc-1bc3-4161-a004-b025fc0f0083?raw=1)
 
 If we check the memory dump, we can see that the bytes in memory.
 
-![image](https://github.com/user-attachments/assets/593dde5f-6485-4772-a414-3687e293e06a)
+![image](https://github.com/user-attachments/assets/593dde5f-6485-4772-a414-3687e293e06a?raw=1)
 
 Let's get a better look:
 
@@ -147,7 +147,7 @@ I think it is time to use the disassembler that we have been provided.
 
 If we clean the bytes, and enter those into the disassembler, we can see the respective assembly instructions.
 
-![image](https://github.com/user-attachments/assets/f22dc196-acb7-4aca-aa0f-d358c16fdd6b)
+![image](https://github.com/user-attachments/assets/f22dc196-acb7-4aca-aa0f-d358c16fdd6b?raw=1)
 
 There's more instructions but for now let's go through these first.
 
@@ -155,7 +155,7 @@ It seems like the last instruction is comparing the the data at `r4-0x24` with `
 
 When the `add #0x4, r4` instruction is executed, we can see that in the register state table, the value of `r4`.
 
-![image](https://github.com/user-attachments/assets/0aa04606-978f-4b67-a487-29013c605a38)
+![image](https://github.com/user-attachments/assets/0aa04606-978f-4b67-a487-29013c605a38?raw=1)
 
 So the the data that is being compared is from `0x43fe-0x24` which is `0x43da`.
 
@@ -169,12 +169,12 @@ Let's continue input our password.
 
 If we check the locations at which our input is stored we can see that it is also stored at `0x43da`.
 
-![image](https://github.com/user-attachments/assets/6c1fac82-23ec-4ac9-b0f0-4ad83a5fa1bc)
+![image](https://github.com/user-attachments/assets/6c1fac82-23ec-4ac9-b0f0-4ad83a5fa1bc?raw=1)
 
 That's it! So we can just set the data at address `0x43da` to be `0xfcb9`.
 
-![image](https://github.com/user-attachments/assets/6776f858-318d-40a9-8a95-3b75d685837b)
+![image](https://github.com/user-attachments/assets/6776f858-318d-40a9-8a95-3b75d685837b?raw=1)
 
-![image](https://github.com/user-attachments/assets/0ab73899-c091-4686-99ba-b6bc790a70ec)
+![image](https://github.com/user-attachments/assets/0ab73899-c091-4686-99ba-b6bc790a70ec?raw=1)
 
-![image](https://github.com/user-attachments/assets/271149df-ada9-44eb-98e6-a0d63aa6827f)
+![image](https://github.com/user-attachments/assets/271149df-ada9-44eb-98e6-a0d63aa6827f?raw=1)

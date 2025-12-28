@@ -338,7 +338,7 @@ There is a way to escape restricted shell using the `vi` command.
 
 We can find the payload on [GTFOBins](https://gtfobins.github.io/gtfobins/vi/#shell).
 
-![4](https://github.com/user-attachments/assets/5602f0e2-9ed7-4b67-b999-ab3bda643899)
+![4](https://github.com/user-attachments/assets/5602f0e2-9ed7-4b67-b999-ab3bda643899?raw=1)
 
 Because we want a Bash shell, we will have to modify the payload slightly.
 
@@ -401,7 +401,7 @@ We can  use this misconfigured SUID bit to escalate our privileges.
 
 We can find the this payload on [GTFOBins](https://gtfobins.github.io/gtfobins/git/#sudo) as well.
 
-![3](https://github.com/user-attachments/assets/1df9d50e-4992-4ec1-81e8-c0afb5a8ec14)
+![3](https://github.com/user-attachments/assets/1df9d50e-4992-4ec1-81e8-c0afb5a8ec14?raw=1)
 
 If we use the second payload, we get a `root` shell.
 

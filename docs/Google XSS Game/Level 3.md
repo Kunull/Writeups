@@ -3,7 +3,7 @@ title: Level 3 - That sinking feeling...
 edit_url: null
 ---
 
-![1](https://github.com/user-attachments/assets/90bc719e-e4ad-4584-bb07-1e6d9be989df)
+![1](https://github.com/user-attachments/assets/90bc719e-e4ad-4584-bb07-1e6d9be989df?raw=1)
 
 ## Hints
 
@@ -111,6 +111,6 @@ https://xss-game.appspot.com/level3/frame#4' onerror=alert(1) ";
 
 This will cause the source code to look as follows:
 
-![2](https://github.com/user-attachments/assets/c345dba4-deb0-44ef-b5f9-008f1136bcdc)
+![2](https://github.com/user-attachments/assets/c345dba4-deb0-44ef-b5f9-008f1136bcdc?raw=1)
 
-![3](https://github.com/user-attachments/assets/b82506c9-d1ed-484c-9e68-e7a52114b10c)
+![3](https://github.com/user-attachments/assets/b82506c9-d1ed-484c-9e68-e7a52114b10c?raw=1)

