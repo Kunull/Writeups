@@ -2808,3 +2808,139 @@ pwn.college{sxObMoehMoum3fSzW12W3zqJsBu.QX5ETN2EDL4ITM0EzW}
 ```
 
 <img width="870" height="80" alt="image" src="https://github.com/user-attachments/assets/0ee560f3-3499-4ea0-8146-10370099cf5a" />
+
+&nbsp;
+
+## Internal State Mini (x86)
+
+After decompiling the program within IDA, and some variable renaming and type altering, we get the following pseudo-C code:
+
+```c showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  const char *file_arg; // rbp
+  int file; // eax
+  const char *error_msg; // rdi
+  unsigned int v6; // ebx
+  unsigned __int8 *v7; // rax
+  unsigned __int8 *v8; // rbp
+  __int64 i_1; // rax
+  __int64 data_i_ascii; // rcx
+  char *desired_ansii_sequence; // r12
+  unsigned int v12; // r13d
+  __int64 framebuffer_2; // r14
+  _BOOL8 won; // rbx
+  __int64 i; // rbp
+  char str_c; // al
+  __int128 cimg_header; // [rsp+0h] [rbp-58h] BYREF
+  __int64 framebuffer; // [rsp+10h] [rbp-48h]
+  unsigned __int64 v20; // [rsp+18h] [rbp-40h]
+
+  v20 = __readfsqword(0x28u);
+  cimg_header = 0LL;
+  framebuffer = 0LL;
+  if ( argc > 1 )
+  {
+    file_arg = argv[1];
+    if ( strcmp(&file_arg[strlen(file_arg) - 5], ".cimg") )
+    {
+      __printf_chk(1LL, "ERROR: Invalid file extension!");
+      goto EXIT;
+    }
+    file = open(file_arg, 0);
+    dup2(file, 0);
+  }
+  read_exact(0LL, &cimg_header, 8LL, "ERROR: Failed to read header!", 0xFFFFFFFFLL);
+  if ( (_DWORD)cimg_header != 'GMIc' )
+  {
+    error_msg = "ERROR: Invalid magic number!";
+PRINT_ERROR_AND_EXIT:
+    puts(error_msg);
+    goto EXIT;
+  }
+  error_msg = "ERROR: Unsupported version!";
+  if ( WORD2(cimg_header) != 2 )
+    goto PRINT_ERROR_AND_EXIT;
+  initialize_framebuffer(&cimg_header);
+  v6 = 4 * BYTE7(cimg_header) * BYTE6(cimg_header);
+  v7 = (unsigned __int8 *)malloc(4LL * BYTE7(cimg_header) * BYTE6(cimg_header));
+  error_msg = "ERROR: Failed to allocate memory for the image data!";
+  v8 = v7;
+  if ( !v7 )
+    goto PRINT_ERROR_AND_EXIT;
+  read_exact(0LL, v7, v6, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  i_1 = 0LL;
+  while ( BYTE7(cimg_header) * BYTE6(cimg_header) > (int)i_1 )
+  {
+    data_i_ascii = v8[4 * i_1++ + 3];           // data[i].ascii
+    if ( (unsigned __int8)(data_i_ascii - 32) > 0x5Eu )// if (data[i].ascii < 0x20 || data[i].ascii > 0x7e)
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", data_i_ascii);
+EXIT:
+      exit(-1);
+    }
+  }
+  desired_ansii_sequence = desired_output;
+  display(&cimg_header, v8);
+  v12 = DWORD2(cimg_header);
+  framebuffer_2 = framebuffer;
+  won = DWORD2(cimg_header) == 4;
+  for ( i = 0LL; (_DWORD)i != 4 && v12 > (unsigned int)i; ++i )
+  {
+    str_c = *(_BYTE *)(framebuffer_2 + 24 * i + 19);
+    if ( str_c != desired_ansii_sequence[19] )
+      LODWORD(won) = 0;
+    if ( str_c != 32 && str_c != 10 )
+    {
+      if ( memcmp((const void *)(framebuffer_2 + 24 * i), desired_ansii_sequence, 0x18uLL) )
+        LODWORD(won) = 0;
+    }
+    desired_ansii_sequence += 24;
+  }
+  if ( won )
+    win();
+  return 0;
+}
+```
+
+```py
+import struct
+
+# Build the header (8 bytes total)
+magic = b"cIMG"                     # 4 bytes
+version = struct.pack("<H", 2)      # 2 bytes
+width  = struct.pack("<B", 4)       # 1 bytes
+height = struct.pack("<B", 1)       # 1 bytes
+
+header = magic + version + width + height
+
+# Build the pixel data (51 * 24 * 4 = 4896 bytes)
+pixels = [
+    (200, 40, 131, ord('c')),
+    (1, 19, 165, ord('I')),
+    (160, 134, 59, ord('M')),
+    (195, 46, 79, ord('G')),
+]
+
+pixel_data = b"".join(struct.pack("BBBB", r, g, b, a) for r, g, b, a in pixels)
+
+# Full file content
+cimg_data = header + pixel_data
+
+# Write to disk
+filename = "/home/hacker/solution.cimg"
+with open(filename, "wb") as f:
+    f.write(cimg_data)
+
+print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to: {filename}")
+```
+
+
+```
+"\x1b[38;2;200;040;131mc\x1b[0m\x1b[38;2;001;019;165mI\x1b[0m\x1b[38;2;160;134;059mM\x1b[0m\x1b[38;2;195;046;079mG\x1b[0m\x00"
+
+\x1b[38;2;200;040;131mcx1b[0mx1b[38;2;001;019;165mIx[0m
+.[38;2;160;134;0
+59mM.[0m.[38;2;1
+95;046;079mG.[0m
+```
