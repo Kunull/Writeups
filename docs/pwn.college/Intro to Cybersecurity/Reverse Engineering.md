@@ -2807,7 +2807,7 @@ cIMG
 pwn.college{sxObMoehMoum3fSzW12W3zqJsBu.QX5ETN2EDL4ITM0EzW}
 ```
 
-<img width="870" height="80" alt="image" src="https://github.com/user-attachments/assets/0ee560f3-3499-4ea0-8146-10370099cf5a" />
+<img alt="image" src="https://github.com/user-attachments/assets/0ee560f3-3499-4ea0-8146-10370099cf5a" />
 
 &nbsp;
 
@@ -2815,7 +2815,7 @@ pwn.college{sxObMoehMoum3fSzW12W3zqJsBu.QX5ETN2EDL4ITM0EzW}
 
 After decompiling the program within IDA, and some variable renaming and type altering, we get the following pseudo-C code:
 
-<img width="1400" height="762" alt="image" src="https://github.com/user-attachments/assets/7bfe15f4-6483-471a-85c9-8c46a90af07f" />
+<img alt="image" src="https://github.com/user-attachments/assets/7bfe15f4-6483-471a-85c9-8c46a90af07f" />
 
 ```c showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -2907,7 +2907,7 @@ EXIT:
 
 The `desired_ansii_sequence` is the same as last time.
 
-<img width="1403" height="763" alt="image" src="https://github.com/user-attachments/assets/8ea576df-a367-42b1-acb4-d79a08b514a1" />
+<img alt="image" src="https://github.com/user-attachments/assets/8ea576df-a367-42b1-acb4-d79a08b514a1" />
 
 ```
 "\x1b[38;2;200;040;131mc\x1b[0m\x1b[38;2;001;019;165mI\x1b[0m\x1b[38;2;160;134;059mM\x1b[0m\x1b[38;2;195;046;079mG\x1b[0m\x00"
@@ -3313,4 +3313,4 @@ hacker@reverse-engineering~internal-state-c:/$ /challenge/cimg ~/solution.cimg
 pwn.college{MeWc9ChLvjW8FhGUVQm-MFmVW7z.QXxITN2EDL4ITM0EzW}
 ```
 
-<img width="410" height="207" alt="image" src="https://github.com/user-attachments/assets/bcce1436-44b9-43d6-a71c-319163aa2fa5" />
+<img alt="image" src="https://github.com/user-attachments/assets/bcce1436-44b9-43d6-a71c-319163aa2fa5" />
