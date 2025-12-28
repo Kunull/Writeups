@@ -2970,7 +2970,7 @@ cIMG
 pwn.college{gNl9haWUsUcGB0Nwci7BWxzvy8e.QXwITN2EDL4ITM0EzW}
 ```
 
-<img width="645" height="48" alt="image" src="https://github.com/user-attachments/assets/16daf53c-e0ac-4f77-a66d-ed7662be07ef" />
+<img alt="image" src="https://github.com/user-attachments/assets/16daf53c-e0ac-4f77-a66d-ed7662be07ef" />
 
 &nbsp;
 
