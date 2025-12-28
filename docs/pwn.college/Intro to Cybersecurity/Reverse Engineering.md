@@ -2813,9 +2813,13 @@ pwn.college{sxObMoehMoum3fSzW12W3zqJsBu.QX5ETN2EDL4ITM0EzW}
 
 ## Internal State Mini (x86)
 
+### Decompilation
+
 After decompiling the program within IDA, and some variable renaming and type altering, we get the following pseudo-C code:
 
 <img alt="image" src="https://github.com/user-attachments/assets/7bfe15f4-6483-471a-85c9-8c46a90af07f" />
+
+#### `main()`
 
 ```c showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -2908,6 +2912,8 @@ EXIT:
 The `desired_ansii_sequence` is the same as last time.
 
 <img alt="image" src="https://github.com/user-attachments/assets/8ea576df-a367-42b1-acb4-d79a08b514a1" />
+
+Expected ANSI sequence:
 
 ```
 "\x1b[38;2;200;040;131mc\x1b[0m\x1b[38;2;001;019;165mI\x1b[0m\x1b[38;2;160;134;059mM\x1b[0m\x1b[38;2;195;046;079mG\x1b[0m\x00"
