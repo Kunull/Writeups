@@ -1,8 +1,3 @@
----
-custom_edit_url: null
-sidebar_position: 1
----
-
 ## SQL injection
   - SQL injection vulnerability in WHERE clause allowing retrieval of hidden data
   - SQL injection vulnerability allowing login bypass

@@ -1,8 +1,3 @@
----
-custom_edit_url: null
-sidebar_position: 2
----
-
 ## Cross-site scripting (XSS)
 - Reflected XSS into HTML context with nothing encoded
 - Stored XSS into HTML context with nothing encoded
