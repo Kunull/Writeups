@@ -2787,12 +2787,12 @@ Initialization Vector (IV_1): a28438ea597316483da08726f8f24654
 AES Encoded text (AE): 6c66dbb5e901ad7ba356de83b0804833
 ```
 
-Next, `AE` is run through the AES function where it is decrypted to give us the AES decoded text (`AD`). This is then XOR'd with the Intialization vector (`IV_1`), to give us the Plaintext (`PT_1`) which is `sleep`.
+Next, `CT` is run through the AES function where it is decrypted to give us the AES decoded text (`AD`). This is then XOR'd with the Intialization vector (`IV_1`), to give us the Plaintext (`PT_1`) which is `sleep`.
 
 ```
-CT_1 = IV_1 + AE
+MSG = IV_1 + CT
 
-                      AE
+                      CT
                       ║               
                       ║
               ┌───────╨───────┐
@@ -2829,13 +2829,13 @@ AD ⊕ [IV_1 ⊕ (PT_1 ⊕ PT_2)] ==> PT_2
 ```
 
 Looking at the above expressions, we can see that in order to get `PT_2` from `AD`, we have to use a new Initialization vector: `[IV_1 ⊕ (PT_1 ⊕ PT_2)]`.
-So, we have to create a new cipher text (`CT_2`) as follows:
+So, we have to create a new message text (`MSG_2`) as follows:
 
 ```
-CT_2 = IV_2 + AE
-IV_2 = [IV_1 ⊕ (PT_1 ⊕ PT_2)]
+MSG_2 = IV_2 + CT
+      = [IV_1 ⊕ (PT_1 ⊕ PT_2)] + CT
 
-                      AE
+                      CT
                       ║               
                       ║
               ┌───────╨───────┐
@@ -2860,13 +2860,13 @@ from Crypto.Util.strxor import strxor
 import binascii
 
 # Original ciphertext (from the task)
-ct_1_hex = "a28438ea597316483da08726f8f246546c66dbb5e901ad7ba356de83b0804833"
-ct_1 = bytes.fromhex(ct_1_hex)
+msg_1_hex = "a28438ea597316483da08726f8f246546c66dbb5e901ad7ba356de83b0804833"
+msg_1 = bytes.fromhex(msg_1_hex)
 
 # Split IV and ciphertext block
-iv_1 = ct_1[:16]
+iv_1 = msg_1[:16]
 print(f"IV_1: {iv_1}")
-ae = ct_1[16:]
+ct = msg_1[16:]
 
 # Known original plaintext and desired plaintext, auto-padded
 pt_1 = pad(b"sleep", AES.block_size)
@@ -2878,8 +2878,8 @@ print(f"PT_2: {pt_2}")
 iv_2 = strxor(iv_1, strxor(pt_1, pt_2))
 
 # Construct modified ciphertext
-ct_2 = iv_2 + ae
-print("TASK:", ct_2.hex())
+msg_2 = iv_2 + ct
+print("TASK:", msg_2.hex())
 ```
 
 ```
@@ -2968,13 +2968,13 @@ from Crypto.Util.strxor import strxor
 import binascii
 
 # Original ciphertext (from the task)
-ct_1_hex = "afc288546a0a07ee57e23e3d98ec732858b35fac004b6eb3c39d881f46aada7b"
-ct_1 = bytes.fromhex(ct_1_hex)
+msg_1_hex = "8546be2b905db97d2e8bac51835e5357f264b34be22319d357ff57d0a451e01e"
+msg_1 = bytes.fromhex(msg_1_hex)
 
 # Split IV and ciphertext block
-iv_1 = ct_1[:16]
+iv_1 = msg_1[:16]
 print(f"IV_1: {iv_1}")
-ae = ct_1[16:]
+ct = msg_1[16:]
 
 # Known original plaintext and desired plaintext, auto-padded
 pt_1 = pad(b"sleep", AES.block_size)
@@ -2986,17 +2986,583 @@ print(f"PT_2: {pt_2}")
 iv_2 = strxor(iv_1, strxor(pt_1, pt_2))
 
 # Construct modified ciphertext
-ct_2 = iv_2 + ae
-print("TASK:", ct_2.hex())
+msg_2 = iv_2 + ct
+print("TASK:", msg_2.hex())
 ```
 
 ```
-hacker@cryptography~aes-cbc-resizing:/$ /challenge/worker 
-TASK: bac28c56160d00e950e5393a9feb742f58b35fac004b6eb3c39d881f46aada7b
+hacker@cryptography~aes-cbc-resizing:~$ python ~/script.py
+IV_1: b'\x85F\xbe+\x90]\xb9}.\x8b\xacQ\x83^SW'
+PT_1: b'sleep\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b'
+PT_2: b'flag\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c'
+TASK: 9046ba29ec5abe7a298cab5684595450f264b34be22319d357ff57d0a451e01e
+```
+
+```
+hacker@cryptography~aes-cbc-resizing:~$ /challenge/worker 
+TASK: 9046ba29ec5abe7a298cab5684595450f264b34be22319d357ff57d0a451e01e
 Hex of plaintext: 666c6167
 Received command: flag
 Victory! Your flag:
 pwn.college{M-SmN7np6M8gKce-S1gTI95eeh0.dlzM3kDL4ITM0EzW}
+```
+
+&nbsp;
+
+## AES-CBC-POA-Partial-Block
+
+### Source code
+```py title="/challenge/dispatcher" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+
+import sys
+
+key = open("/challenge/.key", "rb").read()
+cipher = AES.new(key=key, mode=AES.MODE_CBC)
+
+if len(sys.argv) > 1 and sys.argv[1] == "pw":
+    plaintext = open("/challenge/.pw", "rb").read().strip()
+else:
+    plaintext = b"sleep"
+
+ciphertext = cipher.iv + cipher.encrypt(pad(plaintext, cipher.block_size))
+print(f"TASK: {ciphertext.hex()}")
+```
+
+```py title="/challenge/worker" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad
+from Crypto.Random import get_random_bytes
+
+import time
+import sys
+
+key = open("/challenge/.key", "rb").read()
+pw = open("/challenge/.pw").read().strip()
+
+print(f"The password is {len(pw)} bytes long!")
+
+while line := sys.stdin.readline():
+    if not line.startswith("TASK: "):
+        continue
+    data = bytes.fromhex(line.split()[1])
+    iv, ciphertext = data[:16], data[16:]
+
+    cipher = AES.new(key=key, mode=AES.MODE_CBC, iv=iv)
+    try:
+        plaintext = unpad(cipher.decrypt(ciphertext), cipher.block_size).decode('latin1')
+    except ValueError as e:
+        print("Error:", e)
+        continue
+
+    if plaintext == "sleep":
+        print("Sleeping!")
+        time.sleep(1)
+    elif plaintext == pw:
+        print("Correct! Use /challenge/redeem to redeem the password for the flag!")
+    else:
+        print("Unknown command!")
+```
+
+```py title="/challenge/redeem" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+if input("Password? ").strip() == open("/challenge/.pw").read().strip():
+    print("Victory! Your flag:")
+    print(open("/flag").read())
+```
+
+In this challenge, the error message printed by the `/challenge/worker` is our Oracle. For full explanation, read [this blog](https://www.nccgroup.com/research-blog/cryptopals-exploiting-cbc-padding-oracles/), I cannot explain it any better.
+
+We will also be using the code that they have provided.
+
+```py title="~/script.py" showLineNumbers
+#!/usr/bin/env python3
+from pwn import *
+
+# Set logging level to 'error' to keep the console clean 
+context.log_level = 'error'
+
+BLOCK_SIZE = 16
+
+def single_block_attack(block, oracle):
+    """
+    Returns the decryption of the given ciphertext block (the 'Intermediary' state).
+    This function handles the byte-by-byte guessing for a single block.
+    """
+    zeroing_iv = [0] * BLOCK_SIZE
+
+    for pad_val in range(1, BLOCK_SIZE + 1):
+        padding_iv = [pad_val ^ b for b in zeroing_iv]
+
+        found = False
+        for candidate in range(256):
+            padding_iv[-pad_val] = candidate
+            
+            # The oracle here is a function passed from full_attack
+            if oracle(bytes(padding_iv), block):
+                if pad_val == 1:
+                    padding_iv[-2] ^= 1
+                    if not oracle(bytes(padding_iv), block):
+                        continue 
+                
+                zeroing_iv[-pad_val] = candidate ^ pad_val
+                found = True
+                break
+        
+        if not found:
+            raise Exception(f"Padding oracle failed at byte {pad_val}")
+            
+    return zeroing_iv
+
+def full_attack(iv, ct, oracle):
+    """
+    Given the iv, ciphertext, and a padding oracle, finds and returns the plaintext.
+    This handles the CBC chaining logic.
+    """
+    assert len(iv) == BLOCK_SIZE and len(ct) % BLOCK_SIZE == 0
+
+    msg = iv + ct
+    blocks = [msg[i:i+BLOCK_SIZE] for i in range(0, len(msg), BLOCK_SIZE)]
+    result = b''
+
+    # Loop over blocks, treating the previous block as the IV for the current one
+    current_iv = blocks[0]
+    for i, block in enumerate(blocks[1:]):
+        print(f"[*] Decrypting block {i+1}...")
+        
+        # Attack the block to get the intermediary state
+        dec = single_block_attack(block, oracle)
+        
+        # XOR with the previous ciphertext block to get the actual plaintext
+        pt = bytes(iv_byte ^ dec_byte for iv_byte, dec_byte in zip(current_iv, dec))
+        result += pt
+        current_iv = block
+
+    return result
+
+# --- Execution Flow ---
+
+# 1. Get the target ciphertext from dispatcher
+dispatcher = process(['/challenge/dispatcher', 'pw'])
+target_line = dispatcher.recvline().decode().strip()
+target_hex = target_line.split("TASK: ")[1]
+target_bytes = bytes.fromhex(target_hex)
+dispatcher.close()
+
+# 2. Start the persistent worker process
+worker = process(['/challenge/worker'])
+worker.recvline() # Clear the "The password is X bytes long!" line
+
+# 3. Define the Oracle wrapper
+# This allows the attack functions to use the worker without needing to know about pwnlib
+def oracle_wrapper(iv, block):
+    payload = (iv + block).hex()
+    worker.sendline(f"TASK: {payload}")
+    response = worker.readline().decode()
+    return "Error" not in response
+
+# 4. Perform the full attack
+iv = target_bytes[:BLOCK_SIZE]
+ct = target_bytes[BLOCK_SIZE:]
+
+print(f"[+] Starting full attack on {len(ct)//BLOCK_SIZE} blocks...")
+decrypted_padded = full_attack(iv, ct, oracle_wrapper)
+
+# 5. Strip PKCS#7 padding and print result
+padding_len = decrypted_padded[-1]
+final_pw = decrypted_padded[:-padding_len].decode('latin1')
+
+print(f"DECRYPTED PASSWORD: {final_pw}")
+
+worker.close()
+```
+
+```
+hacker@cryptography~aes-cbc-poa-partial-block:~$ python ~/script.py 
+[+] Starting full attack on 1 blocks...
+[*] Decrypting block 1/1...
+/home/hacker/script.py:16: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  worker.sendline(f"TASK: {payload}")
+DECRYPTED PASSWORD: W1qtA5kIIpB1af
+```
+
+Now, we can provide this password to `/challenge/redeem` and get the flag.
+
+```
+hacker@cryptography~aes-cbc-poa-partial-block:~$ /challenge/redeem 
+Password? W1qtA5kIIpB1af
+Victory! Your flag:
+pwn.college{oUCM-bqrAeL_iMoqkNRCOvNf_tK.QX4EzM2EDL4ITM0EzW}
+```
+
+&nbsp;
+
+## AES-CBC-POA-Full-Block
+
+### Source code
+
+```py title="/challenge/dispatcher" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+
+import sys
+
+key = open("/challenge/.key", "rb").read()
+cipher = AES.new(key=key, mode=AES.MODE_CBC)
+
+if len(sys.argv) > 1 and sys.argv[1] == "pw":
+    plaintext = open("/challenge/.pw", "rb").read().strip()
+else:
+    plaintext = b"sleep"
+
+ciphertext = cipher.iv + cipher.encrypt(pad(plaintext, cipher.block_size))
+print(f"TASK: {ciphertext.hex()}")
+```
+
+```py title="/challenge/worker" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad
+from Crypto.Random import get_random_bytes
+
+import time
+import sys
+
+key = open("/challenge/.key", "rb").read()
+pw = open("/challenge/.pw").read().strip()
+
+print(f"The password is {len(pw)} bytes long!")
+
+while line := sys.stdin.readline():
+    if not line.startswith("TASK: "):
+        continue
+    data = bytes.fromhex(line.split()[1])
+    iv, ciphertext = data[:16], data[16:]
+
+    cipher = AES.new(key=key, mode=AES.MODE_CBC, iv=iv)
+    try:
+        plaintext = unpad(cipher.decrypt(ciphertext), cipher.block_size).decode('latin1')
+    except ValueError as e:
+        print("Error:", e)
+        continue
+
+    if plaintext == "sleep":
+        print("Sleeping!")
+        time.sleep(1)
+    elif plaintext == pw:
+        print("Correct! Use /challenge/redeem to redeem the password for the flag!")
+    else:
+        print("Unknown command!")
+```
+
+```py title="/challenge/redeem" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+if input("Password? ").strip() == open("/challenge/.pw").read().strip():
+    print("Victory! Your flag:")
+    print(open("/flag").read())
+```
+
+Our solution from the last challenge will work on this as well.
+
+```py title="~/script.py" showLineNumbers
+#!/usr/bin/env python3
+from pwn import *
+
+# Set logging level to 'error' to keep the console clean 
+context.log_level = 'error'
+
+BLOCK_SIZE = 16
+
+def single_block_attack(block, oracle):
+    """
+    Returns the decryption of the given ciphertext block (the 'Intermediary' state).
+    This function handles the byte-by-byte guessing for a single block.
+    """
+    zeroing_iv = [0] * BLOCK_SIZE
+
+    for pad_val in range(1, BLOCK_SIZE + 1):
+        padding_iv = [pad_val ^ b for b in zeroing_iv]
+
+        found = False
+        for candidate in range(256):
+            padding_iv[-pad_val] = candidate
+            
+            # The oracle here is a function passed from full_attack
+            if oracle(bytes(padding_iv), block):
+                if pad_val == 1:
+                    padding_iv[-2] ^= 1
+                    if not oracle(bytes(padding_iv), block):
+                        continue 
+                
+                zeroing_iv[-pad_val] = candidate ^ pad_val
+                found = True
+                break
+        
+        if not found:
+            raise Exception(f"Padding oracle failed at byte {pad_val}")
+            
+    return zeroing_iv
+
+def full_attack(iv, ct, oracle):
+    """
+    Given the iv, ciphertext, and a padding oracle, finds and returns the plaintext.
+    This handles the CBC chaining logic.
+    """
+    assert len(iv) == BLOCK_SIZE and len(ct) % BLOCK_SIZE == 0
+
+    msg = iv + ct
+    blocks = [msg[i:i+BLOCK_SIZE] for i in range(0, len(msg), BLOCK_SIZE)]
+    result = b''
+
+    # Loop over blocks, treating the previous block as the IV for the current one
+    current_iv = blocks[0]
+    for i, block in enumerate(blocks[1:]):
+        print(f"[*] Decrypting block {i+1}...")
+        
+        # Attack the block to get the intermediary state
+        dec = single_block_attack(block, oracle)
+        
+        # XOR with the previous ciphertext block to get the actual plaintext
+        pt = bytes(iv_byte ^ dec_byte for iv_byte, dec_byte in zip(current_iv, dec))
+        result += pt
+        current_iv = block
+
+    return result
+
+# --- Execution Flow ---
+
+# 1. Get the target ciphertext from dispatcher
+dispatcher = process(['/challenge/dispatcher', 'pw'])
+target_line = dispatcher.recvline().decode().strip()
+target_hex = target_line.split("TASK: ")[1]
+target_bytes = bytes.fromhex(target_hex)
+dispatcher.close()
+
+# 2. Start the persistent worker process
+worker = process(['/challenge/worker'])
+worker.recvline() # Clear the "The password is X bytes long!" line
+
+# 3. Define the Oracle wrapper
+# This allows the attack functions to use the worker without needing to know about pwnlib
+def oracle_wrapper(iv, block):
+    payload = (iv + block).hex()
+    worker.sendline(f"TASK: {payload}")
+    response = worker.readline().decode()
+    return "Error" not in response
+
+# 4. Perform the full attack
+iv = target_bytes[:BLOCK_SIZE]
+ct = target_bytes[BLOCK_SIZE:]
+
+print(f"[+] Starting full attack on {len(ct)//BLOCK_SIZE} blocks...")
+decrypted_padded = full_attack(iv, ct, oracle_wrapper)
+
+# 5. Strip PKCS#7 padding and print result
+padding_len = decrypted_padded[-1]
+final_pw = decrypted_padded[:-padding_len].decode('latin1')
+
+print(f"DECRYPTED PASSWORD: {final_pw}")
+
+worker.close()
+```
+
+```
+hacker@cryptography~aes-cbc-poa-full-block:~$ python ~/script.py 
+[+] Starting full attack on 2 blocks...
+[*] Decrypting block 1/2...
+/home/hacker/script.py:16: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  worker.sendline(f"TASK: {payload}")
+[*] Decrypting block 2/2...
+DECRYPTED PASSWORD: RKY4LmMia8cQrIi3
+```
+
+```
+hacker@cryptography~aes-cbc-poa-full-block:~$ /challenge/redeem 
+Password? RKY4LmMia8cQrIi3
+Victory! Your flag:
+pwn.college{kELoPJer4WkimXiR96tK5jYbWrh.QX5EzM2EDL4ITM0EzW}
+```
+
+&nbsp;
+
+## AES-CBC-POA-Multi-Block
+
+### Source code
+
+```py title="/challenge/dispatcher" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+
+import sys
+
+key = open("/challenge/.key", "rb").read()
+cipher = AES.new(key=key, mode=AES.MODE_CBC)
+
+if len(sys.argv) > 1 and sys.argv[1] == "flag":
+    plaintext = open("/flag", "rb").read().strip()
+else:
+    plaintext = b"sleep"
+
+ciphertext = cipher.iv + cipher.encrypt(pad(plaintext, cipher.block_size))
+print(f"TASK: {ciphertext.hex()}")
+```
+
+```py title="/challenge/worker" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad
+from Crypto.Random import get_random_bytes
+
+import time
+import sys
+
+key = open("/challenge/.key", "rb").read()
+
+while line := sys.stdin.readline():
+    if not line.startswith("TASK: "):
+        continue
+    data = bytes.fromhex(line.split()[1])
+    iv, ciphertext = data[:16], data[16:]
+
+    cipher = AES.new(key=key, mode=AES.MODE_CBC, iv=iv)
+    try:
+        plaintext = unpad(cipher.decrypt(ciphertext), cipher.block_size).decode('latin1')
+    except ValueError as e:
+        print("Error:", e)
+        continue
+
+    if plaintext == "sleep":
+        print("Sleeping!")
+        time.sleep(1)
+    else:
+        print("Unknown command!")
+```
+
+This time we have to call `/challenge/dispatcher` with the `flag` argument, and perform the attack on multiple blocks.
+
+```py title="~/script.py" showLineNumbers
+#!/usr/bin/env python3
+from pwn import *
+
+# Set logging level to 'error' to keep the console clean 
+context.log_level = 'error'
+
+BLOCK_SIZE = 16
+
+def single_block_attack(block, oracle):
+    """
+    Returns the decryption of the given ciphertext block (the 'Intermediary' state).
+    This function handles the byte-by-byte guessing for a single block.
+    """
+    zeroing_iv = [0] * BLOCK_SIZE
+
+    for pad_val in range(1, BLOCK_SIZE + 1):
+        padding_iv = [pad_val ^ b for b in zeroing_iv]
+
+        found = False
+        for candidate in range(256):
+            padding_iv[-pad_val] = candidate
+            
+            # The oracle here is a function passed from full_attack
+            if oracle(bytes(padding_iv), block):
+                # Handle the edge case where the actual plaintext byte might naturally 
+                # end in 0x01, creating a false positive for the padding oracle.
+                if pad_val == 1:
+                    padding_iv[-2] ^= 1
+                    if not oracle(bytes(padding_iv), block):
+                        continue 
+                
+                zeroing_iv[-pad_val] = candidate ^ pad_val
+                found = True
+                break
+        
+        if not found:
+            raise Exception(f"Padding oracle failed at byte {pad_val}")
+            
+    return zeroing_iv
+
+def full_attack(iv, ct, oracle):
+    """
+    Given the iv, ciphertext, and a padding oracle, finds and returns the plaintext.
+    This handles the CBC chaining logic.
+    """
+    assert len(iv) == BLOCK_SIZE and len(ct) % BLOCK_SIZE == 0
+
+    msg = iv + ct
+    blocks = [msg[i:i+BLOCK_SIZE] for i in range(0, len(msg), BLOCK_SIZE)]
+    result = b''
+
+    # Loop over blocks, treating the previous block as the IV for the current one
+    current_iv = blocks[0]
+    for i, block in enumerate(blocks[1:]):
+        print(f"[*] Decrypting block {i+1}...")
+        
+        # Attack the block to get the intermediary state
+        dec = single_block_attack(block, oracle)
+        
+        # XOR with the previous ciphertext block to get the actual plaintext
+        pt = bytes(iv_byte ^ dec_byte for iv_byte, dec_byte in zip(current_iv, dec))
+        result += pt
+        current_iv = block
+
+    return result
+
+# --- Execution Flow ---
+
+# 1. Get Flag
+disp = process(['/challenge/dispatcher', 'flag'])
+data = bytes.fromhex(disp.recvline().decode().split("TASK: ")[1])
+disp.close()
+
+# 2. Start Worker
+worker = process(['/challenge/worker'])
+
+# 3. Define the Oracle wrapper
+def oracle_wrapper(iv, block):
+    payload = (iv + block).hex()
+    worker.sendline(f"TASK: {payload}")
+    response = worker.readline().decode()
+    return "Error" not in response
+
+# 4. Perform the full attack
+iv = data[:BLOCK_SIZE]
+ct = data[BLOCK_SIZE:]
+
+print(f"[+] Starting full attack on {len(ct)//BLOCK_SIZE} blocks...")
+decrypted_padded = full_attack(iv, ct, oracle_wrapper)
+
+# 5. Strip PKCS#7 padding and print result
+padding_len = decrypted_padded[-1]
+final_output = decrypted_padded[:-padding_len].decode('latin1')
+
+print(f"DECRYPTED FLAG: {final_output}")
+
+worker.close()
+```
+
+```
+hacker@cryptography~aes-cbc-poa-multi-block:/$ python ~/script.py 
+[+] Starting full attack on 4 blocks...
+[*] Decrypting block 1...
+/home/hacker/script.py:80: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  worker.sendline(f"TASK: {payload}")
+[*] Decrypting block 2...
+[*] Decrypting block 3...
+[*] Decrypting block 4...
+DECRYPTED FLAG: pwn.college{s3BeSgy9UkMJLF5j5pgb4aihoE0.dBDN3kDL4ITM0EzW}
 ```
 
 &nbsp;
