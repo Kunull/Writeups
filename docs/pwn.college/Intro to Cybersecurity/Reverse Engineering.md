@@ -4074,3 +4074,58 @@ pwn.college{syk86MEMK8yI4ABF2f5AcH3BOKX.QX4AzMwEDL4ITM0EzW}
 <img alt="image" src="https://github.com/user-attachments/assets/635a80e9-9b81-4126-b443-99ed91623c08" />
 
 &nbsp;
+
+## The Patch Directive
+
+```py
+from pwn import *
+import struct
+import re
+
+# Desired ANSII sequence
+binary = context.binary = ELF('/challenge/cimg')
+desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
+
+# This regex looks for the RGB numbers and the character that follows the 'm'
+# (\d+) matches the digits for R, G, and B
+# m(.) matches the 'm' followed by the single character we want
+pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
+
+# Find all matches in the sequence
+matches = re.findall(pattern, desired_ansii_sequence)
+
+# Convert the strings to the format you want: (int, int, int, ord(char))
+pixels = [
+    (int(r), int(g), int(b), ord(char)) 
+    for r, g, b, char in matches
+]
+
+pixel_data = b"".join(struct.pack("BBBB", r, g, b, a) for r, g, b, a in pixels)
+
+width_value = 55
+height_value = len(pixels) // width_value
+
+# Build the header (12 bytes total)
+magic = b"cIMG"                                 # 4 bytes
+version = struct.pack("<H", 3)                  # 2 bytes
+width  = struct.pack("<B", width_value)         # 1 bytes
+height = struct.pack("<B", height_value)        # 1 bytes
+directives = struct.pack("<I", 2)               # 4 bytes
+
+header = magic + version + width + height + directives
+
+# Add directive code
+directive_code = struct.pack("<H", 55369)       # 2 bytes
+directive_code = struct.pack("<H", 52965)       # 2 bytes
+
+# Full file content
+cimg_data = header + directive_code + pixel_data
+
+# Write to disk
+filename = "/home/hacker/solution.cimg"
+with open(filename, "wb") as f:
+    f.write(cimg_data)
+
+print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to: {filename}")
+```
