@@ -3881,9 +3881,9 @@ hacker@reverse-engineering~file-formats-directives-c:/$ /challenge/cimg ~/soluti
 |                                                     |
 '-----------------------------------------------------'
 pwn.college{YtYqzGPTd8ZcDWzwyHLOGwSsY0S.QXyITN2EDL4ITM0EzW}
+```
 
 <img alt="image" src="https://github.com/user-attachments/assets/ed25f4e4-8075-4e31-baa3-8e39e29bbd59" />
-```
 
 &nbsp;
 
