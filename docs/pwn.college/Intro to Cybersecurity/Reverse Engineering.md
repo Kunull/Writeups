@@ -3786,3 +3786,100 @@ int main(int argc, char **argv, char **envp)
 }
 ```
 
+- File Extension: Must end with `.cimg`
+- Header (12 bytes total):
+    - Magic number (4 bytes): Must be "`cIMG`"
+    - Version (2 bytes): Must be `2` in little-endian
+    - Dimensions (2 bytes total): Must be `53` x (`num_pixels` / `53`) bytes
+        - Width (1 bytes): Must be `53` (discovered by trial and error) in little-endian
+        - Height (1 bytes): Must be `num_pixels` / `width` in little-endian
+    - Remaining Directives (4 bytes): Must be `1` in little-endian (This tells the `while` loop to process one directive).
+- Directive Code (2 bytes):
+    - Immediately following the header, we must provide the 2-byte code `17571` (\xa3\x44 in little-endian) to trigger the `handle_17571` function 
+- Pixel Data:
+    - The number of non-space ASCII pixels must be `num_pixels`, i.e. the number of bytes must be `4 * num_pixels`
+    - When pixel data is loaded into the ANSI escape code: `"\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m"` one by one and appended together, it should match the given ANSI sequence.
+
+### Exploit
+ 
+```py title="~/script.py" showLineNumbers
+from pwn import *
+import struct
+import re
+
+# Desired ANSII sequence
+binary = context.binary = ELF('/challenge/cimg')
+desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
+
+# This regex looks for the RGB numbers and the character that follows the 'm'
+# (\d+) matches the digits for R, G, and B
+# m(.) matches the 'm' followed by the single character we want
+pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
+
+# Find all matches in the sequence
+matches = re.findall(pattern, desired_ansii_sequence)
+
+# Convert the strings to the format you want: (int, int, int, ord(char))
+pixels = [
+    (int(r), int(g), int(b), ord(char)) 
+    for r, g, b, char in matches
+]
+
+pixel_data = b"".join(struct.pack("BBBB", r, g, b, a) for r, g, b, a in pixels)
+
+width_value = 55
+height_value = len(pixels) // width_value
+
+# Build the header (12 bytes total)
+magic = b"cIMG"                                 # 4 bytes
+version = struct.pack("<H", 3)                  # 2 bytes
+width  = struct.pack("<B", width_value)         # 1 bytes
+height = struct.pack("<B", height_value)        # 1 bytes
+directives = struct.pack("<I", 1)               # 4 bytes
+
+header = magic + version + width + height + directives
+
+# Add directive code
+directive_code = struct.pack("<H", 17571)       # 2 bytes
+
+# Full file content
+cimg_data = header + directive_code + pixel_data
+
+# Write to disk
+filename = "/home/hacker/solution.cimg"
+with open(filename, "wb") as f:
+    f.write(cimg_data)
+
+print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to: {filename}")
+```
+
+```
+hacker@reverse-engineering~file-formats-directives-c:/$ python ~/script.py 
+Wrote 3314 bytes:
+
+# ---- snip ----
+
+to: /home/hacker/solution.cimg
+```
+
+```
+hacker@reverse-engineering~file-formats-directives-c:/$ /challenge/cimg ~/solution.cimg 
+.-----------------------------------------------------.
+|                                                     |
+|                                                     |
+|                            ___                      |
+|                  ___      |_ _|                     |
+|                 / __|      | |              ____    |
+|                | (__       | |    __  __   / ___|   |
+|                 \___|     |___|  |  \/  | | |  _    |
+|                                  | |\/| | | |_| |   |
+|                                  | |  | |  \____|   |
+|                                  |_|  |_|           |
+|                                                     |
+|                                                     |
+|                                                     |
+'-----------------------------------------------------'
+pwn.college{YtYqzGPTd8ZcDWzwyHLOGwSsY0S.QXyITN2EDL4ITM0EzW}
+
+<img alt="image" src="https://github.com/user-attachments/assets/ed25f4e4-8075-4e31-baa3-8e39e29bbd59" />
