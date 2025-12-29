@@ -3795,7 +3795,7 @@ int main(int argc, char **argv, char **envp)
         - Height (1 bytes): Must be `num_pixels` / `width` in little-endian
     - Remaining Directives (4 bytes): Must be `1` in little-endian (This tells the `while` loop to process one directive).
 - Directive Code (2 bytes):
-    - Immediately following the header, we must provide the 2-byte code `17571` (\xa3\x44 in little-endian) to trigger the `handle_17571` function 
+    - Immediately following the header, we must provide the 2-byte code `17571` (little-endian) to trigger the `handle_17571` function 
 - Pixel Data:
     - The number of non-space ASCII pixels must be `num_pixels`, i.e. the number of bytes must be `4 * num_pixels`
     - When pixel data is loaded into the ANSI escape code: `"\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m"` one by one and appended together, it should match the given ANSI sequence.
@@ -3883,3 +3883,194 @@ hacker@reverse-engineering~file-formats-directives-c:/$ /challenge/cimg ~/soluti
 pwn.college{YtYqzGPTd8ZcDWzwyHLOGwSsY0S.QXyITN2EDL4ITM0EzW}
 
 <img alt="image" src="https://github.com/user-attachments/assets/ed25f4e4-8075-4e31-baa3-8e39e29bbd59" />
+```
+
+&nbsp;
+
+## File Formats: Directives (x86)
+
+### Disassembly
+
+#### `main()`
+
+```c showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  const char *file_arg; // rbp
+  int file; // eax
+  const char *error_msg; // rdi
+  char *desired_ansii_sequence; // r12
+  unsigned int v8; // r14d
+  _BYTE *framebuffer_2; // r13
+  _BOOL8 v10; // rbx
+  unsigned int i; // ebp
+  char v12; // al
+  unsigned __int16 directive_code; // [rsp+0h] [rbp-5Ah] BYREF
+  __int128 cimg_header; // [rsp+2h] [rbp-58h] BYREF
+  void *framebuffer; // [rsp+12h] [rbp-48h]
+  unsigned __int64 v17; // [rsp+1Ah] [rbp-40h]
+
+  v17 = __readfsqword(0x28u);
+  cimg_header = 0LL;
+  framebuffer = 0LL;
+  if ( argc > 1 )
+  {
+    file_arg = argv[1];
+    if ( strcmp(&file_arg[strlen(file_arg) - 5], ".cimg") )
+    {
+      __printf_chk(1LL, "ERROR: Invalid file extension!");
+      goto EXIT;
+    }
+    file = open(file_arg, 0);
+    dup2(file, 0);
+  }
+  read_exact(0LL, &cimg_header, 12LL, "ERROR: Failed to read header!", 0xFFFFFFFFLL);
+  if ( (_DWORD)cimg_header != 1196247395 )
+  {
+    error_msg = "ERROR: Invalid magic number!";
+PRINT_ERROR_AND_EXIT:
+    puts(error_msg);
+    goto EXIT;
+  }
+  error_msg = "ERROR: Unsupported version!";
+  if ( WORD2(cimg_header) != 3 )
+    goto PRINT_ERROR_AND_EXIT;
+  initialize_framebuffer(&cimg_header);
+  while ( DWORD2(cimg_header)-- )
+  {
+    read_exact(0LL, &directive_code, 2LL, "ERROR: Failed to read &directive_code!", 0xFFFFFFFFLL);
+    if ( directive_code != 45381 )
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: invalid directive_code %ux\n", directive_code);
+EXIT:
+      exit(-1);
+    }
+    handle_45381(&cimg_header);
+  }
+  desired_ansii_sequence = desired_output;
+  display(&cimg_header, 0LL);
+  v8 = HIDWORD(cimg_header);
+  framebuffer_2 = framebuffer;
+  v10 = HIDWORD(cimg_header) == 800;
+  for ( i = 0; i < v8 && i != 800; ++i )
+  {
+    v12 = framebuffer_2[19];
+    if ( v12 != desired_ansii_sequence[19] )
+      LODWORD(v10) = 0;
+    if ( v12 != 32 && v12 != 10 )
+    {
+      if ( memcmp(framebuffer_2, desired_ansii_sequence, 0x18uLL) )
+        LODWORD(v10) = 0;
+    }
+    framebuffer_2 += 24;
+    desired_ansii_sequence += 24;
+  }
+  if ( v10 )
+    win();
+  return 0;
+}
+```
+
+- File Extension: Must end with `.cimg`
+- Header (12 bytes total):
+    - Magic number (4 bytes): Must be "`cIMG`"
+    - Version (2 bytes): Must be `2` in little-endian
+    - Dimensions (2 bytes total): Must be `53` x (`num_pixels` / `53`) bytes
+        - Width (1 bytes): Must be `53` (discovered by trial and error) in little-endian
+        - Height (1 bytes): Must be `num_pixels` / `width` in little-endian
+    - Remaining Directives (4 bytes): Must be `1` in little-endian (This tells the `while` loop to process one directive).
+- Directive Code (2 bytes):
+    - Immediately following the header, we must provide the 2-byte code `45381` (little-endian) to trigger the `handle_17571` function 
+- Pixel Data:
+    - The number of non-space ASCII pixels must be `num_pixels`, i.e. the number of bytes must be `4 * num_pixels`
+    - When pixel data is loaded into the ANSI escape code: `"\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m"` one by one and appended together, it should match the given ANSI sequence.
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+import struct
+import re
+
+# Desired ANSII sequence
+binary = context.binary = ELF('/challenge/cimg')
+desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
+
+# This regex looks for the RGB numbers and the character that follows the 'm'
+# (\d+) matches the digits for R, G, and B
+# m(.) matches the 'm' followed by the single character we want
+pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
+
+# Find all matches in the sequence
+matches = re.findall(pattern, desired_ansii_sequence)
+
+# Convert the strings to the format you want: (int, int, int, ord(char))
+pixels = [
+    (int(r), int(g), int(b), ord(char)) 
+    for r, g, b, char in matches
+]
+
+pixel_data = b"".join(struct.pack("BBBB", r, g, b, a) for r, g, b, a in pixels)
+
+width_value = 55
+height_value = len(pixels) // width_value
+
+# Build the header (12 bytes total)
+magic = b"cIMG"                                 # 4 bytes
+version = struct.pack("<H", 3)                  # 2 bytes
+width  = struct.pack("<B", width_value)         # 1 bytes
+height = struct.pack("<B", height_value)        # 1 bytes
+directives = struct.pack("<I", 1)               # 4 bytes
+
+header = magic + version + width + height + directives
+
+# Add directive code
+directive_code = struct.pack("<H", 45381)       # 2 bytes
+
+# Full file content
+cimg_data = header + directive_code + pixel_data
+
+# Write to disk
+filename = "/home/hacker/solution.cimg"
+with open(filename, "wb") as f:
+    f.write(cimg_data)
+
+print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to: {filename}")
+```
+
+```
+hacker@reverse-engineering~file-formats-directives-x86:/$ python ~/script.py
+Wrote 3214 bytes:
+
+# ---- snip ----
+
+to: /home/hacker/solution.cimg
+```
+
+```
+hacker@reverse-engineering~file-formats-directives-x86:/$ /challenge/cimg ~/solution.cimg 
+.--------------------------------------.
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|    ___              __  __           |
+|   / __|       ___  |  \/  |   ____   |
+|  | (__       |_ _| | |\/| |  / ___|  |
+|   \___|       | |  | |  | | | |  _   |
+|               | |  |_|  |_| | |_| |  |
+|              |___|           \____|  |
+|                                      |
+|                                      |
+|                                      |
+'--------------------------------------'
+pwn.college{syk86MEMK8yI4ABF2f5AcH3BOKX.QX4AzMwEDL4ITM0EzW}
+```
+
+<img alt="image" src="https://github.com/user-attachments/assets/635a80e9-9b81-4126-b443-99ed91623c08" />
+
+&nbsp;
