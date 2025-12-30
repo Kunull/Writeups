@@ -7,6 +7,8 @@
 
 
 import {themes as prismThemes} from 'prism-react-renderer';
+const remarkMath = require('remark-math');
+const rehypeKatex = require('rehype-katex');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -52,6 +54,16 @@ const config = {
         },
       }),
     ],
+  ],
+
+  // Load KaTeX CSS
+  stylesheets: [
+    {
+      href: 'https://cdn.jsdelivr.net/npm/katex@0.13.24/dist/katex.min.css',
+      type: 'text/css',
+      integrity: 'sha384-odtC+0UGitSBRDoLaUI8fTPazskKNwBd6GcqhFtN5x7FDnE/FIeS2nvEGaAqenWw',
+      crossorigin: 'anonymous',
+    },
   ],
 
   themeConfig:
