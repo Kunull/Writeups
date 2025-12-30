@@ -55,6 +55,8 @@ pwn.college{I0fIIbzFrXKLaqwpVcvpw0ySDFR.ddjM3kDL4ITM0EzW}
 
 Let's automate the process so that it works for any input.
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
 
@@ -149,6 +151,8 @@ Decrypted secret?
 
 We can see that loops over and asks the same question.
 Let's automate the process.
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
@@ -315,6 +319,8 @@ The challenge tries to prevent automation by requiring that the script be run in
 
 However, we can use `pexpect` which emulates a terminal (PTY), so `isatty()` returns `True`.
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 import pexpect
 
@@ -457,6 +463,8 @@ Challenge number 2...
 
 Let's automate.
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
 
@@ -582,6 +590,8 @@ Flag Ciphertext (hex): 0d5e2bb52c7ac6f9160da1dee63b9d36839fe9d41c0d44773446126c1
 This time, we the flag is encrypted using One-time pad.
 In order to get the original, we have to get XOR the bits of the plaintext with the bits of the key one by one.
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 key_hex = "7d29459b4f15aa95736ac4a5a348a95ed9c7df9e745f2147572e59385df9918e15b73ffc160d0b27ba0b460c821752ff15f26b39e15bb6a9da3d"
 cipher_hex = "0d5e2bb52c7ac6f9160da1dee63b9d36839fe9d41c0d44773446126c18b0d9e445ce7eba5e646509de593c42f85a16b321bb3f74d11eccfea737"
@@ -661,7 +671,9 @@ Sleeping!
 
 Let's write a script that determines the secret key and then gives us `flag!` as XOR'd with it.
 
-```PY title="~/script.py" showLineNumbers
+### Exploit
+
+```py title="~/script.py" showLineNumbers
 from Crypto.Util.strxor import strxor
 
 # Known ciphertext
@@ -790,6 +802,8 @@ Flag Ciphertext (hex): 5792b94f7f852e4f87caaef91abbfdb724c3e6cd6010bffeefa06c33a
 
 We can simply decode the flag cipher using the `Crypto` library.
 
+### Exploit
+
 ```py title="~/script.py" showLineNumber
 #!/opt/pwn.college/python
 
@@ -853,6 +867,8 @@ Then, For each flag index `i`:
 - Use Option 2 to encrypt 1 byte: `flag[i]`.
 - Compare with our table.
 - Recover the flag character at that position.
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
@@ -1053,6 +1069,8 @@ app.config['SERVER_NAME'] = f"challenge.localhost:80"
 app.run("challenge.localhost", 80)
 ```
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
 
@@ -1245,6 +1263,8 @@ app.run("challenge.localhost", 80)
 This time the output is given to us after Base64 encoding.
 We just need to modify the last level's script slightly.
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
 
@@ -1426,6 +1446,8 @@ Lookup table for flag[-2:] (last two characters):
 
 We then repeat this step for flag[-3:], flag[-4:].....
 ```
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
@@ -1670,6 +1692,8 @@ Custom block:
 We then repeat this step for flag[:3], flag[:4].....
 ```
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
 
@@ -1875,6 +1899,8 @@ Custom block:
 We then repeat this step for flag[-3:], flag[-4:].....
 ```
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
 
@@ -2053,6 +2079,8 @@ for n in range(31337):
 ```
 
 Our [backward decoding](#backward-decoding) script from the last challenge would work here as well, as we only concern ourselves with the 5th block.
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
@@ -2280,6 +2308,8 @@ Block 6: 88659faf2ea78c203983aa76e5dbda3c --> flag[-1] + b'\x0f\x0f\x0f\x0f\x0f\
 ```
 
 Finally! We have managed to create a valid lookup table in the 1st block using our padding. Let's create a solution script for this.
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
@@ -2521,6 +2551,8 @@ As we can see, it takes 5 bytes of padding to push the last byte of the flag int
 
 Now, we can craft our script.
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
 import requests
@@ -2681,6 +2713,8 @@ Flag Ciphertext (hex): e8ffadd10cf2fab51748d9976a83d710bcc067dae2d95d627e6882161
 In order to decrypt the flag, we have to use the `MODE_CBC` in AES. Also we have to separate the Initialization vector and the cipher text.
 
 `cipher.iv` is always 16 bytes for AES, so we can split there.
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 #!/opt/pwn.college/python
@@ -2853,6 +2887,8 @@ MSG_2 = IV_2 + CT
                      PT_2 (flag!)
 ```
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
 from Crypto.Cipher import AES
@@ -2960,6 +2996,8 @@ while line := sys.stdin.readline():
 ```
 
 Our last solution should word with very minute changes.
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
@@ -3081,6 +3119,8 @@ if input("Password? ").strip() == open("/challenge/.pw").read().strip():
 In this challenge, the error message printed by the `/challenge/worker` is our Oracle. For full explanation, read [this blog](https://www.nccgroup.com/research-blog/cryptopals-exploiting-cbc-padding-oracles/), I cannot explain it any better.
 
 We will also be using the code that they have provided.
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
@@ -3275,6 +3315,8 @@ if input("Password? ").strip() == open("/challenge/.pw").read().strip():
 
 Our solution from the last challenge will work on this as well.
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
 from pwn import *
@@ -3454,6 +3496,8 @@ while line := sys.stdin.readline():
 
 This time we have to call `/challenge/dispatcher` with the `flag` argument, and perform the attack on multiple blocks.
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
 from pwn import *
@@ -3625,6 +3669,8 @@ while line := sys.stdin.readline():
 
 Go through [this](https://shrutipriya.com/blogs/yet-another-guide-to-padding-oracle-attack/) explaination.
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
 from pwn import *
@@ -3781,6 +3827,8 @@ while line := sys.stdin.readline():
 ```
 
 Since we did not rely on the `/challenge/dispatcher` in the previous challenge, our script will work in this one as well.
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
@@ -3960,6 +4008,8 @@ B?
 ```
 
 We just need to calculate the intermediate logarithmic modulus.
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/exec-suid -- /usr/bin/python3 -I
@@ -4229,6 +4279,8 @@ Flag Ciphertext (hex): 87ad16387c48ce5ee9fabb30f125b48c637ac296a04f5e26ce02b46eb
 
 This time, instead of `n` and `d`, we have been provided with `p` and `q`.
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/exec-suid -- /usr/bin/python3 -I
 
@@ -4403,6 +4455,8 @@ response:
 ```
 
 This challenge is very similar to [RSA 1](#rsa-1), but instead of the flag, we have to provide the `response` in bytes.
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/exec-suid -- /usr/bin/python3 -I
@@ -4580,6 +4634,8 @@ challenge()
 
 In this challenge, we simply have to simulate the RSA process.
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
 from pwn import *
@@ -4707,6 +4763,8 @@ We can exploit this to "blind" our request:
 - Because $(X^e)^d \equiv X \pmod n$, the signature we get back is actually $(\text{flag}^d \times X) \pmod n$.
 - Divide our result by $X$, and you are left with $\text{flag}^d \pmod n$—the valid signature for "flag"!
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
 from pwn import *
@@ -4799,6 +4857,8 @@ Colliding input?
 This level only checks the first 6 chars of the hash. This dramatically increases our chances of performing a collision attack.
 
 A collision attack is when the hash (or part of hash in this case) is the same for two different input.
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 import hashlib
@@ -5029,6 +5089,8 @@ challenge (b64): JN1xtwC4IfZOomGDwbJ65zv/aus2YmOnjfMw0Ez9ZVw=
 response (b64):
 ```
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
 import base64
@@ -5085,4 +5147,648 @@ Your goal is to find response data, which when appended to the challenge data an
 challenge (b64): JN1xtwC4IfZOomGDwbJ65zv/aus2YmOnjfMw0Ez9ZVw=
 response (b64): QlE1
 flag: pwn.college{8B98dEtBXJhcHSGG3LpIIw7Kioy.dJDOzMDL4ITM0EzW}
+```
+
+&nbsp;
+
+## TLS 1
+
+### Source code
+
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+import sys
+import string
+import random
+import pathlib
+import base64
+import json
+import textwrap
+
+from Crypto.Cipher import AES
+from Crypto.Hash.SHA256 import SHA256Hash
+from Crypto.PublicKey import RSA
+from Crypto.Random import get_random_bytes
+from Crypto.Random.random import getrandbits, randrange
+from Crypto.Util.strxor import strxor
+from Crypto.Util.Padding import pad, unpad
+
+
+flag = open("/flag", "rb").read()
+config = (pathlib.Path(__file__).parent / ".config").read_text()
+level = int(config)
+
+
+def show(name, value, *, b64=True):
+    print(f"{name}: {value}")
+
+
+def show_b64(name, value):
+    show(f"{name} (b64)", base64.b64encode(value).decode())
+
+def show_hex_block(name, value, byte_block_size=16):
+    value_to_show = ""
+
+    for i in range(0, len(value), byte_block_size):
+        value_to_show += f"{value[i:i+byte_block_size].hex()}"
+        value_to_show += " "
+    show(f"{name} (hex)", value_to_show)
+
+
+def show_hex(name, value):
+    show(name, hex(value))
+
+
+def input_(name):
+    try:
+        return input(f"{name}: ")
+    except (KeyboardInterrupt, EOFError):
+        print()
+        exit(0)
+
+
+def input_b64(name):
+    data = input_(f"{name} (b64)")
+    try:
+        return base64.b64decode(data)
+    except base64.binascii.Error:
+        print(f"Failed to decode base64 input: {data!r}", file=sys.stderr)
+        exit(1)
+
+
+def input_hex(name):
+    data = input_(name)
+    try:
+        return int(data, 16)
+    except Exception:
+        print(f"Failed to decode hex input: {data!r}", file=sys.stderr)
+        exit(1)
+
+# ---- snip ----
+
+def level13():
+    """
+    In this challenge you will work with public key certificates.
+    You will be provided with a self-signed root certificate.
+    You will also be provided with the root private key, and must use that to sign a user certificate.
+    """
+    root_key = RSA.generate(2048)
+
+    show_hex("root key d", root_key.d)
+
+    root_certificate = {
+        "name": "root",
+        "key": {
+            "e": root_key.e,
+            "n": root_key.n,
+        },
+        "signer": "root",
+    }
+
+    root_trusted_certificates = {
+        "root": root_certificate,
+    }
+
+    root_certificate_data = json.dumps(root_certificate).encode()
+    root_certificate_hash = SHA256Hash(root_certificate_data).digest()
+    root_certificate_signature = pow(
+        int.from_bytes(root_certificate_hash, "little"),
+        root_key.d,
+        root_key.n
+    ).to_bytes(256, "little")
+
+    show_b64("root certificate", root_certificate_data)
+    show_b64("root certificate signature", root_certificate_signature)
+
+    user_certificate_data = input_b64("user certificate")
+    user_certificate_signature = input_b64("user certificate signature")
+
+    try:
+        user_certificate = json.loads(user_certificate_data)
+    except json.JSONDecodeError:
+        print("Invalid user certificate", file=sys.stderr)
+        exit(1)
+
+    user_name = user_certificate.get("name")
+    if user_name in root_trusted_certificates:
+        print(f"Invalid user certificate name: `{user_name}`", file=sys.stderr)
+        exit(1)
+
+    user_key = user_certificate.get("key", {})
+    if not (isinstance(user_key.get("e"), int) and isinstance(user_key.get("n"), int)):
+        print(f"Invalid user certificate key: `{user_key}`", file=sys.stderr)
+        exit(1)
+
+    if not (user_key["e"] > 2):
+        print("Invalid user certificate key e value (e > 2)", file=sys.stderr)
+        exit(1)
+
+    if not (2**512 < user_key["n"] < 2**1024):
+        print("Invalid user certificate key n value (2**512 < n < 2**1024)", file=sys.stderr)
+        exit(1)
+
+    user_signer = user_certificate.get("signer")
+    if user_signer not in root_trusted_certificates:
+        print(f"Untrusted user certificate signer: `{user_signer}`", file=sys.stderr)
+        exit(1)
+
+    user_signer_key = root_trusted_certificates[user_signer]["key"]
+    user_certificate_hash = SHA256Hash(user_certificate_data).digest()
+    user_certificate_check = pow(
+        int.from_bytes(user_certificate_signature, "little"),
+        user_signer_key["e"],
+        user_signer_key["n"]
+    ).to_bytes(256, "little")[:len(user_certificate_hash)]
+
+    if user_certificate_check != user_certificate_hash:
+        print("Untrusted user certificate: invalid signature", file=sys.stderr)
+        exit(1)
+
+    ciphertext = pow(int.from_bytes(flag, "little"), user_key["e"], user_key["n"]).to_bytes(256, "little")
+    show_b64("secret ciphertext", ciphertext)
+
+# ---- snip ----
+
+def challenge():
+    challenge_level = globals()[f"level{level}"]
+    description = textwrap.dedent(challenge_level.__doc__)
+
+    print("===== Welcome to Cryptography! =====")
+    print("In this series of challenges, you will be working with various cryptographic mechanisms.")
+    print(description)
+    print()
+
+    challenge_level()
+
+
+challenge()
+```
+
+```
+hacker@cryptography~tls-1:~$ /challenge/run 
+===== Welcome to Cryptography! =====
+In this series of challenges, you will be working with various cryptographic mechanisms.
+
+In this challenge you will work with public key certificates.
+You will be provided with a self-signed root certificate.
+You will also be provided with the root private key, and must use that to sign a user certificate.
+
+
+root key d: 0x64b01d74e1b646aeafc9045884eebf0b28b217564a328ef821ddae14e32f16e368317fe20fa85a906561267b16bae5b11ab725da98bd13b6b5d301ccf2c42cd069417f492bde2db76486afc9f0fdf6b1c6147e19973306e533a1020eff9b630b02daa2dbeedf0601ce6891c5dcc5020288d2c2a5e6a9bf716584c0eaded6c05233d6872ccc7b95807e00c221857f94782b4efe318f5d74bffea26025804691c49772dcf2b1574068e44532f69b4b2e07fb66c774d39492da89e274ebd436c2d23a465963c432c6717c4001a8f8d3f4327741491e4b5ac0d3f5d51c09884d58a25048c5b07f332dc4c519ac2e3b4520a2b5b8d5ecf0908ac04a1e9e4b8411c59
+root certificate (b64): eyJuYW1lIjogInJvb3QiLCAia2V5IjogeyJlIjogNjU1MzcsICJuIjogMjQ3NDY1ODU5OTM2Mjg5MTc0Mzc1MDYwNzgwODI3Mjk4NDkwMTcxMDkwMDEzNzUzNjM3NzMxNjY0MjU2ODQ0MTcxNzc4NTg3Mzg3NDc5Nzg5MTQ2NjQyMTkzOTI4NDU4NTk4MjY0MjU2MTM3MjE3MjU2NjA0NTg1MTA2MzEzMzI0Mjk5MzA3MTk1NDQ0NDcxMjcwMDk4MTQxODc0NTg5NTM5ODkwMzQ2NzQ1MTYxNTUwNDk1MzUwOTI2Njc1MzE2MTc2MjYzNjM1OTc2MjUzNjQ5MDU1ODQ3MzgwODgyMTU3OTI4ODU1Njc3MTEyMTAzMzMyODEzNTk0NDI1NTUyODIxMzc1OTkxMDc1OTY4NjAzMDI3NDIzMDg3MDk2NDIxMDg3NDI3MTUzMDAxOTA3NzM0MzEzMzg2Mzg2MzE3MjczODk4MzQ1MDA0MzcyNDM4NDEzMDE5NDk2Njc2NjAwMDI2ODY1Nzk2NzA5ODk1MjUyNTAwMzYyNzg5OTAxMzI2Njc2NTExNzA4NjEwNjMwMTYwMTEwODk5MjMwNTUzMTgxOTY5MDAwMDkyNzkwOTA5MzgwOTM5ODQyMDA3NTUzMjU2NzY1MTEzMjcwNzAyMTUzMzU5ODUwNzEzNjI1MzQwMDgyNjQ3MTUxNjE0ODYyMzA1Njg0MjQ5MDYxNDMwMDMwMTg2ODMxOTkyMjIwODgyMzY3NjM4OTM4MjUxOTkzOTc0NjQyNDM3MjU5MTc0NTIwMTE2NjY0OTQ2MDIxOTY5MTAxOTkzNTM1MDk0ODk0MTE4OTA5ODMzMDEyNjMyMzk0Mzk1MzI0MzN9LCAic2lnbmVyIjogInJvb3QifQ==
+root certificate signature (b64): IBBfpj8a7Px5HQmFMXdXS48j7xLBLK9vGMpDDgJMVjH6fAxPAoEvKcy4mty1JwawssnvW6g2lRSi+bpBdijtd2m5qX+LTdMkug2HTnZA2iftCoRAKy/8tvuCdtYIpHw/6baXOVEFYXTQwjLJoPmqoiLRC/T1xWOWUMBPJZElxcAQus4T8tLy+omoYKykMK3cTeQdCNkDMoqP0Zy2CLukhW3oSCaZKzaUJIl8QQo7SD2l9igrG5L11USQjy/3dhDPlZMXGEIV+McPZJH+VfAixyeVHsl0shzchatqrMgek48/AyNA359OSedSQ8MC8Uigw755zZk35xczHdkmm9V4Pw==
+user certificate (b64): 
+```
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+#!/usr/bin/env python3
+from pwn import *
+import json
+import base64
+from Crypto.Hash import SHA256
+from Crypto.Util.number import getPrime, long_to_bytes
+
+# Set logging level to info to see the progress
+context.log_level = 'info'
+
+# Start the challenge process
+p = process("/challenge/run")
+
+# 1. SCRAPE DATA FROM CHALLENGE
+# Extract the root private key 'd'
+p.recvuntil(b"root key d: ")
+root_d_hex = p.recvline().strip().decode()
+root_d = int(root_d_hex, 16)
+
+# Extract the root certificate to get the modulus 'n'
+p.recvuntil(b"root certificate (b64): ")
+root_cert_b64 = p.recvline().strip().decode()
+root_cert_json = json.loads(base64.b64decode(root_cert_b64))
+root_n = root_cert_json["key"]["n"]
+
+log.info(f"Root Key D intercepted.")
+log.info(f"Root Modulus N intercepted.")
+
+# 2. GENERATE OUR OWN USER RSA KEYPAIR
+# The challenge requires 2^512 < n < 2^1024. 
+log.info("Generating internal RSA keypair for decryptpn...")
+p = getPrime(384)
+q = getPrime(384)
+user_n = p * q
+user_e = 65537
+phi = (p - 1) * (q - 1)
+# Calculate private key d: d = e^-1 mod phi
+user_d = pow(user_e, -1, phi)
+
+# 3. CONSTRUCT FORGED USER CERTIFICATE
+user_certificate = {
+    "name": "gemini_hacker",
+    "key": {"e": user_e, "n": user_n},
+    "signer": "root"
+}
+
+cert_data = json.dumps(user_certificate).encode()
+cert_hash = SHA256.new(cert_data).digest()
+
+# Sign the hash using the root's private key
+# Challenge code uses: int.from_bytes(hash, "little")
+hash_int = int.from_bytes(cert_hash, "little")
+sig_int = pow(hash_int, root_d, root_n)
+sig_bytes = sig_int.to_bytes(256, "little")
+
+# 4. SEND FORGED DATA TO CHALLENGE
+log.info("Sending forged certificate and signature...")
+p.sendlineafter(b"user certificate (b64): ", base64.b64encode(cert_data))
+p.sendlineafter(b"user certificate signature (b64): ", base64.b64encode(sig_bytes))
+
+# 5. CAPTURE AND DECRYPT FLAG
+p.recvuntil(b"secret ciphertext (b64): ")
+cipher_b64 = p.recvline().strip().decode()
+cipher_bytes = base64.b64decode(cipher_b64)
+
+# Decrypt: flag = ciphertext^d mod n
+cipher_int = int.from_bytes(cipher_bytes, "little")
+flag_int = pow(cipher_int, user_d, user_n)
+
+# Reconstruct the string using 'little' endian to fix the reversal
+# and strip the null bytes from the 256-byte buffer.
+flag = flag_int.to_bytes(256, "little").rstrip(b'\x00').decode(errors='ignore')
+
+success(f"FLAG: {flag}")
+
+# Close the process
+p.close()
+```
+
+```
+hacker@cryptography~tls-1:/$ python ~/script.py 
+[+] Starting local process '/challenge/run': pid 1705
+[*] Root Key D intercepted.
+[*] Root Modulus N intercepted.
+[*] Generating internal RSA keypair for decryption...
+[*] Sending forged certificate and signature...
+[+] FLAG: pwn.college{sZ6BF1OklubPZjNhoGnsZnNQWSm.dVDOzMDL4ITM0EzW}
+[*] Stopped process '/challenge/run' (pid 1705)
+```
+
+&nbsp;
+
+## TLS 2
+
+### Source code
+
+```py title="/challenge/run" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+import sys
+import string
+import random
+import pathlib
+import base64
+import json
+import textwrap
+
+from Crypto.Cipher import AES
+from Crypto.Hash.SHA256 import SHA256Hash
+from Crypto.PublicKey import RSA
+from Crypto.Random import get_random_bytes
+from Crypto.Random.random import getrandbits, randrange
+from Crypto.Util.strxor import strxor
+from Crypto.Util.Padding import pad, unpad
+
+
+flag = open("/flag", "rb").read()
+config = (pathlib.Path(__file__).parent / ".config").read_text()
+level = int(config)
+
+
+def show(name, value, *, b64=True):
+    print(f"{name}: {value}")
+
+
+def show_b64(name, value):
+    show(f"{name} (b64)", base64.b64encode(value).decode())
+
+def show_hex_block(name, value, byte_block_size=16):
+    value_to_show = ""
+
+    for i in range(0, len(value), byte_block_size):
+        value_to_show += f"{value[i:i+byte_block_size].hex()}"
+        value_to_show += " "
+    show(f"{name} (hex)", value_to_show)
+
+
+def show_hex(name, value):
+    show(name, hex(value))
+
+
+def input_(name):
+    try:
+        return input(f"{name}: ")
+    except (KeyboardInterrupt, EOFError):
+        print()
+        exit(0)
+
+
+def input_b64(name):
+    data = input_(f"{name} (b64)")
+    try:
+        return base64.b64decode(data)
+    except base64.binascii.Error:
+        print(f"Failed to decode base64 input: {data!r}", file=sys.stderr)
+        exit(1)
+
+
+def input_hex(name):
+    data = input_(name)
+    try:
+        return int(data, 16)
+    except Exception:
+        print(f"Failed to decode hex input: {data!r}", file=sys.stderr)
+        exit(1)
+
+# ---- snip ----
+
+def level14():
+    """
+    In this challenge you will perform a simplified Transport Layer Security (TLS) handshake, acting as the server.
+    You will be provided with Diffie-Hellman parameters, a self-signed root certificate, and the root private key.
+    The client will request to establish a secure channel with a particular name, and initiate a Diffie-Hellman key exchange.
+    The server must complete the key exchange, and derive an AES-128 key from the exchanged secret.
+    Then, using the encrypted channel, the server must supply the requested user certificate, signed by root.
+    Finally, using the encrypted channel, the server must sign the handshake to prove ownership of the private user key.
+    """
+    # 2048-bit MODP Group from RFC3526
+    p = int.from_bytes(bytes.fromhex(
+        "FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1 "
+        "29024E08 8A67CC74 020BBEA6 3B139B22 514A0879 8E3404DD "
+        "EF9519B3 CD3A431B 302B0A6D F25F1437 4FE1356D 6D51C245 "
+        "E485B576 625E7EC6 F44C42E9 A637ED6B 0BFF5CB6 F406B7ED "
+        "EE386BFB 5A899FA5 AE9F2411 7C4B1FE6 49286651 ECE45B3D "
+        "C2007CB8 A163BF05 98DA4836 1C55D39A 69163FA8 FD24CF5F "
+        "83655D23 DCA3AD96 1C62F356 208552BB 9ED52907 7096966D "
+        "670C354E 4ABC9804 F1746C08 CA18217C 32905E46 2E36CE3B "
+        "E39E772C 180E8603 9B2783A2 EC07A28F B5C55DF0 6F4C52C9 "
+        "DE2BCBF6 95581718 3995497C EA956AE5 15D22618 98FA0510 "
+        "15728E5A 8AACAA68 FFFFFFFF FFFFFFFF"
+    ), "big")
+    g = 2
+
+    show_hex("p", p)
+    show_hex("g", g)
+
+    root_key = RSA.generate(2048)
+
+    show_hex("root key d", root_key.d)
+
+    root_certificate = {
+        "name": "root",
+        "key": {
+            "e": root_key.e,
+            "n": root_key.n,
+        },
+        "signer": "root",
+    }
+
+    root_trusted_certificates = {
+        "root": root_certificate,
+    }
+
+    root_certificate_data = json.dumps(root_certificate).encode()
+    root_certificate_hash = SHA256Hash(root_certificate_data).digest()
+    root_certificate_signature = pow(
+        int.from_bytes(root_certificate_hash, "little"),
+        root_key.d,
+        root_key.n
+    ).to_bytes(256, "little")
+
+    show_b64("root certificate", root_certificate_data)
+    show_b64("root certificate signature", root_certificate_signature)
+
+    name = ''.join(random.choices(string.ascii_lowercase, k=16))
+    show("name", name)
+
+    a = getrandbits(2048)
+    A = pow(g, a, p)
+    show_hex("A", A)
+
+    B = input_hex("B")
+    if not (B > 2**1024):
+        print("Invalid B value (B <= 2**1024)", file=sys.stderr)
+        exit(1)
+
+    s = pow(B, a, p)
+    key = SHA256Hash(s.to_bytes(256, "little")).digest()[:16]
+    cipher_encrypt = AES.new(key=key, mode=AES.MODE_CBC, iv=b"\0"*16)
+    cipher_decrypt = AES.new(key=key, mode=AES.MODE_CBC, iv=b"\0"*16)
+
+    def decrypt_input_b64(name):
+        data = input_b64(name)
+        try:
+            return unpad(cipher_decrypt.decrypt(data), cipher_decrypt.block_size)
+        except ValueError as e:
+            print(f"{name}: {e}", file=sys.stderr)
+            exit(1)
+
+    user_certificate_data = decrypt_input_b64("user certificate")
+    user_certificate_signature = decrypt_input_b64("user certificate signature")
+    user_signature = decrypt_input_b64("user signature")
+
+    try:
+        user_certificate = json.loads(user_certificate_data)
+    except json.JSONDecodeError:
+        print("Invalid user certificate", file=sys.stderr)
+        exit(1)
+
+    user_name = user_certificate.get("name")
+    if user_name != name:
+        print(f"Invalid user certificate name: `{user_name}`", file=sys.stderr)
+        exit(1)
+
+    user_key = user_certificate.get("key", {})
+    if not (isinstance(user_key.get("e"), int) and isinstance(user_key.get("n"), int)):
+        print(f"Invalid user certificate key: `{user_key}`", file=sys.stderr)
+        exit(1)
+
+    if not (user_key["e"] > 2):
+        print("Invalid user certificate key e value (e > 2)", file=sys.stderr)
+        exit(1)
+
+    if not (2**512 < user_key["n"] < 2**1024):
+        print("Invalid user certificate key n value (2**512 < n < 2**1024)", file=sys.stderr)
+        exit(1)
+
+    user_signer = user_certificate.get("signer")
+    if user_signer not in root_trusted_certificates:
+        print(f"Untrusted user certificate signer: `{user_signer}`", file=sys.stderr)
+        exit(1)
+
+    user_signer_key = root_trusted_certificates[user_signer]["key"]
+    user_certificate_hash = SHA256Hash(user_certificate_data).digest()
+    user_certificate_check = pow(
+        int.from_bytes(user_certificate_signature, "little"),
+        user_signer_key["e"],
+        user_signer_key["n"]
+    ).to_bytes(256, "little")[:len(user_certificate_hash)]
+
+    if user_certificate_check != user_certificate_hash:
+        print("Untrusted user certificate: invalid signature", file=sys.stderr)
+        exit(1)
+
+    user_signature_data = (
+        name.encode().ljust(256, b"\0") +
+        A.to_bytes(256, "little") +
+        B.to_bytes(256, "little")
+    )
+    user_signature_hash = SHA256Hash(user_signature_data).digest()
+    user_signature_check = pow(
+        int.from_bytes(user_signature, "little"),
+        user_key["e"],
+        user_key["n"]
+    ).to_bytes(256, "little")[:len(user_signature_hash)]
+
+    if user_signature_check != user_signature_hash:
+        print("Untrusted user: invalid signature", file=sys.stderr)
+        exit(1)
+
+    ciphertext = cipher_encrypt.encrypt(pad(flag, cipher_encrypt.block_size))
+    show_b64("secret ciphertext", ciphertext)
+
+# ---- snip ----
+
+def challenge():
+    challenge_level = globals()[f"level{level}"]
+    description = textwrap.dedent(challenge_level.__doc__)
+
+    print("===== Welcome to Cryptography! =====")
+    print("In this series of challenges, you will be working with various cryptographic mechanisms.")
+    print(description)
+    print()
+
+    challenge_level()
+
+
+challenge()
+```
+
+### Exploit
+
+```py title="/~/script.py" showLineNumbers
+#!/usr/bin/env python3
+from pwn import *
+import json
+import base64
+import os
+from Crypto.Hash import SHA256
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+from Crypto.Util.number import getPrime, bytes_to_long
+
+context.log_level = 'info'
+
+io = process("/challenge/run")
+
+# --- 1. SCRAPE INITIAL DATA ---
+io.recvuntil(b"p: ")
+p = int(io.recvline().strip(), 16)
+io.recvuntil(b"g: ")
+g = int(io.recvline().strip(), 16)
+
+io.recvuntil(b"root key d: ")
+root_d = int(io.recvline().strip(), 16)
+
+io.recvuntil(b"root certificate (b64): ")
+root_cert_json = json.loads(base64.b64decode(io.recvline().strip()))
+root_n = root_cert_json["key"]["n"]
+
+io.recvuntil(b"name: ")
+target_name = io.recvline().strip().decode()
+
+io.recvuntil(b"A: ")
+A = int(io.recvline().strip(), 16)
+
+# --- 2. DIFFIE-HELLMAN KEY EXCHANGE ---
+# Generate B such that B > 2**1024
+b = bytes_to_long(os.urandom(256))
+B = pow(g, b, p)
+while B <= 2**1024:
+    b = bytes_to_long(os.urandom(256))
+    B = pow(g, b, p)
+
+io.sendlineafter(b"B: ", hex(B).encode())
+
+# Derive AES Key
+s = pow(A, b, p)
+aes_key = SHA256.new(s.to_bytes(256, "little")).digest()[:16]
+log.info(f"Derived AES Key: {aes_key.hex()}")
+
+# Persistent Cipher Objects to maintain CBC state (IV chaining)
+cipher_enc = AES.new(aes_key, AES.MODE_CBC, iv=b"\0"*16)
+cipher_dec = AES.new(aes_key, AES.MODE_CBC, iv=b"\0"*16)
+
+def send_encrypted(payload):
+    # Padding is done manually, then encrypted. 
+    # The cipher object updates its internal IV automatically for the next call.
+    encrypted = cipher_enc.encrypt(pad(payload, 16))
+    io.sendline(base64.b64encode(encrypted))
+
+# --- 3. CREATE RSA KEY & FORGE CERTIFICATE ---
+user_p, user_q = getPrime(384), getPrime(384)
+user_n = user_p * user_q
+user_e = 65537
+user_d = pow(user_e, -1, (user_p-1)*(user_q-1))
+
+user_cert = {
+    "name": target_name,
+    "key": {"e": user_e, "n": user_n},
+    "signer": "root"
+}
+user_cert_data = json.dumps(user_cert).encode()
+cert_hash = SHA256.new(user_cert_data).digest()
+cert_sig = pow(int.from_bytes(cert_hash, "little"), root_d, root_n).to_bytes(256, "little")
+
+# --- 4. SIGN HANDSHAKE ---
+handshake_data = (
+    target_name.encode().ljust(256, b"\0") +
+    A.to_bytes(256, "little") +
+    B.to_bytes(256, "little")
+)
+h_hash = SHA256.new(handshake_data).digest()
+h_sig = pow(int.from_bytes(h_hash, "little"), user_d, user_n).to_bytes(256, "little")
+
+# --- 5. EXECUTE ENCRYPTED HANDSHAKE ---
+log.info("Sending encrypted handshake...")
+io.recvuntil(b"user certificate (b64): ")
+send_encrypted(user_cert_data)
+
+io.recvuntil(b"user certificate signature (b64): ")
+send_encrypted(cert_sig)
+
+io.recvuntil(b"user signature (b64): ")
+send_encrypted(h_sig)
+
+# --- 6. GET FLAG ---
+io.recvuntil(b"secret ciphertext (b64): ")
+ct_b64 = io.recvline().strip().decode()
+ct_bytes = base64.b64decode(ct_b64)
+
+# Decrypt using the persistent decoder (it also needs to have processed 
+# the previous blocks to have the right IV, but since we are the server here,
+# we just use the fresh cipher_enc's counterpart or a new one with correct IV)
+flag_cipher = AES.new(aes_key, AES.MODE_CBC, iv=b"\0"*16)
+flag = unpad(flag_cipher.decrypt(ct_bytes), 16)
+
+success(f"FLAG: {flag.decode()}")
+```
+
+```
+hacker@cryptography~tls-2:/$ python ~/script.py 
+[+] Starting local process '/challenge/run': pid 3903
+[*] Derived AES Key: c602b018701dd2bff37412d7c8d969bb
+[*] Sending encrypted handshake...
+[+] FLAG: pwn.college{cy4iAXvCyjC0AjHk1bQ7Cx3mKtI.dZDOzMDL4ITM0EzW}
+[*] Stopped process '/challenge/run' (pid 3903)
 ```
