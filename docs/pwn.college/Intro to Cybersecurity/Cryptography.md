@@ -3565,6 +3565,8 @@ hacker@cryptography~aes-cbc-poa-multi-block:/$ python ~/script.py
 DECRYPTED FLAG: pwn.college{s3BeSgy9UkMJLF5j5pgb4aihoE0.dBDN3kDL4ITM0EzW}
 ```
 
+&nbsp;
+
 ## AES-CBC-POA-Encrypt
 
 ### Source code
@@ -4692,13 +4694,15 @@ if command == b"flag":
 
 As the hint suggests, RSA has a mathematical property where the product of two ciphertexts equals the ciphertext of the product:
 
-$$(m_1^d \pmod n) \times (m_2^d \pmod n) \equiv (m_1 \times m_2)^d \pmod n$$
+$$
+(m_{1}^d \pmod n) \times (m_{2}^d \pmod n) \equiv (m_{1} \times m_{2})^d \pmod n
+$$
 
 We can exploit this to "blind" our request:
 
 - Pick a random number $X$.
-- Ask the `/challenge/dispatcher` to sign a message $M_{blind} = (\text{flag} \times X^e) \pmod n$.
-- The Dispatcher signs it, giving us: $S_{blind} = ((\text{flag} \times X^e)^d) \pmod n$.
+- Ask the `/challenge/dispatcher` to sign a message $M_{\text{blind}} = (\text{flag} \times X^e) \pmod n$.
+- The Dispatcher signs it, giving us: $S_{\text{blind}} = ((\text{flag} \times X^e)^d) \pmod n$.
 - Because $(X^e)^d \equiv X \pmod n$, the signature we get back is actually $(\text{flag}^d \times X) \pmod n$.
 - Divide our result by $X$, and you are left with $\text{flag}^d \pmod n$—the valid signature for "flag"!
 
