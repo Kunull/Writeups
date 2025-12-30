@@ -1,6 +1,7 @@
 ---
 custom_edit_url: null
 sidebar_position: 4
+slug: /pwn-college/intro-to-cybersecurity/access-control
 ---
 
 ## level 1

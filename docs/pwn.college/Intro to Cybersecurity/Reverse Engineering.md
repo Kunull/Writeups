@@ -1,6 +1,7 @@
 ---
 custom_edit_url: null
 sidebar_position: 5
+slug: /pwn-college/intro-to-cybersecurity/reverse-engineering
 ---
 
 ## File Formats: Magic Numbers (Python)
