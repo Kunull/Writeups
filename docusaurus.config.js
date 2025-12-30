@@ -7,8 +7,9 @@
 
 
 import {themes as prismThemes} from 'prism-react-renderer';
-const remarkMath = require('remark-math');
-const rehypeKatex = require('rehype-katex');
+// Import math plugins
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
