@@ -1,6 +1,7 @@
 ---
 custom_edit_url: null
 sidebar_position: 3
+slug: /pwn-college/intro-to-cybersecurity/cryptography
 ---
 
 ## XOR
