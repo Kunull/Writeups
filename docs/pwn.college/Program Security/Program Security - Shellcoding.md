@@ -2501,7 +2501,7 @@ pwndbg> info address win
 Symbol "win" is at 0x4022d7 in a file compiled without debugging.
 ```
 
-### Exploit.
+### Exploit
 
 ```py title="~/script.py" showLineNumber
 from pwn import *
@@ -2935,6 +2935,8 @@ Goodbye!
 
 This challenge prints whatever string is pointed to by the `char*` pointer.
 So in order to solve this challenge, we just need to overflow the buffer, and overwrite the `char*` pointer with the address of the flag.
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
