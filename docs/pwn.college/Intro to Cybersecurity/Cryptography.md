@@ -3565,6 +3565,334 @@ hacker@cryptography~aes-cbc-poa-multi-block:/$ python ~/script.py
 DECRYPTED FLAG: pwn.college{s3BeSgy9UkMJLF5j5pgb4aihoE0.dBDN3kDL4ITM0EzW}
 ```
 
+## AES-CBC-POA-Encrypt
+
+### Source code
+
+```py title="/challenge/dispatcher" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+import os
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+from Crypto.Random import get_random_bytes
+
+key = open("/challenge/.key", "rb").read()
+cipher = AES.new(key=key, mode=AES.MODE_CBC)
+ciphertext = cipher.iv + cipher.encrypt(pad(b"sleep", cipher.block_size))
+
+print(f"TASK: {ciphertext.hex()}")
+```
+
+```py title="/challenge/worker" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad
+from Crypto.Random import get_random_bytes
+
+import time
+import sys
+
+key = open("/challenge/.key", "rb").read()
+
+while line := sys.stdin.readline():
+    if not line.startswith("TASK: "):
+        continue
+    data = bytes.fromhex(line.split()[1])
+    iv, ciphertext = data[:16], data[16:]
+
+    cipher = AES.new(key=key, mode=AES.MODE_CBC, iv=iv)
+    try:
+        plaintext = unpad(cipher.decrypt(ciphertext), cipher.block_size).decode('latin1')
+    except ValueError as e:
+        print("Error:", e)
+        continue
+
+    if plaintext == "sleep":
+        print("Sleeping!")
+        time.sleep(1)
+    elif plaintext == "please give me the flag, kind worker process!":
+        print("Victory! Your flag:")
+        print(open("/flag").read())
+    else:
+        print("Unknown command!")
+```
+
+Go through [this](https://shrutipriya.com/blogs/yet-another-guide-to-padding-oracle-attack/) explaination.
+
+```py title="~/script.py" showLineNumbers
+#!/usr/bin/env python3
+from pwn import *
+import os
+
+# Set logging level
+context.log_level = 'error'
+BLOCK_SIZE = 16
+
+def get_intermediate_block(target_block, oracle):
+    """
+    Standard Padding Oracle attack to find the Intermediate State (I)
+    of a specific ciphertext block.
+    """
+    intermediate = [0] * BLOCK_SIZE
+    
+    for pad_val in range(1, BLOCK_SIZE + 1):
+        # Prepare an IV that forces the desired padding
+        prefix = [0] * (BLOCK_SIZE - pad_val)
+        suffix = [intermediate[i] ^ pad_val for i in range(BLOCK_SIZE - pad_val, BLOCK_SIZE)]
+        test_iv = prefix + [0] + suffix[1:] if pad_val > 1 else prefix + [0]
+
+        found = False
+        for candidate in range(256):
+            test_iv[BLOCK_SIZE - pad_val] = candidate
+            
+            if oracle(bytes(test_iv), target_block):
+                # Double check for false positives on first byte
+                if pad_val == 1:
+                    test_iv[BLOCK_SIZE - 2] ^= 1
+                    if not oracle(bytes(test_iv), target_block):
+                        continue
+                
+                intermediate[BLOCK_SIZE - pad_val] = candidate ^ pad_val
+                found = True
+                break
+        
+        if not found:
+            raise Exception(f"Failed to find intermediate byte at pad {pad_val}")
+            
+    return bytes(intermediate)
+
+# 1. Start Worker Process
+worker = process(['/challenge/worker'])
+
+def oracle_wrapper(iv, block):
+    payload = (iv + block).hex()
+    worker.sendline(f"TASK: {payload}")
+    response = worker.readline().decode()
+    return "Error" not in response
+
+# 2. Prepare the target plaintext
+target_plaintext = b"please give me the flag, kind worker process!"
+
+# Manual PKCS#7 Padding
+pad_len = BLOCK_SIZE - (len(target_plaintext) % BLOCK_SIZE)
+padded_pt = target_plaintext + bytes([pad_len] * pad_len)
+
+# Split into blocks
+pt_blocks = [padded_pt[i:i+BLOCK_SIZE] for i in range(0, len(padded_pt), BLOCK_SIZE)]
+
+# 3. Encryption Attack (Working Backwards)
+# Start with a random final block
+current_ciphertext_block = os.urandom(BLOCK_SIZE)
+full_payload = current_ciphertext_block
+
+print(f"[*] Starting encryption of {len(pt_blocks)} blocks...")
+
+for pt_block in reversed(pt_blocks):
+    print(f"[*] Forging block for: {pt_block}")
+    
+    # Find the intermediate state of the current block
+    intermediate = get_intermediate_block(current_ciphertext_block, oracle_wrapper)
+    
+    # Calculate the previous block (which acts as the IV for this one)
+    # IV = Intermediate ^ Plaintext
+    prev_block = bytes(i ^ p for i, p in zip(intermediate, pt_block))
+    
+    # Prepend to our growing ciphertext
+    full_payload = prev_block + full_payload
+    current_ciphertext_block = prev_block
+
+# 4. Execute the Forged Ciphertext
+print("[+] Forgery complete. Sending payload...")
+worker.sendline(f"TASK: {full_payload.hex()}")
+
+# The worker should now output the flag
+while True:
+    line = worker.readline().decode().strip()
+    if line:
+        print(line)
+    if "Victory" in line or not line:
+        # Read the actual flag line
+        print(worker.readline().decode().strip())
+        break
+
+worker.close()
+```
+
+```
+hacker@cryptography~aes-cbc-poa-encrypt:/$ python ~/script.py
+[*] Starting encryption of 3 blocks...
+[*] Forging block for: b'rker process!\x03\x03\x03'
+/home/hacker/script.py:47: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  worker.sendline(f"TASK: {payload}")
+[*] Forging block for: b'he flag, kind wo'
+[*] Forging block for: b'please give me t'
+[+] Forgery complete. Sending payload...
+/home/hacker/script.py:84: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  worker.sendline(f"TASK: {full_payload.hex()}")
+Victory! Your flag:
+pwn.college{USmSYRj-VmwCCCdKX1QWNUyadUE.dFDN3kDL4ITM0EzW}
+```
+
+&nbsp;
+
+## AES-CBC-POA-Encrypt-2
+
+### Source code
+
+```py title="/challenge/worker" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad
+from Crypto.Random import get_random_bytes
+
+import time
+import sys
+
+key = open("/challenge/.key", "rb").read()
+
+while line := sys.stdin.readline():
+    if not line.startswith("TASK: "):
+        continue
+    data = bytes.fromhex(line.split()[1])
+    iv, ciphertext = data[:16], data[16:]
+
+    cipher = AES.new(key=key, mode=AES.MODE_CBC, iv=iv)
+    try:
+        plaintext = unpad(cipher.decrypt(ciphertext), cipher.block_size).decode('latin1')
+    except ValueError as e:
+        print("Error:", e)
+        continue
+
+    if plaintext == "sleep":
+        print("Sleeping!")
+        time.sleep(1)
+    elif plaintext == "please give me the flag, kind worker process!":
+        print("Victory! Your flag:")
+        print(open("/flag").read())
+    else:
+        print("Unknown command!")
+```
+
+Since we did not rely on the `/challenge/dispatcher` in the previous challenge, our script will work in this one as well.
+
+```py title="~/script.py" showLineNumbers
+#!/usr/bin/env python3
+from pwn import *
+import os
+
+# Set logging level
+context.log_level = 'error'
+BLOCK_SIZE = 16
+
+def get_intermediate_block(target_block, oracle):
+    """
+    Standard Padding Oracle attack to find the Intermediate State (I)
+    of a specific ciphertext block.
+    """
+    intermediate = [0] * BLOCK_SIZE
+    
+    for pad_val in range(1, BLOCK_SIZE + 1):
+        # Prepare an IV that forces the desired padding
+        prefix = [0] * (BLOCK_SIZE - pad_val)
+        suffix = [intermediate[i] ^ pad_val for i in range(BLOCK_SIZE - pad_val, BLOCK_SIZE)]
+        test_iv = prefix + [0] + suffix[1:] if pad_val > 1 else prefix + [0]
+
+        found = False
+        for candidate in range(256):
+            test_iv[BLOCK_SIZE - pad_val] = candidate
+            
+            if oracle(bytes(test_iv), target_block):
+                # Double check for false positives on first byte
+                if pad_val == 1:
+                    test_iv[BLOCK_SIZE - 2] ^= 1
+                    if not oracle(bytes(test_iv), target_block):
+                        continue
+                
+                intermediate[BLOCK_SIZE - pad_val] = candidate ^ pad_val
+                found = True
+                break
+        
+        if not found:
+            raise Exception(f"Failed to find intermediate byte at pad {pad_val}")
+            
+    return bytes(intermediate)
+
+# 1. Start Worker Process
+worker = process(['/challenge/worker'])
+
+def oracle_wrapper(iv, block):
+    payload = (iv + block).hex()
+    worker.sendline(f"TASK: {payload}")
+    response = worker.readline().decode()
+    return "Error" not in response
+
+# 2. Prepare the target plaintext
+target_plaintext = b"please give me the flag, kind worker process!"
+
+# Manual PKCS#7 Padding
+pad_len = BLOCK_SIZE - (len(target_plaintext) % BLOCK_SIZE)
+padded_pt = target_plaintext + bytes([pad_len] * pad_len)
+
+# Split into blocks
+pt_blocks = [padded_pt[i:i+BLOCK_SIZE] for i in range(0, len(padded_pt), BLOCK_SIZE)]
+
+# 3. Encryption Attack (Working Backwards)
+# Start with a random final block
+current_ciphertext_block = os.urandom(BLOCK_SIZE)
+full_payload = current_ciphertext_block
+
+print(f"[*] Starting encryption of {len(pt_blocks)} blocks...")
+
+for pt_block in reversed(pt_blocks):
+    print(f"[*] Forging block for: {pt_block}")
+    
+    # Find the intermediate state of the current block
+    intermediate = get_intermediate_block(current_ciphertext_block, oracle_wrapper)
+    
+    # Calculate the previous block (which acts as the IV for this one)
+    # IV = Intermediate ^ Plaintext
+    prev_block = bytes(i ^ p for i, p in zip(intermediate, pt_block))
+    
+    # Prepend to our growing ciphertext
+    full_payload = prev_block + full_payload
+    current_ciphertext_block = prev_block
+
+# 4. Execute the Forged Ciphertext
+print("[+] Forgery complete. Sending payload...")
+worker.sendline(f"TASK: {full_payload.hex()}")
+
+# The worker should now output the flag
+while True:
+    line = worker.readline().decode().strip()
+    if line:
+        print(line)
+    if "Victory" in line or not line:
+        # Read the actual flag line
+        print(worker.readline().decode().strip())
+        break
+
+worker.close()
+```
+
+```
+hacker@cryptography~aes-cbc-poa-encrypt-2:/$ python ~/script.py 
+[*] Starting encryption of 3 blocks...
+[*] Forging block for: b'rker process!\x03\x03\x03'
+/home/hacker/script.py:47: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  worker.sendline(f"TASK: {payload}")
+[*] Forging block for: b'he flag, kind wo'
+[*] Forging block for: b'please give me t'
+[+] Forgery complete. Sending payload...
+/home/hacker/script.py:84: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  worker.sendline(f"TASK: {full_payload.hex()}")
+Victory! Your flag:
+pwn.college{YwEFkr3zdczPL_Gbszd9TskEWvl.QX0IzN4EDL4ITM0EzW}
+```
+
 &nbsp;
 
 ## DHKE
