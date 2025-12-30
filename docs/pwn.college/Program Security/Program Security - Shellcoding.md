@@ -1,6 +1,7 @@
 ---
 custom_edit_url: null
 sidebar_position: 1
+slug: /pwn-college/program-security/program-security-shellcoding
 ---
 
 ## ello ackers!
@@ -2471,23 +2472,25 @@ However, the vulnerability here is an [Integer Overflow](https://en.wikipedia.or
 
 We need to provide two numbers whose mathematical product is very large, but when truncated to 32 bits, the result is between `0` and `0x62` (98 in decimal).
 
-<!-- To find these numbers, we look for a product that equals:
+To find these numbers, we look for a product that equals:
 
-$$(2^{32} \cdot n) + \text{remainder}$$
+$$
+(2^{32} \cdot n) + \text{remainder}
+$$
 
 Where $n$ is any integer (usually 1 is easiest) and $\text{remainder} \le 98$.
 
 Possible value:
-- 65536 ($n = 1$, $\text{remainder} = 0$)
+- $65536$ ($n = 1$, $\text{remainder} = 0$)
 
-When 65536 is multiplied with 65536, the result is $4,294,967,296$, whose hexadecimal representation is as follows:
+When $65536$ is multiplied with $65536$, the result is $4,294,967,296$, whose hexadecimal representation is as follows:
 
-```
-64:         32:
-0x100000000 0x00000000
-```
+| Register Size | Hexadecimal Value |
+| :--- | :--- |
+| **64-bit** | `0x100000000` |
+| **32-bit (eax)** | `0x00000000` |
 
-As we can see, even if the result is a huge number ($4,294,967,296$), the value within `eax` is $0$. -->
+As we can see, even if the result is a huge number ($4,294,967,296$), the value within `eax` is $0$.
 
 Before we craft our exploit, we need the address of `win()`.
 
