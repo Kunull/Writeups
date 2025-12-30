@@ -3333,8 +3333,6 @@ pwn.college{MeWc9ChLvjW8FhGUVQm-MFmVW7z.QXxITN2EDL4ITM0EzW}
 
 <img alt="image" src="https://github.com/user-attachments/assets/e5d67d5f-4187-4c0b-90be-e2f808a35102" />
 
-![image](https://github.com/user-attachments/assets/05c4947a-f48f-4982-aa69-6de50094baa4?raw=1)
-
 ```c showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
