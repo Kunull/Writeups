@@ -4636,6 +4636,134 @@ hacker@cryptography~rsa-4:/$ python ~/script.py
 
 &nbsp;
 
+## RSA Signatures
+
+### Source code
+
+```py title="/challenge/dispatcher" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+import sys
+
+from base64 import b64encode, b64decode
+
+n = int(open("/challenge/key-n").read(), 16)
+d = int(open("/challenge/key-d").read(), 16)
+
+if len(sys.argv) < 2:
+    print(f"Usage: {sys.argv[0]} [command-b64]")
+    sys.exit(1)
+
+command = b64decode(sys.argv[1].strip("\0"))
+
+if b"flag" in command:
+    print(f"Command contains 'flag'")
+    sys.exit(1)
+
+signature = pow(int.from_bytes(command, "little"), d, n).to_bytes(256, "little")
+print(f"Signed command (b64): {b64encode(signature).decode()}")
+```
+
+```py title="/challenge/worker" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+import sys
+
+from base64 import b64decode
+
+n = int(open("/challenge/key-n").read(), 16)
+e = int(open("/challenge/key-e").read(), 16)
+
+if len(sys.argv) < 2:
+    print(f"Usage: {sys.argv[0]} [signature-b64]")
+    sys.exit(1)
+
+signature = b64decode(sys.argv[1])
+c = int.from_bytes(signature, "little")
+assert c < n, "Message too big!"
+command = pow(c, e, n).to_bytes(256, "little").rstrip(b"\x00")
+
+print(f"Received signed command: {command}")
+if command == b"flag":
+    print(open("/flag").read())
+```
+
+### RSA Homomorphism
+
+As the hint suggests, RSA has a mathematical property where the product of two ciphertexts equals the ciphertext of the product:
+
+$$(m_1^d \pmod n) \times (m_2^d \pmod n) \equiv (m_1 \times m_2)^d \pmod n$$
+
+We can exploit this to "blind" our request:
+
+- Pick a random number $X$.
+- Ask the `/challenge/dispatcher` to sign a message $M_{blind} = (\text{flag} \times X^e) \pmod n$.
+- The Dispatcher signs it, giving us: $S_{blind} = ((\text{flag} \times X^e)^d) \pmod n$.
+- Because $(X^e)^d \equiv X \pmod n$, the signature we get back is actually $(\text{flag}^d \times X) \pmod n$.
+- Divide our result by $X$, and you are left with $\text{flag}^d \pmod n$—the valid signature for "flag"!
+
+```py title="~/script.py" showLineNumbers
+#!/usr/bin/env python3
+from pwn import *
+from base64 import b64encode, b64decode
+import random
+
+# 1. Setup and Public Key retrieval
+n = int(open("/challenge/key-n").read(), 16)
+e = int(open("/challenge/key-e").read(), 16)
+
+target_bytes = b"flag"
+target_int = int.from_bytes(target_bytes, "little")
+
+# 2. Pick a random blinding factor 'r'
+# It must be coprime to n, but for a large RSA modulus, 
+# a random number is almost certainly coprime.
+r = random.randint(2, n - 1)
+
+# 3. Blind the target: M' = (M * r^e) % n
+# We use pow(r, e, n) for efficiency
+blinded_message_int = (target_int * pow(r, e, n)) % n
+
+# 4. Request the signature for the blinded message
+print(f"[*] Blinding with r={r}")
+msg_bytes = blinded_message_int.to_bytes(256, "little")
+msg_b64 = b64encode(msg_bytes).decode()
+
+p = process(["/challenge/dispatcher", msg_b64])
+output = p.recvall().decode()
+sig_blinded_b64 = re.search(r"Signed command \(b64\): (.*)", output).group(1)
+sig_blinded_int = int.from_bytes(b64decode(sig_blinded_b64), "little")
+
+# 5. Unblind the signature: S = (S' * r^-1) % n
+# Because S' = (M * r^e)^d = M^d * r
+r_inv = pow(r, -1, n)
+final_sig_int = (sig_blinded_int * r_inv) % n
+
+# 6. Verify and send to worker
+final_sig_bytes = final_sig_int.to_bytes(256, "little")
+final_sig_b64 = b64encode(final_sig_bytes).decode()
+
+print("[+] Unblinded signature recovered. Sending to worker...")
+p_worker = process(["/challenge/worker", final_sig_b64])
+print(p_worker.recvall().decode())
+```
+
+```
+hacker@cryptography~rsa-signatures:~$ python ~/script.py 
+[*] Blinding with r=2733147475355304577740047265346531921686815147276109249642624509373967034379998934018736423171369000766854545304886724868083868894636913166464436112794913758257896876704052233827438956601369460655316971990390337752677345443282467711603151836561877060623666003860298522214103486241076285293218144518746609007326164357352987910876932343355800726074475786723694831177843102568721646569811578465448317192905626832981811189988460845268585585278865014859435287178098732903566403509022919288613275500660202153652018310743653789011017358801181038217431284323674732283818816192407142879000835448221706805381645875276397400831
+[+] Starting local process '/challenge/dispatcher': pid 5542
+[+] Receiving all data: Done (367B)
+[*] Process '/challenge/dispatcher' stopped with exit code 0 (pid 5542)
+[+] Unblinded signature recovered. Sending to worker...
+[+] Starting local process '/challenge/worker': pid 5545
+[+] Receiving all data: Done (92B)
+[*] Process '/challenge/worker' stopped with exit code 0 (pid 5545)
+Received signed command: b'flag'
+pwn.college{4yVnfpEiGvmUvZkiOIREhTUetZL.dRDN3kDL4ITM0EzW}
+```
+
+&nbsp;
+
 ## SHA 1
 ### Source code
 ```py title="/challenge/run" showLineNumbers
