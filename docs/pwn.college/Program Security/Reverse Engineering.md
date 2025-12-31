@@ -766,7 +766,7 @@ $
 
 ### `main()`
 
-After a but of analyzing and adding helpful comments, we get the following:
+After a bit of analyzing and adding helpful comments, we get the following:
 
 <img alt="image" src="https://github.com/user-attachments/assets/5909cff7-5316-4723-9865-e0faa88c5faf" />
 
