@@ -1167,7 +1167,7 @@ $
 
 &nbsp;
 
-## Montrous Mangler (Easy)
+## Monstrous Mangler (Hard)
 
 ### `main()`
 
@@ -1336,8 +1336,6 @@ void __fastcall __noreturn main(int a1, char **a2, char **a3)
 Let's look at the data pointed to by `&key`.
 
 <img alt="image" src="https://github.com/user-attachments/assets/cda7cb67-781f-48b2-a8fd-144d0b5b09dc" />
-
-
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
