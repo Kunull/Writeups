@@ -924,3 +924,207 @@ pwn.college{EU2Oii1r9XBUSKr2e7MWoZf_bvk.0lM2IDL4ITM0EzW}
 [*] Got EOF while reading in interactive
 $  
 ```
+
+&nbsp;
+
+## Monstrous Mangler (Easy)
+
+```
+hacker@reverse-engineering~monstrous-mangler-easy:~$ /challenge/monstrous-mangler-easy 
+###
+### Welcome to /challenge/monstrous-mangler-easy!
+###
+
+This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
+are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
+Providing the correct license key will net you the flag!
+
+Ready to receive your license key!
+
+abcde
+Initial input:
+
+	61 62 63 64 65 0a 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+
+This challenge is now mangling your input using the `reverse` mangler.
+
+This mangled your input, resulting in:
+
+	00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 0a 65 64 63 62 61 
+
+This challenge is now mangling your input using the `swap` mangler for indexes `6` and `31`.
+
+This mangled your input, resulting in:
+
+	00 00 00 00 00 00 0a 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 65 64 63 62 61 
+
+This challenge is now mangling your input using the `reverse` mangler.
+
+This mangled your input, resulting in:
+
+	61 62 63 64 65 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 0a 00 00 00 00 00 00 
+
+This challenge is now mangling your input using the `swap` mangler for indexes `3` and `24`.
+
+This mangled your input, resulting in:
+
+	61 62 63 00 65 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 64 00 00 00 00 00 0a 00 00 00 00 00 00 
+
+This challenge is now mangling your input using the `swap` mangler for indexes `8` and `23`.
+
+This mangled your input, resulting in:
+
+	61 62 63 00 65 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 64 00 00 00 00 00 0a 00 00 00 00 00 00 
+
+This challenge is now mangling your input using the `sort` mangler.
+
+This mangled your input, resulting in:
+
+	00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 0a 61 62 63 64 65 
+
+This challenge is now mangling your input using the `xor` mangler with key `0x19`
+
+This mangled your input, resulting in:
+
+	19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 13 78 7b 7a 7d 7c 
+
+The mangling is done! The resulting bytes will be used for the final comparison.
+
+Final result of mangling input:
+
+	19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 19 13 78 7b 7a 7d 7c 
+
+Expected result:
+
+	78 78 78 78 7a 7c 7f 7f 71 71 73 73 73 75 75 74 74 77 76 76 69 68 6a 6d 6c 6c 6c 6f 6e 6e 6e 6e 61 61 60 60 63 
+
+Checking the received license key!
+
+Wrong! No flag for you!
+```
+
+```py title=~"~/script.py" showLineNumbers
+from pwn import *
+
+# 1. The 'Expected result' bytes from your program output
+expected_result = [
+    0x78, 0x78, 0x78, 0x78, 0x7a, 0x7c, 0x7f, 0x7f, 0x71, 0x71, 0x73, 0x73, 0x73, 
+    0x75, 0x75, 0x74, 0x74, 0x77, 0x76, 0x76, 0x69, 0x68, 0x6a, 0x6d, 0x6c, 0x6c, 
+    0x6c, 0x6f, 0x6e, 0x6e, 0x6e, 0x6e, 0x61, 0x61, 0x60, 0x60, 0x63
+]
+
+# Work on a mutable list
+current = list(expected_result)
+
+# Step 7: XOR with 0x19
+current = [b ^ 0x19 for b in current]
+
+# Step 6: Sort
+# Note: Because the 'sort' happened last in the forward chain, it's impossible to know the exact order BEFORE the sort. 
+# HOWEVER, the swaps and reverses prior to the sort just moved the positions around. The license key is likely just the characters resulting from the XOR, potentially in a specific order.
+
+# Step 5: Swap (8, 23)
+current[8], current[23] = current[23], current[8]
+
+# Step 4: Swap (3, 24)
+current[3], current[24] = current[24], current[3]
+
+# Step 3: Reverse
+current.reverse()
+
+# Step 2: Swap (6, 31)
+current[6], current[31] = current[31], current[6]
+
+# Step 1: Reverse
+current.reverse()
+
+# Convert to string (ignoring null bytes at the end)
+input_key = ""
+for b in current:
+    if b == 0: break # Stop at null terminator
+    input_key += chr(b)
+
+# print(f"Calculated License Key: {license_key}")
+
+# Connect and send
+p = process("/challenge/monstrous-mangler-easy")
+p.recvuntil(b"Ready to receive your license key!")
+p.send(input_key)
+p.interactive()
+```
+
+```
+hacker@reverse-engineering~monstrous-mangler-easy:~$ python ~/script.py 
+[+] Starting local process '/challenge/monstrous-mangler-easy': pid 402
+/home/hacker/script.py:51: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.send(license_key)
+[*] Switching to interactive mode
+
+
+[*] Process '/challenge/monstrous-mangler-easy' stopped with exit code 0 (pid 402)
+Initial input:
+
+	61 61 61 75 63 77 66 66 74 68 6a 6a 6a 6c 6c 6d 6d 6e 6f 6f 70 71 73 68 61 75 75 76 77 77 65 77 78 78 79 79 7a 
+
+This challenge is now mangling your input using the `reverse` mangler.
+
+This mangled your input, resulting in:
+
+	7a 79 79 78 78 77 65 77 77 76 75 75 61 68 73 71 70 6f 6f 6e 6d 6d 6c 6c 6a 6a 6a 68 74 66 66 77 63 75 61 61 61 
+
+This challenge is now mangling your input using the `swap` mangler for indexes `6` and `31`.
+
+This mangled your input, resulting in:
+
+	7a 79 79 78 78 77 77 77 77 76 75 75 61 68 73 71 70 6f 6f 6e 6d 6d 6c 6c 6a 6a 6a 68 74 66 66 65 63 75 61 61 61 
+
+This challenge is now mangling your input using the `reverse` mangler.
+
+This mangled your input, resulting in:
+
+	61 61 61 75 63 65 66 66 74 68 6a 6a 6a 6c 6c 6d 6d 6e 6f 6f 70 71 73 68 61 75 75 76 77 77 77 77 78 78 79 79 7a 
+
+This challenge is now mangling your input using the `swap` mangler for indexes `3` and `24`.
+
+This mangled your input, resulting in:
+
+	61 61 61 61 63 65 66 66 74 68 6a 6a 6a 6c 6c 6d 6d 6e 6f 6f 70 71 73 68 75 75 75 76 77 77 77 77 78 78 79 79 7a 
+
+This challenge is now mangling your input using the `swap` mangler for indexes `8` and `23`.
+
+This mangled your input, resulting in:
+
+	61 61 61 61 63 65 66 66 68 68 6a 6a 6a 6c 6c 6d 6d 6e 6f 6f 70 71 73 74 75 75 75 76 77 77 77 77 78 78 79 79 7a 
+
+This challenge is now mangling your input using the `sort` mangler.
+
+This mangled your input, resulting in:
+
+	61 61 61 61 63 65 66 66 68 68 6a 6a 6a 6c 6c 6d 6d 6e 6f 6f 70 71 73 74 75 75 75 76 77 77 77 77 78 78 79 79 7a 
+
+This challenge is now mangling your input using the `xor` mangler with key `0x19`
+
+This mangled your input, resulting in:
+
+	78 78 78 78 7a 7c 7f 7f 71 71 73 73 73 75 75 74 74 77 76 76 69 68 6a 6d 6c 6c 6c 6f 6e 6e 6e 6e 61 61 60 60 63 
+
+The mangling is done! The resulting bytes will be used for the final comparison.
+
+Final result of mangling input:
+
+	78 78 78 78 7a 7c 7f 7f 71 71 73 73 73 75 75 74 74 77 76 76 69 68 6a 6d 6c 6c 6c 6f 6e 6e 6e 6e 61 61 60 60 63 
+
+Expected result:
+
+	78 78 78 78 7a 7c 7f 7f 71 71 73 73 73 75 75 74 74 77 76 76 69 68 6a 6d 6c 6c 6c 6f 6e 6e 6e 6e 61 61 60 60 63 
+
+Checking the received license key!
+
+You win! Here is your flag:
+pwn.college{MzyPrzGp16a6O881RwlLr4_rVcZ.0VN2IDL4ITM0EzW}
+
+
+[*] Got EOF while reading in interactive
+$ 
+```
