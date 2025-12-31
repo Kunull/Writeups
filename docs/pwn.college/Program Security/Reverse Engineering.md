@@ -318,13 +318,9 @@ Because `v5` starts at `rsp+0x26` and `buf` starts at `rsp+0x22`, `v5` sits imme
 
 As a result, looking at the following snippet:
 ```c showLineNumbers
-# ---- snip ----
-
   v3 = BYTE2(buf);
   BYTE2(buf) = v5;
   LOBYTE(v5) = v3;
-
-# ---- snip ----
 ```
 
 We can tell that the 3rb byte is being swapped with the fifth one.
@@ -353,4 +349,137 @@ Checking the received license key!
 
 You win! Here is your flag:
 pwn.college{k2wFcD8pVItlUNHiR6sqAR9VQhY.0FN1IDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Bit Bender
+
+```
+hacker@reverse-engineering~bit-bender:~$ /challenge/bit-bender 
+###
+### Welcome to /challenge/bit-bender!
+###
+
+Enter a 16-byte key:
+abcdabcdabcdabcd
+Incorrect!
+```
+
+### `main()`
+
+<img alt="image" src="https://github.com/user-attachments/assets/3a845cd5-a542-4cf8-8293-010eee2b9ea0" />
+
+```c showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  unsigned __int64 i; // [rsp+28h] [rbp-58h]
+  size_t len_user_input; // [rsp+38h] [rbp-48h]
+  char key[17]; // [rsp+40h] [rbp-40h] BYREF
+  char ptr_1; // [rsp+51h] [rbp-2Fh]
+  __int16 ptr_2; // [rsp+52h] [rbp-2Eh]
+  int ptr_4; // [rsp+54h] [rbp-2Ch]
+  __int64 v10; // [rsp+58h] [rbp-28h]
+  __int64 s1[4]; // [rsp+60h] [rbp-20h] BYREF
+
+  s1[3] = __readfsqword(0x28u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(stdout, 0LL, 2, 0LL);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  strcpy(key, "ONxfgkBdFXMPPspQ");
+  ptr_1 = 0;
+  ptr_2 = 0;
+  ptr_4 = 0;
+  v10 = 0LL;
+  s1[0] = 0LL;
+  s1[1] = 0LL;
+  printf("Enter a %d-byte key:\n", 16LL);
+  len_user_input = fread(&key[16], 1uLL, 16uLL, stdin);
+  if ( len_user_input == 16 )
+  {
+    for ( i = 0LL; i < 16; ++i )
+      *((_BYTE *)s1 + i) = ((unsigned __int8)(key[i + 16] + 107) >> 5) | (8 * (key[i + 16] + 107));
+    if ( !memcmp(s1, key, 16uLL) )
+    {
+      puts("Correct!");
+      win();
+    }
+    else
+    {
+      puts("Incorrect!");
+    }
+    return 0;
+  }
+  else
+  {
+    printf("Read %zu bytes, expected %zu.\n", len_user_input, 16uLL);
+    return 0;
+  }
+}
+```
+
+The program defines a `key` using `strcpy`.
+It then reads 16-byte of user input at the `key[16]` right after the key.
+
+Let's look at the operations it performs on the user input:
+
+- `key[i + 16] + 107`: It adds the constant `107` (or `0x6B` in hex) to a byte at offset `i` in the user provided input.
+- `(unsigned __int8)`: It casts the result to an 8-bit unsigned integer. This ensures that if the addition exceeds 255, it wraps around (modulo 256).
+- `(X >> 5)`: This takes the top 3 bits and moves them to the bottom.
+- `(8 * X)`: This shifts the bits left by 3, moving the bottom 5 bits to the top.
+- The `|` (OR) operator: This combines the results of the shifts, performing a 3-bit Left Rotation.
+- `*((_BYTE *)s1 + i)`: This is simply array indexing. It is equivalent to `s1[i]`. It stores the final scrambled byte into the `i`-th position of the destination buffer `s1`.
+
+In plain English, this code:
+- Takes a byte from the key.
+- Adds 107 to it.
+- Rotates the bits 3 positions to the left.
+- Saves the result into s1.
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+target = "ONxfgkBdFXMPPspQ"
+input_key = ""
+
+for char in target:
+    # Get the ASCII value
+    y = ord(char)
+    
+    # 1. Reverse the Rotation: Rotate Right by 3 bits
+    # (y >> 3) handles the main shift
+    # (y << 5) & 0xFF wraps the bits that fell off the right back to the left
+    rotated_right = ((y >> 3) | (y << 5)) & 0xFF
+    
+    # 2. Reverse the Addition: Subtract 107
+    original_byte = (rotated_right - 107) % 256
+    
+    input_key += chr(original_byte)
+
+p = process("/challenge/bit-bender")
+p.recvuntil("Enter a 16-byte key:")
+p.send(input_key)
+p.interactive()
+```
+
+```
+hacker@reverse-engineering~bit-bender:~$ nano ~/script.py
+[+] Starting local process '/challenge/bit-bender': pid 1074
+/home/hacker/script.py:23: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.recvuntil("Enter a 16-byte key:")
+/home/hacker/script.py:24: BytesWarning: Text is not bytes; assuming ISO-8859-1, no guarantees. See https://docs.pwntools.com/#bytes
+  p.send(input_key)
+[*] Switching to interactive mode
+
+[*] Process '/challenge/bit-bender' stopped with exit code 0 (pid 1074)
+Correct!
+You win! Here is your flag:
+pwn.college{gxGqHwwzUpOv1V9D4d9lx40t1_U.QX4kDM5EDL4ITM0EzW}
+
+
+[*] Got EOF while reading in interactive
+$  
 ```
