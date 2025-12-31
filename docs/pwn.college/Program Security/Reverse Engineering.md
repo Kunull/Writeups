@@ -678,6 +678,8 @@ Wrong! No flag for you!
 We simply have to reverse the order of mangling performed by the challenge program.
 
 ```py title="~/script.py" showLineNumbers
+from pwn import *
+
 # The 'Expected result' bytes from our terminal output
 expected_hex = [
     0x65, 0x67, 0x68, 0x6c, 0x6b, 0x68, 0x6c, 0x6c, 
@@ -691,35 +693,31 @@ expected_hex[3], expected_hex[5] = expected_hex[5], expected_hex[3]
 # Step 2: Convert to characters
 # Since the 'sort' and 'reverse' manglers only move characters around 
 # without changing their value, we just need the characters themselves.
-final_chars = [chr(b) for b in expected_hex]
+input_chars = [chr(b) for b in expected_hex]
 
 # Because 'sort' was used, the actual order of our input doesn't 
 # matter as much as the content, BUT to be safe, we reverse the 
 # list to account for the 'reverse' mangler.
-final_chars.reverse()
+input_chars.reverse()
 
-print("".join(final_chars))
+input_key = "".join(input_chars)
+p = process("/challenge/meager-mangler-easy")
+p.recvuntil("Ready to receive your license key!")
+p.send(input_key)
+p.interactive()
 ```
 
 ```
 hacker@reverse-engineering~meager-mangler-easy:~$ python ~/script.py 
-urqonmmlllkhhge
-```
+[+] Starting local process '/challenge/meager-mangler-easy': pid 518
+/home/hacker/script.py:25: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.recvuntil("Ready to receive your license key!")
+/home/hacker/script.py:26: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.send(input_key)
+[*] Switching to interactive mode
 
-```
-hacker@reverse-engineering~meager-mangler-easy:~$ /challenge/meager-mangler-easy 
-###
-### Welcome to /challenge/meager-mangler-easy!
-###
 
-This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
-are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
-different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
-Providing the correct license key will net you the flag!
-
-Ready to receive your license key!
-
-urqonmmlllkhhge
+[*] Process '/challenge/meager-mangler-easy' stopped with exit code 0 (pid 518)
 Initial input:
 
 	75 72 71 6f 6e 6d 6d 6c 6c 6c 6b 68 68 67 65 
@@ -756,4 +754,173 @@ Checking the received license key!
 
 You win! Here is your flag:
 pwn.college{MzR69-0xiE3RHabqpkarx11Mhw4.0VM2IDL4ITM0EzW}
+
+
+[*] Got EOF while reading in interactive
+$  
+```
+
+&nbsp;
+
+## Meager Mangler (Hard)
+
+### `main()`
+
+After a but of analyzing and adding helpful comments, we get the following:
+
+<img alt="image" src="https://github.com/user-attachments/assets/5909cff7-5316-4723-9865-e0faa88c5faf" />
+
+```c showLineNumbers
+void __fastcall __noreturn main(int a1, char **a2, char **a3)
+{
+  int modulo_3; // eax
+  char v4; // [rsp+2Ch] [rbp-34h]
+  char v5; // [rsp+2Eh] [rbp-32h]
+  int i; // [rsp+30h] [rbp-30h]
+  int j; // [rsp+34h] [rbp-2Ch]
+  int k; // [rsp+38h] [rbp-28h]
+  int m; // [rsp+3Ch] [rbp-24h]
+  __int64 buf[2]; // [rsp+40h] [rbp-20h] BYREF
+  __int16 v11; // [rsp+50h] [rbp-10h]
+  char v12; // [rsp+52h] [rbp-Eh]
+  unsigned __int64 v13; // [rsp+58h] [rbp-8h]
+
+  v13 = __readfsqword(0x28u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(stdout, 0LL, 2, 0LL);
+  puts("###");
+  printf("### Welcome to %s!\n", *a2);
+  puts("###");
+  putchar(10);
+  puts(
+    "This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you");
+  puts("are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely");
+  puts(
+    "different operations on that input! You must figure out (by reverse engineering this program) what that license key is.");
+  puts("Providing the correct license key will net you the flag!\n");
+  buf[0] = 0LL;
+  buf[1] = 0LL;
+  v11 = 0;
+  v12 = 0;
+  puts("Ready to receive your license key!\n");
+  read(0, buf, 18uLL);
+  // Perform different bitwise XOR operation for each byte in a set of 3, and repeat
+  for ( i = 0; i <= 17; ++i )
+  {
+    modulo_3 = i % 3;
+    if ( i % 3 == 2 )
+    {
+      // XOR 3rd byte in a set of 3 with 173
+      *((_BYTE *)buf + i) ^= 173u;
+    }
+    else if ( modulo_3 <= 2 )
+    {
+      if ( modulo_3 )
+      {
+        if ( modulo_3 == 1 )
+          // XOR 2nd byte in a set of 3 with 146
+          *((_BYTE *)buf + i) ^= 146u;
+      }
+      else
+      {
+        // XOR 1st byte in a set of 3 with 218
+        *((_BYTE *)buf + i) ^= 218u;
+      }
+    }
+  }
+  // Reverse the string
+  for ( j = 0; j <= 8; ++j )
+  {
+    v5 = *((_BYTE *)buf + j);                   // Move jth byte to a tmp variable
+    *((_BYTE *)buf + j) = *((_BYTE *)buf + 17 - j);// Replace the jth byte with the (17-j)th byte
+    *((_BYTE *)buf + 17 - j) = v5;              // Replace the (17-j)th byte with the byte in the tmp variable
+  }
+  // Perform bubble sort
+  for ( k = 0; k <= 16; ++k )
+  {
+    // For each value of k, execute this loop, pushing the largest byte to the end
+    for ( m = 0; m < 17 - k; ++m )
+    {
+      // Compare if current byte is greater than next byte
+      if ( *((_BYTE *)buf + m) > *((_BYTE *)buf + m + 1) )
+      {
+        v4 = *((_BYTE *)buf + m);               // Move mth byte to a tmp variable
+        *((_BYTE *)buf + m) = *((_BYTE *)buf + m + 1);// Replace the mth byte with the (m+1)th byte
+        *((_BYTE *)buf + m + 1) = v4;           // Replace the (m+1)th byte with the byte in the tmp variable
+      }
+    }
+  }
+  puts("Checking the received license key!\n");
+  if ( !memcmp(buf, &key, 18uLL) )
+  {
+    sub_12A9();
+    exit(0);
+  }
+  puts("Wrong! No flag for you!");
+  exit(1);
+}
+```
+
+Finally, let's look at the data pointed to by `&key`.
+
+<img alt="image" src="https://github.com/user-attachments/assets/ff5b949c-5fa5-4bcc-afe7-287540b55058" />
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+# 1. The 'key' bytes from your IDA screenshot
+target_key = [
+    0xA0, 0xAC, 0xB4, 0xB5, 0xB7, 0xB7, 0xC1, 0xC1, 0xC6, 
+    0xCB, 0xD9, 0xDC, 0xE3, 0xE5, 0xE7, 0xE8, 0xEB, 0xFB
+]
+
+# 2. The XOR keys used in the modulo 3 loop
+xor_keys = [218, 146, 173]
+
+# Because the sort happened last, we don't know the original index (i).
+# We need to find which character C, when XORed with xor_keys[i % 3], 
+# results in one of the values in target_key.
+
+input_chars = []
+
+# We will try to map each target byte back to a likely original character.
+# Since XOR is its own inverse: (input ^ key) = target  => (target ^ key) = input
+for i in range(18):
+    # The program expects input[i] ^ xor_keys[i % 3] == target[some_index]
+    # But since it's sorted, we can try to "unsort" it by matching keys.
+    # For a license key, we'll try to find a combination that looks like text.
+    
+    # We can reconstruct the original by applying the XOR to the target 
+    # and seeing what we get.
+    val = target_key[i] ^ xor_keys[i % 3]
+    input_chars.append(chr(val))
+
+# print("Potential License Key: " + "".join(input_chars))
+input_key = "".join(input_chars)
+
+p = process("/challenge/meager-mangler-hard")
+p.recvuntil("Ready to receive your license key!")
+p.send(input_key)
+p.interactive()
+```
+
+```
+hacker@reverse-engineering~meager-mangler-hard:~$ python ~/script.py 
+[+] Starting local process '/challenge/meager-mangler-hard': pid 418
+/home/hacker/script.py:35: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.recvuntil("Ready to receive your license key!")
+/home/hacker/script.py:36: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.send(input_key)
+[*] Switching to interactive mode
+
+
+[*] Process '/challenge/meager-mangler-hard' stopped with exit code 0 (pid 418)
+Checking the received license key!
+
+You win! Here is your flag:
+pwn.college{EU2Oii1r9XBUSKr2e7MWoZf_bvk.0lM2IDL4ITM0EzW}
+
+
+[*] Got EOF while reading in interactive
+$  
 ```
