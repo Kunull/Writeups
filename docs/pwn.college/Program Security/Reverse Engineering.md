@@ -619,3 +619,141 @@ pwn.college{kX14bj3XjycJZjbBpmGW8TA2NdL.QX5kDM5EDL4ITM0EzW}
 [*] Got EOF while reading in interactive
 $  
 ```
+
+&nbsp;
+
+## Meager Mangler (Easy)
+
+```
+hacker@reverse-engineering~meager-mangler-easy:~$ /challenge/meager-mangler-easy 
+###
+### Welcome to /challenge/meager-mangler-easy!
+###
+
+This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
+are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
+Providing the correct license key will net you the flag!
+
+Ready to receive your license key!
+
+abcde
+Initial input:
+
+	61 62 63 64 65 0a 00 00 00 00 00 00 00 00 00 
+
+This challenge is now mangling your input using the `reverse` mangler.
+
+This mangled your input, resulting in:
+
+	00 00 00 00 00 00 00 00 00 0a 65 64 63 62 61 
+
+This challenge is now mangling your input using the `sort` mangler.
+
+This mangled your input, resulting in:
+
+	00 00 00 00 00 00 00 00 00 0a 61 62 63 64 65 
+
+This challenge is now mangling your input using the `swap` mangler for indexes `3` and `5`.
+
+This mangled your input, resulting in:
+
+	00 00 00 00 00 00 00 00 00 0a 61 62 63 64 65 
+
+The mangling is done! The resulting bytes will be used for the final comparison.
+
+Final result of mangling input:
+
+	00 00 00 00 00 00 00 00 00 0a 61 62 63 64 65 
+
+Expected result:
+
+	65 67 68 6c 6b 68 6c 6c 6d 6d 6e 6f 71 72 75 
+
+Checking the received license key!
+
+Wrong! No flag for you!
+```
+
+We simply have to reverse the order of mangling performed by the challenge program.
+
+```py title="~/script.py" showLineNumbers
+# The 'Expected result' bytes from our terminal output
+expected_hex = [
+    0x65, 0x67, 0x68, 0x6c, 0x6b, 0x68, 0x6c, 0x6c, 
+    0x6d, 0x6d, 0x6e, 0x6f, 0x71, 0x72, 0x75
+]
+
+# Step 1: Undo the Swap (indexes 3 and 5)
+# The challenge swapped 3 and 5, so we swap them back to get the 'sorted' state
+expected_hex[3], expected_hex[5] = expected_hex[5], expected_hex[3]
+
+# Step 2: Convert to characters
+# Since the 'sort' and 'reverse' manglers only move characters around 
+# without changing their value, we just need the characters themselves.
+final_chars = [chr(b) for b in expected_hex]
+
+# Because 'sort' was used, the actual order of our input doesn't 
+# matter as much as the content, BUT to be safe, we reverse the 
+# list to account for the 'reverse' mangler.
+final_chars.reverse()
+
+print("".join(final_chars))
+```
+
+```
+hacker@reverse-engineering~meager-mangler-easy:~$ python ~/script.py 
+urqonmmlllkhhge
+```
+
+```
+hacker@reverse-engineering~meager-mangler-easy:~$ /challenge/meager-mangler-easy 
+###
+### Welcome to /challenge/meager-mangler-easy!
+###
+
+This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
+are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
+Providing the correct license key will net you the flag!
+
+Ready to receive your license key!
+
+urqonmmlllkhhge
+Initial input:
+
+	75 72 71 6f 6e 6d 6d 6c 6c 6c 6b 68 68 67 65 
+
+This challenge is now mangling your input using the `reverse` mangler.
+
+This mangled your input, resulting in:
+
+	65 67 68 68 6b 6c 6c 6c 6d 6d 6e 6f 71 72 75 
+
+This challenge is now mangling your input using the `sort` mangler.
+
+This mangled your input, resulting in:
+
+	65 67 68 68 6b 6c 6c 6c 6d 6d 6e 6f 71 72 75 
+
+This challenge is now mangling your input using the `swap` mangler for indexes `3` and `5`.
+
+This mangled your input, resulting in:
+
+	65 67 68 6c 6b 68 6c 6c 6d 6d 6e 6f 71 72 75 
+
+The mangling is done! The resulting bytes will be used for the final comparison.
+
+Final result of mangling input:
+
+	65 67 68 6c 6b 68 6c 6c 6d 6d 6e 6f 71 72 75 
+
+Expected result:
+
+	65 67 68 6c 6b 68 6c 6c 6d 6d 6e 6f 71 72 75 
+
+Checking the received license key!
+
+You win! Here is your flag:
+pwn.college{MzR69-0xiE3RHabqpkarx11Mhw4.0VM2IDL4ITM0EzW}
+```
