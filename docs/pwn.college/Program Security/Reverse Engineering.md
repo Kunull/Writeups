@@ -429,7 +429,7 @@ Let's look at the operations it performs on the user input:
 - `key[i + 16] + 107`: It adds the constant `107` (or `0x6B` in hex) to a byte at offset `i` in the user provided input.
 - `(unsigned __int8)`: It casts the result to an 8-bit unsigned integer. This ensures that if the addition exceeds 255, it wraps around (modulo 256).
 - `(X >> 5)`: This takes the top 3 bits and moves them to the bottom.
-- `(8 * X)`: This shifts the bits left by 3, moving the bottom 5 bits to the top.
+- `(8 * X)`: Is mathematically identical to `(X << 3)` because $2^3 = 8$. This shifts the bits left by 3, moving the bottom 5 bits to the top.
 - The `|` (OR) operator: This combines the results of the shifts, performing a 3-bit Left Rotation.
 - `*((_BYTE *)s1 + i)`: This is simply array indexing. It is equivalent to `s1[i]`. It stores the final scrambled byte into the `i`-th position of the destination buffer `s1`.
 
