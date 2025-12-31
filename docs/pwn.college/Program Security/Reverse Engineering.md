@@ -1059,44 +1059,25 @@ Checking the received license key!
 Wrong! No flag for you!
 ```
 
+Because the 'sort' happened last in the forward chain, it's impossible to know the exact order BEFORE the sort. 
+However, the swaps and reverses prior to the sort just moved the positions around. The license key is likely just the characters resulting from the XOR.
+Regardless of how the swaps and reverses mangle our input, the sort will bring it to a baseline (sorted string).
+
 ```py title=~"~/script.py" showLineNumbers
 from pwn import *
 
-# 1. The 'Expected result' bytes from your program output
-expected_result = [
+target_key = [
     0x78, 0x78, 0x78, 0x78, 0x7a, 0x7c, 0x7f, 0x7f, 0x71, 0x71, 0x73, 0x73, 0x73, 
     0x75, 0x75, 0x74, 0x74, 0x77, 0x76, 0x76, 0x69, 0x68, 0x6a, 0x6d, 0x6c, 0x6c, 
     0x6c, 0x6f, 0x6e, 0x6e, 0x6e, 0x6e, 0x61, 0x61, 0x60, 0x60, 0x63
 ]
 
-# Work on a mutable list
-current = list(expected_result)
-
-# Step 7: XOR with 0x19
-current = [b ^ 0x19 for b in current]
-
-# Step 6: Sort
-# Note: Because the 'sort' happened last in the forward chain, it's impossible to know the exact order BEFORE the sort. 
-# HOWEVER, the swaps and reverses prior to the sort just moved the positions around. The license key is likely just the characters resulting from the XOR, potentially in a specific order.
-
-# Step 5: Swap (8, 23)
-current[8], current[23] = current[23], current[8]
-
-# Step 4: Swap (3, 24)
-current[3], current[24] = current[24], current[3]
-
-# Step 3: Reverse
-current.reverse()
-
-# Step 2: Swap (6, 31)
-current[6], current[31] = current[31], current[6]
-
-# Step 1: Reverse
-current.reverse()
+# XOR with 0x19
+target_key = [b ^ 0x19 for b in target_key]
 
 # Convert to string (ignoring null bytes at the end)
 input_key = ""
-for b in current:
+for b in expected_result:
     if b == 0: break # Stop at null terminator
     input_key += chr(b)
 
@@ -1111,68 +1092,68 @@ p.interactive()
 
 ```
 hacker@reverse-engineering~monstrous-mangler-easy:~$ python ~/script.py 
-[+] Starting local process '/challenge/monstrous-mangler-easy': pid 402
-/home/hacker/script.py:51: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
-  p.send(license_key)
+[+] Starting local process '/challenge/monstrous-mangler-easy': pid 184
+/home/hacker/script.py:27: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.send(input_key)
 [*] Switching to interactive mode
 
 
-[*] Process '/challenge/monstrous-mangler-easy' stopped with exit code 0 (pid 402)
+[*] Process '/challenge/monstrous-mangler-easy' stopped with exit code 0 (pid 184)
 Initial input:
 
-	61 61 61 75 63 77 66 66 74 68 6a 6a 6a 6c 6c 6d 6d 6e 6f 6f 70 71 73 68 61 75 75 76 77 77 65 77 78 78 79 79 7a 
+        61 61 61 61 63 65 66 66 68 68 6a 6a 6a 6c 6c 6d 6d 6e 6f 6f 70 71 73 74 75 75 75 76 77 77 77 77 78 78 79 79 7a 
 
 This challenge is now mangling your input using the `reverse` mangler.
 
 This mangled your input, resulting in:
 
-	7a 79 79 78 78 77 65 77 77 76 75 75 61 68 73 71 70 6f 6f 6e 6d 6d 6c 6c 6a 6a 6a 68 74 66 66 77 63 75 61 61 61 
+        7a 79 79 78 78 77 77 77 77 76 75 75 75 74 73 71 70 6f 6f 6e 6d 6d 6c 6c 6a 6a 6a 68 68 66 66 65 63 61 61 61 61 
 
 This challenge is now mangling your input using the `swap` mangler for indexes `6` and `31`.
 
 This mangled your input, resulting in:
 
-	7a 79 79 78 78 77 77 77 77 76 75 75 61 68 73 71 70 6f 6f 6e 6d 6d 6c 6c 6a 6a 6a 68 74 66 66 65 63 75 61 61 61 
+        7a 79 79 78 78 77 65 77 77 76 75 75 75 74 73 71 70 6f 6f 6e 6d 6d 6c 6c 6a 6a 6a 68 68 66 66 77 63 61 61 61 61 
 
 This challenge is now mangling your input using the `reverse` mangler.
 
 This mangled your input, resulting in:
 
-	61 61 61 75 63 65 66 66 74 68 6a 6a 6a 6c 6c 6d 6d 6e 6f 6f 70 71 73 68 61 75 75 76 77 77 77 77 78 78 79 79 7a 
+        61 61 61 61 63 77 66 66 68 68 6a 6a 6a 6c 6c 6d 6d 6e 6f 6f 70 71 73 74 75 75 75 76 77 77 65 77 78 78 79 79 7a 
 
 This challenge is now mangling your input using the `swap` mangler for indexes `3` and `24`.
 
 This mangled your input, resulting in:
 
-	61 61 61 61 63 65 66 66 74 68 6a 6a 6a 6c 6c 6d 6d 6e 6f 6f 70 71 73 68 75 75 75 76 77 77 77 77 78 78 79 79 7a 
+        61 61 61 75 63 77 66 66 68 68 6a 6a 6a 6c 6c 6d 6d 6e 6f 6f 70 71 73 74 61 75 75 76 77 77 65 77 78 78 79 79 7a 
 
 This challenge is now mangling your input using the `swap` mangler for indexes `8` and `23`.
 
 This mangled your input, resulting in:
 
-	61 61 61 61 63 65 66 66 68 68 6a 6a 6a 6c 6c 6d 6d 6e 6f 6f 70 71 73 74 75 75 75 76 77 77 77 77 78 78 79 79 7a 
+        61 61 61 75 63 77 66 66 74 68 6a 6a 6a 6c 6c 6d 6d 6e 6f 6f 70 71 73 68 61 75 75 76 77 77 65 77 78 78 79 79 7a 
 
 This challenge is now mangling your input using the `sort` mangler.
 
 This mangled your input, resulting in:
 
-	61 61 61 61 63 65 66 66 68 68 6a 6a 6a 6c 6c 6d 6d 6e 6f 6f 70 71 73 74 75 75 75 76 77 77 77 77 78 78 79 79 7a 
+        61 61 61 61 63 65 66 66 68 68 6a 6a 6a 6c 6c 6d 6d 6e 6f 6f 70 71 73 74 75 75 75 76 77 77 77 77 78 78 79 79 7a 
 
 This challenge is now mangling your input using the `xor` mangler with key `0x19`
 
 This mangled your input, resulting in:
 
-	78 78 78 78 7a 7c 7f 7f 71 71 73 73 73 75 75 74 74 77 76 76 69 68 6a 6d 6c 6c 6c 6f 6e 6e 6e 6e 61 61 60 60 63 
+        78 78 78 78 7a 7c 7f 7f 71 71 73 73 73 75 75 74 74 77 76 76 69 68 6a 6d 6c 6c 6c 6f 6e 6e 6e 6e 61 61 60 60 63 
 
 The mangling is done! The resulting bytes will be used for the final comparison.
 
 Final result of mangling input:
 
-	78 78 78 78 7a 7c 7f 7f 71 71 73 73 73 75 75 74 74 77 76 76 69 68 6a 6d 6c 6c 6c 6f 6e 6e 6e 6e 61 61 60 60 63 
+        78 78 78 78 7a 7c 7f 7f 71 71 73 73 73 75 75 74 74 77 76 76 69 68 6a 6d 6c 6c 6c 6f 6e 6e 6e 6e 61 61 60 60 63 
 
 Expected result:
 
-	78 78 78 78 7a 7c 7f 7f 71 71 73 73 73 75 75 74 74 77 76 76 69 68 6a 6d 6c 6c 6c 6f 6e 6e 6e 6e 61 61 60 60 63 
+        78 78 78 78 7a 7c 7f 7f 71 71 73 73 73 75 75 74 74 77 76 76 69 68 6a 6d 6c 6c 6c 6f 6e 6e 6e 6e 61 61 60 60 63 
 
 Checking the received license key!
 
@@ -1181,5 +1162,271 @@ pwn.college{MzyPrzGp16a6O881RwlLr4_rVcZ.0VN2IDL4ITM0EzW}
 
 
 [*] Got EOF while reading in interactive
-$ 
+$  
+```
+
+&nbsp;
+
+## Montrous Mangler (Easy)
+
+### `main()`
+
+```c showLineNumbers
+void __fastcall __noreturn main(int a1, char **a2, char **a3)
+{
+  char v3; // [rsp+20h] [rbp-50h]
+  char v4; // [rsp+22h] [rbp-4Eh]
+  int i; // [rsp+24h] [rbp-4Ch]
+  int j; // [rsp+28h] [rbp-48h]
+  int k; // [rsp+2Ch] [rbp-44h]
+  int m; // [rsp+30h] [rbp-40h]
+  int n; // [rsp+34h] [rbp-3Ch]
+  int ii; // [rsp+38h] [rbp-38h]
+  int jj; // [rsp+3Ch] [rbp-34h]
+  __int64 buf; // [rsp+40h] [rbp-30h] BYREF
+  __int64 v13; // [rsp+48h] [rbp-28h]
+  __int64 v14; // [rsp+50h] [rbp-20h]
+  __int64 v15; // [rsp+58h] [rbp-18h]
+  int v16; // [rsp+60h] [rbp-10h]
+  __int16 v17; // [rsp+64h] [rbp-Ch]
+  char v18; // [rsp+66h] [rbp-Ah]
+  unsigned __int64 v19; // [rsp+68h] [rbp-8h]
+
+  v19 = __readfsqword(0x28u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(stdout, 0LL, 2, 0LL);
+  puts("###");
+  printf("### Welcome to %s!\n", *a2);
+  puts("###");
+  putchar(10);
+  puts(
+    "This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you");
+  puts("are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely");
+  puts(
+    "different operations on that input! You must figure out (by reverse engineering this program) what that license key is.");
+  puts("Providing the correct license key will net you the flag!\n");
+  buf = 0LL;
+  v13 = 0LL;
+  v14 = 0LL;
+  v15 = 0LL;
+  v16 = 0;
+  v17 = 0;
+  v18 = 0;
+  puts("Ready to receive your license key!\n");
+  read(0, &buf, 38uLL);
+  // Perform different bitwise XOR operation for each byte in a set of 2, and repeat
+  for ( i = 0; i <= 37; ++i )
+  {
+    if ( i % 2 )
+    {
+      if ( i % 2 == 1 )
+        // XOR 2nd byte in a set of 2 with 54
+        *((_BYTE *)&buf + i) ^= 54u;
+    }
+    else
+    {
+      // XOR 1st byte in a set of 2 with 186
+      *((_BYTE *)&buf + i) ^= 186u;
+    }
+  }
+  // Perform different bitwise XOR operation for each byte in a set of 6, and repeat
+  for ( j = 0; j <= 37; ++j )
+  {
+    switch ( j % 6 )
+    {
+      case 0:
+        *((_BYTE *)&buf + j) ^= 239u;           // XOR 1st byte in a set of 6 with 239
+        break;
+      case 1:
+        *((_BYTE *)&buf + j) ^= 17u;            // XOR 2nd byte in a set of 6 with 17
+        break;
+      case 2:
+        *((_BYTE *)&buf + j) ^= 122u;           // XOR 3rd byte in a set of 6 with 122
+        break;
+      case 3:
+        *((_BYTE *)&buf + j) ^= 105u;           // XOR 4th byte in a set of 6 with 105
+        break;
+      case 4:
+        *((_BYTE *)&buf + j) ^= 242u;           // XOR 5th byte in a set of 6 with 242
+        break;
+      case 5:
+        *((_BYTE *)&buf + j) ^= 179u;           // XOR 6th byte in a set of 6 with 179
+        break;
+      default:
+        continue;
+    }
+  }
+  // Perform bubble sort
+  for ( k = 0; k <= 36; ++k )
+  {
+    // For each value of k, execute this loop, pushing the largest byte to the end
+    for ( m = 0; m < 37 - k; ++m )
+    {
+      // Compare if current byte is greater than the next byte
+      if ( *((_BYTE *)&buf + m) > *((_BYTE *)&buf + m + 1) )
+      {
+        v4 = *((_BYTE *)&buf + m);              // Move mth byte to a tmp variable
+        *((_BYTE *)&buf + m) = *((_BYTE *)&buf + m + 1);// Replace the mth byte with the (m+1)th byte
+        *((_BYTE *)&buf + m + 1) = v4;          // Replace the (m+1)th byte with the byte in the tmp variable
+      }
+    }
+  }
+  // Perform a bitwise XOR for every byte with 209
+  for ( n = 0; n <= 37; ++n )
+    *((_BYTE *)&buf + n) ^= 209u;
+  // Perform different bitwise XOR operation for each byte in a set of 7, and repeat
+  for ( ii = 0; ii <= 37; ++ii )
+  {
+    switch ( ii % 7 )
+    {
+      case 0:
+        *((_BYTE *)&buf + ii) ^= 53u;           // XOR 1st byte in a set of 7 with 53
+        break;
+      case 1:
+        *((_BYTE *)&buf + ii) ^= 43u;           // XOR 2nd byte in a set of 7 with 43
+        break;
+      case 2:
+        *((_BYTE *)&buf + ii) ^= 147u;          // XOR 3rd byte in a set of 7 with 147
+        break;
+      case 3:
+        *((_BYTE *)&buf + ii) ^= 166u;          // XOR 4th byte in a set of 7 with 166
+        break;
+      case 4:
+        *((_BYTE *)&buf + ii) ^= 71u;           // XOR 5th byte in a set of 7 with 71
+        break;
+      case 5:
+        *((_BYTE *)&buf + ii) ^= 244u;          // XOR 6th byte in a set of 7 with 244
+        break;
+      case 6:
+        *((_BYTE *)&buf + ii) ^= 155u;          // XOR 7th byte in a set of 7 with 155
+        break;
+      default:
+        continue;
+    }
+  }
+  // Swap the 5th and 10th byte
+  v3 = BYTE4(buf);                              // Move the 5th byte of user input into a tmp variable
+  BYTE4(buf) = BYTE1(v13);                      // Replace the 5th byte of user input with the 10th byte
+  BYTE1(v13) = v3;                              // Replace the 10th byte of user input with the value of the tmp variable
+                                                // 
+  // Perform different bitwise XOR operation for each byte in a set of 2, and repeat
+  for ( jj = 0; jj <= 37; ++jj )
+  {
+    if ( jj % 2 )
+    {
+      if ( jj % 2 == 1 )
+        *((_BYTE *)&buf + jj) ^= 57u;           // XOR 2nd byte in a set of 2 with 57
+    }
+    else
+    {
+      *((_BYTE *)&buf + jj) ^= 34u;             // XOR 1st byte in a set of 2 with 34
+    }
+  }
+  puts("Checking the received license key!\n");
+  if ( !memcmp(&buf, &key, 38uLL) )
+  {
+    sub_12A9();
+    exit(0);
+  }
+  puts("Wrong! No flag for you!");
+  exit(1);
+}
+```
+
+Let's look at the data pointed to by `&key`.
+
+<img alt="image" src="https://github.com/user-attachments/assets/cda7cb67-781f-48b2-a8fd-144d0b5b09dc" />
+
+
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+from z3 import *
+
+# 1. Extracted key from your image
+final_key = [
+    0xE3, 0xE6, 0x46, 0x67, 0x50, 0x37, 0x44, 0xF0, 0xE8, 0x84, 0x67, 0x9C, 0x32, 0x48, 0xFB, 0xFE,
+    0x5E, 0x70, 0x8A, 0x5C, 0x2D, 0x95, 0x92, 0x31, 0x1A, 0xF2, 0xA1, 0xD4, 0x6E, 0x6A, 0xC9, 0xFC,
+    0x54, 0xFE, 0x81, 0x2C, 0x2F, 0x84
+]
+
+# 2. MANUALLY REVERSE POST-SORT OPERATIONS
+# Reverse Loop jj
+for i in range(38):
+    if i % 2 == 0: final_key[i] ^= 34
+    else: final_key[i] ^= 57
+
+# Reverse Swap (5th and 10th bytes)
+final_key[4], final_key[9] = final_key[9], final_key[4]
+
+# Reverse Loop ii
+ii_keys = [53, 43, 147, 166, 71, 244, 155]
+for i in range(38):
+    final_key[i] ^= ii_keys[i % 7]
+
+# Reverse Loop n
+final_key = [b ^ 209 for b in final_key]
+
+# This final_key is now the result of the BUBBLE SORT. 
+# It is a sorted list of the bytes after the first two XOR loops.
+target_sorted = sorted(final_key)
+
+# 3. USE Z3 TO FIND THE ORIGINAL INPUT
+solver = Solver()
+input_bytes = [BitVec(f'b_{i}', 8) for i in range(38)]
+
+# Apply constraints: Input should be printable ASCII
+for b in input_bytes:
+    solver.add(b >= 32, b <= 126)
+
+# Duplicate the input to simulate the transformations
+transformed = [b for b in input_bytes]
+
+# Loop i: XOR 186, 54
+for i in range(38):
+    if i % 2 == 0: transformed[i] ^= 186
+    else: transformed[i] ^= 54
+
+# Loop j: XOR 239, 17, 122, 105, 242, 179
+j_keys = [239, 17, 122, 105, 242, 179]
+for j in range(38):
+    transformed[j] ^= j_keys[j % 6]
+
+# The CRITICAL step: The set of transformed bytes must match the sorted target bytes.
+# We don't know the order, but we know the COUNT of each byte value.
+for val in set(target_sorted):
+    count_in_target = target_sorted.count(val)
+    count_in_transformed = Sum([If(transformed[i] == val, 1, 0) for i in range(38)])
+    solver.add(count_in_transformed == count_in_target)
+
+if solver.check() == sat:
+    model = solver.model()
+    solution = "".join(chr(model[b].as_long()) for b in input_bytes)
+    print(f"Found License Key: {solution}")
+    
+    # Connect and send
+    p = process("/challenge/monstrous-mangler-hard")
+    p.recvuntil(b"Ready to receive your license key!")
+    p.send(solution.encode())
+    p.interactive()
+else:
+    print("Could not find a solution.")
+```
+
+```
+hacker@reverse-engineering~monstrous-mangler-hard:~$ python ~/script.py 
+Found License Key: |h)r},hbitsg~mgb{rpgrmx-km?adtpzfaxeso
+[+] Starting local process '/challenge/monstrous-mangler-hard': pid 466
+[*] Switching to interactive mode
+
+
+[*] Process '/challenge/monstrous-mangler-hard' stopped with exit code 0 (pid 466)
+Checking the received license key!
+
+You win! Here is your flag:
+pwn.college{Im1NoqernmD2ffWSMiYohm-Za8d.0lN2IDL4ITM0EzW}
+
+
+[*] Got EOF while reading in interactive
+$  
 ```
