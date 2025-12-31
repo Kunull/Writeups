@@ -760,6 +760,80 @@ pwn.college{MzR69-0xiE3RHabqpkarx11Mhw4.0VM2IDL4ITM0EzW}
 $  
 ```
 
+Alternatively, since sorting is performed in the mangling steps, even if we just provide the required bytes, the program will bring it to a baseline (sorted string) and then perform the byte swap.
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+# The 'Expected result' bytes from our terminal output
+expected_hex = [
+    0x65, 0x67, 0x68, 0x6c, 0x6b, 0x68, 0x6c, 0x6c, 
+    0x6d, 0x6d, 0x6e, 0x6f, 0x71, 0x72, 0x75
+]
+
+# Convert to characters
+input_chars = [chr(b) for b in expected_hex]
+
+input_key = "".join(input_chars)
+p = process("/challenge/meager-mangler-easy")
+p.recvuntil("Ready to receive your license key!")
+p.send(input_key)
+p.interactive()
+```
+
+```
+hacker@reverse-engineering~meager-mangler-easy:~$ python ~/script.py
+[+] Starting local process '/challenge/meager-mangler-easy': pid 409
+/home/hacker/script.py:14: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.recvuntil("Ready to receive your license key!")
+/home/hacker/script.py:15: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.send(input_key)
+[*] Switching to interactive mode
+
+
+[*] Process '/challenge/meager-mangler-easy' stopped with exit code 0 (pid 409)
+Initial input:
+
+        65 67 68 6c 6b 68 6c 6c 6d 6d 6e 6f 71 72 75 
+
+This challenge is now mangling your input using the `reverse` mangler.
+
+This mangled your input, resulting in:
+
+        75 72 71 6f 6e 6d 6d 6c 6c 68 6b 6c 68 67 65 
+
+This challenge is now mangling your input using the `sort` mangler.
+
+This mangled your input, resulting in:
+
+        65 67 68 68 6b 6c 6c 6c 6d 6d 6e 6f 71 72 75 
+
+This challenge is now mangling your input using the `swap` mangler for indexes `3` and `5`.
+
+This mangled your input, resulting in:
+
+        65 67 68 6c 6b 68 6c 6c 6d 6d 6e 6f 71 72 75 
+
+The mangling is done! The resulting bytes will be used for the final comparison.
+
+Final result of mangling input:
+
+        65 67 68 6c 6b 68 6c 6c 6d 6d 6e 6f 71 72 75 
+
+Expected result:
+
+        65 67 68 6c 6b 68 6c 6c 6d 6d 6e 6f 71 72 75 
+
+Checking the received license key!
+
+You win! Here is your flag:
+pwn.college{MzR69-0xiE3RHabqpkarx11Mhw4.0VM2IDL4ITM0EzW}
+
+
+[*] Got EOF while reading in interactive
+$
+```
+
 &nbsp;
 
 ## Meager Mangler (Hard)
