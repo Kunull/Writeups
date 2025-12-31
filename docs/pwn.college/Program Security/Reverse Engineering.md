@@ -680,24 +680,18 @@ We simply have to reverse the order of mangling performed by the challenge progr
 ```py title="~/script.py" showLineNumbers
 from pwn import *
 
-# The 'Expected result' bytes from our terminal output
-expected_hex = [
+target_key = [
     0x65, 0x67, 0x68, 0x6c, 0x6b, 0x68, 0x6c, 0x6c, 
     0x6d, 0x6d, 0x6e, 0x6f, 0x71, 0x72, 0x75
 ]
 
-# Step 1: Undo the Swap (indexes 3 and 5)
-# The challenge swapped 3 and 5, so we swap them back to get the 'sorted' state
-expected_hex[3], expected_hex[5] = expected_hex[5], expected_hex[3]
+# Swap indexes 3 and 5
+target_key[3], target_key[5] = target_key[5], target_key[3]
 
-# Step 2: Convert to characters
-# Since the 'sort' and 'reverse' manglers only move characters around 
-# without changing their value, we just need the characters themselves.
-input_chars = [chr(b) for b in expected_hex]
+# Convert to characters
+input_chars = [chr(b) for b in target_key]
 
-# Because 'sort' was used, the actual order of our input doesn't 
-# matter as much as the content, BUT to be safe, we reverse the 
-# list to account for the 'reverse' mangler.
+# Reverse
 input_chars.reverse()
 
 input_key = "".join(input_chars)
@@ -765,14 +759,13 @@ Alternatively, since sorting is performed in the mangling steps, even if we just
 ```py title="~/script.py" showLineNumbers
 from pwn import *
 
-# The 'Expected result' bytes from our terminal output
-expected_hex = [
+target_key = [
     0x65, 0x67, 0x68, 0x6c, 0x6b, 0x68, 0x6c, 0x6c, 
     0x6d, 0x6d, 0x6e, 0x6f, 0x71, 0x72, 0x75
 ]
 
 # Convert to characters
-input_chars = [chr(b) for b in expected_hex]
+input_chars = [chr(b) for b in target_key]
 
 input_key = "".join(input_chars)
 p = process("/challenge/meager-mangler-easy")
@@ -942,34 +935,22 @@ Finally, let's look at the data pointed to by `&key`.
 ```py title="~/script.py" showLineNumbers
 from pwn import *
 
-# 1. The 'key' bytes from your IDA screenshot
 target_key = [
     0xA0, 0xAC, 0xB4, 0xB5, 0xB7, 0xB7, 0xC1, 0xC1, 0xC6, 
     0xCB, 0xD9, 0xDC, 0xE3, 0xE5, 0xE7, 0xE8, 0xEB, 0xFB
 ]
 
-# 2. The XOR keys used in the modulo 3 loop
 xor_keys = [218, 146, 173]
-
-# Because the sort happened last, we don't know the original index (i).
-# We need to find which character C, when XORed with xor_keys[i % 3], 
-# results in one of the values in target_key.
-
 input_chars = []
 
-# We will try to map each target byte back to a likely original character.
+# Because the sort happened last, we don't know the original index (i).
+# We need to find which character C, when XORed with xor_keys[i % 3], results in one of the values in target_key.
 # Since XOR is its own inverse: (input ^ key) = target  => (target ^ key) = input
+
 for i in range(18):
-    # The program expects input[i] ^ xor_keys[i % 3] == target[some_index]
-    # But since it's sorted, we can try to "unsort" it by matching keys.
-    # For a license key, we'll try to find a combination that looks like text.
-    
-    # We can reconstruct the original by applying the XOR to the target 
-    # and seeing what we get.
     val = target_key[i] ^ xor_keys[i % 3]
     input_chars.append(chr(val))
 
-# print("Potential License Key: " + "".join(input_chars))
 input_key = "".join(input_chars)
 
 p = process("/challenge/meager-mangler-hard")
