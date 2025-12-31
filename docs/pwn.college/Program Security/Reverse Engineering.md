@@ -481,3 +481,141 @@ pwn.college{gxGqHwwzUpOv1V9D4d9lx40t1_U.QX4kDM5EDL4ITM0EzW}
 [*] Got EOF while reading in interactive
 $  
 ```
+
+&nbsp;
+
+## Substitution Sorcery
+
+```
+hacker@reverse-engineering~substitution-sorcery:~$ /challenge/substitution-sorcery 
+###
+### Welcome to /challenge/substitution-sorcery!
+###
+
+Enter a 16-byte key:
+abcdabcdabcdabcd
+Incorrect!
+```
+
+### `main()`
+
+<img alt="image" src="https://github.com/user-attachments/assets/6966a2cf-60d7-4547-a254-5369bd519f46" />
+
+```c showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  unsigned __int64 i; // [rsp+28h] [rbp-58h]
+  size_t len_user_input; // [rsp+38h] [rbp-48h]
+  char key[17]; // [rsp+40h] [rbp-40h] BYREF
+  char ptr_1; // [rsp+51h] [rbp-2Fh]
+  __int16 ptr_2; // [rsp+52h] [rbp-2Eh]
+  int ptr_4; // [rsp+54h] [rbp-2Ch]
+  __int64 v10; // [rsp+58h] [rbp-28h]
+  __int64 modified_user_input[4]; // [rsp+60h] [rbp-20h] BYREF
+
+  modified_user_input[3] = __readfsqword(0x28u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(stdout, 0LL, 2, 0LL);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  strcpy(key, "TAyQPEhmuteINaGd");
+  ptr_1 = 0;
+  ptr_2 = 0;
+  ptr_4 = 0;
+  v10 = 0LL;
+  modified_user_input[0] = 0LL;
+  modified_user_input[1] = 0LL;
+  printf("Enter a %d-byte key:\n", 16LL);
+  len_user_input = fread(&key[16], 1uLL, 16uLL, stdin);
+  if ( len_user_input == 16 )
+  {
+    for ( i = 0LL; i < 16; ++i )
+      *((_BYTE *)modified_user_input + i) = substitution_table[key[i + 16] & 127];
+    if ( !memcmp(modified_user_input, key, 16uLL) )
+    {
+      puts("Correct!");
+      win();
+    }
+    else
+    {
+      puts("Incorrect!");
+    }
+    return 0;
+  }
+  else
+  {
+    printf("Read %zu bytes, expected %zu.\n", len_user_input, 16uLL);
+    return 0;
+  }
+}
+```
+
+The program defines a `key` using `strcpy`.
+It then reads 16-byte of user input at the `key[16]` right after the key.
+
+Let's look at the operations it performs on the user input:
+
+- `for ( i = 0LL; i < 16; ++i )`: Repeats the following process for each byte of the user input.
+	- `key[i + 16] & 127`: Performs logical AND of the byte of user input and `127`. This will zero out the MSB of the user input's byte, thus constraining the result between 0 and 127.
+	- `substitution_table[key[i + 16] & 127]`: References the value from `substitution_table` which is at index of the result of the AND operation.
+	- `*((_BYTE *)modified_user_input + i)`: This is simply array indexing. It is equivalent to `s1[i]`. It stores the final scrambled byte into the `i`-th position of the destination buffer `modified_user_input`.
+- `if ( !memcmp(modified_user_input, key, 16uLL) )`: Compares the modified user input from `modified_user_input` to the `key`, which is `TAyQPEhmuteINaGd`.
+
+Before crafting the solution, we need to see the values present in the `substitution_table`. For this we can double-click on `substitution_table` and IDA will take us to the memory location.
+
+<img alt="image" src="https://github.com/user-attachments/assets/a8bd4260-ca33-4673-b1af-f104949797b9" />
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+# The target string we need to match
+target = "TAyQPEhmuteINaGd"
+
+# The data extracted from .rodata (d[128])
+d = [
+    0x18, 0x75, 0x4D, 0x24, 0x65, 0x26, 0x41, 0x79, 0x20, 0x5A, 0x7A, 0x40, 0x2A, 0x0E, 0x7B, 0x35, 
+    0x2D, 0x59, 0x3E, 0x66, 0x1E, 0x29, 0x70, 0x12, 0x3B, 0x0D, 0x61, 0x42, 0x67, 0x6B, 0x49, 0x68, 
+    0x08, 0x6A, 0x2B, 0x2C, 0x47, 0x03, 0x5B, 0x2E, 0x7F, 0x78, 0x52, 0x19, 0x62, 0x10, 0x43, 0x00, 
+    0x45, 0x5D, 0x72, 0x57, 0x37, 0x48, 0x13, 0x21, 0x1D, 0x07, 0x4A, 0x22, 0x31, 0x4B, 0x01, 0x2F, 
+    0x06, 0x27, 0x7E, 0x3D, 0x6F, 0x51, 0x6E, 0x64, 0x1C, 0x55, 0x5E, 0x76, 0x4F, 0x71, 0x63, 0x7C, 
+    0x04, 0x14, 0x1B, 0x30, 0x34, 0x44, 0x25, 0x0A, 0x16, 0x1A, 0x5C, 0x15, 0x23, 0x69, 0x11, 0x38, 
+    0x36, 0x4E, 0x74, 0x3C, 0x3F, 0x77, 0x50, 0x73, 0x60, 0x1F, 0x05, 0x7D, 0x54, 0x53, 0x5F, 0x0C, 
+    0x58, 0x3A, 0x4C, 0x32, 0x02, 0x6D, 0x28, 0x33, 0x09, 0x56, 0x46, 0x17, 0x39, 0x0F, 0x6C, 0x0B
+]
+
+input_key = ""
+for char in target:
+    val = ord(char)
+    # Find the index in d that contains the target value
+    try:
+        index = d.index(val)
+        input_key += chr(index)
+    except ValueError:
+        input_key += "?"
+
+p = process("/challenge/substitution-sorcery")
+p.recvuntil("Enter a 16-byte key:")
+p.send(input_key)
+p.interactive()
+```
+
+```
+hacker@reverse-engineering~substitution-sorcery:~$ python ~/script.py 
+[+] Starting local process '/challenge/substitution-sorcery': pid 493
+/home/hacker/script.py:29: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.recvuntil("Enter a 16-byte key:")
+/home/hacker/script.py:30: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.send(input_key)
+[*] Switching to interactive mode
+
+[*] Process '/challenge/substitution-sorcery' stopped with exit code 0 (pid 493)
+Correct!
+You win! Here is your flag:
+pwn.college{kX14bj3XjycJZjbBpmGW8TA2NdL.QX5kDM5EDL4ITM0EzW}
+
+
+[*] Got EOF while reading in interactive
+$  
+```
