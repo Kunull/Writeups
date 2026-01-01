@@ -2685,6 +2685,8 @@ void __fastcall __noreturn main(int a1, char **a2, char **a3)
 
 <img alt="image" src="https://github.com/user-attachments/assets/9360cfbb-30c2-4ec8-a90f-e09bb4ccfd5b" />
 
+Disassembly:
+
 ```asm showLineNumbers
 # ---- snip ----
 
