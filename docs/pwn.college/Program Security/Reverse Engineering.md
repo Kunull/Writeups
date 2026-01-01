@@ -2729,7 +2729,7 @@ Else, it jumps to `win()`.
 
 This time, there is a difference in both the `jnz` instructions: 
 
-```title="JNZ Short"
+```asm title="JNZ Short"
 .text:000000000000224E                 jnz     short loc_227C
 ```
 Used when offset is under 128 bytes:
@@ -2737,7 +2737,7 @@ Used when offset is under 128 bytes:
 - Relative Offset: `XX` (The distance to the jump)
 - Total bytes: `75 XX`
 
-```title="JNZ Near"
+```asm title="JNZ Near"
 .text:0000000000002169                 jnz     loc_2252
 ```
 Used when offset is over 128 bytes:
