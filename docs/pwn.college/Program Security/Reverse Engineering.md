@@ -2742,7 +2742,7 @@ Used when offset is under 128 bytes:
 .text:0000000000002169                 jnz     loc_2252
 ```
 Used when offset is over 128 bytes:
-- Opcode: `0F XX` (JNZ near)
+- Opcode: `0F 85` (JNZ near)
 - Relative Offset: `XX XX XX XX` (4-byte displacement)
 - Total bytes: `0F 85 XX XX XX XX`
 
