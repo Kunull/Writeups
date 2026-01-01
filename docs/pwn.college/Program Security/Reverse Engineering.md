@@ -1428,3 +1428,847 @@ pwn.college{Im1NoqernmD2ffWSMiYohm-Za8d.0lN2IDL4ITM0EzW}
 [*] Got EOF while reading in interactive
 $  
 ```
+
+&nbsp;
+
+## Patched Up (Easy)
+
+```
+hacker@reverse-engineering~patched-up-easy:~$ /challenge/patched-up-easy 
+###
+### Welcome to /challenge/patched-up-easy!
+###
+
+This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
+are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
+Providing the correct license key will net you the flag!
+
+Unfortunately for you, the license key cannot be reversed. You'll have to crack this program.
+
+Changing byte 1/5.
+Offset (hex) to change: 1
+New value (hex): 1
+The byte has been changed: *0x591db96c0001 = 1.
+Changing byte 2/5.
+Offset (hex) to change: 2
+New value (hex): 2
+The byte has been changed: *0x591db96c0002 = 2.
+Changing byte 3/5.
+Offset (hex) to change: 3
+New value (hex): 3
+The byte has been changed: *0x591db96c0003 = 3.
+Changing byte 4/5.
+Offset (hex) to change: 4
+New value (hex): 4
+The byte has been changed: *0x591db96c0004 = 4.
+Changing byte 5/5.
+Offset (hex) to change: 5
+New value (hex): 5
+The byte has been changed: *0x591db96c0005 = 5.
+Ready to receive your license key!
+
+abcde
+Initial input:
+
+	61 62 63 64 65 0a 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+
+This challenge is now mangling your input using the `md5` mangler. This mangler cannot be reversed.
+
+This mangled your input, resulting in:
+
+	b0 b6 a0 a5 a5 3b c4 e5 d8 3f b8 b1 f4 a7 2b 89 00 00 00 00 00 00 00 00 00 00 00 00 00 
+
+The mangling is done! The resulting bytes will be used for the final comparison.
+
+Final result of mangling input:
+
+	b0 b6 a0 a5 a5 3b c4 e5 d8 3f b8 b1 f4 a7 2b 89 00 00 00 00 00 00 00 00 00 00 00 00 00 
+
+Expected result:
+
+	a1 12 36 e3 05 13 fe ee 08 bb 1d d7 98 67 19 37 00 00 00 00 00 00 00 00 00 00 00 00 00 
+
+Checking the received license key!
+
+Wrong! No flag for you!
+```
+
+Let's open the program within IDA.
+
+### `main()`
+
+```c showLineNumbers
+int __fastcall __noreturn main(int argc, const char **argv, const char **envp)
+{
+  int v3; // eax
+  unsigned __int8 new_hex_value; // [rsp+2Dh] [rbp-C3h] BYREF
+  unsigned __int16 offset_to_change; // [rsp+2Eh] [rbp-C2h] BYREF
+  int i_1; // [rsp+30h] [rbp-C0h]
+  int i; // [rsp+34h] [rbp-BCh]
+  int j; // [rsp+38h] [rbp-B8h]
+  int k; // [rsp+3Ch] [rbp-B4h]
+  int m; // [rsp+40h] [rbp-B0h]
+  int n; // [rsp+44h] [rbp-ACh]
+  unsigned __int64 v12; // [rsp+48h] [rbp-A8h]
+  char v13[96]; // [rsp+50h] [rbp-A0h] BYREF
+  __int64 v14; // [rsp+B0h] [rbp-40h]
+  __int64 v15; // [rsp+B8h] [rbp-38h]
+  __int64 buf; // [rsp+C0h] [rbp-30h] BYREF
+  __int64 v17; // [rsp+C8h] [rbp-28h]
+  __int64 v18; // [rsp+D0h] [rbp-20h]
+  int v19; // [rsp+D8h] [rbp-18h]
+  __int16 v20; // [rsp+DCh] [rbp-14h]
+  unsigned __int64 v21; // [rsp+E8h] [rbp-8h]
+
+  v21 = __readfsqword(40u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(stdout, 0LL, 2, 0LL);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  puts(
+    "This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you");
+  puts("are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely");
+  puts(
+    "different operations on that input! You must figure out (by reverse engineering this program) what that license key is.");
+  puts("Providing the correct license key will net you the flag!\n");
+  puts("Unfortunately for you, the license key cannot be reversed. You'll have to crack this program.\n");
+  i_1 = 0;
+  v12 = ((unsigned __int64)bin_padding & 0xFFFFFFFFFFFFF000LL) - 4096;
+  do
+    v3 = i_1++;
+  while ( !mprotect((void *)((v3 << 12) + v12), 4096uLL, 7) );
+  for ( i = 0; i <= 4; ++i )
+  {
+    printf("Changing byte %d/5.\n", (unsigned int)(i + 1));
+    printf("Offset (hex) to change: ");
+    __isoc99_scanf("%hx", &offset_to_change);
+    printf("New value (hex): ");
+    __isoc99_scanf("%hhx", &new_hex_value);
+    *(_BYTE *)(offset_to_change + v12) = new_hex_value;
+    printf("The byte has been changed: *%p = %hhx.\n", (const void *)(v12 + offset_to_change), new_hex_value);
+  }
+  buf = 0LL;
+  v17 = 0LL;
+  v18 = 0LL;
+  v19 = 0;
+  v20 = 0;
+  puts("Ready to receive your license key!\n");
+  read(0, &buf, 29uLL);
+  puts("Initial input:\n");
+  putchar(9);
+  for ( j = 0; j <= 28; ++j )
+    printf("%02x ", *((unsigned __int8 *)&buf + j));
+  puts("\n");
+  puts("This challenge is now mangling your input using the `md5` mangler. This mangler cannot be reversed.\n");
+  MD5_Init();
+  MD5_Update(v13, &buf, 29LL);
+  MD5_Final();
+  memset(&buf, 0, 29uLL);
+  buf = v14;
+  v17 = v15;
+  puts("This mangled your input, resulting in:\n");
+  putchar(9);
+  for ( k = 0; k <= 28; ++k )
+    printf("%02x ", *((unsigned __int8 *)&buf + k));
+  puts("\n");
+  puts("The mangling is done! The resulting bytes will be used for the final comparison.\n");
+  puts("Final result of mangling input:\n");
+  putchar(9);
+  for ( m = 0; m <= 28; ++m )
+    printf("%02x ", *((unsigned __int8 *)&buf + m));
+  puts("\n");
+  puts("Expected result:\n");
+  putchar(9);
+  for ( n = 0; n <= 28; ++n )
+    printf("%02x ", EXPECTED_RESULT[n]);
+  puts("\n");
+  puts("Checking the received license key!\n");
+  if ( !memcmp(&buf, EXPECTED_RESULT, 29uLL) )
+  {
+    win();
+    exit(0);
+  }
+  puts("Wrong! No flag for you!");
+  exit(1);
+}
+```
+
+At a high level, the program compares the user input at `&buf` with the `EXPECTED_RESULT`, and based on the result, either jumps to `win()` or exits. 
+
+<img alt="image" src="https://github.com/user-attachments/assets/4b2d46d5-563c-4b2a-9f26-1265508f73e1" />
+
+Let's check how the conditional is performed in Assembly.
+
+```asm showLineNumbers
+# ---- snip ----
+
+.text:0000000000002005                 lea     rax, [rbp+buf]
+.text:0000000000002009                 mov     edx, 1Dh        ; n
+.text:000000000000200E                 lea     rsi, EXPECTED_RESULT ; s2
+.text:0000000000002015                 mov     rdi, rax        ; s1
+.text:0000000000002018                 call    _memcmp
+.text:000000000000201D                 test    eax, eax
+.text:000000000000201F                 jnz     short loc_2035
+.text:0000000000002021                 mov     eax, 0
+.text:0000000000002026                 call    win
+.text:000000000000202B                 mov     edi, 0          ; status
+.text:0000000000002030                 call    _exit
+.text:0000000000002035 ; ---------------------------------------------------------------------------
+.text:0000000000002035
+.text:0000000000002035 loc_2035:                               ; CODE XREF: main+4A3↑j
+.text:0000000000002035                 lea     rdi, aWrongNoFlagFor ; "Wrong! No flag for you!"
+.text:000000000000203C                 call    _puts
+.text:0000000000002041                 mov     edi, 1          ; status
+.text:0000000000002046                 call    _exit
+
+# ---- snip ----
+```
+
+The `_memcmp` result would be `rax=0` if the values of the hashed user input at `&buf` and `EXPECTED_RESULT` are the same.
+This would cause the `test` instruction to set the Zero Flag (ZF), as it would perform bitwise AND of two 0 values.
+As we can see, the program then uses a `jnz` to jump to `_exit` if Zero Flag (ZF) is unset (0).
+Else, it jumps to `win()`.
+
+So, all in all, if the hashed value is equal to the expected result, we get the flag. However, what if we replace `jnz` with `jz`?
+This would cause the program to give us the flag in cases where the hashed value is not equal to the expected result, and hence allow us to pass any random input.
+
+In order to do this, we would have to pass `0x201f` as offset as that is the location of the `jnz` instruction's byte, and pass `0x74` as the replacement byte as that is the opcode for `jz`.
+
+```
+hacker@reverse-engineering~patched-up-easy:~$ /challenge/patched-up-easy 
+###
+### Welcome to /challenge/patched-up-easy!
+###
+
+This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
+are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
+Providing the correct license key will net you the flag!
+
+Unfortunately for you, the license key cannot be reversed. You'll have to crack this program.
+
+Changing byte 1/5.
+Offset (hex) to change: 0x201f          
+New value (hex): 0x74
+The byte has been changed: *0x5b826945901f = 74.
+Changing byte 2/5.
+Offset (hex) to change: 0
+New value (hex): 0
+The byte has been changed: *0x5b8269457000 = 0.
+Changing byte 3/5.
+Offset (hex) to change: 0
+New value (hex): 0
+The byte has been changed: *0x5b8269457000 = 0.
+Changing byte 4/5.
+Offset (hex) to change: 0
+New value (hex): 0
+The byte has been changed: *0x5b8269457000 = 0.
+Changing byte 5/5.
+Offset (hex) to change: 0
+New value (hex): 0
+The byte has been changed: *0x5b8269457000 = 0.
+Ready to receive your license key!
+
+abcde
+Initial input:
+
+	61 62 63 64 65 0a 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+
+This challenge is now mangling your input using the `md5` mangler. This mangler cannot be reversed.
+
+This mangled your input, resulting in:
+
+	b0 b6 a0 a5 a5 3b c4 e5 d8 3f b8 b1 f4 a7 2b 89 00 00 00 00 00 00 00 00 00 00 00 00 00 
+
+The mangling is done! The resulting bytes will be used for the final comparison.
+
+Final result of mangling input:
+
+	b0 b6 a0 a5 a5 3b c4 e5 d8 3f b8 b1 f4 a7 2b 89 00 00 00 00 00 00 00 00 00 00 00 00 00 
+
+Expected result:
+
+	a1 12 36 e3 05 13 fe ee 08 bb 1d d7 98 67 19 37 00 00 00 00 00 00 00 00 00 00 00 00 00 
+
+Checking the received license key!
+
+You win! Here is your flag:
+pwn.college{gjwP8_mb1sObPYLR-g7xKyZUQ82.01N2IDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Patched Up (Hard)
+
+```
+hacker@reverse-engineering~patched-up-hard:~$ /challenge/patched-up-hard 
+###
+### Welcome to /challenge/patched-up-hard!
+###
+
+This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
+are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
+Providing the correct license key will net you the flag!
+
+Unfortunately for you, the license key cannot be reversed. You'll have to crack this program.
+
+Changing byte 1/5.
+Offset (hex) to change: 
+```
+
+### `main()`
+
+```c showLineNumbers
+void __fastcall __noreturn main(int a1, char **a2, char **a3)
+{
+  int v3; // eax
+  unsigned __int8 v4; // [rsp+2Dh] [rbp-B3h] BYREF
+  unsigned __int16 v5; // [rsp+2Eh] [rbp-B2h] BYREF
+  int v6; // [rsp+30h] [rbp-B0h]
+  int i; // [rsp+34h] [rbp-ACh]
+  unsigned __int64 v8; // [rsp+38h] [rbp-A8h]
+  char v9[96]; // [rsp+40h] [rbp-A0h] BYREF
+  __int64 v10[2]; // [rsp+A0h] [rbp-40h] BYREF
+  __int64 buf; // [rsp+B0h] [rbp-30h] BYREF
+  __int64 v12; // [rsp+B8h] [rbp-28h]
+  __int64 v13; // [rsp+C0h] [rbp-20h]
+  int v14; // [rsp+C8h] [rbp-18h]
+  char v15; // [rsp+CCh] [rbp-14h]
+  unsigned __int64 v16; // [rsp+D8h] [rbp-8h]
+
+  v16 = __readfsqword(40u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(stdout, 0LL, 2, 0LL);
+  puts("###");
+  printf("### Welcome to %s!\n", *a2);
+  puts("###");
+  putchar(10);
+  puts(
+    "This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you");
+  puts("are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely");
+  puts(
+    "different operations on that input! You must figure out (by reverse engineering this program) what that license key is.");
+  puts("Providing the correct license key will net you the flag!\n");
+  puts("Unfortunately for you, the license key cannot be reversed. You'll have to crack this program.\n");
+  v6 = 0;
+  v8 = ((unsigned __int64)sub_1369 & 0xFFFFFFFFFFFFF000LL) - 4096;
+  do
+    v3 = v6++;
+  while ( !mprotect((void *)((v3 << 12) + v8), 4096uLL, 7) );
+  for ( i = 0; i <= 4; ++i )
+  {
+    printf("Changing byte %d/5.\n", (unsigned int)(i + 1));
+    printf("Offset (hex) to change: ");
+    __isoc99_scanf("%hx", &v5);
+    printf("New value (hex): ");
+    __isoc99_scanf("%hhx", &v4);
+    *(_BYTE *)(v5 + v8) = v4;
+    printf("The byte has been changed: *%p = %hhx.\n", (const void *)(v8 + v5), v4);
+  }
+  buf = 0LL;
+  v12 = 0LL;
+  v13 = 0LL;
+  v14 = 0;
+  v15 = 0;
+  puts("Ready to receive your license key!\n");
+  read(0, &buf, 28uLL);
+  MD5_Init(v9);
+  MD5_Update(v9, &buf, 28LL);
+  MD5_Final(v10, v9);
+  memset(&buf, 0, 28uLL);
+  buf = v10[0];
+  v12 = v10[1];
+  puts("Checking the received license key!\n");
+  if ( !memcmp(&buf, &EXPECTED_RESULT, 28uLL) )
+  {
+    win();
+    exit(0);
+  }
+  puts("Wrong! No flag for you!");
+  exit(1);
+}
+```
+
+<img alt="image" src="https://github.com/user-attachments/assets/1ed28d08-6885-4efb-b101-6bb5ef574bbe" />
+
+Let's look at the disassembly view.
+
+```asm showLineNumbers
+# ---- snip ----
+
+.text:0000000000001E1D                 mov     edx, 1Ch        ; n
+.text:0000000000001E22                 lea     rsi, EXPECTED_RESULT ; s2
+.text:0000000000001E29                 mov     rdi, rax        ; s1
+.text:0000000000001E2C                 call    _memcmp
+.text:0000000000001E31                 test    eax, eax
+.text:0000000000001E33                 jnz     short loc_1E49
+.text:0000000000001E35                 mov     eax, 0
+.text:0000000000001E3A                 call    win
+.text:0000000000001E3F                 mov     edi, 0          ; status
+.text:0000000000001E44                 call    _exit
+.text:0000000000001E49 ; ---------------------------------------------------------------------------
+.text:0000000000001E49
+.text:0000000000001E49 loc_1E49:                               ; CODE XREF: main+2FF↑j
+.text:0000000000001E49                 lea     rdi, aWrongNoFlagFor ; "Wrong! No flag for you!"
+.text:0000000000001E50                 call    _puts
+.text:0000000000001E55                 mov     edi, 1          ; status
+.text:0000000000001E5A                 call    _exit
+
+# ---- snip ----
+```
+
+The `_memcmp` result would be `rax=0` if the values of the hashed user input at `&buf` and `EXPECTED_RESULT` are the same.
+This would cause the `test` instruction to set the Zero Flag (ZF), as it would perform bitwise AND of two 0 values.
+As we can see, the program then uses a `jnz` to jump to `_exit` if Zero Flag (ZF) is unset (0).
+Else, it jumps to `win()`.
+
+So, all in all, if the hashed value is equal to the expected result, we get the flag. However, what if we replace `jnz` with `jz`?
+This would cause the program to give us the flag in cases where the hashed value is not equal to the expected result, and hence allow us to pass any random input.
+
+In order to do this, we would have to pass `0x1e33f` as offset as that is the location of the `jnz` instruction's byte, and pass `0x74` as the replacement byte as that is the opcode for `jz`.
+
+```
+hacker@reverse-engineering~patched-up-hard:~$ /challenge/patched-up-hard 
+###
+### Welcome to /challenge/patched-up-hard!
+###
+
+This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
+are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
+Providing the correct license key will net you the flag!
+
+Unfortunately for you, the license key cannot be reversed. You'll have to crack this program.
+
+Changing byte 1/5.
+Offset (hex) to change: 0x1e33
+New value (hex): 0x74
+The byte has been changed: *0x59e487a84e33 = 74.
+Changing byte 2/5.
+Offset (hex) to change: 0
+New value (hex): 0
+The byte has been changed: *0x59e487a83000 = 0.
+Changing byte 3/5.
+Offset (hex) to change: 0
+New value (hex): 0
+The byte has been changed: *0x59e487a83000 = 0.
+Changing byte 4/5.
+Offset (hex) to change: 0
+New value (hex): 0
+The byte has been changed: *0x59e487a83000 = 0.
+Changing byte 5/5.
+Offset (hex) to change: 0
+New value (hex): 0
+The byte has been changed: *0x59e487a83000 = 0.
+Ready to receive your license key!
+
+abcde
+Checking the received license key!
+
+You win! Here is your flag:
+pwn.college{QCJPI0vo5_A9DwOEd0md34s1a1J.0FO2IDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Puzzle Patch (Easy)
+
+```
+hacker@reverse-engineering~puzzle-patch-easy:~$ /challenge/puzzle-patch-easy 
+###
+### Welcome to /challenge/puzzle-patch-easy!
+###
+
+This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
+are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
+Providing the correct license key will net you the flag!
+
+Unfortunately for you, the license key cannot be reversed. You'll have to crack this program.
+
+Changing byte 1/1.
+Offset (hex) to change: 0
+New value (hex): 0
+The byte has been changed: *0x581676738000 = 0.
+Ready to receive your license key!
+
+abcde
+Initial input:
+
+	61 62 63 64 65 0a 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+
+This challenge is now mangling your input using the `md5` mangler. This mangler cannot be reversed.
+
+This mangled your input, resulting in:
+
+	b0 b6 a0 a5 a5 3b c4 e5 d8 3f b8 b1 f4 a7 2b 89 00 00 00 00 00 00 00 00 00 00 00 00 00 
+
+The mangling is done! The resulting bytes will be used for the final comparison.
+
+Final result of mangling input:
+
+	b0 b6 a0 a5 a5 3b c4 e5 d8 3f b8 b1 f4 a7 2b 89 00 00 00 00 00 00 00 00 00 00 00 00 00 
+
+Expected result:
+
+	9e 0a 1f fc ec 2a e6 08 8a df 27 6a 35 33 a0 d2 00 00 00 00 00 00 00 00 00 00 00 00 00 
+
+Checking the received license key!
+
+Wrong! No flag for you!
+```
+
+### `main()`
+
+```c showLineNumbers
+int __fastcall __noreturn main(int argc, const char **argv, const char **envp)
+{
+  int i_2; // eax
+  unsigned __int8 new_hex_value; // [rsp+2Dh] [rbp-C3h] BYREF
+  unsigned __int16 offset_to_change; // [rsp+2Eh] [rbp-C2h] BYREF
+  int i_1; // [rsp+30h] [rbp-C0h]
+  int i; // [rsp+34h] [rbp-BCh]
+  int j; // [rsp+38h] [rbp-B8h]
+  int k; // [rsp+3Ch] [rbp-B4h]
+  int m; // [rsp+40h] [rbp-B0h]
+  int n; // [rsp+44h] [rbp-ACh]
+  unsigned __int64 v12; // [rsp+48h] [rbp-A8h]
+  char v13[96]; // [rsp+50h] [rbp-A0h] BYREF
+  __int64 v14[2]; // [rsp+B0h] [rbp-40h] BYREF
+  __int64 buf; // [rsp+C0h] [rbp-30h] BYREF
+  __int64 v16; // [rsp+C8h] [rbp-28h]
+  __int64 v17; // [rsp+D0h] [rbp-20h]
+  int v18; // [rsp+D8h] [rbp-18h]
+  __int16 v19; // [rsp+DCh] [rbp-14h]
+  unsigned __int64 v20; // [rsp+E8h] [rbp-8h]
+
+  v20 = __readfsqword(0x28u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(stdout, 0LL, 2, 0LL);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  puts(
+    "This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you");
+  puts("are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely");
+  puts(
+    "different operations on that input! You must figure out (by reverse engineering this program) what that license key is.");
+  puts("Providing the correct license key will net you the flag!\n");
+  puts("Unfortunately for you, the license key cannot be reversed. You'll have to crack this program.\n");
+  i_1 = 0;
+  v12 = ((unsigned __int64)bin_padding & 0xFFFFFFFFFFFFF000LL) - 4096;
+  do
+    i_2 = i_1++;
+  while ( !mprotect((void *)((i_2 << 12) + v12), 4096uLL, 7) );
+  for ( i = 0; i <= 0; ++i )
+  {
+    printf("Changing byte %d/1.\n", (unsigned int)(i + 1));
+    printf("Offset (hex) to change: ");
+    __isoc99_scanf("%hx", &offset_to_change);
+    printf("New value (hex): ");
+    __isoc99_scanf("%hhx", &new_hex_value);
+    *(_BYTE *)(offset_to_change + v12) = new_hex_value;
+    printf("The byte has been changed: *%p = %hhx.\n", (const void *)(v12 + offset_to_change), new_hex_value);
+  }
+  buf = 0LL;
+  v16 = 0LL;
+  v17 = 0LL;
+  v18 = 0;
+  v19 = 0;
+  puts("Ready to receive your license key!\n");
+  read(0, &buf, 29uLL);
+  puts("Initial input:\n");
+  putchar(9);
+  for ( j = 0; j <= 28; ++j )
+    printf("%02x ", *((unsigned __int8 *)&buf + j));
+  puts("\n");
+  puts("This challenge is now mangling your input using the `md5` mangler. This mangler cannot be reversed.\n");
+  MD5_Init(v13);
+  MD5_Update(v13, &buf, 29LL);
+  MD5_Final(v14, v13);
+  memset(&buf, 0, 29uLL);
+  buf = v14[0];
+  v16 = v14[1];
+  puts("This mangled your input, resulting in:\n");
+  putchar(9);
+  for ( k = 0; k <= 28; ++k )
+    printf("%02x ", *((unsigned __int8 *)&buf + k));
+  puts("\n");
+  puts("The mangling is done! The resulting bytes will be used for the final comparison.\n");
+  puts("Final result of mangling input:\n");
+  putchar(9);
+  for ( m = 0; m <= 28; ++m )
+    printf("%02x ", *((unsigned __int8 *)&buf + m));
+  puts("\n");
+  puts("Expected result:\n");
+  putchar(9);
+  for ( n = 0; n <= 28; ++n )
+    printf("%02x ", EXPECTED_RESULT[n]);
+  puts("\n");
+  puts("Checking the received license key!\n");
+  if ( !memcmp(&buf, EXPECTED_RESULT, 29uLL) )
+  {
+    win();
+    exit(0);
+  }
+  puts("Wrong! No flag for you!");
+  exit(1);
+}
+```
+
+<img alt="image" src="https://github.com/user-attachments/assets/f304770d-881d-4437-94bf-f235e1769835" />
+
+Let's look at the disassembly view.
+
+```asm showLineNumbers
+# ---- snip ----
+
+.text:00000000000024B4                 lea     rax, [rbp+buf]
+.text:00000000000024B8                 mov     edx, 1Dh        ; n
+.text:00000000000024BD                 lea     rsi, EXPECTED_RESULT ; s2
+.text:00000000000024C4                 mov     rdi, rax        ; s1
+.text:00000000000024C7                 call    _memcmp
+.text:00000000000024CC                 test    eax, eax
+.text:00000000000024CE                 jnz     short loc_24E4
+.text:00000000000024D0                 mov     eax, 0
+.text:00000000000024D5                 call    win
+.text:00000000000024DA                 mov     edi, 0          ; status
+.text:00000000000024DF                 call    _exit
+.text:00000000000024E4 ; ---------------------------------------------------------------------------
+.text:00000000000024E4
+.text:00000000000024E4 loc_24E4:                               ; CODE XREF: main+4A3↑j
+.text:00000000000024E4                 lea     rdi, aWrongNoFlagFor ; "Wrong! No flag for you!"
+.text:00000000000024EB                 call    _puts
+.text:00000000000024F0                 mov     edi, 1          ; status
+.text:00000000000024F5                 call    _exit
+
+# ---- snip ----
+```
+
+The `_memcmp` result would be `rax=0` if the values of the hashed user input at `&buf` and `EXPECTED_RESULT` are the same.
+This would cause the `test` instruction to set the Zero Flag (ZF), as it would perform bitwise AND of two 0 values.
+As we can see, the program then uses a `jnz` to jump to `_exit` if Zero Flag (ZF) is unset (0).
+Else, it jumps to `win()`.
+
+So, all in all, if the hashed value is equal to the expected result, we get the flag. However, what if we replace `jnz` with `jz`?
+This would cause the program to give us the flag in cases where the hashed value is not equal to the expected result, and hence allow us to pass any random input.
+
+In order to do this, we would have to pass `0x24ce` as offset as that is the location of the `jnz` instruction's byte, and pass `0x74` as the replacement byte as that is the opcode for `jz`.
+
+```
+hacker@reverse-engineering~puzzle-patch-easy:~$ /challenge/puzzle-patch-easy 
+###
+### Welcome to /challenge/puzzle-patch-easy!
+###
+
+This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
+are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
+Providing the correct license key will net you the flag!
+
+Unfortunately for you, the license key cannot be reversed. You'll have to crack this program.
+
+Changing byte 1/1.
+Offset (hex) to change: 0x24ce
+New value (hex): 0x74
+The byte has been changed: *0x58e2363274ce = 74.
+Ready to receive your license key!
+
+abcde
+Initial input:
+
+	61 62 63 64 65 0a 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+
+This challenge is now mangling your input using the `md5` mangler. This mangler cannot be reversed.
+
+This mangled your input, resulting in:
+
+	b0 b6 a0 a5 a5 3b c4 e5 d8 3f b8 b1 f4 a7 2b 89 00 00 00 00 00 00 00 00 00 00 00 00 00 
+
+The mangling is done! The resulting bytes will be used for the final comparison.
+
+Final result of mangling input:
+
+	b0 b6 a0 a5 a5 3b c4 e5 d8 3f b8 b1 f4 a7 2b 89 00 00 00 00 00 00 00 00 00 00 00 00 00 
+
+Expected result:
+
+	9e 0a 1f fc ec 2a e6 08 8a df 27 6a 35 33 a0 d2 00 00 00 00 00 00 00 00 00 00 00 00 00 
+
+Checking the received license key!
+
+You win! Here is your flag:
+pwn.college{4VOxatygoDt8Leb7vJC36o1hFGM.0VO2IDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Puzzle Patch (Hard)
+
+```
+hacker@reverse-engineering~puzzle-patch-hard:~$ /challenge/puzzle-patch-hard 
+###
+### Welcome to /challenge/puzzle-patch-hard!
+###
+
+This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
+are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
+Providing the correct license key will net you the flag!
+
+Unfortunately for you, the license key cannot be reversed. You'll have to crack this program.
+
+Changing byte 1/1.
+Offset (hex) to change: 0
+New value (hex): 0
+The byte has been changed: *0x62630a8cf000 = 0.
+Ready to receive your license key!
+
+abcde
+Checking the received license key!
+
+Wrong! No flag for you!
+```
+
+### `main()`
+
+```c showLineNumbers
+void __fastcall __noreturn main(int a1, char **a2, char **a3)
+{
+  int v3; // eax
+  unsigned __int8 new_hex_value; // [rsp+2Dh] [rbp-B3h] BYREF
+  unsigned __int16 offset_to_change; // [rsp+2Eh] [rbp-B2h] BYREF
+  int v6; // [rsp+30h] [rbp-B0h]
+  int i; // [rsp+34h] [rbp-ACh]
+  unsigned __int64 v8; // [rsp+38h] [rbp-A8h]
+  char v9[96]; // [rsp+40h] [rbp-A0h] BYREF
+  __int64 v10[2]; // [rsp+A0h] [rbp-40h] BYREF
+  __int64 buf; // [rsp+B0h] [rbp-30h] BYREF
+  __int64 v12; // [rsp+B8h] [rbp-28h]
+  __int64 v13; // [rsp+C0h] [rbp-20h]
+  int v14; // [rsp+C8h] [rbp-18h]
+  __int16 v15; // [rsp+CCh] [rbp-14h]
+  unsigned __int64 v16; // [rsp+D8h] [rbp-8h]
+
+  v16 = __readfsqword(40u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(stdout, 0LL, 2, 0LL);
+  puts("###");
+  printf("### Welcome to %s!\n", *a2);
+  puts("###");
+  putchar(10);
+  puts(
+    "This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you");
+  puts("are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely");
+  puts(
+    "different operations on that input! You must figure out (by reverse engineering this program) what that license key is.");
+  puts("Providing the correct license key will net you the flag!\n");
+  puts("Unfortunately for you, the license key cannot be reversed. You'll have to crack this program.\n");
+  v6 = 0;
+  v8 = ((unsigned __int64)sub_1369 & 0xFFFFFFFFFFFFF000LL) - 4096;
+  do
+    v3 = v6++;
+  while ( !mprotect((void *)((v3 << 12) + v8), 4096uLL, 7) );
+  for ( i = 0; i <= 0; ++i )
+  {
+    printf("Changing byte %d/1.\n", (unsigned int)(i + 1));
+    printf("Offset (hex) to change: ");
+    __isoc99_scanf("%hx", &offset_to_change);
+    printf("New value (hex): ");
+    __isoc99_scanf("%hhx", &new_hex_value);
+    *(_BYTE *)(offset_to_change + v8) = new_hex_value;
+    printf("The byte has been changed: *%p = %hhx.\n", (const void *)(v8 + offset_to_change), new_hex_value);
+  }
+  buf = 0LL;
+  v12 = 0LL;
+  v13 = 0LL;
+  v14 = 0;
+  v15 = 0;
+  puts("Ready to receive your license key!\n");
+  read(0, &buf, 29uLL);
+  MD5_Init(v9);
+  MD5_Update(v9, &buf, 29LL);
+  MD5_Final(v10, v9);
+  memset(&buf, 0, 29uLL);
+  buf = v10[0];
+  v12 = v10[1];
+  puts("Checking the received license key!\n");
+  if ( !memcmp(&buf, &EXPECTED_RESULT, 29uLL) )
+  {
+    win();
+    exit(0);
+  }
+  puts("Wrong! No flag for you!");
+  exit(1);
+}
+```
+
+<img alt="image" src="https://github.com/user-attachments/assets/7746fbd5-7725-40f4-9739-1efd2be6e9e1" />
+
+Lets look at the disassembly view.
+
+```asm showLineNumbers
+# ---- snip ----
+
+.text:00000000000023A7                 lea     rax, [rbp+buf]
+.text:00000000000023AB                 mov     edx, 1Dh        ; n
+.text:00000000000023B0                 lea     rsi, EXPECTED_RESULT ; s2
+.text:00000000000023B7                 mov     rdi, rax        ; s1
+.text:00000000000023BA                 call    _memcmp
+.text:00000000000023BF                 test    eax, eax
+.text:00000000000023C1                 jnz     short loc_23D7
+.text:00000000000023C3                 mov     eax, 0
+.text:00000000000023C8                 call    win
+.text:00000000000023CD                 mov     edi, 0          ; status
+.text:00000000000023D2                 call    _exit
+.text:00000000000023D7 ; ---------------------------------------------------------------------------
+.text:00000000000023D7
+.text:00000000000023D7 loc_23D7:                               ; CODE XREF: main+301↑j
+.text:00000000000023D7                 lea     rdi, aWrongNoFlagFor ; "Wrong! No flag for you!"
+.text:00000000000023DE                 call    _puts
+.text:00000000000023E3                 mov     edi, 1          ; status
+.text:00000000000023E8                 call    _exit
+
+# ---- snip ----
+```
+
+The `_memcmp` result would be `rax=0` if the values of the hashed user input at `&buf` and `EXPECTED_RESULT` are the same.
+This would cause the `test` instruction to set the Zero Flag (ZF), as it would perform bitwise AND of two 0 values.
+As we can see, the program then uses a `jnz` to jump to `_exit` if Zero Flag (ZF) is unset (0).
+Else, it jumps to `win()`.
+
+So, all in all, if the hashed value is equal to the expected result, we get the flag. However, what if we replace `jnz` with `jz`?
+This would cause the program to give us the flag in cases where the hashed value is not equal to the expected result, and hence allow us to pass any random input.
+
+In order to do this, we would have to pass `0x23c1` as offset as that is the location of the `jnz` instruction's byte, and pass `0x74` as the replacement byte as that is the opcode for `jz`.
+
+```
+hacker@reverse-engineering~puzzle-patch-hard:~$ /challenge/puzzle-patch-hard 
+###
+### Welcome to /challenge/puzzle-patch-hard!
+###
+
+This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
+are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
+Providing the correct license key will net you the flag!
+
+Unfortunately for you, the license key cannot be reversed. You'll have to crack this program.
+
+Changing byte 1/1.
+Offset (hex) to change: 0x23c1
+New value (hex): 0x74
+The byte has been changed: *0x5718f69e53c1 = 74.
+Ready to receive your license key!
+
+abcde
+Checking the received license key!
+
+You win! Here is your flag:
+pwn.college{AHCbdZU-g-3bj89LQVaaK31zZr9.0FM3IDL4ITM0EzW}
+```
