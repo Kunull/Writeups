@@ -2715,8 +2715,9 @@ void __fastcall __noreturn main(int a1, char **a2, char **a3)
 .text:0000000000002259                 call    _puts
 .text:000000000000225E                 mov     edi, 1          ; status
 .text:0000000000002263                 call    _exit
-```
 
+# ---- snip ----
+```
 
 The first `_memcmp` result would be `rax=0` if the values of the hashed user input at `pre_crack_hash` and `post_crack_hash` are the same.
 This would cause the `test` instruction to set the Zero Flag (ZF), as it would perform bitwise AND of two 0 values.
