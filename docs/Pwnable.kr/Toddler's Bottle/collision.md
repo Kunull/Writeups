@@ -54,7 +54,7 @@ int main(int argc, char* argv[]){
 }
 ```
 
-The challenge expects users to enter a passcode of lenght 20 bytes.
+The challenge expects users to enter a passcode of length 20 bytes.
 
 The the passcode indirectly is compared to `hashcode` using the `check_password()` function.
 
@@ -76,7 +76,7 @@ Let's understand what this means.
 
 #### Pointer casting
 
-When the pointer p is initialized, it acts as `char` pointer and points to a character, which is 1 byte long.
+When the pointer `p` is initialized, it acts as `char` pointer and points to a character, which is 1 byte long.
 
 ```title="char pointer"
 +------+------+------+------+     ... (total 20 bytes)
@@ -125,7 +125,7 @@ Next the `check_password()` function adds all the 5 integers now pointed to by t
 This sum has to be equal to the `hashcode` which is `0x21DD09EC` for us to get the flag.
 
 Should be easy right?
-We can just pass `\xEC\x09\xDD\x21` + `\x00`*16 and that will cause to sum to be equal to the `hashcode`.
+We can just pass `\xEC\x09\xDD\x21` + `\x00`*16 and that will cause the sum to be equal to the `hashcode`.
 
 ```
 Input:
