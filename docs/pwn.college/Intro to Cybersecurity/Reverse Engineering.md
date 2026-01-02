@@ -5074,3 +5074,4 @@ hacker@reverse-engineering~optimizing-for-space:~$ /challenge/cimg ~/solution.ci
 pwn.college{AIEMVclq8dEJTwR93Pr44xYlNxZ.QXwEzMwEDL4ITM0EzW}
 ```
 
+<img alt="image" src="https://github.com/user-attachments/assets/80de1371-b7a9-49df-9cf0-e3fc0fce2f4d" />
