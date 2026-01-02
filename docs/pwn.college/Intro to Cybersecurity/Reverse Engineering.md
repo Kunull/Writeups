@@ -7,7 +7,7 @@ slug: /pwn-college/intro-to-cybersecurity/reverse-engineering
 ## File Formats: Magic Numbers (Python)
 
 ### Source code
-```python title="/challenge/cimg" showLineNumbers
+```py title="/challenge/cimg" showLineNumbers
 #!/opt/pwn.college/python 
 
 import os
@@ -231,7 +231,7 @@ pwn.college{U45kfQ4KNJIp6KwDH0lQRHdpFeL.QXwAzMwEDL4ITM0EzW}
 ## Reading Endianness (Python)
 
 ### Source code
-```python title="/challenge/cimg" showLineNumbers
+```py title="/challenge/cimg" showLineNumbers
 #!/opt/pwn.college/python
 
 import os
@@ -508,7 +508,7 @@ pwn.college{Et6nh45-ta1HCaJmdwJf5eDGBdd.QXxAzMwEDL4ITM0EzW}
 ## Version Information (Python)
 
 ### Source code
-```python title="/challenge/cimg" showLineNumbers
+```py title="/challenge/cimg" showLineNumbers
 #!/opt/pwn.college/python
 
 import os
@@ -552,7 +552,7 @@ The challenge performs the following checks:
     - Magic number (4 bytes): Must be `b"<0%R"`
     - Version (4 bytes): Must be `11` in little-endian
 
-```python title="~/script.py" showLineNumbers
+```py title="~/script.py" showLineNumbers
 import struct
 
 # Build the header (8 bytes total)
@@ -715,7 +715,7 @@ The challenge performs the following checks:
     - Magic number (4 bytes): Must be `b"cm6e"`
     - Version (4 bytes): Must be `135` in little-endian
  
-```python title="~/script.py" showLineNumbers
+```py title="~/script.py" showLineNumbers
 import struct
 
 # Build the header (8 bytes total)
@@ -760,7 +760,7 @@ pwn.college{MX7npfEYKHEaMMoN-13n0RYXQiX.QXwETN2EDL4ITM0EzW}
     - Magic number (4 bytes): Must be `0x5b6e6e52`
     - Version (4 bytes): Must be `0xaa` in little-endian
 
-```python title="~/script.py" showLineNumbers
+```py title="~/script.py" showLineNumbers
 import struct
 
 # Build the header (8 bytes total)
@@ -795,7 +795,7 @@ pwn.college{MS8bIZFkAQQ3-xwFV98pplsoCa7.QXyAzMwEDL4ITM0EzW}
 ## Metadata and Data (Python)
 
 ### Source code
-```python title="/challenge/cimg" showLineNumbers
+```py title="/challenge/cimg" showLineNumbers
 #!/opt/pwn.college/python
 
 import os
@@ -854,7 +854,7 @@ The challenge performs the following checks:
 - Pixel Data:
     - The number of non-space ASCII characters must be `59 * 21 = 1239`
 
-```python title="~/script.py" showLineNumbers
+```py title="~/script.py" showLineNumbers
 import struct
 
 # Build the header (20 bytes total)
@@ -1052,7 +1052,7 @@ The challenge performs the following checks:
 - Pixel Data:
     - The number of non-space characters must be `66 * 17 = 1122` 
 
-```python title="~/script.py" showLineNumbers
+```py title="~/script.py" showLineNumbers
 import struct
 
 # Build the header (10 bytes total)
@@ -1107,7 +1107,7 @@ The challenge performs the following checks:
 - Pixel Data:
     - The number of non-space ASCII characters must be `66 * 17 = 1122` 
 
-```python title="~/script.py" showLineNumbers
+```py title="~/script.py" showLineNumbers
 import struct
 
 # Build the header (14 bytes total)
@@ -1147,7 +1147,7 @@ pwn.college{UB4Rk1u_RCBjfYamRdf9nAU0tlF.QXzAzMwEDL4ITM0EzW}
 ## Input Restrictions (Python)
 
 ### Source code
-```python title="/challenge/cimg" showLineNumbers
+```py title="/challenge/cimg" showLineNumbers
 #!/opt/pwn.college/python
 
 import os
@@ -1210,7 +1210,7 @@ The challenge performs the following checks:
     - The number of non-space ASCII characters must be `66 * 17 = 1122` 
     - Non-space ASCII must be in between `0x20` and `0x7E`
  
-```python title="~/script.py" showLineNumbers
+```py title="~/script.py" showLineNumbers
 import struct
 
 # Build the header (16 bytes total)
@@ -1418,7 +1418,7 @@ The challenge performs the following checks:
     - The number of non-space ASCII characters must be `80 * 13 = 1040` 
     - Non-space ASCII must be in between `0x20` and `0x7e`
  
-```python title="~/script.py" showLineNumbers
+```py title="~/script.py" showLineNumbers
 import struct
 
 # Build the header (10 bytes total)
@@ -1476,7 +1476,7 @@ The challenge performs the following checks:
     - The number of non-space ASCII bytes must be `80 * 13 = 1040` 
     - Non-space ASCII must be in between `0x20` and `0x7e`
  
-```python title="~/script.py" showLineNumbers
+```py title="~/script.py" showLineNumbers
 import struct
 
 # Build the header (8 bytes total)
@@ -1516,7 +1516,7 @@ pwn.college{Qr3ER4NieY66DXLbO5a4RvjVuTi.QX0AzMwEDL4ITM0EzW}
 ## Behold the cIMG! (Python)
 
 ### Source code
-```python title="/challenge/cimg" showLineNumbers
+```py title="/challenge/cimg" showLineNumbers
 #!/opt/pwn.college/python
 
 import os
@@ -1590,7 +1590,7 @@ The challenge performs the following checks:
  
 Based on the number of pixels (`275`) we want, we can reverse engineer some values for the height (`25`) and weight (`11`).
  
-```python title="~/script.py" showLineNumbers
+```py title="~/script.py" showLineNumbers
 import struct
 
 # Build the header (8 bytes total)
@@ -1826,7 +1826,7 @@ The challenge performs the following checks:
  
 Based on the number of pixels (`275`) we want, we can reverse engineer some values for the height (`25`) and weight (`11`).
  
-```python title="~/script.py" showLineNumbers
+```py title="~/script.py" showLineNumbers
 import struct
 from pwn import *
 
@@ -1897,7 +1897,7 @@ The challenge performs the following checks:
     - Non-space ASCII must be in between `0x20` and `0x7E`
  
 
-```python title="~/script.py" showLineNumbers
+```py title="~/script.py" showLineNumbers
 import struct
 from pwn import *
 
@@ -1949,7 +1949,7 @@ pwn.college{8tyvsR_873aVBQOOVrrdXDT1h4x.QX1AzMwEDL4ITM0EzW}
 ## A Basic cIMG (Python)
 
 ### Source code
-```python title="/chalenge/cimg" showLineNumbers
+```py title="/chalenge/cimg" showLineNumbers
 #!/opt/pwn.college/python
 
 import os
@@ -2038,7 +2038,7 @@ This time the challenge treats 4 bytes as one pixel, and the bytes hold the foll
 └────────┴────────┴────────┴────────┘
 ```
 
-```python title="~/script.py" showLineNumbers
+```py title="~/script.py" showLineNumbers
 import struct
 from pwn import *
 
@@ -2311,7 +2311,7 @@ The challenge performs the following checks:
     - Non-space ASCII must be between `0x20` and `0x7E`
     - Must have the non-space ASCII character in ASU maroon `(0x8c, 0x1d, 0x40)` color when 4 consecutive bytes are chunked
  
-```python title="~/script.py" showLineNumbers
+```py title="~/script.py" showLineNumbers
 import struct
 from pwn import *
 
@@ -2408,7 +2408,7 @@ The challenge performs the following checks:
     - Non-space ASCII must be between `0x20` and `0x7E`
     - Must have the non-space ASCII character in ASU maroon `(0x8c, 0x1d, 0x40)` color when 4 consecutive bytes are chunked
  
-```python title="~/script.py" showLineNumbers
+```py title="~/script.py" showLineNumbers
 import struct
 from pwn import *
 
@@ -2765,7 +2765,7 @@ If we write the first pixel as `b"xc8(\x83c"`, the challenge fills in the pixel 
 \x1b[38;2;200;040;131mc\x1b[0m
 ```
 
-```python title="~/script.py" showLineNumbers
+```py title="~/script.py" showLineNumbers
 import struct
 
 # Build the header (8 bytes total)
