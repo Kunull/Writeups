@@ -5159,8 +5159,87 @@ ERROR: invalid directive_code 2x
 ```
 
 So, the directive code in the `/challenge/flag.cimg` file is `2` but that is not what is expected. 
+We can even verify this. For some reason the free version if IDA does not support the file format, so we will have to use Binary Ninja.
+
+### `/challenge/generate_flag_image` 
+
+<img alt="image" src="https://github.com/user-attachments/assets/4fae5c03-da33-4748-b005-62b338fddd30" />
+
+We can see that it sets the directive code to `2`.
+
+```c
+struct.pack(\"<HBBBBBBBB\", 2, p[0], p[1], 1, 1, 0x8c, 0x1d, 0x40, p[2]) 
+```
+
+Let's check what the `/challegne/cimg` program expects.
 
 
+### `/challenge/cimg`
+
+#### `main()`
+```c 
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  const char *v3; // rbp
+  int v4; // eax
+  const char *v5; // rdi
+  unsigned __int16 v8; // [rsp+0h] [rbp-3Ah] BYREF
+  __int128 v9; // [rsp+2h] [rbp-38h] BYREF
+  __int64 v10; // [rsp+12h] [rbp-28h]
+  unsigned __int64 v11; // [rsp+1Ah] [rbp-20h]
+
+  v11 = __readfsqword(0x28u);
+  v9 = 0LL;
+  v10 = 0LL;
+  if ( argc > 1 )
+  {
+    v3 = argv[1];
+    if ( strcmp(&v3[strlen(v3) - 5], ".cimg") )
+    {
+      __printf_chk(1LL, "ERROR: Invalid file extension!");
+      goto LABEL_8;
+    }
+    v4 = open(v3, 0);
+    dup2(v4, 0);
+  }
+  read_exact(0LL, &v9, 12LL, "ERROR: Failed to read header!", 0xFFFFFFFFLL);
+  if ( (_DWORD)v9 != 1196247395 )
+  {
+    v5 = "ERROR: Invalid magic number!";
+LABEL_7:
+    puts(v5);
+    goto LABEL_8;
+  }
+  v5 = "ERROR: Unsupported version!";
+  if ( WORD2(v9) != 3 )
+    goto LABEL_7;
+  initialize_framebuffer(&v9);
+  while ( DWORD2(v9)-- )
+  {
+    read_exact(0LL, &v8, 2LL, "ERROR: Failed to read &directive_code!", 0xFFFFFFFFLL);
+    if ( v8 == 13725 )
+    {
+      handle_13725(&v9);
+    }
+    else
+    {
+      if ( v8 != 0x8B48 )
+      {
+        __fprintf_chk(stderr, 1LL, "ERROR: invalid directive_code %ux\n", v8);
+LABEL_8:
+        exit(-1);
+      }
+      handle_35656(&v9);
+    }
+  }
+  display(&v9, 0LL);
+  return 0;
+}
+```
+
+The expected directive is `13725`, which is `b"\x9d\x35"`.
+
+Let's craft an exploit that fixes `/challenge/flag.cimg`.
 
 ### Exploit
 
