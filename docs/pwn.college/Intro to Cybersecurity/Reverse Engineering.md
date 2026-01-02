@@ -552,6 +552,8 @@ The challenge performs the following checks:
     - Magic number (4 bytes): Must be `b"<0%R"`
     - Version (4 bytes): Must be `11` in little-endian
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 import struct
 
@@ -715,6 +717,8 @@ The challenge performs the following checks:
     - Magic number (4 bytes): Must be `b"cm6e"`
     - Version (4 bytes): Must be `135` in little-endian
  
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 import struct
 
@@ -759,6 +763,8 @@ pwn.college{MX7npfEYKHEaMMoN-13n0RYXQiX.QXwETN2EDL4ITM0EzW}
 - Header (8 bytes total):
     - Magic number (4 bytes): Must be `0x5b6e6e52`
     - Version (4 bytes): Must be `0xaa` in little-endian
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 import struct
@@ -853,6 +859,8 @@ The challenge performs the following checks:
     - Height (4 bytes): Must be `21` in little-endian
 - Pixel Data:
     - The number of non-space ASCII characters must be `59 * 21 = 1239`
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 import struct
@@ -1052,6 +1060,8 @@ The challenge performs the following checks:
 - Pixel Data:
     - The number of non-space characters must be `66 * 17 = 1122` 
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 import struct
 
@@ -1106,6 +1116,8 @@ The challenge performs the following checks:
     - Height (4 bytes): Must be `0xc` (`12`) in little-endian
 - Pixel Data:
     - The number of non-space ASCII characters must be `66 * 17 = 1122` 
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 import struct
@@ -1210,6 +1222,8 @@ The challenge performs the following checks:
     - The number of non-space ASCII characters must be `66 * 17 = 1122` 
     - Non-space ASCII must be in between `0x20` and `0x7E`
  
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 import struct
 
@@ -1418,6 +1432,8 @@ The challenge performs the following checks:
     - The number of non-space ASCII characters must be `80 * 13 = 1040` 
     - Non-space ASCII must be in between `0x20` and `0x7e`
  
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 import struct
 
@@ -1476,6 +1492,8 @@ The challenge performs the following checks:
     - The number of non-space ASCII bytes must be `80 * 13 = 1040` 
     - Non-space ASCII must be in between `0x20` and `0x7e`
  
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 import struct
 
@@ -1590,6 +1608,8 @@ The challenge performs the following checks:
  
 Based on the number of pixels (`275`) we want, we can reverse engineer some values for the height (`25`) and weight (`11`).
  
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 import struct
 
@@ -1826,6 +1846,8 @@ The challenge performs the following checks:
  
 Based on the number of pixels (`275`) we want, we can reverse engineer some values for the height (`25`) and weight (`11`).
  
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 import struct
 from pwn import *
@@ -1896,6 +1918,8 @@ The challenge performs the following checks:
     - The number of non-space ASCII characters must be `275`
     - Non-space ASCII must be in between `0x20` and `0x7E`
  
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 import struct
@@ -2037,6 +2061,8 @@ This time the challenge treats 4 bytes as one pixel, and the bytes hold the foll
 │   140  │   29   │   64   │   .    │
 └────────┴────────┴────────┴────────┘
 ```
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 import struct
@@ -2311,6 +2337,8 @@ The challenge performs the following checks:
     - Non-space ASCII must be between `0x20` and `0x7E`
     - Must have the non-space ASCII character in ASU maroon `(0x8c, 0x1d, 0x40)` color when 4 consecutive bytes are chunked
  
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 import struct
 from pwn import *
@@ -2408,6 +2436,8 @@ The challenge performs the following checks:
     - Non-space ASCII must be between `0x20` and `0x7E`
     - Must have the non-space ASCII character in ASU maroon `(0x8c, 0x1d, 0x40)` color when 4 consecutive bytes are chunked
  
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 import struct
 from pwn import *
@@ -2765,6 +2795,8 @@ If we write the first pixel as `b"xc8(\x83c"`, the challenge fills in the pixel 
 \x1b[38;2;200;040;131mc\x1b[0m
 ```
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 import struct
 
@@ -2933,6 +2965,8 @@ We can see that the challenge performs the exact same checks as the [Internal St
 - Pixel Data:
     - The number of non-space ASCII pixels must be `4 * 1 = 4`, i.e. the number of bytes must be `4 * 4 = 16`
     - When pixel data is loaded into the [ANSI escape code](https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit): `"\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m"` one by one and appended together, it should match the following: `"\x1b[38;2;200;040;131mc\x1b[0m\x1b[38;2;001;019;165mI\x1b[0m\x1b[38;2;160;134;059mM\x1b[0m\x1b[38;2;195;046;079mG\x1b[0m\x00";`
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 import struct
@@ -3243,6 +3277,8 @@ In this challenge, the desired ANSI sequence is to big for us to manually craft 
 - Pixel Data:
     - The number of non-space ASCII pixels must be `num_pixels`, i.e. the number of bytes must be `4 * num_pixels`
     - When pixel data is loaded into the ANSI escape code: `"\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m"` one by one and appended together, it should match the given ANSI sequence.
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
@@ -3798,9 +3834,9 @@ int main(int argc, char **argv, char **envp)
 - Pixel Data:
     - The number of non-space ASCII pixels must be `num_pixels`, i.e. the number of bytes must be `4 * num_pixels`
     - When pixel data is loaded into the ANSI escape code: `"\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m"` one by one and appended together, it should match the given ANSI sequence.
-
-### Exploit
  
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 from pwn import *
 import struct
@@ -4167,7 +4203,7 @@ EXIT:
 
 Let's find the required width:
 
-```py title=~/script.py showLineNumbers
+```py title="~/script.py" showLineNumbers
 from pwn import *
 import struct
 import re
@@ -4383,6 +4419,8 @@ EXIT:
   return __readfsqword(0x28u) ^ v19;
 }
 ```
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 # Desired ANSII sequence
