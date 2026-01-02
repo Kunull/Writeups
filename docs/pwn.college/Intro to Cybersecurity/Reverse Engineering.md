@@ -5064,64 +5064,6 @@ pwn.college{AIEMVclq8dEJTwR93Pr44xYlNxZ.QXwEzMwEDL4ITM0EzW}
 
 <img alt="image" src="https://github.com/user-attachments/assets/80de1371-b7a9-49df-9cf0-e3fc0fce2f4d" />
 
-
-## Tweaking Images
-
-```py
-from pwn import *
-import struct
-import re
-
-# Desired ANSII sequence
-
-# This regex looks for the RGB numbers and the character that follows the 'm'
-# (\d+) matches the digits for R, G, and B
-# m(.) matches the 'm' followed by the single character we want
-pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
-
-# Find all matches in the sequence
-# matches = re.findall(pattern, desired_ansii_sequence)
-
-# Convert the strings to the format you want: (int, int, int, ord(char))
-
-width_value = 53
-height_value = 10
-
-directives_payload = b""
-directive_count = 0
-
-def add_box(x, y, w, h):
-    global directives_payload, directive_count
-    directive_count += 1
-    directives_payload += struct.pack("<HBBBB", 13725, x, y, w, h)
-
-# --- BORDERS (4 Directives) ---
-add_box(0, 0, width_value, 1)        # Top
-add_box(0, 16, width_value, 1)       # Bottom
-add_box(0, 1, 1, 15)                  # Left
-add_box(52, 1, 1, 15)                 # Right
-
-# --- CHARACTERS (4 Directives) ---
-# Coordinates approximate based on the ASCII art provided
-add_box(6, 3, 6, 4)   # "C"
-add_box(19, 4, 5, 5)   # "I"
-add_box(29, 8, 8, 5)   # "M"
-add_box(39, 9, 7, 5)   # "G" 
-
-# --- HEADER ---
-header = struct.pack("<IHBBI", 0x474d4963, 3, width_value, height_value, directive_count)
-
-# Full file content
-cimg_data = header + directives_payload
-
-# Write to disk
-with open("/home/hacker/solution.cimg", "wb") as f:
-    f.write(cimg_data)
-
-print(f"Total Bytes: {len(cimg_data)}")
-print(f"Directives used: {directive_count}")
-```
-
 &nbsp;
 
 ## Tweaking Images
@@ -5160,9 +5102,9 @@ We can see that it sets the directive code to `2`.
 struct.pack(\"<HBBBBBBBB\", 2, p[0], p[1], 1, 1, 0x8c, 0x1d, 0x40, p[2]) 
 ```
 
-Let's check what the `/challegne/cimg` program expects.
+Let's check what the `/challenge/cimg` program expects.
 
-```c title="main()" showLineNumbers
+```c showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   const char *v3; // rbp

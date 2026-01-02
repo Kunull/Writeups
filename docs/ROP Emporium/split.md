@@ -107,9 +107,9 @@ split           0x601060 '/bin/cat flag.txt'
 
 We can link this string with our system call in order to read the `flag.txt` file.
 
-In order to put this string into `rdi`, we will need a `pop rdi` gadget.
+In order to put this string into `rdi`, we will need a `pop rdi ; ret` gadget.
 
-### `pop rdi` gadget
+### `pop rdi ; ret` gadget
 
 We can find the gadget using the `ROPgadget` utility. 
 
@@ -118,7 +118,7 @@ $ ROPgadget --binary split | grep "pop rdi ; ret"
 0x00000000004007c3 : pop rdi ; ret
 ```
 
-We can see that the address of the `pop rdi` gadget is `0x00000000004007c3`. 
+We can see that the address of the `pop rdi ; ret` gadget is `0x00000000004007c3`. 
 
 ### Cyclic pattern
 

