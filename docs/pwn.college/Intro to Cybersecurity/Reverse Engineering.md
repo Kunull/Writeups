@@ -208,7 +208,7 @@ After some variable renaming and type editing, we are left with the following:
 
 
 
-### `main()`
+### Binary Analysis
 
 ![image](https://github.com/user-attachments/assets/3461de42-2d8b-4851-bb88-f0d28558c942?raw=1)
 
@@ -480,7 +480,7 @@ pwn.college{Iz_N1i6LBqszqfN70WeEVNJzFd9.QX4ATN2EDL4ITM0EzW}
 
 
 
-### `main()`
+### Binary Analysis
 
 ![image](https://github.com/user-attachments/assets/7eaea94a-9f4b-439d-890c-67cc3ccd778b?raw=1)
 
@@ -755,7 +755,7 @@ pwn.college{MX7npfEYKHEaMMoN-13n0RYXQiX.QXwETN2EDL4ITM0EzW}
 
 
 
-### `main()`
+### Binary Analysis
 
 ![image](https://github.com/user-attachments/assets/8e03222f-a902-493b-9da2-2bca5c8287de?raw=1)
 
@@ -1103,7 +1103,7 @@ pwn.college{UiHnq7dEOB75oBiYdd31IiDPdHG.QXyETN2EDL4ITM0EzW}
 
 
 
-### `main()`
+### Binary Analysis
 
 ![image](https://github.com/user-attachments/assets/d0700b9b-d388-4af9-9d10-791a4cf4922a?raw=1)
 
@@ -1475,7 +1475,7 @@ pwn.college{MncM_uybJBUtPMNqnf4uUZTvN38.QX0ETN2EDL4ITM0EzW}
 
 
 
-### `main()`
+### Binary Analysis
 
 ![image](https://github.com/user-attachments/assets/58e06064-6ea6-4060-8abf-68b8e7e20e3e?raw=1)
 
@@ -1899,9 +1899,7 @@ pwn.college{Y9UIwcU8PAlWDhlav3ieIczJPrB.QX2ETN2EDL4ITM0EzW}
 
 ## Behold the cIMG! (x86)
 
-
-
-### `main()`
+### Binary Analysis
 
 ![image](https://github.com/user-attachments/assets/cc0aa45c-21d0-4585-8a1d-4117c9e7ee58?raw=1)
 
@@ -2406,9 +2404,7 @@ pwn.college{4IY_xVT2BdscpfYAibCo97rS48E.QX4ETN2EDL4ITM0EzW}
 
 ## A Basic cIMG (x86)
 
-
-
-### `main()`
+### Binary Analysis
 
 ![image](https://github.com/user-attachments/assets/05c4947a-f48f-4982-aa69-6de50094baa4?raw=1)
 
@@ -2846,15 +2842,13 @@ pwn.college{sxObMoehMoum3fSzW12W3zqJsBu.QX5ETN2EDL4ITM0EzW}
 
 ## Internal State Mini (x86)
 
-
-
 After decompiling the program within IDA, and some variable renaming and type altering, we get the following pseudo-C code:
 
 <img alt="image" src="https://github.com/user-attachments/assets/7bfe15f4-6483-471a-85c9-8c46a90af07f" />
 
-### `main()`
+### Binary Analysis
 
-```c showLineNumbers
+```c title="main()" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   const char *file_arg; // rbp
@@ -3363,13 +3357,11 @@ pwn.college{MeWc9ChLvjW8FhGUVQm-MFmVW7z.QXxITN2EDL4ITM0EzW}
 
 ## Internal State (x86)
 
-
-
-### `main()`
+### Binary Analysis
 
 <img alt="image" src="https://github.com/user-attachments/assets/e5d67d5f-4187-4c0b-90be-e2f808a35102" />
 
-```c showLineNumbers
+```c title="main()" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   const char *v3; // rbp
@@ -3926,9 +3918,9 @@ pwn.college{YtYqzGPTd8ZcDWzwyHLOGwSsY0S.QXyITN2EDL4ITM0EzW}
 
 
 
-### `main()`
+### Binary Analysis
 
-```c showLineNumbers
+```c title="main()" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   const char *file_arg; // rbp
@@ -4114,9 +4106,9 @@ pwn.college{syk86MEMK8yI4ABF2f5AcH3BOKX.QX4AzMwEDL4ITM0EzW}
 
 ## The Patch Directive
 
-### `main()`
+### Binary Analysis
 
-```c showLineNumbers
+```c title="main()" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   const char *file_arg; // rbp
@@ -4251,9 +4243,7 @@ In [1]: print(len(".---------------------------------------------------."))
  
 Let's look at both the handler functions.
 
-### `handle_55369()`
-
-```c showLineNumbers
+```c title="handle_55369()" showLineNumbers
 unsigned __int64 __fastcall handle_55369(__int64 user_cimg)
 {
   int width; // ebp
@@ -4327,9 +4317,7 @@ EXIT:
 }
 ```
 
-### `handle_52965()`
-
-```c showLineNumbers
+```c title="handle_52965()" showLineNumbers
 unsigned __int64 __fastcall handle_52965(__int64 a1)
 {
   unsigned int num_bytes; // ebx
@@ -5159,9 +5147,10 @@ ERROR: invalid directive_code 2x
 ```
 
 So, the directive code in the `/challenge/flag.cimg` file is `2` but that is not what is expected. 
-We can even verify this. For some reason the free version if IDA does not support the file format, so we will have to use Binary Ninja.
 
-### `/challenge/generate_flag_image` 
+### Binary Analysis
+
+We can even verify this. For some reason the free version if IDA does not support the file format, so we will have to use Binary Ninja.
 
 <img alt="image" src="https://github.com/user-attachments/assets/4fae5c03-da33-4748-b005-62b338fddd30" />
 
@@ -5173,11 +5162,7 @@ struct.pack(\"<HBBBBBBBB\", 2, p[0], p[1], 1, 1, 0x8c, 0x1d, 0x40, p[2])
 
 Let's check what the `/challegne/cimg` program expects.
 
-
-### `/challenge/cimg`
-
-#### `main()`
-```c 
+```c title="main()" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   const char *v3; // rbp
