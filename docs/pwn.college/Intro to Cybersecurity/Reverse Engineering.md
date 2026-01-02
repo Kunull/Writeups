@@ -4406,7 +4406,7 @@ EXIT:
 
 ### Exploit
 
-#### Without using any blank characters
+#### Print without using any blank characters
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
@@ -4505,7 +4505,7 @@ Total Bytes: 1292
 Directives used: 70
 ```
 
-#### Printing each border using a directive
+#### Print each border using a directive
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
@@ -4617,7 +4617,7 @@ Total Bytes: 1124
 Directives used: 42
 ```
 
-#### Printing each border and each letter using a directive 
+#### Print each border and each letter using a directive 
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
@@ -4734,7 +4734,7 @@ pwn.college{UMeXSUaFZYlR24CqDvgWdMZihWp.QX5AzMwEDL4ITM0EzW}
 
 ### Exploit
 
-#### Printing each border using a directive
+#### Print each border using a directive
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
@@ -4828,7 +4828,7 @@ cimg_data = header + directives_payload
 with open("/home/hacker/solution.cimg", "wb") as f:
     f.write(cimg_data)
 
-print(f"Total Bytes: {len(cimg_data)}")
+print(f"Total Bytes: {len(cimg_data)} (Limit: 1337)")
 print(f"Directives used: {directive_count}")
 ```
 
@@ -4848,6 +4848,96 @@ Total Bytes: 994
 Directives used: 27
 ```
 
+#### Print each border and each line of the text using a directive
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+import struct
+import re
+
+# Desired ANSII sequence
+binary = context.binary = ELF('/challenge/cimg')
+desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
+
+# This regex looks for the RGB numbers and the character that follows the 'm'
+# (\d+) matches the digits for R, G, and B
+# m(.) matches the 'm' followed by the single character we want
+pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
+
+# Find all matches in the sequence
+matches = re.findall(pattern, desired_ansii_sequence)
+
+# Convert the strings to the format you want: (int, int, int, ord(char))
+pixels = [
+    (int(r), int(g), int(b), ord(char)) 
+    for r, g, b, char in matches
+]
+
+pixel_data = b"".join(struct.pack("BBBB", r, g, b, a) for r, g, b, a in pixels)
+
+width_value = 76
+height_value = len(pixels) // width_value
+
+directives_payload = b""
+directive_count = 0
+
+def add_box(x, y, w, h):
+    global directives_payload, directive_count
+    directive_count += 1
+    directives_payload += struct.pack("<HBBBB", 52965, x, y, w, h)
+    for row in range(y, y + h):
+        for col in range(x, x + w):
+            p = pixels[row * width_value + col]
+            directives_payload += struct.pack("BBBB", p[0], p[1], p[2], p[3])
+
+# --- BORDERS (4 Directives) ---
+add_box(0, 0, width_value, 1)        # Top
+add_box(0, (height_value-1), width_value, 1)       # Bottom
+
+side_border_height = height_value - 2
+add_box(0, 1, 1, side_border_height)                  # Left
+add_box((width_value-1), 1, 1, side_border_height)                 # Right
+
+# --- CHARACTERS (4 Directives) ---
+# Coordinates approximate based on the ASCII art provided
+add_box(31, 9, 20, 1)           #             "___   __  __    ____"
+add_box(25, 10, 27, 1)          #       "___  |_ _| |  \/  |  / ___|"
+add_box(24, 11, 27, 1)          #      "/ __|  | |  | |\/| | | |  _ "
+add_box(23, 12, 29, 1)          #     "| (__   | |  | |  | | | |_| |"
+add_box(24, 13, 28, 1)          #      "\___| |___| |_|  |_|  \____|"
+
+# --- HEADER ---
+header = struct.pack("<IHBBI", 0x474d4963, 3, width_value, height_value, directive_count)
+
+# Full file content
+cimg_data = header + directives_payload
+
+# Write to disk
+with open("/home/hacker/solution.cimg", "wb") as f:
+    f.write(cimg_data)
+
+print(f"Total Bytes: {len(cimg_data)} (Limit: 1337)")
+print(f"Directives used: {directive_count}")
+```
+
+```
+hacker@reverse-engineering~optimizing-for-space:/$ python ~/script.py 
+[*] '/challenge/cimg'
+    Arch:       amd64-64-little
+    RELRO:      Full RELRO
+    Stack:      Canary found
+    NX:         NX enabled
+    PIE:        No PIE (0x400000)
+    FORTIFY:    Enabled
+    SHSTK:      Enabled
+    IBT:        Enabled
+    Stripped:   No
+Total Bytes: 1374
+Directives used: 9
+```
+
+#### Dynamically decide whether header overhead / blank spaces would take less bytes
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
@@ -4984,64 +5074,3 @@ hacker@reverse-engineering~optimizing-for-space:~$ /challenge/cimg ~/solution.ci
 pwn.college{AIEMVclq8dEJTwR93Pr44xYlNxZ.QXwEzMwEDL4ITM0EzW}
 ```
 
-## test
-
-```py title="~/script.py" showLineNumbers
-from pwn import *
-import struct
-import re
-
-# Desired ANSII sequence
-binary = context.binary = ELF('/challenge/cimg')
-desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
-desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
-
-# This regex looks for the RGB numbers and the character that follows the 'm'
-# (\d+) matches the digits for R, G, and B
-# m(.) matches the 'm' followed by the single character we want
-pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
-
-# Find all matches in the sequence
-matches = re.findall(pattern, desired_ansii_sequence)
-
-# Convert the strings to the format you want: (int, int, int, ord(char))
-pixels = [
-    (int(r), int(g), int(b), ord(char)) 
-    for r, g, b, char in matches
-]
-
-pixel_data = b"".join(struct.pack("BBBB", r, g, b, a) for r, g, b, a in pixels)
-
-width_value = 76
-height_value = len(pixels) // width_value
-
-directives_payload = b""
-directive_count = 0
-
-def add_box(x, y, w, h):
-    global directives_payload, directive_count
-    directive_count += 1
-    directives_payload += struct.pack("<HBBBB", 52965, x, y, w, h)
-    for row in range(y, y + h):
-        for col in range(x, x + w):
-            p = pixels[row * width_value + col]
-            directives_payload += struct.pack("BBBB", p[0], p[1], p[2], p[3])
-
-# --- BORDERS (4 Directives) ---
-add_box(0, 0, width_value, 1)        # Top
-add_box(0, (height_value-1), width_value, 1)       # Bottom
-
-side_border_height = height_value - 2
-add_box(0, 1, 1, side_border_height)                  # Left
-add_box((width_value-1), 1, 1, side_border_height)                 # Right
-
-# --- CHARACTERS (4 Directives) ---
-# Coordinates approximate based on the ASCII art provided
-add_box(32, 9, 20, 1)   # "___   __  __    ____"
-add_box(32, 9, 20, 1)   # "___   __  __    ____"
-
-# --- HEADER ---
-header = struct.pack("<IHBBI", 0x474d4963, 3, width_value, height_value, directive_count)
-print(f"Total Bytes: {len(header + directives_payload)}")
-print(f"Directives used: {directive_count}")
-```
