@@ -3363,7 +3363,7 @@ pwn.college{MeWc9ChLvjW8FhGUVQm-MFmVW7z.QXxITN2EDL4ITM0EzW}
 
 ## Internal State (x86)
 
-### Disassembly
+
 
 ### `main()`
 
@@ -3924,7 +3924,7 @@ pwn.college{YtYqzGPTd8ZcDWzwyHLOGwSsY0S.QXyITN2EDL4ITM0EzW}
 
 ## File Formats: Directives (x86)
 
-### Disassembly
+
 
 ### `main()`
 
