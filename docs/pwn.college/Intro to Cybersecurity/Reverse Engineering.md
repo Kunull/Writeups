@@ -206,9 +206,9 @@ Let's decompile it using [Binary Ninja Cloud](https://cloud.binary.ninja/).
 
 After some variable renaming and type editing, we are left with the following: 
 
-### Decompilation
 
-#### `main()`
+
+### `main()`
 
 ![image](https://github.com/user-attachments/assets/3461de42-2d8b-4851-bb88-f0d28558c942?raw=1)
 
@@ -478,9 +478,9 @@ pwn.college{Iz_N1i6LBqszqfN70WeEVNJzFd9.QX4ATN2EDL4ITM0EzW}
 
 ## Reading Endianness (x86)
 
-### Decompilation
 
-#### `main()`
+
+### `main()`
 
 ![image](https://github.com/user-attachments/assets/7eaea94a-9f4b-439d-890c-67cc3ccd778b?raw=1)
 
@@ -753,9 +753,9 @@ pwn.college{MX7npfEYKHEaMMoN-13n0RYXQiX.QXwETN2EDL4ITM0EzW}
 
 ## Version Information (x86)
 
-### Decompilation
 
-#### `main()`
+
+### `main()`
 
 ![image](https://github.com/user-attachments/assets/8e03222f-a902-493b-9da2-2bca5c8287de?raw=1)
 
@@ -1101,9 +1101,9 @@ pwn.college{UiHnq7dEOB75oBiYdd31IiDPdHG.QXyETN2EDL4ITM0EzW}
 
 ## Metadata and Data (x86)
 
-### Decompilation
 
-#### `main()`
+
+### `main()`
 
 ![image](https://github.com/user-attachments/assets/d0700b9b-d388-4af9-9d10-791a4cf4922a?raw=1)
 
@@ -1473,9 +1473,9 @@ pwn.college{MncM_uybJBUtPMNqnf4uUZTvN38.QX0ETN2EDL4ITM0EzW}
 
 ## Input Restrictions (x86)
 
-### Decompilation
 
-#### `main()`
+
+### `main()`
 
 ![image](https://github.com/user-attachments/assets/58e06064-6ea6-4060-8abf-68b8e7e20e3e?raw=1)
 
@@ -1899,9 +1899,9 @@ pwn.college{Y9UIwcU8PAlWDhlav3ieIczJPrB.QX2ETN2EDL4ITM0EzW}
 
 ## Behold the cIMG! (x86)
 
-### Decompilation
 
-#### `main()`
+
+### `main()`
 
 ![image](https://github.com/user-attachments/assets/cc0aa45c-21d0-4585-8a1d-4117c9e7ee58?raw=1)
 
@@ -2406,9 +2406,9 @@ pwn.college{4IY_xVT2BdscpfYAibCo97rS48E.QX4ETN2EDL4ITM0EzW}
 
 ## A Basic cIMG (x86)
 
-### Decompilation
 
-#### `main()`
+
+### `main()`
 
 ![image](https://github.com/user-attachments/assets/05c4947a-f48f-4982-aa69-6de50094baa4?raw=1)
 
@@ -2846,13 +2846,13 @@ pwn.college{sxObMoehMoum3fSzW12W3zqJsBu.QX5ETN2EDL4ITM0EzW}
 
 ## Internal State Mini (x86)
 
-### Decompilation
+
 
 After decompiling the program within IDA, and some variable renaming and type altering, we get the following pseudo-C code:
 
 <img alt="image" src="https://github.com/user-attachments/assets/7bfe15f4-6483-471a-85c9-8c46a90af07f" />
 
-#### `main()`
+### `main()`
 
 ```c showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -3365,7 +3365,7 @@ pwn.college{MeWc9ChLvjW8FhGUVQm-MFmVW7z.QXxITN2EDL4ITM0EzW}
 
 ### Disassembly
 
-#### `main()`
+### `main()`
 
 <img alt="image" src="https://github.com/user-attachments/assets/e5d67d5f-4187-4c0b-90be-e2f808a35102" />
 
@@ -3926,7 +3926,7 @@ pwn.college{YtYqzGPTd8ZcDWzwyHLOGwSsY0S.QXyITN2EDL4ITM0EzW}
 
 ### Disassembly
 
-#### `main()`
+### `main()`
 
 ```c showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
