@@ -4227,23 +4227,7 @@ hacker@reverse-engineering~the-patch-directive:/$ python ~/script.py
     SHSTK:      Enabled
     IBT:        Enabled
     Stripped:   No
-.---------------------------------------------------.
-|                                                   |
-|                                                   |
-|       ___                                         |
-|      / __|        ___                             |
-|     | (__        |_ _|                            |
-|      \___|        | |                             |
-|                   | |                             |
-|                  |___|      __  __                |
-|                            |  \/  |    ____       |
-|                            | |\/| |   / ___|      |
-|                            | |  | |  | |  _       |
-|                            |_|  |_|  | |_| |      |
-|                                       \____|      |
-|                                                   |
-|                                                   |
-'---------------------------------------------------'
+.---------------------------------------------------.|                                                   ||                                                   ||       ___                                         ||      / __|        ___                             ||     | (__        |_ _|                            ||      \___|        | |                             ||                   | |                             ||                  |___|      __  __                ||                            |  \/  |    ____       ||                            | |\/| |   / ___|      ||                            | |  | |  | |  _       ||                            |_|  |_|  | |_| |      ||                                       \____|      ||                                                   ||                                                   |'---------------------------------------------------'
 ```
 
 ```py
@@ -4423,6 +4407,10 @@ EXIT:
 ### Exploit
 
 ```py title="~/script.py" showLineNumbers
+from pwn import *
+import struct
+import re
+
 # Desired ANSII sequence
 binary = context.binary = ELF('/challenge/cimg')
 desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
