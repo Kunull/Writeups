@@ -5075,3 +5075,182 @@ pwn.college{AIEMVclq8dEJTwR93Pr44xYlNxZ.QXwEzMwEDL4ITM0EzW}
 ```
 
 <img alt="image" src="https://github.com/user-attachments/assets/80de1371-b7a9-49df-9cf0-e3fc0fce2f4d" />
+
+
+## Tweaking Images
+
+```py
+from pwn import *
+import struct
+import re
+
+# Desired ANSII sequence
+
+# This regex looks for the RGB numbers and the character that follows the 'm'
+# (\d+) matches the digits for R, G, and B
+# m(.) matches the 'm' followed by the single character we want
+pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
+
+# Find all matches in the sequence
+# matches = re.findall(pattern, desired_ansii_sequence)
+
+# Convert the strings to the format you want: (int, int, int, ord(char))
+
+width_value = 53
+height_value = 10
+
+directives_payload = b""
+directive_count = 0
+
+def add_box(x, y, w, h):
+    global directives_payload, directive_count
+    directive_count += 1
+    directives_payload += struct.pack("<HBBBB", 13725, x, y, w, h)
+
+# --- BORDERS (4 Directives) ---
+add_box(0, 0, width_value, 1)        # Top
+add_box(0, 16, width_value, 1)       # Bottom
+add_box(0, 1, 1, 15)                  # Left
+add_box(52, 1, 1, 15)                 # Right
+
+# --- CHARACTERS (4 Directives) ---
+# Coordinates approximate based on the ASCII art provided
+add_box(6, 3, 6, 4)   # "C"
+add_box(19, 4, 5, 5)   # "I"
+add_box(29, 8, 8, 5)   # "M"
+add_box(39, 9, 7, 5)   # "G" 
+
+# --- HEADER ---
+header = struct.pack("<IHBBI", 0x474d4963, 3, width_value, height_value, directive_count)
+
+# Full file content
+cimg_data = header + directives_payload
+
+# Write to disk
+with open("/home/hacker/solution.cimg", "wb") as f:
+    f.write(cimg_data)
+
+print(f"Total Bytes: {len(cimg_data)}")
+print(f"Directives used: {directive_count}")
+```
+
+&nbsp;
+
+## Tweaking Images
+
+```
+hacker@reverse-engineering~tweaking-images:/$ ls /challenge/
+DESCRIPTION.md  cimg  cimg.c  generate_flag_image
+```
+
+This time, there is a `generate_flag_image` script, which generates a flag cIMG for us.
+
+```
+hacker@reverse-engineering~tweaking-images:/$ /challenge/generate_flag_image 
+hacker@reverse-engineering~tweaking-images:/$ ls /challenge/
+DESCRIPTION.md  cimg  cimg.c  flag.cimg  generate_flag_image
+```
+
+Since, we already have the `/challenge/flag.cimg` file, let's pass it to the `/challenge/cimg` program.
+
+```
+hacker@reverse-engineering~tweaking-images:/$ /challenge/cimg /challenge/flag.cimg 
+ERROR: invalid directive_code 2x
+```
+
+So, the directive code in the `/challenge/flag.cimg` file is `2` but that is not what is expected. 
+
+
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+#!/usr/bin/env python3
+
+# Define the paths
+input_file = "/challenge/flag.cimg"
+output_file = "/home/hacker/fixed_flag.cimg"
+
+with open(input_file, "rb") as f:
+    # Read the entire file into a bytearray so we can modify it
+    data = bytearray(f.read())
+
+# --- Step 1: Fix the Canvas Height ---
+# The header is 12 bytes. Offset 0x07 is the Height.
+# The original generator set this to 1. We change it to 100 (0x64).
+data[0x07] = 0x40 
+
+# --- Step 2: Fix the Directive Codes ---
+# The binary expects code 13725 (0x359D), which is \x9d\x35 in little-endian.
+# The generator wrote code 2, which is \x02\x00 in little-endian.
+# We replace all instances of the wrong code with the right one.
+# We skip the first 12 bytes to avoid accidentally touching the header.
+header = data[:12]
+body = data[12:].replace(b"\x02\x00", b"\x9d\x35")
+
+# Combine and save
+with open(output_file, "wb") as o:
+    o.write(header + body)
+
+print(f"Patched file saved to {output_file}")
+```
+
+```
+hacker@reverse-engineering~tweaking-images:/$ python ~/script.py 
+Patched file saved to /home/hacker/fixed_flag.cimg
+```
+
+```
+hacker@reverse-engineering~tweaking-images:/$ /challenge/cimg ~/fixed_flag.cimg 
+                                                                             
+                                           ""#    ""#                        
+ mmmm  m     m m mm           mmm    mmm     #      #     mmm    mmmm   mmm  
+ #" "# "m m m" #"  #         #"  "  #" "#    #      #    #"  #  #" "#  #"  # 
+ #   #  #m#m#  #   #         #      #   #    #      #    #""""  #   #  #"""" 
+ ##m#"   # #   #   #    #    "#mm"  "#m#"    "mm    "mm  "#mm"  "#m"#  "#mm" 
+ #                                                               m  #        
+ "                                                                ""         
+                                                                             
+   m""  m    m m    m     #  mmmmm                 mmmm   mmmm         mmm   
+   #    #    # "m  m"  mmm#  #   "#m     m  mmm   #    # m"  "m  m mm    #   
+ mm"    #    #  #  #  #" "#  #mmmm""m m m" #" "#  "mmmm" #    #  #"  "   #   
+   #    #    #  "mm"  #   #  #   "m #m#m#  #   #  #   "# #    #  #       #   
+   #    "mmmm"   ##   "#m##  #    "  # #   "#m#"  "#mmm"  #mm#"  #     mm#mm 
+    ""                                                       #               
+                                                                             
+                                                                             
+ mmmmm m     m mmmmmm        #      m    m  mmmm   mmmm   mmmm  m    m  mmmm 
+ #   "# "m m"      #"  mmmm  #mmm   #    # m"  "m "   "# "   "# ##  ## m"  "m
+ #mmm#"  "#"      m"  #" "#  #" "#  #mmmm# #  m #   mmm"   mmm" # ## # #    #
+ #        #      m"   #   #  #   #  #    # #    #     "#     "# # "" # #    #
+ #        #     m"    "#m##  ##m#"  #    #  #mm#  "mmm#" "mmm#" #    #  #mm# 
+                          #                                                  
+                          "                                                  
+                                                                             
+ mmmmm           mm   m    m m    m                mmmm  m    m mmmmm  mmmmmm
+   #    m mm     ##    #  #  #    # m mm          m"  "m  #  #  #      #     
+   #    #"  #   #  #    ##   #mmmm# #"  #         #    #   ##   """"mm #mmmmm
+   #    #   #   #mm#   m""m  #    # #   #         #    #  m""m       # #     
+ mm#mm  #   #  #    # m"  "m #    # #   #    #     #mm#" m"  "m "mmm#" #mmmmm
+                                                      #                      
+                                                                             
+                                                                             
+        m    m        mmmmmm mmmm   m         mm  mmmmm mmmmmmm m    m  mmmm 
+ mmmmm  ##  ##m     m #      #   "m #        m"#    #      #    ##  ## m"  "m
+    m"  # ## #"m m m" #mmmmm #    # #       #" #    #      #    # ## # #  m #
+  m"    # "" # #m#m#  #      #    # #      #mmm#m   #      #    # "" # #    #
+ #mmmm  #    #  # #   #mmmmm #mmm"  #mmmmm     #  mm#mm    #    #    #  #mm# 
+                                                                             
+                                                                             
+                                                                             
+ mmmmmm       m     m ""m                                                    
+ #      mmmmm #  #  #   #                                                    
+ #mmmmm    m" " #"# #   "mm                                                  
+ #       m"    ## ##"   #                                                    
+ #mmmmm #mmmm  #   #    #                                                    
+                      ""                                                     
+```
+
+```
+pwn.college{UVdRwo8Qr1PY7qbH033MOInAXHn.QX5EzMwEDL4ITM0EzW}
+```
