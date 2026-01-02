@@ -3901,7 +3901,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
   char *desired_ansii_sequence; // r12
   unsigned int v8; // r14d
   _BYTE *framebuffer_2; // r13
-  _BOOL8 v10; // rbx
+  _BOOL8 won; // rbx
   unsigned int i; // ebp
   char v12; // al
   unsigned __int16 directive_code; // [rsp+0h] [rbp-5Ah] BYREF
@@ -3950,21 +3950,21 @@ EXIT:
   display(&cimg_header, 0LL);
   v8 = HIDWORD(cimg_header);
   framebuffer_2 = framebuffer;
-  v10 = HIDWORD(cimg_header) == 800;
+  won = HIDWORD(cimg_header) == 800;
   for ( i = 0; i < v8 && i != 800; ++i )
   {
     v12 = framebuffer_2[19];
     if ( v12 != desired_ansii_sequence[19] )
-      LODWORD(v10) = 0;
+      LODWORD(won) = 0;
     if ( v12 != 32 && v12 != 10 )
     {
       if ( memcmp(framebuffer_2, desired_ansii_sequence, 0x18uLL) )
-        LODWORD(v10) = 0;
+        LODWORD(won) = 0;
     }
     framebuffer_2 += 24;
     desired_ansii_sequence += 24;
   }
-  if ( v10 )
+  if ( won )
     win();
   return 0;
 }
@@ -3983,6 +3983,8 @@ EXIT:
 - Pixel Data:
     - The number of non-space ASCII pixels must be `num_pixels`, i.e. the number of bytes must be `4 * num_pixels`
     - When pixel data is loaded into the ANSI escape code: `"\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m"` one by one and appended together, it should match the given ANSI sequence.
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
@@ -4076,7 +4078,96 @@ pwn.college{syk86MEMK8yI4ABF2f5AcH3BOKX.QX4AzMwEDL4ITM0EzW}
 
 ## The Patch Directive
 
-```py
+### `main()`
+
+```c showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  const char *file_arg; // rbp
+  int file; // eax
+  const char *error_msg; // rdi
+  char *desired_ansii_sequence; // r12
+  unsigned int num_pixels; // r14d
+  _BYTE *framebuffer_2; // r13
+  _BOOL8 won; // rbx
+  unsigned int i; // ebp
+  char v12; // al
+  unsigned __int16 directive_code; // [rsp+0h] [rbp-5Ah] BYREF
+  __int128 buf; // [rsp+2h] [rbp-58h] BYREF
+  void *framebuffer; // [rsp+12h] [rbp-48h]
+  unsigned __int64 v17; // [rsp+1Ah] [rbp-40h]
+
+  v17 = __readfsqword(0x28u);
+  buf = 0LL;
+  framebuffer = 0LL;
+  if ( argc > 1 )
+  {
+    file_arg = argv[1];
+    if ( strcmp(&file_arg[strlen(file_arg) - 5], ".cimg") )
+    {
+      __printf_chk(1LL, "ERROR: Invalid file extension!");
+      goto EXIT;
+    }
+    file = open(file_arg, 0);
+    dup2(file, 0);
+  }
+  read_exact(0LL, &buf, 12LL, "ERROR: Failed to read header!", 4294967295LL);
+  if ( (_DWORD)buf != 'GMIc' )
+  {
+    error_msg = "ERROR: Invalid magic number!";
+PRINT_ERROR_AND_EXIT:
+    puts(error_msg);
+    goto EXIT;
+  }
+  error_msg = "ERROR: Unsupported version!";
+  if ( WORD2(buf) != 3 )
+    goto PRINT_ERROR_AND_EXIT;
+  initialize_framebuffer(&buf);
+  while ( DWORD2(buf)-- )
+  {
+    read_exact(0LL, &directive_code, 2LL, "ERROR: Failed to read &directive_code!", 4294967295LL);
+    if ( directive_code == 52965 )
+    {
+      handle_52965(&buf);
+    }
+    else
+    {
+      if ( directive_code != 55369 )
+      {
+        __fprintf_chk(stderr, 1LL, "ERROR: invalid directive_code %ux\n", directive_code);
+EXIT:
+        exit(-1);
+      }
+      handle_55369((__int64)&buf);
+    }
+  }
+  desired_ansii_sequence = desired_output;
+  display(&buf, 0LL);
+  num_pixels = HIDWORD(buf);
+  framebuffer_2 = framebuffer;
+  won = HIDWORD(buf) == 901;
+  for ( i = 0; num_pixels > i && i != 901; ++i )
+  {
+    v12 = framebuffer_2[19];
+    if ( v12 != desired_ansii_sequence[19] )
+      LOBYTE(won) = 0;
+    if ( v12 != 32 && v12 != 10 )
+    {
+      if ( memcmp(framebuffer_2, desired_ansii_sequence, 24uLL) )
+        LOBYTE(won) = 0;
+    }
+    framebuffer_2 += 24;
+    desired_ansii_sequence += 24;
+  }
+  if ( (unsigned __int64)total_data <= 1340 && won )
+    win();
+  return 0;
+}
+```
+
+Let's find the required width:
+
+```py title=~/script.py showLineNumbers
 from pwn import *
 import struct
 import re
@@ -4085,46 +4176,297 @@ import re
 binary = context.binary = ELF('/challenge/cimg')
 desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
 desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
+print(desired_ansii_sequence)
+```
 
-# This regex looks for the RGB numbers and the character that follows the 'm'
-# (\d+) matches the digits for R, G, and B
-# m(.) matches the 'm' followed by the single character we want
+```
+hacker@reverse-engineering~the-patch-directive:~$ python ~/script.py 
+[*] '/challenge/cimg'
+    Arch:       amd64-64-little
+    RELRO:      Full RELRO
+    Stack:      Canary found
+    NX:         NX enabled
+    PIE:        No PIE (0x400000)
+    FORTIFY:    Enabled
+    SHSTK:      Enabled
+    IBT:        Enabled
+    Stripped:   No
+.---------------------------------------------------.|                                                   ||                                                   ||       ___                                         ||      / __|        ___                             ||     | (__        |_ _|                            ||      \___|        | |                             ||                   | |                             ||                  |___|      __  __                ||                            |  \/  |    ____       ||                            | |\/| |   / ___|      ||                            | |  | |  | |  _       ||                            |_|  |_|  | |_| |      ||                                       \____|      ||                                                   ||                                                   |'---------------------------------------------------'
+hacker@rever
+```
+
+```py
+In [1]: print(len(".---------------------------------------------------.|"))
+54
+```
+
+- File Extension: Must end with `.cimg`
+- Header (12 bytes total):
+    - Magic number (4 bytes): Must be "`cIMG`"
+    - Version (2 bytes): Must be `3` in little-endian
+    - Dimensions (2 bytes total): Must be `53` x (`num_pixels` / `54`) bytes
+        - Width (1 bytes): Must be `54` in little-endian
+        - Height (1 bytes): Must be `num_pixels` / `width` in little-endian
+    - Remaining Directives (4 bytes): Value TBD (This tells the `while` loop to process one directive).
+- Directive Code (2 bytes):
+    - Immediately following the header, we must provide the 2-byte code `55369` and / or `52965` (little-endian) to trigger the `handle_55369` and / or `handle_52965` function 
+- Pixel Data:
+    - The number of non-space ASCII pixels must be `num_pixels`, i.e. the number of bytes must be `4 * num_pixels`
+    - When pixel data is loaded into the ANSI escape code: `"\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m"` one by one and appended together, it should match the given ANSI sequence.
+ 
+Let's look at both the handler functions.
+
+### `handle_55369()`
+
+```c showLineNumbers
+unsigned __int64 __fastcall handle_55369(__int64 user_cimg)
+{
+  int width; // ebp
+  int height; // edx
+  size_t num_bytes; // rbp
+  unsigned __int8 *allocated_mem; // rax
+  unsigned __int8 *allocated_mem2; // r12
+  __int64 i_1; // rax
+  __int64 char_byte; // rcx
+  int i; // r13d
+  int chars_printed_in_one_line; // ebp
+  int width_1; // r15d
+  unsigned __int8 *ansii_pixel; // rax
+  __int64 chars_printed_in_one_line_1; // kr00_8
+  __int64 v13; // rdx
+  __int128 v15; // [rsp+1Fh] [rbp-59h] BYREF
+  __int64 v16; // [rsp+2Fh] [rbp-49h]
+  unsigned __int64 v17; // [rsp+38h] [rbp-40h]
+
+  width = *(unsigned __int8 *)(user_cimg + 6);
+  height = *(unsigned __int8 *)(user_cimg + 7);
+  v17 = __readfsqword(40u);
+  num_bytes = 4LL * height * width;             // Calculate number of bytes required for pixels
+  allocated_mem = (unsigned __int8 *)malloc(num_bytes);// Allocate memory
+  if ( !allocated_mem )
+  {
+    puts("ERROR: Failed to allocate memory for the image data!");
+    goto EXIT;
+  }
+  allocated_mem2 = allocated_mem;
+  read_exact(0LL, allocated_mem, (unsigned int)num_bytes, "ERROR: Failed to read data!", 4294967295LL);
+  i_1 = 0LL;
+  // Check if char_byte falls between 0x20 and 0x7e (i.e. check if it is a printable ASCII character)
+  while ( *(unsigned __int8 *)(user_cimg + 7) * *(unsigned __int8 *)(user_cimg + 6) > (int)i_1 )
+  {
+    char_byte = allocated_mem2[4 * i_1++ + 3];
+    if ( (unsigned __int8)(char_byte - 32) > 0x5Eu )
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", char_byte);
+EXIT:
+      exit(-1);
+    }
+  }
+  for ( i = 0; *(unsigned __int8 *)(user_cimg + 7) > i; ++i )
+  {
+    chars_printed_in_one_line = 0;
+    while ( 1 )
+    {
+      width_1 = *(unsigned __int8 *)(user_cimg + 6);
+      if ( width_1 <= chars_printed_in_one_line )
+        break;
+      ansii_pixel = &allocated_mem2[4 * i * width_1 + 4 * chars_printed_in_one_line];
+      __snprintf_chk(
+        &v15,
+        25LL,
+        1LL,
+        25LL,
+        "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
+        *ansii_pixel,
+        ansii_pixel[1],
+        ansii_pixel[2],
+        ansii_pixel[3]);
+      chars_printed_in_one_line_1 = chars_printed_in_one_line++;
+      v13 = *(_QWORD *)(user_cimg + 16)
+          + 24LL * (((unsigned int)(chars_printed_in_one_line_1 % width_1) + i * width_1) % *(_DWORD *)(user_cimg + 12));
+      *(_OWORD *)v13 = v15;
+      *(_QWORD *)(v13 + 16) = v16;
+    }
+  }
+  return __readfsqword(40u) ^ v17;
+}
+```
+
+### `handle_52965()`
+
+```c showLineNumbers
+unsigned __int64 __fastcall handle_52965(__int64 a1)
+{
+  unsigned int num_bytes; // ebx
+  unsigned __int8 *allocated_mem; // rax
+  unsigned __int8 *allocated_mem2; // rbp
+  __int64 v4; // rax
+  __int64 char_byte; // rcx
+  int i; // r13d
+  int v7; // r14d
+  int v8; // eax
+  int v9; // ecx
+  unsigned int v10; // ebx
+  __int64 v11; // rdx
+  unsigned __int8 width; // [rsp+Bh] [rbp-5Dh] BYREF
+  unsigned __int8 height; // [rsp+Ch] [rbp-5Ch] BYREF
+  unsigned __int8 base_x; // [rsp+Dh] [rbp-5Bh] BYREF
+  unsigned __int8 base_y; // [rsp+Eh] [rbp-5Ah] BYREF
+  __int128 v17; // [rsp+Fh] [rbp-59h] BYREF
+  __int64 v18; // [rsp+1Fh] [rbp-49h]
+  unsigned __int64 v19; // [rsp+28h] [rbp-40h]
+
+  v19 = __readfsqword(40u);
+  read_exact(0LL, &base_x, 1LL, "ERROR: Failed to read &base_x!", 0xFFFFFFFFLL);
+  read_exact(0LL, &base_y, 1LL, "ERROR: Failed to read &base_y!", 0xFFFFFFFFLL);
+  read_exact(0LL, &width, 1LL, "ERROR: Failed to read &width!", 0xFFFFFFFFLL);
+  read_exact(0LL, &height, 1LL, "ERROR: Failed to read &height!", 0xFFFFFFFFLL);
+  num_bytes = 4 * height * width;
+  allocated_mem = (unsigned __int8 *)malloc(4LL * height * width);
+  if ( !allocated_mem )
+  {
+    puts("ERROR: Failed to allocate memory for the image data!");
+    goto EXIT;
+  }
+  allocated_mem2 = allocated_mem;
+  read_exact(0LL, allocated_mem, num_bytes, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  v4 = 0LL;
+  while ( height * width > (int)v4 )
+  {
+    char_byte = allocated_mem2[4 * v4++ + 3];
+    if ( (unsigned __int8)(char_byte - 32) > 0x5Eu )
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", char_byte);
+EXIT:
+      exit(-1);
+    }
+  }
+  for ( i = 0; height > i; ++i )
+  {
+    v7 = 0;
+    while ( width > v7 )
+    {
+      v8 = v7 + base_x;
+      v9 = v7 + i * width;
+      ++v7;
+      v10 = v8 % *(unsigned __int8 *)(a1 + 6) + *(unsigned __int8 *)(a1 + 6) * (i + base_y);
+      __snprintf_chk(
+        &v17,
+        25LL,
+        1LL,
+        25LL,
+        "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
+        allocated_mem2[4 * v9],
+        allocated_mem2[4 * v9 + 1],
+        allocated_mem2[4 * v9 + 2],
+        allocated_mem2[4 * v9 + 3]);
+      v11 = *(_QWORD *)(a1 + 16) + 24LL * (v10 % *(_DWORD *)(a1 + 12));
+      *(_OWORD *)v11 = v17;
+      *(_QWORD *)(v11 + 16) = v18;
+    }
+  }
+  return __readfsqword(0x28u) ^ v19;
+}
+```
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+import struct
+import re
+
+binary = context.binary = ELF('/challenge/cimg')
+desired_ansii = binary.string(binary.sym.desired_output).decode("utf-8")
+
+# Parse pixels
 pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
+matches = re.findall(pattern, desired_ansii)
+all_pixels = [(int(r), int(g), int(b), ord(c)) for r, g, b, c in matches]
 
-# Find all matches in the sequence
-matches = re.findall(pattern, desired_ansii_sequence)
+width_value = 53
+height_value = 17 # 901 / 53
 
-# Convert the strings to the format you want: (int, int, int, ord(char))
-pixels = [
-    (int(r), int(g), int(b), ord(char)) 
-    for r, g, b, char in matches
-]
+directives_payload = b""
+directive_count = 0
 
-pixel_data = b"".join(struct.pack("BBBB", r, g, b, a) for r, g, b, a in pixels)
-
-width_value = 55
-height_value = len(pixels) // width_value
+# Grouping logic to stay under 1340 bytes
+for y in range(height_value):
+    x = 0
+    while x < width_value:
+        idx = y * width_value + x
+        _, _, _, char = all_pixels[idx]
+        
+        if char == ord(' '):
+            x += 1
+            continue
+            
+        run_pixels = []
+        start_x = x
+        while x < width_value:
+            curr_idx = y * width_value + x
+            curr_r, curr_g, curr_b, curr_char = all_pixels[curr_idx]
+            if curr_char == ord(' '):
+                break
+            run_pixels.append(struct.pack("BBBB", curr_r, curr_g, curr_b, curr_char))
+            x += 1
+        
+        directive_count += 1
+        directives_payload += struct.pack("<H", 52965)
+        directives_payload += struct.pack("<B", start_x)
+        directives_payload += struct.pack("<B", y)
+        directives_payload += struct.pack("<B", len(run_pixels))
+        directives_payload += struct.pack("<B", 1)
+        directives_payload += b"".join(run_pixels)
 
 # Build the header (12 bytes total)
-magic = b"cIMG"                                 # 4 bytes
-version = struct.pack("<H", 3)                  # 2 bytes
-width  = struct.pack("<B", width_value)         # 1 bytes
-height = struct.pack("<B", height_value)        # 1 bytes
-directives = struct.pack("<I", 2)               # 4 bytes
+magic = b"cIMG"                                     # 4 bytes
+version = struct.pack("<H", 3)                      # 2 bytes   
+width_byte = struct.pack("<B", width_value)         # 1 bytes
+height_byte = struct.pack("<B", height_value)       # 1 bytes
+dir_count = struct.pack("<I", directive_count)      # 4 bytes
 
-header = magic + version + width + height + directives
+header = magic + version + width_byte + height_byte + dir_count
+cimg_data = header + directives_payload
 
-# Add directive code
-directive_code = struct.pack("<H", 55369)       # 2 bytes
-directive_code = struct.pack("<H", 52965)       # 2 bytes
-
-# Full file content
-cimg_data = header + directive_code + pixel_data
-
-# Write to disk
-filename = "/home/hacker/solution.cimg"
-with open(filename, "wb") as f:
+with open("/home/hacker/solution.cimg", "wb") as f:
     f.write(cimg_data)
 
-print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to: {filename}")
+print(f"Total Bytes: {len(cimg_data)}")
+print(f"Header Hex: {header.hex()}")
 ```
+
+```
+hacker@reverse-engineering~the-patch-directive:~$ python ~/script.py 
+[*] '/challenge/cimg'
+    Arch:       amd64-64-little
+    RELRO:      Full RELRO
+    Stack:      Canary found
+    NX:         NX enabled
+    PIE:        No PIE (0x400000)
+    FORTIFY:    Enabled
+    SHSTK:      Enabled
+    IBT:        Enabled
+    Stripped:   No
+Total Bytes: 1292
+Header Hex: 63494d470300351146000000
+hacker@reverse-engineering~the-patch-directive:~$ /challenge/cimg ~/solution.cimg 
+.---------------------------------------------------.
+|                                                   |
+|                                                   |
+|       ___                                         |
+|      / __|        ___                             |
+|     | (__        |_ _|                            |
+|      \___|        | |                             |
+|                   | |                             |
+|                  |___|      __  __                |
+|                            |  \/  |    ____       |
+|                            | |\/| |   / ___|      |
+|                            | |  | |  | |  _       |
+|                            |_|  |_|  | |_| |      |
+|                                       \____|      |
+|                                                   |
+|                                                   |
+'---------------------------------------------------'
+pwn.college{UMeXSUaFZYlR24CqDvgWdMZihWp.QX5AzMwEDL4ITM0EzW}
+```
+
+<img alt="image" src="https://github.com/user-attachments/assets/9ce34f70-2ab2-44f2-9f59-536f53dcde50" />
