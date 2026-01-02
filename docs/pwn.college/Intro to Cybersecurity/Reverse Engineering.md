@@ -4180,7 +4180,7 @@ print(desired_ansii_sequence)
 ```
 
 ```
-hacker@reverse-engineering~the-patch-directive:~$ python ~/script.py 
+hacker@reverse-engineering~the-patch-directive:/$ python ~/script.py 
 [*] '/challenge/cimg'
     Arch:       amd64-64-little
     RELRO:      Full RELRO
@@ -4191,21 +4191,36 @@ hacker@reverse-engineering~the-patch-directive:~$ python ~/script.py
     SHSTK:      Enabled
     IBT:        Enabled
     Stripped:   No
-.---------------------------------------------------.|                                                   ||                                                   ||       ___                                         ||      / __|        ___                             ||     | (__        |_ _|                            ||      \___|        | |                             ||                   | |                             ||                  |___|      __  __                ||                            |  \/  |    ____       ||                            | |\/| |   / ___|      ||                            | |  | |  | |  _       ||                            |_|  |_|  | |_| |      ||                                       \____|      ||                                                   ||                                                   |'---------------------------------------------------'
-hacker@rever
+.---------------------------------------------------.
+|                                                   |
+|                                                   |
+|       ___                                         |
+|      / __|        ___                             |
+|     | (__        |_ _|                            |
+|      \___|        | |                             |
+|                   | |                             |
+|                  |___|      __  __                |
+|                            |  \/  |    ____       |
+|                            | |\/| |   / ___|      |
+|                            | |  | |  | |  _       |
+|                            |_|  |_|  | |_| |      |
+|                                       \____|      |
+|                                                   |
+|                                                   |
+'---------------------------------------------------'
 ```
 
 ```py
-In [1]: print(len(".---------------------------------------------------.|"))
-54
+In [1]: print(len(".---------------------------------------------------."))
+53
 ```
 
 - File Extension: Must end with `.cimg`
 - Header (12 bytes total):
     - Magic number (4 bytes): Must be "`cIMG`"
     - Version (2 bytes): Must be `3` in little-endian
-    - Dimensions (2 bytes total): Must be `53` x (`num_pixels` / `54`) bytes
-        - Width (1 bytes): Must be `54` in little-endian
+    - Dimensions (2 bytes total): Must be `53` x (`num_pixels` / `53`) bytes
+        - Width (1 bytes): Must be `53` in little-endian
         - Height (1 bytes): Must be `num_pixels` / `width` in little-endian
     - Remaining Directives (4 bytes): Value TBD (This tells the `while` loop to process one directive).
 - Directive Code (2 bytes):
@@ -4370,20 +4385,29 @@ EXIT:
 ```
 
 ```py title="~/script.py" showLineNumbers
-from pwn import *
-import struct
-import re
-
+# Desired ANSII sequence
 binary = context.binary = ELF('/challenge/cimg')
-desired_ansii = binary.string(binary.sym.desired_output).decode("utf-8")
+desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
 
-# Parse pixels
+# This regex looks for the RGB numbers and the character that follows the 'm'
+# (\d+) matches the digits for R, G, and B
+# m(.) matches the 'm' followed by the single character we want
 pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
-matches = re.findall(pattern, desired_ansii)
-all_pixels = [(int(r), int(g), int(b), ord(c)) for r, g, b, c in matches]
+
+# Find all matches in the sequence
+matches = re.findall(pattern, desired_ansii_sequence)
+
+# Convert the strings to the format you want: (int, int, int, ord(char))
+pixels = [
+    (int(r), int(g), int(b), ord(char)) 
+    for r, g, b, char in matches
+]
+
+pixel_data = b"".join(struct.pack("BBBB", r, g, b, a) for r, g, b, a in pixels)
 
 width_value = 53
-height_value = 17 # 901 / 53
+height_value = len(pixels) // width_value
 
 directives_payload = b""
 directive_count = 0
@@ -4393,7 +4417,7 @@ for y in range(height_value):
     x = 0
     while x < width_value:
         idx = y * width_value + x
-        _, _, _, char = all_pixels[idx]
+        _, _, _, char = pixels[idx]
         
         if char == ord(' '):
             x += 1
@@ -4403,7 +4427,7 @@ for y in range(height_value):
         start_x = x
         while x < width_value:
             curr_idx = y * width_value + x
-            curr_r, curr_g, curr_b, curr_char = all_pixels[curr_idx]
+            curr_r, curr_g, curr_b, curr_char = pixels[curr_idx]
             if curr_char == ord(' '):
                 break
             run_pixels.append(struct.pack("BBBB", curr_r, curr_g, curr_b, curr_char))
@@ -4425,8 +4449,11 @@ height_byte = struct.pack("<B", height_value)       # 1 bytes
 dir_count = struct.pack("<I", directive_count)      # 4 bytes
 
 header = magic + version + width_byte + height_byte + dir_count
+
+# Full file content
 cimg_data = header + directives_payload
 
+# Write to disk
 with open("/home/hacker/solution.cimg", "wb") as f:
     f.write(cimg_data)
 
