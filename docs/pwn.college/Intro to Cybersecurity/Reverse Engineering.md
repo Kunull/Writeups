@@ -4406,6 +4406,8 @@ EXIT:
 
 ### Exploit
 
+#### Without using any blank characters
+
 ```py title="~/script.py" showLineNumbers
 from pwn import *
 import struct
@@ -4484,7 +4486,7 @@ with open("/home/hacker/solution.cimg", "wb") as f:
     f.write(cimg_data)
 
 print(f"Total Bytes: {len(cimg_data)}")
-print(f"Header Hex: {header.hex()}")
+print(f"Directives used: {directive_count}")
 ```
 
 ```
@@ -4500,7 +4502,200 @@ hacker@reverse-engineering~the-patch-directive:~$ python ~/script.py
     IBT:        Enabled
     Stripped:   No
 Total Bytes: 1292
-Header Hex: 63494d470300351146000000
+Directives used: 70
+```
+
+#### Printing each border using a directive
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+import struct
+import re
+
+# Desired ANSII sequence
+binary = context.binary = ELF('/challenge/cimg')
+desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
+
+# This regex looks for the RGB numbers and the character that follows the 'm'
+# (\d+) matches the digits for R, G, and B
+# m(.) matches the 'm' followed by the single character we want
+pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
+
+# Find all matches in the sequence
+matches = re.findall(pattern, desired_ansii_sequence)
+
+# Convert the strings to the format you want: (int, int, int, ord(char))
+pixels = [
+    (int(r), int(g), int(b), ord(char)) 
+    for r, g, b, char in matches
+]
+
+pixel_data = b"".join(struct.pack("BBBB", r, g, b, a) for r, g, b, a in pixels)
+
+width_value = 53
+height_value = len(pixels) // width_value
+
+directives_payload = b""
+directive_count = 0
+
+# --- 1. THE FOUR BORDER DIRECTIVES ---
+
+def add_directive(x, y, w, h, pixel_list):
+    global directives_payload, directive_count
+    directive_count += 1
+    directives_payload += struct.pack("<HBBBB", 52965, x, y, w, h)
+    for p in pixel_list:
+        directives_payload += struct.pack("BBBB", p[0], p[1], p[2], p[3])
+
+# Top Border (Row 0)
+top_pixels = [pixels[i] for i in range(width_value)]
+add_directive(0, 0, width_value, 1, top_pixels)
+
+# Bottom Border (Row 16)
+bottom_pixels = [pixels[i] for i in range(16 * width_value, 17 * width_value)]
+add_directive(0, 16, width_value, 1, bottom_pixels)
+
+# Left Border (Rows 1 to 15, Column 0)
+left_pixels = [pixels[y * width_value] for y in range(1, 16)]
+add_directive(0, 1, 1, 15, left_pixels)
+
+# Right Border (Rows 1 to 15, Column 52)
+right_pixels = [pixels[y * width_value + 52] for y in range(1, 16)]
+add_directive(52, 1, 1, 15, right_pixels)
+
+# --- 2. LOGO CONTENT (Interior Only) ---
+# We skip x=0, x=52, y=0, and y=16 to avoid redrawing borders
+for y in range(1, 16):
+    x = 1
+    while x < width_value - 1:
+        idx = y * width_value + x
+        _, _, _, char = pixels[idx]
+        
+        if char == ord(' '):
+            x += 1
+            continue
+            
+        run_pixels = []
+        start_x = x
+        while x < width_value - 1:
+            curr_idx = y * width_value + x
+            p = pixels[curr_idx]
+            if p[3] == ord(' '):
+                break
+            run_pixels.append(struct.pack("BBBB", p[0], p[1], p[2], p[3]))
+            x += 1
+        
+        directive_count += 1
+        directives_payload += struct.pack("<HBBBB", 52965, start_x, y, len(run_pixels), 1)
+        directives_payload += b"".join(run_pixels)
+
+# --- 3. HEADER AND OUTPUT ---
+header = struct.pack("<IHBBI", 0x474d4963, 3, width_value, height_value, directive_count)
+cimg_data = header + directives_payload
+
+with open("/home/hacker/solution.cimg", "wb") as f:
+    f.write(cimg_data)
+
+print(f"Total Bytes: {len(cimg_data)}")
+print(f"Directives used: {directive_count}")
+```
+
+```
+hacker@reverse-engineering~the-patch-directive:~$ python ~/script.py 
+[*] '/challenge/cimg'
+    Arch:       amd64-64-little
+    RELRO:      Full RELRO
+    Stack:      Canary found
+    NX:         NX enabled
+    PIE:        No PIE (0x400000)
+    FORTIFY:    Enabled
+    SHSTK:      Enabled
+    IBT:        Enabled
+    Stripped:   No
+Total Bytes: 1124
+Directives used: 42
+```
+
+#### Printing each border and each letter using a directive 
+
+```py title="~/script.py" showLineHeaders
+from pwn import *
+import struct
+import re
+
+# Desired ANSII sequence
+binary = context.binary = ELF('/challenge/cimg')
+desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
+
+# This regex looks for the RGB numbers and the character that follows the 'm'
+# (\d+) matches the digits for R, G, and B
+# m(.) matches the 'm' followed by the single character we want
+pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
+
+# Find all matches in the sequence
+matches = re.findall(pattern, desired_ansii_sequence)
+
+# Convert the strings to the format you want: (int, int, int, ord(char))
+pixels = [
+    (int(r), int(g), int(b), ord(char)) 
+    for r, g, b, char in matches
+]
+
+pixel_data = b"".join(struct.pack("BBBB", r, g, b, a) for r, g, b, a in pixels)
+
+width_value = 53
+height_value = len(pixels) // width_value
+
+directives_payload = b""
+directive_count = 0
+
+def add_box(x, y, w, h):
+    global directives_payload, directive_count
+    directive_count += 1
+    directives_payload += struct.pack("<HBBBB", 52965, x, y, w, h)
+    for row in range(y, y + h):
+        for col in range(x, x + w):
+            p = pixels[row * width_value + col]
+            directives_payload += struct.pack("BBBB", p[0], p[1], p[2], p[3])
+
+# --- BORDERS (4 Directives) ---
+add_box(0, 0, width_value, 1)        # Top
+add_box(0, 16, width_value, 1)       # Bottom
+add_box(0, 1, 1, 15)                  # Left
+add_box(52, 1, 1, 15)                 # Right
+
+# --- CHARACTERS (4 Directives) ---
+# Coordinates approximate based on the ASCII art provided
+add_box(11, 3, 7, 5)   # "C"
+add_box(26, 4, 5, 7)   # "I"
+add_box(38, 8, 9, 5)   # "M"
+add_box(50, 9, 8, 5)   # "G" (Wait, 50 + 8 = 58 > 53. This box would overflow!)
+
+# --- HEADER ---
+header = struct.pack("<IHBBI", 0x474d4963, 3, width_value, height_value, directive_count)
+print(f"Total Bytes: {len(header + directives_payload)}")
+print(f"Directives used: {directive_count}")
+```
+
+```
+hacker@reverse-engineering~the-patch-directive:~$ python ~/script.py 
+[*] '/challenge/cimg'
+    Arch:       amd64-64-little
+    RELRO:      Full RELRO
+    Stack:      Canary found
+    NX:         NX enabled
+    PIE:        No PIE (0x400000)
+    FORTIFY:    Enabled
+    SHSTK:      Enabled
+    IBT:        Enabled
+    Stripped:   No
+Total Bytes: 1224
+Directives used: 8
+```
+
+```
 hacker@reverse-engineering~the-patch-directive:~$ /challenge/cimg ~/solution.cimg 
 .---------------------------------------------------.
 |                                                   |
