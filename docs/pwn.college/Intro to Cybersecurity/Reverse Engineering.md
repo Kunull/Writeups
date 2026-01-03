@@ -4720,6 +4720,95 @@ pwn.college{UMeXSUaFZYlR24CqDvgWdMZihWp.QX5AzMwEDL4ITM0EzW}
 
 ## Optimizing for Space
 
+### Binary Analysis
+
+```c showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  const char *file_arg; // rbp
+  int file; // eax
+  const char *error_msg; // rdi
+  char *desired_ansii_sequence; // r12
+  unsigned int v8; // r14d
+  _BYTE *framebuffer_2; // r13
+  _BOOL8 won; // rbx
+  unsigned int i; // ebp
+  char v12; // al
+  unsigned __int16 directive_code; // [rsp+0h] [rbp-5Ah] BYREF
+  __int128 buf; // [rsp+2h] [rbp-58h] BYREF
+  void *framebuffer; // [rsp+12h] [rbp-48h]
+  unsigned __int64 v17; // [rsp+1Ah] [rbp-40h]
+
+  v17 = __readfsqword(40u);
+  buf = 0LL;
+  framebuffer = 0LL;
+  if ( argc > 1 )
+  {
+    file_arg = argv[1];
+    if ( strcmp(&file_arg[strlen(file_arg) - 5], ".cimg") )
+    {
+      __printf_chk(1LL, "ERROR: Invalid file extension!");
+      goto EXIT;
+    }
+    file = open(file_arg, 0);
+    dup2(file, 0);
+  }
+  read_exact(0LL, &buf, 12LL, "ERROR: Failed to read header!", 0xFFFFFFFFLL);
+  if ( (_DWORD)buf != 'GMIc' )
+  {
+    error_msg = "ERROR: Invalid magic number!";
+PRINT_ERROR_AND_EXIT:
+    puts(error_msg);
+    goto EXIT;
+  }
+  error_msg = "ERROR: Unsupported version!";
+  if ( WORD2(buf) != 3 )
+    goto PRINT_ERROR_AND_EXIT;
+  initialize_framebuffer(&buf);
+  while ( DWORD2(buf)-- )
+  {
+    read_exact(0LL, &directive_code, 2LL, "ERROR: Failed to read &directive_code!", 0xFFFFFFFFLL);
+    if ( directive_code == 52965 )
+    {
+      handle_52965(&buf);
+    }
+    else
+    {
+      if ( directive_code != 55369 )
+      {
+        __fprintf_chk(stderr, 1LL, "ERROR: invalid directive_code %ux\n", directive_code);
+EXIT:
+        exit(-1);
+      }
+      handle_55369(&buf);
+    }
+  }
+  desired_ansii_sequence = desired_output;
+  display(&buf, 0LL);
+  v8 = HIDWORD(buf);
+  framebuffer_2 = framebuffer;
+  won = HIDWORD(buf) == 1824;
+  for ( i = 0; v8 > i && i != 1824; ++i )
+  {
+    v12 = framebuffer_2[19];
+    if ( v12 != desired_ansii_sequence[19] )
+      LOBYTE(won) = 0;
+    if ( v12 != 32 && v12 != 10 )
+    {
+      if ( memcmp(framebuffer_2, desired_ansii_sequence, 24uLL) )
+        LOBYTE(won) = 0;
+    }
+    framebuffer_2 += 24;
+    desired_ansii_sequence += 24;
+  }
+  if ( (unsigned __int64)total_data <= 1337 && won )
+    win();
+  return 0;
+}
+```
+
+In this level, the only difference is the restriction on number of bytes. We can only provide `1337` bytes.
+
 ### Exploit
 
 #### Print each border using a directive
