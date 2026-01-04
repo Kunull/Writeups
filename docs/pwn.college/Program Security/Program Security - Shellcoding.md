@@ -7191,11 +7191,16 @@ End of assembler dump.
 ```
 
 ```
+
+# ---- snip ----
+
    0x0000000000002b80 <+1407>:  mov    rdx,QWORD PTR [rbp-0x210]
    0x0000000000002b87 <+1414>:  mov    rax,QWORD PTR [rbp-0x208]
    0x0000000000002b8e <+1421>:  mov    rsi,rax
    0x0000000000002b91 <+1424>:  mov    edi,0x0
    0x0000000000002b96 <+1429>:  call   0x1180 <read@plt>
+
+# ---- snip ----   
 ```
 
 Let's set another breakpoint at `challenge+1429` in order to get the location of our buffer.
