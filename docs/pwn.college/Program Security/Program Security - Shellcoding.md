@@ -6814,8 +6814,8 @@ Dump of assembler code for function verify_flag:
 End of assembler dump.
 ```
 
-We can see that this function reads the flag at `rbp-0x160+0x56`.
-Let's set a breakpoint at `werify_flag+75` to see where the flag is read.
+We can see that this function reads the flag at address stored in `rbp-0x160+0x56`.
+Let's set a breakpoint at `verify_flag+75` to see where the flag is read.
 
 ```
 pwndbg> break *(verify_flag+75)
