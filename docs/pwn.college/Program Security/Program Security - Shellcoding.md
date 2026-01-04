@@ -9834,8 +9834,8 @@ hacker@program-security~fork-foolery-hard:/$ python ~/script.py
 ```
 
 I first tried with the above script, until I realized that the parent process is persistent.
-So the sending the offset multiple times and hoping that the 4th least significant nibble of the actual address corresponds with the one I am sending won't be the best solution.
-For that we have to close the binary listener, start it again, and send our payloads again.
+So the sending PIE offset multiple times and hoping that the 4th least significant nibble of the actual address corresponds with the one I am sending wasn't the best solution.
+For that we have manually to close the binary listener, start it again, and send our payloads again. 
 
 There are two approaches to solve this problem.
 
