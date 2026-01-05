@@ -11251,7 +11251,10 @@ The buffer address for the `n+1`th frame is `0x7fff591b05b0`.
    - [x] Location of buffer for `n+1`th frame: `0x7fff591b05b0` 
 - [x] Expected substring in order to loop the `challenge()` function: `REPEAT`
 
-### Determining Stack Layout via Frame Pointer Leakage
+
+### Exploit
+
+#### Determining Stack Layout via Frame Pointer Leakage
 
 Given what we know about the stack, we know that the right between the canary and the stored return address, is stored base pointer for the caller function.
 So, when we are in the first invocation of `challenge()`, the stored base pointer has the value of the pointer of `main()`.
@@ -11292,9 +11295,6 @@ But, if we repeat the first stage of the payload, in the second invocation of `c
 
 Since, we know the distance between the buffer and the stored base pointer, we can calculate the address of the first invocation's buffer.
 From there, as we know the offset between the buffers of the `n`th and `n+1`th invocation of `challenge()`, we can calculate the buffer address of the 2nd invocation, and most importantly, calculate the buffer address of the 3rd (next) invocation in which we will pass the shellcode to the challenge.
-
-
-### Exploit
 
 ```
 hacker@program-security~canary-conundrum-hard:~$ ln -sf /flag ~/Z
