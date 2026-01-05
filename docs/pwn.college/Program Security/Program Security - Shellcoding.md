@@ -10678,7 +10678,6 @@ Requirements for crafting an exploit.
 - [ ] Location of the canary
 - [ ] Location of stored return address to `main()`
 - [ ] Offset between buffers of `n`th and `n+1`th frames of the `challenge()` function
-- [ ] Last 4 nibbles of the `n+1`th buffer
 - [ ] Expected substring in order to loop the `challenge()` function
 
 ### Binary Analysis
@@ -10805,7 +10804,6 @@ We can see that the expected substring is `REPEAT`.
 - [ ] Location of the canary
 - [ ] Location of stored return address to `main()`
 - [ ] Offset between buffers of `n`th and `n+1`th frames of the `challenge()` function
-- [ ] Last 4 nibbles of the `n+1`th buffer
 - [x] Expected substring in order to loop the `challenge()` function: `REPEAT`
 
 
@@ -10884,7 +10882,6 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 - [ ] Location of the canary
 - [ ] Location of stored return address to `main()`
 - [ ] Offset between buffers of `n`th and `n+1`th frames of the `challenge()` function
-- [ ] Last 4 nibbles of the `n+1`th buffer
 - [x] Expected substring in order to loop the `challenge()` function: `REPEAT`
 
 Our program is currently in the `read@plt` resolution, as shown by the `BACKTRACE` section.
@@ -10986,7 +10983,6 @@ We can tell that the canary for this frame is at `0x7fffedf75c38`. We know this 
 - [x] Location of the canary: `0x7fffedf75c38`
 - [x] Location of stored return address to `main()`: `0x7fffedf75c48`
 - [ ] Offset between buffers of `n`th and `n+1`th frames of the `challenge()` function
-- [ ] Last 4 nibbles of the `n+1`th buffer
 - [x] Expected substring in order to loop the `challenge()` function: `REPEAT`
 
 Let's run the program again, and pass `REPEAT` as the payload so that the `challenge()` is called again, and we get the `n+1`th frame.
@@ -11124,7 +11120,6 @@ We can see that the address of the buffer for the `n`th frame is `0x7fff591b0670
 - [x] Location of stored return address to `main()`: `0x7fffedf75c48`
 - [ ] Offset between buffers of `n`th and `n+1`th frames of the `challenge()` function
    - [x] Location of buffer for `n` th frame: `0x7fff591b0670`
-- [ ] Last 4 nibbles of the `n+1`th buffer
 - [x] Expected substring in order to loop the `challenge()` function: `REPEAT`
 
 Let's provide some random payload size for this `n+1`th frame.
@@ -11254,7 +11249,6 @@ The buffer address for the `n+1`th frame is `0x7fff591b05b0`.
 - [x] Offset between buffers of `n`th and `n+1`th frames of the `challenge()` function: `192`
    - [x] Location of buffer for `n` th frame: `0x7fff591b0670`
    - [x] Location of buffer for `n+1`th frame: `0x7fff591b05b0` 
-- [ ] Last 4 nibbles of the `n+1`th buffer
 - [x] Expected substring in order to loop the `challenge()` function: `REPEAT`
 
 ###  Base Pointer shenanigans
