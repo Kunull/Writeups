@@ -4921,8 +4921,8 @@ hacker@reverse-engineering~optimizing-for-space:~$ python ~/script.py
     SHSTK:      Enabled
     IBT:        Enabled
     Stripped:   No
-Total Bytes: 994
-Directives used: 27
+Total Bytes: 1364 (Limit: 1337)
+Directives used: 42
 ```
 
 #### Print each border and each line of the text using a directive
