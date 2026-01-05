@@ -11251,7 +11251,7 @@ The buffer address for the `n+1`th frame is `0x7fff591b05b0`.
    - [x] Location of buffer for `n+1`th frame: `0x7fff591b05b0` 
 - [x] Expected substring in order to loop the `challenge()` function: `REPEAT`
 
-###  Base Pointer shenanigans
+### Determining Stack Layout via Frame Pointer Chaining
 
 Given what we know about the stack, we know that the right between the canary and the stored return address, is stored base pointer for the caller function.
 So, when we are in the first invocation of `challenge()`, the stored base pointer has the value of the pointer of `main()`.
