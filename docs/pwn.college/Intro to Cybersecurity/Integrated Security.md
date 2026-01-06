@@ -410,3 +410,39 @@ pwn.college{sBaSZzvEAX-48KsnbTM_0LFAcSD.QX3UDMxEDL4ITM0EzW}
 [*] Got EOF while reading in interactive
 $  
 ```
+
+&nbsp;
+
+## ECB-to-Win (Hard)
+
+### Binary Analysis
+
+```c title="/challenge/dispatch" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+import Crypto
+import struct
+import sys
+import os
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+
+key = open("/challenge/.key", "rb").read()
+cipher = AES.new(key=key, mode=AES.MODE_ECB)
+
+message = sys.stdin.buffer.read1()
+assert len(message) <= 16, "Your message is too long!"
+
+plaintext = (
+    b"VERIFIED"
+    + struct.pack(b"<Q", len(message))
+    + message
+)
+
+ciphertext = cipher.encrypt(
+    pad(plaintext, cipher.block_size)
+)
+
+sys.stdout.buffer.write(ciphertext)
+```
