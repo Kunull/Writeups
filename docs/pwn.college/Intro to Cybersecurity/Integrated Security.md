@@ -1011,9 +1011,9 @@ int main(int argc, char **argv, char **envp)
 }
 ```
 
+In this challenge, the only difference compared to [ECB-to-Win (Easy)](#ecb-to-win-easy) is that there is no `win()` function. Hence, we will have inject shellcode to hijack code execution to our shellcode.
 
-
-## Exploit
+### Exploit
 
 Check if the files is PIE.
 
@@ -1240,4 +1240,12 @@ $
 ```
 hacker@integrated-security~ecb-to-shellcode-easy:~$ cat ~/Z
 pwn.college{8sn6D2nxMYonmCE6lgbNgdP45f9.QX5UDMxEDL4ITM0EzW}
+```
+
+&nbsp;
+
+## ECB-to-Shellcode (Hard)
+
+```
+
 ```
