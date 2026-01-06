@@ -271,7 +271,7 @@ It then decrypts the first block of user provided ciphertext, places the resulta
 ```
 
 Then, it goes on to decrypt the rest of the ciphertext (`ciphertext + 16`), and stores it into `plaintext.message`.
-The problem here is that it uses `ciphertext_len - 16` here to assert the length of data to be decrypted instead of using the earlier defined `plaintext.length`. Since `ciphertext_len` is entirely controlled by the user input, we can send a message of any arbitrary size, which will be then stored into `plaintext.message[46]`, thus overflowing it.
+The problem here is that it uses `ciphertext_len - 16` here to assert the length of data to be decrypted instead of using the earlier defined `plaintext.length`. Since `ciphertext_len` is entirely controlled by the user input, we can send a message of any arbitrary size, which will be then stored into `plaintext.message` which is only 42 bytes long, thus overflowing it.
 
 ```c showLineNumbers
 # ---- snip ----
@@ -288,7 +288,31 @@ The problem here is that it uses `ciphertext_len - 16` here to assert the length
 
 There is another file called `/challenge/dispatch`, which gives us the ciphertext given any plaintext.
 
+<img alt="image" src="https://github.com/user-attachments/assets/be3498df-21ca-4e97-b151-51d54f6bc4ea" />
 
+```c title="/challenge/dispatch" showLineNumbers
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+import struct
+import sys
+import os
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+
+key = open("/challenge/.key", "rb").read()
+cipher = AES.new(key=key, mode=AES.MODE_ECB)
+
+message = sys.stdin.buffer.read1()
+assert len(message) <= 16, "Your message is too long!"
+
+plaintext = b"VERIFIED" + struct.pack(b"<Q", len(message)) + message
+ciphertext = cipher.encrypt(pad(plaintext, cipher.block_size))
+
+sys.stdout.buffer.write(ciphertext)
+```
+
+So whatever input we provide, the dispatcher prepends the `"VERIFIED"` header along with the `length`.
 
 ### Exploit
 
