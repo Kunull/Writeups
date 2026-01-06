@@ -1110,6 +1110,15 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
+Inspecting the registers reveals a critical opportunity:
+- `rdx`: Points to the start of our shellcode buffer (`0x2a047000`).
+- `rax`: Is currently `0`.
+
+Since we cannot fit the exploit in 6 bytes, we use those 6 bytes to create a Stage 1 Loader. This loader will call read(stdin, buffer, length) to overwrite the current memory with a much larger Stage 2 payload.
+- `rdi` (file descriptor): Must be `0` (STDIN).
+- `rsi` (buffer): Must be the address of our code (`rdx`).
+- `rax` (syscall number): Must be `0` (`read`).
+
 ### Exploit
 
 ```
