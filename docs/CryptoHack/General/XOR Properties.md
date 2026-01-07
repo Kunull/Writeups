@@ -25,7 +25,8 @@ Self-Inverse: A ⊕ A = 0
 = FLAG ^ 0                                                # Self-inverse property
 = FLAG                                                    # Identity property
 ```
-- So we have XOR `FLAG ^ KEY1 ^ KEY3 ^ KEY2` with `KEY2 ^ KEY3 ` and then the result should be XOR with `KEY1`.
+- So we have XOR `FLAG ^ KEY1 ^ KEY3 ^ KEY2` with `KEY2 ^ KEY3` and then the result should be XOR with `KEY1`.
+
 ## Solution
 ```python
 from pwn import xor
