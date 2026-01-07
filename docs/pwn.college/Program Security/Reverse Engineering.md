@@ -2785,3 +2785,611 @@ Checking the received license key!
 You win! Here is your flag:
 pwn.college{YNiwod-O5RXrhyhFGbFC_Xq8Bew.0lM3IDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## Trust the Yancode (Easy)
+
+```
+hacker@reverse-engineering~trust-the-yancode-easy:~$ /challenge/trust-the-yancode-easy 
+[+] Welcome to /challenge/trust-the-yancode-easy!
+[+] This challenge is an custom emulator. It emulates a completely custom
+[+] architecture that we call "Yan85"! You'll have to understand the
+[+] emulator to understand the architecture, and you'll have to understand
+[+] the architecture to understand the code being emulated, and you will
+[+] have to understand that code to get the flag. Good luck!
+[+]
+[+] This is an introductory Yan85 level, where we trigger Yan85 architecture
+[+] operations directly. The parts of Yan85 that are used here is the emulated
+[+] registers, memory, and system calls.
+[+]
+[+] This is a *teaching* challenge, which means that it will output
+[+] a trace of the Yan85 code as it processes it. The output is here
+[+] for you to understand what the challenge is doing, and you should use
+[+] it as a guide to help with your reversing of the code.
+[+]
+[s] IMM b = 0x6b
+[s] IMM c = 0x8
+[s] IMM a = 0
+[s] SYS 0x8 a
+[s] ... read_memory
+
+```
+
+### Yan85 Analysis
+
+#### Instructions
+
+The following is the initial analysis of the Yan85 instructions. It can be updated in the further challenges, or as teh program gives more output.
+
+| Yan85 code   | Description |
+| :---------------- | :----------- |
+| `IMM <reg> = <val>` | Set the register to the value |
+| `IMM <reg1> = <reg2>` | Set 1st register to the value in the second register | 
+| `SYS <id> <reg>` | Make a syscall based on the identifer, and store the result in the specified register |
+| ... `<action>` | Action defined by the syscall is being performed |
+
+#### `read_memory` "syscall"
+
+It seems like the program sets us a `read_memory` call which is equivalent to a `read` syscall.
+
+
+| ID     | (arg0) unsigned int fd   | (arg1) char *buf   | (arg2) size_t count   |
+| :----- | :----------------------- | :----------------- | :-------------------- |
+| `0x8`  | `a`                      | `b`                | `c`                   |
+
+So the program sets up a `read_memory` call and read `0x8` bytes from STDIN to `0x6b`.
+
+Let's provide some input.
+
+```
+# ---- snip ----
+
+[s] IMM b = 0x6b
+[s] IMM c = 0x8
+[s] IMM a = 0
+[s] SYS 0x8 a
+[s] ... read_memory
+abcde
+[s] ... return value (in register a): 0x6
+
+# ---- snip ----
+```
+
+So it read `5` bytes including the newline character, and stored the return value in `a`.
+
+```
+# ---- snip ----
+
+[s] IMM b = 0x8b
+[s] IMM c = 0x1
+[s] IMM a = 0x79
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0xd4
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0xcb
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0x73
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0x86
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0xb5
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0x5b
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0x86
+[s] STM *b = a
+[s] ADD b c
+
+# ---- snip ----
+```
+
+So the program then sets up at array beginning from `0x8b`, and moves some bytes into it one by one.
+The final byte string which is moved into the array is: `\x79\xd4\xcb\x73\x86\xb5\x5b\x86`.
+
+Yan85 Emulator:
+
+| Yan85 code   | Description |
+| :---------------- | :----------- |
+| `IMM <reg> = <val>` | Set the register to the value |
+| `IMM <reg1> = <reg2>` | Set 1st register to the value in the second register | 
+| `SYS <id> <reg>` | Make a syscall based on the identifer, and store the result in the specified register |
+| ... `<action>` | Action defined by the syscall is being performed |
+| `ADD <reg1> <reg2>` | Add the values in register 1 and 2 and store result in register 1 |
+
+```
+# ---- snip -----
+
+s] IMM a = 0x1
+[s] IMM b = 0
+[s] IMM c = 0x1
+[s] IMM d = 0x49
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+I[s] ... return value (in register a): 0x1
+[s] IMM d = 0x4e
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+N[s] ... return value (in register a): 0x1
+[s] IMM d = 0x43
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+C[s] ... return value (in register a): 0x1
+[s] IMM d = 0x4f
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+O[s] ... return value (in register a): 0x1
+[s] IMM d = 0x52
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+R[s] ... return value (in register a): 0x1
+[s] IMM d = 0x52
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+R[s] ... return value (in register a): 0x1
+[s] IMM d = 0x45
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+E[s] ... return value (in register a): 0x1
+[s] IMM d = 0x43
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+C[s] ... return value (in register a): 0x1
+[s] IMM d = 0x54
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+T[s] ... return value (in register a): 0x1
+[s] IMM d = 0x21
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+![s] ... return value (in register a): 0x1
+[s] IMM a = 0x1
+[s] IMM d = 0xa
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+
+[s] ... return value (in register a): 0x1
+
+# ---- snip ----
+```
+
+The program also writes the bytes `"INCORRECT!"` to STDOUT one by one, using the `write` syscall.
+
+#### `write` "syscall"
+
+| ID     | (arg0) unsigned int fd   | (arg1) const char *buf   | (arg2) size_t count   |
+| :----- | :----------------------- | :----------------------- | :-------------------- |
+| `0X20` | `a`                      | `b`                      | `c`                   |
+
+Finally it exits.
+
+#### `exit` "syscall"
+
+```
+# ---- snip ----
+
+[s] SYS 0x1 a
+[s] ... exit
+```
+
+| ID     | (arg0) int error_code    | 
+| :----- | :----------------------- |
+| `0x1`  | `a`                      |
+
+In order to solve this challenge, let's provide the byte string which it initializes.
+
+```
+hacker@reverse-engineering~trust-the-yancode-easy:~$ printf "\x79\xd4\xcb\x73\x86\xb5\x5b\x86\x23" | /challenge/trust-the-yancode-easy
+[+] Welcome to /challenge/trust-the-yancode-easy!
+[+] This challenge is an custom emulator. It emulates a completely custom
+[+] architecture that we call "Yan85"! You'll have to understand the
+[+] emulator to understand the architecture, and you'll have to understand
+[+] the architecture to understand the code being emulated, and you will
+[+] have to understand that code to get the flag. Good luck!
+[+]
+[+] This is an introductory Yan85 level, where we trigger Yan85 architecture
+[+] operations directly. The parts of Yan85 that are used here is the emulated
+[+] registers, memory, and system calls.
+[+]
+[+] This is a *teaching* challenge, which means that it will output
+[+] a trace of the Yan85 code as it processes it. The output is here
+[+] for you to understand what the challenge is doing, and you should use
+[+] it as a guide to help with your reversing of the code.
+[+]
+[s] IMM b = 0x6b
+[s] IMM c = 0x8
+[s] IMM a = 0
+[s] SYS 0x8 a
+[s] ... read_memory
+[s] ... return value (in register a): 0x8
+[s] IMM b = 0x8b
+[s] IMM c = 0x1
+[s] IMM a = 0x79
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0xd4
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0xcb
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0x73
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0x86
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0xb5
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0x5b
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0x86
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0x1
+[s] IMM b = 0
+[s] IMM c = 0x1
+[s] IMM d = 0x43
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+C[s] ... return value (in register a): 0x1
+[s] IMM d = 0x4f
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+O[s] ... return value (in register a): 0x1
+[s] IMM d = 0x52
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+R[s] ... return value (in register a): 0x1
+[s] IMM d = 0x52
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+R[s] ... return value (in register a): 0x1
+[s] IMM d = 0x45
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+E[s] ... return value (in register a): 0x1
+[s] IMM d = 0x43
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+C[s] ... return value (in register a): 0x1
+[s] IMM d = 0x54
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+T[s] ... return value (in register a): 0x1
+[s] IMM d = 0x21
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+![s] ... return value (in register a): 0x1
+[s] IMM d = 0x20
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+ [s] ... return value (in register a): 0x1
+[s] IMM d = 0x59
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+Y[s] ... return value (in register a): 0x1
+[s] IMM d = 0x6f
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+o[s] ... return value (in register a): 0x1
+[s] IMM d = 0x75
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+u[s] ... return value (in register a): 0x1
+[s] IMM d = 0x72
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+r[s] ... return value (in register a): 0x1
+[s] IMM d = 0x20
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+ [s] ... return value (in register a): 0x1
+[s] IMM d = 0x66
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+f[s] ... return value (in register a): 0x1
+[s] IMM d = 0x6c
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+l[s] ... return value (in register a): 0x1
+[s] IMM d = 0x61
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+a[s] ... return value (in register a): 0x1
+[s] IMM d = 0x67
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+g[s] ... return value (in register a): 0x1
+[s] IMM d = 0x3a
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+:[s] ... return value (in register a): 0x1
+[s] IMM d = 0xa
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+
+[s] ... return value (in register a): 0x1
+[s] IMM d = 0x2f
+[s] IMM b = 0
+[s] STM *b = d
+[s] IMM d = 0x66
+[s] IMM b = 0x1
+[s] STM *b = d
+[s] IMM d = 0x6c
+[s] IMM b = 0x2
+[s] STM *b = d
+[s] IMM d = 0x61
+[s] IMM b = 0x3
+[s] STM *b = d
+[s] IMM d = 0x67
+[s] IMM b = 0x4
+[s] STM *b = d
+[s] IMM d = 0
+[s] IMM b = 0x5
+[s] STM *b = d
+[s] IMM a = 0
+[s] IMM b = 0
+[s] SYS 0x10 a
+[s] ... open
+[s] ... return value (in register a): 0x3
+[s] IMM c = 0x64
+[s] SYS 0x8 c
+[s] ... read_memory
+[s] ... return value (in register c): 0x39
+[s] IMM a = 0x1
+[s] SYS 0x20 c
+[s] ... write
+pwn.college{ks-9GPm_6puqSjEYA-bLxxBHRy3.01M3IDL4ITM0EzW}
+[s] ... return value (in register c): 0x39
+[s] IMM a = 0
+[s] IMM d = 0xa
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+[s] ... return value (in register a): 0xff
+[s] SYS 0x1 a
+[s] ... exit
+```
+
+We get the flag, and also get to see some more functionality from the program. Let's analyze that as well.
+
+This time, the `write` syscall writes a different message `"CORRECT! Your flag:"` to STDOUT.
+
+```
+# ---- snip ----
+
+s] IMM a = 0x1
+[s] IMM b = 0
+[s] IMM c = 0x1
+[s] IMM d = 0x43
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+C[s] ... return value (in register a): 0x1
+[s] IMM d = 0x4f
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+O[s] ... return value (in register a): 0x1
+[s] IMM d = 0x52
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+R[s] ... return value (in register a): 0x1
+[s] IMM d = 0x52
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+R[s] ... return value (in register a): 0x1
+[s] IMM d = 0x45
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+E[s] ... return value (in register a): 0x1
+[s] IMM d = 0x43
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+C[s] ... return value (in register a): 0x1
+[s] IMM d = 0x54
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+T[s] ... return value (in register a): 0x1
+[s] IMM d = 0x21
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+![s] ... return value (in register a): 0x1
+[s] IMM d = 0x20
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+ [s] ... return value (in register a): 0x1
+[s] IMM d = 0x59
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+Y[s] ... return value (in register a): 0x1
+[s] IMM d = 0x6f
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+o[s] ... return value (in register a): 0x1
+[s] IMM d = 0x75
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+u[s] ... return value (in register a): 0x1
+[s] IMM d = 0x72
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+r[s] ... return value (in register a): 0x1
+[s] IMM d = 0x20
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+ [s] ... return value (in register a): 0x1
+[s] IMM d = 0x66
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+f[s] ... return value (in register a): 0x1
+[s] IMM d = 0x6c
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+l[s] ... return value (in register a): 0x1
+[s] IMM d = 0x61
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+a[s] ... return value (in register a): 0x1
+[s] IMM d = 0x67
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+g[s] ... return value (in register a): 0x1
+[s] IMM d = 0x3a
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+:[s] ... return value (in register a): 0x1
+[s] IMM d = 0xa
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+
+[s] ... return value (in register a): 0x1
+
+# ---- snip ----
+```
+
+It then crafts the string `/flag\00`.
+
+```
+# ---- snip ----
+
+[s] IMM d = 0x2f
+[s] IMM b = 0
+[s] STM *b = d
+[s] IMM d = 0x66
+[s] IMM b = 0x1
+[s] STM *b = d
+[s] IMM d = 0x6c
+[s] IMM b = 0x2
+[s] STM *b = d
+[s] IMM d = 0x61
+[s] IMM b = 0x3
+[s] STM *b = d
+[s] IMM d = 0x67
+[s] IMM b = 0x4
+[s] STM *b = d
+[s] IMM d = 0
+[s] IMM b = 0x5
+[s] STM *b = d
+
+# ---- snip ----
+```
+
+Then makes the `open` syscall, opening the flag file at location `0`
+
+```
+# ---- snip ----
+
+[s] IMM a = 0
+[s] IMM b = 0
+[s] SYS 0x10 a
+[s] ... open
+[s] ... return value (in register a): 0x3
+
+# ---- snip ----
+```
+
+#### `open` "syscall"
+
+| ID     | const char *filename     | (arg1) const char *buf   | (arg2) size_t count   |
+| :----- | :----------------------- | :----------------------- | :-------------------- |
+| `0x10` | `b`                      | `a`                      | `c`                   |
+
+Next, it reads the contents of the `/flag` file to location `0`.
+
+```
+# ---- snip ----
+
+[s] IMM c = 0x64
+[s] SYS 0x8 c
+[s] ... read_memory
+[s] ... return value (in register c): 0x39
+
+# ---- snip ----
+```
+
+Then the program, write out the file to STDOUT.
+
+```
+# ---- snip ----
+
+[s] IMM a = 0x1
+[s] SYS 0x20 c
+[s] ... write
+pwn.college{ks-9GPm_6puqSjEYA-bLxxBHRy3.01M3IDL4ITM0EzW}
+[s] ... return value (in register c): 0x39
+[s] IMM a = 0
+[s] IMM d = 0xa
+[s] STM *b = d
+[s] SYS 0x20 a
+[s] ... write
+[s] ... return value (in register a): 0xff
+[s] SYS 0x1 a
+[s] ... exit
+```
+
+That was it for this challenge.
+
+&nbsp;
+
+## Trust the Yancode (Hard)
+
