@@ -2907,7 +2907,7 @@ Yan85 Emulator:
 ```
 # ---- snip -----
 
-s] IMM a = 0x1
+[s] IMM a = 0x1
 [s] IMM b = 0
 [s] IMM c = 0x1
 [s] IMM d = 0x49
@@ -3199,7 +3199,7 @@ This time, the `write` syscall writes a different message `"CORRECT! Your flag:"
 ```
 # ---- snip ----
 
-s] IMM a = 0x1
+[s] IMM a = 0x1
 [s] IMM b = 0
 [s] IMM c = 0x1
 [s] IMM d = 0x43
