@@ -2825,7 +2825,7 @@ The following is the initial analysis of the Yan85 instructions. It can be updat
 | Yan85 code   | Description |
 | :---------------- | :----------- |
 | `IMM <reg> = <val>` | Set the register to the value |
-| `IMM <reg1> = <reg2>` | Set 1st register to the value in the second register | 
+| `IMM <reg1> = <reg2>` | Set first register's value to the value in the second register | 
 | `SYS <id> <reg>` | Make a syscall based on the identifer, and store the result in the specified register |
 | ... `<action>` | Action defined by the syscall is being performed |
 
@@ -2899,7 +2899,7 @@ Yan85 Emulator:
 | Yan85 code   | Description |
 | :---------------- | :----------- |
 | `IMM <reg> = <val>` | Set the register to the value |
-| `IMM <reg1> = <reg2>` | Set 1st register to the value in the second register | 
+| `IMM <reg1> = <reg2>` | Set first register's value to the value in the second register | 
 | `SYS <id> <reg>` | Make a syscall based on the identifer, and store the result in the specified register |
 | ... `<action>` | Action defined by the syscall is being performed |
 | `ADD <reg1> <reg2>` | Add the values in register 1 and 2 and store result in register 1 |
