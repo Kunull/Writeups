@@ -4661,6 +4661,27 @@ Since this challenge has only `Partial RELRO` enabled, we can perform a GOT over
 
 We have to replace the GOT entry of some library, with the address of `win()`.
 
+#### GOT
+
+#### Pre resolution
+
+<img alt="image" src="https://github.com/user-attachments/assets/458e8e9d-3e2d-4815-82ca-3b56602084a1" />
+
+When the PLT code stub for a specific function is called, it goes and checks the address for that function in the GOT and then jumps execution to that address.
+
+Pre resolution, the address in the GOT initially is the next address of the PLT, i.e., the PLT trampoline.
+So the PLT essentially points back into the PLT resolution stub.
+
+These set of instructions get the actual address from the loader `_dl_runtime_resolve`, and update the GOT entry, thus resolving it.
+
+#### Post resolution
+
+<img alt="image" src="https://github.com/user-attachments/assets/8953057a-b12d-4183-a3ed-3b80e6277040" />
+
+After resolution, when the PLT stub for a function is called, it goes and checks the address for that funciton in the GOT.
+This time it finds the actual address of the function library instead of it's own next insteuction.
+
+Thus it executes the function.
 
 ### Binary Analysis
 
@@ -4700,10 +4721,6 @@ Non-debugging symbols:
 ```
 
 Let's look at the GOT.
-
-#### GOT
-
-
 
 ```
 pwndbg> got
