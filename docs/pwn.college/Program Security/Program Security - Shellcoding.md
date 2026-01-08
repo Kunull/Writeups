@@ -4703,6 +4703,8 @@ Let's look at the GOT.
 
 #### GOT
 
+
+
 ```
 pwndbg> got
 Filtering out read-only entries (display them with -r or --show-readonly)
@@ -5007,6 +5009,36 @@ pwn.college{U4yJ6TY7r_VV0p6Zr6w-rMA0qHi.QX2gzN4EDL4ITM0EzW}
 Goodbye!
 [*] Got EOF while reading in interactive
 $ 
+```
+
+&nbsp;
+
+## Now you got it (Hard)
+
+```
+array: 0x5f712b704200
+got addr: 0x5f712b702000
+win addr: 0x5f712b700f38
+```
+
+```
+pwndbg> got
+Filtering out read-only entries (display them with -r or --show-readonly)
+
+State of the GOT of /challenge/now-you-got-it-hard:
+GOT protection: Partial RELRO | Found 12 GOT entries passing the filter
+[0x5f712b704018] __errno_location@GLIBC_2.2.5 -> 0x5f712b700030 ◂— endbr64 
+[0x5f712b704020] puts@GLIBC_2.2.5 -> 0x5f712b700040 ◂— endbr64 
+[0x5f712b704028] write@GLIBC_2.2.5 -> 0x5f712b700050 ◂— endbr64 
+[0x5f712b704030] __stack_chk_fail@GLIBC_2.4 -> 0x5f712b700060 ◂— endbr64 
+[0x5f712b704038] printf@GLIBC_2.2.5 -> 0x767aec149c90 (printf) ◂— endbr64 
+[0x5f712b704040] geteuid@GLIBC_2.2.5 -> 0x5f712b700080 ◂— endbr64 
+[0x5f712b704048] read@GLIBC_2.2.5 -> 0x5f712b700090 ◂— endbr64 
+[0x5f712b704050] setvbuf@GLIBC_2.2.5 -> 0x767aec16cce0 (setvbuf) ◂— endbr64 
+[0x5f712b704058] open@GLIBC_2.2.5 -> 0x5f712b7000b0 ◂— endbr64 
+[0x5f712b704060] __isoc99_scanf@GLIBC_2.7 -> 0x767aec14b0b0 (__isoc99_scanf) ◂— endbr64 
+[0x5f712b704068] exit@GLIBC_2.2.5 -> 0x5f712b7000d0 ◂— endbr64 
+[0x5f712b704070] strerror@GLIBC_2.2.5 -> 0x5f712b7000e0 ◂— endbr64 
 ```
 
 &nbsp;
