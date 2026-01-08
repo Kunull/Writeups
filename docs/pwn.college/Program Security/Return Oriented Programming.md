@@ -786,7 +786,7 @@ hacker@return-oriented-programming~chain-of-command-easy:/$ ROPgadget --binary /
 - [x] Offset of instruction in `win_stage_3()` within the program: `0x4026f5`
 - [x] Offset of instruction in `win_stage_4()` within the program: `0x40252f`
 - [x] Offset of instruction in `win_stage_5()` within the program: `0x4027d7`
-- [ ] Offset of `pop rdi ; ret` gadget within the program: `0x402ca3`
+- [x] Offset of `pop rdi ; ret` gadget within the program: `0x402ca3`
 
 ### ROP chain
 
@@ -1361,6 +1361,20 @@ Now let's find the address of the `pop rdi ; ret` gadget.
 hacker@return-oriented-programming~chain-of-command-hard:/$ ROPgadget --binary /challenge/chain-of-command-hard | grep "pop rdi ; ret"
 0x0000000000402643 : pop rdi ; ret
 ```
+
+- [x] Location of buffer: `0x7ffd74326e20`
+- [x] Location of return address to `main()`: `0x7ffd74326e88`
+- [x] Offset of instruction in `win_stage_1()` within the program: `0x40223b`
+- [x] Argument expected by `win_stage_1()`: `0x1`
+- [x] Offset of instruction in `win_stage_2()` within the program: `0x402079` 
+- [x] Argument expected by `win_stage_2()`: `0x2`
+- [x] Offset of instruction in `win_stage_3()` within the program: `0x402159`
+- [x] Argument expected by `win_stage_3()`: `0x3` 
+- [x] Offset of instruction in `win_stage_4()` within the program: `0x4023fa`
+- [x] Argument expected by `win_stage_4()`: `0x4`
+- [x] Offset of instruction in `win_stage_5()` within the program: `0x402317`
+- [x] Argument expected by `win_stage_5()`: `0x5`
+- [x] Offset of `pop rdi ; ret` gadget within the program: `0x402643`
 
 ### ROP chain
 
