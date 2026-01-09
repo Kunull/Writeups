@@ -261,11 +261,11 @@ This is what the ROP chain would look like on the stack.
 
 Stack:
                            ┌───────────────────────────┐
-rsp --> return address ==> │  00 00 00 00 00 40 07 c3  │ --> pop rdi ; ret
+rsp --> return address ==> │  00 00 00 00 00 40 07 c3  │ --> ( pop rdi ; ret )
 			   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-			   │  00 00 00 00 00 60 10 60  │ --> /bin/cat flag.txt
+			   │  00 00 00 00 00 60 10 60  │ --> ( /bin/cat flag.txt )
 			   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-			   │  00 00 00 00 00 40 07 4b  │ --> call <system@plt>
+			   │  00 00 00 00 00 40 07 4b  │ --> ( call <system@plt> )
 			   └───────────────────────────┘
 			   ╎  .. .. .. .. .. .. .. ..  ╎
 
@@ -276,9 +276,9 @@ rip --> pwnme() return
 
 Stack:
 			   ┌───────────────────────────┐
-         	   rsp --> │  00 00 00 00 00 60 10 60  │ --> /bin/cat flag.txt
+         	   rsp --> │  00 00 00 00 00 60 10 60  │ --> ( /bin/cat flag.txt )
 			   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-			   │  00 00 00 00 00 40 07 4b  │ --> call <system@plt>     
+			   │  00 00 00 00 00 40 07 4b  │ --> ( call <system@plt> )    
 			   └───────────────────────────┘
 			   ╎  .. .. .. .. .. .. .. ..  ╎
 
@@ -289,7 +289,7 @@ rip --> pop rdi
 
 Stack:
 			   ┌───────────────────────────┐
-		   rsp --> │  00 00 00 00 00 40 07 4b  │ --> call <system@plt>
+		   rsp --> │  00 00 00 00 00 40 07 4b  │ --> ( call <system@plt> ]
 			   └───────────────────────────┘
 			   ╎  .. .. .. .. .. .. .. ..  ╎
 
@@ -529,9 +529,9 @@ This is what the ROP chain would look like on the stack.
 
 Stack:
 			   ┌───────────────┐   
-esp --> return address ==> │  08 04 86 1a  │ --> call <system@plt>
+esp --> return address ==> │  08 04 86 1a  │ --> ( call <system@plt> )
 			   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-			   │  08 04 a0 30  │ --> /bin/cat flag.txt
+			   │  08 04 a0 30  │ --> ( /bin/cat flag.txt )
 			   └───────────────┘
 			   ╎  .. .. .. ..  ╎
 
@@ -542,7 +542,7 @@ eip --> pwnme() return
 
 Stack:
 			   ┌───────────────┐
-		   esp --> │  08 04 a0 30  │ --> /bin/cat flag.txt
+		   esp --> │  08 04 a0 30  │ --> ( /bin/cat flag.txt )
 			   └───────────────┘
 			   ╎  .. .. .. ..  ╎
 

