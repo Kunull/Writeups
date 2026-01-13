@@ -845,6 +845,46 @@ Data: pwn.college{8Wq-xUWLolH-kpTT9mLLl4qgFmM.0lN3MDL4ITM0EzW}
 
 ## Fickle Free (Easy)
 
+In this challege we have to leverage Double Free vulnerability.
+
+### Double free
+
+In the allocated memory chunks, the second set of 8 bytes include the pointer `key` to `tcache_perthread_struct`. Once a chunk is freed, the `key` pointer no longer points to `tcache_perthread_struct` and is set to `NULL`. This state of the `key` is what helps Tcache distinguish free chunks from allocated ones.
+
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_perthread struct  Void                                       ┆
+┆            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┆
+┆  counts:   ┃ count_16: 2    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┆
+┆            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┆
+┆ entries:   ┃ entry_16: &A   ┃ entry_32: NULL ┃ entry_48: NULL ┃ ...  ┆
+┆            ┗━━━━━━━━━━━┿━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛      ┆ 
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+                         │
+         ╭───────────────╯         
+         │
+         |
+┌┄┄┄┄┄┄┄┄v┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry A  ┆
+├──────────────────┤
+│    next: &B      │ ────╮
+├──────────────────┤     │
+│    key: NULL     │     │
+└──────────────────┘     │
+                         │
+         ╭───────────────╯         
+         │
+         v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry B  ┆
+├──────────────────┤
+│    next: NULL    │ 
+├──────────────────┤
+│    key: NULL     │ 
+└──────────────────┘
+```
+
+If we overwrite this `key` pointer for a freed chunk and set it to any value, that chunk is effectively allocated. Thus, we can free it again.
 
 ### Exploit
 
