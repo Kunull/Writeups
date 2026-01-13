@@ -522,9 +522,11 @@ hacker@dynamic-allocator-misuse~freebin-feint-hard:~$ /challenge/freebin-feint-h
 Again, the `flag_buffer` is some arbitrary size.
 In order to solve this challenge, we have to leverage Remaindering.
 
-### Remaindering
+### Leveraging the Unsorted bin
 
 Memory managers handle splitting large memory blocks from the "top chunk" (the largest free block) to satisfy smaller allocation requests, creating a smaller "remainder" block that stays available in the heap.
+
+This only happens if the Unsorted bin is used instead of Tcache to allocated memory. For that we have to allocate a chunk of size greater than 1032 bytes, as Tcache only handles memory allocation upto 1032 bytes.
 
 So, if we allocate a large enough space, then free it, and then call the `read_flag` command, we would not have to worry about the size of `flag_buffer` because it will be split and used from our large buffer allocation.
 
