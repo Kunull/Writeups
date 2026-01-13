@@ -849,11 +849,68 @@ In this challege we have to leverage Double Free vulnerability.
 
 ### Double free
 
-In the allocated memory chunks, the second set of 8 bytes include the pointer `key` to `tcache_perthread_struct`. Once a chunk is freed, the `key` pointer no longer points to `tcache_perthread_struct` and is set to `NULL`. This state of the `key` is what helps Tcache distinguish free chunks from allocated ones.
+In the allocated memory chunks, the second set of 8 bytes include the pointer `key` to `tcache_perthread_struct`. Once a chunk is allocated, the `key` pointer no longer points to `tcache_perthread_struct` and is set to `NULL`. This state of the `key` is what helps Tcache distinguish free chunks from allocated ones.
 
 ```
+a = malloc(16)
+b = malloc(16)
+
+free(b)
+free(a)
+
+a = malloc(16)
+
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  tcache_perthread struct  Void                                       ┊
+┊  tcache_perthread_struct Void                                        ┊
+┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
+┊    counts: ┃ count_16: 1    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
+┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
+┊   entries: ┃ entry_16: &B   ┃ entry_32: NULL ┃ entry_48: NULL ┃ ...  ┊
+┊            ┗━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛      ┊ 
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+                         │
+                         │
+                         │
+                         │
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐     │
+┆  tcache_entry A  ┆     │
+├──────────────────┤     │
+│    next: &B      │     │
+├──────────────────┤     │
+│    key: NULL     │     │
+└──────────────────┘     │
+                         │
+         ╭───────────────╯         
+         │
+         v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry B  ┆
+├──────────────────┤
+│    next: NULL    │ 
+├──────────────────┤
+│    key: Void     │ 
+└──────────────────┘
+```
+
+When `free()` is called on a chunk that fits in the Tcache, the allocator checks if that chunk's `key` field already points to the `tcache_perthread_struct` for the current thread.
+
+If `key == tcache`, the allocator scans the relevant Tcache bin to see if that chunk is already there. If it finds it, the program crashes with a "double free or corruption (tcache)" error.
+
+If `key != tcache`, the allocator assumes the chunk is currently allocated and proceeds to add it to the Tcache.
+
+```
+a = malloc(16)
+b = malloc(16)
+
+free(b)
+free(a)
+
+a = malloc(16)
+
+free(a)
+
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┊  tcache_perthread_struct Void                                        ┊
 ┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
 ┊    counts: ┃ count_16: 2    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
 ┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
@@ -884,7 +941,7 @@ In the allocated memory chunks, the second set of 8 bytes include the pointer `k
 └──────────────────┘
 ```
 
-If we overwrite this `key` pointer for a freed chunk and set it to any value, that chunk is effectively allocated. Thus, we can free it again.
+By overwriting the `key` with a dummy value (or `NULL`), we can "trick" the allocator into thinking the chunk is not currently in the Tcache. This allows us to call `free()` a second time on the same chunk without triggering the security crash.
 
 ### Exploit
 
