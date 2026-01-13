@@ -529,11 +529,11 @@ Memory managers handle splitting large memory blocks from the "top chunk" (the l
 This only happens if the Unsorted bin / cache is used instead of Tcache to allocated memory. For that we have to allocate a chunk of size greater than 1032 bytes, as Tcache only handles memory allocation upto 1032 bytes.
 
 Currently, the `ptmalloc` caching design is (in order of use):
-- 64 singly-linked tcache bins for allocations of size 16 to 1032 (functionally "covers" fastbins and smallbins)
-- 10 singly-linked "fast" bins for allocations of size up to 160 bytes
-- 1 doubly-linked "unsorted" bin to quickly stash free()d chunks that don't fit into tcache or fastbins
-- 62 doubly-linked "small" bins for allocations up to 512 bytes
-- 63 doubly-linked "large" bins (anything over 512 bytes) that contain different-sized chunks
+1. 64 singly-linked tcache bins for allocations of size 16 to 1032 (functionally "covers" fastbins and smallbins)
+2. 10 singly-linked "fast" bins for allocations of size up to 160 bytes
+3. 1 doubly-linked "unsorted" bin to quickly stash free()d chunks that don't fit into tcache or fastbins
+4. 62 doubly-linked "small" bins for allocations up to 512 bytes
+5. 63 doubly-linked "large" bins (anything over 512 bytes) that contain different-sized chunks
 
 So, if we allocate a large enough space, then free it, and then call the `read_flag` command, we would not have to worry about the size of `flag_buffer` because it will be split and used from our large buffer allocation.
 
