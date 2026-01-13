@@ -869,7 +869,7 @@ In the allocated memory chunks, the second set of 8 bytes include the pointer `k
 ├──────────────────┤
 │    next: &B      │ ────╮
 ├──────────────────┤     │
-│    key: NULL     │     │
+│    key: Void     │     │
 └──────────────────┘     │
                          │
          ╭───────────────╯         
@@ -880,7 +880,7 @@ In the allocated memory chunks, the second set of 8 bytes include the pointer `k
 ├──────────────────┤
 │    next: NULL    │ 
 ├──────────────────┤
-│    key: NULL     │ 
+│    key: Void     │ 
 └──────────────────┘
 ```
 
