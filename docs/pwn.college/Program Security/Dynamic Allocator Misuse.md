@@ -708,7 +708,7 @@ As always, the hard challenge does not tell us the size of the buffers into whic
 
 ### Binary Analysis
 
-```c title="/challenge/free-flag-fumble-hard :: main()"
+```c title="/challenge/free-flag-fumble-hard :: main()" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   int v3; // ecx
