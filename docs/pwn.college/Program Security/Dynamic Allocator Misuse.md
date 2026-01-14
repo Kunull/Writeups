@@ -1880,11 +1880,11 @@ print(p.recvuntil(b"Function").decode())
 p.sendline(b"puts")
 p.sendline(b"3")
 p.recvuntil(b"Data: ")
-secret = p.recvline().strip() # This is now a bytes
-print(f"[*] Leaked Secret: {secret.decode()}")
+secret = p.recvline().strip().decode()
+print(f"[*] Leaked Secret: {secret}")
 
 p.sendline(b"send_flag")
-p.sendline(secret) 
+p.sendline(secret.encode()) 
 print(p.recvuntil(b"}").decode())
 ```
 
