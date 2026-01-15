@@ -5349,3 +5349,94 @@ hacker@reverse-engineering~tweaking-images:/$ /challenge/cimg ~/fixed_flag.cimg
 ```
 pwn.college{UVdRwo8Qr1PY7qbH033MOInAXHn.QX5EzMwEDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## Storage and Retrieval
+
+```py
+In [1]: print(len(".--------------------------------------------------------------------------."))
+76
+```
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+import struct
+import re
+
+# --- DATA EXTRACTION ---
+binary = ELF('/challenge/cimg')
+# Read the target ANSI sequence to extract exact characters and colors
+raw_data = binary.read(binary.sym.desired_output, 30000)
+desired_ansii_sequence = raw_data.split(b'\0')[0].decode("utf-8")
+pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
+matches = re.findall(pattern, desired_ansii_sequence)
+
+width_val = 76
+height_val = 24 
+
+def get_pixel(x, y):
+    idx = y * width_val + x
+    return matches[idx] if idx < len(matches) else ("255","255","255"," ")
+
+directives = []
+directive_count = 0
+
+def add_sprite(sid, w, h, data):
+    global directive_count
+    directives.append(struct.pack("<HBBB", 3, sid, w, h) + data.encode())
+    directive_count += 1
+
+def render_sprite(sid, x, y, r=255, g=255, b=255):
+    global directive_count
+    directives.append(struct.pack("<HBBBBBB", 4, sid, r, g, b, x, y))
+    directive_count += 1
+
+# --- 1. DEFINE REUSABLE ASSETS ---
+# Sprite 0: Generic 37-dash horizontal bar (Stamping twice covers the width)
+add_sprite(0, 37, 1, "-" * 37) 
+
+# Sprite 1: Generic 22-pipe vertical bar (Full side minus corners)
+add_sprite(1, 1, 22, "|" * 22)
+
+# Sprite 2 & 3: Corners (Unique characters at the edges)
+add_sprite(2, 1, 1, ".") # Top corners
+add_sprite(3, 1, 1, "'") # Bottom corners
+
+# Sprite 4: The Logo (Widened to 35 to ensure the 'C' is not cut off)
+lx, ly, lw, lh = 22, 8, 35, 6 
+logo_chars = "".join(["".join([get_pixel(lx+dx, ly+dy)[3] for dx in range(lw)]) for dy in range(lh)])
+add_sprite(4, lw, lh, logo_chars)
+
+# --- 2. STAMP BORDERS AND LOGO ---
+# Top Border
+render_sprite(2, 0, 0)
+render_sprite(0, 1, 0)
+render_sprite(0, 38, 0)
+render_sprite(2, 75, 0)
+
+# Bottom Border
+render_sprite(3, 0, 23)
+render_sprite(0, 1, 23)
+render_sprite(0, 38, 23)
+render_sprite(3, 75, 23)
+
+# Side Walls
+render_sprite(1, 0, 1)
+render_sprite(1, 75, 1)
+
+# The Logo
+lr, lg, lb, _ = get_pixel(lx, ly)
+render_sprite(4, lx, ly, int(lr), int(lg), int(lb))
+
+# --- 3. HEADER AND PAYLOAD ---
+# Magic, Version, Width, Height, Directive Count, Padding
+header = struct.pack("<IHB B H H", 0x474D4963, 3, width_val, height_val, directive_count, 0)
+payload = header + b"".join(directives)
+
+print(f"Final Payload Size: {len(payload)} bytes")
+with open("/home/hacker/solution.cimg", "wb") as f:
+    f.write(payload)
+```
