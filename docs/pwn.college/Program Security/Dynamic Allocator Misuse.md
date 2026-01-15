@@ -1881,7 +1881,38 @@ This would cause the chunk `B` to be removed from the singly-linked list, and th
 └──────────────────┘
 ```
 
-Now, if we allocate two chunks again of the same size, the chunk `A` and `SECRET` would be allocated because to `tcache_perthread_struct`, those are the two free chunks. And the first 8 bytes of the `SECRET` chunk would hold the secret value. We just have to call puts on this chunk and get the value.
+Now, if we allocate two chunks again of the same size, the chunk `A` and `SECRET` would be allocated because to `tcache_perthread_struct`, those are the two free chunks. And the first 8 bytes of the `SECRET` chunk would hold the secret value.
+
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┊  tcache_perthread_struct Void                                        ┊
+┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
+┊    counts: ┃ count_16: 0    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
+┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
+┊   entries: ┃ entry_16: NULL ┃ entry_32: NULL ┃ entry_48: NULL ┃ ...  ┊
+┊            ┗━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛      ┊ 
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+
+
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry A  ┆
+├──────────────────┤
+│  next: &SECRET   │ 
+├──────────────────┤  
+│    key: NULL     │ 
+└──────────────────┘  
+
+
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆      SECRET      ┆
+├──────────────────┤
+│   next: secret   │ 
+├──────────────────┤
+│    key: NULL     │ 
+└──────────────────┘
+```
+
+We just have to call puts on this chunk and get the value.
 
 ### Exploit
 
