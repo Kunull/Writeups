@@ -876,9 +876,9 @@ a = malloc(16)
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐     │
 ┆  tcache_entry A  ┆     │
 ├──────────────────┤     │
-│    next: &B      │     │
+│  ..............  │     │
 ├──────────────────┤     │
-│    key: NULL     │     │
+│       NULL       │     │
 └──────────────────┘     │
                          │
          ╭───────────────╯         
@@ -1897,18 +1897,18 @@ Now, if we allocate two chunks again of the same size, the chunk `A` and `SECRET
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
 ┆  tcache_entry A  ┆
 ├──────────────────┤
-│  next: &SECRET   │ 
+│  ..............  │ 
 ├──────────────────┤  
-│    key: NULL     │ 
+│       NULL       │ 
 └──────────────────┘  
 
 
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
 ┆      SECRET      ┆
 ├──────────────────┤
-│    secret[:8]    │ 
+│  ..............  │ 
 ├──────────────────┤
-│    key: NULL     │ 
+│       NULL       │ 
 └──────────────────┘
 ```
 
@@ -2548,9 +2548,9 @@ Now, if we allocate two chunks again of the same size, the chunk `A` and `SECRET
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
 ┆  tcache_entry A  ┆
 ├──────────────────┤
-│  next: &SECRET   │ 
+│  ..............  │ 
 ├──────────────────┤  
-│    key: NULL     │ 
+│       NULL       │ 
 └──────────────────┘  
 
 
@@ -2566,7 +2566,99 @@ Now, if we allocate two chunks again of the same size, the chunk `A` and `SECRET
 Once we malloc the chunk again, we can see that due to Tcache's behaviour of setting the `key` pointer to `NULL` clobbers the trailing 8 bytes of the secret value.
 So, using the previously employesd method, we are able to get the first 8 bytes.
 
-For the next, 8 bytes, we have to pollute Tcache `entry_struct` again, but this time we set the address into which `scanf` reads to 8 bytes after the secret values address.
+For the next, 8 bytes, we have to pollute Tcache `entry_struct` again, but this time we set the address into which `scanf` reads to 8 bytes after the secret values address. So, let's free the first allocation only so that it is added back into the singly linked list.
+
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┊  tcache_perthread_struct Void                                        ┊
+┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
+┊    counts: ┃ count_16: 1    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
+┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
+┊   entries: ┃ entry_16: &A   ┃ entry_32: NULL ┃ entry_48: NULL ┃ ...  ┊
+┊            ┗━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛      ┊ 
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+                         │
+         ╭───────────────╯         
+         │
+         v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry A  ┆
+├──────────────────┤
+│  next: &SECRET   │
+├──────────────────┤     
+│    key: Void     │     
+└──────────────────┘     
+```
+
+Then we use the `scanf` command and read the the index of the first allocation `A` using the hanging pointer. 
+We can overwrite this with the address of the secret plus 8.
+
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┊  tcache_perthread_struct Void                                        ┊
+┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
+┊    counts: ┃ count_16: 2    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
+┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
+┊   entries: ┃ entry_16: &A   ┃ entry_32: NULL ┃ entry_48: NULL ┃ ...  ┊
+┊            ┗━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛      ┊ 
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+                         │
+         ╭───────────────╯         
+         │
+         v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry A  ┆
+├──────────────────┤
+│  next: &SECRET   │ ────╮
+├──────────────────┤     │
+│    key: Void     │     │
+└──────────────────┘     │
+                         │
+         ╭───────────────╯         
+         │
+         v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆      SECRET2       ┆
+├────────────────────┤
+│ next: secret[8:16] │ 
+├────────────────────┤
+│      key: ....     │ 
+└────────────────────┘
+```
+
+Now, if we allocate two chunks again of the same size, the chunk `A` and `SECRET2` would be allocated because to `tcache_perthread_struct`, those are the two free chunks. And the first 8 bytes of the `SECRET` chunk would hold the remaining secret value.
+
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┊  tcache_perthread_struct Void                                        ┊
+┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
+┊    counts: ┃ count_16: 0    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
+┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
+┊   entries: ┃ entry_16: NULL ┃ entry_32: NULL ┃ entry_48: NULL ┃ ...  ┊
+┊            ┗━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛      ┊ 
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+
+
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry A  ┆
+├──────────────────┤
+│  ..............  │ 
+├──────────────────┤  
+│       NULL       │ 
+└──────────────────┘  
+
+
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆      SECRET2       ┆
+├────────────────────┤
+│    secret[8:16]    │ 
+├────────────────────┤
+│        NULL        │ 
+└────────────────────┘
+```
+
+This time, even if after allocation the `key` pointer is set to `NULL` we don't care because we have the secret value's second half in the first 8 bytes itself.
+
 
 ### Exploit
 
