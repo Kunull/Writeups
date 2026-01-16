@@ -528,6 +528,11 @@ Memory managers handle splitting large memory blocks from the "top chunk" (the l
 
 Instead of storing chunks with a fixed size, each of the large bins store chunks within a size range. Each large bin’s size range is designed to not overlap with either the chunk sizes of small bins or the ranges of other large bins. In other words, given a chunk’s size, there is exactly one small bin or large bin that this size corresponds to.
 
+<figure>
+<img alt="image" src="https://github.com/user-attachments/assets/f031895e-1419-4c20-98a9-ba38fc11faca" />
+<figcaption>Source - Azeria labs</figcaption>
+</figure>
+
 This only happens if the large bin / cache is used instead of Tcache to allocated memory. For that we have to allocate a chunk of size greater than 1032 bytes, as Tcache only handles memory allocation upto 1032 bytes.
 
 Currently, the `ptmalloc` caching design is (in order of use):
