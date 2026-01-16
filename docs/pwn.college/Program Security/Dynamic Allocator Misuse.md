@@ -522,11 +522,13 @@ hacker@dynamic-allocator-misuse~freebin-feint-hard:~$ /challenge/freebin-feint-h
 Again, the `flag_buffer` is some arbitrary size.
 In order to solve this challenge, we have to leverage Remaindering.
 
-### Leveraging the Unsorted bin / cache
+### Leveraging the large bin / cache
 
 Memory managers handle splitting large memory blocks from the "top chunk" (the largest free block) to satisfy smaller allocation requests, creating a smaller "remainder" block that stays available in the heap.
 
-This only happens if the Unsorted bin / cache is used instead of Tcache to allocated memory. For that we have to allocate a chunk of size greater than 1032 bytes, as Tcache only handles memory allocation upto 1032 bytes.
+Instead of storing chunks with a fixed size, each of the large bins store chunks within a size range. Each large bin’s size range is designed to not overlap with either the chunk sizes of small bins or the ranges of other large bins. In other words, given a chunk’s size, there is exactly one small bin or large bin that this size corresponds to.
+
+This only happens if the large bin / cache is used instead of Tcache to allocated memory. For that we have to allocate a chunk of size greater than 1032 bytes, as Tcache only handles memory allocation upto 1032 bytes.
 
 Currently, the `ptmalloc` caching design is (in order of use):
 1. 64 singly-linked tcache bins for allocations of size 16 to 1032 (functionally "covers" fastbins and smallbins)
@@ -3165,4 +3167,134 @@ Secret:
 Authorized!
 You win! Here is your flag:
 pwn.college{Y1obx4BDBPfdkgWr6FXdTlE7-n5.0FN4MDL4ITM0EzW}
+```
+
+&nbsp;
+
+```c
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  unsigned int v3; // eax
+  unsigned int v4; // eax
+  int i; // [rsp+2Ch] [rbp-124h]
+  unsigned int v7; // [rsp+30h] [rbp-120h]
+  unsigned int v8; // [rsp+30h] [rbp-120h]
+  unsigned int v9; // [rsp+30h] [rbp-120h]
+  unsigned int v10; // [rsp+30h] [rbp-120h]
+  unsigned int size; // [rsp+34h] [rbp-11Ch]
+  void *ptr[16]; // [rsp+40h] [rbp-110h] BYREF
+  char s1[136]; // [rsp+C0h] [rbp-90h] BYREF
+  unsigned __int64 v14; // [rsp+148h] [rbp-8h]
+
+  v14 = __readfsqword(0x28u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(stdout, 0LL, 2, 1uLL);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  memset(ptr, 0, sizeof(ptr));
+  for ( i = 0; i <= 15; ++i )
+    byte_42230A[i] = rand() % 26 + 97;
+  puts(
+    "This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of");
+  puts("challenges, you will become familiar with the concept of heap exploitation.\n");
+  printf("This challenge can manage up to %d unique allocations.\n\n", 16LL);
+  printf("In this challenge, there is a secret stored at %p.\n", byte_42230A);
+  puts("This address intentionally uses `whitespace-armoring` (notice the 0x0a in the address).\n");
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          while ( 1 )
+          {
+            print_tcache(main_thread_tcache);
+            puts(byte_4035D1);
+            printf("[*] Function (malloc/free/puts/scanf/send_flag/quit): ");
+            __isoc99_scanf("%127s", s1);
+            puts(byte_4035D1);
+            if ( strcmp(s1, "malloc") )
+              break;
+            printf("Index: ");
+            __isoc99_scanf("%127s", s1);
+            puts(byte_4035D1);
+            v7 = atoi(s1);
+            if ( v7 > 0xF )
+              __assert_fail("allocation_index < 16", "<stdin>", 0x117u, "main");
+            printf("Size: ");
+            __isoc99_scanf("%127s", s1);
+            puts(byte_4035D1);
+            size = atoi(s1);
+            printf("[*] allocations[%d] = malloc(%d)\n", v7, size);
+            ptr[v7] = malloc(size);
+            printf("[*] allocations[%d] = %p\n", v7, ptr[v7]);
+          }
+          if ( strcmp(s1, "free") )
+            break;
+          printf("Index: ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_4035D1);
+          v8 = atoi(s1);
+          if ( v8 > 0xF )
+            __assert_fail("allocation_index < 16", "<stdin>", 0x129u, "main");
+          printf("[*] free(allocations[%d])\n", v8);
+          free(ptr[v8]);
+        }
+        if ( strcmp(s1, "puts") )
+          break;
+        printf("Index: ");
+        __isoc99_scanf("%127s", s1);
+        puts(byte_4035D1);
+        v9 = atoi(s1);
+        if ( v9 > 0xF )
+          __assert_fail("allocation_index < 16", "<stdin>", 0x136u, "main");
+        printf("[*] puts(allocations[%d])\n", v9);
+        printf("Data: ");
+        puts((const char *)ptr[v9]);
+      }
+      if ( strcmp(s1, "scanf") )
+        break;
+      printf("Index: ");
+      __isoc99_scanf("%127s", s1);
+      puts(byte_4035D1);
+      v10 = atoi(s1);
+      if ( v10 > 0xF )
+        __assert_fail("allocation_index < 16", "<stdin>", 0x143u, "main");
+      v3 = malloc_usable_size(ptr[v10]);
+      sprintf(s1, "%%%us", v3);
+      v4 = malloc_usable_size(ptr[v10]);
+      printf("[*] scanf(\"%%%us\", allocations[%d])\n", v4, v10);
+      __isoc99_scanf(s1, ptr[v10]);
+      puts(byte_4035D1);
+    }
+    if ( strcmp(s1, "send_flag") )
+      break;
+    printf("Secret: ");
+    __isoc99_scanf("%127s", s1);
+    puts(byte_4035D1);
+    if ( !memcmp(s1, byte_42230A, 0x10uLL) )
+    {
+      puts("Authorized!");
+      win();
+    }
+    else
+    {
+      puts("Not authorized!");
+    }
+  }
+  if ( strcmp(s1, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+### Exploit
+
+```
+
 ```
