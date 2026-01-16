@@ -11213,14 +11213,6 @@ Dump of assembler code for function challenge:
 End of assembler dump.
 ```
 
-```
-First execution rbp:
-0x00007ffe3389c940
-
-Second execution rbp:
-0x00007ffe3389b900
-```
-
 The challenge calls `strstr@plt` in order to find a substring `needle` within the string `haystack`. The string address is stored at `rbp-0x48` which is where our buffer is stored as well. So it looks for some substring within our string.
 
 Then if it finds the substring, it calls itself again at `challenge+1098`. Otherwise it exits.
