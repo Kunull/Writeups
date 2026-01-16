@@ -2343,7 +2343,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
   unsigned int v10; // [rsp+30h] [rbp-120h]
   unsigned int size; // [rsp+34h] [rbp-11Ch]
   void *ptr[16]; // [rsp+40h] [rbp-110h] BYREF
-  char s1[136]; // [rsp+C0h] [rbp-90h] BYREF
+  char choice[136]; // [rsp+C0h] [rbp-90h] BYREF
   unsigned __int64 v14; // [rsp+148h] [rbp-8h]
 
   v14 = __readfsqword(0x28u);
@@ -2375,68 +2375,68 @@ int __fastcall main(int argc, const char **argv, const char **envp)
             print_tcache(main_thread_tcache);
             puts(byte_4035BA);
             printf("[*] Function (malloc/free/puts/scanf/send_flag/quit): ");
-            __isoc99_scanf("%127s", s1);
+            __isoc99_scanf("%127s", choice);
             puts(byte_4035BA);
-            if ( strcmp(s1, "malloc") )
+            if ( strcmp(choice, "malloc") )
               break;
             printf("Index: ");
-            __isoc99_scanf("%127s", s1);
+            __isoc99_scanf("%127s", choice);
             puts(byte_4035BA);
-            v7 = atoi(s1);
+            v7 = atoi(choice);
             if ( v7 > 0xF )
               __assert_fail("allocation_index < 16", "<stdin>", 0x117u, "main");
             printf("Size: ");
-            __isoc99_scanf("%127s", s1);
+            __isoc99_scanf("%127s", choice);
             puts(byte_4035BA);
-            size = atoi(s1);
+            size = atoi(choice);
             printf("[*] allocations[%d] = malloc(%d)\n", v7, size);
             ptr[v7] = malloc(size);
             printf("[*] allocations[%d] = %p\n", v7, ptr[v7]);
           }
-          if ( strcmp(s1, "free") )
+          if ( strcmp(choice, "free") )
             break;
           printf("Index: ");
-          __isoc99_scanf("%127s", s1);
+          __isoc99_scanf("%127s", choice);
           puts(byte_4035BA);
-          v8 = atoi(s1);
+          v8 = atoi(choice);
           if ( v8 > 0xF )
             __assert_fail("allocation_index < 16", "<stdin>", 0x129u, "main");
           printf("[*] free(allocations[%d])\n", v8);
           free(ptr[v8]);
         }
-        if ( strcmp(s1, "puts") )
+        if ( strcmp(choice, "puts") )
           break;
         printf("Index: ");
-        __isoc99_scanf("%127s", s1);
+        __isoc99_scanf("%127s", choice);
         puts(byte_4035BA);
-        v9 = atoi(s1);
+        v9 = atoi(choice);
         if ( v9 > 0xF )
           __assert_fail("allocation_index < 16", "<stdin>", 0x136u, "main");
         printf("[*] puts(allocations[%d])\n", v9);
         printf("Data: ");
         puts((const char *)ptr[v9]);
       }
-      if ( strcmp(s1, "scanf") )
+      if ( strcmp(choice, "scanf") )
         break;
       printf("Index: ");
-      __isoc99_scanf("%127s", s1);
+      __isoc99_scanf("%127s", choice);
       puts(byte_4035BA);
-      v10 = atoi(s1);
+      v10 = atoi(choice);
       if ( v10 > 0xF )
         __assert_fail("allocation_index < 16", "<stdin>", 0x143u, "main");
       v3 = malloc_usable_size(ptr[v10]);
-      sprintf(s1, "%%%us", v3);
+      sprintf(choice, "%%%us", v3);
       v4 = malloc_usable_size(ptr[v10]);
       printf("[*] scanf(\"%%%us\", allocations[%d])\n", v4, v10);
-      __isoc99_scanf(s1, ptr[v10]);
+      __isoc99_scanf(choice, ptr[v10]);
       puts(byte_4035BA);
     }
-    if ( strcmp(s1, "send_flag") )
+    if ( strcmp(choice, "send_flag") )
       break;
     printf("Secret: ");
-    __isoc99_scanf("%127s", s1);
+    __isoc99_scanf("%127s", choice);
     puts(byte_4035BA);
-    if ( !memcmp(s1, byte_429964, 16uLL) )
+    if ( !memcmp(choice, byte_429964, 16uLL) )
     {
       puts("Authorized!");
       win();
@@ -2446,7 +2446,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
       puts("Not authorized!");
     }
   }
-  if ( strcmp(s1, "quit") )
+  if ( strcmp(choice, "quit") )
     puts("Unrecognized choice!");
   puts("### Goodbye!");
   return 0;
@@ -2921,7 +2921,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
   unsigned int v9; // [rsp+30h] [rbp-120h]
   unsigned int size; // [rsp+34h] [rbp-11Ch]
   void *ptr[16]; // [rsp+40h] [rbp-110h] BYREF
-  char s1[136]; // [rsp+C0h] [rbp-90h] BYREF
+  char choice[136]; // [rsp+C0h] [rbp-90h] BYREF
   unsigned __int64 v13; // [rsp+148h] [rbp-8h]
 
   v13 = __readfsqword(40u);
@@ -2946,62 +2946,62 @@ int __fastcall main(int argc, const char **argv, const char **envp)
           {
             puts(byte_40214C);
             printf("[*] Function (malloc/free/puts/scanf/send_flag/quit): ");
-            __isoc99_scanf("%127s", s1);
+            __isoc99_scanf("%127s", choice);
             puts(byte_40214C);
-            if ( strcmp(s1, "malloc") )
+            if ( strcmp(choice, "malloc") )
               break;
             printf("Index: ");
-            __isoc99_scanf("%127s", s1);
+            __isoc99_scanf("%127s", choice);
             puts(byte_40214C);
-            v6 = atoi(s1);
+            v6 = atoi(choice);
             if ( v6 > 15 )
               __assert_fail("allocation_index < 16", "<stdin>", 114u, "main");
             printf("Size: ");
-            __isoc99_scanf("%127s", s1);
+            __isoc99_scanf("%127s", choice);
             puts(byte_40214C);
-            size = atoi(s1);
+            size = atoi(choice);
             ptr[v6] = malloc(size);
           }
-          if ( strcmp(s1, "free") )
+          if ( strcmp(choice, "free") )
             break;
           printf("Index: ");
-          __isoc99_scanf("%127s", s1);
+          __isoc99_scanf("%127s", choice);
           puts(byte_40214C);
-          v7 = atoi(s1);
+          v7 = atoi(choice);
           if ( v7 > 15 )
             __assert_fail("allocation_index < 16", "<stdin>", 130u, "main");
           free(ptr[v7]);
         }
-        if ( strcmp(s1, "puts") )
+        if ( strcmp(choice, "puts") )
           break;
         printf("Index: ");
-        __isoc99_scanf("%127s", s1);
+        __isoc99_scanf("%127s", choice);
         puts(byte_40214C);
-        v8 = atoi(s1);
+        v8 = atoi(choice);
         if ( v8 > 15 )
           __assert_fail("allocation_index < 16", "<stdin>", 142u, "main");
         printf("Data: ");
         puts((const char *)ptr[v8]);
       }
-      if ( strcmp(s1, "scanf") )
+      if ( strcmp(choice, "scanf") )
         break;
       printf("Index: ");
-      __isoc99_scanf("%127s", s1);
+      __isoc99_scanf("%127s", choice);
       puts(byte_40214C);
-      v9 = atoi(s1);
+      v9 = atoi(choice);
       if ( v9 > 15 )
         __assert_fail("allocation_index < 16", "<stdin>", 154u, "main");
       v3 = malloc_usable_size(ptr[v9]);
-      sprintf(s1, "%%%us", v3);
-      __isoc99_scanf(s1, ptr[v9]);
+      sprintf(choice, "%%%us", v3);
+      __isoc99_scanf(choice, ptr[v9]);
       puts(byte_40214C);
     }
-    if ( strcmp(s1, "send_flag") )
+    if ( strcmp(choice, "send_flag") )
       break;
     printf("Secret: ");
-    __isoc99_scanf("%127s", s1);
+    __isoc99_scanf("%127s", choice);
     puts(byte_40214C);
-    if ( !memcmp(s1, byte_427051, 16uLL) )
+    if ( !memcmp(choice, byte_427051, 16uLL) )
     {
       puts("Authorized!");
       win();
@@ -3011,7 +3011,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
       puts("Not authorized!");
     }
   }
-  if ( strcmp(s1, "quit") )
+  if ( strcmp(choice, "quit") )
     puts("Unrecognized choice!");
   puts("### Goodbye!");
   return 0;
@@ -3176,7 +3176,9 @@ pwn.college{Y1obx4BDBPfdkgWr6FXdTlE7-n5.0FN4MDL4ITM0EzW}
 
 &nbsp;
 
-```c
+## Seeking Spanless Secrets (Easy)
+
+```c title="/challenge/seeking-spanless-secrets-easy :: main()" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   unsigned int v3; // eax
@@ -3188,10 +3190,10 @@ int __fastcall main(int argc, const char **argv, const char **envp)
   unsigned int v10; // [rsp+30h] [rbp-120h]
   unsigned int size; // [rsp+34h] [rbp-11Ch]
   void *ptr[16]; // [rsp+40h] [rbp-110h] BYREF
-  char s1[136]; // [rsp+C0h] [rbp-90h] BYREF
+  char choice[136]; // [rsp+C0h] [rbp-90h] BYREF
   unsigned __int64 v14; // [rsp+148h] [rbp-8h]
 
-  v14 = __readfsqword(0x28u);
+  v14 = __readfsqword(40u);
   setvbuf(stdin, 0LL, 2, 0LL);
   setvbuf(stdout, 0LL, 2, 1uLL);
   puts("###");
@@ -3220,68 +3222,68 @@ int __fastcall main(int argc, const char **argv, const char **envp)
             print_tcache(main_thread_tcache);
             puts(byte_4035D1);
             printf("[*] Function (malloc/free/puts/scanf/send_flag/quit): ");
-            __isoc99_scanf("%127s", s1);
+            __isoc99_scanf("%127s", choice);
             puts(byte_4035D1);
-            if ( strcmp(s1, "malloc") )
+            if ( strcmp(choice, "malloc") )
               break;
             printf("Index: ");
-            __isoc99_scanf("%127s", s1);
+            __isoc99_scanf("%127s", choice);
             puts(byte_4035D1);
-            v7 = atoi(s1);
-            if ( v7 > 0xF )
-              __assert_fail("allocation_index < 16", "<stdin>", 0x117u, "main");
+            v7 = atoi(choice);
+            if ( v7 > 15 )
+              __assert_fail("allocation_index < 16", "<stdin>", 279u, "main");
             printf("Size: ");
-            __isoc99_scanf("%127s", s1);
+            __isoc99_scanf("%127s", choice);
             puts(byte_4035D1);
-            size = atoi(s1);
+            size = atoi(choice);
             printf("[*] allocations[%d] = malloc(%d)\n", v7, size);
             ptr[v7] = malloc(size);
             printf("[*] allocations[%d] = %p\n", v7, ptr[v7]);
           }
-          if ( strcmp(s1, "free") )
+          if ( strcmp(choice, "free") )
             break;
           printf("Index: ");
-          __isoc99_scanf("%127s", s1);
+          __isoc99_scanf("%127s", choice);
           puts(byte_4035D1);
-          v8 = atoi(s1);
-          if ( v8 > 0xF )
-            __assert_fail("allocation_index < 16", "<stdin>", 0x129u, "main");
+          v8 = atoi(choice);
+          if ( v8 > 15 )
+            __assert_fail("allocation_index < 16", "<stdin>", 297u, "main");
           printf("[*] free(allocations[%d])\n", v8);
           free(ptr[v8]);
         }
-        if ( strcmp(s1, "puts") )
+        if ( strcmp(choice, "puts") )
           break;
         printf("Index: ");
-        __isoc99_scanf("%127s", s1);
+        __isoc99_scanf("%127s", choice);
         puts(byte_4035D1);
-        v9 = atoi(s1);
-        if ( v9 > 0xF )
-          __assert_fail("allocation_index < 16", "<stdin>", 0x136u, "main");
+        v9 = atoi(choice);
+        if ( v9 > 15 )
+          __assert_fail("allocation_index < 16", "<stdin>", 310u, "main");
         printf("[*] puts(allocations[%d])\n", v9);
         printf("Data: ");
         puts((const char *)ptr[v9]);
       }
-      if ( strcmp(s1, "scanf") )
+      if ( strcmp(choice, "scanf") )
         break;
       printf("Index: ");
-      __isoc99_scanf("%127s", s1);
+      __isoc99_scanf("%127s", choice);
       puts(byte_4035D1);
-      v10 = atoi(s1);
-      if ( v10 > 0xF )
-        __assert_fail("allocation_index < 16", "<stdin>", 0x143u, "main");
+      v10 = atoi(choice);
+      if ( v10 > 15 )
+        __assert_fail("allocation_index < 16", "<stdin>", 323u, "main");
       v3 = malloc_usable_size(ptr[v10]);
-      sprintf(s1, "%%%us", v3);
+      sprintf(choice, "%%%us", v3);
       v4 = malloc_usable_size(ptr[v10]);
       printf("[*] scanf(\"%%%us\", allocations[%d])\n", v4, v10);
-      __isoc99_scanf(s1, ptr[v10]);
+      __isoc99_scanf(choice, ptr[v10]);
       puts(byte_4035D1);
     }
-    if ( strcmp(s1, "send_flag") )
+    if ( strcmp(choice, "send_flag") )
       break;
     printf("Secret: ");
-    __isoc99_scanf("%127s", s1);
+    __isoc99_scanf("%127s", choice);
     puts(byte_4035D1);
-    if ( !memcmp(s1, byte_42230A, 0x10uLL) )
+    if ( !memcmp(choice, byte_42230A, 16uLL) )
     {
       puts("Authorized!");
       win();
@@ -3291,15 +3293,10 @@ int __fastcall main(int argc, const char **argv, const char **envp)
       puts("Not authorized!");
     }
   }
-  if ( strcmp(s1, "quit") )
+  if ( strcmp(choice, "quit") )
     puts("Unrecognized choice!");
   puts("### Goodbye!");
   return 0;
 }
 ```
 
-### Exploit
-
-```
-
-```
