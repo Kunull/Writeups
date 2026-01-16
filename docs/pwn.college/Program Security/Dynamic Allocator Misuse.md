@@ -1,4 +1,4 @@
----
+<img width="380" height="800" alt="image" src="https://github.com/user-attachments/assets/32113855-d08f-4bab-b043-fdb4ba4c3c5b" />---
 custom_edit_url: null
 sidebar_position: 3
 slug: /pwn-college/program-security/dynamic-allocator-misuse
@@ -529,7 +529,8 @@ Memory managers handle splitting large memory blocks from the "top chunk" (the l
 Instead of immediately putting newly freed chunks onto the correct bin, the heap manager coalesces it with neighbors, and dumps it onto a general unsorted linked list. During `malloc`, each item on the unsorted bin is checked to see if it “fits” the request. If it does, `mallo`c can use it immediately. If it does not, `malloc` then puts the chunk into its corresponding small or large bin.
 
 <figure>
-<img alt="image" src="https://github.com/user-attachments/assets/f031895e-1419-4c20-98a9-ba38fc11faca" />
+   <img alt="image" src="https://github.com/user-attachments/assets/f32f89e4-513f-47b9-80f3-8f781f4ebfb8" />
+   <figcaption>Source: [Azeria labs](https://azeria-labs.com/heap-exploitation-part-2-glibc-heap-free-bins/)</figcaption>
 </figure>
 
 This only happens if the large bin / cache is used instead of Tcache to allocated memory. For that we have to allocate a chunk of size greater than 1032 bytes, as Tcache only handles memory allocation upto 1032 bytes.
