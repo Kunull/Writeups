@@ -9350,7 +9350,7 @@ pwn.college{0kx4a5AU-rY-gckKRBcfAcg_bmK.0VNxMDL4ITM0EzW}
 
 &nbsp;
 
-## Latent Lunacy (Hard)
+## Latent Leak (Hard)
 
 ```
 hacker@program-security~latent-leak-hard:/$ /challenge/latent-leak-hard 
@@ -9834,7 +9834,7 @@ This challenge is listening for connections on TCP port 1337.
 The challenge supports unlimited sequential connections.
 ```
 
-Let's write a small script to senf `"Hello World"` to the challenge.
+Let's write a small script to send `"Hello World"` to the challenge.
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
@@ -10799,7 +10799,7 @@ For that we have manually to close the binary listener, start it again, and send
 
 There are two approaches to solve this problem.
 
-#### Running the challenge from inside the exploit, and reruning it until the PIE offset matches
+#### Reruning the challenge binary until the PIE offset matches
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
