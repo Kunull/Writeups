@@ -210,7 +210,9 @@ After some variable renaming and type editing, we are left with the following:
 
 ### Binary Analysis
 
+<figure>
 ![image](https://github.com/user-attachments/assets/3461de42-2d8b-4851-bb88-f0d28558c942?raw=1)
+</figure>
 
 The challenge performs the following checks:
 - File Extension: Must end with `.cimg`
