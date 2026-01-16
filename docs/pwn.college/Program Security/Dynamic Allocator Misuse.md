@@ -1,4 +1,4 @@
-<img width="380" height="800" alt="image" src="https://github.com/user-attachments/assets/32113855-d08f-4bab-b043-fdb4ba4c3c5b" />---
+---
 custom_edit_url: null
 sidebar_position: 3
 slug: /pwn-college/program-security/dynamic-allocator-misuse
