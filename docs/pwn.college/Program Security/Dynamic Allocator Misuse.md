@@ -3723,3 +3723,7 @@ Authorized!
 You win! Here is your flag:
 pwn.college{s3p743_G7uUAFBNkhZiOvvnjaAR.0lN4MDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## Seeking Smuggled Secrets (Easy)
