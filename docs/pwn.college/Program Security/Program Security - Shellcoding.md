@@ -11299,8 +11299,8 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 
 We can see that the expected substring is `REPEAT`.
 
-Since we will make the program calll itself again by sending the `REPEAT` substring in our payload, the frame will be different for the second invocation.
-This means that when we overwrite the sotred return address, we have to overwrite it with the buffer address of the new frame.
+Since we will make the program call itself again by sending the `REPEAT` substring in our payload, the frame will be different for the second invocation.
+This means that when we overwrite the stored return address, we have to overwrite it with the buffer address of the new frame.
 
 Let's see how this works.
 
@@ -12238,7 +12238,7 @@ Similarly, when we send `REPEAT*` in payload, and the `challenge()` invokes itse
                     └───────────────────────────┘
 ```
 
-When we leak out the canary in the first stage of the payload, we also leak out the store base pointer. However, this is the stored. base pointer of `main()` as we just discussed, and is of no use to us.
+When we leak out the canary in the first stage of the payload, we also leak out the store base pointer. However, this is the stored base pointer of `main()`, and is of no use to us.
 But, if we repeat the first stage of the payload, in the second invocation of `challenge()`, we will be able to leak out the base pointer of the first invocation. 
 
 Since, we know the distance between the buffer and the stored base pointer, we can calculate the address of the first invocation's buffer.
