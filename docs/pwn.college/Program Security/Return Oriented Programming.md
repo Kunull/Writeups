@@ -4366,6 +4366,9 @@ Stack:
 Registers:
 rdi: 3
 
+Function call setup:
+read(3)
+
 ═══════════════════════════════════════════════════════════════════════════════════
 rip --> ret
 ═══════════════════════════════════════════════════════════════════════════════════
@@ -5102,3 +5105,7 @@ pwn.college{UhvcV1TnlEqzmcMsHnCOAh8SVOE.0lM1MDL4ITM0EzW}
 [*] Got EOF while reading in interactive
 $  
 ```
+
+&nbsp;
+
+## Leaky Libc (Easy)
