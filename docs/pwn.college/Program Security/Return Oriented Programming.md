@@ -3701,6 +3701,18 @@ Unique gadgets found: 149
 
 We still have the classic `pop` gadgets which set the values of registers. So we can still set up a syscall.
 
+- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Location of a NULL terminated string
+- [x] Locations of required PLT stubs
+   - `open@plt`: `0x4011d0`
+   - `read@plt`: `0x401160`
+   - `puts@plt`: `0x401130`
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x40229e`
+   - `pop rsi ; ret`: `0x402296`
+   - `pop rdx ; ret`: `0x40228e`
+- [ ] Location to which flag is to be read
+
 As for the invocation of the syscall, even if we cannot directly do it, we can leverage the PLT stubs which are present in the binary.
 
 ```
@@ -3744,15 +3756,17 @@ Non-debugging symbols:
 
 We can use the `open@plt`, `read@plt` and `puts@plt`.
 
-- [x] Offset between buffer and stored return address to `main()`: `88`
-   - Buffer address: `0x7ffcd4fe1ae0`
-   - Location of the stored return address to `main()`: `0x7ffcd4fe1b38`
+- [ ] Offset between buffer and stored return address to `main()`
 - [ ] Location of a NULL terminated string
-- [x] Locations of required PLT stubs.
+- [x] Locations of required PLT stubs
    - `open@plt`: `0x4011d0`
    - `read@plt`: `0x401160`
    - `puts@plt`: `0x401130`
-- [ ] Location to read the flag to
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x40229e`
+   - `pop rsi ; ret`: `0x402296`
+   - `pop rdx ; ret`: `0x40228e`
+- [ ] Location to which flag is to be read
 
 #### `challenge()`
 
@@ -3925,11 +3939,15 @@ $1 = 88
    - Buffer address: `0x7ffcd4fe1ae0`
    - Location of the stored return address to `main()`: `0x7ffcd4fe1b38`
 - [ ] Location of a NULL terminated string
-- [x] Locations of required PLT stubs.
+- [x] Locations of required PLT stubs
    - `open@plt`: `0x4011d0`
    - `read@plt`: `0x401160`
    - `puts@plt`: `0x401130`
-- [ ] Location to read the flag to
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x40229e`
+   - `pop rsi ; ret`: `0x402296`
+   - `pop rdx ; ret`: `0x40228e`
+- [ ] Location to which flag is to be read
 
 Let's find a string we can use a symlink.
 
@@ -3962,13 +3980,17 @@ hacker@return-oriented-programming~indirect-invocation-easy:/$ objdump -s -j .ro
    - Buffer address: `0x7ffcd4fe1ae0`
    - Location of the stored return address to `main()`: `0x7ffcd4fe1b38`
 - [x] Location of a NULL terminated string: `0x403386`
-- [x] Locations of required PLT stubs.
+- [x] Locations of required PLT stubs
    - `open@plt`: `0x4011d0`
    - `read@plt`: `0x401160`
    - `puts@plt`: `0x401130`
-- [ ] Location to read the flag to
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x40229e`
+   - `pop rsi ; ret`: `0x402296`
+   - `pop rdx ; ret`: `0x40228e`
+- [ ] Location to which flag is to be read
 
-Let's get the address of the `.bss` section.
+Let's get the address of the `.bss` section so that we can read the flag.
 
 ```
 pwndbg> info files
@@ -4008,13 +4030,21 @@ Local exec file:
    - Buffer address: `0x7ffcd4fe1ae0`
    - Location of the stored return address to `main()`: `0x7ffcd4fe1b38`
 - [x] Location of a NULL terminated string: `0x403386`
-- [x] Locations of required PLT stubs.
+- [x] Locations of required PLT stubs
    - `open@plt`: `0x4011d0`
    - `read@plt`: `0x401160`
    - `puts@plt`: `0x401130`
-- [ ] Location to read the flag to: `0x4050a0`
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x40229e`
+   - `pop rsi ; ret`: `0x402296`
+   - `pop rdx ; ret`: `0x40228e`
+- [x] Location to which flag is to be read: `0x4050a0`
 
 ### Exploit
+
+```
+hacker@return-oriented-programming~indirect-invocation-easy:~$ ln -sf /flag ~/!
+```
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
