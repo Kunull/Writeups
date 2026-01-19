@@ -6838,7 +6838,7 @@ rip --> _start()
 We would have the address of `puts` within Libc by the end, from which we can calculate the base address of Libc and the address of `chmod` within Libc.
 The call to `_start()` would restart the challenge, and give us a chance to execute the second stage
 
-#### Second stage: Leveraging `chmod` in Libc
+#### Stage 2: Using leaked Libc puts address to calculate Libc chmod address
 
 ```
 <== Value is stored at the address
