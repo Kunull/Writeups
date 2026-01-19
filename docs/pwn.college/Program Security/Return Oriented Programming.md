@@ -6727,7 +6727,7 @@ hacker@return-oriented-programming~putsception-easy:/$ readelf -s /lib/x86_64-li
 
 ### ROP chain: ret2libc
 
-#### First stage: Leaking the address of `puts` entry in GOT
+#### Stage 1: Leaking the address of `puts` entry in GOT
 
 In the first invocation, we leak the address of `puts` in Libc.
 
