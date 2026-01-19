@@ -7361,3 +7361,35 @@ $
 hacker@return-oriented-programming~putsception-hard:~$ cat /flag 
 pwn.college{08FHECJ2yZ8oCwu4qXEb4515eSO.0lN1MDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## Pivotal Prelude (Easy)
+
+```
+hacker@return-oriented-programming~pivotal-prelude-easy:/$ /challenge/pivotal-prelude-easy 
+###
+### Welcome to /challenge/pivotal-prelude-easy!
+###
+
+This challenge reads in some bytes, overflows its stack, and allows you to perform a ROP attack. Through this series of
+challenges, you will become painfully familiar with the concept of Return Oriented Programming!
+
+This challenge doesn't give you much to work with, so you will have to be resourceful.
+What you'd really like to know is the address of libc.
+In order to get the address of libc, you'll have to leak it yourself.
+An easy way to do this is to do what is known as a `puts(puts)`.
+The outer `puts` is puts@plt: this will actually invoke puts, thus initiating a leak.
+The inner `puts` is puts@got: this contains the address of puts in libc.
+Then you will need to continue executing a new ROP chain with addresses based on that leak.
+One easy way to do that is to just restart the binary by returning to its entrypoint.
+Previous challenges let you write your ROP chain directly onto the stack.
+This challenge is not so nice!
+Your input will be read to the .bss, and only a small part of it will be copied to the stack.
+You will need to figure out how to use stack pivoting to execute your full ropchain!
+
+```
+
+0x7ffd64493228
+
+0x7ffc10b56cb8
