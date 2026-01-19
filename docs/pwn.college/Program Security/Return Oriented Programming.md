@@ -6835,7 +6835,7 @@ rip --> _start()
 ═══════════════════════════════════════════════════════════════════════════════════
 ```
 
-We would have the address of `puts` within Libc by the end, from which we can calculate the base address of Libc and the address of `chmod` within Libc.
+We would have the address of `puts` within Libc by the end of this first stage, from which we can calculate the base address of Libc and the address of `chmod` within Libc.
 The call to `_start()` would restart the challenge, and give us a chance to execute the second stage.
 
 #### Stage 2: Using leaked Libc puts address to calculate Libc chmod address
@@ -8165,6 +8165,9 @@ rip --> _start()
 ═══════════════════════════════════════════════════════════════════════════════════
 ```
 
+We would have the address of `puts` within Libc by the end of this first stage, from which we can calculate the base address of Libc and the address of `chmod` within Libc. The call to `_start()` would restart the challenge, and give us a chance to execute the second stage.
+
+
 #### Stage 2: Using leaked Libc puts address to calculate Libc chmod address
 
 ```
@@ -8441,8 +8444,7 @@ rip --> chmod("/flag", 0o777)
 ═══════════════════════════════════════════════════════════════════════════════════
 ```
 
-
-We would have the address of `puts` within Libc by the end, from which we can calculate the base address of Libc and the address of `chmod` within Libc. The call to `_start()` would restart the challenge, and give us a chance to execute the second stage.
+A call to `chmod("/flag", 0o777)` would be made which would allow us to read from the `/flag` file.
 
 ### Exploit
 
