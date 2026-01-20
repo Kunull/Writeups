@@ -6225,7 +6225,7 @@ We need a few things perform this attack:
 - [ ] Locations of required ROP gadgets
 - [ ] Address of `_start()`
 
-### Binary Analaysis
+### Binary Analysis
 
 #### `puts@plt` (Procedure Linkage Table entry)
 
