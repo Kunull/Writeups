@@ -2757,7 +2757,7 @@ Goodbye!
 ### Goodbye!
 ```
 
-* [ ] Offset between location of buffer and location of the stored return address to `main()`
+* [ ] Offset between location of buffer and location of the stored return pointer to `main()`
 * [ ] Location of `win()`
 
 ### `challenge()`
@@ -2924,7 +2924,7 @@ pwndbg> p/d 0x7ffc2db73be8 - 0x7ffc2db73b70
 $1 = 120
 ```
 
-* [x] Offset between location of buffer and location of the stored return address to `main()`: `120`
+* [x] Offset between location of buffer and location of the stored return pointer to `main()`: `120`
    - Location of buffer: `0x7ffc2db73b70`
    - Location of stored return address to `main()`: `0x7ffc2db73be8`
 * [ ] Location of `win()`
@@ -2934,7 +2934,7 @@ pwndbg> info address win
 Symbol "win" is at 0x4020ae in a file compiled without debugging.
 ```
 
-* [x] Offset between location of buffer and location of the stored return address to `main()`: `120`
+* [x] Offset between location of buffer and location of the stored return pointer to `main()`: `120`
    - Location of buffer: `0x7ffc2db73b70`
    - Location of stored return address to `main()`: `0x7ffc2db73be8`
 * [x] Location of `win()`: `0x4020ae`
@@ -3267,7 +3267,7 @@ Goodbye!
 ### Goodbye!
 ```
 
-* [ ] Offset between location of buffer and location of the stored return address to `main()`
+* [ ] Offset between location of buffer and location of the stored return pointer to `main()`
 * [ ] Location of `win()`
 
 ### Binary Analysis
@@ -3419,7 +3419,7 @@ pwndbg> p/d 0x7ffec1695f58 - 0x7ffec1695f10
 $1 = 72
 ```
 
-* [x] Offset between location of buffer and location of the stored return address to `main()`: `72`
+* [x] Offset between location of buffer and location of the stored return pointer to `main()`: `72`
    - Location of buffer: `0x7ffec1695f58`
    - Location of stored return address to `main()`: `0x7ffec1695f10`
 * [ ] Location of `win()`
@@ -3429,7 +3429,7 @@ pwndbg> info address win
 Symbol "win" is at 0x4014e9 in a file compiled without debugging.
 ```
 
-* [x] Offset between location of buffer and location of the stored return address to `main()`: `72`
+* [x] Offset between location of buffer and location of the stored return pointer to `main()`: `72`
    - Location of buffer: `0x7ffec1695f58`
    - Location of stored return address to `main()`: `0x7ffec1695f10`
 * [x] Location of `win()`: `0x4014e9`

