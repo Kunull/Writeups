@@ -5356,12 +5356,458 @@ pwn.college{UVdRwo8Qr1PY7qbH033MOInAXHn.QX5EzMwEDL4ITM0EzW}
 
 ## Storage and Retrieval
 
+### Binary Analysis
+
+#### `main()`
+
+```c title="/challenge/storage-and-retrieval :: main()"
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  __int64 v3; // rcx
+  int *v5; // rdi
+  bool v6; // of
+  int v7; // r8d
+  const char *v8; // r12
+  int v9; // eax
+  const char *v10; // rdi
+  char *v12; // r12
+  unsigned int v13; // r14d
+  _BYTE *v14; // r13
+  _BOOL8 v15; // rbp
+  unsigned int i; // ebx
+  char v17; // al
+  unsigned __int16 v19; // [rsp+Eh] [rbp-105Ah] BYREF
+  int v20; // [rsp+10h] [rbp-1058h] BYREF
+  __int16 v21; // [rsp+14h] [rbp-1054h]
+  int v22; // [rsp+18h] [rbp-1050h]
+  unsigned int v23; // [rsp+1Ch] [rbp-104Ch]
+  void *s1; // [rsp+20h] [rbp-1048h]
+  unsigned __int64 v25; // [rsp+1028h] [rbp-40h]
+
+  v3 = 1030LL;
+  v25 = __readfsqword(0x28u);
+  v5 = &v20;
+  v6 = __OFSUB__(argc, 1);
+  v7 = argc - 1;
+  while ( v3 )
+  {
+    *v5++ = 0;
+    --v3;
+  }
+  if ( !((v7 < 0) ^ v6 | (v7 == 0)) )
+  {
+    v8 = argv[1];
+    if ( strcmp(&v8[strlen(v8) - 5], ".cimg") )
+    {
+      __printf_chk(1LL, "ERROR: Invalid file extension!");
+      goto LABEL_11;
+    }
+    v9 = open(v8, 0);
+    dup2(v9, 0);
+  }
+  read_exact(0LL, &v20, 12LL, "ERROR: Failed to read header!", 0xFFFFFFFFLL);
+  if ( v20 != 1196247395 )
+  {
+    v10 = "ERROR: Invalid magic number!";
+LABEL_10:
+    puts(v10);
+    goto LABEL_11;
+  }
+  v10 = "ERROR: Unsupported version!";
+  if ( v21 != 3 )
+    goto LABEL_10;
+  initialize_framebuffer(&v20);
+  while ( v22-- )
+  {
+    read_exact(0LL, &v19, 2LL, "ERROR: Failed to read &directive_code!", 0xFFFFFFFFLL);
+    if ( v19 == 3 )
+    {
+      handle_3(&v20);
+    }
+    else if ( v19 > 3u )
+    {
+      if ( v19 != 4 )
+      {
+LABEL_24:
+        __fprintf_chk(stderr, 1LL, "ERROR: invalid directive_code %ux\n", v19);
+LABEL_11:
+        exit(-1);
+      }
+      handle_4(&v20);
+    }
+    else if ( v19 == 1 )
+    {
+      handle_1(&v20);
+    }
+    else
+    {
+      if ( v19 != 2 )
+        goto LABEL_24;
+      handle_2(&v20);
+    }
+  }
+  v12 = desired_output;
+  display(&v20, 0LL);
+  v13 = v23;
+  v14 = s1;
+  v15 = v23 == 1824;
+  for ( i = 0; v13 > i && i != 1824; ++i )
+  {
+    v17 = v14[19];
+    if ( v17 != v12[19] )
+      LOBYTE(v15) = 0;
+    if ( v17 != 32 && v17 != 10 )
+    {
+      if ( memcmp(v14, v12, 0x18uLL) )
+        LOBYTE(v15) = 0;
+    }
+    v14 += 24;
+    v12 += 24;
+  }
+  if ( (unsigned __int64)total_data <= 0x190 && v15 )
+    win();
+  return 0;
+}
+```
+
+#### `handle_1()`
+
+```c title="/challenge/storage-and-retrieval ::  handle_1()"
+unsigned __int64 __fastcall handle_1(__int64 a1)
+{
+  int v1; // ebp
+  int v2; // edx
+  size_t v3; // rbp
+  unsigned __int8 *v4; // rax
+  unsigned __int8 *v5; // r12
+  __int64 v6; // rax
+  __int64 v7; // rcx
+  int i; // r13d
+  int v9; // ebp
+  int v10; // r15d
+  unsigned __int8 *v11; // rax
+  __int64 v12; // kr00_8
+  __int64 v13; // rdx
+  __int128 v15; // [rsp+1Fh] [rbp-59h] BYREF
+  __int64 v16; // [rsp+2Fh] [rbp-49h]
+  unsigned __int64 v17; // [rsp+38h] [rbp-40h]
+
+  v1 = *(unsigned __int8 *)(a1 + 6);
+  v2 = *(unsigned __int8 *)(a1 + 7);
+  v17 = __readfsqword(0x28u);
+  v3 = 4LL * v2 * v1;
+  v4 = (unsigned __int8 *)malloc(v3);
+  if ( !v4 )
+  {
+    puts("ERROR: Failed to allocate memory for the image data!");
+    goto LABEL_7;
+  }
+  v5 = v4;
+  read_exact(0LL, v4, (unsigned int)v3, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  v6 = 0LL;
+  while ( *(unsigned __int8 *)(a1 + 7) * *(unsigned __int8 *)(a1 + 6) > (int)v6 )
+  {
+    v7 = v5[4 * v6++ + 3];
+    if ( (unsigned __int8)(v7 - 32) > 0x5Eu )
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", v7);
+LABEL_7:
+      exit(-1);
+    }
+  }
+  for ( i = 0; *(unsigned __int8 *)(a1 + 7) > i; ++i )
+  {
+    v9 = 0;
+    while ( 1 )
+    {
+      v10 = *(unsigned __int8 *)(a1 + 6);
+      if ( v10 <= v9 )
+        break;
+      v11 = &v5[4 * i * v10 + 4 * v9];
+      __snprintf_chk(&v15, 25LL, 1LL, 25LL, "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m", *v11, v11[1], v11[2], v11[3]);
+      v12 = v9++;
+      v13 = *(_QWORD *)(a1 + 16) + 24LL * (((unsigned int)(v12 % v10) + i * v10) % *(_DWORD *)(a1 + 12));
+      *(_OWORD *)v13 = v15;
+      *(_QWORD *)(v13 + 16) = v16;
+    }
+  }
+  return __readfsqword(0x28u) ^ v17;
+}
+```
+
+#### `handle_2()`
+
+```c showLineNumbers
+unsigned __int64 __fastcall handle_2(__int64 a1)
+{
+  unsigned int v1; // ebx
+  unsigned __int8 *v2; // rax
+  unsigned __int8 *v3; // rbp
+  __int64 v4; // rax
+  __int64 v5; // rcx
+  int i; // r13d
+  int v7; // r14d
+  int v8; // eax
+  int v9; // ecx
+  unsigned int v10; // ebx
+  __int64 v11; // rdx
+  unsigned __int8 v13; // [rsp+Bh] [rbp-5Dh] BYREF
+  unsigned __int8 v14; // [rsp+Ch] [rbp-5Ch] BYREF
+  unsigned __int8 v15; // [rsp+Dh] [rbp-5Bh] BYREF
+  unsigned __int8 v16; // [rsp+Eh] [rbp-5Ah] BYREF
+  __int128 v17; // [rsp+Fh] [rbp-59h] BYREF
+  __int64 v18; // [rsp+1Fh] [rbp-49h]
+  unsigned __int64 v19; // [rsp+28h] [rbp-40h]
+
+  v19 = __readfsqword(0x28u);
+  read_exact(0LL, &v15, 1LL, "ERROR: Failed to read &base_x!", 0xFFFFFFFFLL);
+  read_exact(0LL, &v16, 1LL, "ERROR: Failed to read &base_y!", 0xFFFFFFFFLL);
+  read_exact(0LL, &v13, 1LL, "ERROR: Failed to read &width!", 0xFFFFFFFFLL);
+  read_exact(0LL, &v14, 1LL, "ERROR: Failed to read &height!", 0xFFFFFFFFLL);
+  v1 = 4 * v14 * v13;
+  v2 = (unsigned __int8 *)malloc(4LL * v14 * v13);
+  if ( !v2 )
+  {
+    puts("ERROR: Failed to allocate memory for the image data!");
+    goto LABEL_7;
+  }
+  v3 = v2;
+  read_exact(0LL, v2, v1, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  v4 = 0LL;
+  while ( v14 * v13 > (int)v4 )
+  {
+    v5 = v3[4 * v4++ + 3];
+    if ( (unsigned __int8)(v5 - 32) > 0x5Eu )
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", v5);
+LABEL_7:
+      exit(-1);
+    }
+  }
+  for ( i = 0; v14 > i; ++i )
+  {
+    v7 = 0;
+    while ( v13 > v7 )
+    {
+      v8 = v7 + v15;
+      v9 = v7 + i * v13;
+      ++v7;
+      v10 = v8 % *(unsigned __int8 *)(a1 + 6) + *(unsigned __int8 *)(a1 + 6) * (i + v16);
+      __snprintf_chk(
+        &v17,
+        25LL,
+        1LL,
+        25LL,
+        "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
+        v3[4 * v9],
+        v3[4 * v9 + 1],
+        v3[4 * v9 + 2],
+        v3[4 * v9 + 3]);
+      v11 = *(_QWORD *)(a1 + 16) + 24LL * (v10 % *(_DWORD *)(a1 + 12));
+      *(_OWORD *)v11 = v17;
+      *(_QWORD *)(v11 + 16) = v18;
+    }
+  }
+  return __readfsqword(0x28u) ^ v19;
+}
+```
+
+#### `handle_3()`
+
+```c showLineNumbers
+unsigned __int64 __fastcall handle_3(__int64 a1)
+{
+  __int64 v2; // rax
+  void *v3; // rdi
+  int v4; // r12d
+  unsigned __int8 *v5; // rax
+  unsigned __int8 *v6; // rbx
+  __int64 v7; // rax
+  __int64 v8; // rcx
+  unsigned __int8 v10; // [rsp+5h] [rbp-23h] BYREF
+  unsigned __int8 v11; // [rsp+6h] [rbp-22h] BYREF
+  unsigned __int8 v12; // [rsp+7h] [rbp-21h] BYREF
+  unsigned __int64 v13; // [rsp+8h] [rbp-20h]
+
+  v13 = __readfsqword(0x28u);
+  read_exact(0LL, &v10, 1LL, "ERROR: Failed to read &sprite_id!", 0xFFFFFFFFLL);
+  read_exact(0LL, &v11, 1LL, "ERROR: Failed to read &width!", 0xFFFFFFFFLL);
+  read_exact(0LL, &v12, 1LL, "ERROR: Failed to read &height!", 0xFFFFFFFFLL);
+  v2 = a1 + 16LL * v10;
+  *(_BYTE *)(v2 + 25) = v11;
+  v3 = *(void **)(v2 + 32);
+  *(_BYTE *)(v2 + 24) = v12;
+  if ( v3 )
+    free(v3);
+  v4 = v12 * v11;
+  v5 = (unsigned __int8 *)malloc(v4);
+  v6 = v5;
+  if ( !v5 )
+  {
+    puts("ERROR: Failed to allocate memory for the image data!");
+    goto LABEL_9;
+  }
+  read_exact(0LL, v5, (unsigned int)v4, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  v7 = 0LL;
+  while ( v12 * v11 > (int)v7 )
+  {
+    v8 = v6[v7++];
+    if ( (unsigned __int8)(v8 - 32) > 0x5Eu )
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", v8);
+LABEL_9:
+      exit(-1);
+    }
+  }
+  *(_QWORD *)(16LL * v10 + a1 + 32) = v6;
+  return __readfsqword(0x28u) ^ v13;
+}
+```
+
+#### `handle_4()`
+
+```c showLineNumbers
+// positive sp value has been detected, the output may be wrong!
+unsigned __int64 __fastcall handle_4(__int64 a1)
+{
+  _DWORD *v2; // rdi
+  __int64 v3; // rcx
+  __int64 v4; // rdx
+  char v5; // r10
+  char v6; // r11
+  char v7; // bp
+  __int64 v8; // rdx
+  int v9; // r12d
+  int v10; // r8d
+  int v11; // edi
+  __int64 v12; // rax
+  __int64 v13; // r9
+  int v14; // r14d
+  int v15; // r15d
+  int i; // r13d
+  int v17; // ebp
+  int v18; // ecx
+  int v19; // r12d
+  int v20; // eax
+  __int64 v21; // rdx
+  __int64 v22; // rdx
+  _BYTE v24[6]; // [rsp-2Fh] [rbp-4005Fh] BYREF
+  _BYTE v25[41]; // [rsp-29h] [rbp-40059h] BYREF
+  char v26; // [rsp+0h] [rbp-40030h] BYREF
+  __int64 v27; // [rsp+1000h] [rbp-3F030h] BYREF
+  __int128 v28; // [rsp+3FFD7h] [rbp-59h] BYREF
+  __int64 v29; // [rsp+3FFE7h] [rbp-49h]
+  unsigned __int64 v30; // [rsp+3FFF0h] [rbp-40h]
+
+  while ( &v26 != (char *)(&v27 - 0x8000) )
+    ;
+  v30 = __readfsqword(0x28u);
+  read_exact(0LL, v24, 6LL, "ERROR: Failed to read &sprite_render_record!", 0xFFFFFFFFLL);
+  v2 = v25;
+  v3 = 0x10000LL;
+  v4 = v24[0];
+  v5 = v24[1];
+  while ( v3 )
+  {
+    *v2++ = 0;
+    --v3;
+  }
+  v6 = v24[2];
+  v7 = v24[3];
+  v8 = a1 + 16 * v4;
+  v9 = *(unsigned __int8 *)(v8 + 24);
+  while ( v9 > (int)v3 )
+  {
+    v10 = *(unsigned __int8 *)(v8 + 25);
+    v11 = 0;
+    v12 = (unsigned int)(v3 * v10);
+    while ( v10 > v11 )
+    {
+      v13 = *(_QWORD *)(v8 + 32);
+      v25[4 * v12] = v5;
+      v25[4 * v12 + 1] = v6;
+      v25[4 * v12 + 2] = v7;
+      if ( !v13 )
+      {
+        fputs("ERROR: attempted to render uninitialized sprite!\n", stderr);
+        exit(-1);
+      }
+      ++v11;
+      v25[4 * v12 + 3] = *(_BYTE *)(v13 + v12);
+      ++v12;
+    }
+    LODWORD(v3) = v3 + 1;
+  }
+  v14 = v24[5];
+  v15 = v24[4];
+  for ( i = 0; *(unsigned __int8 *)(16LL * v24[0] + a1 + 24) > i; ++i )
+  {
+    v17 = 0;
+    while ( 1 )
+    {
+      v18 = *(unsigned __int8 *)(16LL * v24[0] + a1 + 25);
+      if ( v18 <= v17 )
+        break;
+      v19 = *(unsigned __int8 *)(a1 + 6);
+      __snprintf_chk(
+        &v28,
+        25LL,
+        1LL,
+        25LL,
+        "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
+        (unsigned __int8)v25[4 * v17 + 4 * i * v18],
+        (unsigned __int8)v25[4 * v17 + 1 + 4 * i * v18],
+        (unsigned __int8)v25[4 * v17 + 2 + 4 * i * v18],
+        (unsigned __int8)v25[4 * v17 + 3 + 4 * i * v18]);
+      v20 = v17 + v15;
+      ++v17;
+      v21 = (unsigned int)(v20 % v19);
+      LODWORD(v21) = (unsigned int)(v21 + v14 * v19) % *(_DWORD *)(a1 + 12);
+      v22 = *(_QWORD *)(a1 + 16) + 24 * v21;
+      *(_OWORD *)v22 = v28;
+      *(_QWORD *)(v22 + 16) = v29;
+    }
+    ++v14;
+  }
+  return __readfsqword(0x28u) ^ v30;
+}
+```
+
+### Exploit
+
+```py title="~/script.py"
+from pwn import *
+import struct
+import re
+
+# Desired ANSII sequence
+binary = context.binary = ELF('/challenge/cimg')
+desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
+print(desired_ansii_sequence)
+```
+
+```
+hacker@reverse-engineering~storage-and-retrieval:~$ python ~/script.py
+[*] '/challenge/cimg'
+    Arch:       amd64-64-little
+    RELRO:      Full RELRO
+    Stack:      Canary found
+    NX:         NX enabled
+    PIE:        No PIE (0x400000)
+    FORTIFY:    Enabled
+    SHSTK:      Enabled
+    IBT:        Enabled
+    Stripped:   No
+.--------------------------------------------------------------------------.|                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                              ___   __  __    ____                        ||                        ___  |_ _| |  \/  |  / ___|                       ||                       / __|  | |  | |\/| | | |  _                        ||                      | (__   | |  | |  | | | |_| |                       ||                       \___| |___| |_|  |_|  \____|                       ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          |'--------------------------------------------------------------------------'
+```
+
 ```py
 In [1]: print(len(".--------------------------------------------------------------------------."))
 76
 ```
 
-### Exploit
+Width is 76.
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
@@ -5441,4 +5887,705 @@ payload = header + b"".join(directives)
 print(f"Final Payload Size: {len(payload)} bytes")
 with open("/home/hacker/solution.cimg", "wb") as f:
     f.write(payload)
+```
+
+```
+hacker@reverse-engineering~storage-and-retrieval:~$ python ~/script.py
+[*] '/challenge/cimg'
+    Arch:       amd64-64-little
+    RELRO:      Full RELRO
+    Stack:      Canary found
+    NX:         NX enabled
+    PIE:        No PIE (0x400000)
+    FORTIFY:    Enabled
+    SHSTK:      Enabled
+    IBT:        Enabled
+    Stripped:   No
+Final Payload Size: 396 bytes
+hacker@reverse-engineering~storage-and-retrieval:~$ /challenge/cimg ~/solution.cimg 
+.--------------------------------------------------------------------------.
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                              ___   __  __    ____                        |
+|                        ___  |_ _| |  \/  |  / ___|                       |
+|                       / __|  | |  | |\/| | | |  _                        |
+|                      | (__   | |  | |  | | | |_| |                       |
+|                       \___| |___| |_|  |_|  \____|                       |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+'--------------------------------------------------------------------------'
+```
+
+#### green all letters
+
+```py
+from pwn import *
+import struct
+import re
+
+# --- 1. DATA EXTRACTION & VERIFICATION ---
+binary = ELF('/challenge/cimg')
+# Read a large enough chunk to cover the whole desired_output buffer
+raw_data = binary.read(binary.sym.desired_output, 45000)
+desired_ansii_sequence = raw_data.split(b'\0')[0].decode("utf-8")
+
+# Pattern: \x1b[38;2;R;G;BmChar
+pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
+matches = re.findall(pattern, desired_ansii_sequence)
+
+print(f"[*] Extracted {len(matches)} pixels from binary.")
+
+if len(matches) == 0:
+    print("[!] ERROR: No ANSI sequences found. Check the regex or binary path.")
+    exit()
+
+width_val = 76
+height_val = 24 
+
+def get_pixel(x, y):
+    idx = y * width_val + x
+    if idx < len(matches):
+        r, g, b, char = matches[idx]
+        return int(r), int(g), int(b), char
+    return 255, 255, 255, " "
+
+# --- 2. BUILD DIRECTIVES ---
+directives = []
+
+def add_sprite(sid, w, h, data):
+    # Directive 3: [Code: 2 bytes][ID: 1][W: 1][H: 1][Data: W*H bytes]
+    directives.append(struct.pack("<HBBB", 3, sid, w, h) + data.encode())
+
+def render_sprite(sid, r, g, b, x, y):
+    # Directive 4: [Code: 2 bytes][ID: 1][R: 1][G: 1][B: 1][X: 1][Y: 1]
+    directives.append(struct.pack("<HBBBBBB", 4, sid, r, g, b, x, y))
+
+# Define Sprites
+add_sprite(0, 37, 1, "-" * 37)  # Bar
+add_sprite(1, 1, 22, "|" * 22)  # Side
+add_sprite(2, 1, 1, ".")        # Top Corner
+add_sprite(3, 1, 1, "'")        # Bottom Corner
+
+# The Logo
+lx, ly, lw, lh = 22, 8, 35, 6 
+logo_chars = "".join([get_pixel(lx+dx, ly+dy)[3] for dy in range(lh) for dx in range(lw)])
+add_sprite(4, lw, lh, logo_chars)
+
+# Render Borders (White)
+render_sprite(2, 255, 255, 255, 0, 0)
+render_sprite(0, 255, 255, 255, 1, 0)
+render_sprite(0, 255, 255, 255, 38, 0)
+render_sprite(2, 255, 255, 255, 75, 0)
+render_sprite(1, 255, 255, 255, 0, 1)
+render_sprite(1, 255, 255, 255, 75, 1)
+render_sprite(3, 255, 255, 255, 0, 23)
+render_sprite(0, 255, 255, 255, 1, 23)
+render_sprite(0, 255, 255, 255, 38, 23)
+render_sprite(3, 255, 255, 255, 75, 23)
+
+# Render Logo with sampled color
+lr, lg, lb, _ = get_pixel(30, 10) # Sample a middle pixel of the logo
+print(f"[*] Logo Color Sampled: RGB({lr}, {lg}, {lb})")
+render_sprite(4, lr, lg, lb, lx, ly)
+
+# --- 3. FINAL FILE ASSEMBLY ---
+# Magic: 0x474D4963 ("cIMG")
+# Header is 12 bytes total: [Magic: 4][Ver: 2][Width: 1][Height: 1][Directives: 4]
+header = struct.pack("<IHBBI", 0x474D4963, 3, width_val, height_val, len(directives))
+
+payload = header + b"".join(directives)
+
+print(f"[*] Final Payload Size: {len(payload)} bytes")
+if len(payload) > 400:
+    print(f"[!] WARNING: Payload too large ({len(payload)}/400)")
+
+with open("solution.cimg", "wb") as f:
+    f.write(payload)
+print("[+] solution.cimg generated.")
+```
+
+### 700 byte working
+
+```py
+from pwn import *
+import struct
+import re
+from collections import deque
+
+# ------------------------------------------------------------
+# 1. EXTRACT DESIRED ANSI OUTPUT
+# ------------------------------------------------------------
+binary = ELF('/challenge/cimg')
+
+raw = binary.read(binary.sym.desired_output, 45000)
+ansi = raw.split(b'\0')[0].decode()
+
+pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
+pixels = re.findall(pattern, ansi)
+
+WIDTH  = 76
+HEIGHT = 24
+
+assert len(pixels) == WIDTH * HEIGHT
+print(f"[*] Extracted {len(pixels)} pixels from binary.")
+
+def get_pixel(x, y):
+    r, g, b, ch = pixels[y * WIDTH + x]
+    return int(r), int(g), int(b), ch
+
+# ------------------------------------------------------------
+# 2. DIRECTIVE HELPERS
+# ------------------------------------------------------------
+directives = []
+
+def add_sprite(sid, w, h, data):
+    directives.append(struct.pack("<HBBB", 3, sid, w, h) + data.encode())
+
+def render_sprite(sid, r, g, b, x, y):
+    directives.append(struct.pack("<HBBBBBB", 4, sid, r, g, b, x, y))
+
+# ------------------------------------------------------------
+# 3. BORDERS
+# ------------------------------------------------------------
+add_sprite(0, 37, 1, "-" * 37)
+add_sprite(1, 1, 22, "|" * 22)
+add_sprite(2, 1, 1, ".")
+add_sprite(3, 1, 1, "'")
+
+render_sprite(2, 255, 255, 255, 0, 0)
+render_sprite(0, 255, 255, 255, 1, 0)
+render_sprite(0, 255, 255, 255, 38, 0)
+render_sprite(2, 255, 255, 255, 75, 0)
+
+render_sprite(1, 255, 255, 255, 0, 1)
+render_sprite(1, 255, 255, 255, 75, 1)
+
+render_sprite(3, 255, 255, 255, 0, 23)
+render_sprite(0, 255, 255, 255, 1, 23)
+render_sprite(0, 255, 255, 255, 38, 23)
+render_sprite(3, 255, 255, 255, 75, 23)
+
+# ------------------------------------------------------------
+# 4. LOGO — CONNECTED COMPONENT SPRITES (FINAL FIX)
+# ------------------------------------------------------------
+lx, ly, lw, lh = 22, 8, 35, 6
+
+# Group pixels by (char, color)
+groups = {}
+for dy in range(lh):
+    for dx in range(lw):
+        r, g, b, ch = get_pixel(lx + dx, ly + dy)
+        if ch == " ":
+            continue
+        groups.setdefault((ch, r, g, b), set()).add((dx, dy))
+
+sid = 4
+
+# Connected-component extraction
+for (ch, r, g, b), pts in groups.items():
+    pts = set(pts)
+
+    while pts:
+        # BFS to extract one component
+        start = pts.pop()
+        q = deque([start])
+        comp = {start}
+
+        while q:
+            x, y = q.popleft()
+            for nx, ny in [(x+1,y), (x-1,y), (x,y+1), (x,y-1)]:
+                if (nx, ny) in pts:
+                    pts.remove((nx, ny))
+                    comp.add((nx, ny))
+                    q.append((nx, ny))
+
+        xs = [p[0] for p in comp]
+        ys = [p[1] for p in comp]
+
+        minx, maxx = min(xs), max(xs)
+        miny, maxy = min(ys), max(ys)
+
+        w = maxx - minx + 1
+        h = maxy - miny + 1
+
+        grid = [" "] * (w * h)
+        for x, y in comp:
+            grid[(y - miny) * w + (x - minx)] = ch
+
+        add_sprite(sid, w, h, "".join(grid))
+        render_sprite(sid, r, g, b, lx + minx, ly + miny)
+        sid += 1
+
+# ------------------------------------------------------------
+# 5. FILE ASSEMBLY
+# ------------------------------------------------------------
+header = struct.pack(
+    "<I H B B H H",
+    0x474D4963,
+    3,
+    WIDTH,
+    HEIGHT,
+    len(directives),
+    0
+)
+
+payload = header + b"".join(directives)
+
+print(f"[*] Payload file size: {len(payload)} bytes")
+
+with open("solution.cimg", "wb") as f:
+    f.write(payload)
+
+print("[+] solution.cimg generated.")
+```
+
+### 600 byte:
+
+```py
+from pwn import *
+import struct
+import re
+from collections import deque, defaultdict
+
+# ------------------------------------------------------------
+# 1. EXTRACT DESIRED ANSI OUTPUT
+# ------------------------------------------------------------
+binary = ELF('/challenge/cimg')
+
+raw = binary.read(binary.sym.desired_output, 45000)
+ansi = raw.split(b'\0')[0].decode()
+
+pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
+pixels = re.findall(pattern, ansi)
+
+W, H = 76, 24
+assert len(pixels) == W * H
+
+def px(x, y):
+    r, g, b, ch = pixels[y * W + x]
+    return int(r), int(g), int(b), ch
+
+# ------------------------------------------------------------
+# 2. DIRECTIVE HELPERS
+# ------------------------------------------------------------
+directives = []
+
+def add_sprite(sid, w, h, data):
+    directives.append(struct.pack("<HBBB", 3, sid, w, h) + data.encode())
+
+def render(sid, r, g, b, x, y):
+    directives.append(struct.pack("<HBBBBBB", 4, sid, r, g, b, x, y))
+
+WHITE = (255, 255, 255)
+
+sid = 0
+
+# ------------------------------------------------------------
+# 3. BORDERS (same as your lean ~700-byte version)
+# ------------------------------------------------------------
+add_sprite(sid, 37, 1, "-" * 37)
+render(sid, *WHITE, 1, 0)
+render(sid, *WHITE, 38, 0)
+render(sid, *WHITE, 1, 23)
+render(sid, *WHITE, 38, 23)
+sid += 1
+
+add_sprite(sid, 1, 22, "|" * 22)
+render(sid, *WHITE, 0, 1)
+render(sid, *WHITE, 75, 1)
+sid += 1
+
+add_sprite(sid, 1, 1, ".")
+render(sid, *WHITE, 0, 0)
+render(sid, *WHITE, 75, 0)
+sid += 1
+
+add_sprite(sid, 1, 1, "'")
+render(sid, *WHITE, 0, 23)
+render(sid, *WHITE, 75, 23)
+sid += 1
+
+# ------------------------------------------------------------
+# 4. LOGO — CONNECTED COMPONENTS WITH SHAPE REUSE
+# ------------------------------------------------------------
+lx, ly, lw, lh = 22, 8, 35, 6
+
+# Step 1: collect pixels by (char, color)
+groups = defaultdict(set)
+for dy in range(lh):
+    for dx in range(lw):
+        r, g, b, ch = px(lx + dx, ly + dy)
+        if ch != " ":
+            groups[(ch, r, g, b)].add((dx, dy))
+
+# Step 2: extract connected components
+components = []
+for key, pts in groups.items():
+    pts = set(pts)
+    while pts:
+        start = pts.pop()
+        q = deque([start])
+        comp = {start}
+
+        while q:
+            x, y = q.popleft()
+            for nx, ny in ((x+1,y),(x-1,y),(x,y+1),(x,y-1)):
+                if (nx, ny) in pts:
+                    pts.remove((nx, ny))
+                    comp.add((nx, ny))
+                    q.append((nx, ny))
+
+        components.append((key, comp))
+
+# Step 3: canonicalize shapes and reuse sprites
+sprite_cache = {}  # (char, color, shape) -> sid
+
+for (ch, r, g, b), comp in components:
+    xs = [p[0] for p in comp]
+    ys = [p[1] for p in comp]
+    minx, miny = min(xs), min(ys)
+
+    # Normalize shape to origin
+    norm = sorted((x - minx, y - miny) for x, y in comp)
+    shape_key = (ch, r, g, b, tuple(norm))
+
+    if shape_key not in sprite_cache:
+        maxx = max(x for x, y in norm)
+        maxy = max(y for x, y in norm)
+        w, h = maxx + 1, maxy + 1
+
+        grid = [" "] * (w * h)
+        for x, y in norm:
+            grid[y * w + x] = ch
+
+        add_sprite(sid, w, h, "".join(grid))
+        sprite_cache[shape_key] = sid
+        sid += 1
+
+    sprite_id = sprite_cache[shape_key]
+    render(sprite_id, r, g, b, lx + minx, ly + miny)
+
+# ------------------------------------------------------------
+# 5. FILE ASSEMBLY
+# ------------------------------------------------------------
+header = struct.pack(
+    "<I H B B H H",
+    0x474D4963,
+    3,
+    W,
+    H,
+    len(directives),
+    0
+)
+
+payload = header + b"".join(directives)
+
+print("[*] payload size:", len(payload))
+
+with open("solution.cimg", "wb") as f:
+    f.write(payload)
+
+print("[+] solution.cimg generated")
+```
+
+#### 587 bytes
+
+```py
+from pwn import *
+import struct
+import re
+from collections import deque, defaultdict
+
+binary = ELF('/challenge/cimg')
+
+raw = binary.read(binary.sym.desired_output, 45000)
+ansi = raw.split(b'\0')[0].decode()
+
+pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
+pixels = re.findall(pattern, ansi)
+
+W, H = 76, 24
+assert len(pixels) == W * H
+
+def px(x, y):
+    r, g, b, ch = pixels[y * W + x]
+    return int(r), int(g), int(b), ch
+
+directives = []
+
+def add_sprite(sid, w, h, data):
+    directives.append(struct.pack("<HBBB", 3, sid, w, h) + data.encode())
+
+def render(sid, r, g, b, x, y):
+    directives.append(struct.pack("<HBBBBBB", 4, sid, r, g, b, x, y))
+
+WHITE = (255, 255, 255)
+sid = 0
+
+# ------------------------------------------------------------
+# BORDERS (unchanged)
+# ------------------------------------------------------------
+add_sprite(sid, 37, 1, "-" * 37)
+render(sid, *WHITE, 1, 0)
+render(sid, *WHITE, 38, 0)
+render(sid, *WHITE, 1, 23)
+render(sid, *WHITE, 38, 23)
+sid += 1
+
+add_sprite(sid, 1, 22, "|" * 22)
+render(sid, *WHITE, 0, 1)
+render(sid, *WHITE, 75, 1)
+sid += 1
+
+add_sprite(sid, 1, 1, ".")
+render(sid, *WHITE, 0, 0)
+render(sid, *WHITE, 75, 0)
+sid += 1
+
+add_sprite(sid, 1, 1, "'")
+render(sid, *WHITE, 0, 23)
+render(sid, *WHITE, 75, 23)
+sid += 1
+
+# ------------------------------------------------------------
+# LOGO — CONNECTED COMPONENTS + COLOR-INDEPENDENT SHAPE REUSE
+# ------------------------------------------------------------
+lx, ly, lw, lh = 22, 8, 35, 6
+
+groups = defaultdict(set)
+for dy in range(lh):
+    for dx in range(lw):
+        r, g, b, ch = px(lx + dx, ly + dy)
+        if ch != " ":
+            groups[(ch, r, g, b)].add((dx, dy))
+
+components = []
+for key, pts in groups.items():
+    pts = set(pts)
+    while pts:
+        start = pts.pop()
+        q = deque([start])
+        comp = {start}
+
+        while q:
+            x, y = q.popleft()
+            for nx, ny in ((x+1,y),(x-1,y),(x,y+1),(x,y-1)):
+                if (nx, ny) in pts:
+                    pts.remove((nx, ny))
+                    comp.add((nx, ny))
+                    q.append((nx, ny))
+
+        components.append((key, comp))
+
+sprite_cache = {}  # (char, shape) -> sid
+
+for (ch, r, g, b), comp in components:
+    xs = [p[0] for p in comp]
+    ys = [p[1] for p in comp]
+    minx, miny = min(xs), min(ys)
+
+    norm = sorted((x - minx, y - miny) for x, y in comp)
+    shape_key = (ch, tuple(norm))  # <-- COLOR REMOVED
+
+    if shape_key not in sprite_cache:
+        maxx = max(x for x, y in norm)
+        maxy = max(y for x, y in norm)
+        w, h = maxx + 1, maxy + 1
+
+        grid = [" "] * (w * h)
+        for x, y in norm:
+            grid[y * w + x] = ch
+
+        add_sprite(sid, w, h, "".join(grid))
+        sprite_cache[shape_key] = sid
+        sid += 1
+
+    render(sprite_cache[shape_key], r, g, b, lx + minx, ly + miny)
+
+# ------------------------------------------------------------
+# FILE
+# ------------------------------------------------------------
+header = struct.pack(
+    "<I H B B H H",
+    0x474D4963,
+    3,
+    W,
+    H,
+    len(directives),
+    0
+)
+
+payload = header + b"".join(directives)
+print("[*] payload size:", len(payload))
+
+with open("solution.cimg", "wb") as f:
+    f.write(payload)
+```
+
+#### working script:
+```py
+from pwn import *
+import struct
+import re
+
+# ------------------------------------------------------------
+# Extract desired_output
+# ------------------------------------------------------------
+binary = ELF('/challenge/cimg')
+raw = binary.read(binary.sym.desired_output, 45000)
+ansi = raw.split(b'\0')[0].decode()
+
+pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
+pixels = re.findall(pattern, ansi)
+
+W, H = 76, 24
+assert len(pixels) == W * H
+
+def px(x, y):
+    r, g, b, ch = pixels[y * W + x]
+    return int(r), int(g), int(b), ch
+
+directives = []
+
+def add_sprite(sid, w, h, data):
+    directives.append(struct.pack("<HBBB", 3, sid, w, h) + data.encode())
+
+def render(sid, r, g, b, x, y):
+    directives.append(struct.pack("<HBBBBBB", 4, sid, r, g, b, x, y))
+
+WHITE = px(0, 0)[:3]
+
+sid = 0
+
+# ------------------------------------------------------------
+# Borders (minimal, full)
+# ------------------------------------------------------------
+add_sprite(sid, 37, 1, "-" * 37)
+render(sid, *WHITE, 1, 0)
+render(sid, *WHITE, 38, 0)
+render(sid, *WHITE, 1, 23)
+render(sid, *WHITE, 38, 23)
+sid += 1
+
+add_sprite(sid, 1, 22, "|" * 22)
+render(sid, *WHITE, 0, 1)
+render(sid, *WHITE, 75, 1)
+sid += 1
+
+add_sprite(sid, 1, 1, ".")
+render(sid, *WHITE, 0, 0)
+render(sid, *WHITE, 75, 0)
+sid += 1
+
+add_sprite(sid, 1, 1, "'")
+render(sid, *WHITE, 0, 23)
+render(sid, *WHITE, 75, 23)
+sid += 1
+
+# ------------------------------------------------------------
+# Logo split by COLOR (minimal correct partition)
+# ------------------------------------------------------------
+lx, ly, lw, lh = 22, 9, 35, 5
+
+by_color = {}
+for dy in range(lh):
+    for dx in range(lw):
+        r, g, b, ch = px(lx + dx, ly + dy)
+        if ch != " ":
+            by_color.setdefault((r, g, b), []).append((dx, dy, ch))
+
+for (r, g, b), pts in by_color.items():
+    xs = [p[0] for p in pts]
+    ys = [p[1] for p in pts]
+
+    minx, maxx = min(xs), max(xs)
+    miny, maxy = min(ys), max(ys)
+
+    w = maxx - minx + 1
+    h = maxy - miny + 1
+
+    grid = [" "] * (w * h)
+    for x, y, ch in pts:
+        grid[(y - miny) * w + (x - minx)] = ch
+
+    add_sprite(sid, w, h, "".join(grid))
+    render(sid, r, g, b, lx + minx, ly + miny)
+    sid += 1
+
+# ------------------------------------------------------------
+# File assembly
+# ------------------------------------------------------------
+header = struct.pack(
+    "<I H B B H H",
+    0x474D4963,
+    3,
+    W,
+    H,
+    len(directives),
+    0
+)
+
+payload = header + b"".join(directives)
+print("Final Payload Size:", len(payload))
+
+with open("solution.cimg", "wb") as f:
+    f.write(payload)
+
+```
+
+```
+hacker@reverse-engineering~storage-and-retrieval:~$ python ~/script.py
+[*] '/challenge/cimg'
+    Arch:       amd64-64-little
+    RELRO:      Full RELRO
+    Stack:      Canary found
+    NX:         NX enabled
+    PIE:        No PIE (0x400000)
+    FORTIFY:    Enabled
+    SHSTK:      Enabled
+    IBT:        Enabled
+    Stripped:   No
+Final Payload Size: 349
+```
+
+```
+hacker@reverse-engineering~storage-and-retrieval:~$ /challenge/cimg ~/solution.cimg 
+.--------------------------------------------------------------------------.
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                              ___   __  __    ____                        |
+|                        ___  |_ _| |  \/  |  / ___|                       |
+|                       / __|  | |  | |\/| | | |  _                        |
+|                      | (__   | |  | |  | | | |_| |                       |
+|                       \___| |___| |_|  |_|  \____|                       |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+|                                                                          |
+'--------------------------------------------------------------------------'
+pwn.college{gP6BoUhTPNZk0ED6EhlqT9CLBMs.QXxEzMwEDL4ITM0EzW}
 ```
