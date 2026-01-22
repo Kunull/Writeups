@@ -5775,7 +5775,7 @@ unsigned __int64 __fastcall handle_4(__int64 a1)
 
 ### Exploit
 
-```py title="~/script.py"
+```py title="~/script.py" showLineNumbers
 from pwn import *
 import struct
 import re
@@ -5920,7 +5920,6 @@ with open("solution.cimg", "wb") as f:
     f.write(payload)
 ```
 
-<<<<<<< HEAD
 ```
 hacker@reverse-engineering~storage-and-retrieval:~$ python ~/script.py
 [*] '/challenge/cimg'
