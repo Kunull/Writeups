@@ -6960,7 +6960,7 @@ print(desired_ansii_sequence)
 ```
 
 ```
-hacker@reverse-engineering~storage-and-retrieval:~$ python ~/script.py
+hacker@reverse-engineering~advanced-sprites:~$ python ~/script.py
 [*] '/challenge/cimg'
     Arch:       amd64-64-little
     RELRO:      Full RELRO
