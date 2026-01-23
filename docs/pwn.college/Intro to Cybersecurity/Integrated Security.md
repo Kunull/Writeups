@@ -228,7 +228,7 @@ We can see that the challenge defines a struct called `plaintext`, within which 
 # ---- snip ----
 ```
 
-It allocates 4096 bytes for the user provided ciphertext, and uses `ciphertext_len` gives the length of the user provided input.
+It allocates 4096 bytes for the user provided ciphertext, and uses `ciphertext_len` to give the length of the user provided input.
 It then ensures that `ciphertext_len >= 16` i.e. there is at least one block so that decryption can be performed.
 
 ```c showLineNumbers
@@ -639,7 +639,7 @@ The `plaintext_message` buffer is located at `rbp-0x70`, which means it is at an
 # ---- snip ----
 ```
 
-It allocates 4096 bytes for the user provided ciphertext, and uses `ciphertext_len` gives the length of the user provided input.
+It allocates 4096 bytes for the user provided ciphertext, and uses `ciphertext_len` to give the length of the user provided input.
 It then ensures that `ciphertext_len >= 16` i.e. there is at least one block so that decryption can be performed.
 
 ```c showLineNumbers

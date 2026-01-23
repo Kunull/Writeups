@@ -2497,6 +2497,8 @@ pwn.college{UtFfALQAM2u-0NsYhnUJCQXPUZc.QX2AzMwEDL4ITM0EzW}
 
 ![image](https://github.com/user-attachments/assets/d20bdde0-c41b-4e8a-bb09-df1cb2363a9d?raw=1)
 
+&nbsp;
+
 ## Internal State Mini (C)
 
 ### Source code
@@ -7720,3 +7722,624 @@ LABEL_7:
 }
 ```
 
+### Exploit
+
+```py
+from pwn import *
+import struct
+
+MAGIC   = 0x474D4963  # "cIMG"
+VERSION = 4
+FB_W, FB_H = 80, 80   # tall framebuffer so nothing clips
+
+SPRITE_ID = 0
+FLAG_PATH = b"/flag\x00"
+
+# Read enough bytes to cover full flag
+SPRITE_W = 1          # ONE column
+SPRITE_H = 59         # read 48 bytes vertically
+
+def directive_5(sprite_id, w, h, path):
+    # [sprite_id][height][width]
+    rec  = bytes([sprite_id, h, w])
+    rec += path.ljust(255, b"\x00")
+    return struct.pack("<H", 5) + rec
+
+def directive_4(sprite_id, x, y):
+    return struct.pack(
+        "<HBBBBBBBBB",
+        4,
+        sprite_id,
+        255, 255, 255,
+        x, y,
+        1, 1,          # NO repetition
+        0
+    )
+
+directives = [
+    directive_5(SPRITE_ID, SPRITE_W, SPRITE_H, FLAG_PATH),
+    directive_4(SPRITE_ID, 0, 0),
+]
+
+header = struct.pack(
+    "<I H B B I",
+    MAGIC,
+    VERSION,
+    FB_W,
+    FB_H,
+    len(directives)
+)
+
+payload = header + b"".join(directives)
+
+with open("solution.cimg", "wb") as f:
+    f.write(payload)
+
+print("[+] Run: /challenge/cimg solution.cimg")
+```
+
+```
+hacker@reverse-engineering~accessing-resources:~$ /challenge/cimg ~/solution.cimg
+pwn.college{cl4-LleAt4eMVhiMpLcaDyn4RBc.QX0EzMwEDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Unsafe Animations
+
+### Binary Analysis
+
+```c title="/challenge/cimg :: main()" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  __int64 v3; // rcx
+  int *v5; // rdi
+  bool v6; // of
+  int v7; // r8d
+  const char *v8; // r12
+  int v9; // eax
+  const char *v10; // rdi
+  unsigned __int16 v13; // [rsp+Eh] [rbp-103Ah] BYREF
+  int v14; // [rsp+10h] [rbp-1038h] BYREF
+  __int16 v15; // [rsp+14h] [rbp-1034h]
+  int v16; // [rsp+18h] [rbp-1030h]
+  unsigned __int64 v17; // [rsp+1028h] [rbp-20h]
+
+  v3 = 1030LL;
+  v17 = __readfsqword(0x28u);
+  v5 = &v14;
+  v6 = __OFSUB__(argc, 1);
+  v7 = argc - 1;
+  while ( v3 )
+  {
+    *v5++ = 0;
+    --v3;
+  }
+  if ( !((v7 < 0) ^ v6 | (v7 == 0)) )
+  {
+    v8 = argv[1];
+    if ( strcmp(&v8[strlen(v8) - 5], ".cimg") )
+    {
+      __printf_chk(1LL, "ERROR: Invalid file extension!");
+      goto LABEL_11;
+    }
+    v9 = open(v8, 0);
+    dup2(v9, 0);
+  }
+  read_exact(0LL, &v14, 12LL, "ERROR: Failed to read header!", 0xFFFFFFFFLL);
+  if ( v14 != 1196247395 )
+  {
+    v10 = "ERROR: Invalid magic number!";
+LABEL_10:
+    puts(v10);
+LABEL_11:
+    exit(-1);
+  }
+  v10 = "ERROR: Unsupported version!";
+  if ( v15 != 4 )
+    goto LABEL_10;
+  initialize_framebuffer(&v14);
+  while ( 2 )
+  {
+    if ( v16-- )
+    {
+      read_exact(0LL, &v13, 2LL, "ERROR: Failed to read &directive_code!", 0xFFFFFFFFLL);
+      switch ( v13 )
+      {
+        case 1u:
+          handle_1(&v14);
+          continue;
+        case 2u:
+          handle_2(&v14);
+          continue;
+        case 3u:
+          handle_3(&v14);
+          continue;
+        case 4u:
+          handle_4(&v14);
+          continue;
+        case 5u:
+          handle_5(&v14);
+          continue;
+        case 6u:
+          handle_6(&v14);
+          continue;
+        case 7u:
+          handle_7(&v14);
+          continue;
+        default:
+          __fprintf_chk(stderr, 1LL, "ERROR: invalid directive_code %ux\n", v13);
+          goto LABEL_11;
+      }
+    }
+    break;
+  }
+  display(&v14, 0LL);
+  return 0;
+}
+```
+
+```c title="/challenge/cimg :: handle_1()" showLineNumbers
+unsigned __int64 __fastcall handle_1(__int64 a1)
+{
+  int v1; // ebp
+  int v2; // edx
+  size_t v3; // rbp
+  unsigned __int8 *v4; // rax
+  unsigned __int8 *v5; // r12
+  __int64 v6; // rax
+  __int64 v7; // rcx
+  int i; // r13d
+  int v9; // ebp
+  int v10; // r15d
+  unsigned __int8 *v11; // rax
+  __int64 v12; // kr00_8
+  __int64 v13; // rdx
+  __int128 v15; // [rsp+1Fh] [rbp-59h] BYREF
+  __int64 v16; // [rsp+2Fh] [rbp-49h]
+  unsigned __int64 v17; // [rsp+38h] [rbp-40h]
+
+  v1 = *(unsigned __int8 *)(a1 + 6);
+  v2 = *(unsigned __int8 *)(a1 + 7);
+  v17 = __readfsqword(0x28u);
+  v3 = 4LL * v2 * v1;
+  v4 = (unsigned __int8 *)malloc(v3);
+  if ( !v4 )
+  {
+    puts("ERROR: Failed to allocate memory for the image data!");
+    goto LABEL_7;
+  }
+  v5 = v4;
+  read_exact(0LL, v4, (unsigned int)v3, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  v6 = 0LL;
+  while ( *(unsigned __int8 *)(a1 + 7) * *(unsigned __int8 *)(a1 + 6) > (int)v6 )
+  {
+    v7 = v5[4 * v6++ + 3];
+    if ( (unsigned __int8)(v7 - 32) > 0x5Eu )
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", v7);
+LABEL_7:
+      exit(-1);
+    }
+  }
+  for ( i = 0; *(unsigned __int8 *)(a1 + 7) > i; ++i )
+  {
+    v9 = 0;
+    while ( 1 )
+    {
+      v10 = *(unsigned __int8 *)(a1 + 6);
+      if ( v10 <= v9 )
+        break;
+      v11 = &v5[4 * i * v10 + 4 * v9];
+      __snprintf_chk(&v15, 25LL, 1LL, 25LL, "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m", *v11, v11[1], v11[2], v11[3]);
+      v12 = v9++;
+      v13 = *(_QWORD *)(a1 + 16) + 24LL * (((unsigned int)(v12 % v10) + i * v10) % *(_DWORD *)(a1 + 12));
+      *(_OWORD *)v13 = v15;
+      *(_QWORD *)(v13 + 16) = v16;
+    }
+  }
+  return __readfsqword(0x28u) ^ v17;
+}
+```
+
+```c title="/challenge/cimg :: handle_2()" showLineNumbers
+unsigned __int64 __fastcall handle_2(__int64 a1)
+{
+  unsigned int v1; // ebx
+  unsigned __int8 *v2; // rax
+  unsigned __int8 *v3; // rbp
+  __int64 v4; // rax
+  __int64 v5; // rcx
+  int i; // r13d
+  int v7; // r14d
+  int v8; // eax
+  int v9; // ecx
+  unsigned int v10; // ebx
+  __int64 v11; // rdx
+  unsigned __int8 v13; // [rsp+Bh] [rbp-5Dh] BYREF
+  unsigned __int8 v14; // [rsp+Ch] [rbp-5Ch] BYREF
+  unsigned __int8 v15; // [rsp+Dh] [rbp-5Bh] BYREF
+  unsigned __int8 v16; // [rsp+Eh] [rbp-5Ah] BYREF
+  __int128 v17; // [rsp+Fh] [rbp-59h] BYREF
+  __int64 v18; // [rsp+1Fh] [rbp-49h]
+  unsigned __int64 v19; // [rsp+28h] [rbp-40h]
+
+  v19 = __readfsqword(0x28u);
+  read_exact(0LL, &v15, 1LL, "ERROR: Failed to read &base_x!", 0xFFFFFFFFLL);
+  read_exact(0LL, &v16, 1LL, "ERROR: Failed to read &base_y!", 0xFFFFFFFFLL);
+  read_exact(0LL, &v13, 1LL, "ERROR: Failed to read &width!", 0xFFFFFFFFLL);
+  read_exact(0LL, &v14, 1LL, "ERROR: Failed to read &height!", 0xFFFFFFFFLL);
+  v1 = 4 * v14 * v13;
+  v2 = (unsigned __int8 *)malloc(4LL * v14 * v13);
+  if ( !v2 )
+  {
+    puts("ERROR: Failed to allocate memory for the image data!");
+    goto LABEL_7;
+  }
+  v3 = v2;
+  read_exact(0LL, v2, v1, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  v4 = 0LL;
+  while ( v14 * v13 > (int)v4 )
+  {
+    v5 = v3[4 * v4++ + 3];
+    if ( (unsigned __int8)(v5 - 32) > 0x5Eu )
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", v5);
+LABEL_7:
+      exit(-1);
+    }
+  }
+  for ( i = 0; v14 > i; ++i )
+  {
+    v7 = 0;
+    while ( v13 > v7 )
+    {
+      v8 = v7 + v15;
+      v9 = v7 + i * v13;
+      ++v7;
+      v10 = v8 % *(unsigned __int8 *)(a1 + 6) + *(unsigned __int8 *)(a1 + 6) * (i + v16);
+      __snprintf_chk(
+        &v17,
+        25LL,
+        1LL,
+        25LL,
+        "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
+        v3[4 * v9],
+        v3[4 * v9 + 1],
+        v3[4 * v9 + 2],
+        v3[4 * v9 + 3]);
+      v11 = *(_QWORD *)(a1 + 16) + 24LL * (v10 % *(_DWORD *)(a1 + 12));
+      *(_OWORD *)v11 = v17;
+      *(_QWORD *)(v11 + 16) = v18;
+    }
+  }
+  return __readfsqword(0x28u) ^ v19;
+}
+```
+
+```c title="/challenge/cimg :: handle_3()" showLineNumbers
+unsigned __int64 __fastcall handle_3(__int64 a1)
+{
+  __int64 v2; // rax
+  void *v3; // rdi
+  int v4; // r12d
+  unsigned __int8 *v5; // rax
+  unsigned __int8 *v6; // rbx
+  __int64 v7; // rax
+  __int64 v8; // rcx
+  unsigned __int8 v10; // [rsp+5h] [rbp-23h] BYREF
+  unsigned __int8 v11; // [rsp+6h] [rbp-22h] BYREF
+  unsigned __int8 v12; // [rsp+7h] [rbp-21h] BYREF
+  unsigned __int64 v13; // [rsp+8h] [rbp-20h]
+
+  v13 = __readfsqword(0x28u);
+  read_exact(0LL, &v10, 1LL, "ERROR: Failed to read &sprite_id!", 0xFFFFFFFFLL);
+  read_exact(0LL, &v11, 1LL, "ERROR: Failed to read &width!", 0xFFFFFFFFLL);
+  read_exact(0LL, &v12, 1LL, "ERROR: Failed to read &height!", 0xFFFFFFFFLL);
+  v2 = a1 + 16LL * v10;
+  *(_BYTE *)(v2 + 25) = v11;
+  v3 = *(void **)(v2 + 32);
+  *(_BYTE *)(v2 + 24) = v12;
+  if ( v3 )
+    free(v3);
+  v4 = v12 * v11;
+  v5 = (unsigned __int8 *)malloc(v4);
+  v6 = v5;
+  if ( !v5 )
+  {
+    puts("ERROR: Failed to allocate memory for the image data!");
+    goto LABEL_9;
+  }
+  read_exact(0LL, v5, (unsigned int)v4, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  v7 = 0LL;
+  while ( v12 * v11 > (int)v7 )
+  {
+    v8 = v6[v7++];
+    if ( (unsigned __int8)(v8 - 32) > 0x5Eu )
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", v8);
+LABEL_9:
+      exit(-1);
+    }
+  }
+  *(_QWORD *)(16LL * v10 + a1 + 32) = v6;
+  return __readfsqword(0x28u) ^ v13;
+}
+```
+
+```c title="/challenge/cimg :: handle_4()" showLineNumbers
+// positive sp value has been detected, the output may be wrong!
+unsigned __int64 __fastcall handle_4(__int64 a1)
+{
+  _DWORD *v2; // rdi
+  __int64 v3; // rcx
+  __int64 v4; // rdx
+  char v5; // r10
+  char v6; // r11
+  char v7; // bp
+  __int64 v8; // rdx
+  int v9; // r12d
+  int v10; // r8d
+  int v11; // edi
+  __int64 v12; // rax
+  __int64 v13; // r9
+  int i; // r15d
+  int j; // r10d
+  int v16; // r11d
+  __int64 v17; // rdx
+  int v18; // r12d
+  int v19; // ebp
+  int k; // r13d
+  int v21; // eax
+  __int64 v22; // rax
+  __int64 v23; // rdx
+  int v24; // r14d
+  __int64 v25; // rdx
+  __int64 v26; // rdx
+  int v28; // [rsp-40h] [rbp-40070h]
+  int v29; // [rsp-3Ch] [rbp-4006Ch]
+  _BYTE v30[9]; // [rsp-32h] [rbp-40062h] BYREF
+  _BYTE v31[41]; // [rsp-29h] [rbp-40059h] BYREF
+  char v32; // [rsp+0h] [rbp-40030h] BYREF
+  __int64 v33; // [rsp+1000h] [rbp-3F030h] BYREF
+  __int128 v34; // [rsp+3FFD7h] [rbp-59h] BYREF
+  __int64 v35; // [rsp+3FFE7h] [rbp-49h]
+  unsigned __int64 v36; // [rsp+3FFF0h] [rbp-40h]
+
+  while ( &v32 != (char *)(&v33 - 0x8000) )
+    ;
+  v36 = __readfsqword(0x28u);
+  read_exact(0LL, v30, 9LL, "ERROR: Failed to read &sprite_render_record!", 0xFFFFFFFFLL);
+  v2 = v31;
+  v3 = 0x10000LL;
+  v4 = v30[0];
+  v5 = v30[1];
+  while ( v3 )
+  {
+    *v2++ = 0;
+    --v3;
+  }
+  v6 = v30[2];
+  v7 = v30[3];
+  v8 = a1 + 16 * v4;
+  v9 = *(unsigned __int8 *)(v8 + 24);
+  while ( v9 > (int)v3 )
+  {
+    v10 = *(unsigned __int8 *)(v8 + 25);
+    v11 = 0;
+    v12 = (unsigned int)(v3 * v10);
+    while ( v10 > v11 )
+    {
+      v13 = *(_QWORD *)(v8 + 32);
+      v31[4 * v12] = v5;
+      v31[4 * v12 + 1] = v6;
+      v31[4 * v12 + 2] = v7;
+      if ( !v13 )
+      {
+        fputs("ERROR: attempted to render uninitialized sprite!\n", stderr);
+        exit(-1);
+      }
+      ++v11;
+      v31[4 * v12 + 3] = *(_BYTE *)(v13 + v12);
+      ++v12;
+    }
+    LODWORD(v3) = v3 + 1;
+  }
+  for ( i = 0; v30[7] > i; ++i )
+  {
+    for ( j = 0; v30[6] > j; ++j )
+    {
+      v16 = 0;
+      v17 = a1 + 16LL * v30[0];
+      v18 = (unsigned __int8)(v30[4] + j * *(_BYTE *)(v17 + 25));
+      v19 = (unsigned __int8)(v30[5] + i * *(_BYTE *)(v17 + 24));
+      while ( *(unsigned __int8 *)(16LL * v30[0] + a1 + 24) > v16 )
+      {
+        for ( k = 0; ; ++k )
+        {
+          v21 = *(unsigned __int8 *)(16LL * v30[0] + a1 + 25);
+          if ( v21 <= k )
+            break;
+          v22 = k + v16 * v21;
+          v23 = (unsigned __int8)v31[4 * v22 + 3];
+          if ( (_BYTE)v23 != v30[8] )
+          {
+            v29 = v16;
+            v24 = *(unsigned __int8 *)(a1 + 6);
+            v28 = j;
+            __snprintf_chk(
+              &v34,
+              25LL,
+              1LL,
+              25LL,
+              "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
+              (unsigned __int8)v31[4 * v22],
+              (unsigned __int8)v31[4 * v22 + 1],
+              (unsigned __int8)v31[4 * v22 + 2],
+              v23);
+            v16 = v29;
+            j = v28;
+            v25 = (unsigned int)((k + v18) % v24);
+            LODWORD(v25) = (unsigned int)(v25 + v19 * v24) % *(_DWORD *)(a1 + 12);
+            v26 = *(_QWORD *)(a1 + 16) + 24 * v25;
+            *(_OWORD *)v26 = v34;
+            *(_QWORD *)(v26 + 16) = v35;
+          }
+        }
+        ++v16;
+        ++v19;
+      }
+    }
+  }
+  return __readfsqword(0x28u) ^ v36;
+}
+```
+
+```c title="/challenge/cimg :: handle_5()" showLineNumbers
+unsigned __int64 __fastcall handle_5(__int64 a1)
+{
+  __int16 v2; // dx
+  int v3; // eax
+  FILE *v4; // rsi
+  const char *v5; // rdi
+  unsigned int v6; // ebp
+  void *v7; // rdi
+  int v8; // r13d
+  const char *v9; // rax
+  const char *v10; // rbx
+  __int64 v11; // rax
+  __int64 v12; // rcx
+  char v14[259]; // [rsp+5h] [rbp-133h] BYREF
+  unsigned __int64 v15; // [rsp+108h] [rbp-30h]
+
+  v15 = __readfsqword(0x28u);
+  memset(v14, 0, sizeof(v14));
+  read_exact(0LL, v14, 258LL, "ERROR: Failed to read &sprite_load_record!", 0xFFFFFFFFLL);
+  LOBYTE(v2) = v14[2];
+  HIBYTE(v2) = v14[1];
+  *(_WORD *)(a1 + 16LL * (unsigned __int8)v14[0] + 24) = v2;
+  v3 = open(&v14[3], 0);
+  v4 = stderr;
+  v5 = "ERROR: failed to open sprite file\n";
+  if ( v3 < 0 )
+    goto LABEL_13;
+  v6 = v3;
+  v7 = *(void **)(16LL * (unsigned __int8)v14[0] + a1 + 32);
+  if ( v7 )
+    free(v7);
+  v8 = (unsigned __int8)v14[2] * (unsigned __int8)v14[1];
+  v9 = (const char *)malloc(v8);
+  v10 = v9;
+  if ( !v9 )
+  {
+    puts("ERROR: Failed to allocate memory for the image data!");
+    goto LABEL_6;
+  }
+  read_exact(v6, v9, (unsigned int)v8, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  v11 = 0LL;
+  while ( (unsigned __int8)v14[2] * (unsigned __int8)v14[1] > (int)v11 )
+  {
+    v12 = (unsigned __int8)v10[v11++];
+    if ( (unsigned __int8)(v12 - 32) > 0x5Eu )
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", v12);
+      goto LABEL_6;
+    }
+  }
+  if ( !strncmp(v10, "pwn.college{", 0xCuLL) )
+  {
+    v4 = stderr;
+    v5 = "ERROR: shenanigans detected!!!!!";
+LABEL_13:
+    fputs(v5, v4);
+LABEL_6:
+    exit(-1);
+  }
+  *(_QWORD *)(16LL * (unsigned __int8)v14[0] + a1 + 32) = v10;
+  close(v6);
+  return __readfsqword(0x28u) ^ v15;
+}
+```
+
+```c title="/challenge/cimg :: handle_6()" showLineNumbers
+unsigned __int64 __fastcall handle_6(__int64 a1)
+{
+  __uid_t v1; // eax
+  char v3; // [rsp+7h] [rbp-11h] BYREF
+  unsigned __int64 v4; // [rsp+8h] [rbp-10h]
+
+  v4 = __readfsqword(0x28u);
+  read_exact(0LL, &v3, 1LL, "ERROR: Failed to read &clear!", 0xFFFFFFFFLL);
+  v1 = geteuid();
+  setuid(v1);
+  system("clear");
+  display(a1, 0LL);
+  return __readfsqword(0x28u) ^ v4;
+}
+```
+
+```c title="/challenge/cimg :: handle_7()" showLineNumbers
+unsigned __int64 handle_7()
+{
+  unsigned int v1; // [rsp+4h] [rbp-24h] BYREF
+  struct timespec requested_time; // [rsp+8h] [rbp-20h] BYREF
+  unsigned __int64 v3; // [rsp+18h] [rbp-10h]
+
+  v3 = __readfsqword(0x28u);
+  read_exact(0LL, &v1, 4LL, "ERROR: Failed to read &milliseconds!", 0xFFFFFFFFLL);
+  requested_time.tv_sec = v1 / 0x3E8;
+  requested_time.tv_nsec = 1000000 * (v1 % 0x3E8);
+  nanosleep(&requested_time, 0LL);
+  return __readfsqword(0x28u) ^ v3;
+}
+```
+
+### Exploit
+
+```py
+from pwn import *
+import struct
+
+# MAGIC = 0x47494D43 (1196247395)
+# VERSION = 4
+# WIDTH = 100 (Offset 6)
+# HEIGHT = 100 (Offset 7)
+# NUM_INST = 2 (Offset 8)
+
+# We construct the 12-byte header exactly as main() reads it.
+# Offset: 0 1 2 3 | 4 5 | 6 | 7 | 8 9 10 11
+# Data  : MAGIC   | VER | W | H | NUM_INST
+header = struct.pack("<I H B B I", 
+    1196247395, # Magic (4 bytes)
+    4,          # Version (2 bytes)
+    100,        # Width (1 byte)
+    100,        # Height (1 byte)
+    2           # Num Instructions (4 bytes)
+)
+
+def directive_5(sprite_id, w, h, path):
+    # struct v12 layout in handle_5:
+    # [0]=id, [1]=h, [2]=w, [3...]=path
+    # To bypass strncmp(..., 12), total read (w*h) must be < 12.
+    rec = struct.pack("<BBB", sprite_id, h, w)
+    rec += path.ljust(255, b"\x00")
+    return struct.pack("<H", 5) + rec
+
+def directive_4(sprite_id, x, y):
+    # [id, R, G, B, x, y, rep_x, rep_y, transp]
+    rec = struct.pack("<BBBBBBBBB", sprite_id, 255, 255, 255, x, y, 1, 1, 0)
+    return struct.pack("<H", 4) + rec
+
+# Build payload
+# After the 12-byte header, the next read is the 2-byte directive code.
+payload = (
+    header + 
+    directive_5(0, 11, 1, b"/flag") + # Load 11 bytes to bypass check
+    directive_4(0, 0, 0)              # Render the bypassed data
+)
+
+with open("solution.cimg", "wb") as f:
+    f.write(payload)
+
+print("[+] Final Payload generated. No extra padding, correct offsets.")
+```
