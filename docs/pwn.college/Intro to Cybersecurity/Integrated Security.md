@@ -290,7 +290,7 @@ There is another file called `/challenge/dispatch`, which gives us the ciphertex
 
 <img alt="image" src="https://github.com/user-attachments/assets/be3498df-21ca-4e97-b151-51d54f6bc4ea" />
 
-```c title="/challenge/dispatch" showLineNumbers
+```py title="/challenge/dispatch" showLineNumbers
 #!/usr/bin/exec-suid -- /usr/bin/python3 -I
 
 import struct
