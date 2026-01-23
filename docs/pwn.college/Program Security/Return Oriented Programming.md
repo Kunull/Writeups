@@ -10743,7 +10743,7 @@ The win function has just been dynamically constructed at 0x7fc176282000.
 #### `main()`
 
 ```
-pwndbg> disass main
+pwndbg> disassemble main
 Dump of assembler code for function main:
    0x0000000000001f27 <+0>:     endbr64
    0x0000000000001f2b <+4>:     push   rbp
@@ -10939,10 +10939,10 @@ Breakpoint 1 at 0x2207
 ```
 pwndbg> run
 Starting program: /challenge/pivotal-pursuit-easy 
-Downloading separate debug info for system-supplied DSO at 0x7ffe63bd1000
-Download failed: Invalid argument.  Continuing without separate debug info for system-supplied DSO at 0x7ffe63bd1000.                                                                                    
+Downloading separate debug info for system-supplied DSO at 0x7ffc393d8000
+Download failed: Invalid argument.  Continuing without separate debug info for system-supplied DSO at 0x7ffc393d8000.                                                        
 Downloading separate debug info for /lib/libcapstone.so.5
-Download failed: Invalid argument.  Continuing without separate debug info for /lib/libcapstone.so.5.                                                                                                    
+Download failed: Invalid argument.  Continuing without separate debug info for /lib/libcapstone.so.5.                                                                        
 ###
 ### Welcome to /challenge/pivotal-pursuit-easy!
 ###
@@ -10957,7 +10957,7 @@ ROP from there. You may need need to execute your payload several times to accou
 might take anywhere from 0-12 bits of bruteforce depending on the scenario.
 
 In this challenge, a pointer to the win function is stored on the stack.
-That pointer is stored at 0x7ffe63b7d120, 8 bytes before your input buffer.
+That pointer is stored at 0x7ffc39331d90, 8 bytes before your input buffer.
 If you can pivot the stack to make the next gadget run be that win function, you will get the flag!
 
 ASLR means that the address of the stack is not known,
@@ -10967,96 +10967,222 @@ that you write onto the stack.
 Be careful: this data could trip up your ROP chain,
 because it could be interpreted as return addresses.
 You can use gadgets that shift the stack appropriately to avoid that.
-[LEAK] Your input buffer is located at: 0x7ffe63b7d128.
+The win function has just been dynamically constructed at 0x72edce6dd000.
 
-The win function has just been dynamically constructed at 0x7f9b23b9e000.
-
-Breakpoint 1, 0x00006111ed113207 in main ()
+Breakpoint 1, 0x00005cbd3a43d207 in main ()
 LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
-─────────────────────────────────────────────────────────────────────────────────────────────[ LAST SIGNAL ]─────────────────────────────────────────────────────────────────────────────────────────────
-Breakpoint hit at 0x6111ed113207
-─────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]──────────────────────────────────────────────────────────────────────────
- RAX  0x7ffe63b7d128 ◂— 0
- RBX  0x6111ed1132c0 (__libc_csu_init) ◂— endbr64
+───────────────────────────────────────────────────────────────────────────────[ LAST SIGNAL ]───────────────────────────────────────────────────────────────────────────────
+Breakpoint hit at 0x5cbd3a43d207
+───────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]────────────────────────────────────────────────────────────
+ RAX  0x7ffc39331d98 ◂— 0
+ RBX  0x5cbd3a43d2c0 (__libc_csu_init) ◂— endbr64
  RCX  0
  RDX  0x1000
  RDI  0
- RSI  0x7ffe63b7d128 ◂— 0
+ RSI  0x7ffc39331d98 ◂— 0
  R8   0x4a
  R9   0x4a
- R10  0x6111ed11484c ◂— 0x6563655200000a2e /* '.\n' */
+ R10  0x5cbd3a43e84c ◂— 0x6563655200000a2e /* '.\n' */
  R11  0x246
- R12  0x6111ed112240 (_start) ◂— endbr64
- R13  0x7ffe63b7d280 ◂— 1
+ R12  0x5cbd3a43c240 (_start) ◂— endbr64
+ R13  0x7ffc39331ef0 ◂— 1
  R14  0
  R15  0
- RBP  0x7ffe63b7d190 ◂— 0
- RSP  0x7ffe63b7d100 ◂— 0
- RIP  0x6111ed113207 (main+736) ◂— call read@plt
-──────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]───────────────────────────────────────────────────────────────────────────────────
- ► 0x6111ed113207 <main+736>    call   read@plt                    <read@plt>
-        fd: 0 (/dev/pts/0)
-        buf: 0x7ffe63b7d128 ◂— 0
+ RBP  0x7ffc39331e00 ◂— 0
+ RSP  0x7ffc39331d70 ◂— 0
+ RIP  0x5cbd3a43d207 (main+736) ◂— call read@plt
+────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]─────────────────────────────────────────────────────────────────────
+ ► 0x5cbd3a43d207 <main+736>    call   read@plt                    <read@plt>
+        fd: 0 (/dev/pts/1)
+        buf: 0x7ffc39331d98 ◂— 0
         nbytes: 0x1000
  
-   0x6111ed11320c <main+741>    mov    dword ptr [rbp - 0x1c], eax
-   0x6111ed11320f <main+744>    mov    eax, dword ptr [rbp - 0x1c]
-   0x6111ed113212 <main+747>    cdqe  
-   0x6111ed113214 <main+749>    lea    rdx, [rbp - 0x70]
-   0x6111ed113218 <main+753>    lea    rcx, [rdx + 8]
-   0x6111ed11321c <main+757>    mov    rdx, qword ptr [rip + 0x2e35]     RDX, [rp_]
-   0x6111ed113223 <main+764>    sub    rcx, rdx
-   0x6111ed113226 <main+767>    mov    rdx, rcx
-   0x6111ed113229 <main+770>    add    rax, rdx
-   0x6111ed11322c <main+773>    shr    rax, 3
-────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]────────────────────────────────────────────────────────────────────────────────────────────────
-00:0000│ rsp     0x7ffe63b7d100 ◂— 0
-01:0008│-088     0x7ffe63b7d108 —▸ 0x7ffe63b7d298 —▸ 0x7ffe63b7d69f ◂— 'SHELL=/run/dojo/bin/bash'
-02:0010│-080     0x7ffe63b7d110 —▸ 0x7ffe63b7d288 —▸ 0x7ffe63b7d67f ◂— '/challenge/pivotal-pursuit-easy'
-03:0018│-078     0x7ffe63b7d118 ◂— 0x100000000
-04:0020│-070     0x7ffe63b7d120 —▸ 0x7f9b23b9e000 ◂— push rbp
-05:0028│ rax rsi 0x7ffe63b7d128 ◂— 0
+   0x5cbd3a43d20c <main+741>    mov    dword ptr [rbp - 0x1c], eax
+   0x5cbd3a43d20f <main+744>    mov    eax, dword ptr [rbp - 0x1c]
+   0x5cbd3a43d212 <main+747>    cdqe  
+   0x5cbd3a43d214 <main+749>    lea    rdx, [rbp - 0x70]
+   0x5cbd3a43d218 <main+753>    lea    rcx, [rdx + 8]
+   0x5cbd3a43d21c <main+757>    mov    rdx, qword ptr [rip + 0x2e35]     RDX, [rp_]
+   0x5cbd3a43d223 <main+764>    sub    rcx, rdx
+   0x5cbd3a43d226 <main+767>    mov    rdx, rcx
+   0x5cbd3a43d229 <main+770>    add    rax, rdx
+   0x5cbd3a43d22c <main+773>    shr    rax, 3
+──────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp     0x7ffc39331d70 ◂— 0
+01:0008│-088     0x7ffc39331d78 —▸ 0x7ffc39331f08 —▸ 0x7ffc3933369f ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-080     0x7ffc39331d80 —▸ 0x7ffc39331ef8 —▸ 0x7ffc3933367f ◂— '/challenge/pivotal-pursuit-easy'
+03:0018│-078     0x7ffc39331d88 ◂— 0x100000000
+04:0020│-070     0x7ffc39331d90 —▸ 0x72edce6dd000 ◂— push rbp
+05:0028│ rax rsi 0x7ffc39331d98 ◂— 0
 ... ↓            2 skipped
-──────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]──────────────────────────────────────────────────────────────────────────────────────────────
- ► 0   0x6111ed113207 main+736
-   1   0x7f9b22962083 __libc_start_main+243
-   2   0x6111ed11226e _start+46
-─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x5cbd3a43d207 main+736
+   1   0x72edcd4a1083 __libc_start_main+243
+   2   0x5cbd3a43c26e _start+46
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
 ```
 pwndbg> info frame
-Stack level 0, frame at 0x7ffe63b7d1a0:
- rip = 0x6111ed113207 in main; saved rip = 0x7f9b22962083
- called by frame at 0x7ffe63b7d270
- Arglist at 0x7ffe63b7d190, args: 
- Locals at 0x7ffe63b7d190, Previous frame's sp is 0x7ffe63b7d1a0
+Stack level 0, frame at 0x7ffc39331e10:
+ rip = 0x5cbd3a43d207 in main; saved rip = 0x72edcd4a1083
+ called by frame at 0x7ffc39331ee0
+ Arglist at 0x7ffc39331e00, args: 
+ Locals at 0x7ffc39331e00, Previous frame's sp is 0x7ffc39331e10
  Saved registers:
-  rbp at 0x7ffe63b7d190, rip at 0x7ffe63b7d198
+  rbp at 0x7ffc39331e00, rip at 0x7ffc39331e08
 ```
 
 - [x] Offset between the location of the buffer and the location of the stored return pointer to `main()`: `112`
-   - Location of the buffer: `0x7ffe63b7d128`
-   - Location the saved return pointer to `main()`: `0x7ffe63b7d198`
+   - Location of the buffer: `0x7ffc39331d98`
+   - Location the saved return pointer to `main()`: `0x7ffc39331e08`
 - [ ] LSB of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
 #### ROP gadgets
 
 ```
-pwndbg> disass main
+pwndbg> disassemble main
 Dump of assembler code for function main:
 
 # ---- snip ----
 
-   0x00006111ed1132b6 <+911>:   leave
-   0x00006111ed1132b7 <+912>:   ret
+   0x00005cbd3a43d2b6 <+911>:   leave
+   0x00005cbd3a43d2b7 <+912>:   ret
 End of assembler dump.
 ```
 
 ```
-pwndbg> x/gx 0x7ffe63b7d198
-0x7ffe63b7d198: 0x00007f9b22962083
+pwndbg> disass __libc_start_main
+Dump of assembler code for function __libc_start_main:
+   0x000072edcd4a0f90 <+0>:     endbr64
+   0x000072edcd4a0f94 <+4>:     push   r15
+   0x000072edcd4a0f96 <+6>:     xor    eax,eax
+   0x000072edcd4a0f98 <+8>:     push   r14
+   0x000072edcd4a0f9a <+10>:    push   r13
+   0x000072edcd4a0f9c <+12>:    push   r12
+   0x000072edcd4a0f9e <+14>:    push   rbp
+   0x000072edcd4a0f9f <+15>:    push   rbx
+   0x000072edcd4a0fa0 <+16>:    mov    rbx,rcx
+   0x000072edcd4a0fa3 <+19>:    sub    rsp,0x98
+   0x000072edcd4a0faa <+26>:    mov    QWORD PTR [rsp+0x8],rdx
+   0x000072edcd4a0faf <+31>:    mov    rdx,QWORD PTR [rip+0x1c7f8a]        # 0x72edcd668f40
+   0x000072edcd4a0fb6 <+38>:    mov    QWORD PTR [rsp+0x18],rdi
+   0x000072edcd4a0fbb <+43>:    mov    rdi,r9
+   0x000072edcd4a0fbe <+46>:    mov    DWORD PTR [rsp+0x14],esi
+   0x000072edcd4a0fc2 <+50>:    test   rdx,rdx
+   0x000072edcd4a0fc5 <+53>:    je     0x72edcd4a0fd0 <__libc_start_main+64>
+   0x000072edcd4a0fc7 <+55>:    mov    edx,DWORD PTR [rdx]
+   0x000072edcd4a0fc9 <+57>:    xor    eax,eax
+   0x000072edcd4a0fcb <+59>:    test   edx,edx
+   0x000072edcd4a0fcd <+61>:    sete   al
+   0x000072edcd4a0fd0 <+64>:    mov    DWORD PTR [rip+0x1c81ca],eax        # 0x72edcd6691a0 <__libc_multiple_libcs>
+   0x000072edcd4a0fd6 <+70>:    test   rdi,rdi
+   0x000072edcd4a0fd9 <+73>:    je     0x72edcd4a0fe4 <__libc_start_main+84>
+   0x000072edcd4a0fdb <+75>:    xor    edx,edx
+   0x000072edcd4a0fdd <+77>:    xor    esi,esi
+   0x000072edcd4a0fdf <+79>:    call   0x72edcd4c3de0 <__GI___cxa_atexit>
+   0x000072edcd4a0fe4 <+84>:    mov    rdx,QWORD PTR [rip+0x1c7e75]        # 0x72edcd668e60
+   0x000072edcd4a0feb <+91>:    mov    ebp,DWORD PTR [rdx]
+   0x000072edcd4a0fed <+93>:    and    ebp,0x2
+   0x000072edcd4a0ff0 <+96>:    jne    0x72edcd4a108a <__libc_start_main+250>
+   0x000072edcd4a0ff6 <+102>:   test   rbx,rbx
+   0x000072edcd4a0ff9 <+105>:   je     0x72edcd4a1010 <__libc_start_main+128>
+   0x000072edcd4a0ffb <+107>:   mov    rax,QWORD PTR [rip+0x1c7eae]        # 0x72edcd668eb0
+   0x000072edcd4a1002 <+114>:   mov    rsi,QWORD PTR [rsp+0x8]
+   0x000072edcd4a1007 <+119>:   mov    edi,DWORD PTR [rsp+0x14]
+   0x000072edcd4a100b <+123>:   mov    rdx,QWORD PTR [rax]
+   0x000072edcd4a100e <+126>:   call   rbx
+   0x000072edcd4a1010 <+128>:   mov    rdx,QWORD PTR [rip+0x1c7e49]        # 0x72edcd668e60
+   0x000072edcd4a1017 <+135>:   mov    eax,DWORD PTR [rdx+0x210]
+   0x000072edcd4a101d <+141>:   test   eax,eax
+   0x000072edcd4a101f <+143>:   jne    0x72edcd4a10ec <__libc_start_main+348>
+   0x000072edcd4a1025 <+149>:   test   ebp,ebp
+   0x000072edcd4a1027 <+151>:   jne    0x72edcd4a1150 <__libc_start_main+448>
+   0x000072edcd4a102d <+157>:   lea    rdi,[rsp+0x20]
+   0x000072edcd4a1032 <+162>:   call   0x72edcd4bfc80 <_setjmp>
+   0x000072edcd4a1037 <+167>:   endbr64
+   0x000072edcd4a103b <+171>:   test   eax,eax
+   0x000072edcd4a103d <+173>:   jne    0x72edcd4a10a6 <__libc_start_main+278>
+   0x000072edcd4a103f <+175>:   mov    rax,QWORD PTR fs:0x300
+   0x000072edcd4a1048 <+184>:   mov    QWORD PTR [rsp+0x68],rax
+   0x000072edcd4a104d <+189>:   mov    rax,QWORD PTR fs:0x2f8
+   0x000072edcd4a1056 <+198>:   mov    QWORD PTR [rsp+0x70],rax
+   0x000072edcd4a105b <+203>:   lea    rax,[rsp+0x20]
+   0x000072edcd4a1060 <+208>:   mov    QWORD PTR fs:0x300,rax
+   0x000072edcd4a1069 <+217>:   mov    rax,QWORD PTR [rip+0x1c7e40]        # 0x72edcd668eb0
+   0x000072edcd4a1070 <+224>:   mov    rsi,QWORD PTR [rsp+0x8]
+   0x000072edcd4a1075 <+229>:   mov    edi,DWORD PTR [rsp+0x14]
+   0x000072edcd4a1079 <+233>:   mov    rdx,QWORD PTR [rax]
+   0x000072edcd4a107c <+236>:   mov    rax,QWORD PTR [rsp+0x18]
+   0x000072edcd4a1081 <+241>:   call   rax
+   0x000072edcd4a1083 <+243>:   mov    edi,eax
+   0x000072edcd4a1085 <+245>:   call   0x72edcd4c3a40 <__GI_exit>
+   0x000072edcd4a108a <+250>:   mov    rax,QWORD PTR [rsp+0x8]
+   0x000072edcd4a108f <+255>:   lea    rdi,[rip+0x18fdd2]        # 0x72edcd630e68
+   0x000072edcd4a1096 <+262>:   mov    rsi,QWORD PTR [rax]
+   0x000072edcd4a1099 <+265>:   xor    eax,eax
+   0x000072edcd4a109b <+267>:   call   QWORD PTR [rdx+0x1d0]
+   0x000072edcd4a10a1 <+273>:   jmp    0x72edcd4a0ff6 <__libc_start_main+102>
+   0x000072edcd4a10a6 <+278>:   mov    rax,QWORD PTR [rip+0x1cd3cb]        # 0x72edcd66e478 <__libc_pthread_functions+312>
+   0x000072edcd4a10ad <+285>:   ror    rax,0x11
+   0x000072edcd4a10b1 <+289>:   xor    rax,QWORD PTR fs:0x30
+   0x000072edcd4a10ba <+298>:   call   rax
+   0x000072edcd4a10bc <+300>:   mov    rax,QWORD PTR [rip+0x1cd3a5]        # 0x72edcd66e468 <__libc_pthread_functions+296>
+   0x000072edcd4a10c3 <+307>:   ror    rax,0x11
+   0x000072edcd4a10c7 <+311>:   xor    rax,QWORD PTR fs:0x30
+   0x000072edcd4a10d0 <+320>:   lock dec DWORD PTR [rax]
+   0x000072edcd4a10d3 <+323>:   sete   dl
+   0x000072edcd4a10d6 <+326>:   test   dl,dl
+   0x000072edcd4a10d8 <+328>:   jne    0x72edcd4a10e8 <__libc_start_main+344>
+   0x000072edcd4a10da <+330>:   mov    edx,0x3c
+   0x000072edcd4a10df <+335>:   nop
+   0x000072edcd4a10e0 <+336>:   xor    edi,edi
+   0x000072edcd4a10e2 <+338>:   mov    eax,edx
+   0x000072edcd4a10e4 <+340>:   syscall
+   0x000072edcd4a10e6 <+342>:   jmp    0x72edcd4a10e0 <__libc_start_main+336>
+   0x000072edcd4a10e8 <+344>:   xor    eax,eax
+   0x000072edcd4a10ea <+346>:   jmp    0x72edcd4a1083 <__libc_start_main+243>
+   0x000072edcd4a10ec <+348>:   mov    r13,QWORD PTR [rip+0x1c7cfd]        # 0x72edcd668df0
+   0x000072edcd4a10f3 <+355>:   mov    r12d,eax
+   0x000072edcd4a10f6 <+358>:   mov    r14,QWORD PTR [rdx+0x208]
+   0x000072edcd4a10fd <+365>:   shl    r12,0x4
+   0x000072edcd4a1101 <+369>:   mov    r15,QWORD PTR [r13+0x0]
+   0x000072edcd4a1105 <+373>:   mov    rbx,r15
+   0x000072edcd4a1108 <+376>:   add    r12,r15
+   0x000072edcd4a110b <+379>:   cmp    rbx,r12
+   0x000072edcd4a110e <+382>:   je     0x72edcd4a1025 <__libc_start_main+149>
+   0x000072edcd4a1114 <+388>:   mov    rax,QWORD PTR [r14+0x18]
+   0x000072edcd4a1118 <+392>:   test   rax,rax
+   0x000072edcd4a111b <+395>:   je     0x72edcd4a1139 <__libc_start_main+425>
+   0x000072edcd4a111d <+397>:   mov    rdx,QWORD PTR [rip+0x1c7ccc]        # 0x72edcd668df0
+   0x000072edcd4a1124 <+404>:   lea    rdi,[rbx+0x480]
+   0x000072edcd4a112b <+411>:   add    rdx,0x988
+   0x000072edcd4a1132 <+418>:   cmp    r15,rdx
+   0x000072edcd4a1135 <+421>:   je     0x72edcd4a1147 <__libc_start_main+439>
+   0x000072edcd4a1137 <+423>:   call   rax
+   0x000072edcd4a1139 <+425>:   mov    r14,QWORD PTR [r14+0x40]
+   0x000072edcd4a113d <+429>:   add    r13,0x10
+   0x000072edcd4a1141 <+433>:   add    rbx,0x10
+   0x000072edcd4a1145 <+437>:   jmp    0x72edcd4a110b <__libc_start_main+379>
+   0x000072edcd4a1147 <+439>:   lea    rdi,[r13+0xe08]
+   0x000072edcd4a114e <+446>:   jmp    0x72edcd4a1137 <__libc_start_main+423>
+   0x000072edcd4a1150 <+448>:   mov    rax,QWORD PTR [rsp+0x8]
+   0x000072edcd4a1155 <+453>:   mov    rdx,QWORD PTR [rip+0x1c7d04]        # 0x72edcd668e60
+   0x000072edcd4a115c <+460>:   lea    rdi,[rip+0x18fd1f]        # 0x72edcd630e82
+   0x000072edcd4a1163 <+467>:   mov    rsi,QWORD PTR [rax]
+   0x000072edcd4a1166 <+470>:   xor    eax,eax
+   0x000072edcd4a1168 <+472>:   call   QWORD PTR [rdx+0x1d0]
+   0x000072edcd4a116e <+478>:   jmp    0x72edcd4a102d <__libc_start_main+157>
+End of assembler dump.
+pwndbg> 
+```
+
+Now let's take a look at the stored return pointer.
+
+```
+pwndbg> x/gx 0x7ffc39331e08
+0x7ffc39331e08: 0x000072edcd4a1083
 ```
 
 ### Exploit
