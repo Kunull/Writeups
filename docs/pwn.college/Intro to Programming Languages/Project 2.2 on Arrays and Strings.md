@@ -1350,5 +1350,499 @@ Run the following command to test your solution:
 ### Code
 
 ```c title="main.c" showLineNumbers
+#include <stdio.h>
+#include <stdlib.h>
 
+
+void getflag(){
+    FILE *file;
+    char buffer[256];
+
+    file = fopen("/flag", "r");
+    if (file == NULL) {
+        perror("Error opening file");
+        return;
+    }
+
+    while (fgets(buffer, sizeof(buffer), file) != NULL) {
+        printf("Flag loaded into memory\n");
+    }
+
+    printf("Set Break here, done reading flag\n");
+
+    fclose(file);
+}
+
+int main() {
+    
+    printf("Loading flag..\n");
+
+    getflag();
+
+    printf("Exiting...\n");
+
+    return 0;
+}
+```
+
+<img alt="image" src="https://github.com/user-attachments/assets/dda2958c-fea0-4b62-9f3c-b51b858a9d42" />
+
+```
+pwn.college{kZZm-cxbu5l7Gwod0f_K1Ndr8Jp.QX4UzN3EDL4ITM0EzW}
+```
+
+&nbsp;
+
+## P2.2 Level 08 c-debugger2
+
+### Requirements
+```
+Notice: it is cheating to copy (or screenshot) the requirements from any pwn.college page for any reason
+📋 P2.2 Level 08 c-debugger2
+Module: 21-proj-c-intro-vars
+Challenge: p22-level-08
+Objective
+Use the debugger to get the flag
+
+Requirements
+Objective
+Use the debugger to get the flag
+
+
+Steps to complete
+Open the main.c for level 08 in vscode
+Run the debugger in vscode
+Get the flag from the variable after it's loaded into memory
+
+Steps to print out a variable (see prior challenge)
+
+Steps to change a variable
+Find a good place to stop the execution with a breakpoint
+Via the gui: double click on the variable and change the value (for characters completely remove the value and replace with 'c')
+Via the debugger console: use the command -exec set variable a = 99
+Steps to Complete
+Open the main.c for level 08 in vscode
+Run the debugger in vscode
+Get the flag from the variable after it's loaded into memory
+Testing
+Run the following command to test your solution:
+
+/challenge/tester
+⚠️ Academic Integrity: Write your own code and understand what you're submitting.
+```
+
+### Code
+
+```c title="main.c" showLineNumbers
+#include <stdio.h>
+#include <stdlib.h>
+
+
+void getflag(){
+    FILE *file;
+    char buffer[256];
+
+    file = fopen("/flag", "r");
+    if (file == NULL) {
+        perror("Error opening file");
+        return;
+    }
+
+    while (fgets(buffer, sizeof(buffer), file) != NULL) {
+        printf("Flag loaded into memory\n");
+        buffer[0] = 'X';
+    }
+    
+    printf("Set Break here, done reading flag\n");
+
+    if (buffer[0] == 'p'){
+        printf("%s\n", buffer);
+    }
+
+    fclose(file);
+}
+
+int main() {
+    
+    printf("Loading flag..\n");
+    int a = 0;
+
+    printf("Set breakpoint here and change the value of a.\n");
+    if (a == 10){
+        getflag();
+    }
+
+
+    printf("Exiting...\n");
+
+    return 0;
+}
+```
+
+When first breakpoint is hit, set `a=10`.
+Continue until next breakpoint is hit.
+
+<img alt="image" src="https://github.com/user-attachments/assets/90c3dbd8-8746-4641-b8df-e761dceeb6be" />
+
+```
+Xwn.college{wGnEekF4EoAtJzAGkAo2t_GkYhS.QX5UzN3EDL4ITM0EzW}
+```
+
+```
+pwn.college{wGnEekF4EoAtJzAGkAo2t_GkYhS.QX5UzN3EDL4ITM0EzW}
+```
+
+&nbsp;
+
+## P2.2 Level 09 c-grind
+
+### Requirement
+
+```
+Notice: it is cheating to copy (or screenshot) the requirements from any pwn.college page for any reason
+📋 P2.2 Level 09 c-grind
+Module: 21-proj-c-intro-vars
+Challenge: p22-level-09
+Objective
+Use valgrind to locate the origin of the segmentation faults (2) in this blackjack game.
+
+Requirements
+Objective
+Use valgrind to locate the origin of the segmentation faults (2) in this blackjack game.
+
+
+Steps to complete
+Compile main.c with debugging enabled -g
+Run main.bin using valgrind
+Read valgrind's output looking for the segmentation fault, which will be similar to
+Process terminating with default action of signal 11 (SIGSEGV) 
+        
+Fix the code, recompile, and try again
+Use tester to test your code and get the flag
+Steps to Complete
+Compile main.c with debugging enabled -g
+Run main.bin using valgrind
+Read valgrind's output looking for the segmentation fault, which will be similar to
+Process terminating with default action of signal 11 (SIGSEGV) 
+        
+Fix the code, recompile, and try again
+Use tester to test your code and get the flag
+Testing
+Run the following command to test your solution:
+
+/challenge/tester
+⚠️ Academic Integrity: Write your own code and understand what you're submitting.
+```
+
+### Code
+```c title="main.c" showLineNumnbers
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+// Function declarations
+void printWelcomeMessage();
+int drawCard();
+int getCardValue(int card);
+void playBlackjack();
+int playerTurn(int playerTotal);
+int dealerTurn(int dealerTotal);
+void determineWinner(int playerTotal, int dealerTotal);
+
+int main(int argc, char * argv[]) {
+    
+    if (argc != 2){
+        printf("To play blackjack, please provide your name\n\tUsage: %s <name> \n", argv[0]);
+        return 0;
+    }
+    
+    srand(argv[1][0]); // Seed for random number generation, if the same first letter is given 
+                       // then the "random" values will repeat exactly the same
+                       // If first letter is 'E' dealer will draw 1, 5, 6, 5 for 17
+                       //                        player will draw 3, 3, 2, and 10 for 18
+
+    // print personalized message to player
+    printWelcomeMessage(argc);
+
+    playBlackjack();
+
+    return 0;
+}
+
+// Function to print the welcome message
+void printWelcomeMessage(char name[]) {
+    printf("********************************\n");
+    printf(" Hi, %s, Welcome to Blackjack! \n", name);
+    printf("********************************\n\n");
+}
+
+// Function to draw a card (value between 1 and 13, corresponding to Ace to King)
+int drawCard() {
+    return (rand() % 13) + 1;
+}
+
+// Function to get the value of a card
+int getCardValue(int card) {
+    int card_values[14] = {0,1,2,3,4,5,6,7,8,9,10,10,10,10};
+    return card_values[99999];     
+}
+#include<string.h>
+#include<stdio.h>
+
+
+// Function to play a round of Blackjack
+void playBlackjack() {
+    int playerTotal = 0;
+    int dealerTotal = 0;
+    
+    // Dealer's initial turn
+    dealerTotal = dealerTurn(dealerTotal);
+    
+    // Player's turn
+    playerTotal = playerTurn(playerTotal);
+    
+    if (playerTotal > 21) {
+        printf("You bust! Dealer wins.\n");
+        return;
+    }
+    
+    // Determine the winner
+    determineWinner(playerTotal, dealerTotal);
+}
+
+// Function to handle the player's turn
+int playerTurn(int playerTotal) {
+    int playerCard;
+    char choice;
+
+    // Initial player cards
+    playerCard = drawCard();
+    playerTotal += getCardValue(playerCard);
+    printf("You drew a %d (Total: %d)\n", playerCard, playerTotal);
+
+    playerCard = drawCard();
+    playerTotal += getCardValue(playerCard);
+    printf("You drew a %d (Total: %d)\n", playerCard, playerTotal);
+
+    // Player's turn loop
+    while (playerTotal < 21) {
+        printf("Do you want to (h)it or (s)tand? ");
+        scanf(" %c", &choice);
+
+        if (choice == 'h' || choice == 'H') {
+            playerCard = drawCard();
+            playerTotal += getCardValue(playerCard);
+            printf("You drew a %d (Total: %d)\n", playerCard, playerTotal);
+        } else if (choice == 's' || choice == 'S') {
+            break;
+        } else {
+            printf("Invalid choice. Please choose 'h' to hit or 's' to stand.\n");
+        }
+    }
+    
+    return playerTotal;
+}
+
+// Function to handle the dealer's turn
+int dealerTurn(int dealerTotal) {
+    int dealerCard1 = drawCard();
+    int dealerCard2 = drawCard();
+    dealerTotal = getCardValue(dealerCard1) + getCardValue(dealerCard2);
+
+    printf("Dealer's cards: %d, %d (Total: %d)\n", dealerCard1, dealerCard2, dealerTotal);
+    
+    while (dealerTotal < 17) {
+        int dealerCard = drawCard();
+        dealerTotal += getCardValue(dealerCard);
+        printf("Dealer draws a %d (Total: %d)\n", dealerCard, dealerTotal);
+    }
+    
+    return dealerTotal;
+}
+
+// Function to determine and print the winner
+void determineWinner(int playerTotal, int dealerTotal) {
+    if (dealerTotal > 21) {
+        printf("Dealer busts! You win.\n");
+    } else if (dealerTotal >= playerTotal) {
+        printf("Dealer wins with %d against your %d.\n", dealerTotal, playerTotal);
+    } else {
+        printf("You win with %d against dealer's %d.\n", playerTotal, dealerTotal);
+    }
+}
+```
+
+### Debugging
+
+```
+hacker@22-proj-arrays-strings~p2-2-level-09-c-grind:~/cse240/22-proj-arrays-strings/09$ gcc main.c -g -o main.bin
+```
+
+```
+hacker@22-proj-arrays-strings~p2-2-level-09-c-grind:~/cse240/22-proj-arrays-strings/09$ valgrind ./main.bin
+==1487== Memcheck, a memory error detector
+==1487== Copyright (C) 2002-2022, and GNU GPL'd, by Julian Seward et al.
+==1487== Using Valgrind-3.22.0 and LibVEX; rerun with -h for copyright info
+==1487== Command: ./main.bin
+==1487== 
+To play blackjack, please provide your name
+        Usage: ./main.bin <name> 
+==1487== 
+==1487== HEAP SUMMARY:
+==1487==     in use at exit: 0 bytes in 0 blocks
+==1487==   total heap usage: 1 allocs, 1 frees, 1,024 bytes allocated
+==1487== 
+==1487== All heap blocks were freed -- no leaks are possible
+==1487== 
+==1487== For lists of detected and suppressed errors, rerun with: -s
+==1487== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+```
+
+```
+hacker@22-proj-arrays-strings~p2-2-level-09-c-grind:~/cse240/22-proj-arrays-strings/09$ valgrind ./main.bin kunal
+==1688== Memcheck, a memory error detector
+==1688== Copyright (C) 2002-2022, and GNU GPL'd, by Julian Seward et al.
+==1688== Using Valgrind-3.22.0 and LibVEX; rerun with -h for copyright info
+==1688== Command: ./main.bin kunal
+==1688== 
+********************************
+==1688== Invalid read of size 1
+==1688==    at 0x484F286: __strlen_sse2 (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==1688==    by 0x48CADA7: __printf_buffer (vfprintf-process-arg.c:435)
+==1688==    by 0x48CB73A: __vfprintf_internal (vfprintf-internal.c:1544)
+==1688==    by 0x48C01B2: printf (printf.c:33)
+==1688==    by 0x109298: printWelcomeMessage (main.c:37)
+==1688==    by 0x10924D: main (main.c:27)
+==1688==  Address 0x2 is not stack'd, malloc'd or (recently) free'd
+==1688== 
+==1688== 
+==1688== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==1688==  Access not within mapped region at address 0x2
+==1688==    at 0x484F286: __strlen_sse2 (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==1688==    by 0x48CADA7: __printf_buffer (vfprintf-process-arg.c:435)
+==1688==    by 0x48CB73A: __vfprintf_internal (vfprintf-internal.c:1544)
+==1688==    by 0x48C01B2: printf (printf.c:33)
+==1688==    by 0x109298: printWelcomeMessage (main.c:37)
+==1688==    by 0x10924D: main (main.c:27)
+==1688==  If you believe this happened as a result of a stack
+==1688==  overflow in your program's main thread (unlikely but
+==1688==  possible), you can try to increase the size of the
+==1688==  main thread stack using the --main-stacksize= flag.
+==1688==  The main thread stack size used in this run was 8388608.
+==1688== 
+==1688== HEAP SUMMARY:
+==1688==     in use at exit: 1,024 bytes in 1 blocks
+==1688==   total heap usage: 1 allocs, 0 frees, 1,024 bytes allocated
+==1688== 
+==1688== LEAK SUMMARY:
+==1688==    definitely lost: 0 bytes in 0 blocks
+==1688==    indirectly lost: 0 bytes in 0 blocks
+==1688==      possibly lost: 0 bytes in 0 blocks
+==1688==    still reachable: 1,024 bytes in 1 blocks
+==1688==         suppressed: 0 bytes in 0 blocks
+==1688== Rerun with --leak-check=full to see details of leaked memory
+==1688== 
+==1688== For lists of detected and suppressed errors, rerun with: -s
+==1688== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+Segmentation fault         valgrind ./main.bin kunal
+```
+
+Wring argument is passed to `printWelcomeMessage`.
+
+```c showLineNumbers
+    // print personalized message to player
+    printWelcomeMessage(argc);
+```
+
+change to
+
+```c showLineNumbers
+    // print personalized message to player
+    printWelcomeMessage(argv[1);
+```
+
+```
+hacker@22-proj-arrays-strings~p2-2-level-09-c-grind:~/cse240/22-proj-arrays-strings/09$ valgrind ./main.bin kunal
+==2164== Memcheck, a memory error detector
+==2164== Copyright (C) 2002-2022, and GNU GPL'd, by Julian Seward et al.
+==2164== Using Valgrind-3.22.0 and LibVEX; rerun with -h for copyright info
+==2164== Command: ./main.bin kunal
+==2164== 
+********************************
+ Hi, kunal, Welcome to Blackjack! 
+********************************
+
+==2164== Invalid read of size 4
+==2164==    at 0x109371: getCardValue (main.c:49)
+==2164==    by 0x109564: dealerTurn (main.c:112)
+==2164==    by 0x1093B0: playBlackjack (main.c:61)
+==2164==    by 0x109260: main (main.c:29)
+==2164==  Address 0x1fff06163c is not stack'd, malloc'd or (recently) free'd
+==2164== 
+==2164== 
+==2164== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==2164==  Access not within mapped region at address 0x1FFF06163C
+==2164==    at 0x109371: getCardValue (main.c:49)
+==2164==    by 0x109564: dealerTurn (main.c:112)
+==2164==    by 0x1093B0: playBlackjack (main.c:61)
+==2164==    by 0x109260: main (main.c:29)
+==2164==  If you believe this happened as a result of a stack
+==2164==  overflow in your program's main thread (unlikely but
+==2164==  possible), you can try to increase the size of the
+==2164==  main thread stack using the --main-stacksize= flag.
+==2164==  The main thread stack size used in this run was 8388608.
+==2164== 
+==2164== HEAP SUMMARY:
+==2164==     in use at exit: 1,024 bytes in 1 blocks
+==2164==   total heap usage: 1 allocs, 0 frees, 1,024 bytes allocated
+==2164== 
+==2164== LEAK SUMMARY:
+==2164==    definitely lost: 0 bytes in 0 blocks
+==2164==    indirectly lost: 0 bytes in 0 blocks
+==2164==      possibly lost: 0 bytes in 0 blocks
+==2164==    still reachable: 1,024 bytes in 1 blocks
+==2164==         suppressed: 0 bytes in 0 blocks
+==2164== Rerun with --leak-check=full to see details of leaked memory
+==2164== 
+==2164== For lists of detected and suppressed errors, rerun with: -s
+==2164== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+Segmentation fault         valgrind ./main.bin kunal
+```
+
+```c showLineNumbers
+// Function to get the value of a card
+int getCardValue(int card) {
+    int card_values[14] = {0,1,2,3,4,5,6,7,8,9,10,10,10,10};
+    return card_values[99999];     
+}
+```
+
+change to 
+
+```c showLineNumbers
+// Function to get the value of a card
+int getCardValue(int card) {
+    int card_values[14] = {0,1,2,3,4,5,6,7,8,9,10,10,10,10};
+    return card_values[card];     
+}
+```
+
+```
+hacker@22-proj-arrays-strings~p2-2-level-09-c-grind:~/cse240/22-proj-arrays-strings/09$ /challenge/tester 
+Build: ✔ PASS - 0.10s
+Copied /home/hacker/cse240/22-proj-arrays-strings/09/main.bin to /challenge/system_tests/main.bin for system testing, with an md5 of fe55a785e9d00dff657ce4068e092f9e
+[]
+---------------[ System Tests ]---------------
+System stest22.09.1: target_path: /challenge/system_tests/main.bin
+✔ PASS  - Test checking output of game with Erik ran in 0.01s
+System stest22.09.2: target_path: /challenge/system_tests/main.bin
+✔ PASS  - Test checking output of game with erik ran in 0.01s
+System stest22.09.3: target_path: /challenge/system_tests/main.bin
+✔ PASS  - Test checking output of game with ducky ran in 0.01s
+System stest22.09.4: target_path: /challenge/system_tests/main.bin
+✔ PASS  - Test checking hit/stand message while playing with name ducky ran in 0.01s
+
+All 4 Tests Passed 
+Congrats, here's your flag
+pwn.college{kr7vp2eVmO1zN8TLUUgGaOMbOqI.QXwYzN3EDL4ITM0EzW}
 ```
