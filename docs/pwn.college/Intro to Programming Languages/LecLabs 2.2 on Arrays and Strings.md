@@ -720,8 +720,10 @@ int main(int argc, char *argv[]) {
 
     /** CODE: Loop through each line of the file using fgets */
     while (fgets(line, MAX_LINE_LEN, file) != NULL) {
+
         char result[MAX_LINE_LEN * 2] = "";  // reset for each line
         char word[MAX_WORD_LEN] = "";
+
         int i = 0, j = 0;
 
         if (line[strlen(line) - 1] == '\n') {
@@ -741,25 +743,21 @@ int main(int argc, char *argv[]) {
                 j++;
             } 
             else {
-                if (j > 0) {
-                    word[j] = '\0';
+                word[j] = '\0';
 
-                    if (strcmp(word, keyword) == 0) {
-                        strcat(result, "**");
-                        strcat(result, word);
-                        strcat(result, "**");
-                    }
-                    else {
-                        strcat(result, word);
-                    }
-
-                    j = 0;
-                    strcpy(word, " ");
+                if (strcmp(word, keyword) == 0) {
+                    strcat(result, "**");
+                    strcat(result, word);
+                    strcat(result, "**");
+                }
+                else {
+                    strcat(result, word);
                 }
 
+                j = 0;
+                strcpy(word, " ");
                 strcat(result, " ");
             }
-
             i++;
         }
 
