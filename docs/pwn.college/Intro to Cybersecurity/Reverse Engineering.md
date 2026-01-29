@@ -2852,7 +2852,7 @@ After decompiling the program within IDA, and some variable renaming and type al
 
 ### Binary Analysis
 
-```c title="main()" showLineNumbers
+```c title="/challenge/cimg :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   const char *file_arg; // rbp
@@ -2933,6 +2933,152 @@ EXIT:
         LODWORD(won) = 0;
     }
     desired_ansii_sequence += 24;
+  }
+  if ( won )
+    win();
+  return 0;
+}
+```
+
+However, we can make the disassembly look much closer to the actual C code, if we just add the structs.
+
+```c title="/challenge/cimg :: Local Types" showLineNumbers
+# ---- snip ----
+
+00000000 struct cimg_header // sizeof=0x8
+00000000 {                                       // XREF: cimg/r
+00000000     char magic_number[4];               // XREF: main+27/w main+A2/r
+00000004     unsigned __int16 version;           // XREF: main:loc_401363/r
+00000006     unsigned __int8 width;              // XREF: main+D6/r main+11D/r
+00000007     unsigned __int8 height;             // XREF: main+DB/r main+118/r
+00000008 };
+
+00000000 struct pixel_color_t // sizeof=0x4
+00000000 {
+00000000     unsigned __int8 r;
+00000001     unsigned __int8 g;
+00000002     unsigned __int8 b;
+00000003     unsigned __int8 ascii;
+00000004 };
+
+00000004 typedef struct pixel_color_t pixel_t;
+
+00000000 struct term_str_st // sizeof=0x18
+00000000 {                                       // XREF: term_pixel_t/r
+00000000     char color_set[7];
+00000007     char r[3];
+0000000A     char s1;
+0000000B     char g[3];
+0000000E     char s2;
+0000000F     char b[3];
+00000012     char m;
+00000013     char c;
+00000014     char color_reset[4];
+00000018 };
+
+00000000 union term_pixel_t // sizeof=0x18
+00000000 {
+00000000     char data[24];
+00000000     struct term_str_st str;
+00000000 };
+
+00000000 struct cimg // sizeof=0x18
+00000000 {                                       // XREF: main/r
+00000000     struct cimg_header header;          // XREF: main+27/w main+A2/r ...
+00000008     unsigned int num_pixels;            // XREF: main+16F/r
+0000000C     // padding byte
+0000000D     // padding byte
+0000000E     // padding byte
+0000000F     // padding byte
+00000010     union term_pixel_t *framebuffer;    // XREF: main+2B/w main+174/r
+00000018 };
+
+# ---- snip ----
+```
+
+After adding the above given struct, changing the types and names of certain variables, and adding some helpful comments, the decompiled code now looks much better.
+
+```c title="/challenge/cimg :: main() :: Pseudocode" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  const char *file_arg; // rbp
+  int file; // eax
+  const char *error_msg; // rdi
+  unsigned int data_size; // ebx
+  unsigned __int8 *data; // rax
+  unsigned __int8 *data_1; // rbp
+  __int64 i_1; // rax
+  char character; // cl
+  char *desired_output; // r12
+  unsigned int num_pixels; // r13d
+  union term_pixel_t *framebuffer; // r14
+  _BOOL8 won; // rbx
+  __int64 i; // rbp
+  char ascii_char; // al
+  struct cimg cimg; // [rsp+0h] [rbp-58h] BYREF
+  unsigned __int64 v19; // [rsp+18h] [rbp-40h]
+
+  v19 = __readfsqword(0x28u);
+  memset(&cimg, 0, sizeof(cimg));
+  if ( argc > 1 )
+  {
+    file_arg = argv[1];
+    if ( strcmp(&file_arg[strlen(file_arg) - 5], ".cimg") )// Check if the file extension is correct (.cimg)
+    {
+      __printf_chk(1LL, "ERROR: Invalid file extension!");
+      goto EXIT;
+    }
+    file = open(file_arg, 0);
+    dup2(file, 0);
+  }
+  read_exact(0LL, &cimg, 8LL, "ERROR: Failed to read header!", 0xFFFFFFFFLL);
+  if ( *(_DWORD *)cimg.header.magic_number != 'GMIc' )// Check if the magic number is (cIMG) in big-endian
+  {
+    error_msg = "ERROR: Invalid magic number!";
+OUTPUT_ERROR_MSG_AND_EXIT:
+    puts(error_msg);
+    goto EXIT;
+  }
+  error_msg = "ERROR: Unsupported version!";
+  if ( cimg.header.version != 2 )               // Check if the cimg_header.version is correct (2)
+    goto OUTPUT_ERROR_MSG_AND_EXIT;
+  initialize_framebuffer(&cimg);
+  data_size = 4 * cimg.header.height * cimg.header.width;
+  data = (unsigned __int8 *)malloc(4LL * cimg.header.height * cimg.header.width);
+  error_msg = "ERROR: Failed to allocate memory for the image data!";
+  data_1 = data;
+  if ( !data )
+    goto OUTPUT_ERROR_MSG_AND_EXIT;
+  read_exact(0LL, data, data_size, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  i_1 = 0LL;
+  while ( cimg.header.height * cimg.header.width > (int)i_1 )
+  {
+    *(_QWORD *)&character = data_1[4 * i_1++ + 3];
+    // Check if the character falls in the range 0x20 - 0x7e
+    if ( (unsigned __int8)(character - 0x20) > 0x5Eu )
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", *(_QWORD *)&character);
+EXIT:
+      exit(-1);
+    }
+  }
+  desired_output = ::desired_output;
+  display(&cimg, data_1);
+  num_pixels = cimg.num_pixels;
+  framebuffer = cimg.framebuffer;
+  won = cimg.num_pixels == 4;
+  for ( i = 0LL; (_DWORD)i != 4 && num_pixels > (unsigned int)i; ++i )
+  {
+    ascii_char = framebuffer[i].data[19];
+    if ( ascii_char != desired_output[19] )
+      LODWORD(won) = 0;
+    // Check if the ASCII character is a space or new-line character
+    if ( ascii_char != ' ' && ascii_char != '\n' )
+    {
+      if ( memcmp(&framebuffer[i], desired_output, 0x18uLL) )
+        LODWORD(won) = 0;
+    }
+    desired_output += 24;
   }
   if ( won )
     win();
