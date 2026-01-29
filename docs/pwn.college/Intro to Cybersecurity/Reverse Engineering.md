@@ -2945,53 +2945,43 @@ However, we can make the disassembly look much closer to the actual C code, if w
 ```c title="/challenge/cimg :: Local Types" showLineNumbers
 # ---- snip ----
 
-00000000 struct cimg_header // sizeof=0x8
-00000000 {                                       // XREF: cimg/r
-00000000     char magic_number[4];               // XREF: main+27/w main+A2/r
-00000004     unsigned __int16 version;           // XREF: main:loc_401363/r
-00000006     unsigned __int8 width;              // XREF: main+D6/r main+11D/r
-00000007     unsigned __int8 height;             // XREF: main+DB/r main+118/r
-00000008 };
+struct cimg_header {
+    char magic_number[4];
+    uint16_t version;
+    uint8_t width;
+    uint8_t height;
+};
 
-00000000 struct pixel_color_t // sizeof=0x4
-00000000 {
-00000000     unsigned __int8 r;
-00000001     unsigned __int8 g;
-00000002     unsigned __int8 b;
-00000003     unsigned __int8 ascii;
-00000004 };
+typedef struct {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t ascii;
+} pixel_t;
 
-00000004 typedef struct pixel_color_t pixel_t;
+struct term_str_st {
+    char color_set[7];
+    char r[3];
+    char s1;
+    char g[3];
+    char s2;
+    char b[3];
+    char m;
+    char c;
+    char color_reset[4];
+};
 
-00000000 struct term_str_st // sizeof=0x18
-00000000 {                                       // XREF: term_pixel_t/r
-00000000     char color_set[7];
-00000007     char r[3];
-0000000A     char s1;
-0000000B     char g[3];
-0000000E     char s2;
-0000000F     char b[3];
-00000012     char m;
-00000013     char c;
-00000014     char color_reset[4];
-00000018 };
+union term_pixel_t {
+    char data[24];
+    struct term_str_st str;
+};
 
-00000000 union term_pixel_t // sizeof=0x18
-00000000 {
-00000000     char data[24];
-00000000     struct term_str_st str;
-00000000 };
-
-00000000 struct cimg // sizeof=0x18
-00000000 {                                       // XREF: main/r
-00000000     struct cimg_header header;          // XREF: main+27/w main+A2/r ...
-00000008     unsigned int num_pixels;            // XREF: main+16F/r
-0000000C     // padding byte
-0000000D     // padding byte
-0000000E     // padding byte
-0000000F     // padding byte
-00000010     union term_pixel_t *framebuffer;    // XREF: main+2B/w main+174/r
-00000018 };
+struct cimg {
+    struct cimg_header header;
+    unsigned int num_pixels;
+    char __pad[4];                 // ABI padding (x86-64)
+    union term_pixel_t *framebuffer;
+};
 
 # ---- snip ----
 ```
