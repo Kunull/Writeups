@@ -755,8 +755,6 @@ pwn.college{MX7npfEYKHEaMMoN-13n0RYXQiX.QXwETN2EDL4ITM0EzW}
 
 ## Version Information (x86)
 
-
-
 ### Binary Analysis
 
 ![image](https://github.com/user-attachments/assets/8e03222f-a902-493b-9da2-2bca5c8287de?raw=1)
@@ -2988,7 +2986,7 @@ struct cimg {
 
 After adding the above given struct, changing the types and names of certain variables, and adding some helpful comments, the decompiled code now looks much better.
 
-<figure>
+<figure style="text-align: center;">
     <img alt="image" src="https://github.com/user-attachments/assets/f6a30c2e-a79e-4412-beef-021dedc1627a" />
 </figure>
 
