@@ -2986,11 +2986,11 @@ struct cimg {
 # ---- snip ----
 ```
 
-<frame>
-    <img alt="image" src="https://github.com/user-attachments/assets/f6a30c2e-a79e-4412-beef-021dedc1627a" />
-</frame>
-
 After adding the above given struct, changing the types and names of certain variables, and adding some helpful comments, the decompiled code now looks much better.
+
+<figure>
+    <img alt="image" src="https://github.com/user-attachments/assets/f6a30c2e-a79e-4412-beef-021dedc1627a" />
+</figure>
 
 ```c title="/challenge/cimg :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
