@@ -3142,7 +3142,7 @@ We can see that the challenge performs the exact same checks as the [Internal St
 
 The code checks if each fourth byte in the pixel, i.e. the character byte (r,g,b,c), lies between `0x20` and `0x7e`.
 
-```c title="/challenge/cimg :: main() :: Pseudocode"
+```c title="/challenge/cimg :: main() :: Pseudocode" showLineNumbers
 # ---- snip ----
 
 if ( (unsigned __int8)(character - 0x20) > 0x5Eu )
@@ -3155,7 +3155,7 @@ EXIT:
 # ---- snip ----
 ```
 
-```c title="/challenge/cimg :: main() :: Local Types"
+```c title="/challenge/cimg :: Local Types" showLineNumbers
 # ---- snip ----
 
 typedef struct {
@@ -3170,7 +3170,7 @@ typedef struct {
 
 It then uses the 4-bytes in the pixels to fill in the ANSI sequence (`\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m`) based on the struct we defined earlier:
 
-```c title="/challenge/cimg :: main() :: Local Types"
+```c title="/challenge/cimg :: Local Types" showLineNumbers
 # ---- snip ----
 
 struct term_str_st {
