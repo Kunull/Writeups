@@ -3122,7 +3122,7 @@ The `desired_ansii_sequence` is the same as last time.
 
 Expected ANSI sequence:
 
-```
+```title="/challenge/cimg :: Hex View"
 "\x1b[38;2;200;040;131mc\x1b[0m\x1b[38;2;001;019;165mI\x1b[0m\x1b[38;2;160;134;059mM\x1b[0m\x1b[38;2;195;046;079mG\x1b[0m\x00"
 ```
 
