@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 20
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/468d8f1f-52df-469c-b3d7-ab9fe0a496f0)
+</figure>
 
 We are provided with the SQL query:
 
@@ -28,7 +30,9 @@ SELECT id FROM prob_dragon WHERE id='guest'# AND pw=''
 OR id='admin' 
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/92b67e86-55ba-43de-9032-fa1b61ee5fa7)
+</figure>
 
 As we can see, the `OR id='admin'` part is not commented out, just as expected.
 
@@ -47,4 +51,6 @@ AND pw='1337' OR id='admin'
 
 Since there is no `id='guest'` with `pw='1337'`, the first part will return `False`.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/a2f5e482-30c0-4e1a-96a7-ce87efaabced)
+</figure>

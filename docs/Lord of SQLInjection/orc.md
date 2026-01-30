@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 4
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/3fb3ba7d-5c3a-40cc-8b3a-8dcd16ebe014)
+</figure>
 
 We are provided with the SQL query:
 
@@ -47,7 +49,9 @@ Next, we can leak the password byte by byte using the `substr()` function.
 
 #### `substr()`
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Kunull/Write-ups/assets/110326359/e332b358-2371-4f97-a9be-e1e5afce6f68)
+</figure>
 
 If we provide the following URI parameter:
 
@@ -173,4 +177,6 @@ The resultant query becomes:
 SELECT id FROM prob_orc WHERE id='admin' AND pw='095a9852'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![8](https://github.com/Kunull/Write-ups/assets/110326359/ef9ae213-af29-4450-8d2e-34d02565e928)
+</figure>

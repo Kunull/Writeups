@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 1
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/887a4d5c-9766-47f1-9e0a-e09ebe456193?raw=1)
+</figure>
 
 ## User Manual
 
@@ -59,7 +61,9 @@ We can set a breakpoint at `main`.
   Breakpoint set
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/33eb383b-d6fd-4dac-9fae-df07c57ca23a?raw=1)
+</figure>
 
 We can see that the breakpoint has been set.
 
@@ -69,7 +73,9 @@ If we continue through the program using the `continue` or `c` command, the prog
 > continue
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/41a9556d-e48d-43de-9a33-a4774c8fcd19?raw=1)
+</figure>
 
 The program calls the following functions:
 	- `create_password`: Creates and sets a password for the lock. 
@@ -87,7 +93,9 @@ The `create_password` function seems interesting. Let's set a breakpoint there u
 > continue
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/a9ef00a3-a974-4051-a302-d46da28787a1?raw=1)
+</figure>
 
 We can see that we are now inside the `create_password` function.
 
@@ -112,7 +120,9 @@ Once we hit the breakpoint we can check the memory location using the `R 2400` c
 
 Or we can just look in the Live Memory Dump section.
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/f8c31497-4f34-4775-ac0a-e0bd178aa4cc?raw=1)
+</figure>
 
 So the string that was read into memory was `iz7Frz*`.
 
@@ -122,8 +132,14 @@ Let's continue to where we are prompted for the passsword.
 > solve
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/9d93dff2-606b-46c5-a668-715f1bdf5122?raw=1)
+</figure>
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/6fc6ca78-b1e4-4a08-9c41-4a0e9a641e12?raw=1)
+</figure>
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/9df44578-3853-4f7c-9322-131707f7c24a?raw=1)
+</figure>

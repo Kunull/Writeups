@@ -34,11 +34,15 @@ There are two open ports:
  
 Let's check the `/index.html` page.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/13405dca-4698-414d-b09a-38e72616c8b5)
+</figure>
 
 We can view the page source using `CTRL+U`.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/72cc6185-ca28-4cf0-8c12-523147d43078)
+</figure>
 
 Let's scan all the directories using `gobuster`.
 ```
@@ -104,7 +108,9 @@ Finished
 ```
 We can now visit `/sitemap/.ssh` using our browser.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/e250cbca-f702-4409-ba8d-10ec1d1184f1)
+</figure>
 
 Let's download the `id_rsa` file using `wget`.
 ```

@@ -196,7 +196,9 @@ Out of the four, the TCP connection has a foreign address of `77.91.124.20`.
 ## Q6. Based on the previous artifacts. What is the name of the malware family?
 If we search up the IP address that we found, we can get information including the name and delivery method.
 
+<figure style={{ textAlign: 'center' }}>
 ![redline stealer](https://github.com/Knign/Write-ups/assets/110326359/d449b528-380c-4403-a6d0-138410cb8bd0)
+</figure>
 
 ### Answer
 ```

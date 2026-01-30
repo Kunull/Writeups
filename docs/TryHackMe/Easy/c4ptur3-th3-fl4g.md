@@ -27,7 +27,9 @@ can you capture the flag
 We have to convert the bits into ASCII.
 We can do that using CyberChef.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/7713c193-a46b-4132-976f-4b60077787f4)
+</figure>
 
 ### Answer
 ```
@@ -39,7 +41,9 @@ lets try some binary out!
 ### MJQXGZJTGIQGS4ZAON2XAZLSEBRW63LNN5XCA2LOEBBVIRRHOM======
 The `======` at the end is an indication of Base32 encoding.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/45c51c52-8c06-414d-9296-cebdf2349c64)
+</figure>
 
 ### Answer
 ```
@@ -66,7 +70,9 @@ Each Base64 digit represents exactly 6 bits of data.
 ### 68 65 78 61 64 65 63 69 6d 61 6c 20 6f 72 20 62 61 73 65 31 36 3f
 This one is in hexadecimal format.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/3f2a0e1b-74d3-4177-9b64-1dbfe495d305)
+</figure>
 
 ### Answer
 ```
@@ -78,7 +84,9 @@ hexadecimal or base16?
 ### Ebgngr zr 13 cynprf!
 Looks like Caesar cipher.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/88bf57c1-6095-4990-bed6-fb302a50ac5c)
+</figure>
 
 ### Answer
 ```
@@ -90,7 +98,9 @@ Rotate me 13 places!
 ### *@F DA:? >6 C:89E C@F?5 323J C:89E C@F?5 Wcf E:>6DX
 Because all the characters are capitalized, we can tell that this is Rot47 encoding.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/74f10175-cd9f-4ccf-a450-be013d8d51ce)
+</figure>
 
 ### Answer
 ```
@@ -103,7 +113,9 @@ You spin me right round baby right round (47 times)
 ### - . -. -.-. --- -.. .. -. --.
 This one is Morse code.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/1e8745da-49e3-495c-9297-d1ec80660ab5)
+</figure>
 
 ### Answer
 ```
@@ -117,7 +129,9 @@ Because this one does not have any characters, we can safely say that it is not 
 
 Therefore it has to be Decimal.
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Knign/Write-ups/assets/110326359/0ec78ed9-1c8a-4d00-bac9-7e1eac6ef989)
+</figure>
 
 ### Answer
 ```
@@ -137,7 +151,9 @@ The exact sequence is as follows:
 From Base64 > From Morse Code > From Binary > RPT47 > From Decimal
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![8](https://github.com/Knign/Write-ups/assets/110326359/007c8cbd-c0a3-4b26-802f-bc90f6d11af4)
+</figure>
 
 ### Answer
 ```

@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 17
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/283aa376-d15c-49ea-92d5-30ce164ce2d7)
+</figure>
 
 We are provided with the SQL query:
 
@@ -40,4 +42,6 @@ The resultant query becomes:
 SELECT id FROM prob_zombie_assassin WHERE id='"\' AND pw=' OR 1=1 -- -'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/6216a823-f0ba-4fd3-90ed-88b30bd5e938)
+</figure>

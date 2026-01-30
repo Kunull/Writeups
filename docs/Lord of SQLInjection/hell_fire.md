@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 23
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/50a38bf9-d127-4ab6-ad25-321eb0130c99)
+</figure>
 
 We are provided with the SQL queries:
 
@@ -29,7 +31,9 @@ The resultant query becomes:
 SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY id
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/a1e61aae-d070-4cea-b385-c1e6cd9195fb)
+</figure>
 
 There are two users: `admin` and `rubiya`.
 
@@ -702,4 +706,6 @@ The resultant query becomes:
 SELECT email FROM prob_hell_fire WHERE id='admin' AND email='admin_secure_email@emai1.com'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![0](https://github.com/Kunull/Write-ups/assets/110326359/844f62d9-030e-4a60-b0b5-3f85e8031906)
+</figure>

@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 6
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/6674ab0c-5e81-49b2-b7e4-62093ae1c3da)
+</figure>
 
 We are provided with the SQL query:
 
@@ -27,4 +29,6 @@ The resultant query becomes:
 SELECT id FROM prob_darkelf WHERE id='guest' AND pw='' || id='admin'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/f912a7a1-a27a-4632-938b-1e6d6bcc56dc)
+</figure>

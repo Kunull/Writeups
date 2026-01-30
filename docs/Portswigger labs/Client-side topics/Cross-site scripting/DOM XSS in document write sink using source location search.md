@@ -4,7 +4,9 @@ custom_edit_url: null
 sidebar_position: 3
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/18488999-5b2c-446f-8367-078bd42dbae7)
+</figure>
 
 Let's insert the following payload in the search field:
 
@@ -14,7 +16,9 @@ test_payload
 
 We can now open `Left CLick > Inspect` to open the developer tools and search our payload.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/e390989d-2349-42c1-b78e-bd24ccceebc1)
+</figure>
 
 We can see that our payload has been inserted in the `<img>` tag more specifically, it has been appended to the source of the image.
 
@@ -40,8 +44,12 @@ Now that we know how the DOM manipulation works, we can insert our final payload
 "><svg onload=alert(1)>
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/141878b7-d8f5-4a45-af2c-808f642bec58)
+</figure>
 
 We have solved the lab.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/d201e7bd-89e4-481e-ae68-e1d3fd7f4062)
+</figure>

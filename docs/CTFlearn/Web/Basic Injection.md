@@ -7,7 +7,9 @@ custom_edit_url: null
 
 The website takes user input and puts it in an SQL query.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/f98b874a-d191-472b-bc05-adbab942fe19)
+</figure>
 
 We want our input to be such that the query's login is true.
 ```
@@ -19,7 +21,9 @@ SELECT * FROM webfour.webfour where name = '' OR '1'='1'
 ```
 As the `name` field is blank and 1 is always equal to 1, the entire database is leaked.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/a1325124-e3f5-4177-ac03-287a7aab2cec)
+</figure>
 
 ## Flag
 ```

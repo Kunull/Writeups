@@ -34,17 +34,23 @@ There are two open ports:
 
 Let's enter the IP address in the browser and see what comes up.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/8aaa26f6-2805-47a9-a9e9-4f7d5f146ace)
+</figure>
 
 Let's check the page source for more information.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/be514f8f-df42-42f2-b747-5bb8b4a343cf)
+</figure>
 
 So we have a username now: `R1ckRul3s`. However we don't know the password yet.
 
 On most websites, the `robots.txt` file does the job of disallowing web crawlers from accessing particular pages. Let's see if we can find anything there.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/1ab0843f-c6f0-441a-a2ee-dd96cddc3716)
+</figure>
 
 Looks like `Wubbalubbadubdub` is the password.
 
@@ -76,21 +82,29 @@ Starting gobuster in directory enumeration mode
 ```
 We can see a `/login.php` file. Let's go to the file in the browser.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/b7853f1d-fbc0-4ecb-ad1c-d2bff3fb09e3)
+</figure>
 
 Let's enter the credentials that we found before i.e. `R1ckRul3s` as username and `Wubbalubbadubdub` as the password.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/47807896-3cb1-4374-922a-b55e7bb4378e)
+</figure>
 
 We're in and we have a `Command Panel` to enter our commands.
 
 We can use the `ls` command to list the files and subdirectories.
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Knign/Write-ups/assets/110326359/4e153ed7-49bd-498c-91d0-8ea6cd04720f)
+</figure>
 
 The `Sup3rS3cretPickl3Ingred.txt` file seems interesting. Let's `cat` the contents of that file.
 
+<figure style={{ textAlign: 'center' }}>
 ![8](https://github.com/Knign/Write-ups/assets/110326359/3fa9ddc0-5d16-489c-a440-726ff8a027b9)
+</figure>
 
 Oh! So `cat` is disabled. We have to find another way to read the file.
 
@@ -99,7 +113,9 @@ We can `grep` all the contents of the file by using the `.` regular expression.
 grep . Sup3rS3cretPickl3Ingred.txt
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![9](https://github.com/Knign/Write-ups/assets/110326359/224248e8-51b4-4c9f-84e0-ce59a108cebd)
+</figure>
 
 ### Answer
 ```
@@ -114,21 +130,27 @@ We can check which user are present by using the following command:
 cd /home ; ls
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![10](https://github.com/Knign/Write-ups/assets/110326359/082c2c36-7474-427b-8af6-4b067f56973f)
+</figure>
 
 Let's check what files `rick` has using the following command:
 ```
 cd /home/rick ; ls
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![11](https://github.com/Knign/Write-ups/assets/110326359/5f9aae7a-1551-49d2-8e58-b52001af6882)
+</figure>
 
 Let's see what is in to the `second ingredients`.
 ```
 grep . /home/rick/"second ingredients"
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![12](https://github.com/Knign/Write-ups/assets/110326359/42962fdd-8d88-4e10-b720-a15542dd42bf)
+</figure>
 
 ### Answer
 ```
@@ -143,14 +165,18 @@ Let's look at the `/root` directory using the following command:
 sudo ls /root
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![13](https://github.com/Knign/Write-ups/assets/110326359/f0ca0ca7-10cb-4d6e-b473-825d342c0e58)
+</figure>
 
 As always, we can use `grep` to read the contents of a file.
 ```
 sudo grep . /root/3rd.txt
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![14](https://github.com/Knign/Write-ups/assets/110326359/33d34bd6-679a-4193-b1e0-f473cb9fb191)
+</figure>
 
 ### Answer
 ```

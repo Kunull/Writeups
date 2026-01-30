@@ -94,7 +94,9 @@ pwn.college{gIx0gHwBB1snl_xHLkQI8Grmugg.0VM1IDL4ITM0EzW}
 
 ### `main()`
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/8c39503b-9edc-42e8-8c7e-ca8134217e85" />
+</figure>
 
 ```c showLineNumber
 void __fastcall __noreturn main(int a1, char **a2, char **a3)
@@ -133,7 +135,9 @@ void __fastcall __noreturn main(int a1, char **a2, char **a3)
 
 Let's see what the `str_Wlyie` variable references, even though we can kind of make a guess.
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/b7843599-5d1a-4ebd-9be2-ccbae95934b7" />
+</figure>
 
 So the expected input is `wlyie`
 
@@ -261,7 +265,9 @@ pwn.college{8FlXhX2U1VQwVOC4n7Adfe5OkL4.01M1IDL4ITM0EzW}
 
 ### `main()`
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/6fb73a5f-e3bb-43d5-a4ec-64284f03213f" />
+</figure>
 
 ```c showLineNumbers
 void __fastcall __noreturn main(int a1, char **a2, char **a3)
@@ -327,7 +333,9 @@ We can tell that the 3rb byte is being swapped with the fifth one.
 
 Let's look at what the final expected value is within `str_Mdtkq`.
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/d44c214b-259e-40cf-bf85-0d1507ec31c8" />
+</figure>
 
 If the final expected result, after the 3rd and 5th byte are swapped, is `mdtkq`, then our input should be `mdqtk`.
 
@@ -368,7 +376,9 @@ Incorrect!
 
 ### `main()`
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/3a845cd5-a542-4cf8-8293-010eee2b9ea0" />
+</figure>
 
 ```c showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -499,7 +509,9 @@ Incorrect!
 
 ### `main()`
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/6966a2cf-60d7-4547-a254-5369bd519f46" />
+</figure>
 
 ```c showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -565,7 +577,9 @@ Let's look at the operations it performs on the user input:
 
 Before crafting the solution, we need to see the values present in the `substitution_table`. For this we can double-click on `substitution_table` and IDA will take us to the memory location.
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/a8bd4260-ca33-4673-b1af-f104949797b9" />
+</figure>
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
@@ -835,7 +849,9 @@ $
 
 After a bit of analyzing and adding helpful comments, we get the following:
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/5909cff7-5316-4723-9865-e0faa88c5faf" />
+</figure>
 
 ```c showLineNumbers
 void __fastcall __noreturn main(int a1, char **a2, char **a3)
@@ -930,7 +946,9 @@ void __fastcall __noreturn main(int a1, char **a2, char **a3)
 
 Finally, let's look at the data pointed to by `&key`.
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/ff5b949c-5fa5-4bcc-afe7-287540b55058" />
+</figure>
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
@@ -1335,7 +1353,9 @@ void __fastcall __noreturn main(int a1, char **a2, char **a3)
 
 Let's look at the data pointed to by `&key`.
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/cda7cb67-781f-48b2-a8fd-144d0b5b09dc" />
+</figure>
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
@@ -1598,7 +1618,9 @@ int __fastcall __noreturn main(int argc, const char **argv, const char **envp)
 
 At a high level, the program compares the user input at `&buf` with the `EXPECTED_RESULT`, and based on the result, either jumps to `win()` or exits. 
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/4b2d46d5-563c-4b2a-9f26-1265508f73e1" />
+</figure>
 
 Let's check how the conditional is performed in Assembly.
 
@@ -1793,7 +1815,9 @@ void __fastcall __noreturn main(int a1, char **a2, char **a3)
 }
 ```
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/1ed28d08-6885-4efb-b101-6bb5ef574bbe" />
+</figure>
 
 Let's look at the disassembly view.
 
@@ -2021,7 +2045,9 @@ int __fastcall __noreturn main(int argc, const char **argv, const char **envp)
 }
 ```
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/f304770d-881d-4437-94bf-f235e1769835" />
+</figure>
 
 Let's look at the disassembly view.
 
@@ -2208,7 +2234,9 @@ void __fastcall __noreturn main(int a1, char **a2, char **a3)
 }
 ```
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/7746fbd5-7725-40f4-9739-1efd2be6e9e1" />
+</figure>
 
 Lets look at the disassembly view.
 
@@ -2439,7 +2467,9 @@ int __fastcall __noreturn main(int argc, const char **argv, const char **envp)
 }
 ```
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/e023a824-11a0-4e9d-8c0c-9b0ade082495" />
+</figure>
 
 Let's look at the disassembly view.
 
@@ -2683,7 +2713,9 @@ void __fastcall __noreturn main(int a1, char **a2, char **a3)
 }
 ```
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/9360cfbb-30c2-4ec8-a90f-e09bb4ccfd5b" />
+</figure>
 
 Disassembly:
 

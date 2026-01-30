@@ -50,25 +50,35 @@ There are three open ports:
 ### How you redirect yourself to a secret page?
 Let's visit the machine using the browser.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/8bc89493-ded5-439d-82ea-90bb56b2f855)
+</figure>
 
 We have to use modify our request. For that we have to intercept it using Burpsuite.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/0ada2e34-3de8-4813-be4c-f7cd3591c4b2)
+</figure>
 
 Let's forward the request to the `Intruder`.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/0ec38f2e-b61e-4681-b9ae-b00f1ed17c91)
+</figure>
 
 After setting the field on the `User-Agent`, we can move on to selecting the payloads.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/940bd213-2336-48f8-a66c-713101d8fddc)
+</figure>
 
 We can set the Payload as a `Simple list` and use all the characters.
 
 Let's start the attack.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/95231371-48be-43fa-a37f-12b71aff8e8f)
+</figure>
 
 We can see that the request where the `User-Agent: C` is being redirected to another page as shown by the `302` code.
 
@@ -82,11 +92,15 @@ User-Agent
 ### What is the agent name?
 Let's go to the `Options` tab and set the `Follow redirection` option to `Always`.
 
+<figure style={{ textAlign: 'center' }}>
 ![13](https://github.com/Knign/Write-ups/assets/110326359/b6f2395d-6f52-4b31-a3df-e1d6dcfb1a81)
+</figure>
 
 Now, let's start the attack again and check `Response 2` to see if it has any useful information.
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Knign/Write-ups/assets/110326359/1e5b4aa5-f53b-4e9c-847f-a9bed92f0ea8)
+</figure>
 
 We are told the the user `chris` has a weak password.
 
@@ -411,15 +425,21 @@ Alien_autospy.jpg                                                               
 ```
 We can now use TinEye to perform a reverse image search.
 
+<figure style={{ textAlign: 'center' }}>
 ![8](https://github.com/Knign/Write-ups/assets/110326359/3822e3d4-24cd-4c41-b566-f00591aa01be)
+</figure>
 
 Let's upload the file.
 
+<figure style={{ textAlign: 'center' }}>
 ![9](https://github.com/Knign/Write-ups/assets/110326359/4457134a-c94d-4639-9f12-0b53e6fe0b1d)
+</figure>
 
 Let's click on the top link.
 
+<figure style={{ textAlign: 'center' }}>
 ![10](https://github.com/Knign/Write-ups/assets/110326359/5825d474-ab9a-4cc9-a596-ebeabd630a2c)
+</figure>
 
 ### Answer
 ```
@@ -443,7 +463,9 @@ User james may run the following commands on agent-sudo:
 The users are not allowed to run `/bin/bash` as root.
 If we go to Exploit Database, we can find the CVE for this vulnerability.
 
+<figure style={{ textAlign: 'center' }}>
 ![11](https://github.com/Knign/Write-ups/assets/110326359/e2554b6d-f078-4492-aa49-9213cbc9ddcc)
+</figure>
 
 
 ### Answer
@@ -456,7 +478,9 @@ CVE-2019-14287
 ### What is the root flag?
 We can also find the exploit for this vulnerability on Exploit Database.
 
+<figure style={{ textAlign: 'center' }}>
 ![12](https://github.com/Knign/Write-ups/assets/110326359/4267c425-95dd-4127-8b2f-922bcde624f6)
+</figure>
 
 
 Let's enter that in the terminal.

@@ -80,11 +80,15 @@ From the scan, we can tell that the target is running WordPress.
 
 Let's visit the web page through our browser.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/user-attachments/assets/cc6c1ca4-71ce-4a28-b3ce-922cdc680c06?raw=1)
+</figure>
 
 Scrolling down tells us who the user on the target is.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/user-attachments/assets/62e3214f-1176-4eda-9d0d-9149619afd08?raw=1)
+</figure>
 
 | Username |
 | :------- |
@@ -92,11 +96,15 @@ Scrolling down tells us who the user on the target is.
 
 Let's visit the `robots.txt` page to see if we can find some more information.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/user-attachments/assets/ec96bb07-b431-4aaa-ba8e-ad695f48b8e4?raw=1)
+</figure>
 
 Visiting `secret.txt` gives us the following:
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/user-attachments/assets/795c100a-7a1d-4736-aa8b-360f963f3cc8?raw=1)
+</figure>
 
 ```
 LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KYjNCbGJuTnphQzFyWlhrdGRqRUFB

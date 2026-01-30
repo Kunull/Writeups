@@ -53,7 +53,9 @@ There are four open ports:
 ### Using the information from the open ports. Look around. What can you find?
 We can visit the target using our browser.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/41cd6256-ab6f-4190-af75-eaff51c69a6b)
+</figure>
 
 ### No answer needed
 
@@ -62,7 +64,9 @@ We can visit the target using our browser.
 ### Using Google, can you find any public information about them?
 On searching for a while, we can find this page which has a bunch of the employees' passwords.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/8395f86f-79bc-4b8e-baaa-df2608066737)
+</figure>
 
 ```
 mauer@fowsniff:8a28a94a588a95b80163709ab4313aa4

@@ -151,7 +151,9 @@ We can see that the ActiveMQ service is runnig on port `61616`.
 
 Let's visit the machine on port `61616` through our browser.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/07fb3ab7-956d-40d7-9cb2-d4a7412181b0)
+</figure>
 
 ## Exploitation
 
@@ -159,13 +161,17 @@ Let's visit the machine on port `61616` through our browser.
 
 Let's check if this version has any vulnerabilities.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/ac1ae3ec-675a-46d3-b0e2-946b77380900)
+</figure>
 
 ### Exploit
 
 Looking for exploits, we can find the following one:
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/52032efc-5f72-4945-a1fa-97f081fb9b5b)
+</figure>
 
 &nbsp;
 

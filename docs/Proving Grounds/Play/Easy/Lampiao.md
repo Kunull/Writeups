@@ -105,11 +105,15 @@ Additionally, we can see that port 1898 has Drupal version 7 running on it, whic
 
 Let's visit the web server on port 80 through our browser.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/22e129c7-fc03-4cc8-b68a-2f8f8eb47843)
+</figure>
 
 Upon visiting port 1898 on which Drupal is running, we find two posts from the two different users.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/ede697dd-d7e6-476e-8cb0-c2a723349068)
+</figure>
 
 | Users |
 | :---- |
@@ -239,7 +243,9 @@ tiago@lampiao:~$ cat local.txt
 
 We have to use the [Linux Exploit Suggester](https://github.com/The-Z-Labs/linux-exploit-suggester/blob/master/linux-exploit-suggester.sh) in order to find a privilege escalation vector.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/9af3cc8c-3d7b-49d4-959d-8d22a99fed7c)
+</figure>
 
 We have two methods to get this script on the target machine:
 - Download this script on our attacker machine and then transfer it using `wget`.
@@ -456,7 +462,9 @@ Out of the many exploits suggested, we will be using the [Dirty COW](https://www
 
 #### Dirty COW
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Kunull/Write-ups/assets/110326359/57d295a5-faee-47c1-a441-85bae728e49e)
+</figure>
 
 Let's start a Python3 server.
 

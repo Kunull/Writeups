@@ -43,7 +43,9 @@ There are two open ports:
 
 Let's visit the web page for the target.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/user-attachments/assets/00ab8e6d-f018-433c-a837-a76520277f4c?raw=1)
+</figure>
 
 This `save.zip` file had also showed up in the Nmap scan.
 
@@ -249,9 +251,13 @@ It seems that the option we chose earlier set a Cron job. We can exploit this Cr
 
 We can download the exploit from [Exploit-DB](https://www.exploit-db.com/exploits/33899).
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/user-attachments/assets/4f40a2d3-eb7c-4172-9b60-bbf13356a26e?raw=1)
+</figure>
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/user-attachments/assets/08745b10-09eb-4821-881d-347432a66a22?raw=1)
+</figure>
 
 Let's follow the steps to reproduce and create a reverse shell file called `update`.
 

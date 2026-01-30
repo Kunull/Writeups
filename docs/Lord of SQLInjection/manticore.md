@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 38
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/4f8d6e75-d77a-487a-9a87-463fd8f15b4a)
+</figure>
 
 We are provided with the SQLite query:
 
@@ -39,4 +41,6 @@ The resultant query becomes:
 SELECT id FROM member WHERE id='admin\' OR id=char(97,100,109,105,110) -- -' AND pw=''
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/bf14c154-db21-4066-b055-c8ed4682dd76)
+</figure>

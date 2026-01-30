@@ -41,7 +41,9 @@ There are two open ports:
 
 Let's visit the web server through our browser.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/54c15681-c889-4f61-baac-2cb77914a936)
+</figure>
 
 Nothing useful, just a picture of the anime character [Gaara](https://en.wikipedia.org/wiki/Gaara).
 
@@ -59,7 +61,9 @@ Cryoserver              [Status: 200, Size: 327, Words: 1, Lines: 303, Duration:
 
 If we visit the `/Cryoserver` page, we can find the following information.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Kunull/Write-ups/assets/110326359/f6d40651-cb2d-498d-bc72-f2e0edda2ed7)
+</figure>
 
 So, there are three other directories.
 
@@ -156,7 +160,9 @@ We can now use on of these files to escalate our privilege.
 
 Let's go to [GTFOBins](https://gtfobins.github.io/gtfobins/gdb/#suid) to search for an exploit for the `gdb` utility. 
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/user-attachments/assets/1e696a96-6647-4730-8162-bbf32d570d32?raw=1)
+</figure>
 
 Since we want a Bash shell, we have to modify the exploit slightly.
 

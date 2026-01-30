@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 25
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/a2a4e0ba-a94a-47b7-87fd-6b701374d2b8)
+</figure>
 
 We are provided with two SQL queries:
 
@@ -48,7 +50,9 @@ The resultant query becomes:
 SELECT id,pw FROM prob_green_dragon WHERE id='\' AND pw=' UNION SELECT 1, 2 -- -'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/67f050bb-24ab-453d-9d4c-482e23491d03)
+</figure>
 
 Interestingly, we can see that the values in the `?pw` parameter (`1,2`) have been inserted in the second query.
 
@@ -81,4 +85,6 @@ The resultant second query becomes:
 SELECT id FROM prob_green_dragon WHERE id='1' AND pw='2' UNION SELECT 0x61646d696e -- -
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/b3e82b2e-fb6d-4d6e-a363-e5b7526dcaf3)
+</figure>

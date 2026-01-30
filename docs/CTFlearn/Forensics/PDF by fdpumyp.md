@@ -6,7 +6,9 @@ custom_edit_url: null
 > Bye
 > [dontopen.pdf](https://ctflearn.com/challenge/download/957)
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/d4e3acdf-e242-47cf-bd23-f9a9ac1f3d9a)
+</figure>
 
 Opening the PDF doesn't give us anything of importance.
 
@@ -31,7 +33,9 @@ startxref
 ```
 The `external` and `password` fields look like they are Base64 encoded. We can decode them using CyberChef.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/ee5d0100-c6fb-4fab-aece-5036a7ed1a2d)
+</figure>
 
 ## Flag
 ```

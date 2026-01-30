@@ -9,15 +9,21 @@ custom_edit_url: null
 > There are no measures in place to protect against this attack. This means a link can be crafted to achieve a certain action (in this case, change the current users password). Then with some basic social engineering, have the target click the link (or just visit a certain page), to trigger the action.
 > Spoiler: ?password_new=password&password_conf=password&Change=Change.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/d7b1127f-9597-49da-8a4f-dd3ae451e916)
+</figure>
 
 Let's click on the `Test Credentials` button and enter `password` as the password.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/e3584a4e-cb81-4f00-9914-0509bd698514)
+</figure>
 
 We can now set the password to any other value let's say `password123` and intercept the request using Burpsuite.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/88510d71-659c-46fc-ae08-a7cbe9b3bfd6)
+</figure>
 
 As we can see, the passwords are being used in the URI. 
 
@@ -36,7 +42,9 @@ http://10.0.4.5/DVWA/vulnerabilities/csrf/?password_new=password123&password_con
 
 Let's intercept the request in Burpsuite again.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/f74d4d01-ecff-46b6-a81d-af9a870cb4b0)
+</figure>
 
 We can see, that the `Referer` header has the same domain as the one we are on i.e. `DVWA/vulnerabilities/csrf/`.
 

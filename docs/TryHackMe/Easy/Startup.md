@@ -53,7 +53,9 @@ As we can see there are three open ports:
 
 Let's visit the machine's HTTP port through the browser.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/aa9f1077-8193-4bba-aa2f-d9c811c0eaa3)
+</figure>
 
 As we can see, there is nothing of importance on this page.
 
@@ -117,7 +119,9 @@ We can upload a reverse shell in this directory.
 
 We will be using the `/usr/share/webshells/php/php-reverse-shell.php` script after making some modifications.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/0a37e469-dc9c-4e0d-a083-2617e8357d5e)
+</figure>
 
 We replaced the IP address with our `tun0` address and set the port to a port of our choice.
 
@@ -138,7 +142,9 @@ listening on [any] 9999 ...
 ```
 Let's go to the `/files/ftp` folder.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/08dd912a-06d9-4ba3-adcd-c588983624ed)
+</figure>
 
 All we have to do now is execute the `php-reverse-shell.php` file.
 
@@ -216,11 +222,15 @@ We can now use Wireshark to analyze the packet capture.
 
 In frame 45 we can see that the user has entered some commands.
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Knign/Write-ups/assets/110326359/9388df3c-90f7-4506-a642-6fab020f5913)
+</figure>
 
 Let `Follow TCP Stream`.
 
+<figure style={{ textAlign: 'center' }}>
 ![8](https://github.com/Knign/Write-ups/assets/110326359/9f4c6323-2aa5-42ad-b864-86a42e678cca)
+</figure>
 
 The password for the `lennie` user is `c4ntg3t3n0ughsp1c3`.
 ```
@@ -269,11 +279,15 @@ But before that let's modify it to get a reverse shell.
 
 We can get a bash reverse shell from Revshells.com.
 
+<figure style={{ textAlign: 'center' }}>
 ![9](https://github.com/Knign/Write-ups/assets/110326359/758e26e5-4b82-4d06-98b0-8ae390c79abe)
+</figure>
 
 The IP address is our `tun0` address.
 
+<figure style={{ textAlign: 'center' }}>
 ![10](https://github.com/Knign/Write-ups/assets/110326359/8ee962c7-0491-46ec-9b75-33e86dac1652)
+</figure>
 
 After saving the changes, we can listen on port `9998` and  run the `planner.sh` file.
 ```

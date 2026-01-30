@@ -39,11 +39,15 @@ There are two open ports:
 
 Let's visit port 80 through our browser.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/5b99ab0a-fc90-418e-886e-71790a5ffdd2)
+</figure>
 
 We have to map `192.168.240.194` to `dc-2` in our `/etc/hosts` file.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/752bbe0f-c83a-4ff0-a4cc-ef3f3f742787)
+</figure>
 
 As we can see, there is a WordPress site running on port 80.
 
@@ -338,7 +342,9 @@ There is a way to escape restricted shell using the `vi` command.
 
 We can find the payload on [GTFOBins](https://gtfobins.github.io/gtfobins/vi/#shell).
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/user-attachments/assets/5602f0e2-9ed7-4b67-b999-ab3bda643899?raw=1)
+</figure>
 
 Because we want a Bash shell, we will have to modify the payload slightly.
 
@@ -401,7 +407,9 @@ We can  use this misconfigured SUID bit to escalate our privileges.
 
 We can find the this payload on [GTFOBins](https://gtfobins.github.io/gtfobins/git/#sudo) as well.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/user-attachments/assets/1df9d50e-4992-4ec1-81e8-c0afb5a8ec14?raw=1)
+</figure>
 
 If we use the second payload, we get a `root` shell.
 

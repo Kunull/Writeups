@@ -5,7 +5,9 @@ custom_edit_url: null
 ## What user (other than ‘root’) is present on the server?
 We can see the user move to a directory called `/home/daniel/`.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/00f29ed8-d311-4368-a901-1edb63630ceb)
+</figure>
 
 ### Answer
 ```
@@ -17,7 +19,9 @@ daniel
 ## What script did the attacker try to download to the server?
 The attacker used the `wget` utility to download a Github script. 
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/1c912724-bb41-4e3f-b484-d4794770d217)
+</figure>
 
 ### Answer
 ```
@@ -29,7 +33,9 @@ linux-exploit-suggester.sh
 ## What packet analyzer tool did the attacker try to use?
 We can see the command `tcpdump` which is used for packet analysis on the command line.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/9a3a0f68-e00d-4897-84b2-624eef3513d7)
+</figure>
 
 ### Answer
 ```
@@ -41,7 +47,9 @@ tcpdump
 ## What file extension did the attacker use to bypass the file upload filter implemented by the developer?
 The attacker tried to delete a file named `x.phtml`.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/73a40386-280f-4003-9890-7c4d5cac8d85)
+</figure>
 
 The PHTML files contain PHP code that is parsed by a PHP engine which allows the web server to generate dynamic HTML that is displayed in a web browser.
 ### Answer
@@ -55,13 +63,17 @@ The PHTML files contain PHP code that is parsed by a PHP engine which allows the
 
 We can see that the attacker tried to find binaries with the SUID bit set.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/c75c5453-814b-47c3-888e-7a6a43df2581)
+</figure>
 
 On executing a binary with the SUID bit set, the file executes with the effective permissions of the owner of the file instead of the person executing. This allows for temporary privilege escalation.
 
 Then the attacker executes `sh`.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/1eadcd52-21db-4424-96f4-7e425dec2093)
+</figure>
 
 ### Answer
 ```

@@ -105,13 +105,17 @@ Finished
 ### user.txt
 In order to get a reverse shell, we have to first go to the `/panel` directory.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/9223280c-9bec-46ec-b9f5-bff70cae9dc9)
+</figure>
 
 There are multiple ways of obtaining a reverse shell. We will be using a `php` reverse shell.
 
 We will be using the `/usr/share/webshells/php/php-reverse-shell.php` script after making some modifications.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/98dbb607-a647-4217-9276-a71d7f4ff7bb)
+</figure>
 
 We have to replace the IP address with our own IP address which we can find using the `ip` command. We can also change the port to any particular port we want like `9999`.
 ```
@@ -137,21 +141,29 @@ $ ip a
 ```
 Once we have replaced the IP address we are ready to upload our `php-reverse-shell.php` file.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/36310b86-eae0-4c13-baf4-ae487c7e0973)
+</figure>
 
 Let's click on the `Upload` button next.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/42007f78-ae9f-4d1a-b364-c36ce5d90638)
+</figure>
 
 Looks like `php` is not allowed.
 
 There is a workaround for this, we can try to change the file extension to `php5` to see if that is allowed.
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Knign/Write-ups/assets/110326359/a4695556-b2c4-4571-9c78-8eaa9127299a)
+</figure>
 
 Let's hit `Upload`.
 
+<figure style={{ textAlign: 'center' }}>
 ![8](https://github.com/Knign/Write-ups/assets/110326359/5417e512-5007-4fd1-baeb-0e3c4f8b0f7e)
+</figure>
 
 Our file upload has been successful.
 
@@ -161,7 +173,9 @@ $ nc -nlvp 9999
 ```
 Next, let's go to the `/uploads` folder.
 
+<figure style={{ textAlign: 'center' }}>
 ![9](https://github.com/Knign/Write-ups/assets/110326359/b1937f83-05b8-468b-b4de-7fd4dd682daf)
+</figure>
 
 On clicking on the `php-reverse-shell.php5` link, a request will be sent to our IP address on the `9999` port which will be caught by our `netcat` listener.
 ```
@@ -266,7 +280,9 @@ We will be using the `python` utility to escalate our privilege since it already
 
 But before we do that, we need to check out GTFObins for a shell script.
 
+<figure style={{ textAlign: 'center' }}>
 ![10](https://github.com/Knign/Write-ups/assets/110326359/ac92d807-5b9d-40cc-8d37-9f917357a732)
+</figure>
 
 We have to use the selected script with the `/usr/bin/python` interpreter.
 ```

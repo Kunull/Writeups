@@ -5,7 +5,9 @@ custom_edit_url: null
 ## What is the email service used by the malicious actor?
 To find the email service used by the malicious actor we need to check the `Received` field after opening the email in a text-editor.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/357f8954-840e-4cb5-b649-b152b3b70472)
+</figure>
 
 ### Answer
 ```
@@ -17,7 +19,9 @@ emkei.cz
 ## What is the Reply-To email address?
 If we open the file using Thunderbird, we can find the `Reply-To` email address.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/1a48e22c-12e7-49e1-ad91-bcb41aa7806e)
+</figure>
 
 ### Answer
 ```
@@ -29,7 +33,9 @@ negeja3921@pashter.com
 ## What is the filetype of the received attachment which helped to continue the investigation?
 Let's open the PDF file attached to the email.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/e91adc52-a32a-4956-adcb-178fb43f9aef)
+</figure>
 
 So the file isn't opening. Maybe it is not really a PDF.
 
@@ -86,19 +92,25 @@ Pestero Negeja
 ## What is the location of the attacker in this Universe?
 On opening the `Money.xlsx` file, we can see that there are two sheets: `Sheet1` and `Sheet3`.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/36ec910a-7090-4fb6-a144-a2e81d9ee384)
+</figure>
 
 Let's covert both the sheets to text files so that we can view the content better.
 
 If we open the `Sheet3.txt` file we can see some text that appears to be encrypted.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/6c6c1423-6aa6-471a-b626-54ae65103c29)
+</figure>
 
 The `==` at the end indicates that the encryption is Base64.
 
 We can use Cyberchef to decrypt the text.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/1f7e67c0-f510-49a2-b9f4-6339ddb62cdf)
+</figure>
 
 ### Answer
 ```

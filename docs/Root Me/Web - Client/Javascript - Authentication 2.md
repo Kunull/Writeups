@@ -3,16 +3,22 @@ custom_edit_url: null
 sidebar_position: 4
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/df775231-54b2-44d9-8183-50a82c4ad03e)
+</figure>
 
 When we click on the login button, a dialog box pops up prompting us to enter the username and password.
 Let's check the source code.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/c2a5e052-901c-408e-b873-32ba28082e21)
+</figure>
 
 We can see that the `login.js` file is where the script is being imported from. We can follow the link to check it out,
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/c0ba44af-556b-40ba-8afc-a07a94ac6b6d)
+</figure>
 
 So this is where the input authentication takes place.
 ```javascript
@@ -46,7 +52,9 @@ If there is a match, it splits the current element into username and password us
 
 Let's enter the credentials.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/053fa216-7cfe-40ba-a1cd-8f9d08f6b8c2)
+</figure>
 
 ## Password
 ```

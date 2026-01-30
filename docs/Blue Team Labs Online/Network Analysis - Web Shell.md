@@ -6,7 +6,9 @@ custom_edit_url: null
 Port scanning is done for TCP ports.
 In order to see the port scan activity, we have to to go `Statistics > Conversations > TCP`.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/b2b6e66d-cff1-4e92-bd5b-e6cecd25319d)
+</figure>
 
 ### Answer
 ```
@@ -18,7 +20,9 @@ In order to see the port scan activity, we have to to go `Statistics > Conversat
 ## What is the port range scanned by the suspicious host?
 Let's sort `Port B` in an ascending order.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/46478686-7f2b-431d-954d-583265b08bfb)
+</figure>
 
 We can see that the last port scanned is 1024.
 ### Answer
@@ -34,7 +38,9 @@ We can filter the packets using the following filter:
 ip.src == 10.251.96.4
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/77cde470-7352-4a42-b6bd-4fd59c6353a5)
+</figure>
 
 The packets that we filtered are TCP packets with the SYN flag set.
 ### Answer
@@ -52,13 +58,17 @@ Using the following filter we can filter out packets sent to the suspicious agen
 ip.dst == 10.251.96.5 && http.user_agent
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/bb134ae8-a7ae-4ef3-be43-4309552cdf5b)
+</figure>
 
 As we can see the first tool is GoBuster which is enumerating all the directories.
 
 In order to find the second tool, we have to scroll down until we find an encoded URI.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/0c14f5fc-fa7f-49d4-97a0-53698f5f2e05)
+</figure>
 
 The second tool is SQLmap.
 ### Answer
@@ -75,7 +85,9 @@ http.request.method == POST
 ```
 Scrolling down, we can see a POST request made for a `upload.php` file.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/84ad7616-2e61-4fc3-a0a6-7c82ebb75bdb)
+</figure>
 
 The `Referer` header in the packet tells us the address from which a resource has been requested.
 ### Answer
@@ -88,7 +100,9 @@ editprofile.php
 ## What is the name of the web shell that the attacker uploaded?
 Let's follow the TCP stream for the same packet by going to `Follow > TCP Stream`.
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Knign/Write-ups/assets/110326359/a8682218-3dfe-4c5f-bd32-4e3c6149b2f7)
+</figure>
 
 As we can see the `Content-Disposition` header is set to `form-data` with the `dbfunctions.php` as the filename.
 ### Answer
@@ -101,7 +115,9 @@ dbfunctions.php
 ## What is the parameter used in the web shell for executing commands?
 In the same TCP Stream we can see an if statement that takes `cmd` as the parameter. 
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Knign/Write-ups/assets/110326359/4cf973ca-bafa-477a-ac40-6da3eb105bbd)
+</figure>
 
 ### Answer
 ```
@@ -116,7 +132,9 @@ The commands to the uploaded file are sent using GET requests. We can use the fo
 http.request.method == GET
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![8](https://github.com/Knign/Write-ups/assets/110326359/b15615e2-303a-4024-b751-af31201f3314)
+</figure>
 
 There were three commands executed: `id`, `python code` and `whoami`.
 ### Answer
@@ -129,7 +147,9 @@ id
 ## What is the type of shell connection the attacker obtains through command execution?
 We need to open the packet with the python script.
 
+<figure style={{ textAlign: 'center' }}>
 ![9](https://github.com/Knign/Write-ups/assets/110326359/653d5d08-6458-477f-94c7-6028d5538d95)
+</figure>
 
 Once formatted, the script looks as follows:
 ```python

@@ -9,11 +9,15 @@ custom_edit_url: null
 > This can be done by adding on to the request, "once the command has executed successfully, run this command".
 > Spoiler: To add a command "&&". Example: 127.0.0.1 && dir.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/6274dc2d-aa0d-418d-8f07-b556a9d0215d)
+</figure>
 
 Let's enter `127.0.0.1` as the IP address.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/d60d766c-af4b-450e-8b00-77993275a5fa)
+</figure>
 
 So the application takes the user input and uses that in a `ping` command.
 
@@ -22,7 +26,9 @@ We can chain multiple commands together using the `&&` operator.
 127.0.0.1 && cat /etc/passwd
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/3f3762ba-7fec-4d5b-9fb4-721a97449299)
+</figure>
 
 &nbsp;
 
@@ -34,13 +40,17 @@ We can chain multiple commands together using the `&&` operator.
 
 We can check the source code for each level at the bottom of the page.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/4e68805a-66f3-456d-987e-528ef9aa62c0)
+</figure>
 
 As we can see, our input characters `&&` are being substituted with empty space.
 
 Let's try using the pipe `|` operator.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/35fbc180-d1f0-4885-94f2-66c86e3803ed)
+</figure>
 
 &nbsp;
 
@@ -52,7 +62,9 @@ Let's try using the pipe `|` operator.
 
 Let's check what typo the developer has made.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/87fcec55-b767-4132-90fd-f8678a4c3940)
+</figure>
 
 As we can see, in the third case, the characters `| ` are being replaced with empty space.
 
@@ -61,4 +73,6 @@ We can provide the same input as above just with a slight modification:
 127.0.0.1 |cat /etc/passwd
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Knign/Write-ups/assets/110326359/5da830c9-dfe8-43c0-918d-e59548876ce4)
+</figure>

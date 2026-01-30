@@ -6,7 +6,9 @@ custom_edit_url: null
 
 Let's open the link and see what is in the MEGA folder.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/b758c9c0-5d1c-4469-9dbd-9ec347badd27)
+</figure>
 
 It's an image with a Minion on it. It also has some text but none of it is in the format of our flag.
 
@@ -19,7 +21,9 @@ flag{wow!_data_is_cool}
 ```
 Alternatively we can also use the `Strings` operation inside Cyberchef in order to find the flag.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/c696a487-d531-4c28-a5a3-ea2570ecdf8a)
+</figure>
 
 ## Flag
 ```

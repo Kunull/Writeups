@@ -71,7 +71,9 @@ There are five open ports:
 
 Let's enumerate port 80 through our browser.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/71a3bc51-20dc-45c4-abdf-3a33cfd0651a)
+</figure>
 
 As we can see there is nothing of importance here.
 
@@ -158,9 +160,13 @@ This tells us some potential credentials.
 
 Let's enumerate port 8000 through our browser.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/b468e471-1ba8-4e4a-a930-7dc2226f0f9a)
+</figure>
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/8f0975f8-ee2d-4d90-8be8-bedad4c2c169)
+</figure>
 
 &nbsp;
 
@@ -271,27 +277,37 @@ Content-Type: image/jpeg
 ### Uploading a php
 Intead of the PHP shell code given to us, we will be using the `/usr/share/webshells/php/php-reverse-shell.php`.
 
+<figure style={{ textAlign: 'center' }}>
 ![9](https://github.com/Kunull/Write-ups/assets/110326359/13c53dc9-a0c1-4f8b-9677-e428766f756d)
+</figure>
 
 Once we have saved the code to `image.php.jpg`, we can upload the file through the CMS dashboard.
 
 While uploading the file, we have to proxy the traffic through Burpsuite.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Kunull/Write-ups/assets/110326359/4d0e241b-67df-4c90-9533-ff30ebc8ba03)
+</figure>
 
 The request must be logged in the `Proxy > HTTP history`.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Kunull/Write-ups/assets/110326359/f6c2e3ce-e892-4e60-9df2-f3194c3afdff)
+</figure>
 
 Next, we have to forward the request to the `Repeater`.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Kunull/Write-ups/assets/110326359/1c505d79-0443-403b-820f-5a1d79b3d2b0)
+</figure>
 
 Once in the `Repeater`, we can change the file name to `revshell.php` and forward the request.
 
 Now, there should be two files visible on the dashboard: `image.php.jpg` and `revshell.php`.
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Kunull/Write-ups/assets/110326359/7792cb8a-02e7-4ad0-a53e-6e6155f2ef04)
+</figure>
 
 If we look at the `SITE > Link`, we can see where the `revshell.php` file is located.
 
@@ -306,7 +322,9 @@ listening on [any] 9999 ...
 
 Now we can visit the `revshell.php` file through the browser.
 
+<figure style={{ textAlign: 'center' }}>
 ![10](https://github.com/Kunull/Write-ups/assets/110326359/444d3da7-3980-4e07-be0a-9655e2254573)
+</figure>
 
 Let's check back on the listener.
 
@@ -382,7 +400,9 @@ We can now use on of these files to escalate our privilege.
 
 Let's go to [GTFOBins](https://gtfobins.github.io/gtfobins/php/#suid) to search for an exploit for the `php` utility.
 
+<figure style={{ textAlign: 'center' }}>
 ![11](https://github.com/user-attachments/assets/910b21a9-bfea-4a42-a7f5-805e030f4e32?raw=1)
+</figure>
 
 ```
 www-data@photographer:/$ /usr/bin/php7.2 -r "pcntl_exec('/bin/bash', ['-p']);"

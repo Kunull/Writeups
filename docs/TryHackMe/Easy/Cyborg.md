@@ -64,7 +64,9 @@ HTTTP
 ### What is the user.txt flag?
 Let's check the IP address through the browser.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/8a85076a-7870-41e6-8abf-ec595aac7c4d)
+</figure>
 
 Now that we know it is hosting a `apache2` server, we can brute force the directories using `gobuster`.
 ```
@@ -94,17 +96,23 @@ Finished
 ```
 Let's go to the `admmin` directory and see what we can find.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/3870ef97-743d-4637-8af3-9378a7202e0f)
+</figure>
 
 Let's go to the `Admin` page.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/af7be9ad-a52a-4550-a901-fd6ded193313)
+</figure>
 
 From what Alex said in his final message, we know that he has probably set up a squid proxy.
 
 Before we look for it's directory let's see what `Archive` has.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/ded7ca6c-d3f7-488f-b6fe-8770af0e5cc6)
+</figure>
 
 Let's click on `Download`.
 ```
@@ -141,15 +149,21 @@ It can also be used to backup entire filesystems which can then be mounted onto 
 Having read the messages between the two admin, we can guess that this is a probably a backup of Alex's filesystem.
 However, before we do that, let's first check out the `etc` directory as well.
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Knign/Write-ups/assets/110326359/6f6994a4-1639-4bad-a156-e7db0dda3047)
+</figure>
 
 Ah! So this is where the `squid` directory for the Squid proxy was located. Let's go inside.
 
+<figure style={{ textAlign: 'center' }}>
 ![8](https://github.com/Knign/Write-ups/assets/110326359/0e07adff-6dad-4b9a-94ad-0448df5ab556)
+</figure>
 
 The `passwd` file probably has some useful information.
 
+<figure style={{ textAlign: 'center' }}>
 ![9](https://github.com/Knign/Write-ups/assets/110326359/2c6ee7a6-5087-44eb-9043-84a992071be5)
+</figure>
 
 We have what looks to be a pair of a username `music_archive` and a hashed password `$apr1$BpZ.Q.1m$F0qqPwHSOG50URuOVQTTn.`.
 
@@ -180,7 +194,9 @@ Possible Hashs:
 ```
 Before we crack the hash let's save the hash in a `hash.txt` file and take a look at the hash-mode for MD5(APR).
 
+<figure style={{ textAlign: 'center' }}>
 ![10](https://github.com/Knign/Write-ups/assets/110326359/2974bd92-6ea7-4246-8aec-2e07e064a859)
+</figure>
 
 Now we can use `hashcat` to crack the hash.
 ```

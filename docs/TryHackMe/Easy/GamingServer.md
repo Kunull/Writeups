@@ -34,13 +34,17 @@ There are two open ports:
 
 Let's visit the website through the browser.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/7595fb56-6c5a-4462-959a-4b9bdda22924)
+</figure>
 
 There's really nothing of importance here.
 
 Using `CTRL+U` we can view the source page.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/9d7c738e-1f18-4b71-8bf5-9a3914f1c58b)
+</figure>
 
 So we know that there is a user called `john`.
 
@@ -76,11 +80,15 @@ Finished
 ```
 The `/secret` page seems interesting, let's go there.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/5337a972-eaeb-4559-bcf1-f580570b881c)
+</figure>
 
 Let's get the `secretKey`.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/0cf52dc6-98b2-4a7c-9d88-559dca31c30f)
+</figure>
 
 It seems to be the private key of the `john` user we saw before.
 We can use `ssh2john` to create a hash file.

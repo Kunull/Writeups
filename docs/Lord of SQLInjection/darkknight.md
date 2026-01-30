@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 12
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/6cde625d-39f4-4536-bdd2-e4bacc1b7d44)
+</figure>
 
 We are provided with the SQL query:
 
@@ -39,7 +41,9 @@ The resultant query becomes:
 SELECT id FROM prob_darkknight WHERE id='guest' AND pw='' AND no=0 OR id LIKE 0x61646d696e AND length(pw) LIKE 1
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/70be2f68-c530-4dcc-a541-a9b8938765df)
+</figure>
 
 Since the `Hello admin` message is not printed, we know that the resultant query did not result in `True`.
 
@@ -57,7 +61,9 @@ The resultant query becomes:
 SELECT id FROM prob_darkknight WHERE id='guest' AND pw='' AND no=0 OR id LIKE 0x61646d696e AND length(pw) LIKE 8
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Kunull/Write-ups/assets/110326359/a1ed7953-f711-4a32-9573-2eeb70fb0e4b)
+</figure>
 
 Since the `Hello admin` message is printed, we know that the resultant query resulted in `True`.
 
@@ -70,7 +76,9 @@ This challenge also filters the `substring()` function.
 Therefore, in order to leak the password, we will have to use the `mid()` function.
 #### `mid()`
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/2a05edee-9e1c-43b3-8970-4ea391376a28)
+</figure>
 
 If we provide the following URI parameter:
 
@@ -84,7 +92,9 @@ The resultant query becomes:
 SELECT id FROM prob_darkknight WHERE id='guest' AND pw='' AND no=0 OR id LIKE 0x61646d696e AND mid(pw, 1, 1) LIKE 0x30
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Kunull/Write-ups/assets/110326359/89f8306f-902d-4bdc-bd15-4357ce6586b3)
+</figure>
 
 Since the `Hello admin` message is printed, we know that the resultant query resulted in `True`.
 
@@ -102,7 +112,9 @@ The resultant query becomes:
 SELECT id FROM prob_darkknight WHERE id='guest' AND pw='' AND no=0 OR id LIKE 0x61646d696e AND mid(pw, 2, 1) LIKE 0x30
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Kunull/Write-ups/assets/110326359/227d4a99-7fca-41ba-a579-55a57325abea)
+</figure>
 
 Since the `Hello admin` message is not printed, we know that the resultant query did not result in `True`.
 
@@ -222,4 +234,6 @@ The resultant query becomes:
 SELECT id FROM prob_darkknight WHERE id='guest' AND pw='0b70ea1f' AND no=
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Kunull/Write-ups/assets/110326359/57213d19-deff-48b5-9681-d2cc8de28edf)
+</figure>

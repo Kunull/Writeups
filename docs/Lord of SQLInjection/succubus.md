@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 16
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/2a9c4032-64cc-47b9-9c0f-ac36fc7a30d0)
+</figure>
 
 We are provided with the SQL query:
 
@@ -41,4 +43,6 @@ The resultant query becomes:
 SELECT id FROM prob_succubus WHERE id='\' AND pw=' OR 1=1 -- -'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/36ca117e-f23f-4700-ae78-4f81102e8922)
+</figure>

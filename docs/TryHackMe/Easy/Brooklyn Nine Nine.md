@@ -177,7 +177,9 @@ User jake may run the following commands on brookly_nine_nine:
 ```
 We can got to GTFOBins to find an exploit for the `less` binary.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/1082bb6e-c589-4c23-9535-3b9ebbea349d)
+</figure>
 
 Copy and paste the `Sudo` exploit in the terminal.
 ```

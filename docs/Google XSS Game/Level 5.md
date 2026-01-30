@@ -3,7 +3,9 @@ title:  Level 5 - Breaking protocol
 edit_url: null
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/user-attachments/assets/ca8fd8e8-273c-43ac-800e-1484cbcfc8f8?raw=1)
+</figure>
 
 ## Hints
 
@@ -21,11 +23,15 @@ edit_url: null
 Open the frame in a different tab using the following URI:
 https://xss-game.appspot.com/level5/frame/
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/user-attachments/assets/f4037355-827e-41ca-8caf-fefa6c8901cb?raw=1)
+</figure>
 
 Click on the `Sign up` link.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/user-attachments/assets/e3e6f000-56f4-4c61-93c3-9f1aa2576f61?raw=1)
+</figure>
 
 ### Payload
 
@@ -37,4 +43,6 @@ Change the `next` parameter to the following:
 
 Click on the `Next` button.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/user-attachments/assets/fa283492-a378-4440-83ee-5f4a02d952b1?raw=1)
+</figure>

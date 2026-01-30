@@ -1385,7 +1385,9 @@ int main() {
 }
 ```
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/dda2958c-fea0-4b62-9f3c-b51b858a9d42" />
+</figure>
 
 ```
 pwn.college{kZZm-cxbu5l7Gwod0f_K1Ndr8Jp.QX4UzN3EDL4ITM0EzW}
@@ -1482,7 +1484,9 @@ int main() {
 When first breakpoint is hit, set `a=10`.
 Continue until next breakpoint is hit.
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/90c3dbd8-8746-4641-b8df-e761dceeb6be" />
+</figure>
 
 ```
 Xwn.college{wGnEekF4EoAtJzAGkAo2t_GkYhS.QX5UzN3EDL4ITM0EzW}

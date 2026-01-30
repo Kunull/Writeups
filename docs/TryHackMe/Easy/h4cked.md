@@ -7,18 +7,24 @@ custom_edit_url: null
 
 We can open the PCAP file in Wireshark after downloading it.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/f6ffd7af-2ea1-4efb-ac3a-2da64712fa21)
+</figure>
 ### No answer needed
 
 ### The attacker is trying to log into a specific service. What service is this?
 
 If we scroll a bit we can see the following packets.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/2ff4cc13-0380-4147-8316-e9aa824a7a7d)
+</figure>
 
 We can `Follow > TCP Stream`.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/5ac1bdf7-68a6-4340-916e-4f6b119fdf55)
+</figure>
 
 This does look like a login attempt.
 ### Answer
@@ -48,7 +54,9 @@ jenny
 ### What is the user's password?
 If we change the stream to 7, we can find the correct password.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/e25a5ec5-8f2e-4cf9-8498-4ee4dc8d057a)
+</figure>
 
 ### Answer
 ```
@@ -58,7 +66,9 @@ password123
 ### What is the current FTP working directory after the attacker logged in?
 We can find the current working directory on setting the stream to 16.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/9d2b73a3-8e0c-4b80-8f36-cc2af80a9da5)
+</figure>
 
 ### Answer
 ```
@@ -70,7 +80,9 @@ We can find the current working directory on setting the stream to 16.
 ### The attacker uploaded a backdoor. What is the backdoor's filename?
 We can find the answer in the same stream.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/5456c72d-910a-454f-8996-1f633f0434f9)
+</figure>
 
 ### Answer
 ```
@@ -86,7 +98,9 @@ ftp-data
 ```
 - On inspecting the second packet, we can find the URL.
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Knign/Write-ups/assets/110326359/6579668c-c4cb-4bf1-a5f5-88707b493dd3)
+</figure>
 
 ### Answer
 ```
@@ -98,7 +112,9 @@ http://pentestmonkey.net/tools/php-reverse-shell
 ### Which command did the attacker manually execute after getting a reverse shell?
 Let's navigate to stream 20.
 
+<figure style={{ textAlign: 'center' }}>
 ![8](https://github.com/Knign/Write-ups/assets/110326359/8efc9844-8221-44b8-ac8a-ebaf98378ab1)
+</figure>
 
 ### Answer
 ```
@@ -110,7 +126,9 @@ whoami
 ### What is the computer's hostname?
 In the same stream, we can find the computer's host name.
 
+<figure style={{ textAlign: 'center' }}>
 ![9](https://github.com/Knign/Write-ups/assets/110326359/9eafa666-c7b2-4367-8314-3a1c649ef944)
+</figure>
 
 ### Answer
 ```
@@ -122,7 +140,9 @@ wir3
 ### Which command did the attacker execute to spawn a new TTY shell?
 The answer is in the same stream.
 
+<figure style={{ textAlign: 'center' }}>
 ![10](https://github.com/Knign/Write-ups/assets/110326359/7931839e-a6ef-43a9-ba2d-c1b9ee6278c9)
+</figure>
 
 ### Answer
 ```
@@ -134,7 +154,9 @@ python3 -c 'import pty; pty.spawn("/bin/bash")'
 ### Which command was executed to gain a root shell?
 Again in the same stream, we can find the answer.
 
+<figure style={{ textAlign: 'center' }}>
 ![11](https://github.com/Knign/Write-ups/assets/110326359/8cf485e5-a622-4e90-aef5-1b0018aa96b0)
+</figure>
 
 ### Answer
 ```
@@ -146,7 +168,9 @@ sudo su
 ### The attacker downloaded something from GitHub. What is the name of the GitHub project?
 We can find the git clone that the attacker used.
 
+<figure style={{ textAlign: 'center' }}>
 ![12](https://github.com/Knign/Write-ups/assets/110326359/97291d3a-3efd-4076-bd94-1f071fbd1140)
+</figure>
 
 ### Answer
 ```
@@ -243,7 +267,9 @@ local: index.html remote: index.html
 ```
 We have to modify the shell a bit.
 
+<figure style={{ textAlign: 'center' }}>
 ![14](https://github.com/Knign/Write-ups/assets/110326359/2b365513-6f7d-472c-9900-0063ed6c5bd6)
+</figure>
 
 We set he IP address to our `tun0` interface and the port to any port we like.
 
@@ -266,7 +292,9 @@ listening on [any] 9999 ...
 ```
 Now we have to download the shell through our browser.
 
+<figure style={{ textAlign: 'center' }}>
 ![15](https://github.com/Knign/Write-ups/assets/110326359/cfa0e924-1c2b-4aad-b37f-a7771f0edac7)
+</figure>
 
 Let's check our listener.
 ```

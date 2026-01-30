@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 15
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/a4d30de7-86ed-4978-8c4c-38f8827700a5)
+</figure>
 
 We are provided with theSQL query:
 
@@ -23,7 +25,9 @@ We have to use wildcards to leak out the password.
 
 #### Wildcard
 
+<figure style={{ textAlign: 'center' }}>
 ![Pasted image 20240621082037](https://github.com/Kunull/Write-ups/assets/110326359/7c57a891-1577-4c2d-940d-556cac31d631)
+</figure>
 
 More specifically, we have to use the (`%`) wildcard.
 
@@ -39,7 +43,9 @@ The resultant query becomes:
 SELECT id FROM prob_assassin WHERE pw LIKE '%'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/4f441821-33d7-40d8-ac70-76dea5327282)
+</figure>
 
 Since the `Hello guest` message is printed, we know that the `guest` user has a lower index than the `admin` user.
 
@@ -55,7 +61,9 @@ The resultant query becomes:
 SELECT id FROM prob_assassin WHERE pw LIKE '0%'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/111c6b2d-5420-4ed9-adbd-2fd4e989cc44)
+</figure>
 
 The first character of none of the passwords is `0`.
 
@@ -71,7 +79,9 @@ The resultant query becomes:
 SELECT id FROM prob_assassin WHERE pw LIKE '9%'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Kunull/Write-ups/assets/110326359/949f9c1a-f635-4af9-a930-8a212bf4ce66)
+</figure>
 
 So the first character of both the `admin` and `guest` password is common, being `9`.
 
@@ -143,4 +153,6 @@ The resultant query becomes:
 SELECT id FROM prob_assassin WHERE pw LIKE '902%'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![0](https://github.com/Kunull/Write-ups/assets/110326359/72b89d8f-5346-492b-a89d-52247da864c1)
+</figure>

@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 5
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/48346668-4ade-4937-98dc-cd3160cfa815)
+</figure>
 
 We are provided with the SQL query:
 
@@ -29,7 +31,9 @@ OR
 id='admin'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/ea2c6e8d-c9e1-4e5b-80bd-2dfeb29f1c0d)
+</figure>
 
 We can also solvethe challenge by using the Tab (`%09`) character.
 
@@ -45,4 +49,6 @@ The resultant query becomes:
 SELECT id FROM prob_wolfman WHERE id='guest' AND pw=''  OR  id='admin'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/94cf381a-1444-4ac4-a8fe-2676109d7164)
+</figure>

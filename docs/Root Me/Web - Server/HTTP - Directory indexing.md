@@ -3,11 +3,15 @@ custom_edit_url: null
 sidebar_position: 9
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/d1e2fbf5-dde6-4680-9880-434f849e9474)
+</figure>
 
 Let's input `127.0.0.1` as the input field is suggesting.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/46f87312-d86a-4939-850e-15b020fbf31a)
+</figure>
 
 We can see that our input is used to execute a `ping` command.
 
@@ -18,11 +22,15 @@ We know the flag is on the `index.php` file. In order to `cat` the flag we need 
 127.0.0.1 ; cat index.php
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/f9499c2f-64bc-4eb4-939f-37f2c9975779)
+</figure>
 
 Looks like our input was processed properly. Let's check the source code.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/bd7601d5-dff6-4840-94ae-b3d43248550b)
+</figure>
 
 The source code reveals an interesting piece of code.
 ## PHP code
@@ -46,7 +54,9 @@ Let's modify our input to `cat` the `.passwd` file.
 127.0.0.1 ; cat .passwd
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/852de8c6-c743-4a7f-bcc9-01dbd8f42823)
+</figure>
 
 ## Flag
 ```

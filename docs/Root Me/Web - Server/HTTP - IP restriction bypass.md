@@ -8,11 +8,15 @@ sidebar_position: 2
 > Regards,
 > The network admin
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/f062cc6a-5da5-4ea4-9c8e-1d2322eaa2d2)
+</figure>
 
 Let's intercept this request in Burpsuite.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/bcc2159c-e705-443c-8c0f-97195a665096)
+</figure>
 
 Next, we can send this request to the `Repeater`.
 
@@ -45,7 +49,9 @@ Sec-GPC: 1
 ```
 For the final step we have to send this request to the server.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/ce4586b6-7236-4f0e-b82a-b452253f3230)
+</figure>
 
 ## Flag
 ```

@@ -5,11 +5,15 @@ custom_edit_url: null
 
 > Try to bypass my security measure on this site! http://165.227.106.113/header.php
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/ecd02f95-ab41-4a3a-9972-08926b96078c)
+</figure>
 
 Before we do anything else let's check the source code.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/6bce9304-1b8c-4f33-8f15-8e2079bdb39f)
+</figure>
 
 ```
 Sup3rS3cr3tAg3nt
@@ -19,15 +23,21 @@ Let's open Burpsuite and turn on the `Proxy`.
 
 Then we can visit the website again so that it shows up in the `Proxy > HTTP History`.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/4e6a4862-c78f-4692-ab7f-6e56f6953d80)
+</figure>
 
 Let's send the HHTP request to the Repeater by `Left click > Send to Repeater`.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/3526c0ea-ac2e-40a4-a3b9-5e8fe4bf932c)
+</figure>
 
 Now we have to change the `User-Agent` to `Sup3rS3cr3tAg3nt`.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/93ba7f74-364b-4b08-b909-40e758cae7d6)
+</figure>
 
 The website expects us to visit from `awesomesauce.com`.
 
@@ -49,7 +59,9 @@ Sec-GPC: 1
 ```
 We can now send the request and check the `Response` tab.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/b6fd12ee-fcf5-4f9e-97f8-7e6360bdacdc)
+</figure>
 
 ## Flag
 ```

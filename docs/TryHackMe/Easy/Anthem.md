@@ -62,7 +62,9 @@ There are two open ports:
 ### What is a possible password in one of the pages web crawlers check for? 
 The page that web crawlers check for is `robots.txt`. Let's see if that has something of importance.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/85ce5eed-3d7e-4e7f-9ac2-0c87be8ba539)
+</figure>
 
 The password is mentioned along with the disallowed pages.
 ### Answer
@@ -75,7 +77,9 @@ UmbracoIsTheBest!
 ### What CMS is the website using?
 We can find this answer on the `/robots.txt` page as well.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/79089a15-5574-42e0-bade-7b44bcfa2eb7)
+</figure>
 
 The `/umbraco/` page tells us that the CMS is Umbraco.
 ### Answer
@@ -88,7 +92,9 @@ Umbraco
 ### What is the domain of the website?
 Let's visit the webpage of the target machine.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/3086b238-bedf-4f6e-8802-9902ce333355)
+</figure>
 
 Nothing really important here. 
 ### Answer
@@ -101,7 +107,9 @@ anthem.com
 ### What's the name of the Administrator
 Let's check out the first blog post.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/dbe1ef98-dcc9-465d-8313-5168ccb18a69)
+</figure>
 
 We can see that there is a poem written about the admin. This poem is actually a real one written about Solomon Grundy.
 ### Answer
@@ -114,7 +122,9 @@ Solomon Grundy
 ### Can we find find the email address of the administrator?
 If we check out the second post, we can find the email format.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/ad1e25bb-626c-4d42-85cb-94061f1005aa)
+</figure>
 
 Now that we know the email of Jane Doe is `JD@anthem.com` we can guess Solomon Grundy's email address.
 ### Answer
@@ -128,7 +138,9 @@ SG@anthem.com
 ### What is flag 1?
 We can find the first flag in the source page of the second post.
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Knign/Write-ups/assets/110326359/e369849b-b8aa-410e-addd-02fd4aa2a812)
+</figure>
 
 ### Answer
 ```
@@ -140,7 +152,9 @@ THM{L0L_WH0_US3S_M3T4}
 ### What is flag 2?
 We can find the second flag in the source page of the main web page.
 
+<figure style={{ textAlign: 'center' }}>
 ![8](https://github.com/Knign/Write-ups/assets/110326359/dc9968e2-eefc-479d-a13f-ece1e29de083)
+</figure>
 
 ### Answer
 ```
@@ -152,7 +166,9 @@ THM{G!T_G00D}
 ### What is flag 3?
 We can find the third flag on viewing Jane Doe's profile
 
+<figure style={{ textAlign: 'center' }}>
 ![9](https://github.com/Knign/Write-ups/assets/110326359/2d2d861a-4508-4e7a-9222-38faa01b5cd7)
+</figure>
 
 ### Answer
 ```
@@ -164,7 +180,9 @@ THM{L0L_WH0_D15}
 ### What is flag 4?
 We can find the fourth flag on the source page of the first post.
 
+<figure style={{ textAlign: 'center' }}>
 ![10](https://github.com/Knign/Write-ups/assets/110326359/79316d39-9faf-498c-b77d-6e3da17c4c25)
+</figure>
 
 ### Answer
 ```
@@ -182,7 +200,9 @@ Using the credentials we can connect to the target through RDP.
 $ xfreerdp /v:10.10.5.238 /u:sg /p:UmbracoIsTheBest! /cert:ignore +clipboard /dynamic-resolution
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![11](https://github.com/Knign/Write-ups/assets/110326359/797a6f2b-b00a-4121-bef9-5f11bbccfacd)
+</figure>
 
 ### Answer
 ```
@@ -196,15 +216,21 @@ After changing the `View` to `Show hidden items` we can go to `C\backup`.
 
 There is file there which we don't have the permissions to read.
 
+<figure style={{ textAlign: 'center' }}>
 ![12](https://github.com/Knign/Write-ups/assets/110326359/87750212-b563-4100-bbe0-a1d220291dc9)
+</figure>
 
 Let's see if we can change the permissions.
 
+<figure style={{ textAlign: 'center' }}>
 ![13](https://github.com/Knign/Write-ups/assets/110326359/29cf5648-b5c3-414d-ac76-6e49917743dd)
+</figure>
 
 After changing the permissions, we can read the file.
 
+<figure style={{ textAlign: 'center' }}>
 ![14](https://github.com/Knign/Write-ups/assets/110326359/81721240-3102-4218-bbfc-478afc4b4d12)
+</figure>
 
 ### Answer
 ```
@@ -219,7 +245,9 @@ Let's end the current RDP session and login again as `Administrator` with the pa
 $ xfreerdp /v:10.10.5.238 /u:Administrator /p:ChangeMeBaby1MoreTime /cert:ignore +clipboard /dynamic-resolution
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![15](https://github.com/Knign/Write-ups/assets/110326359/4215cb2c-2185-4d41-9095-bb5460615527)
+</figure>
 
 ### Answer
 ```

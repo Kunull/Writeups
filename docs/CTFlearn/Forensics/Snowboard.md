@@ -5,7 +5,9 @@ custom_edit_url: null
 > Find the flag in the jpeg file. Good Luck!
 > [Snowboard.jpg](https://ctflearn.com/challenge/download/934)
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/8f455b82-a5e0-4197-a2af-b2c0cbe0cb2f)
+</figure>
 
 We can use the `exiftool` utility to view the image metadata.
 ```

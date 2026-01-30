@@ -492,7 +492,9 @@ The `whiptail` utility allows us to present a variety of questions or display me
 hacker@program-misuse~level33:/$ whiptail --textbox --scrolltext "$LFILE" 10 50
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![Pasted image 20240521173223](https://github.com/Kunull/Write-ups/assets/110326359/cde0c0e1-ab97-478a-97df-97377db0d0dd)
+</figure>
 
 &nbsp;
 

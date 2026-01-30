@@ -56,7 +56,9 @@ http://challenge.localhost/?timezone=UTC
 TZ=UTC date
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/Kunull/Write-ups/assets/110326359/73567980-d93d-452c-af32-4b401ba92097)
+</figure>
 
 Now let's try the same with `MST` as the value.
 
@@ -68,7 +70,9 @@ http://challenge.localhost/?timezone=UTC
 TZ=MST date
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/Kunull/Write-ups/assets/110326359/4baabe84-7bd9-4b78-95d5-a407b95b658e)
+</figure>
 
 As we can see in the third command of both examples and the `Result`, the `date` command is influenced by the value of the `TZ` variable, which we control.
 
@@ -86,7 +90,9 @@ http://challenge.localhost/?timezone=`whoami`
 TZ=`whoami` date
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/Kunull/Write-ups/assets/110326359/e8bd69b6-6261-4df3-b7a5-4013c3a4e550)
+</figure>
 
 Once it has the result for the `whoami` command, the shell will substitute the result in the `TZ` variable.
 
@@ -95,7 +101,9 @@ Once it has the result for the `whoami` command, the shell will substitute the r
 TZ=root date
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/Kunull/Write-ups/assets/110326359/5558b05c-23df-461d-9b37-9c5c92449089)
+</figure>
 
 ```
 hacker@web-security~level2:/$ curl 'http://challenge.localhost/?timezone=`whoami`'
@@ -624,7 +632,9 @@ In order to retrieve the flag, we first need to perform a Blind SQL Injection.
 
 Before we perform the attack we need to learn more about the `SUBSTR()` function.
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/Kunull/Write-ups/assets/110326359/ec609e62-def0-46f2-b58a-cb7d332e11ca)
+</figure>
 
 ```
 ## Extract the one character from the string starting at the first position

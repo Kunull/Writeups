@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 27
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/9093a8f1-4e71-4518-91fa-6e53fa905e85)
+</figure>
 
 We are provided with the SQL query:
 
@@ -160,4 +162,6 @@ The resultant query becomes:
 SELECT id FROM prob_blue_dragon WHERE id='' AND pw='d948b8a0'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/d8b1ad72-b6e9-45cf-8668-51c4825cd39d)
+</figure>

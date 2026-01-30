@@ -113,19 +113,27 @@ server-status           [Status: 403, Size: 280, Words: 20, Lines: 10, Duration:
 
 We can visit the `/blogs` directory through our browser.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/9057ef3e-4095-4902-b9be-2b7670c69651)
+</figure>
 
 Let's check the page source.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/e68a7e4c-0b41-4ac0-b3cc-f5d7fe956f8c)
+</figure>
 
 Let's visit the `S3cr3t-T3xt` page through our browser.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Kunull/Write-ups/assets/110326359/1626eb4b-58ce-4516-a6e4-4953c74d9ddd)
+</figure>
 
 We can do the same thing we did before: check the page source.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Kunull/Write-ups/assets/110326359/c9b651e3-7f33-4c45-907c-8e3c224cf133)
+</figure>
 
 Maybe this is the password required to extract files from the `trytofind.jpg` file.
 
@@ -288,7 +296,9 @@ We can use this misconfigured SUID bit to escalate our privileges.
 
 We can find the this payload on [GTFOBins](https://gtfobins.github.io/gtfobins/perl/#sudo).
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/user-attachments/assets/8f5d4d78-47e4-44b7-a3b3-eae0841acf19?raw=1)
+</figure>
 
 ```
 lily@MoneyBox:~$ sudo perl -e 'exec "/bin/sh";'

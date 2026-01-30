@@ -4,7 +4,9 @@ sidebar_position: 34
 tags: [SQLi, MOD Security CRS, WAF bypass]
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/a437eb74-eff7-45be-bd3f-86e2c56d7dc3)
+</figure>
 
 We are provided with the SQL query:
 
@@ -22,7 +24,9 @@ The MOD Security Core Rule Set, is a set of regex expressions that Web Applicati
 
 In order to bypass this, we can refer [this](https://github.com/SpiderLabs/owasp-modsecurity-crs/issues/1181)Github issue.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/31d7abb4-4869-4388-8db4-c0c69df40d67)
+</figure>
 
 However, we have to modify the payload slightly.
 
@@ -42,4 +46,6 @@ The resultant query becomes:
 SELECT id FROM prob_death WHERE id='-1'<@=1 OR id LIKE 0x61646d696e OR '' AND pw=md5('')
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/b1beb237-820e-4e76-a770-5468e73b2512)
+</figure>

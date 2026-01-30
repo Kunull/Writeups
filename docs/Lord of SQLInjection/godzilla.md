@@ -4,7 +4,9 @@ sidebar_position: 35
 tags: [SQLi, Blind SQLi, MOD Security CRS, WAF bypass]
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/9e5437bb-3abf-4d3d-959c-7cb6faddf830)
+</figure>
 
 We are provided with the SQL query:
 
@@ -22,7 +24,9 @@ The MOD Security Core Rule Set, is a set of regex expressions that Web Applicati
 
 In order to bypass this, we can refer [this](https://github.com/SpiderLabs/owasp-modsecurity-crs/issues/1181)Github issue.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/824ef7b7-21ef-4c6e-87a0-f639b8ef83d0)
+</figure>
 
 &nbsp;
 
@@ -165,4 +169,6 @@ The resultant query becomes:
 SELECT pw FROM prob_godzilla WHERE id='admin' AND pw='a18a6cc5'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/7c77be5f-1bc1-4055-b3ff-76d411c21382)
+</figure>

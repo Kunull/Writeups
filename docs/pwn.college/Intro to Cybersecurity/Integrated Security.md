@@ -288,7 +288,9 @@ The problem here is that it uses `ciphertext_len - 16` here to assert the length
 
 There is another file called `/challenge/dispatch`, which gives us the ciphertext given any plaintext.
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/be3498df-21ca-4e97-b151-51d54f6bc4ea" />
+</figure>
 
 ```py title="/challenge/dispatch" showLineNumbers
 #!/usr/bin/exec-suid -- /usr/bin/python3 -I

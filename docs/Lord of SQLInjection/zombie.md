@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 31
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/619f9f68-e38d-47a0-a15b-ff662242c83b)
+</figure>
 
 We are provided with the SQL query:
 
@@ -24,7 +26,9 @@ As noted by [this documentation](https://dev.mysql.com/doc/refman/8.4/en/informa
 
 Within this table, the `info` column contains the statement that is being executed as show below.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/883c41a1-9cb1-4b55-98b3-641f02529310)
+</figure>
 
 ```sql
 SELECT info FROM information_schema.processlist
@@ -70,4 +74,6 @@ The resultant query becomes:
 SELECT pw FROM prob_zombie WHERE pw='1' UNION SELECT substr(info,locate('1',info),length(info)-locate('1',info)) FROM information_schema.processlist #'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/606cc988-e99e-4db2-90fc-25387e44ccc7)
+</figure>

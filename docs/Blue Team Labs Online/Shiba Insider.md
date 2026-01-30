@@ -5,11 +5,15 @@ custom_edit_url: null
 ## What is the response message obtained from the PCAP file?
 Let's open the `insider.pcap` file using Wireshark.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/1f6114b1-6bf0-4caa-b641-5dcf3f5f00c5)
+</figure>
 
 Let's follow the TCP stream via `Follow > TCP Stream`.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/36b2d84d-71b8-4d67-9a4e-daf50432f229)
+</figure>
 
 ### Answer
 ```
@@ -23,13 +27,17 @@ The answer to the previous question told us to use our own password.
 
 If we look at the TCP stream we can see a string sent by us that might be a password.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/6d63468f-4f58-4fcc-af6a-69582eca3b05)
+</figure>
 
 The string has two `==` signs at the end. This is an indication that the string has been encrypted using Base64.
 
 Let's use Cyberchef to decode it.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/6cfc7113-0281-430e-84ff-6c4b5e935baa)
+</figure>
 
 ### Answer
 ```
@@ -138,7 +146,9 @@ $ cat idInsider.txt
 ## What is the profile name of the attacker?
 Let's look at our own user profile.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/a53a9675-944f-4e01-b3f8-439dba2b6ed5)
+</figure>
 
 If we look at the user profile, we can see that the user IDs are included in the URI.
 ```
@@ -146,7 +156,9 @@ https://blueteamlabs.online/home/user/26e1135472d925e971ea68
 ```
 What if we replace this ID with the one we retrieved: `0726ba878ea47de571777a`.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/c25b16d1-b2c3-4c2a-8799-acc49fc8b2ef)
+</figure>
 
 We have our attacker.
 ### Answer

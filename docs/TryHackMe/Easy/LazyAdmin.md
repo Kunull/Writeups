@@ -65,7 +65,9 @@ Finished
 
 Let's visit the `/content` page.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/72fa589f-4863-444e-b755-f4d731429d0a)
+</figure>
 
 Let's perform a directory scan inside the `/content` web directory.
 
@@ -103,15 +105,21 @@ Finished
 
 If we go to the `/content/inc` page, we see the following:
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/e8917264-d00f-4e6f-ad80-2a24f4a77a98)
+</figure>
 
 Let's go inside the `/contemt/inc/mysql` directory.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/b52f6848-2279-4f15-84a7-7d8bc7c17f25)
+</figure>
 
 We can download and open this file in a text editor.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/2614775e-9781-4e10-9a87-1cde88c440e5)
+</figure>
 
 If we look, closely we can see the following credentials:
 
@@ -150,17 +158,23 @@ If we go to the `/content/as` page we will come across a login form which we can
 | :-: | :-: |
 | manager         | Password123         |
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Knign/Write-ups/assets/110326359/405f9381-1153-4974-ad33-ec399eac078b)
+</figure>
 
 Now that we are in the admin panel, we can start looking for some exploits.
 
 We can obtain a reverse shell from the Revshells page.
 
+<figure style={{ textAlign: 'center' }}>
 ![9](https://github.com/Knign/Write-ups/assets/110326359/c9753481-94fd-46d3-9f5a-36514871e5d7)
+</figure>
 
 Once we have it stored in a file, we can upload the file in the `Media Center` of the admin panel with a `php5` extension.
 
+<figure style={{ textAlign: 'center' }}>
 ![10](https://github.com/Knign/Write-ups/assets/110326359/18642722-a352-44f6-bd30-a074ed242da1)
+</figure>
 
 Next, we have to set up a `nc` listener.
 
@@ -171,7 +185,9 @@ listening on [any] 9999 ...
 
 Then we can visit the `/content/attachment/` page to access our exploit.
 
+<figure style={{ textAlign: 'center' }}>
 ![11](https://github.com/Knign/Write-ups/assets/110326359/a871a290-2820-4ca7-a921-bb7b0d0fb63c)
+</figure>
 
 Let's check our listener.
 

@@ -5,11 +5,15 @@ sidebar_position: 11
 
 > Find a way to beat the top score!
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/969d8be5-78b0-4c0d-a828-25c4cc4fce00)
+</figure>
 
 Let's intercept the request using Burpsuite.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/c90bf0f9-cb74-478d-b650-ae7a578f94a7)
+</figure>
 
 We can see that the score is `723546`.
 
@@ -37,7 +41,9 @@ score=9999999&generate=Give+a+try%21
 ```
 Finally, we have to send this modified request to the server.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/6254eeae-6d00-410b-830f-873fb72ed28f)
+</figure>
 
 ## Flag
 ```

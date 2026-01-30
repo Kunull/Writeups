@@ -75,11 +75,15 @@ Finished
 ```
 Let's go to the `/island` webpage.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/dc2b49a4-62f3-416c-a7c4-64e50a6f9429)
+</figure>
 
 We can view the page source using `CTRL+U`.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/3b5ef6dc-a9e6-4627-85b5-d07e87961c78)
+</figure>
 
 So the username is `vigilante`.
 
@@ -116,7 +120,9 @@ Finished
 ### what is the file name you found?
 Let's visit the `/island/2100` page and check it's source.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/1dd3a4e5-6d5c-4d49-a83c-49b17b1816a1)
+</figure>
 
 Now that we know the file extension is `.ticket`, we can perform another `gobuster` scan.
 ```
@@ -149,14 +155,18 @@ green_arrow.ticket
 ### what is the FTP password?
 Let's visit the `/island/2100/green_arrow.ticket` page.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/7584a57b-97d4-43a1-b865-bcb355a088f3)
+</figure>
 
 ```
 RTy8yhBQdscX
 ```
 Let's decode the string using Cyberchef.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/83b49e60-62c7-4e8c-bf2b-6471c2068bad)
+</figure>
 
 So the FTP password is `!#th3h00d`.
 ### Answer
@@ -229,7 +239,9 @@ local: .other_user remote: .other_user
 ```
 Let's check out the images.
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Knign/Write-ups/assets/110326359/3cd49a83-77f1-456d-90c5-dc104276b395)
+</figure>
 
 We can see that the `Leave_me_alone.png` file is not working properly.
 
@@ -249,16 +261,22 @@ $ xxd Leave_me_alone.png | head
 ```
 So the first  8 characters are wrong. In a PNG file the first 8 characters should be `89 50 4E 47 0D 0A 1A 0A` as shown in this image:
 
+<figure style={{ textAlign: 'center' }}>
 ![8](https://github.com/Knign/Write-ups/assets/110326359/ba5b98c1-04ee-45b0-af5f-47823fc5377a)
+</figure>
 
 Let's use `hexedit` to fix the bytes.
 ```
 $ hexedit Leave_me_alone.png
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![9](https://github.com/Knign/Write-ups/assets/110326359/e84cd651-d29b-4ff1-9c11-595357e6babe)
+</figure>
 
+<figure style={{ textAlign: 'center' }}>
 ![10](https://github.com/Knign/Write-ups/assets/110326359/48fe1a15-68ad-427a-a688-291faa1f4486)
+</figure>
 
 The password for something is `password`.
 
@@ -360,7 +378,9 @@ User slade may run the following commands on LianYu:
 ```
 We can go to GTFOBins to find an exploit.
 
+<figure style={{ textAlign: 'center' }}>
 ![11](https://github.com/Knign/Write-ups/assets/110326359/fe4c1949-886e-4e6e-9601-9f8702dc9f97)
+</figure>
 
 ```
 slade@LianYu:~$ sudo pkexec /bin/sh

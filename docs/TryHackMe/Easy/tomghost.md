@@ -42,13 +42,17 @@ As we can see, the 8009 port is running AJP.
 
 Let's visit port 8080 through the browser.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/a6d0e96d-2def-4876-bc23-f30475655f92)
+</figure>
 
 The version of Tomcat is`9.0.30`. This version is vulnerable to Ghostcat.
 
 We can find the exploit on the Exploit Database website.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/d95d8701-9ce6-4f82-8d31-3e931d959b60)
+</figure>
 
 After downloading, we can run the exploit as follows:
 ```
@@ -62,7 +66,9 @@ TypeError: socket.makefile() got an unexpected keyword argument 'bufsize'
 ```
 We need to change `busize` to `buffering` at line 262.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/a8db6699-4959-4c25-bb1a-5be9d89b3346)
+</figure>
 
 Let's run it again.
 ```
@@ -76,7 +82,9 @@ TypeError: sequence item 0: expected str instance, bytes found
 ```
 We can fix this error by adding a `b` at line 302 before the `""`. This converts the string object into a byte object.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/696f13db-e50d-46eb-ab2b-bcde187fc69f)
+</figure>
 
 Our exploit should run fine now.
 ```
@@ -147,7 +155,9 @@ Session completed.
 ```
 Let's read the `tryhackme.asc` file using the password.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/b9cd78ce-3415-4744-9700-c962ae3e1f7f)
+</figure>
 
 ```
 $ gpg --import tryhackme.asc           
@@ -209,7 +219,9 @@ User merlin may run the following commands on ubuntu:
 ```
 Let's go to GTFObins to find some exploit.
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Knign/Write-ups/assets/110326359/3f4fca1b-8adc-4ab9-bb1b-065afa48e7a8)
+</figure>
 
 Let's use the exploit.
 ```

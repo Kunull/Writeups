@@ -6,7 +6,9 @@ custom_edit_url: null
 
 We can see that the characters are in hexadecimal. Let's use Cyberchef to view the ASCII representation.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/6d3d2f01-0aa1-41d3-aa74-f8b9196f8987)
+</figure>
 
 ## Flag
 ```

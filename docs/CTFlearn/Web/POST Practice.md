@@ -7,7 +7,9 @@ custom_edit_url: null
 
 Before we do anything else let's check the source code.
 
+<figure style={{ textAlign: 'center' }}>
 ![1 5](https://github.com/Knign/Write-ups/assets/110326359/a6ac0e5d-58b2-4801-9311-315b53247c11)
+</figure>
 
 ```
 username: admin
@@ -18,11 +20,15 @@ Let's open Burpsuite and turn on the `Proxy`.
 
 Then we can visit the website again so that it shows up in the `Proxy > HTTP History`.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/af5debe2-5282-4637-a5ca-43e00dbd33a8)
+</figure>
 
 Let's send the HHTP request to the Repeater by `Left click > Send to Repeater`.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/db0fee9f-2d65-4f0b-9d04-6e41a54ddf42)
+</figure>
 
 Now we have to add the username and password as the content to this request and change the method to POST. 
 
@@ -46,7 +52,9 @@ username=admin&password=71urlkufpsdnlkadsf
 ```
 We can now send the request and check the `Response` tab.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/26fe62d6-9abc-4fad-88a1-619e1dc0609a)
+</figure>
 
 ## Flag
 ```

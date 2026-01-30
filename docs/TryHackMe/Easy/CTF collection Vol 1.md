@@ -90,7 +90,9 @@ THM{500n3r_0r_l473r_17_15_0ur_7urn}
 ### Did you find the flag?
 If we just select the task string, we will see the flag.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/68029f7d-0ff6-4f5c-9072-eb3530417946)
+</figure>
 
 ### Answer
 ```
@@ -104,7 +106,9 @@ THM{wh173_fl46}
 The image we have is a QR code. 
 In order to extract the flag, we can use the ZXing Decoder.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/46409cd1-5320-4675-80e9-f6115a0620c6)
+</figure>
 
 ### Answer
 ```
@@ -149,7 +153,9 @@ THM{345y_f1nd_345y_60}
 ### Oh, Oh, Did you get it?
 We can use the `Magic` function from CyberChef to decode the flag.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/db3e5b82-3a1f-447a-ba27-11251627440b)
+</figure>
 
 ### Answer
 ```
@@ -163,7 +169,9 @@ THM{17_h45_l3553r_l3773r5}
 > MAF\{atbe_max_vtxltk}
 Let's use the `Rot13` function with the amount set to `7`.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/86fbe638-fc42-401d-89ad-30ddd0f9ca7f)
+</figure>
 
 ### Answer
 ```
@@ -176,7 +184,9 @@ THM{hail_the_caesar}
 ### I'm hungry now... I need the flag
 Let's inspect the page.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/ce14e4e8-4599-4236-bda1-4cdab0366012)
+</figure>
 
 ### Answer
 ```
@@ -203,18 +213,24 @@ $ xxd spoil.png | head
 ```
 So the first 4 characters are wrong. In a PNG file the first 4 characters should be `89 50 4E 47` as shown in this image:
 
+<figure style={{ textAlign: 'center' }}>
 ![8](https://github.com/Knign/Write-ups/assets/110326359/a87fe4cb-fc6c-429a-9f68-008d13af3354)
+</figure>
 
 Let's use `hexedit` to fix the bytes.
 ```
 $ hexedit spoil.png
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/029760e0-6cff-4a6a-ab71-ab29256d56e2)
+</figure>
 
 We should now be able to view the image.
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Knign/Write-ups/assets/110326359/9b2514d5-0236-4d24-9083-3580137e5748)
+</figure>
 
 ```
 THM{y35_w3_c4n}
@@ -231,7 +247,9 @@ Enter the following text in the search bar and click on the first link:
 site:reddit.com/[r/tryhackme](https://www.reddit.com/r/tryhackme/) intext:THM{*}
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![8](https://github.com/Knign/Write-ups/assets/110326359/30076227-d068-4c68-9d47-c17e5399c3b4)
+</figure>
 
 ### Answer
 ```
@@ -246,7 +264,9 @@ The text is encrypted using Brainfuck.
 
 We can decode it using an online decoder.
 
+<figure style={{ textAlign: 'center' }}>
 ![9](https://github.com/Knign/Write-ups/assets/110326359/d204134f-f754-4699-8aa6-a3cdc5e55d58)
+</figure>
 
 ### Answer
 ```
@@ -261,7 +281,9 @@ Since there are two strings, the possible decryption method is XOR.
 
 Let's use an online decoder.
 
+<figure style={{ textAlign: 'center' }}>
 ![10](https://github.com/Knign/Write-ups/assets/110326359/d88ab1a2-55b8-482c-bde4-39d1daff3f5d)
+</figure>
 
 ### Answer
 ```
@@ -317,7 +339,9 @@ Picked up _JAVA_OPTIONS: -Dawt.useSystemAAFontSettings=on -Dswing.aatext=true
 ```
 After opening the image using `stegsolve`, we have to go to `Blue plane 1` to be able to see the flag.
 
+<figure style={{ textAlign: 'center' }}>
 ![11](https://github.com/Knign/Write-ups/assets/110326359/cb440d62-8caa-4374-ac31-3d85b4996a33)
+</figure>
 
 ### Answer
 ```
@@ -330,13 +354,17 @@ THM{7h3r3_15_h0p3_1n_7h3_d4rkn355}
 ### What does the bot said?
 Let's decode the `QRCTF.png` file using Zxing.
 
+<figure style={{ textAlign: 'center' }}>
 ![12](https://github.com/Knign/Write-ups/assets/110326359/52f7b2b3-9ccd-4afb-b34a-0c3f981bfd79)
+</figure>
 
 We are given a Soundcloud link as the result. 
 
 Let's visit the link.
 
+<figure style={{ textAlign: 'center' }}>
 ![13](https://github.com/Knign/Write-ups/assets/110326359/dc6313b9-46df-4955-a110-60cd6a4a658a)
+</figure>
 
 The audio tells us that the flag is `soundingqr`.
 ### Answer
@@ -350,11 +378,15 @@ THM{SOUNDINGQR}
 ### Did you found my past?
 For this one we have to use the Wayback Machine.
 
+<figure style={{ textAlign: 'center' }}>
 ![14](https://github.com/Knign/Write-ups/assets/110326359/e9fb5775-00dc-4163-9be0-6f4024f20c61)
+</figure>
 
 Let's look at the snapshot created on January 2, 2020.
 
+<figure style={{ textAlign: 'center' }}>
 ![15](https://github.com/Knign/Write-ups/assets/110326359/da138dd8-b527-4b31-a917-70165cae04cf)
+</figure>
 
 ### Answer
 ```
@@ -369,7 +401,9 @@ In this task, we have to use the # Vigenère cipher.
 
 The key is `THM`.
 
+<figure style={{ textAlign: 'center' }}>
 ![16](https://github.com/Knign/Write-ups/assets/110326359/c6b74ee0-db0e-4eee-8788-14866229ab2e)
+</figure>
 
 ### Answer
 ```
@@ -382,14 +416,18 @@ TRYHACKME{YOU_FOUND_THE_KEY}
 ### What is the flag?
 We simply have to convert it from Decimal to Hexadecimal to ASCIII.
 
+<figure style={{ textAlign: 'center' }}>
 ![17](https://github.com/Knign/Write-ups/assets/110326359/ac22f290-850d-4a07-8c37-9d33b8f3e185)
+</figure>
 
 #### Hexadecimal
 ```
 54484D7B31375F6A7535375F346E5F307264316E3472795F62343533357D
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![18](https://github.com/Knign/Write-ups/assets/110326359/9ef89262-ae21-45b0-8d93-1d5672aaf80c)
+</figure>
 
 ### Answer
 ```
@@ -407,7 +445,9 @@ tcp.stream == 42
 That filters for the HTTP packets.
 We can find the flag in packet `1827`.
 
+<figure style={{ textAlign: 'center' }}>
 ![19](https://github.com/Knign/Write-ups/assets/110326359/4d8fb8bf-40a6-4377-a9a0-c31daf192342)
+</figure>
 
 ### Answer
 ```

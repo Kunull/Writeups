@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 10
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/4baddc49-08d9-4c11-a1da-59d9e17e5687)
+</figure>
 
 We are provided with the SQL query:
 
@@ -29,4 +31,6 @@ SELECT id FROM prob_skeleton WHERE id='guest' AND pw='' OR id='admin'
 ' AND 1=0
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/373ff0c7-ad97-4cd5-b184-95092bfb7d41)
+</figure>

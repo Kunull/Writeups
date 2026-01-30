@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 24
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/4c5c1b89-930a-41e5-ae0f-a0b7f4fcceab)
+</figure>
 
 We are provided with the SQL queries:
 
@@ -29,7 +31,9 @@ The resultant query becomes:
 SELECT id,email,score FROM prob_hell_fire WHERE 1 ORDER BY id
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/d9f2eff9-6616-47e7-b691-7735f440149d)
+</figure>
 
 As we can see there are two users: `admin` and `rubiya`.
 Unlike [hell_fire](https://writeups-kunull.vercel.app/Lord%20of%20SQLInjection/hell_fire), in this challenge the users are sorted in the same way regardless if we order by `id` or `score`.

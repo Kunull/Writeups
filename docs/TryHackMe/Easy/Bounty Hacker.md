@@ -6,7 +6,9 @@ custom_edit_url: null
 ### Who wrote the task list?
 Let's got search the IP address using our browser.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/e9bbb1fa-8b2c-4ee0-a536-9851ae073374)
+</figure>
 
 We can now run a `nmap` scan on the machine.
 ```
@@ -215,7 +217,9 @@ User lin may run the following commands on bountyhacker:
 ```
 We can now use GTFOBins to escalate our privilege.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/b7a6ded1-6568-47ea-808a-9a090e6a5bb8)
+</figure>
 
 We will use the `Sudo` exploit.
 ```

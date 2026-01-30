@@ -41,7 +41,9 @@ There are three open ports:
 
 We can obtain a reverse shell on the target using a [this](https://github.com/Ranger11Danger/UnrealIRCd-3.2.8.1-Backdoor/blob/master/exploit.py) exploit.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/user-attachments/assets/6a618f70-753f-4961-9901-0ee1eaf6ab82?raw=1)
+</figure>
 
 ```
 $ wget https://github.com/Ranger11Danger/UnrealIRCd-3.2.8.1-Backdoor/blob/master/exploit.py

@@ -108,7 +108,9 @@ In order to compute this equation, we need to understand the `mul` instruction.
 
 ### `mul` instruction
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/Kunull/Write-ups/assets/110326359/bb5c66b2-9808-42b7-bcac-71fc086cb6dd)
+</figure>
 
 The first operand is the location at which the original data is stored, while the second operand is the source of the data to be multiplied.
 
@@ -169,7 +171,9 @@ In order to compute the equation, we need to understand the `div` instruction.
 
 ### `div` instruction
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/Kunull/Write-ups/assets/110326359/c160c237-b604-4dbb-8279-49bbfa299913)
+</figure>
 
 ```wasm
 div (dividend), divisor, (quotient), (remainder)

@@ -3,7 +3,9 @@ title: Level 2 - Persistence is key
 custom_edit_url: null
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/user-attachments/assets/d5c7465c-6558-4d47-80c0-4212865fe3a6?raw=1)
+</figure>
 
 ## Hints
 
@@ -23,4 +25,6 @@ Since we cannot use `<script>` tags, we have to craft a basic payload using `<im
 <img src=1 onerror=alert(1)>
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/user-attachments/assets/0eb0fce5-786f-4eec-9b2f-4b9492aafa28?raw=1)
+</figure>

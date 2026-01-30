@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 21
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/729548a2-4e56-43aa-9881-8fbfd2a827ab)
+</figure>
 
 We are provided with the SQL query:
 
@@ -39,7 +41,9 @@ SELECT id FROM prob_iron_golem WHERE id='admin' AND pw='' OR id='admin' A
 
 The above SQL query will perform the `0xFFFFFFFFFFFFFF*0xFFFFFFFFFFFFFF` operation if `lenght(pw)=1` for `id='admin'`. Since the result of the multiplication operation would be greater than `9223372036854775807`, the challenge would throw an error if the condition is met.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/d98bd98b-8b29-49ba-a28e-3fcc8cb7177a)
+</figure>
 
 Since the error wasn't thrown, we know that the multiplication was not performed. This means that the length of the `pw` for `id='admin'` is more than 1.
 
@@ -55,7 +59,9 @@ The resultant query becomes:
 SELECT id FROM prob_iron_golem WHERE id='admin' AND pw='' OR id='admin' AND if(lenght(pw)=32, 0xFFFFFFFFFFFFFF*0xFFFFFFFFFFFFFF, 1) -- -'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/08f92ace-ad67-4497-87a9-e5f69510ecc8)
+</figure>
 
 That tells us that the length of the `pw` column is 32.
 
@@ -66,7 +72,9 @@ Next, we can leak the password byte by byte using the `substr()` function.
 
 #### `substr()`
 
+<figure style={{ textAlign: 'center' }}>
 ![Pasted image 20240610125927](https://github.com/Kunull/Write-ups/assets/110326359/121b2dab-27a1-41f1-8759-aa9b829c815a)
+</figure>
 
 If we provide the following URI parameter:
 
@@ -82,7 +90,9 @@ SELECT id FROM prob_iron_golem WHERE id='admin' AND pw='' OR id='admin' A
 
 The above SQL query will perform the `0xFFFFFFFFFFFFFF*0xFFFFFFFFFFFFFF` operation if the first character of the `pw` for `id='admin'` is `0`. Since the result of the multiplication operation would be greater than `9223372036854775807`, the challenge would throw an error if the condition is met.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Kunull/Write-ups/assets/110326359/b58f4cf1-d837-4501-ba48-c2d7a929b454)
+</figure>
 
 The error was invoked. This means that the first character of the `pw` for `id='admin'` is `0`.
 We can repeat this process to leak out all 32 characters.
@@ -295,4 +305,6 @@ The resultant query becomes:
 SELECT id FROM prob_iron_golem WHERE id='admin' AND pw='06b5a6c16e8830475f983cc3a825ee9a'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![0](https://github.com/Kunull/Write-ups/assets/110326359/767ddf08-937c-4b54-ba8c-98845814d803)
+</figure>

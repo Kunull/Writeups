@@ -56,13 +56,17 @@ relying on altered metadata to catch me?
 ## Where could the criminal be?
 For this question we have to perform some reverse image searches which we can do using Google Image Search.
 
+<figure style={{ textAlign: 'center' }}>
 ![meta 1](https://github.com/Knign/Write-ups/assets/110326359/2ab066a5-efbf-4b95-b587-b3023a6df98f)
+</figure>
 
 As we can see `uploaded_1.JPG` is an picture of the Pashupathi Nath temple in Kathmandu. 
 
 Let's look up `uploaded_2.png` to verify.
 
+<figure style={{ textAlign: 'center' }}>
 ![meta 2](https://github.com/Knign/Write-ups/assets/110326359/cebd8bca-d0a2-489f-9ba5-517c22f176e7)
+</figure>
 
 Our results tell us that `uploaded_2.png` is a picture of a historical landmark in Kathmandu called Nasal Chowk.
 ### Answer

@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 3
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/d35d9a32-55a6-4752-a4d4-955971ba3131)
+</figure>
 
 We are provided with the SQL query:
 
@@ -38,7 +40,9 @@ SELECT id FROM prob_goblin WHERE id='guest' AND no=0
 
 Since no=0 is always false, the result of the `AND` operation will always be `False`.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/130b241a-088d-4187-86fb-5944f1ff0503)
+</figure>
 
 As expected, the `Hello {$result[id]}` message isn't printed.
 
@@ -58,7 +62,9 @@ SELECT id FROM prob_goblin WHERE id='guest' AND no=0 OR id=0x61646d696e
 
 The result of the first conditional is already `False` and because we just the `id` field to `admin`, the flag will be printed.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/f349d379-8a99-4e6f-b4fa-6c9b2c08e527)
+</figure>
 
 
 ### Method 2
@@ -91,4 +97,6 @@ SELECT id FROM prob_goblin WHERE id='guest' AND no=no OR 1=1 ORDER BY id;
 
 This will print out all the rows as 1=1 is always true and anything `OR` with true is true.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Kunull/Write-ups/assets/110326359/dbfef2c6-67a6-4d7a-9403-8a3a18bae228)
+</figure>

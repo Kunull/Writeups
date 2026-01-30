@@ -7,15 +7,21 @@ custom_edit_url: null
 > [Click here](https://noxtal.com/) to access it, have fun checking my blog out! Cheers!
 > Hint: replace the flag{} part with CTFlearn{}.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/8e5eae8c-e11b-4210-b026-9235cb772dcf)
+</figure>
 
 Let's look at `Application` tab in the `Developer tools`.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/01287eb4-f03e-49c4-a523-7337544eaa27)
+</figure>
 
 We can see that there are different storage options.  Let's check `Local storage`.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/f8c5f812-a868-478c-8911-a7877eb07b39)
+</figure>
 
 ## Flag
 ```

@@ -5,11 +5,15 @@ sidebar_position: 12
 
 > Get access to index.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/db836239-e4cf-48e4-b7b9-a7004d106dc9)
+</figure>
 
 Let's enter `admin` in both the fields and intercept the request.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/3ed4bee0-ad4b-4868-b62c-c20505f4a05d)
+</figure>
 
 We can now forward the request to the `Repeater` and  modify it.
 
@@ -36,7 +40,9 @@ login=admin&password=admin
 
 Finally we have to send it to the server.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/1ee37ac1-f282-4e3a-bedd-554aa9f981ea)
+</figure>
 
 ## Flag
 ```

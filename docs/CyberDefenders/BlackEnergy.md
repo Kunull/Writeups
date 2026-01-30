@@ -152,7 +152,9 @@ $ md5sum pid.880.vad.0x980000-0x988fff.dmp
 ```
 Let's search this hash in Virustotal.
 
+<figure style={{ textAlign: 'center' }}>
 ![virus total](https://github.com/Knign/Write-ups/assets/110326359/d374c4b7-4b46-40d2-90b3-091450922a6d)
+</figure>
 
 We can see that the process is vulnerable to DLL injection.
 ### Answer

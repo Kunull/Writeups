@@ -389,7 +389,9 @@ user_host.interactive(environ=parent_process.environ())
 
 For this challenge, we have to observe network traffic using Wireshark, and find the flag.
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/6ae68ef1-a095-4b66-972c-8cdc3ef42193?raw=1)
+</figure>
 
 ```
 pwn.college{w5xqRA9L9VqC5wgnj0y2NJf5Zd5.dNjNzMDL4ITM0EzW}

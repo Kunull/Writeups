@@ -211,7 +211,9 @@ After some variable renaming and type editing, we are left with the following:
 ### Binary Analysis
 
 <figure>
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/3461de42-2d8b-4851-bb88-f0d28558c942?raw=1)
+</figure>
 </figure>
 
 The challenge performs the following checks:
@@ -484,7 +486,9 @@ pwn.college{Iz_N1i6LBqszqfN70WeEVNJzFd9.QX4ATN2EDL4ITM0EzW}
 
 ### Binary Analysis
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/7eaea94a-9f4b-439d-890c-67cc3ccd778b?raw=1)
+</figure>
 
 - File Extension: Must end with `.cimg`
 - Header (4 bytes total):
@@ -757,7 +761,9 @@ pwn.college{MX7npfEYKHEaMMoN-13n0RYXQiX.QXwETN2EDL4ITM0EzW}
 
 ### Binary Analysis
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/8e03222f-a902-493b-9da2-2bca5c8287de?raw=1)
+</figure>
 
 - File Extension: Must end with `.cimg`
 - Header (8 bytes total):
@@ -1105,7 +1111,9 @@ pwn.college{UiHnq7dEOB75oBiYdd31IiDPdHG.QXyETN2EDL4ITM0EzW}
 
 ### Binary Analysis
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/d0700b9b-d388-4af9-9d10-791a4cf4922a?raw=1)
+</figure>
 
 The challenge performs the following checks:
 - File Extension: Must end with `.cimg`
@@ -1477,9 +1485,13 @@ pwn.college{MncM_uybJBUtPMNqnf4uUZTvN38.QX0ETN2EDL4ITM0EzW}
 
 ### Binary Analysis
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/58e06064-6ea6-4060-8abf-68b8e7e20e3e?raw=1)
+</figure>
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/516cbc5a-64ee-42dc-a872-f73e2ae2cb99?raw=1)
+</figure>
 
 The challenge performs the following checks:
 - File Extension: Must end with `.cimg`
@@ -1901,9 +1913,13 @@ pwn.college{Y9UIwcU8PAlWDhlav3ieIczJPrB.QX2ETN2EDL4ITM0EzW}
 
 ### Binary Analysis
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/cc0aa45c-21d0-4585-8a1d-4117c9e7ee58?raw=1)
+</figure>
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/e6be3c7d-46dd-41e2-ac83-6c34d1d4eb43?raw=1)
+</figure>
 
 The challenge performs the following checks:
 - File Extension: Must end with `.cimg`
@@ -2121,7 +2137,9 @@ hacker@reverse-engineering~a-basic-cimg-python:/$ /challenge/cimg ~/solution.cim
 pwn.college{Q6Dv1cf7dB1UwYRL2Mzcu_E967L.QX3ETN2EDL4ITM0EzW}
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/2252eb4a-5c7f-4e33-a513-32544ddf404d?raw=1)
+</figure>
 
 &nbsp;
 
@@ -2398,7 +2416,9 @@ hacker@reverse-engineering~a-basic-cimg-c:/$ /challenge/cimg ~/solution.cimg
 pwn.college{4IY_xVT2BdscpfYAibCo97rS48E.QX4ETN2EDL4ITM0EzW}
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/cc4e60e6-03e5-4c85-9095-7ae05ba948d8?raw=1)
+</figure>
 
 &nbsp;
 
@@ -2406,19 +2426,33 @@ pwn.college{4IY_xVT2BdscpfYAibCo97rS48E.QX4ETN2EDL4ITM0EzW}
 
 ### Binary Analysis
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/05c4947a-f48f-4982-aa69-6de50094baa4?raw=1)
+</figure>
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/062d20f5-50bf-4835-94b7-11a3eaa2ce0a?raw=1)
+</figure>
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/10c4250a-2b6d-407e-a978-9b2ffe72700a?raw=1)
+</figure>
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/86fb2186-ca81-419b-8acc-9f568ceb313a?raw=1)
+</figure>
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/b135b9fb-e0c2-4909-abc1-e3ddda07d7f5?raw=1)
+</figure>
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/891b2f52-5057-409f-ad44-845d20c65cc2?raw=1)
+</figure>
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/836db900-117c-4ed9-8741-ad054dead51b?raw=1)
+</figure>
 
 The challenge performs the following checks:
 - File Extension: Must end with `.cimg`
@@ -2493,7 +2527,9 @@ hacker@reverse-engineering~a-basic-cimg-x86:/$ /challenge/cimg ~/solution.cimg
 pwn.college{UtFfALQAM2u-0NsYhnUJCQXPUZc.QX2AzMwEDL4ITM0EzW}
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![image](https://github.com/user-attachments/assets/d20bdde0-c41b-4e8a-bb09-df1cb2363a9d?raw=1)
+</figure>
 
 &nbsp;
 
@@ -2838,7 +2874,9 @@ cIMG
 pwn.college{sxObMoehMoum3fSzW12W3zqJsBu.QX5ETN2EDL4ITM0EzW}
 ```
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/0ee560f3-3499-4ea0-8146-10370099cf5a" />
+</figure>
 
 &nbsp;
 
@@ -2846,7 +2884,9 @@ pwn.college{sxObMoehMoum3fSzW12W3zqJsBu.QX5ETN2EDL4ITM0EzW}
 
 After decompiling the program within IDA, and some variable renaming and type altering, we get the following pseudo-C code:
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/7bfe15f4-6483-471a-85c9-8c46a90af07f" />
+</figure>
 
 ### Binary Analysis
 
@@ -2987,7 +3027,7 @@ struct cimg {
 After adding the above given struct, changing the types and names of certain variables, and adding some helpful comments, the decompiled code now looks much better.
 
 <figure style={{ textAlign: 'center' }}>
-    <img alt="image" src="https://github.com/user-attachments/assets/f6a30c2e-a79e-4412-beef-021dedc1627a" />
+<img alt="image" src="https://github.com/user-attachments/assets/f6a30c2e-a79e-4412-beef-021dedc1627a" />
 </figure>
 
 ```c title="/challenge/cimg :: main() :: Pseudocode" showLineNumbers
@@ -3080,7 +3120,9 @@ EXIT:
 
 The `desired_ansii_sequence` is the same as last time.
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/8ea576df-a367-42b1-acb4-d79a08b514a1" />
+</figure>
 
 Expected ANSI sequence:
 
@@ -3147,7 +3189,9 @@ cIMG
 pwn.college{gNl9haWUsUcGB0Nwci7BWxzvy8e.QXwITN2EDL4ITM0EzW}
 ```
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/16daf53c-e0ac-4f77-a66d-ed7662be07ef" />
+</figure>
 
 &nbsp;
 
@@ -3495,13 +3539,17 @@ hacker@reverse-engineering~internal-state-c:/$ /challenge/cimg ~/solution.cimg
 pwn.college{MeWc9ChLvjW8FhGUVQm-MFmVW7z.QXxITN2EDL4ITM0EzW}
 ```
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/bcce1436-44b9-43d6-a71c-319163aa2fa5" />
+</figure>
 
 ## Internal State (x86)
 
 ### Binary Analysis
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/e5d67d5f-4187-4c0b-90be-e2f808a35102" />
+</figure>
 
 ```c title="main()" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -3594,7 +3642,9 @@ EXIT:
 
 The required ANSI sequence:
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/48a42094-e420-4e53-a880-375ea8f7f5d2" />
+</figure>
 
 ### Exploit
 
@@ -3681,7 +3731,9 @@ hacker@reverse-engineering~internal-state-x86:/$ /challenge/cimg ~/solution.cimg
 pwn.college{gmLJQK0xAMY1I1Cfskv-zutRCEa.QX3AzMwEDL4ITM0EzW}
 ```
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/d6d03ad9-ca4c-4a9f-8eff-ec3cfee52055" />
+</figure>
 
 &nbsp;
 
@@ -4052,7 +4104,9 @@ hacker@reverse-engineering~file-formats-directives-c:/$ /challenge/cimg ~/soluti
 pwn.college{YtYqzGPTd8ZcDWzwyHLOGwSsY0S.QXyITN2EDL4ITM0EzW}
 ```
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/ed25f4e4-8075-4e31-baa3-8e39e29bbd59" />
+</figure>
 
 &nbsp;
 
@@ -4242,7 +4296,9 @@ hacker@reverse-engineering~file-formats-directives-x86:/$ /challenge/cimg ~/solu
 pwn.college{syk86MEMK8yI4ABF2f5AcH3BOKX.QX4AzMwEDL4ITM0EzW}
 ```
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/635a80e9-9b81-4126-b443-99ed91623c08" />
+</figure>
 
 &nbsp;
 
@@ -4856,7 +4912,9 @@ hacker@reverse-engineering~the-patch-directive:~$ /challenge/cimg ~/solution.cim
 pwn.college{UMeXSUaFZYlR24CqDvgWdMZihWp.QX5AzMwEDL4ITM0EzW}
 ```
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/9ce34f70-2ab2-44f2-9f59-536f53dcde50" />
+</figure>
 
 &nbsp;
 
@@ -5293,7 +5351,9 @@ hacker@reverse-engineering~optimizing-for-space:~$ /challenge/cimg ~/solution.ci
 pwn.college{AIEMVclq8dEJTwR93Pr44xYlNxZ.QXwEzMwEDL4ITM0EzW}
 ```
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/80de1371-b7a9-49df-9cf0-e3fc0fce2f4d" />
+</figure>
 
 &nbsp;
 
@@ -5325,7 +5385,9 @@ So, the directive code in the `/challenge/flag.cimg` file is `2` but that is not
 
 We can even verify this. For some reason the free version if IDA does not support the file format, so we will have to use Binary Ninja.
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/4fae5c03-da33-4748-b005-62b338fddd30" />
+</figure>
 
 We can see that it sets the directive code to `2`.
 

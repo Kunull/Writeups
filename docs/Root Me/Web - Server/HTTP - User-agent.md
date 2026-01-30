@@ -3,15 +3,21 @@ custom_edit_url: null
 sidebar_position: 4
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/b3d342fb-b41b-4ad9-a2d3-55e2e01fbc7a)
+</figure>
 
 Let's intercept the request using Burpsuite so that we can modify it.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/58d37567-7542-4db1-aeb6-785e518d747c)
+</figure>
 
 We can now send the request to `Repeater`.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/712ba327-d3d9-4323-8b4d-19b2abdba880)
+</figure>
 
 ## User-Agent
 The **User-Agent** [request header](https://developer.mozilla.org/en-US/docs/Glossary/Request_header) is a characteristic string that lets servers and network peers identify the application, browser used to make the request.
@@ -34,7 +40,9 @@ Sec-GPC: 1
 ```
 Finally, we have to send the request to the server.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/b5e05e4e-bda8-407b-976f-e01c6085c716)
+</figure>
 
 ## Flag
 ```

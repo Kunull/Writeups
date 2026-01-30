@@ -150,17 +150,23 @@ Finished
 ```
 Let's go to the `/ping` page.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/790246d9-fea6-4f8c-b1ab-8ff375dc5d3c)
+</figure>
 
 So we are expected to provide a parameter and we haven't done that we get the errors.
 Let's try providing an IP address.
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Knign/Write-ups/assets/110326359/ee6d6ca6-8bb9-4d32-a4f5-787edaa2331d)
+</figure>
 
 So the application executes the ping command with the IP we provide.
 Let's see if it can execute a command that we provide.
 
+<figure style={{ textAlign: 'center' }}>
 ![8](https://github.com/Knign/Write-ups/assets/110326359/019cff8e-33f5-4b3c-acbd-07668ce23cbf)
+</figure>
 
 It does and we get the server name.
 ### Answer
@@ -173,7 +179,9 @@ utech.db.sqlite
 ### What is the first user's password hash?
 We can read the passwords from the database using `cat`.
 
+<figure style={{ textAlign: 'center' }}>
 ![9](https://github.com/Knign/Write-ups/assets/110326359/b139abb0-f5d5-4d72-904a-471a12e7572b)
+</figure>
 
 We get two password hashes, one of `r00t` user and one of `admin` user.
 
@@ -275,7 +283,9 @@ bash                latest              495d6437fc1e        4 years ago         
 We can see that there is a `bash` container.
 We can find an exploit for it on GTFOBins.
 
+<figure style={{ textAlign: 'center' }}>
 ![10](https://github.com/Knign/Write-ups/assets/110326359/8cc1208e-e473-4d8d-ac57-0d16f3adf421)
+</figure>
 
 ```
 r00t@ultratech-prod:~$ docker run -v /:/mnt --rm -it bash chroot /mnt bash

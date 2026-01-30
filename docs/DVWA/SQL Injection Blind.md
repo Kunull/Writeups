@@ -10,11 +10,15 @@ custom_edit_url: null
 > The SQL query uses RAW input that is directly controlled by the attacker. All they need to-do is escape the query and then they are able to execute any SQL query they wish.
 > Spoiler: ?id=1' AND sleep 5&Submit=Submit.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/35af092e-8a50-46b6-a860-7f538f830902)
+</figure>
 
 Let's check if user ID 1 exists.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/5224c85d-e815-4adf-a47d-6bea39974ac7)
+</figure>
 
 We can now provide the following inputs to figure out the number of columns in the table.
 

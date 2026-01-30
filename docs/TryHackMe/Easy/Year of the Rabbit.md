@@ -65,29 +65,41 @@ Finished
 ```
 Let's go to the `assets/` directory.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/bfe4b1ed-4bcd-402a-a4ba-c9edbf41db94)
+</figure>
 
 Let's check out the `style.css` file. We will avoid the `RickRolled.mp4` file for obvious reasons.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/f5fd2f1a-5528-4986-8cdc-eec53f9e1fc6)
+</figure>
 
 So now we can go to `/sup3r_s3cr3t_fl4g.php`.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/2a2f6f59-4904-49da-a78f-a3722d93e26d)
+</figure>
 
 If we click `OK` we just get Rick Rolled.
 
 Let's intercept the request in Burpsuite.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/006debc1-d1e5-4a96-929f-d214e784ad25)
+</figure>
 
 We can `Forward` this request.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/978c8913-9e61-4bed-9bc3-0fda7d941472)
+</figure>
 
 Let's see what is in the `/WExYY2Cv-qU` directory.
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Knign/Write-ups/assets/110326359/23d1e734-2667-48db-ae07-d073b8d6756e)
+</figure>
 
 We can download the `Hot_Babe.png` file using `wget`.
 ```
@@ -255,7 +267,9 @@ $ cat Eli\'s_Creds.txt
 The text is in Brain Fuck. 
 We can use an online decoder to decode it.
 
+<figure style={{ textAlign: 'center' }}>
 ![8](https://github.com/Knign/Write-ups/assets/110326359/020c0449-508b-4233-8a30-051dac7c6c37)
+</figure>
 
 | Username | Password |
 | :-: | :-: |
@@ -355,7 +369,9 @@ Sudoers I/O plugin version 1.8.10p3
 ```
 We can find an exploit for that version om Exploit-DB.
 
+<figure style={{ textAlign: 'center' }}>
 ![9](https://github.com/Knign/Write-ups/assets/110326359/2f1e4e69-d600-4857-b53f-f70827737ac5)
+</figure>
 
 Let's craft our exploit.
 ```
@@ -367,7 +383,9 @@ Next we have to type the following;
 :!/bin/bash
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![10](https://github.com/Knign/Write-ups/assets/110326359/55986df9-d404-4786-b90a-d5082bc853b5)
+</figure>
 
 We must have `root` access.
 ```

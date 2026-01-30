@@ -21,7 +21,9 @@ $ echo "48bb6e862e54f2a795ffc4e541caed4d" > hash1.txt
 ```
 Now we have to find the hash-mode for a MD5 hash.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/bff35b46-1822-4780-a665-12dfdc2446a8)
+</figure>
 
 We are now ready to crack the hash using `hashcat`.
 ```
@@ -60,7 +62,9 @@ Possible Hashs:
 ```
 The mode for SHA-1 in `hashcat` is `100`.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/a4b08a4e-ae9a-4b22-ad99-b604f786886b)
+</figure>
 
 ```
 $ hashcat-a 0 -m 100 hash2.txt /usr/share/wordlists/rockyou.txt              
@@ -102,7 +106,9 @@ $ echo "1C8BFE8F801D79745C4631D09FFF36C82AA37FC4CCE4FC946683D7B336B63032" > hash
 ```
 The mode for SHA-256 in `hashcat` is `1400`.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/46a37c2a-e861-4678-b32b-eb64bb3a12dd)
+</figure>
 
 ```
 $ hashcat -a 0 -m 1400 hash3.txt /usr/share/wordlists/rockyou.txt
@@ -134,7 +140,9 @@ letmein
 
 We will have to use another tool called Hash Analyzer.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/27aab8c3-899c-4fdd-8dcb-2e1497866060)
+</figure>
 
 The hash-mode for Bcrypt is `3200`.
 
@@ -158,11 +166,15 @@ bleh
 ### 279412f945939ba78ce0758d3fd83daa
 Let's identify the type using Hash Analyzer.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/fa54059c-0124-4c7c-b703-21da336a9bf2)
+</figure>
 
 This time let's use CrackStation to crack the hash.
 
+<figure style={{ textAlign: 'center' }}>
 ![8](https://github.com/Knign/Write-ups/assets/110326359/6f87dafe-a0d9-461a-8a41-3e6651ef96be)
+</figure>
 
 ### Answer
 ```
@@ -198,7 +210,9 @@ paule
 ### Hash: 1DFECA0C002AE40B8619ECF94819CC1B
 CrackStation gives us the password.
 
+<figure style={{ textAlign: 'center' }}>
 ![9](https://github.com/Knign/Write-ups/assets/110326359/58b2e3c1-7db5-445d-9136-cc3bbd7edadd)
+</figure>
 
 ### Answer
 ```
@@ -210,7 +224,9 @@ n63umy8lkf4i
 ### Hash: $6$aReallyHardSalt$6WKUTqzq.UQQmrm0p/T7MPpMbGNnzXPMAXi4bJMl9be.cfi3/qxIf.hsGpS41BqMhSrHVXgMpdjS6xeKZAs02. Salt: aReallyHardSalt
 The `$6$` tells us that this is a SHAcrypt512 hash the mode for which is `1800`.
 
+<figure style={{ textAlign: 'center' }}>
 ![10](https://github.com/Knign/Write-ups/assets/110326359/5ac362b8-333e-4f4c-b23c-342f3ec52996)
+</figure>
 
 This time we have to filter for passwords that are six characters long.
 ```

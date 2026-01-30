@@ -114,11 +114,15 @@ Finished
 
 Let's go to the `admin/` directory.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/37b68183-6329-49a4-9acf-f8aaed6cb39b)
+</figure>
 
 We can check the source code using  `CTRL+U`.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/c99d5669-21ec-4307-8060-88d15e86109d)
+</figure>
 
 Now that we know the username, we can use `hydra` to brute force the password.
 ```
@@ -142,7 +146,9 @@ admin:xavier
 ### Crack the RSA key you found. What is John's RSA Private Key passphrase?
 Let's login with `admin` as the username and `xavier` as the password.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/8926dd22-3fbc-45c3-8f40-29f627bc8c2a)
+</figure>
 
 Let's download the `RSA private key`. for the user `john`.
 ```
@@ -288,7 +294,9 @@ $ echo $6$zdk0jUm$Vya24cGzM1duJkwM5b17Q205xDJ47LOAg/OpZvJ1gKbLF8PJBdKJA4a6MJYPUT
 ```
 We have to find the correct for SHA-512.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/d9c4b88b-0258-47b3-b00a-3bf9bcbd6e60)
+</figure>
 
 Let's run `hashcat` in order to crack this hash.
 ```

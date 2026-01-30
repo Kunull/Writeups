@@ -3,17 +3,23 @@ custom_edit_url: null
 sidebar_position: 10
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/cf7d1f93-5c3c-4a1e-99d9-df3cd36acf9f)
+</figure>
 
 Maybe the clue lie in the response headers. 
 
 In order to check the response headers we have to intercept the request using Burpsuite.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/9c19cc3a-66bd-40e8-88d1-8bd3985d47ea)
+</figure>
 
 Let's forward the request to the `Repeater`.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/de8e5b8e-c91d-4f70-8038-470d977a9118)
+</figure>
 
 The response has a header called `Header-RootMe-Admin`. We can include this header in our next request.
 
@@ -34,7 +40,9 @@ Sec-GPC: 1
 ```
 Finally, we have to send this request to the server.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/41cdaf93-3927-4352-b23c-6f3b5a729c67)
+</figure>
 
 ## Flag
 ```

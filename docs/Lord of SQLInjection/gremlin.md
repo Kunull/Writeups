@@ -4,7 +4,9 @@ sidebar_position: 1
 tags: [SQLi]
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/18cc31d8-0f98-466a-84f6-3d68bf23ab5f)
+</figure>
 
 We are provided with the SQL query:
 
@@ -32,4 +34,6 @@ AND pw=''
 
 Since 1=1 is always true, the result of the `OR` operation will always be `True`.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/002d0b4e-53d5-41f0-a173-50f3058c5302)
+</figure>

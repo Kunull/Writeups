@@ -113,11 +113,15 @@ fb5ed444ddc37d748639f624397cff2a  sample1-fb5ed444ddc37d748639f624397cff2a.bin
 ```
 Let's look up the hash in Malware bazaar
 
+<figure style={{ textAlign: 'center' }}>
 ![xls 4](https://github.com/Knign/Write-ups/assets/110326359/80042e67-e464-4fec-b2dd-9143d71d143a)
+</figure>
 
 We can also look up the hash in VirusTotal.
 
+<figure style={{ textAlign: 'center' }}>
 ![xls 4 2](https://github.com/Knign/Write-ups/assets/110326359/56cbadb0-9d7f-4c25-a1b8-df7349278143)
+</figure>
 
 ### Answer
 ```
@@ -361,7 +365,9 @@ b5d469a07709b5ca6fee934b1e5e8e38  sample2-b5d469a07709b5ca6fee934b1e5e8e38.bin
 ```
 Let's look up this hash in VirusTotal.
 
+<figure style={{ textAlign: 'center' }}>
 ![xls 14](https://github.com/Knign/Write-ups/assets/110326359/31f314f8-8cff-4790-bf74-2dca9894b106)
+</figure>
 
 The answer is the one listed by TrendMicro.
 ### Answer

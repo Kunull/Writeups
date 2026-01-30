@@ -31,7 +31,9 @@ AEMAVABGAGwAZQBhAHIAbgB7AHQAaABpAHMAXwBpAHMAXwBmAHUAbgB9
 ```
 That looks like it is encrypted using Base64. Let's decode it using Cyberchef.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/1f557e3b-8688-4f55-947b-5c5843035c21)
+</figure>
 
 ## Flag
 ```

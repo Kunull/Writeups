@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 18
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/b37663bf-7e53-4d53-b15b-b9e65b46df36)
+</figure>
 
 We are provided with the SQL query:
 
@@ -32,7 +34,9 @@ The resultant query becomes:
 SELECT id FROM prob_nightmare WHERE pw=('')=0') AND id!='admin'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/c75599ca-621e-48f4-8fd0-af5f0c3f162a)
+</figure>
 
 Now, in order to remove the rest of query we have use a NULL byte (`%00`). This terminates the query.
 We also have to add a semi-colon (`;`) before terminating the query.
@@ -52,4 +56,6 @@ SELECT id FROM prob_nightmare WHERE pw=('')=0;
 ') AND id!='admin'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/0cdb82c7-6781-4cb7-8ebd-fd513f70f309)
+</figure>

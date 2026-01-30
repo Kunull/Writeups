@@ -97,4 +97,6 @@ $ python .\bugbear_script.py
 [!] Final payload: ?pw=52dc3991
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![0](https://github.com/Kunull/Write-ups/assets/110326359/79e0068b-45ad-4d2e-a03d-791bb38cafce)
+</figure>

@@ -6,11 +6,15 @@ sidebar_position: 6
 > Find a vulnerability in this service and exploit it.
 > The flag is on the `index.php` file.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/c39a2154-0f61-483b-b922-b8067f6c8c5b)
+</figure>
 
 Let's input `127.0.0.1` as the input field is suggesting.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/7bdbfb6d-5555-416b-8fcc-128d84d901c5)
+</figure>
 
 We can see that our input is used to execute a `ping` command.
 
@@ -20,11 +24,15 @@ We know the flag is on the `index.php` file. In order to `cat` the flag we need 
 127.0.0.1 ; cat index.php
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/f0d75377-bb63-4cc1-9309-34b6daefa1f6)
+</figure>
 
 Looks like our input was processed properly. Let's check the source code.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/22cb3fb7-b0bb-4d42-b737-580593a2a05f)
+</figure>
 
 The source code reveals an interesting piece of code.
 ## PHP code
@@ -47,7 +55,9 @@ Let's modify our input to `cat` the `.passwd` file.
 127.0.0.1 ; cat .passwd
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/1c040311-cc40-487b-b866-67abe9edd2ff)
+</figure>
 
 ## Flag
 ```

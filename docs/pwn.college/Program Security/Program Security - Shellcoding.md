@@ -4696,7 +4696,9 @@ We have to replace the GOT entry of some library, with the address of `win()`.
 
 #### Pre resolution
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/458e8e9d-3e2d-4815-82ca-3b56602084a1" />
+</figure>
 
 When the PLT code stub for a specific function is called, it goes and checks the address for that function in the GOT and then jumps execution to that address.
 
@@ -4707,7 +4709,9 @@ These set of instructions get the actual address from the loader `_dl_runtime_re
 
 #### Post resolution
 
+<figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/8953057a-b12d-4183-a3ed-3b80e6277040" />
+</figure>
 
 After resolution, when the PLT stub for a function is called, it goes and checks the address for that funciton in the GOT.
 This time it finds the actual address of the function library instead of it's own next insteuction.

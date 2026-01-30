@@ -4,7 +4,9 @@ sidebar_position: 36
 tags: [SQLi, Multi-line comment, MOD Security CRS, WAF bypass]
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/a0890124-fcbf-4ebc-a6fd-dc8011043f59)
+</figure>
 
 We are provided with the SQL query:
 
@@ -27,7 +29,9 @@ The resultant query becomes:
 SELECT id,pw FROM prob_cyclops WHERE id='' UNION SELECT '' AND pw=''
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/79303dfd-43e3-4524-af78-e1019ef5e2a2)
+</figure>
 
 As we can see, the input gets blocked.
 In order to get around this we have to use multi-line comments.
@@ -72,4 +76,6 @@ SELECT id,pw FROM prob_cyclops WHERE id='-1'<@=1 UNION
 SELECT 'first','second' -- -' AND pw=''
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Kunull/Write-ups/assets/110326359/ff3d51a5-66d4-408b-a2b1-923d945dc379)
+</figure>

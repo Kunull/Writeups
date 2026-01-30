@@ -3,7 +3,9 @@ custom_edit_url: null
 sidebar_position: 14
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/cf244332-a0d2-4992-a29d-c16c73b69db7)
+</figure>
 
 We are provided with the SQL query:
 
@@ -37,4 +39,6 @@ The resultant query becomes:
 SELECT 1234 FROM prob_giant WHERE 1
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/633b9e01-cf5c-4b96-ae06-ceae467e3971)
+</figure>

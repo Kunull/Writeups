@@ -4,7 +4,9 @@ sidebar_position: 39
 tags: [SQLi, Blind SQL injection]
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Kunull/Write-ups/assets/110326359/a61aad74-8281-41ed-a2ae-9a7202c94f06)
+</figure>
 
 We are provided with the SQLite query.
 
@@ -156,4 +158,6 @@ The resultant query becomes:
 SELECT id FROM member WHERE id='admin' AND pw='0313091b'
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Kunull/Write-ups/assets/110326359/8f2545dd-41be-4133-869a-cb3d3820f33d)
+</figure>

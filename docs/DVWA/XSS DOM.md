@@ -11,7 +11,9 @@ custom_edit_url: null
 
 Let's select the first option i.e. `English` and click `Submit`.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/959ff393-694b-422d-aa1a-50c41213ce94)
+</figure>
 
 If we look at the URL, we can see that our input has been set as a URL parameter.
 
@@ -23,7 +25,9 @@ Let's change the URL to the following:
 10.0.4.5/DVWA/vulnerabilities/xss_d/?default=<script>alert();</script>
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/040fb1b1-eedc-4899-a79d-97d420e098f5)
+</figure>
 
 &nbsp;
 
@@ -39,13 +43,17 @@ Let's change the URL to the following:
 
 Let's check the source code.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/ac7216de-a267-4126-9ff7-c0c38fa67bee)
+</figure>
 
 So our input is being stripped of `<script` tags.
 
 Let's inspect the code in the web page as well.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/a0fe7593-ebce-4bb2-a364-379469ccfce9)
+</figure>
 
 We can see that we first need to escape the `<select>` tag that we are in.
 
@@ -55,7 +63,9 @@ Once we have done that we can use the `img onerror` attribute to trigger an aler
 10.0.4.5/DVWA/vulnerabilities/xss_d/?default=</select><img src=1 onerror=alert(document.cookie)>
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/a57d294d-0d1d-4841-a41a-e93a08410b5b)
+</figure>
 
 &nbsp;
 
@@ -65,7 +75,9 @@ Once we have done that we can use the `img onerror` attribute to trigger an aler
 
 Let's check the source code first.
 
+<figure style={{ textAlign: 'center' }}>
 ![6](https://github.com/Knign/Write-ups/assets/110326359/602f9853-2478-423b-a9f6-1f0d31c5710e)
+</figure>
 
 In this case we can use the `#` character so that our URI is fragmented and it satisfies the checks.
 
@@ -73,4 +85,6 @@ In this case we can use the `#` character so that our URI is fragmented and it s
 10.0.4.5/DVWA/vulnerabilities/xss_d/#?default=<script>alert(document.cookie);</script>
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![7](https://github.com/Knign/Write-ups/assets/110326359/1d08e85f-3bcb-4a4a-bf9a-2eede0611040)
+</figure>

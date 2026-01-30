@@ -101,11 +101,15 @@ Finished
 Let's visit the `/simple` page.
 On the web page, in the footer section we can find the version of the CMS.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/2609b04d-ac85-4bb3-9e78-76f396abe0e7)
+</figure>
 
 Let's check Exploit-DB to see if there is an exploit for that version.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/01957b9a-77f1-40cd-b8d5-77dd86433752)
+</figure>
 
 ### Answer
 ```
@@ -117,7 +121,9 @@ CVE-2019-9053
 ### To what kind of vulnerability is the application vulnerable?
 The vulnerability is mentions in the CVE page.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/2627f18d-3f9d-4a34-9e83-14e12986d914)
+</figure>
 
 ### Answer
 ```
@@ -229,7 +235,9 @@ vim
 ### What's the root flag?
 We can find an exploit on GTFOBins.
 
+<figure style={{ textAlign: 'center' }}>
 ![5](https://github.com/Knign/Write-ups/assets/110326359/5e49ef4e-df15-4e84-b8e3-31609938f45f)
+</figure>
 
 Let's run the exploit.
 ```

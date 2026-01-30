@@ -4,7 +4,9 @@ custom_edit_url: null
 sidebar_position: 4
 ---
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/9beeb680-f471-485b-99ee-ae9086cc272f)
+</figure>
 
 Let's insert the following payload in the search field:
 
@@ -14,7 +16,9 @@ test_payload
 
 We can now open `Left CLick > Inspect` to open the developer tools and search our payload.
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/4821747f-04a3-4c2e-92c8-c66415fac84f)
+</figure>
 
 We can see that our payload has been inserted in the `<span>` tag more specifically, it has been appended to the source of the image.
 
@@ -40,8 +44,12 @@ Now that we know how the DOM manipulation works, we can insert our final payload
 </span><script>alert("1")</script>
 ```
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/0e4c9da6-a267-4c52-98fa-a2adbec89c6d)
+</figure>
 
 We have solved the lab.
 
+<figure style={{ textAlign: 'center' }}>
 ![4](https://github.com/Knign/Write-ups/assets/110326359/31e1a249-bbd3-42be-910c-4f3a81d1270c)
+</figure>

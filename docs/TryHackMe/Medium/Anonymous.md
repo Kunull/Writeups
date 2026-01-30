@@ -279,10 +279,14 @@ So it seems like this script is a cronjob that runs after a particular time inte
 
 In that case we can replace the content of the file to a reverse shell in order to obtain a shell on the target machine. We can get the script from Pentest Monkey.
 
+<figure style={{ textAlign: 'center' }}>
 ![1](https://github.com/Knign/Write-ups/assets/110326359/dbccddc3-bde9-4aab-b2d1-f7db50e37bbd)
+</figure>
 
 
+<figure style={{ textAlign: 'center' }}>
 ![2](https://github.com/Knign/Write-ups/assets/110326359/2473fd0f-7229-4715-919f-5037d31d1561)
+</figure>
 
 
 Once the `clean.sh` file has been modified, we can log back into the FTP server and upload the file using the `put` command.
@@ -407,7 +411,9 @@ find / -perm -u=s -type f 2>/dev/null
 
 For this particular lab we will be using the `/usr/bin/env` to escalate our privileges. The exploit can be found on GTFOBins.
 
+<figure style={{ textAlign: 'center' }}>
 ![3](https://github.com/Knign/Write-ups/assets/110326359/45ea66cb-5cb7-4efa-b0fe-9b908c9d929a)
+</figure>
 
 Let's use the exploit.
 
