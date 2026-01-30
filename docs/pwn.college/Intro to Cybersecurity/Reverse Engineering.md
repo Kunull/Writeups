@@ -2026,10 +2026,10 @@ def main():
     invalid_character = next((pixel.ascii for pixel in pixels if not (0x20 <= pixel.ascii <= 0x7E)), None)
     assert invalid_character is None, f"ERROR: Invalid character {invalid_character:#04x} in data!"
 
-    ansii_escape = lambda pixel: f"\x1b[38;2;{pixel.r:03};{pixel.g:03};{pixel.b:03}m{chr(pixel.ascii)}\x1b[0m"
+    ansi_escape = lambda pixel: f"\x1b[38;2;{pixel.r:03};{pixel.g:03};{pixel.b:03}m{chr(pixel.ascii)}\x1b[0m"
     framebuffer = "".join(
-        "".join(ansii_escape(pixel) for pixel in pixels[row_start : row_start + width])
-        + ansii_escape(Pixel(0, 0, 0, ord("\n")))
+        "".join(ansi_escape(pixel) for pixel in pixels[row_start : row_start + width])
+        + ansi_escape(Pixel(0, 0, 0, ord("\n")))
         for row_start in range(0, len(pixels), width)
     )
     print(framebuffer)
@@ -2825,7 +2825,7 @@ If we write the first pixel as `b"xc8(\x83c"`, the challenge fills in the pixel 
 %03d -> 131 -> "131"
 %c   -> 'c'
 
-## Final ANSII pixel
+## Final ANSI pixel
 \x1b[38;2;200;040;131mc\x1b[0m
 ```
 
@@ -2901,7 +2901,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
   unsigned __int8 *v8; // rbp
   __int64 i_1; // rax
   __int64 data_i_ascii; // rcx
-  char *desired_ansii_sequence; // r12
+  char *desired_ansi_sequence; // r12
   unsigned int v12; // r13d
   __int64 framebuffer_2; // r14
   _BOOL8 won; // rbx
@@ -2955,7 +2955,7 @@ EXIT:
       exit(-1);
     }
   }
-  desired_ansii_sequence = desired_output;
+  desired_ansi_sequence = desired_output;
   display(&cimg_header, v8);
   v12 = DWORD2(cimg_header);
   framebuffer_2 = framebuffer;
@@ -2963,14 +2963,14 @@ EXIT:
   for ( i = 0LL; (_DWORD)i != 4 && v12 > (unsigned int)i; ++i )
   {
     str_c = *(_BYTE *)(framebuffer_2 + 24 * i + 19);
-    if ( str_c != desired_ansii_sequence[19] )
+    if ( str_c != desired_ansi_sequence[19] )
       LODWORD(won) = 0;
     if ( str_c != 32 && str_c != 10 )
     {
-      if ( memcmp((const void *)(framebuffer_2 + 24 * i), desired_ansii_sequence, 0x18uLL) )
+      if ( memcmp((const void *)(framebuffer_2 + 24 * i), desired_ansi_sequence, 0x18uLL) )
         LODWORD(won) = 0;
     }
-    desired_ansii_sequence += 24;
+    desired_ansi_sequence += 24;
   }
   if ( won )
     win();
@@ -3114,7 +3114,7 @@ EXIT:
 }
 ```
 
-The `desired_ansii_sequence` is the same as last time.
+The `desired_ansi_sequence` is the same as last time.
 
 <figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/8ea576df-a367-42b1-acb4-d79a08b514a1" />
@@ -3138,7 +3138,58 @@ We can see that the challenge performs the exact same checks as the [Internal St
         - Height (1 bytes): Must be either `1` (if `width = 4`), `2` (if `width = 2`) or `4` (if `width = 1`) in little-endian
 - Pixel Data:
     - The number of non-space ASCII pixels must be `4 * 1 = 4`, i.e. the number of bytes must be `4 * 4 = 16`
-    - When pixel data is loaded into the [ANSI escape code](https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit): `"\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m"` one by one and appended together, it should match the following: `"\x1b[38;2;200;040;131mc\x1b[0m\x1b[38;2;001;019;165mI\x1b[0m\x1b[38;2;160;134;059mM\x1b[0m\x1b[38;2;195;046;079mG\x1b[0m\x00";`
+    - When pixel data is loaded into the [ANSI escape code](https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit): `\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m` one by one and appended together, it should match the following: `\x1b[38;2;200;040;131mc\x1b[0m\x1b[38;2;001;019;165mI\x1b[0m\x1b[38;2;160;134;059mM\x1b[0m\x1b[38;2;195;046;079mG\x1b[0m\x00`
+
+The code checks if each fourth byte in the pixel, i.e. the character byte (r,g,b,c), lies between `0x20` and `0x7e`.
+
+```c 
+# ---- snip ----
+
+if ( (unsigned __int8)(character - 0x20) > 0x5Eu )
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", *(_QWORD *)&character);
+EXIT:
+      exit(-1);
+    }
+
+# ---- snip ----
+```
+
+```c 
+# ---- snip ----
+
+typedef struct {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t ascii;
+} pixel_t;
+
+# ---- snip ----
+```
+
+It then uses the 4-bytes in the pixels to fill in the ANSI sequence (`\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m`) based on the struct we defined earlier:
+
+```c 
+# ---- snip ----
+
+struct term_str_st {
+    char color_set[7];          //  \x1b[38;2;
+    char r[3];                  //  255
+    char s1;                    //  ;
+    char g[3];                  //  255
+    char s2;                    //  ;
+    char b[3];                  //  255
+    char m;                     //  m
+    char c;                     //  X
+    char color_reset[4];        //  \x1b[0m
+};
+
+# ---- snip ----
+```
+
+Afterwards, it checks if the 20th byte in the crafted ANSI sequence is a space or newline character.
+If it is not, and everything else is matching the desired ANSI sequence, it calls `win()` which prints the flag.
 
 ### Exploit
 
@@ -3461,10 +3512,10 @@ from pwn import *
 import struct
 import re
 
-# Desired ANSII sequence
+# Desired ANSI sequence
 binary = context.binary = ELF('/challenge/cimg')
-desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
-desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
+desired_ansi_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansi_sequence = desired_ansi_sequence_bytes.decode("utf-8")
 
 # This regex looks for the RGB numbers and the character that follows the 'm'
 # (\d+) matches the digits for R, G, and B
@@ -3472,7 +3523,7 @@ desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
 pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
 
 # Find all matches in the sequence
-matches = re.findall(pattern, desired_ansii_sequence)
+matches = re.findall(pattern, desired_ansi_sequence)
 
 # Convert the strings to the format you want: (int, int, int, ord(char))
 pixels = [
@@ -3558,7 +3609,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
   unsigned __int8 *v8; // rbp
   __int64 i_1; // rax
   __int64 data_i_ascii; // rcx
-  char *desired_ansii_sequence; // r12
+  char *desired_ansi_sequence; // r12
   unsigned int num_pixels; // r14d
   _BYTE *framebuffer_2; // r13
   _BOOL8 won; // rbx
@@ -3612,7 +3663,7 @@ EXIT:
       exit(-1);
     }
   }
-  desired_ansii_sequence = desired_output;
+  desired_ansi_sequence = desired_output;
   display(&cimg_header, v8);
   num_pixels = DWORD2(cimg_header);
   framebuffer_2 = s1;
@@ -3620,15 +3671,15 @@ EXIT:
   for ( i = 0; i != 1365 && num_pixels > i; ++i )
   {
     v16 = framebuffer_2[19];
-    if ( v16 != desired_ansii_sequence[19] )
+    if ( v16 != desired_ansi_sequence[19] )
       LODWORD(won) = 0;
     if ( v16 != 32 && v16 != 10 )
     {
-      if ( memcmp(framebuffer_2, desired_ansii_sequence, 0x18uLL) )
+      if ( memcmp(framebuffer_2, desired_ansi_sequence, 0x18uLL) )
         LODWORD(won) = 0;
     }
     framebuffer_2 += 24;
-    desired_ansii_sequence += 24;
+    desired_ansi_sequence += 24;
   }
   if ( won )
     win();
@@ -3649,10 +3700,10 @@ from pwn import *
 import struct
 import re
 
-# Desired ANSII sequence
+# Desired ANSI sequence
 binary = context.binary = ELF('/challenge/cimg')
-desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
-desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
+desired_ansi_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansi_sequence = desired_ansi_sequence_bytes.decode("utf-8")
 
 # This regex looks for the RGB numbers and the character that follows the 'm'
 # (\d+) matches the digits for R, G, and B
@@ -3660,7 +3711,7 @@ desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
 pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
 
 # Find all matches in the sequence
-matches = re.findall(pattern, desired_ansii_sequence)
+matches = re.findall(pattern, desired_ansi_sequence)
 
 # Convert the strings to the format you want: (int, int, int, ord(char))
 pixels = [
@@ -4024,10 +4075,10 @@ from pwn import *
 import struct
 import re
 
-# Desired ANSII sequence
+# Desired ANSI sequence
 binary = context.binary = ELF('/challenge/cimg')
-desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
-desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
+desired_ansi_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansi_sequence = desired_ansi_sequence_bytes.decode("utf-8")
 
 # This regex looks for the RGB numbers and the character that follows the 'm'
 # (\d+) matches the digits for R, G, and B
@@ -4035,7 +4086,7 @@ desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
 pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
 
 # Find all matches in the sequence
-matches = re.findall(pattern, desired_ansii_sequence)
+matches = re.findall(pattern, desired_ansi_sequence)
 
 # Convert the strings to the format you want: (int, int, int, ord(char))
 pixels = [
@@ -4118,7 +4169,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
   const char *file_arg; // rbp
   int file; // eax
   const char *error_msg; // rdi
-  char *desired_ansii_sequence; // r12
+  char *desired_ansi_sequence; // r12
   unsigned int v8; // r14d
   _BYTE *framebuffer_2; // r13
   _BOOL8 won; // rbx
@@ -4166,7 +4217,7 @@ EXIT:
     }
     handle_45381(&cimg_header);
   }
-  desired_ansii_sequence = desired_output;
+  desired_ansi_sequence = desired_output;
   display(&cimg_header, 0LL);
   v8 = HIDWORD(cimg_header);
   framebuffer_2 = framebuffer;
@@ -4174,15 +4225,15 @@ EXIT:
   for ( i = 0; i < v8 && i != 800; ++i )
   {
     v12 = framebuffer_2[19];
-    if ( v12 != desired_ansii_sequence[19] )
+    if ( v12 != desired_ansi_sequence[19] )
       LODWORD(won) = 0;
     if ( v12 != 32 && v12 != 10 )
     {
-      if ( memcmp(framebuffer_2, desired_ansii_sequence, 0x18uLL) )
+      if ( memcmp(framebuffer_2, desired_ansi_sequence, 0x18uLL) )
         LODWORD(won) = 0;
     }
     framebuffer_2 += 24;
-    desired_ansii_sequence += 24;
+    desired_ansi_sequence += 24;
   }
   if ( won )
     win();
@@ -4211,10 +4262,10 @@ from pwn import *
 import struct
 import re
 
-# Desired ANSII sequence
+# Desired ANSI sequence
 binary = context.binary = ELF('/challenge/cimg')
-desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
-desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
+desired_ansi_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansi_sequence = desired_ansi_sequence_bytes.decode("utf-8")
 
 # This regex looks for the RGB numbers and the character that follows the 'm'
 # (\d+) matches the digits for R, G, and B
@@ -4222,7 +4273,7 @@ desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
 pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
 
 # Find all matches in the sequence
-matches = re.findall(pattern, desired_ansii_sequence)
+matches = re.findall(pattern, desired_ansi_sequence)
 
 # Convert the strings to the format you want: (int, int, int, ord(char))
 pixels = [
@@ -4308,7 +4359,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
   const char *file_arg; // rbp
   int file; // eax
   const char *error_msg; // rdi
-  char *desired_ansii_sequence; // r12
+  char *desired_ansi_sequence; // r12
   unsigned int num_pixels; // r14d
   _BYTE *framebuffer_2; // r13
   _BOOL8 won; // rbx
@@ -4363,7 +4414,7 @@ EXIT:
       handle_55369((__int64)&buf);
     }
   }
-  desired_ansii_sequence = desired_output;
+  desired_ansi_sequence = desired_output;
   display(&buf, 0LL);
   num_pixels = HIDWORD(buf);
   framebuffer_2 = framebuffer;
@@ -4371,15 +4422,15 @@ EXIT:
   for ( i = 0; num_pixels > i && i != 901; ++i )
   {
     v12 = framebuffer_2[19];
-    if ( v12 != desired_ansii_sequence[19] )
+    if ( v12 != desired_ansi_sequence[19] )
       LOBYTE(won) = 0;
     if ( v12 != 32 && v12 != 10 )
     {
-      if ( memcmp(framebuffer_2, desired_ansii_sequence, 24uLL) )
+      if ( memcmp(framebuffer_2, desired_ansi_sequence, 24uLL) )
         LOBYTE(won) = 0;
     }
     framebuffer_2 += 24;
-    desired_ansii_sequence += 24;
+    desired_ansi_sequence += 24;
   }
   if ( (unsigned __int64)total_data <= 1340 && won )
     win();
@@ -4394,11 +4445,11 @@ from pwn import *
 import struct
 import re
 
-# Desired ANSII sequence
+# Desired ANSI sequence
 binary = context.binary = ELF('/challenge/cimg')
-desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
-desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
-print(desired_ansii_sequence)
+desired_ansi_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansi_sequence = desired_ansi_sequence_bytes.decode("utf-8")
+print(desired_ansi_sequence)
 ```
 
 ```
@@ -4450,7 +4501,7 @@ unsigned __int64 __fastcall handle_55369(__int64 user_cimg)
   int i; // r13d
   int chars_printed_in_one_line; // ebp
   int width_1; // r15d
-  unsigned __int8 *ansii_pixel; // rax
+  unsigned __int8 *ansi_pixel; // rax
   __int64 chars_printed_in_one_line_1; // kr00_8
   __int64 v13; // rdx
   __int128 v15; // [rsp+1Fh] [rbp-59h] BYREF
@@ -4489,17 +4540,17 @@ EXIT:
       width_1 = *(unsigned __int8 *)(user_cimg + 6);
       if ( width_1 <= chars_printed_in_one_line )
         break;
-      ansii_pixel = &allocated_mem2[4 * i * width_1 + 4 * chars_printed_in_one_line];
+      ansi_pixel = &allocated_mem2[4 * i * width_1 + 4 * chars_printed_in_one_line];
       __snprintf_chk(
         &v15,
         25LL,
         1LL,
         25LL,
         "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
-        *ansii_pixel,
-        ansii_pixel[1],
-        ansii_pixel[2],
-        ansii_pixel[3]);
+        *ansi_pixel,
+        ansi_pixel[1],
+        ansi_pixel[2],
+        ansi_pixel[3]);
       chars_printed_in_one_line_1 = chars_printed_in_one_line++;
       v13 = *(_QWORD *)(user_cimg + 16)
           + 24LL * (((unsigned int)(chars_printed_in_one_line_1 % width_1) + i * width_1) % *(_DWORD *)(user_cimg + 12));
@@ -4595,10 +4646,10 @@ from pwn import *
 import struct
 import re
 
-# Desired ANSII sequence
+# Desired ANSI sequence
 binary = context.binary = ELF('/challenge/cimg')
-desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
-desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
+desired_ansi_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansi_sequence = desired_ansi_sequence_bytes.decode("utf-8")
 
 # This regex looks for the RGB numbers and the character that follows the 'm'
 # (\d+) matches the digits for R, G, and B
@@ -4606,7 +4657,7 @@ desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
 pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
 
 # Find all matches in the sequence
-matches = re.findall(pattern, desired_ansii_sequence)
+matches = re.findall(pattern, desired_ansi_sequence)
 
 # Convert the strings to the format you want: (int, int, int, ord(char))
 pixels = [
@@ -4694,10 +4745,10 @@ from pwn import *
 import struct
 import re
 
-# Desired ANSII sequence
+# Desired ANSI sequence
 binary = context.binary = ELF('/challenge/cimg')
-desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
-desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
+desired_ansi_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansi_sequence = desired_ansi_sequence_bytes.decode("utf-8")
 
 # This regex looks for the RGB numbers and the character that follows the 'm'
 # (\d+) matches the digits for R, G, and B
@@ -4705,7 +4756,7 @@ desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
 pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
 
 # Find all matches in the sequence
-matches = re.findall(pattern, desired_ansii_sequence)
+matches = re.findall(pattern, desired_ansi_sequence)
 
 # Convert the strings to the format you want: (int, int, int, ord(char))
 pixels = [
@@ -4806,10 +4857,10 @@ from pwn import *
 import struct
 import re
 
-# Desired ANSII sequence
+# Desired ANSI sequence
 binary = context.binary = ELF('/challenge/cimg')
-desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
-desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
+desired_ansi_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansi_sequence = desired_ansi_sequence_bytes.decode("utf-8")
 
 # This regex looks for the RGB numbers and the character that follows the 'm'
 # (\d+) matches the digits for R, G, and B
@@ -4817,7 +4868,7 @@ desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
 pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
 
 # Find all matches in the sequence
-matches = re.findall(pattern, desired_ansii_sequence)
+matches = re.findall(pattern, desired_ansi_sequence)
 
 # Convert the strings to the format you want: (int, int, int, ord(char))
 pixels = [
@@ -4924,7 +4975,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
   const char *file_arg; // rbp
   int file; // eax
   const char *error_msg; // rdi
-  char *desired_ansii_sequence; // r12
+  char *desired_ansi_sequence; // r12
   unsigned int v8; // r14d
   _BYTE *framebuffer_2; // r13
   _BOOL8 won; // rbx
@@ -4979,7 +5030,7 @@ EXIT:
       handle_55369(&buf);
     }
   }
-  desired_ansii_sequence = desired_output;
+  desired_ansi_sequence = desired_output;
   display(&buf, 0LL);
   v8 = HIDWORD(buf);
   framebuffer_2 = framebuffer;
@@ -4987,15 +5038,15 @@ EXIT:
   for ( i = 0; v8 > i && i != 1824; ++i )
   {
     v12 = framebuffer_2[19];
-    if ( v12 != desired_ansii_sequence[19] )
+    if ( v12 != desired_ansi_sequence[19] )
       LOBYTE(won) = 0;
     if ( v12 != 32 && v12 != 10 )
     {
-      if ( memcmp(framebuffer_2, desired_ansii_sequence, 24uLL) )
+      if ( memcmp(framebuffer_2, desired_ansi_sequence, 24uLL) )
         LOBYTE(won) = 0;
     }
     framebuffer_2 += 24;
-    desired_ansii_sequence += 24;
+    desired_ansi_sequence += 24;
   }
   if ( (unsigned __int64)total_data <= 1337 && won )
     win();
@@ -5014,10 +5065,10 @@ from pwn import *
 import struct
 import re
 
-# Desired ANSII sequence
+# Desired ANSI sequence
 binary = context.binary = ELF('/challenge/cimg')
-desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
-desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
+desired_ansi_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansi_sequence = desired_ansi_sequence_bytes.decode("utf-8")
 
 # This regex looks for the RGB numbers and the character that follows the 'm'
 # (\d+) matches the digits for R, G, and B
@@ -5025,7 +5076,7 @@ desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
 pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
 
 # Find all matches in the sequence
-matches = re.findall(pattern, desired_ansii_sequence)
+matches = re.findall(pattern, desired_ansi_sequence)
 
 # Convert the strings to the format you want: (int, int, int, ord(char))
 pixels = [
@@ -5128,10 +5179,10 @@ from pwn import *
 import struct
 import re
 
-# Desired ANSII sequence
+# Desired ANSI sequence
 binary = context.binary = ELF('/challenge/cimg')
-desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
-desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
+desired_ansi_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansi_sequence = desired_ansi_sequence_bytes.decode("utf-8")
 
 # This regex looks for the RGB numbers and the character that follows the 'm'
 # (\d+) matches the digits for R, G, and B
@@ -5139,7 +5190,7 @@ desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
 pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
 
 # Find all matches in the sequence
-matches = re.findall(pattern, desired_ansii_sequence)
+matches = re.findall(pattern, desired_ansi_sequence)
 
 # Convert the strings to the format you want: (int, int, int, ord(char))
 pixels = [
@@ -5219,12 +5270,12 @@ import re
 
 # 1. Setup and Pixel Extraction
 binary = context.binary = ELF('/challenge/cimg')
-desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
-desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
+desired_ansi_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansi_sequence = desired_ansi_sequence_bytes.decode("utf-8")
 
 # Extract RGB and Character data
 pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
-matches = re.findall(pattern, desired_ansii_sequence)
+matches = re.findall(pattern, desired_ansi_sequence)
 pixels = [(int(r), int(g), int(b), ord(char)) for r, g, b, char in matches]
 
 # Global dimensions for the 1824-pixel challenge
@@ -5978,11 +6029,11 @@ from pwn import *
 import struct
 import re
 
-# Desired ANSII sequence
+# Desired ANSI sequence
 binary = context.binary = ELF('/challenge/cimg')
-desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
-desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
-print(desired_ansii_sequence)
+desired_ansi_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansi_sequence = desired_ansi_sequence_bytes.decode("utf-8")
+print(desired_ansi_sequence)
 ```
 
 ```
@@ -7149,11 +7200,11 @@ from pwn import *
 import struct
 import re
 
-# Desired ANSII sequence
+# Desired ANSI sequence
 binary = context.binary = ELF('/challenge/cimg')
-desired_ansii_sequence_bytes = binary.string(binary.sym.desired_output)
-desired_ansii_sequence = desired_ansii_sequence_bytes.decode("utf-8")
-print(desired_ansii_sequence)
+desired_ansi_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansi_sequence = desired_ansi_sequence_bytes.decode("utf-8")
+print(desired_ansi_sequence)
 ```
 
 ```
