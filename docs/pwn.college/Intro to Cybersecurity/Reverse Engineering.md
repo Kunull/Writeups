@@ -2981,8 +2981,6 @@ EXIT:
 However, we can make the disassembly look much closer to the actual C code, if we just add the structs.
 
 ```c title="/challenge/cimg :: Local Types" showLineNumbers
-# ---- snip ----
-
 struct cimg_header {
     char magic_number[4];
     uint16_t version;
@@ -3020,8 +3018,6 @@ struct cimg {
     char __pad[4];                 // ABI padding (x86-64)
     union term_pixel_t *framebuffer;
 };
-
-# ---- snip ----
 ```
 
 After adding the above given struct, changing the types and names of certain variables, and adding some helpful comments, the decompiled code now looks much better.
