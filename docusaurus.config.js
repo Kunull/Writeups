@@ -17,6 +17,10 @@ const config = {
   tagline: 'Dinosaurs are cool',
   favicon: 'img/0_medium.png',
 
+  plugins: [
+    'docusaurus-plugin-image-zoom',
+  ],
+
   // Set the production url of your site here
   url: 'https://writeups.kunull.net/',
   // Set the /<baseUrl>/ pathname under which your site is served
@@ -77,6 +81,14 @@ const config = {
         defaultMode: 'dark',
         disableSwitch: true,
         respectPrefersColorScheme: false,
+      },
+
+      zoom: {
+        selector: '.markdown img:not(.no-zoom)',
+        background: {
+          light: 'rgb(255, 255, 255)',
+          dark: 'rgb(50, 50, 50)',
+        },
       },
       
       // Replace with your project's social card
