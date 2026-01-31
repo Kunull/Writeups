@@ -97,6 +97,14 @@ const config = {
       //   },
       // },
 
+      zoom: {
+        selector: '.markdown :not(em) > img',
+        background: {
+            light: 'rgb(255, 255, 255)',
+            dark: 'rgb(50, 50, 50)'
+        }
+      },
+
       // Replace with your project's social card
       // image: 'img/docusaurus-social-card.jpg',
       navbar: {
