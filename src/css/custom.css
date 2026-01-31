@@ -113,13 +113,13 @@ html[data-theme="dark"] .navbar-sidebar {
 /* CODE BLOCK (Single word) */
 
 code {
-    color: rgb(171, 178, 191);
-    background-color: var(--ifm-code-background);
-    border: 1px solid #333;
-    border-radius: var(--ifm-code-border-radius);
-    font-family: var(--ifm-font-family-monospace);
-    font-size: var(--ifm-code-font-size);
-    padding: 0.1rem 0.25rem;
+    color: rgb(171, 178, 191) !important;
+    background-color: var(--ifm-code-background) !important;
+    border: 1px solid #333 !important;
+    border-radius: var(--ifm-code-border-radius) !important;
+    font-family: var(--ifm-font-family-monospace) !important;
+    font-size: var(--ifm-code-font-size) !important;
+    padding: 0.1rem 0.25rem !important;
 }
 
 
@@ -150,7 +150,7 @@ code {
 /* Background color (title) */
 .buttonGroup__atx button, .codeBlockContainer_Ckt0 {
     background: #000 !important;
-    color: #333;
+    color: #333 !important;
     border: 1px solid #333 !important;
 }
 
@@ -571,14 +571,4 @@ html[data-theme=dark] {
 /* Hide pages */
 .hidden {
   display: none !important;
-}
-
-
-
-/* Prevent image zoom plugin from affecting code blocks */
-pre[class*="language-"],
-.codeBlockContainer_Ckt0,
-.codeBlockLines_Tfdd {
-  transform: none !important;
-  transition: none !important;
 }
