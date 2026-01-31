@@ -17,9 +17,9 @@ const config = {
   tagline: 'Dinosaurs are cool',
   favicon: 'img/0_medium.png',
 
-  plugins: [
-    'docusaurus-plugin-image-zoom',
-  ],
+  // plugins: [
+  //   'docusaurus-plugin-image-zoom',
+  // ],
 
   // Set the production url of your site here
   url: 'https://writeups.kunull.net/',
