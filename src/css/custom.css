@@ -321,21 +321,9 @@ nav.menu_SIkG {
   padding: 1.5rem 1rem 2rem 1rem;
 }
 
-/* .token-line {
+.token-line {
   color: #000;
-} */
-
-/* INLINE CODE ONLY */
-.markdown :not(pre) > code {
-    color: rgb(171, 178, 191);
-    background-color: var(--ifm-code-background);
-    border: 1px solid #333;
-    border-radius: var(--ifm-code-border-radius);
-    font-family: var(--ifm-font-family-monospace);
-    font-size: var(--ifm-code-font-size);
-    padding: 0.1rem 0.25rem;
 }
-
 
 .menu__list-item {
   font-size: 0.9rem;
@@ -583,4 +571,25 @@ html[data-theme=dark] {
 /* Hide pages */
 .hidden {
   display: none !important;
+}
+
+
+/* Preserve Prism code block styling against image zoom plugin interference */
+.prism-code,
+pre[class*="language-"],
+code[class*="language-"] {
+  background-color: #282c34 !important;
+}
+
+div[class*="codeBlockContainer"] {
+  background: #000 !important;
+}
+
+div[class*="codeBlockLines"] {
+  background-color: #282c34 !important;
+}
+
+/* Ensure code block content maintains proper styling */
+.token-line {
+  color: rgb(171, 178, 191) !important;
 }

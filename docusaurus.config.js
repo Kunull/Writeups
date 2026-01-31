@@ -84,7 +84,7 @@ const config = {
       },
 
       zoom: {
-        selector: '.markdown img:not(.no-zoom)',
+        selector: '.markdown img:not(.no-zoom):not(pre img):not(code img)',
         background: {
           light: 'rgb(255, 255, 255)',
           dark: 'rgb(50, 50, 50)',
