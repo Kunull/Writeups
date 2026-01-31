@@ -2980,7 +2980,7 @@ EXIT:
 
 However, we can make the disassembly look much closer to the actual C code, if we just add the structs.
 
-```c title="/challenge/cimg :: Local Types" showLineNumbers
+```c title="/challenge/cimg :: Local Types"
 struct cimg_header {
     char magic_number[4];
     uint16_t version;
@@ -3590,102 +3590,203 @@ pwn.college{MeWc9ChLvjW8FhGUVQm-MFmVW7z.QXxITN2EDL4ITM0EzW}
 <img alt="image" src="https://github.com/user-attachments/assets/bcce1436-44b9-43d6-a71c-319163aa2fa5" />
 </figure>
 
+&nbsp;
+
 ## Internal State (x86)
 
 ### Binary Analysis
 
-<figure style={{ textAlign: 'center' }}>
-<img alt="image" src="https://github.com/user-attachments/assets/e5d67d5f-4187-4c0b-90be-e2f808a35102" />
-</figure>
+Again, let's add create some necessary structs, and change the types of some variables.
 
-```c title="main()" showLineNumbers
+```c title-"/challenge/cimg :: Local Types"
+struct cimg_header {
+    char magic_number[4];
+    uint16_t version;
+    uint8_t width;
+    uint8_t height;
+};
+
+typedef struct {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t ascii;
+} pixel_t;
+
+struct term_str_st {
+    char color_set[7];
+    char r[3];
+    char s1;
+    char g[3];
+    char s2;
+    char b[3];
+    char m;
+    char c;
+    char color_reset[4];
+};
+
+union term_pixel_t {
+    char data[24];
+    struct term_str_st str;
+};
+
+struct cimg {
+    struct cimg_header header;
+    unsigned int num_pixels;
+    char __pad[4];                 // ABI padding (x86-64)
+    union term_pixel_t *framebuffer;
+};
+```
+
+```c title="/challenge/cimg :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
-  const char *v3; // rbp
-  int v4; // eax
+  const char *file_arg; // rbp
+  int file; // eax
   const char *error_msg; // rdi
-  unsigned int v6; // ebx
-  unsigned __int8 *v7; // rax
-  unsigned __int8 *v8; // rbp
+  unsigned int data_size; // ebx
+  unsigned __int8 *data; // rax
+  unsigned __int8 *data_1; // rbp
   __int64 i_1; // rax
-  __int64 data_i_ascii; // rcx
-  char *desired_ansi_sequence; // r12
+  __int64 character; // rcx
+  char *desired_output; // r12
   unsigned int num_pixels; // r14d
-  _BYTE *framebuffer_2; // r13
+  union term_pixel_t *framebuffer; // r13
   _BOOL8 won; // rbx
   unsigned int i; // ebp
-  char v16; // al
-  __int128 cimg_header; // [rsp+0h] [rbp-58h] BYREF
-  void *s1; // [rsp+10h] [rbp-48h]
-  unsigned __int64 v20; // [rsp+18h] [rbp-40h]
+  char ascii_char; // al
+  struct cimg cimg; // [rsp+0h] [rbp-58h] BYREF
+  unsigned __int64 v19; // [rsp+18h] [rbp-40h]
 
-  v20 = __readfsqword(0x28u);
-  cimg_header = 0LL;
-  s1 = 0LL;
+  v19 = __readfsqword(0x28u);
+  memset(&cimg, 0, sizeof(cimg));
   if ( argc > 1 )
   {
-    v3 = argv[1];
-    if ( strcmp(&v3[strlen(v3) - 5], ".cimg") )
+    file_arg = argv[1];
+    if ( strcmp(&file_arg[strlen(file_arg) - 5], ".cimg") )
     {
       __printf_chk(1LL, "ERROR: Invalid file extension!");
       goto EXIT;
     }
-    v4 = open(v3, 0);
-    dup2(v4, 0);
+    file = open(file_arg, 0);
+    dup2(file, 0);
   }
-  read_exact(0LL, &cimg_header, 8LL, "ERROR: Failed to read header!", 0xFFFFFFFFLL);
-  if ( (_DWORD)cimg_header != 1196247395 )
+  read_exact(0LL, &cimg, 8LL, "ERROR: Failed to read header!", 0xFFFFFFFFLL);
+  if ( *(_DWORD *)cimg.header.magic_number != 'GMIc' )
   {
     error_msg = "ERROR: Invalid magic number!";
-PRINT_ERROR_AND_EXIT:
+OUTPUT_ERROR_MSG_AND_EXIT:
     puts(error_msg);
     goto EXIT;
   }
   error_msg = "ERROR: Unsupported version!";
-  if ( WORD2(cimg_header) != 2 )
-    goto PRINT_ERROR_AND_EXIT;
-  initialize_framebuffer(&cimg_header);
-  v6 = 4 * BYTE7(cimg_header) * BYTE6(cimg_header);
-  v7 = (unsigned __int8 *)malloc(4LL * BYTE7(cimg_header) * BYTE6(cimg_header));
+  if ( cimg.header.version != 2 )
+    goto OUTPUT_ERROR_MSG_AND_EXIT;
+  initialize_framebuffer(&cimg);
+  data_size = 4 * cimg.header.height * cimg.header.width;
+  data = (unsigned __int8 *)malloc(4LL * cimg.header.height * cimg.header.width);
   error_msg = "ERROR: Failed to allocate memory for the image data!";
-  v8 = v7;
-  if ( !v7 )
-    goto PRINT_ERROR_AND_EXIT;
-  read_exact(0LL, v7, v6, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  data_1 = data;
+  if ( !data )
+    goto OUTPUT_ERROR_MSG_AND_EXIT;
+  read_exact(0LL, data, data_size, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
   i_1 = 0LL;
-  while ( BYTE7(cimg_header) * BYTE6(cimg_header) > (int)i_1 )
+  while ( cimg.header.height * cimg.header.width > (int)i_1 )
   {
-    data_i_ascii = v8[4 * i_1++ + 3];
-    if ( (unsigned __int8)(data_i_ascii - 32) > 0x5Eu )
+    character = data_1[4 * i_1++ + 3];
+    if ( (unsigned __int8)(character - 0x20) > 0x5Eu )
     {
-      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", data_i_ascii);
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", character);
 EXIT:
       exit(-1);
     }
   }
-  desired_ansi_sequence = desired_output;
-  display(&cimg_header, v8);
-  num_pixels = DWORD2(cimg_header);
-  framebuffer_2 = s1;
-  won = DWORD2(cimg_header) == 1365;
+  desired_output = ::desired_output;
+  display(&cimg, data_1);
+  num_pixels = cimg.num_pixels;
+  framebuffer = cimg.framebuffer;
+  won = cimg.num_pixels == 1365;
   for ( i = 0; i != 1365 && num_pixels > i; ++i )
   {
-    v16 = framebuffer_2[19];
-    if ( v16 != desired_ansi_sequence[19] )
+    ascii_char = framebuffer->data[19];
+    if ( ascii_char != desired_output[19] )
       LODWORD(won) = 0;
-    if ( v16 != 32 && v16 != 10 )
+    if ( ascii_char != ' ' && ascii_char != '\n' )
     {
-      if ( memcmp(framebuffer_2, desired_ansi_sequence, 0x18uLL) )
+      if ( memcmp(framebuffer, desired_output, 24uLL) )
         LODWORD(won) = 0;
     }
-    framebuffer_2 += 24;
-    desired_ansi_sequence += 24;
+    ++framebuffer;
+    desired_output += 24;
   }
   if ( won )
     win();
   return 0;
 }
 ```
+
+We can see that the challenge performs the exact same checks as the [Internal State Mini (C)](#internal-state-mini-c) version:
+- File Extension: Must end with `.cimg`
+- Header (8 bytes total):
+    - Magic number (4 bytes): Must be "`cIMG`"
+    - Version (2 bytes): Must be `2` in little-endian
+    - Dimensions (2 bytes total): Must be 4 bytes
+        - Width (1 bytes): Must be either `4` (if `height = 1`), `2` (if `height = 2`) or `1` (if `height = 4`) in little-endian
+        - Height (1 bytes): Must be either `1` (if `width = 4`), `2` (if `width = 2`) or `4` (if `width = 1`) in little-endian
+- Pixel Data:
+    - The number of non-space ASCII pixels must be `4 * 1 = 4`, i.e. the number of bytes must be `4 * 4 = 16`
+    - When pixel data is loaded into the [ANSI escape code](https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit): `\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m` one by one and appended together, it should match the followingthe much larger desired sequence.
+
+The code checks if each fourth byte in the pixel, i.e. the character byte (r,g,b,c), lies between `0x20` and `0x7e`.
+
+```c title="/challenge/cimg :: main() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+if ( (unsigned __int8)(character - 0x20) > 0x5Eu )
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", *(_QWORD *)&character);
+EXIT:
+      exit(-1);
+    }
+
+# ---- snip ----
+```
+
+```c title="/challenge/cimg :: Local Types" showLineNumbers
+# ---- snip ----
+
+typedef struct {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t ascii;
+} pixel_t;
+
+# ---- snip ----
+```
+
+It then uses the 4-bytes in the pixels to fill in the ANSI sequence (`\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m`) based on the struct we defined earlier:
+
+```c title="/challenge/cimg :: Local Types" showLineNumbers
+# ---- snip ----
+
+struct term_str_st {
+    char color_set[7];          //  \x1b[38;2;
+    char r[3];                  //  255
+    char s1;                    //  ;
+    char g[3];                  //  255
+    char s2;                    //  ;
+    char b[3];                  //  255
+    char m;                     //  m
+    char c;                     //  X
+    char color_reset[4];        //  \x1b[0m
+};
+
+# ---- snip ----
+```
+
+Afterwards, it checks if the 20th byte in the crafted ANSI sequence is a space or newline character.
+If it is not, and everything else is matching the desired ANSI sequence, it calls `win()` which prints the flag.
 
 The required ANSI sequence:
 
