@@ -574,5 +574,11 @@ html[data-theme=dark] {
 }
 
 
-/* Force code block styling to load last */
-/* .prism-code { background-color: inherit !important; } */
+
+/* Prevent image zoom plugin from affecting code blocks */
+pre[class*="language-"],
+.codeBlockContainer_Ckt0,
+.codeBlockLines_Tfdd {
+  transform: none !important;
+  transition: none !important;
+}
