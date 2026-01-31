@@ -155,8 +155,9 @@ code {
 }
 
 /* Border bottom */
-.codeBlockTitle_Ktv7 {
+.codeBlockTitle_Ktv7 .codeBlockTitle_RqKv {
     border-bottom: 1px solid #333 !important;
+    background-color: #000;
 }
 
 
@@ -576,6 +577,6 @@ html[data-theme=dark] {
 
 
 /* Code block style overwrite */
-.codeBlockTitle_RqKv {
-    
-}
+/* .codeBlockTitle_RqKv {
+
+} */
