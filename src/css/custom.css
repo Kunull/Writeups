@@ -575,4 +575,4 @@ html[data-theme=dark] {
 
 
 /* Force code block styling to load last */
-.prism-code { background-color: inherit !important; }
+/* .prism-code { background-color: inherit !important; } */
