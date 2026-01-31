@@ -18,12 +18,8 @@ const config = {
   favicon: 'img/0_medium.png',
 
   plugins: [
-    [
-      'docusaurus-plugin-medium-zoom',
-      {
-        selector: '.markdown img:not(.no-zoom)',
-      },
-    ],
+    'docusaurus-plugin-zooming',
+    // ...other plugins
   ],
 
   // Set the production url of your site here
@@ -88,6 +84,18 @@ const config = {
         respectPrefersColorScheme: false,
       },
       
+      zooming: {
+        selector: '.markdown img',
+        delay: 500,
+        background: {
+          light: 'rgba(101,108,133,0.8)',
+          dark: 'rgba(9,10,17,0.8)'
+        },
+        options: {
+          // See the docs of zooming for all available options: https://github.com/francoischalifour/medium-zoom#usage
+        }
+      },
+
       // Replace with your project's social card
       // image: 'img/docusaurus-social-card.jpg',
       navbar: {
