@@ -575,8 +575,7 @@ html[data-theme=dark] {
 
 
 
-/* 
-pre img,
-code img {
-  pointer-events: none;
-} */
+/* Code block style overwrite */
+.codeBlockTitle_RqKv {
+    
+}
