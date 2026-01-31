@@ -18,8 +18,7 @@ const config = {
   favicon: 'img/0_medium.png',
 
   plugins: [
-    'docusaurus-plugin-zooming',
-    // ...other plugins
+    'plugin-image-zoom'
   ],
 
   // Set the production url of your site here
@@ -84,16 +83,18 @@ const config = {
         respectPrefersColorScheme: false,
       },
       
-      zooming: {
+      imageZoom: {
+        // CSS selector to apply the plugin to, defaults to '.markdown img'
         selector: '.markdown img',
-        delay: 500,
-        background: {
-          light: 'rgba(101,108,133,0.8)',
-          dark: 'rgba(9,10,17,0.8)'
-        },
+        // Optional medium-zoom options
+        // see: https://www.npmjs.com/package/medium-zoom#options
         options: {
-          // See the docs of zooming for all available options: https://github.com/francoischalifour/medium-zoom#usage
-        }
+          margin: 24,
+          background: '#BADA55',
+          scrollOffset: 0,
+          container: '#zoom-container',
+          template: '#zoom-template',
+        },
       },
 
       // Replace with your project's social card
