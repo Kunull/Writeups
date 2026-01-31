@@ -17,9 +17,9 @@ const config = {
   tagline: 'Dinosaurs are cool',
   favicon: 'img/0_medium.png',
 
-  plugins: [
-    'docusaurus-plugin-image-zoom',
-  ],
+  // plugins: [
+  //   'docusaurus-plugin-image-zoom',
+  // ],
 
   // Set the production url of your site here
   url: 'https://writeups.kunull.net/',
@@ -83,13 +83,13 @@ const config = {
         respectPrefersColorScheme: false,
       },
 
-      zoom: {
-        selector: '.markdown img:not(.no-zoom):not(pre img):not(code img)',
-        background: {
-          light: 'rgb(255, 255, 255)',
-          dark: 'rgb(50, 50, 50)',
-        },
-      },
+      // zoom: {
+      //   selector: '.markdown img:not(.no-zoom):not(pre img):not(code img)',
+      //   background: {
+      //     light: 'rgb(255, 255, 255)',
+      //     dark: 'rgb(50, 50, 50)',
+      //   },
+      // },
       
       // Replace with your project's social card
       // image: 'img/docusaurus-social-card.jpg',
