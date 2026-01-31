@@ -572,3 +572,11 @@ html[data-theme=dark] {
 .hidden {
   display: none !important;
 }
+
+
+
+
+pre img,
+code img {
+  pointer-events: none;
+}
