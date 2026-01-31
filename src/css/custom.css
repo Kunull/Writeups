@@ -574,22 +574,31 @@ html[data-theme=dark] {
 }
 
 
-/* Preserve Prism code block styling against image zoom plugin interference */
+/* Preserve original code block styling against image zoom plugin interference */
 .prism-code,
 pre[class*="language-"],
 code[class*="language-"] {
-  background-color: #282c34 !important;
+  background-color: #111 !important;
 }
 
 div[class*="codeBlockContainer"] {
   background: #000 !important;
+  border: 1px solid #333 !important;
 }
 
 div[class*="codeBlockLines"] {
-  background-color: #282c34 !important;
+  background-color: #111 !important;
 }
 
-/* Ensure code block content maintains proper styling */
-.token-line {
-  color: rgb(171, 178, 191) !important;
+.codeLineNumber_Tfdd {
+  background: #111 !important;
+}
+
+.theme-code-block-highlighted-line {
+  background: #222 !important;
+}
+
+.markdown :where(pre):not(:where([class~=not-prose],[class~=not-prose] *)) {
+  background-color: #111 !important;
+  border: 1px solid #333 !important;
 }
