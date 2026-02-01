@@ -3168,7 +3168,7 @@ typedef struct {
 # ---- snip ----
 ```
 
-It then uses the 4-bytes in the pixels to fill in the ANSI sequence (`\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m`) based on the struct we defined earlier:
+It then uses the 4-bytes in the pixels to fill in the ANSI sequence `\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m` based on the struct we defined earlier:
 
 ```c title="/challenge/cimg :: main() :: Pseudocode" showLineNumbers
 # ---- snip ----
@@ -3780,7 +3780,7 @@ typedef struct {
 # ---- snip ----
 ```
 
-It then uses the 4-bytes in the pixels to fill in the ANSI sequence (`\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m`) based on the struct we defined earlier:
+It then uses the 4-bytes in the pixels to fill in the ANSI sequence `\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m` based on the struct we defined earlier:
 
 ```c title="/challenge/cimg :: main() :: Pseudocode" showLineNumbers
 # ---- snip ----
@@ -4541,7 +4541,7 @@ typedef struct {
 # ---- snip ----
 ````
 
-It then uses the 4-bytes in the pixels to fill in the ANSI sequence (`\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m`) based on the struct we defined earlier:
+It then uses the 4-bytes in the pixels to fill in the ANSI sequence `\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m` based on the struct we defined earlier:
 
 ````c title="/challenge/cimg :: handle_45381() :: Pseudocode"
 # ---- snip ----
