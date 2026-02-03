@@ -4334,7 +4334,7 @@ struct cimg {
 };
 ```
 
-After using the structs, renaming the variable, and adding some comments, we get the following:
+After using the structs, renaming some variables, and adding comments, we get the following:
 
 ```c title="/challenge/cimg :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -4398,6 +4398,7 @@ EXIT:
     ascii_char = framebuffer->data[19];
     if ( ascii_char != desired_output[19] )
       LODWORD(won) = 0;
+    // Check if ASCII character is a newline or space
     if ( ascii_char != ' ' && ascii_char != '\n' )
     {
       if ( memcmp(framebuffer, desired_output, 24uLL) )
@@ -4437,12 +4438,12 @@ unsigned __int64 __fastcall handle_45381(struct cimg *cimg)
   pixel_t *data; // rax
   pixel_t *data_1; // r12
   __int64 i; // rax
-  __int64 character; // rcx
+  __int64 ascii; // rcx
   int y; // r13d
   int x; // ebp
   int width_1; // r15d
-  unsigned __int8 *pixel_bytes; // rax
-  __int8 idx; // kr00_1
+  pixel_t *pixel_bytes; // rax
+  __int64 idx; // kr00_8
   struct cimg emit_tmp; // [rsp+1Fh] [rbp-59h] BYREF
   unsigned __int64 v15; // [rsp+38h] [rbp-40h]
 
@@ -4461,10 +4462,10 @@ unsigned __int64 __fastcall handle_45381(struct cimg *cimg)
   i = 0LL;
   while ( cimg->header.height * cimg->header.width > (int)i )
   {
-    character = data_1[i++].ascii;
-    if ( (unsigned __int8)(character - 0x20) > 0x5Eu )
+    ascii = data_1[i++].ascii;
+    if ( (unsigned __int8)(ascii - 0x20) > 0x5Eu )
     {
-      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", character);
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", ascii);
 EXIT:
       exit(-1);
     }
@@ -4476,19 +4477,19 @@ EXIT:
       width_1 = cimg->header.width;
       if ( width_1 <= x )
         break;
-      pixel_bytes = &data_1[y * width_1 + x].r;
+      pixel_bytes = &data_1[y * width_1 + x];
       __snprintf_chk(
         &emit_tmp,
         25LL,
         1LL,
         25LL,
         "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
-        *pixel_bytes,                           // pixel_t.r
-        pixel_bytes[1],                         // pixel_t.g
-        pixel_bytes[2],                         // pixel_t.b
-        pixel_bytes[3]);                        // pixel_t.ascii
-      *(_QWORD *)&idx = x;
-      cimg->framebuffer[((unsigned int)(*(_QWORD *)&idx % width_1) + y * width_1) % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
+        pixel_bytes->r,
+        pixel_bytes->g,
+        pixel_bytes->b,
+        pixel_bytes->ascii);
+      idx = x;
+      cimg->framebuffer[((unsigned int)(idx % width_1) + y * width_1) % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
     }
   }
   return __readfsqword(40u) ^ v15;
@@ -4517,10 +4518,10 @@ Then, it checks if each fourth byte in the pixel, i.e. the character byte (r,g,b
 
   while ( cimg->header.height * cimg->header.width > (int)i )
   {
-    character = data_1[i++].ascii;
-    if ( (unsigned __int8)(character - 0x20) > 0x5Eu )
+    ascii = data_1[i++].ascii;
+    if ( (unsigned __int8)(ascii - 0x20) > 0x5Eu )
     {
-      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", character);
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", ascii);
 EXIT:
       exit(-1);
     }
@@ -4554,19 +4555,19 @@ It then uses the 4-bytes in the pixels to fill in the ANSI sequence `\x1b[38;2;%
       width_1 = cimg->header.width;
       if ( width_1 <= x )
         break;
-      pixel_bytes = &data_1[y * width_1 + x].r;
+      pixel_bytes = &data_1[y * width_1 + x];
       __snprintf_chk(
         &emit_tmp,
         25LL,
         1LL,
         25LL,
         "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
-        *pixel_bytes,                           // pixel_t.r
-        pixel_bytes[1],                         // pixel_t.g
-        pixel_bytes[2],                         // pixel_t.b
-        pixel_bytes[3]);                        // pixel_t.ascii
-      *(_QWORD *)&idx = x;
-      cimg->framebuffer[((unsigned int)(*(_QWORD *)&idx % width_1) + y * width_1) % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
+        pixel_bytes->r,
+        pixel_bytes->g,
+        pixel_bytes->b,
+        pixel_bytes->ascii);
+      idx = x;
+      cimg->framebuffer[((unsigned int)(idx % width_1) + y * width_1) % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
     }
   }
 
@@ -4591,27 +4592,28 @@ struct term_str_st {
 # ---- snip ----
 ````
 
-Afterwards, it checks if the 20th byte in the crafted ANSI sequence is a space or newline character. If it is not, and everything else is matching the desired ANSI sequence, it calls `win()` which prints the flag.
+Afterwards, `main()` checks if the 20th byte in the crafted ANSI sequence is a space or newline character. If it is not, and everything else is matching the desired ANSI sequence, it calls `win()` which prints the flag.
 
 ````c title="/challenge/cimg :: main() :: Pseudocode" showLineNumbers
 # ---- snip ----
 
   desired_output = ::desired_output;
-  display(&cimg, data_1);
+  display(&cimg, 0LL);
   num_pixels = cimg.num_pixels;
   framebuffer = cimg.framebuffer;
-  won = cimg.num_pixels == 4;
-  for ( i = 0LL; (_DWORD)i != 4 && num_pixels > (unsigned int)i; ++i )
+  won = cimg.num_pixels == 800;
+  for ( i = 0; i < num_pixels && i != 800; ++i )
   {
-    ascii_char = framebuffer[i].data[19];
+    ascii_char = framebuffer->data[19];
     if ( ascii_char != desired_output[19] )
       LODWORD(won) = 0;
-    // Check if the ASCII character is a space or new-line character
+    // Check if ASCII character is a newline or space
     if ( ascii_char != ' ' && ascii_char != '\n' )
     {
-      if ( memcmp(&framebuffer[i], desired_output, 0x18uLL) )
+      if ( memcmp(framebuffer, desired_output, 24uLL) )
         LODWORD(won) = 0;
     }
+    ++framebuffer;
     desired_output += 24;
   }
   if ( won )
