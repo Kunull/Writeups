@@ -4723,8 +4723,6 @@ pwn.college{syk86MEMK8yI4ABF2f5AcH3BOKX.QX4AzMwEDL4ITM0EzW}
 
 Lets create the necessary structs, and use them in the pseudocode.
 
-```c
-
 ```c title="/challenge/cimg :: Local Types" showLineNumbers
 struct cimg_header {
     char magic_number[4];
