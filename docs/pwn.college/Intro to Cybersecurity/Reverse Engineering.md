@@ -2785,7 +2785,7 @@ int main(int argc, char **argv, char **envp)
 The challenge performs the following checks:
 - File Extension: Must end with `.cimg`
 - Header (8 bytes total):
-    - Magic number (4 bytes): Must be "`cIMG`"
+    - Magic number (4 bytes): Must be `b"cIMG"`
     - Version (2 bytes): Must be `2` in little-endian
     - Dimensions (2 bytes total): Must be 4 bytes
         - Width (1 bytes): Must be either `4` (if `height = 1`), `2` (if `height = 2`) or `1` (if `height = 4`) in little-endian
@@ -3196,7 +3196,7 @@ If it is not, and everything else is matching the desired ANSI sequence, it call
 To put it all together, we can see that the challenge performs the exact same checks as the [Internal State Mini (C)](#internal-state-mini-c) version:
 - File Extension: Must end with `.cimg`
 - Header (8 bytes total):
-    - Magic number (4 bytes): Must be "`cIMG`"
+    - Magic number (4 bytes): Must be `b"cIMG"`
     - Version (2 bytes): Must be `2` in little-endian
     - Dimensions (2 bytes total): Must be 4 bytes
         - Width (1 bytes): Must be either `4` (if `height = 1`), `2` (if `height = 2`) or `1` (if `height = 4`) in little-endian
@@ -3510,7 +3510,7 @@ In this challenge, the desired ANSI sequence is to big for us to manually craft 
 
 - File Extension: Must end with `.cimg`
 - Header (8 bytes total):
-    - Magic number (4 bytes): Must be "`cIMG`"
+    - Magic number (4 bytes): Must be `b"cIMG"`
     - Version (2 bytes): Must be `2` in little-endian
     - Dimensions (2 bytes total): Must be `53` x (`num_pixels` / `53`) bytes
         - Width (1 bytes): Must be `53` (discovered by trial and error) in little-endian
@@ -3815,7 +3815,7 @@ Putting everything together, we can see that the challenge performs the exact sa
 
 - File Extension: Must end with `.cimg`
 - Header (8 bytes total):
-    - Magic number (4 bytes): Must be "`cIMG`"
+    - Magic number (4 bytes): Must be `b"cIMG"`
     - Version (2 bytes): Must be `2` in little-endian
     - Dimensions (2 bytes total): Must be 4 bytes
         - Width (1 bytes): Must be either `4` (if `height = 1`), `2` (if `height = 2`) or `1` (if `height = 4`) in little-endian
@@ -4187,7 +4187,7 @@ int main(int argc, char **argv, char **envp)
 
 - File Extension: Must end with `.cimg`
 - Header (12 bytes total):
-    - Magic number (4 bytes): Must be "`cIMG`"
+    - Magic number (4 bytes): Must be `b"cIMG"`
     - Version (2 bytes): Must be `2` in little-endian
     - Dimensions (2 bytes total): Must be `53` x (`num_pixels` / `53`) bytes
         - Width (1 bytes): Must be `53` (discovered by trial and error) in little-endian
@@ -4415,7 +4415,7 @@ EXIT:
 
 - File Extension: Must end with `.cimg`
 - Header (12 bytes total):
-    - Magic number (4 bytes): Must be "`cIMG`"
+    - Magic number (4 bytes): Must be `b"cIMG"`
     - Version (2 bytes): Must be `2` in little-endian
     - Dimensions (2 bytes total): Must be `53` x (`num_pixels` / `53`) bytes
         - Width (1 bytes): Must be `53` (discovered by trial and error) in little-endian
@@ -5111,7 +5111,7 @@ To put everything together:
 
 - File Extension: Must end with `.cimg`
 - Header (12 bytes total):
-    - Magic number (4 bytes): Must be "`cIMG`"
+    - Magic number (4 bytes): Must be `b"cIMG"`
     - Version (2 bytes): Must be `3` in little-endian
     - Dimensions (2 bytes total): Must be `53` x (`num_pixels` / `53`) bytes
         - Width (1 bytes): Must be `53` in little-endian
