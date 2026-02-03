@@ -4235,9 +4235,9 @@ magic = b"cIMG"                                 # 4 bytes
 version = struct.pack("<H", 3)                  # 2 bytes
 width  = struct.pack("<B", width_value)         # 1 bytes
 height = struct.pack("<B", height_value)        # 1 bytes
-directives = struct.pack("<I", 1)               # 4 bytes
+remaining_directives = struct.pack("<I", 1)     # 4 bytes
 
-header = magic + version + width + height + directives
+header = magic + version + width + height + remaining_directives
 
 # Add directive code
 directive_code = struct.pack("<H", 17571)       # 2 bytes
@@ -4294,7 +4294,7 @@ pwn.college{YtYqzGPTd8ZcDWzwyHLOGwSsY0S.QXyITN2EDL4ITM0EzW}
 
 This time, the `cimg_header` struct has a new field called `remaining_directives`.
 
-```c title="/challenge/cimg :: Local Types"
+```c title="/challenge/cimg :: Local Types" showLineNumbers
 struct cimg_header {
     char magic_number[4];
     uint16_t version;
@@ -4659,9 +4659,9 @@ magic = b"cIMG"                                 # 4 bytes
 version = struct.pack("<H", 3)                  # 2 bytes
 width  = struct.pack("<B", width_value)         # 1 bytes
 height = struct.pack("<B", height_value)        # 1 bytes
-directives = struct.pack("<I", 1)               # 4 bytes
+remaining_directives = struct.pack("<I", 1)     # 4 bytes
 
-header = magic + version + width + height + directives
+header = magic + version + width + height + remaining_directives
 
 # Add directive code
 directive_code = struct.pack("<H", 45381)       # 2 bytes
@@ -5043,8 +5043,8 @@ unsigned __int64 __fastcall handle_52965(struct cimg *cimg)
   int y_offset; // r13d
   int x_offset; // r14d
   int x_coord; // eax
-  int pixel_idx; // ecx
-  unsigned int ansi_idx; // ebx
+  int idx; // ecx
+  unsigned int idx_1; // ebx
   unsigned __int8 width; // [rsp+Bh] [rbp-5Dh] BYREF
   unsigned __int8 height; // [rsp+Ch] [rbp-5Ch] BYREF
   unsigned __int8 base_x; // [rsp+Dh] [rbp-5Bh] BYREF
@@ -5070,7 +5070,7 @@ unsigned __int64 __fastcall handle_52965(struct cimg *cimg)
   while ( height * width > (int)v4 )
   {
     ascii = pixel_bytes[v4++].ascii;
-    if ( (unsigned __int8)(ascii - 32) > 0x5Eu )
+    if ( (unsigned __int8)(ascii - 0x20) > 0x5Eu )
     {
       __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", ascii);
 EXIT:
@@ -5083,27 +5083,27 @@ EXIT:
     while ( width > x_offset )
     {
       x_coord = x_offset + base_x;
-      pixel_idx = x_offset + y_offset * width;
+      idx = x_offset + y_offset * width;
       ++x_offset;
-      ansi_idx = x_coord % cimg->header.width + cimg->header.width * (y_offset + base_y);
+      idx_1 = x_coord % cimg->header.width + cimg->header.width * (y_offset + base_y);
       __snprintf_chk(
         &emit_tmp,
         25LL,
         1LL,
         25LL,
         "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
-        pixel_bytes[pixel_idx].r,
-        pixel_bytes[pixel_idx].g,
-        pixel_bytes[pixel_idx].b,
-        pixel_bytes[pixel_idx].ascii);
-      cimg->framebuffer[ansi_idx % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
+        pixel_bytes[idx].r,
+        pixel_bytes[idx].g,
+        pixel_bytes[idx].b,
+        pixel_bytes[idx].ascii);
+      cimg->framebuffer[idx_1 % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
     }
   }
   return __readfsqword(40u) ^ v17;
 }
 ```
 
-The `handle_52965()`, 
+The `handle_52965()`, the program handles our input slightly differently,
 
 
 
@@ -5369,11 +5369,11 @@ width_value = 53
 height_value = len(pixels) // width_value
 
 directives_payload = b""
-directive_count = 0
+remaining_directives = 0
 
 def add_box(x, y, w, h):
-    global directives_payload, directive_count
-    directive_count += 1
+    global directives_payload, remaining_directives
+    remaining_directives += 1
     directives_payload += struct.pack("<HBBBB", 52965, x, y, w, h)
     for row in range(y, y + h):
         for col in range(x, x + w):
@@ -5394,7 +5394,7 @@ add_box(29, 8, 8, 5)   # "M"
 add_box(39, 9, 7, 5)   # "G" 
 
 # --- HEADER ---
-header = struct.pack("<IHBBI", 0x474d4963, 3, width_value, height_value, directive_count)
+header = struct.pack("<IHBBI", b"cIMG", 3, width_value, height_value, remaining_directives)
 
 # Full file content
 cimg_data = header + directives_payload
@@ -5404,7 +5404,7 @@ with open("/home/hacker/solution.cimg", "wb") as f:
     f.write(cimg_data)
 
 print(f"Total Bytes: {len(cimg_data)}")
-print(f"Directives used: {directive_count}")
+print(f"Directives used: {remaining_directives}")
 ```
 
 ```
