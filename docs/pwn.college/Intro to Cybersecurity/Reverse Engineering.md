@@ -2980,7 +2980,7 @@ EXIT:
 
 However, we can make the disassembly look much closer to the actual C code, if we just add the structs.
 
-```c title="/challenge/cimg :: Local Types"
+```c title="/challenge/cimg :: Local Types" showLineNumbers
 struct cimg_header {
     char magic_number[4];
     uint16_t version;
@@ -3612,7 +3612,7 @@ pwn.college{MeWc9ChLvjW8FhGUVQm-MFmVW7z.QXxITN2EDL4ITM0EzW}
 
 Again, let's add create some necessary structs, and change the types of some variables.
 
-```c title="/challenge/cimg :: Local Types"
+```c title="/challenge/cimg :: Local Types" showLineNumbers
 struct cimg_header {
     char magic_number[4];
     uint16_t version;
@@ -3811,9 +3811,8 @@ The required ANSI sequence:
 <img alt="image" src="https://github.com/user-attachments/assets/48a42094-e420-4e53-a880-375ea8f7f5d2" />
 </figure>
 
-Putting everything together:
+Putting everything together, we can see that the challenge performs the exact same checks as the [Internal State Mini (C)](#internal-state-mini-c) version:
 
-We can see that the challenge performs the exact same checks as the [Internal State Mini (C)](#internal-state-mini-c) version:
 - File Extension: Must end with `.cimg`
 - Header (8 bytes total):
     - Magic number (4 bytes): Must be "`cIMG`"
@@ -4361,7 +4360,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
     if ( strcmp(&file_arg[strlen(file_arg) - 5], ".cimg") )
     {
       __printf_chk(1LL, "ERROR: Invalid file extension!");
-      goto LABEL_8;
+      goto EXIT;
     }
     file = open(file_arg, 0);
     dup2(file, 0);
@@ -4372,7 +4371,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
     error_msg = "ERROR: Invalid magic number!";
 OUTPUT_ERROR_MSG_AND_EXIT:
     puts(error_msg);
-    goto LABEL_8;
+    goto EXIT;
   }
   error_msg = "ERROR: Unsupported version!";
   if ( cimg.header.version != 3 )
@@ -4384,7 +4383,7 @@ OUTPUT_ERROR_MSG_AND_EXIT:
     if ( directive_code != 45381 )
     {
       __fprintf_chk(stderr, 1LL, "ERROR: invalid directive_code %ux\n", directive_code);
-LABEL_8:
+EXIT:
       exit(-1);
     }
     handle_45381(&cimg);
@@ -4594,7 +4593,7 @@ struct term_str_st {
 
 Afterwards, it checks if the 20th byte in the crafted ANSI sequence is a space or newline character. If it is not, and everything else is matching the desired ANSI sequence, it calls `win()` which prints the flag.
 
-````c title="/challenge/cimg :: main() :: Pseudocode"
+````c title="/challenge/cimg :: main() :: Pseudocode" showLineNumbers
 # ---- snip ----
 
   desired_output = ::desired_output;
@@ -4724,7 +4723,7 @@ Lets create the necessary structs, and use them in the pseudocode.
 
 ```c
 
-``` title="/challenge/cimg :: Local Types" showLineNumbers
+```c title="/challenge/cimg :: Local Types" showLineNumbers
 struct cimg_header {
     char magic_number[4];
     uint16_t version;
@@ -4893,10 +4892,10 @@ unsigned __int64 __fastcall handle_55369(struct cimg *cimg)
   int width; // ebp
   int height; // edx
   size_t data_size; // rbp
-  unsigned __int8 *data; // rax
-  unsigned __int8 *data_1; // r12
-  __int64 v6; // rax
-  __int64 character; // rcx
+  pixel_t *data; // rax
+  pixel_t *data_1; // r12
+  __int64 i_1; // rax
+  unsigned __int8 character; // cl
   int i; // r13d
   int j; // ebp
   int width_1; // r15d
@@ -4909,7 +4908,7 @@ unsigned __int64 __fastcall handle_55369(struct cimg *cimg)
   height = cimg->header.height;
   v15 = __readfsqword(40u);
   data_size = 4LL * height * width;
-  data = (unsigned __int8 *)malloc(data_size);
+  data = (pixel_t *)malloc(data_size);
   if ( !data )
   {
     puts("ERROR: Failed to allocate memory for the image data!");
@@ -4917,13 +4916,13 @@ unsigned __int64 __fastcall handle_55369(struct cimg *cimg)
   }
   data_1 = data;
   read_exact(0LL, data, (unsigned int)data_size, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
-  v6 = 0LL;
-  while ( cimg->header.height * cimg->header.width > (int)v6 )
+  i_1 = 0LL;
+  while ( cimg->header.height * cimg->header.width > (int)i_1 )
   {
-    character = data_1[4 * v6++ + 3];
+    *(_QWORD *)&character = data_1[i_1++].ascii;
     if ( (unsigned __int8)(character - 0x20) > 0x5Eu )
     {
-      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", character);
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", *(_QWORD *)&character);
 EXIT:
       exit(-1);
     }
@@ -4935,7 +4934,7 @@ EXIT:
       width_1 = cimg->header.width;
       if ( width_1 <= j )
         break;
-      pixel_bytes = (pixel_t *)&data_1[4 * i * width_1 + 4 * j];
+      pixel_bytes = &data_1[i * width_1 + j];
       __snprintf_chk(
         &emit_tmp,
         25LL,
@@ -4987,8 +4986,51 @@ EXIT:
 # ---- snip ----
 ````
 
+````c title="/challenge/cimg :: Local Types"  showLineNumbers
+# ---- snip ----
 
+typedef struct pixel_color_t {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t ascii;
+} pixel_t;
 
+# ---- snip ----
+````
+
+It then uses the 4-bytes in the pixels to fill in the ANSI sequence `\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m` based on the struct we defined earlier:
+
+````c title="/challenge/cimg :: handle_55369() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  for ( i = 0; cimg->header.height > i; ++i )
+  {
+    for ( j = 0; ; ++j )
+    {
+      width_1 = cimg->header.width;
+      if ( width_1 <= j )
+        break;
+      pixel_bytes = (pixel_t *)&data_1[4 * i * width_1 + 4 * j];
+      __snprintf_chk(
+        &emit_tmp,
+        25LL,
+        1LL,
+        25LL,
+        "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
+        pixel_bytes->r,
+        pixel_bytes->g,
+        pixel_bytes->b,
+        pixel_bytes->ascii);
+      j_1 = j;
+      cimg->framebuffer[((unsigned int)(j_1 % width_1) + i * width_1) % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
+    }
+  }
+
+# ---- snip ----
+````
+
+Let's look at the other handle function: `handle_52965()`.
 
 ```c title="/challenge/cimg :: handle_52965() :: Pseudocode" showLineNumbers
 unsigned __int64 __fastcall handle_52965(struct cimg *cimg)
@@ -5062,6 +5104,8 @@ EXIT:
 ```
 
 The `handle_52965()`, 
+
+
 
 To put everything together:
 
