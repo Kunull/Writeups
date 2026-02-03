@@ -5404,7 +5404,7 @@ with open("/home/hacker/solution.cimg", "wb") as f:
     f.write(cimg_data)
 
 print(f"Total Bytes: {len(cimg_data)}")
-print(f"Directives used: {remaining_directives}")
+print(f"Directives used: {remaining_directive}")
 ```
 
 ```
