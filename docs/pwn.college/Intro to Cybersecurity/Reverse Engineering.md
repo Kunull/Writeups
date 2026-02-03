@@ -5158,7 +5158,7 @@ width_value = 53
 height_value = len(pixels) // width_value
 
 directives_payload = b""
-directive_count = 0
+remaining_directives = 0
 
 # Grouping logic to stay under 1340 bytes
 for y in range(height_value):
@@ -5181,7 +5181,7 @@ for y in range(height_value):
             run_pixels.append(struct.pack("BBBB", curr_r, curr_g, curr_b, curr_char))
             x += 1
         
-        directive_count += 1
+        remaining_directives += 1
         directives_payload += struct.pack("<H", 52965)
         directives_payload += struct.pack("<B", start_x)
         directives_payload += struct.pack("<B", y)
@@ -5194,7 +5194,7 @@ magic = b"cIMG"                                     # 4 bytes
 version = struct.pack("<H", 3)                      # 2 bytes   
 width_byte = struct.pack("<B", width_value)         # 1 bytes
 height_byte = struct.pack("<B", height_value)       # 1 bytes
-dir_count = struct.pack("<I", directive_count)      # 4 bytes
+dir_count = struct.pack("<I", remaining_directives)      # 4 bytes
 
 header = magic + version + width_byte + height_byte + dir_count
 
@@ -5206,7 +5206,7 @@ with open("/home/hacker/solution.cimg", "wb") as f:
     f.write(cimg_data)
 
 print(f"Total Bytes: {len(cimg_data)}")
-print(f"Directives used: {directive_count}")
+print(f"Directives used: {remaining_directives}")
 ```
 
 ```
@@ -5257,13 +5257,13 @@ width_value = 53
 height_value = len(pixels) // width_value
 
 directives_payload = b""
-directive_count = 0
+remaining_directives = 0
 
 # --- 1. THE FOUR BORDER DIRECTIVES ---
 
 def add_directive(x, y, w, h, pixel_list):
-    global directives_payload, directive_count
-    directive_count += 1
+    global directives_payload, remaining_directives
+    remaining_directives += 1
     directives_payload += struct.pack("<HBBBB", 52965, x, y, w, h)
     for p in pixel_list:
         directives_payload += struct.pack("BBBB", p[0], p[1], p[2], p[3])
@@ -5306,19 +5306,19 @@ for y in range(1, 16):
             run_pixels.append(struct.pack("BBBB", p[0], p[1], p[2], p[3]))
             x += 1
         
-        directive_count += 1
+        remaining_directives += 1
         directives_payload += struct.pack("<HBBBB", 52965, start_x, y, len(run_pixels), 1)
         directives_payload += b"".join(run_pixels)
 
 # --- 3. HEADER AND OUTPUT ---
-header = struct.pack("<IHBBI", 0x474d4963, 3, width_value, height_value, directive_count)
+header = struct.pack("<IHBBI", 0x474d4963, 3, width_value, height_value, remaining_directives)
 cimg_data = header + directives_payload
 
 with open("/home/hacker/solution.cimg", "wb") as f:
     f.write(cimg_data)
 
 print(f"Total Bytes: {len(cimg_data)}")
-print(f"Directives used: {directive_count}")
+print(f"Directives used: {remaining_directives}")
 ```
 
 ```
@@ -5404,7 +5404,7 @@ with open("/home/hacker/solution.cimg", "wb") as f:
     f.write(cimg_data)
 
 print(f"Total Bytes: {len(cimg_data)}")
-print(f"Directives used: {remaining_directive}")
+print(f"Directives used: {remaining_directives}")
 ```
 
 ```
