@@ -6838,7 +6838,7 @@ rip --> _start()
 We would have the address of `puts` within Libc by the end of this first stage, from which we can calculate the base address of Libc and the address of `chmod` within Libc.
 The call to `_start()` would restart the challenge, and give us a chance to execute the second stage.
 
-#### Stage 2: Using leaked Libc puts address to calculate Libc chmod address
+#### Stage 2: Using leaked Libc `puts` address to calculate Libc `chmod` address
 
 ```
 <== Value is stored at the address
@@ -7731,7 +7731,7 @@ hacker@return-oriented-programming~pivotal-prelude-easy:/$ objdump -d /challenge
 
 - [x] Location of the PLT entry of `puts@plt`: `0x401120` 
 - [ ] Location of the GOT entry of `puts@got`
-- [x] Location of the unexecuted ROP chain within BSS: `0x4150e0`
+- [x] Location of the unexecuted ROP chain within BSS: `0x4150f0`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 - [ ] Address of `_start()`
@@ -7745,7 +7745,7 @@ hacker@return-oriented-programming~pivotal-prelude-easy:/$ readelf -r /challenge
 
 - [x] Location of the PLT entry of `puts@plt`: `0x401120` 
 - [x] Location of the GOT entry of `puts@got`: `0x405028`
-- [x] Location of the unexecuted ROP chain within BSS: `0x4150e0`
+- [x] Location of the unexecuted ROP chain within BSS: `0x4150f0`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 - [ ] Address of `_start()`
@@ -7761,7 +7761,7 @@ Symbol "_start" is at 0x4011d0 in a file compiled without debugging.
 
 - [x] Location of the PLT entry of `puts@plt`: `0x401120` 
 - [x] Location of the GOT entry of `puts@got`: `0x405028`
-- [x] Location of the unexecuted ROP chain within BSS: `0x4150e0`
+- [x] Location of the unexecuted ROP chain within BSS: `0x4150f0`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 - [x] Address of `_start()`: `0x4011d0`
@@ -7910,7 +7910,7 @@ Unique gadgets found: 130
 
 - [x] Location of the PLT entry of `puts@plt`: `0x401120` 
 - [x] Location of the GOT entry of `puts@got`: `0x405028`
-- [x] Location of the unexecuted ROP chain within BSS: `0x4150e0`
+- [x] Location of the unexecuted ROP chain within BSS: `0x4150f0`
 - [ ] Offsets of required Libc functions
 - [x] Locations of required ROP gadgets
    - `pop rdi ; ret`: `0x4023f3`
@@ -8168,7 +8168,7 @@ rip --> _start()
 We would have the address of `puts` within Libc by the end of this first stage, from which we can calculate the base address of Libc and the address of `chmod` within Libc. The call to `_start()` would restart the challenge, and give us a chance to execute the second stage.
 
 
-#### Stage 2: Using leaked Libc puts address to calculate Libc chmod address
+#### Stage 2: Using leaked Libc `puts` address to calculate Libc `chmod` address
 
 ```
 <== Value is stored at the address
