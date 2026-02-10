@@ -5285,7 +5285,7 @@ Since the challenge program leaks the address of `system()` within Libc, we can 
 
 #### Libc functions
 
-Let's first the offset `system()` within Libc from the base address of the Libc.
+Let's first find the offset `system()` within Libc from the base address of the Libc.
 
 ```
 hacker@return-oriented-programming~leaky-libc-easy:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "system"
@@ -5912,7 +5912,7 @@ We can then find the relevant offset within Libc.
 
 #### Libc functions
 
-Let's first the offset of `system()` within Libc from the base address of the Libc.
+Let's first find the offset of `system()` within Libc from the base address of the Libc.
 
 ```
 hacker@return-oriented-programming~leaky-libc-hard:/$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "system"
