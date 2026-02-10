@@ -3950,7 +3950,7 @@ $1 = 88
    - `pop rdx ; ret`: `0x40228e`
 - [ ] Location to which flag is to be read
 
-Let's find a string we can use a symlink.
+Let's find a string we can use as a symlink.
 
 ```
 hacker@return-oriented-programming~indirect-invocation-easy:/$ objdump -s -j .rodata /challenge/indirect-invocation-easy | grep -E "[0-9a-f]{2}00"
@@ -4965,7 +4965,7 @@ $1: 56
    - `pop rdx ; ret`: `0x401bfd`
 - [ ] Location to which flag is to be read
 
-Let's find a string we can use a symlink.
+Let's find a string we can use as a symlink.
 
 ```
 hacker@return-oriented-programming~indirect-invocation-hard:/$ objdump -s -j .rodata /challenge/indirect-invocation-hard | grep -E "[0-9a-f]{2}00"
@@ -5516,7 +5516,7 @@ $1: 120
    - `pop rdi ; ret`: `0x401df3`
    - `pop rsi ; pop r15 ; ret`: `0x401df1`
 
-Let's find a string we can use a symlink.
+Let's find a string we can use as a symlink.
 
 ```
 hacker@return-oriented-programming~leaky-libc-easy:/$ objdump -s -j .rodata /challenge/leveraging-libc-easy | grep -E "[0-9a-f]{2}00"
@@ -6246,7 +6246,7 @@ hacker@return-oriented-programming~putsception-easy:/$ objdump -d /challenge/put
 
 #### `puts@got` (Global Offset Table entry)
 
-The `puts@got` entry holds the runtime address of the `puts` function in Libc. 
+The `puts@got` entry holds the runtime address of the `puts()` function in Libc. 
 
 ```
 hacker@return-oriented-programming~putsception-easy:/$ readelf -r /challenge/putsception-easy | grep "puts"
