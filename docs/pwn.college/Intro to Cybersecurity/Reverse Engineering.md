@@ -5043,8 +5043,8 @@ unsigned __int64 __fastcall handle_52965(struct cimg *cimg)
   int y_offset; // r13d
   int x_offset; // r14d
   int x_coord; // eax
-  int idx; // ecx
-  unsigned int idx_1; // ebx
+  int pixel_idx; // ecx
+  unsigned int ansi_idx; // ebx
   unsigned __int8 width; // [rsp+Bh] [rbp-5Dh] BYREF
   unsigned __int8 height; // [rsp+Ch] [rbp-5Ch] BYREF
   unsigned __int8 base_x; // [rsp+Dh] [rbp-5Bh] BYREF
@@ -5761,9 +5761,75 @@ It then uses the 4-bytes in the pixels to fill in the ANSI sequence `\x1b[38;2;%
 
 Let's look at the other handle function: `handle_52965()`.
 
+```c title="/challenge/cimg :: handle_52965() :: Pseudocode" showLineNumbers
+unsigned __int64 __fastcall handle_52965(struct cimg *cimg)
+{
+  unsigned int data_size; // ebx
+  pixel_t *data; // rax
+  pixel_t *pixel_bytes; // rbp
+  __int64 v4; // rax
+  __int64 ascii_char; // rcx
+  int y_offset; // r13d
+  int x_offset; // r14d
+  int x_coord; // eax
+  int pixel_idx; // ecx
+  unsigned int ansi_idx; // ebx
+  unsigned __int8 width; // [rsp+Bh] [rbp-5Dh] BYREF
+  unsigned __int8 height; // [rsp+Ch] [rbp-5Ch] BYREF
+  unsigned __int8 base_x; // [rsp+Dh] [rbp-5Bh] BYREF
+  unsigned __int8 base_y; // [rsp+Eh] [rbp-5Ah] BYREF
+  struct cimg emit_tmp; // [rsp+Fh] [rbp-59h] BYREF
+  unsigned __int64 v17; // [rsp+28h] [rbp-40h]
 
-```
-
+  v17 = __readfsqword(40u);
+  read_exact(0LL, &base_x, 1LL, "ERROR: Failed to read &base_x!", 0xFFFFFFFFLL);
+  read_exact(0LL, &base_y, 1LL, "ERROR: Failed to read &base_y!", 0xFFFFFFFFLL);
+  read_exact(0LL, &width, 1LL, "ERROR: Failed to read &width!", 0xFFFFFFFFLL);
+  read_exact(0LL, &height, 1LL, "ERROR: Failed to read &height!", 0xFFFFFFFFLL);
+  data_size = 4 * height * width;
+  data = (pixel_t *)malloc(4LL * height * width);
+  if ( !data )
+  {
+    puts("ERROR: Failed to allocate memory for the image data!");
+    goto EXIT;
+  }
+  pixel_bytes = data;
+  read_exact(0LL, data, data_size, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  v4 = 0LL;
+  while ( height * width > (int)v4 )
+  {
+    ascii_char = pixel_bytes[v4++].ascii;
+    if ( (unsigned __int8)(ascii_char - 0x20) > 0x5Eu )
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", ascii_char);
+EXIT:
+      exit(-1);
+    }
+  }
+  for ( y_offset = 0; height > y_offset; ++y_offset )
+  {
+    x_offset = 0;
+    while ( width > x_offset )
+    {
+      x_coord = x_offset + base_x;
+      pixel_idx = x_offset + y_offset * width;
+      ++x_offset;
+      ansi_idx = x_coord % cimg->header.width + cimg->header.width * (y_offset + base_y);
+      __snprintf_chk(
+        &emit_tmp,
+        25LL,
+        1LL,
+        25LL,
+        "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
+        pixel_bytes[pixel_idx].r,
+        pixel_bytes[pixel_idx].g,
+        pixel_bytes[pixel_idx].b,
+        pixel_bytes[pixel_idx].ascii);
+      cimg->framebuffer[ansi_idx % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
+    }
+  }
+  return __readfsqword(0x28u) ^ v17;
+}
 ```
 
 
