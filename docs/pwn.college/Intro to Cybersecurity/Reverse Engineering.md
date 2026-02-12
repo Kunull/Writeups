@@ -6830,7 +6830,7 @@ If it is not, and the total number of user provided bytes is less than `400` it 
 
 We can now look at the four handlers one by one.
 
-```c title="/challenge/cimg ::  handle_1() :: Pseudocode" showLineNumbers
+```c title="/challenge/cimg :: handle_1() :: Pseudocode" showLineNumbers
 unsigned __int64 __fastcall handle_1(struct cimg *cimg)
 {
   int width; // ebp
@@ -6897,27 +6897,9 @@ EXIT:
 }
 ```
 
-```c title="/challenge/cimg :: Local Types" showLineNumbers
-# ---- snip ----
-
-struct term_str_st {
-    char color_set[7];          //  \x1b[38;2;
-    char r[3];                  //  255
-    char s1;                    //  ;
-    char g[3];                  //  255
-    char s2;                    //  ;
-    char b[3];                  //  255
-    char m;                     //  m
-    char c;                     //  X
-    char color_reset[4];        //  \x1b[0m
-};
-
-# ---- snip ----
-```
-
 The `handler_1()` the allocates a location of memory data which can fit `width * height` number of pixels.
 
-```c title="/challenge/cimg ::  handle_1() :: Pseudocode" showLineNumbers
+```c title="/challenge/cimg :: handle_1() :: Pseudocode" showLineNumbers
 # ---- snip ----
 
   width = cimg->header.width;
@@ -6992,81 +6974,94 @@ It then uses the 4-bytes in the pixels to fill in the ANSI sequence `\x1b[38;2;%
 # ---- snip ----
 ```
 
+```c title="/challenge/cimg :: Local Types" showLineNumbers
+# ---- snip ----
 
-#### `handle_2()`
+struct term_str_st {
+    char color_set[7];          //  \x1b[38;2;
+    char r[3];                  //  255
+    char s1;                    //  ;
+    char g[3];                  //  255
+    char s2;                    //  ;
+    char b[3];                  //  255
+    char m;                     //  m
+    char c;                     //  X
+    char color_reset[4];        //  \x1b[0m
+};
 
-```c showLineNumbers
-unsigned __int64 __fastcall handle_2(__int64 a1)
+# ---- snip ----
+```
+
+Let's look at the `handle_2()` function next.
+
+```c title="/challenge/cimg :: handle_2() :: Pseudocode" showLineNumbers
+unsigned __int64 __fastcall handle_2(struct cimg *cimg)
 {
-  unsigned int v1; // ebx
-  unsigned __int8 *v2; // rax
-  unsigned __int8 *v3; // rbp
+  unsigned int data_size; // ebx
+  pixel_t *data; // rax
+  pixel_t *pixel_bytes; // rbp
   __int64 v4; // rax
-  __int64 v5; // rcx
-  int i; // r13d
-  int v7; // r14d
-  int v8; // eax
-  int v9; // ecx
-  unsigned int v10; // ebx
-  __int64 v11; // rdx
-  unsigned __int8 v13; // [rsp+Bh] [rbp-5Dh] BYREF
-  unsigned __int8 v14; // [rsp+Ch] [rbp-5Ch] BYREF
-  unsigned __int8 v15; // [rsp+Dh] [rbp-5Bh] BYREF
-  unsigned __int8 v16; // [rsp+Eh] [rbp-5Ah] BYREF
-  __int128 v17; // [rsp+Fh] [rbp-59h] BYREF
-  __int64 v18; // [rsp+1Fh] [rbp-49h]
-  unsigned __int64 v19; // [rsp+28h] [rbp-40h]
+  unsigned __int8 ascii_char; // cl
+  int y_offset; // r13d
+  int x_offset; // r14d
+  int x_coord; // eax
+  int pixel_idx; // ecx
+  unsigned int ansi_idx; // ebx
+  unsigned __int8 width; // [rsp+Bh] [rbp-5Dh] BYREF
+  unsigned __int8 height; // [rsp+Ch] [rbp-5Ch] BYREF
+  unsigned __int8 base_x; // [rsp+Dh] [rbp-5Bh] BYREF
+  unsigned __int8 base_y; // [rsp+Eh] [rbp-5Ah] BYREF
+  struct cimg emit_tmp; // [rsp+Fh] [rbp-59h] BYREF
+  unsigned __int64 v17; // [rsp+28h] [rbp-40h]
 
-  v19 = __readfsqword(0x28u);
-  read_exact(0LL, &v15, 1LL, "ERROR: Failed to read &base_x!", 0xFFFFFFFFLL);
-  read_exact(0LL, &v16, 1LL, "ERROR: Failed to read &base_y!", 0xFFFFFFFFLL);
-  read_exact(0LL, &v13, 1LL, "ERROR: Failed to read &width!", 0xFFFFFFFFLL);
-  read_exact(0LL, &v14, 1LL, "ERROR: Failed to read &height!", 0xFFFFFFFFLL);
-  v1 = 4 * v14 * v13;
-  v2 = (unsigned __int8 *)malloc(4LL * v14 * v13);
-  if ( !v2 )
+  v17 = __readfsqword(40u);
+  read_exact(0LL, &base_x, 1LL, "ERROR: Failed to read &base_x!", 0xFFFFFFFFLL);
+  read_exact(0LL, &base_y, 1LL, "ERROR: Failed to read &base_y!", 0xFFFFFFFFLL);
+  read_exact(0LL, &width, 1LL, "ERROR: Failed to read &width!", 0xFFFFFFFFLL);
+  read_exact(0LL, &height, 1LL, "ERROR: Failed to read &height!", 0xFFFFFFFFLL);
+  data_size = 4 * height * width;
+  data = (pixel_t *)malloc(4LL * height * width);
+  if ( !data )
   {
     puts("ERROR: Failed to allocate memory for the image data!");
-    goto LABEL_7;
+    goto EXIT;
   }
-  v3 = v2;
-  read_exact(0LL, v2, v1, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  pixel_bytes = data;
+  read_exact(0LL, data, data_size, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
   v4 = 0LL;
-  while ( v14 * v13 > (int)v4 )
+  while ( height * width > (int)v4 )
   {
-    v5 = v3[4 * v4++ + 3];
-    if ( (unsigned __int8)(v5 - 32) > 0x5Eu )
+    *(_QWORD *)&ascii_char = pixel_bytes[v4++].ascii;
+    if ( (unsigned __int8)(ascii_char - 0x20) > 0x5Eu )
     {
-      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", v5);
-LABEL_7:
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", *(_QWORD *)&ascii_char);
+EXIT:
       exit(-1);
     }
   }
-  for ( i = 0; v14 > i; ++i )
+  for ( y_offset = 0; height > y_offset; ++y_offset )
   {
-    v7 = 0;
-    while ( v13 > v7 )
+    x_offset = 0;
+    while ( width > x_offset )
     {
-      v8 = v7 + v15;
-      v9 = v7 + i * v13;
-      ++v7;
-      v10 = v8 % *(unsigned __int8 *)(a1 + 6) + *(unsigned __int8 *)(a1 + 6) * (i + v16);
+      x_coord = x_offset + base_x;
+      pixel_idx = x_offset + y_offset * width;
+      ++x_offset;
+      ansi_idx = x_coord % cimg->header.width + cimg->header.width * (y_offset + base_y);
       __snprintf_chk(
-        &v17,
+        &emit_tmp,
         25LL,
         1LL,
         25LL,
         "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
-        v3[4 * v9],
-        v3[4 * v9 + 1],
-        v3[4 * v9 + 2],
-        v3[4 * v9 + 3]);
-      v11 = *(_QWORD *)(a1 + 16) + 24LL * (v10 % *(_DWORD *)(a1 + 12));
-      *(_OWORD *)v11 = v17;
-      *(_QWORD *)(v11 + 16) = v18;
+        pixel_bytes[pixel_idx].r,
+        pixel_bytes[pixel_idx].g,
+        pixel_bytes[pixel_idx].b,
+        pixel_bytes[pixel_idx].ascii);
+      cimg->framebuffer[ansi_idx % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
     }
   }
-  return __readfsqword(0x28u) ^ v19;
+  return __readfsqword(40u) ^ v17;
 }
 ```
 
