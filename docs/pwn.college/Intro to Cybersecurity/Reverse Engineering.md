@@ -4881,7 +4881,7 @@ In [1]: print(len(".---------------------------------------------------."))
  
 The `main()` function basically reads in the user input, sends it to the relevant handler funtions based on the directive code that it observes, and finally checks if the 20th byte in the crafted ANSI sequence is a space or newline character. 
 
-If it is not, and and the total number of user provided bytes is less than `1340` it calls `win()` which prints the flag.
+If it is not, and the total number of user provided bytes is less than `1340` it calls `win()` which prints the flag.
 
 Let's look at both the handler functions.
 
@@ -5028,6 +5028,24 @@ It then uses the 4-bytes in the pixels to fill in the ANSI sequence `\x1b[38;2;%
 
 # ---- snip ----
 ````
+
+```c title="/challenge/cimg :: Local Types" showLineNumbers
+# ---- snip ----
+
+struct term_str_st {
+    char color_set[7];          //  \x1b[38;2;
+    char r[3];                  //  255
+    char s1;                    //  ;
+    char g[3];                  //  255
+    char s2;                    //  ;
+    char b[3];                  //  255
+    char m;                     //  m
+    char c;                     //  X
+    char color_reset[4];        //  \x1b[0m
+};
+
+# ---- snip ----
+```
 
 Let's look at the other handle function: `handle_52965()`.
 
@@ -5188,6 +5206,24 @@ Based on these indexes, the code knows which characters to use in the chunk of t
       cimg->framebuffer[ansi_idx % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
     }
   }
+
+# ---- snip ----
+```
+
+```c title="/challenge/cimg :: Local Types" showLineNumbers
+# ---- snip ----
+
+struct term_str_st {
+    char color_set[7];          //  \x1b[38;2;
+    char r[3];                  //  255
+    char s1;                    //  ;
+    char g[3];                  //  255
+    char s2;                    //  ;
+    char b[3];                  //  255
+    char m;                     //  m
+    char c;                     //  X
+    char color_reset[4];        //  \x1b[0m
+};
 
 # ---- snip ----
 ```
@@ -5550,7 +5586,7 @@ pwn.college{UMeXSUaFZYlR24CqDvgWdMZihWp.QX5AzMwEDL4ITM0EzW}
 
 We must first create the necessary structs.
 
-```c title="/challenge/cimg :: Local types" showLineNumbers
+```c title="/challenge/cimg :: Local Types" showLineNumbers
 struct cimg_header {
     char magic_number[4];
     uint16_t version;
@@ -5659,7 +5695,7 @@ EXIT:
     ascii_char = framebuffer->data[19];
     if ( ascii_char != desired_output[19] )
       LOBYTE(won) = 0;
-    if ( ascii_char != 32 && ascii_char != 10 )
+    if ( ascii_char != ' ' && ascii_char != '\n' )
     {
       if ( memcmp(framebuffer, desired_output, 0x18uLL) )
         LOBYTE(won) = 0;
@@ -5672,6 +5708,11 @@ EXIT:
   return 0;
 }
 ```
+
+The `main()` function basically reads in the user input, sends it to the relevant handler funtions based on the directive code that it observes, and finally checks if the 20th byte in the crafted ANSI sequence is a space or newline character.
+
+It checks if the 20th byte in the crafted ANSI sequence is a space or newline character. 
+If it is not, and the total number of user provided bytes is less than `1337` it calls `win()` which prints the flag.
 
 Let's find the required width:
 
@@ -5706,6 +5747,8 @@ hacker@reverse-engineering~optimizing-for-space:~$ python ~/script.py
 In [1]: print(len(".--------------------------------------------------------------------------."))
 76
 ```
+
+Let's look at the `handler_55369()` function.
 
 ```c title="/challenge/cimg :: handler_55369() :: showLineNumbers"
 unsigned __int64 __fastcall handle_55369(struct cimg *cimg)
@@ -5851,6 +5894,24 @@ It then uses the 4-bytes in the pixels to fill in the ANSI sequence `\x1b[38;2;%
 # ---- snip ----
 ```
 
+```c title="/challenge/cimg :: Local Types" showLineNumbers
+# ---- snip ----
+
+struct term_str_st {
+    char color_set[7];          //  \x1b[38;2;
+    char r[3];                  //  255
+    char s1;                    //  ;
+    char g[3];                  //  255
+    char s2;                    //  ;
+    char b[3];                  //  255
+    char m;                     //  m
+    char c;                     //  X
+    char color_reset[4];        //  \x1b[0m
+};
+
+# ---- snip ----
+```
+
 Let's look at the other handle function: `handle_52965()`.
 
 ```c title="/challenge/cimg :: handle_52965() :: Pseudocode" showLineNumbers
@@ -5923,7 +5984,6 @@ EXIT:
   return __readfsqword(0x28u) ^ v17;
 }
 ```
-
 
 The `handle_52965()`, the program handles our input slightly differently, as it renders the characters at the the coordinates that we provide.
 
@@ -6011,6 +6071,24 @@ Based on these indexes, the code knows which characters to use in the chunk of t
       cimg->framebuffer[ansi_idx % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
     }
   }
+
+# ---- snip ----
+```
+
+```c title="/challenge/cimg :: Local Types" showLineNumbers
+# ---- snip ----
+
+struct term_str_st {
+    char color_set[7];          //  \x1b[38;2;
+    char r[3];                  //  255
+    char s1;                    //  ;
+    char g[3];                  //  255
+    char s2;                    //  ;
+    char b[3];                  //  255
+    char m;                     //  m
+    char c;                     //  X
+    char color_reset[4];        //  \x1b[0m
+};
 
 # ---- snip ----
 ```
@@ -6594,180 +6672,326 @@ pwn.college{UVdRwo8Qr1PY7qbH033MOInAXHn.QX5EzMwEDL4ITM0EzW}
 
 #### `main()`
 
-```c title="/challenge/storage-and-retrieval :: main()"
+```c title="/challenge/cimg :: Local Types" showLineNumbers
+struct cimg_header {
+    char magic_number[4];
+    uint16_t version;
+    uint8_t width;
+    uint8_t height;
+    uint32_t remaining_directives;
+};
+
+typedef struct pixel_color_t {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t ascii;
+} pixel_t;
+
+struct term_str_st {
+    char color_set[7];
+    char r[3];
+    char s1;
+    char g[3];
+    char s2;
+    char b[3];
+    char m;
+    char c;
+    char color_reset[4];
+};
+
+union term_pixel_t {
+    char data[24];
+    struct term_str_st str;
+};
+
+struct cimg {
+    struct cimg_header header;
+    unsigned int num_pixels;
+    union term_pixel_t *framebuffer;
+};
+```
+
+After creating the struct, we can modify the `main()` function's pseudocode to look more like C code.
+
+```c title="/challenge/cimg :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   __int64 v3; // rcx
-  int *v5; // rdi
+  struct cimg *p_cimg; // rdi
   bool v6; // of
   int v7; // r8d
-  const char *v8; // r12
-  int v9; // eax
-  const char *v10; // rdi
-  char *v12; // r12
-  unsigned int v13; // r14d
-  _BYTE *v14; // r13
-  _BOOL8 v15; // rbp
+  const char *file_arg; // r12
+  int file; // eax
+  const char *error_msg; // rdi
+  char *desired_output; // r12
+  unsigned int num_pixels; // r14d
+  union term_pixel_t *framebuffer; // r13
+  _BOOL8 won; // rbp
   unsigned int i; // ebx
-  char v17; // al
-  unsigned __int16 v19; // [rsp+Eh] [rbp-105Ah] BYREF
-  int v20; // [rsp+10h] [rbp-1058h] BYREF
-  __int16 v21; // [rsp+14h] [rbp-1054h]
-  int v22; // [rsp+18h] [rbp-1050h]
-  unsigned int v23; // [rsp+1Ch] [rbp-104Ch]
-  void *s1; // [rsp+20h] [rbp-1048h]
-  unsigned __int64 v25; // [rsp+1028h] [rbp-40h]
+  char ascii_char; // al
+  unsigned __int16 directive_code; // [rsp+Eh] [rbp-105Ah] BYREF
+  struct cimg cimg; // [rsp+10h] [rbp-1058h] BYREF
+  unsigned __int64 v21; // [rsp+1028h] [rbp-40h]
 
   v3 = 1030LL;
-  v25 = __readfsqword(0x28u);
-  v5 = &v20;
+  v21 = __readfsqword(40u);
+  p_cimg = &cimg;
   v6 = __OFSUB__(argc, 1);
   v7 = argc - 1;
+  // `memset(&cimg, 0, sizeof(cimg));`
   while ( v3 )
   {
-    *v5++ = 0;
+    *(_DWORD *)p_cimg->header.magic_number = 0;
+    p_cimg = (struct cimg *)((char *)p_cimg + 4);
     --v3;
   }
+  // `if ( argc > 1 )`
   if ( !((v7 < 0) ^ v6 | (v7 == 0)) )
   {
-    v8 = argv[1];
-    if ( strcmp(&v8[strlen(v8) - 5], ".cimg") )
+    file_arg = argv[1];
+    if ( strcmp(&file_arg[strlen(file_arg) - 5], ".cimg") )
     {
       __printf_chk(1LL, "ERROR: Invalid file extension!");
-      goto LABEL_11;
+      goto EXIT;
     }
-    v9 = open(v8, 0);
-    dup2(v9, 0);
+    file = open(file_arg, 0);
+    dup2(file, 0);
   }
-  read_exact(0LL, &v20, 12LL, "ERROR: Failed to read header!", 0xFFFFFFFFLL);
-  if ( v20 != 1196247395 )
+  read_exact(0LL, &cimg, 12LL, "ERROR: Failed to read header!", 0xFFFFFFFFLL);
+  if ( *(_DWORD *)cimg.header.magic_number != 'GMIc' )
   {
-    v10 = "ERROR: Invalid magic number!";
-LABEL_10:
-    puts(v10);
-    goto LABEL_11;
+    error_msg = "ERROR: Invalid magic number!";
+OUTPUT_ERROR_MSG_AND_EXIT:
+    puts(error_msg);
+    goto EXIT;
   }
-  v10 = "ERROR: Unsupported version!";
-  if ( v21 != 3 )
-    goto LABEL_10;
-  initialize_framebuffer(&v20);
-  while ( v22-- )
+  error_msg = "ERROR: Unsupported version!";
+  if ( cimg.header.version != 3 )
+    goto OUTPUT_ERROR_MSG_AND_EXIT;
+  initialize_framebuffer(&cimg);
+  while ( cimg.header.remaining_directives-- )
   {
-    read_exact(0LL, &v19, 2LL, "ERROR: Failed to read &directive_code!", 0xFFFFFFFFLL);
-    if ( v19 == 3 )
+    read_exact(0LL, &directive_code, 2LL, "ERROR: Failed to read &directive_code!", 0xFFFFFFFFLL);
+    if ( directive_code == 3 )
     {
-      handle_3(&v20);
+      handle_3(&cimg);
     }
-    else if ( v19 > 3u )
+    else if ( directive_code > 3u )
     {
-      if ( v19 != 4 )
+      if ( directive_code != 4 )
       {
-LABEL_24:
-        __fprintf_chk(stderr, 1LL, "ERROR: invalid directive_code %ux\n", v19);
-LABEL_11:
+OUTPUT_DIRECTIVE_CODE_ERROR_MSG_AND_EXIT:
+        __fprintf_chk(stderr, 1LL, "ERROR: invalid directive_code %ux\n", directive_code);
+EXIT:
         exit(-1);
       }
-      handle_4(&v20);
+      handle_4(&cimg);
     }
-    else if ( v19 == 1 )
+    else if ( directive_code == 1 )
     {
-      handle_1(&v20);
+      handle_1(&cimg);
     }
     else
     {
-      if ( v19 != 2 )
-        goto LABEL_24;
-      handle_2(&v20);
+      if ( directive_code != 2 )
+        goto OUTPUT_DIRECTIVE_CODE_ERROR_MSG_AND_EXIT;
+      handle_2(&cimg);
     }
   }
-  v12 = desired_output;
-  display(&v20, 0LL);
-  v13 = v23;
-  v14 = s1;
-  v15 = v23 == 1824;
-  for ( i = 0; v13 > i && i != 1824; ++i )
+  desired_output = ::desired_output;
+  display(&cimg, 0LL);
+  num_pixels = cimg.num_pixels;
+  framebuffer = cimg.framebuffer;
+  won = cimg.num_pixels == 1824;
+  for ( i = 0; num_pixels > i && i != 1824; ++i )
   {
-    v17 = v14[19];
-    if ( v17 != v12[19] )
-      LOBYTE(v15) = 0;
-    if ( v17 != 32 && v17 != 10 )
+    ascii_char = framebuffer->data[19];
+    if ( ascii_char != desired_output[19] )
+      LOBYTE(won) = 0;
+    if ( ascii_char != ' ' && ascii_char != '\n' )
     {
-      if ( memcmp(v14, v12, 0x18uLL) )
-        LOBYTE(v15) = 0;
+      if ( memcmp(framebuffer, desired_output, 24uLL) )
+        LOBYTE(won) = 0;
     }
-    v14 += 24;
-    v12 += 24;
+    ++framebuffer;
+    desired_output += 24;
   }
-  if ( (unsigned __int64)total_data <= 0x190 && v15 )
+  if ( (unsigned __int64)total_data <= 400 && won )
     win();
   return 0;
 }
 ```
 
-#### `handle_1()`
+The `main()` function basically reads in the user input, sends it to the relevant handler funtions based on the directive code that it observes, and finally checks if the 20th byte in the crafted ANSI sequence is a space or newline character.
 
-```c title="/challenge/storage-and-retrieval ::  handle_1()"
-unsigned __int64 __fastcall handle_1(__int64 a1)
+It checks if the 20th byte in the crafted ANSI sequence is a space or newline character. 
+If it is not, and the total number of user provided bytes is less than `400` it calls `win()` which prints the flag.
+
+We can now look at the four handlers one by one.
+
+```c title="/challenge/cimg ::  handle_1() :: Pseudocode" showLineNumbers
+unsigned __int64 __fastcall handle_1(struct cimg *cimg)
 {
-  int v1; // ebp
-  int v2; // edx
-  size_t v3; // rbp
-  unsigned __int8 *v4; // rax
-  unsigned __int8 *v5; // r12
+  int width; // ebp
+  int height; // edx
+  size_t data_size; // rbp
+  pixel_t *data; // rax
+  pixel_t *data_1; // r12
   __int64 v6; // rax
-  __int64 v7; // rcx
+  unsigned __int8 ascii_char; // cl
   int i; // r13d
-  int v9; // ebp
-  int v10; // r15d
-  unsigned __int8 *v11; // rax
-  __int64 v12; // kr00_8
-  __int64 v13; // rdx
-  __int128 v15; // [rsp+1Fh] [rbp-59h] BYREF
-  __int64 v16; // [rsp+2Fh] [rbp-49h]
-  unsigned __int64 v17; // [rsp+38h] [rbp-40h]
+  int j; // ebp
+  int width_1; // r15d
+  pixel_t *pixel_bytes; // rax
+  __int64 j_1; // kr00_8
+  struct cimg emit_tmp; // [rsp+1Fh] [rbp-59h] BYREF
+  unsigned __int64 v15; // [rsp+38h] [rbp-40h]
 
-  v1 = *(unsigned __int8 *)(a1 + 6);
-  v2 = *(unsigned __int8 *)(a1 + 7);
-  v17 = __readfsqword(0x28u);
-  v3 = 4LL * v2 * v1;
-  v4 = (unsigned __int8 *)malloc(v3);
-  if ( !v4 )
+  width = cimg->header.width;
+  height = cimg->header.height;
+  v15 = __readfsqword(40u);
+  data_size = 4LL * height * width;
+  data = (pixel_t *)malloc(data_size);
+  if ( !data )
   {
     puts("ERROR: Failed to allocate memory for the image data!");
-    goto LABEL_7;
+    goto EXIT;
   }
-  v5 = v4;
-  read_exact(0LL, v4, (unsigned int)v3, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  data_1 = data;
+  read_exact(0LL, data, (unsigned int)data_size, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
   v6 = 0LL;
-  while ( *(unsigned __int8 *)(a1 + 7) * *(unsigned __int8 *)(a1 + 6) > (int)v6 )
+  while ( cimg->header.height * cimg->header.width > (int)v6 )
   {
-    v7 = v5[4 * v6++ + 3];
-    if ( (unsigned __int8)(v7 - 32) > 0x5Eu )
+    *(_QWORD *)&ascii_char = data_1[v6++].ascii;
+    if ( (unsigned __int8)(ascii_char - 0x20) > 0x5Eu )
     {
-      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", v7);
-LABEL_7:
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", *(_QWORD *)&ascii_char);
+EXIT:
       exit(-1);
     }
   }
-  for ( i = 0; *(unsigned __int8 *)(a1 + 7) > i; ++i )
+  for ( i = 0; cimg->header.height > i; ++i )
   {
-    v9 = 0;
-    while ( 1 )
+    for ( j = 0; ; ++j )
     {
-      v10 = *(unsigned __int8 *)(a1 + 6);
-      if ( v10 <= v9 )
+      width_1 = cimg->header.width;
+      if ( width_1 <= j )
         break;
-      v11 = &v5[4 * i * v10 + 4 * v9];
-      __snprintf_chk(&v15, 25LL, 1LL, 25LL, "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m", *v11, v11[1], v11[2], v11[3]);
-      v12 = v9++;
-      v13 = *(_QWORD *)(a1 + 16) + 24LL * (((unsigned int)(v12 % v10) + i * v10) % *(_DWORD *)(a1 + 12));
-      *(_OWORD *)v13 = v15;
-      *(_QWORD *)(v13 + 16) = v16;
+      pixel_bytes = &data_1[i * width_1 + j];
+      __snprintf_chk(
+        &emit_tmp,
+        25LL,
+        1LL,
+        25LL,
+        "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
+        pixel_bytes->r,
+        pixel_bytes->g,
+        pixel_bytes->b,
+        pixel_bytes->ascii);
+      j_1 = j;
+      cimg->framebuffer[((unsigned int)(j_1 % width_1) + i * width_1) % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
     }
   }
-  return __readfsqword(0x28u) ^ v17;
+  return __readfsqword(40u) ^ v15;
 }
 ```
+
+```c title="/challenge/cimg :: Local Types" showLineNumbers
+# ---- snip ----
+
+struct term_str_st {
+    char color_set[7];          //  \x1b[38;2;
+    char r[3];                  //  255
+    char s1;                    //  ;
+    char g[3];                  //  255
+    char s2;                    //  ;
+    char b[3];                  //  255
+    char m;                     //  m
+    char c;                     //  X
+    char color_reset[4];        //  \x1b[0m
+};
+
+# ---- snip ----
+```
+
+The `handler_1()` the allocates a location of memory data which can fit `width * height` number of pixels.
+
+```c title="/challenge/cimg ::  handle_1() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  width = cimg->header.width;
+  height = cimg->header.height;
+  v15 = __readfsqword(40u);
+  data_size = 4LL * height * width;
+  data = (pixel_t *)malloc(data_size);
+
+# ---- snip ----
+```
+
+The user's input is read into the `data` memory allocation. Then, it checks if each fourth byte in the pixel, i.e. the character byte (r,g,b,c), lies between `0x20` and `0x7e`.
+
+```c title="/challenge/cimg :: handle_1() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  while ( cimg->header.height * cimg->header.width > (int)v6 )
+  {
+    *(_QWORD *)&ascii_char = data_1[v6++].ascii;
+    if ( (unsigned __int8)(ascii_char - 0x20) > 0x5Eu )
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", *(_QWORD *)&ascii_char);
+EXIT:
+      exit(-1);
+    }
+  }
+
+# ---- snip ----
+```
+
+```c title="/challenge/cimg :: Local Types" showLineNumbers
+# ---- snip ----
+
+typedef struct pixel_color_t {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t ascii;
+} pixel_t;
+
+# ---- snip ----
+```
+
+It then uses the 4-bytes in the pixels to fill in the ANSI sequence `\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m` based on the struct we defined earlier:
+
+```c title="/challenge/cimg :: handle_1() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  for ( i = 0; cimg->header.height > i; ++i )
+  {
+    for ( j = 0; ; ++j )
+    {
+      width_1 = cimg->header.width;
+      if ( width_1 <= j )
+        break;
+      pixel_bytes = &data_1[i * width_1 + j];
+      __snprintf_chk(
+        &emit_tmp,
+        25LL,
+        1LL,
+        25LL,
+        "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
+        pixel_bytes->r,
+        pixel_bytes->g,
+        pixel_bytes->b,
+        pixel_bytes->ascii);
+      j_1 = j;
+      cimg->framebuffer[((unsigned int)(j_1 % width_1) + i * width_1) % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
+    }
+  }
+
+# ---- snip ----
+```
+
 
 #### `handle_2()`
 
