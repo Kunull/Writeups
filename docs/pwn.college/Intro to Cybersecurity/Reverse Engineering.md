@@ -5748,9 +5748,9 @@ In [1]: print(len(".------------------------------------------------------------
 76
 ```
 
-Let's look at the `handler_55369()` function.
+Let's look at the `handle_55369()` function.
 
-```c title="/challenge/cimg :: handler_55369() :: showLineNumbers"
+```c title="/challenge/cimg :: handle_55369() :: showLineNumbers"
 unsigned __int64 __fastcall handle_55369(struct cimg *cimg)
 {
   int width; // ebp
@@ -5817,9 +5817,9 @@ EXIT:
 }
 ```
 
-The `handler_55369()` the allocates a location of memory data which can fit `width * height` number of pixels.
+The `handle_55369()` the allocates a location of memory data which can fit `width * height` number of pixels.
 
-```c title="/challenge/cimg :: handler_55369() :: Pseudocode"
+```c title="/challenge/cimg :: handle_55369() :: Pseudocode"
 # ---- snip ----
 
   width = cimg->header.width;
@@ -6670,8 +6670,6 @@ pwn.college{UVdRwo8Qr1PY7qbH033MOInAXHn.QX5EzMwEDL4ITM0EzW}
 
 ### Binary Analysis
 
-#### `main()`
-
 ```c title="/challenge/cimg :: Local Types" showLineNumbers
 struct cimg_header {
     char magic_number[4];
@@ -6828,7 +6826,41 @@ The `main()` function basically reads in the user input, sends it to the relevan
 It checks if the 20th byte in the crafted ANSI sequence is a space or newline character. 
 If it is not, and the total number of user provided bytes is less than `400` it calls `win()` which prints the flag.
 
-We can now look at the four handlers one by one.
+Let's find the required width:
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+import struct
+import re
+
+# Desired ANSI sequence
+binary = context.binary = ELF('/challenge/cimg')
+desired_ansi_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansi_sequence = desired_ansi_sequence_bytes.decode("utf-8")
+print(desired_ansi_sequence)
+```
+
+```
+hacker@reverse-engineering~storage-and-retrieval:~$ python ~/script.py
+[*] '/challenge/cimg'
+    Arch:       amd64-64-little
+    RELRO:      Full RELRO
+    Stack:      Canary found
+    NX:         NX enabled
+    PIE:        No PIE (0x400000)
+    FORTIFY:    Enabled
+    SHSTK:      Enabled
+    IBT:        Enabled
+    Stripped:   No
+.--------------------------------------------------------------------------.|                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                              ___   __  __    ____                        ||                        ___  |_ _| |  \/  |  / ___|                       ||                       / __|  | |  | |\/| | | |  _                        ||                      | (__   | |  | |  | | | |_| |                       ||                       \___| |___| |_|  |_|  \____|                       ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          |'--------------------------------------------------------------------------'
+```
+
+```py
+In [1]: print(len(".--------------------------------------------------------------------------."))
+76
+```
+
+We can now look at the four handlers one by one, starting with `handle_1`
 
 ```c title="/challenge/cimg :: handle_1() :: Pseudocode" showLineNumbers
 unsigned __int64 __fastcall handle_1(struct cimg *cimg)
@@ -6897,7 +6929,7 @@ EXIT:
 }
 ```
 
-The `handler_1()` the allocates a location of memory data which can fit `width * height` number of pixels.
+The `handle_1()` the allocates a location of memory data which can fit `width * height` number of pixels.
 
 ```c title="/challenge/cimg :: handle_1() :: Pseudocode" showLineNumbers
 # ---- snip ----
@@ -7065,9 +7097,118 @@ EXIT:
 }
 ```
 
-#### `handle_3()`
+The `handle_2()`, the program handles our input slightly differently, as it renders the characters at the the coordinates that we provide.
 
-```c showLineNumbers
+It first reads in the `base_x`, `base_y`, `width` and `height` values for the chunck of the cIMG to be rendered.
+
+```c title="/challenge/cimg :: handle_2() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  read_exact(0LL, &base_x, 1LL, "ERROR: Failed to read &base_x!", 0xFFFFFFFFLL);
+  read_exact(0LL, &base_y, 1LL, "ERROR: Failed to read &base_y!", 0xFFFFFFFFLL);
+  read_exact(0LL, &width, 1LL, "ERROR: Failed to read &width!", 0xFFFFFFFFLL);
+  read_exact(0LL, &height, 1LL, "ERROR: Failed to read &height!", 0xFFFFFFFFLL);
+
+# ---- snip ----
+```
+
+Then it allocates a location of memory `data` which can fit `width * height` number of pixels.
+
+```c title="/challenge/cimg :: handle_2() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  data_size = 4 * height * width;
+  data = (pixel_t *)malloc(4LL * height * width);
+
+# ---- snip ----
+```
+
+The user's input is read into the `data` memory allocation. Then, it checks if each fourth byte in the pixel, i.e. the character byte (r,g,b,c), lies between `0x20` and `0x7e`.
+
+```c title="/challenge/cimg :: handle_2() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  while ( height * width > (int)v4 )
+  {
+    *(_QWORD *)&ascii_char = pixel_bytes[v4++].ascii;
+    if ( (unsigned __int8)(ascii_char - 0x20) > 0x5Eu )
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", *(_QWORD *)&ascii_char);
+EXIT:
+      exit(-1);
+    }
+  }
+
+# ---- snip ----
+```
+
+```c title="/challenge/cimg :: Local Types" showLineNumbers
+# ---- snip ----
+
+typedef struct pixel_color_t {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t ascii;
+} pixel_t;
+
+# ---- snip ----
+```
+
+Then, the required indexes (`pixel_idx` and `ansi_idx`) are calculated based on the `base_x`, `base_y`, `width` and `height` values that we provided. Based on these indexes, the code knows which characters to use in the chunk of the cIMG.
+
+```c title="/challenge/cimg :: handle_2() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  for ( y_offset = 0; height > y_offset; ++y_offset )
+  {
+    x_offset = 0;
+    while ( width > x_offset )
+    {
+      x_coord = x_offset + base_x;
+      pixel_idx = x_offset + y_offset * width;
+      ++x_offset;
+      ansi_idx = x_coord % cimg->header.width + cimg->header.width * (y_offset + base_y);
+      __snprintf_chk(
+        &emit_tmp,
+        25LL,
+        1LL,
+        25LL,
+        "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
+        pixel_bytes[pixel_idx].r,
+        pixel_bytes[pixel_idx].g,
+        pixel_bytes[pixel_idx].b,
+        pixel_bytes[pixel_idx].ascii);
+      cimg->framebuffer[ansi_idx % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
+    }
+  }
+
+# ---- snip ----
+```
+
+```c title="/challenge/cimg :: Local Types" showLineNumbers
+# ---- snip ----
+
+struct term_str_st {
+    char color_set[7];          //  \x1b[38;2;
+    char r[3];                  //  255
+    char s1;                    //  ;
+    char g[3];                  //  255
+    char s2;                    //  ;
+    char b[3];                  //  255
+    char m;                     //  m
+    char c;                     //  X
+    char color_reset[4];        //  \x1b[0m
+};
+
+# ---- snip ----
+```
+
+The `handle_2()` allows us to choose the exact chunk in the cIMG we want to render and thus save space, as we no longer have to render the empty characters, and can render only the borders and the letters which are in the cIMG.
+
+Next, let's take a look at the `handle_3()` function.
+
+```c title="/challenge/cimg :: handle_3() :: Pseudocode" showLineNumbers
 unsigned __int64 __fastcall handle_3(__int64 a1)
 {
   __int64 v2; // rax
