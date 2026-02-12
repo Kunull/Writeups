@@ -4622,7 +4622,6 @@ Afterwards, `main()` checks if the 20th byte in the crafted ANSI sequence is a s
 # ---- snip ----
 ````
 
-
 ### Exploit
 
 ```py title="~/script.py" showLineNumbers
