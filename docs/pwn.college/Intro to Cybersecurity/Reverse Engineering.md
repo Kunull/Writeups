@@ -4895,7 +4895,7 @@ unsigned __int64 __fastcall handle_55369(struct cimg *cimg)
   pixel_t *data; // rax
   pixel_t *data_1; // r12
   __int64 i_1; // rax
-  unsigned __int8 character; // cl
+  unsigned __int8 ascii_char; // cl
   int i; // r13d
   int j; // ebp
   int width_1; // r15d
@@ -4919,10 +4919,10 @@ unsigned __int64 __fastcall handle_55369(struct cimg *cimg)
   i_1 = 0LL;
   while ( cimg->header.height * cimg->header.width > (int)i_1 )
   {
-    *(_QWORD *)&character = data_1[i_1++].ascii;
-    if ( (unsigned __int8)(character - 0x20) > 0x5Eu )
+    *(_QWORD *)&ascii_char = data_1[i_1++].ascii;
+    if ( (unsigned __int8)(ascii_char - 0x20) > 0x5Eu )
     {
-      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", *(_QWORD *)&character);
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", *(_QWORD *)&ascii_char);
 EXIT:
       exit(-1);
     }
@@ -4974,10 +4974,10 @@ The user's input is read into the `data` memory allocation. Then, it checks if e
 
   while ( cimg->header.height * cimg->header.width > (int)v6 )
   {
-    character = data_1[4 * v6++ + 3];
-    if ( (unsigned __int8)(character - 0x20) > 0x5Eu )
+    ascii_char = data_1[4 * v6++ + 3];
+    if ( (unsigned __int8)(ascii_char - 0x20) > 0x5Eu )
     {
-      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", character);
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", ascii_char);
 EXIT:
       exit(-1);
     }
@@ -5039,7 +5039,7 @@ unsigned __int64 __fastcall handle_52965(struct cimg *cimg)
   pixel_t *data; // rax
   pixel_t *pixel_bytes; // rbp
   __int64 v4; // rax
-  __int64 ascii; // rcx
+  __int64 ascii_char; // rcx
   int y_offset; // r13d
   int x_offset; // r14d
   int x_coord; // eax
@@ -5069,10 +5069,10 @@ unsigned __int64 __fastcall handle_52965(struct cimg *cimg)
   v4 = 0LL;
   while ( height * width > (int)v4 )
   {
-    ascii = pixel_bytes[v4++].ascii;
-    if ( (unsigned __int8)(ascii - 0x20) > 0x5Eu )
+    ascii_char = pixel_bytes[v4++].ascii;
+    if ( (unsigned __int8)(ascii_char - 0x20) > 0x5Eu )
     {
-      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", ascii);
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", ascii_char);
 EXIT:
       exit(-1);
     }
@@ -5083,20 +5083,20 @@ EXIT:
     while ( width > x_offset )
     {
       x_coord = x_offset + base_x;
-      idx = x_offset + y_offset * width;
+      pixel_idx = x_offset + y_offset * width;
       ++x_offset;
-      idx_1 = x_coord % cimg->header.width + cimg->header.width * (y_offset + base_y);
+      ansi_idx = x_coord % cimg->header.width + cimg->header.width * (y_offset + base_y);
       __snprintf_chk(
         &emit_tmp,
         25LL,
         1LL,
         25LL,
         "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
-        pixel_bytes[idx].r,
-        pixel_bytes[idx].g,
-        pixel_bytes[idx].b,
-        pixel_bytes[idx].ascii);
-      cimg->framebuffer[idx_1 % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
+        pixel_bytes[pixel_idx].r,
+        pixel_bytes[pixel_idx].g,
+        pixel_bytes[pixel_idx].b,
+        pixel_bytes[pixel_idx].ascii);
+      cimg->framebuffer[ansi_idx % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
     }
   }
   return __readfsqword(40u) ^ v17;
@@ -5580,6 +5580,192 @@ EXIT:
   return 0;
 }
 ```
+
+Let's find the required width:
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+import struct
+import re
+
+# Desired ANSI sequence
+binary = context.binary = ELF('/challenge/cimg')
+desired_ansi_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansi_sequence = desired_ansi_sequence_bytes.decode("utf-8")
+print(desired_ansi_sequence)
+```
+
+```
+hacker@reverse-engineering~optimizing-for-space:~$ python ~/script.py
+[*] '/challenge/cimg'
+    Arch:       amd64-64-little
+    RELRO:      Full RELRO
+    Stack:      Canary found
+    NX:         NX enabled
+    PIE:        No PIE (0x400000)
+    FORTIFY:    Enabled
+    SHSTK:      Enabled
+    IBT:        Enabled
+    Stripped:   No
+.--------------------------------------------------------------------------.|                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                              ___   __  __    ____                        ||                        ___  |_ _| |  \/  |  / ___|                       ||                       / __|  | |  | |\/| | | |  _                        ||                      | (__   | |  | |  | | | |_| |                       ||                       \___| |___| |_|  |_|  \____|                       ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          |'--------------------------------------------------------------------------'
+```
+
+```py
+In [1]: print(len(".--------------------------------------------------------------------------."))
+76
+```
+
+```c title="/challenge/cimg :: handler_55369() :: showLineNumbers"
+unsigned __int64 __fastcall handle_55369(struct cimg *cimg)
+{
+  int width; // ebp
+  int height; // edx
+  size_t data_size; // rbp
+  pixel_t *data; // rax
+  pixel_t *data_1; // r12
+  __int64 i_1; // rax
+  unsigned __int8 ascii_char; // cl
+  int i; // r13d
+  int j; // ebp
+  int width_1; // r15d
+  pixel_t *pixel_bytes; // rax
+  __int64 j_1; // kr00_8
+  struct cimg emit_tmp; // [rsp+1Fh] [rbp-59h] BYREF
+  unsigned __int64 v15; // [rsp+38h] [rbp-40h]
+
+  width = cimg->header.width;
+  height = cimg->header.height;
+  v15 = __readfsqword(40u);
+  data_size = 4LL * height * width;
+  data = (pixel_t *)malloc(data_size);
+  if ( !data )
+  {
+    puts("ERROR: Failed to allocate memory for the image data!");
+    goto EXIT;
+  }
+  data_1 = data;
+  read_exact(0LL, data, (unsigned int)data_size, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  i_1 = 0LL;
+  while ( cimg->header.height * cimg->header.width > (int)i_1 )
+  {
+    *(_QWORD *)&ascii_char = data_1[i_1++].ascii;
+    if ( (unsigned __int8)(ascii_char - 0x20) > 0x5Eu )
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", *(_QWORD *)&ascii_char);
+EXIT:
+      exit(-1);
+    }
+  }
+  for ( i = 0; cimg->header.height > i; ++i )
+  {
+    for ( j = 0; ; ++j )
+    {
+      width_1 = cimg->header.width;
+      if ( width_1 <= j )
+        break;
+      pixel_bytes = &data_1[i * width_1 + j];
+      __snprintf_chk(
+        &emit_tmp,
+        25LL,
+        1LL,
+        25LL,
+        "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
+        pixel_bytes->r,
+        pixel_bytes->g,
+        pixel_bytes->b,
+        pixel_bytes->ascii);
+      j_1 = j;
+      cimg->framebuffer[((unsigned int)(j_1 % width_1) + i * width_1) % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
+    }
+  }
+  return __readfsqword(40u) ^ v15;
+}
+```
+
+The `handler_55369()` the allocates a location of memory data which can fit `width * height` number of pixels.
+
+```c title="/challenge/cimg :: handler_55369() :: Pseudocode"
+# ---- snip ----
+
+  width = cimg->header.width;
+  height = cimg->header.height;
+  v15 = __readfsqword(40u);
+  data_size = 4LL * height * width;
+  data = (pixel_t *)malloc(data_size);
+
+# ---- snip ----
+```
+
+The user's input is read into the `data` memory allocation. Then, it checks if each fourth byte in the pixel, i.e. the character byte (r,g,b,c), lies between `0x20` and `0x7e`.
+
+```c title="/challenge/cimg :: handle_55369() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  while ( cimg->header.height * cimg->header.width > (int)i_1 )
+  {
+    *(_QWORD *)&ascii_char = data_1[i_1++].ascii;
+    if ( (unsigned __int8)(ascii_char - 0x20) > 0x5Eu )
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", *(_QWORD *)&ascii_char);
+EXIT:
+      exit(-1);
+    }
+  }
+
+# ---- snip ----
+```
+
+```c title="/challenge/cimg :: Local Types" showLineNumbers
+# ---- snip ----
+
+typedef struct pixel_color_t {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t ascii;
+} pixel_t;
+
+# ---- snip ----
+```
+
+It then uses the 4-bytes in the pixels to fill in the ANSI sequence `\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m` based on the struct we defined earlier:
+
+```c title="/challenge/cimg :: handle_55369() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  for ( i = 0; cimg->header.height > i; ++i )
+  {
+    for ( j = 0; ; ++j )
+    {
+      width_1 = cimg->header.width;
+      if ( width_1 <= j )
+        break;
+      pixel_bytes = &data_1[i * width_1 + j];
+      __snprintf_chk(
+        &emit_tmp,
+        25LL,
+        1LL,
+        25LL,
+        "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
+        pixel_bytes->r,
+        pixel_bytes->g,
+        pixel_bytes->b,
+        pixel_bytes->ascii);
+      j_1 = j;
+      cimg->framebuffer[((unsigned int)(j_1 % width_1) + i * width_1) % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
+    }
+  }
+
+# ---- snip ----
+```
+
+Let's look at the other handle function: `handle_52965()`.
+
+
+```
+
+```
+
 
 In this level, the only difference is the restriction on number of bytes. We can only provide `1337` bytes.
 
