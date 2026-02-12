@@ -4444,7 +4444,7 @@ unsigned __int64 __fastcall handle_45381(struct cimg *cimg)
   int width_1; // r15d
   pixel_t *pixel_bytes; // rax
   __int64 idx; // kr00_8
-  struct cimg emit_tmp; // [rsp+1Fh] [rbp-59h] BYREF
+  term_pixel_t emit_tmp; // [rsp+1Fh] [rbp-59h] BYREF
   unsigned __int64 v15; // [rsp+38h] [rbp-40h]
 
   width = cimg->header.width;
@@ -4900,7 +4900,7 @@ unsigned __int64 __fastcall handle_55369(struct cimg *cimg)
   int width_1; // r15d
   pixel_t *pixel_bytes; // rax
   __int64 j_1; // kr00_8
-  struct cimg emit_tmp; // [rsp+1Fh] [rbp-59h] BYREF
+  term_pixel_t emit_tmp; // [rsp+1Fh] [rbp-59h] BYREF
   unsigned __int64 v15; // [rsp+38h] [rbp-40h]
 
   width = cimg->header.width;
@@ -5066,7 +5066,7 @@ unsigned __int64 __fastcall handle_52965(struct cimg *cimg)
   unsigned __int8 height; // [rsp+Ch] [rbp-5Ch] BYREF
   unsigned __int8 base_x; // [rsp+Dh] [rbp-5Bh] BYREF
   unsigned __int8 base_y; // [rsp+Eh] [rbp-5Ah] BYREF
-  struct cimg emit_tmp; // [rsp+Fh] [rbp-59h] BYREF
+  term_pixel_t emit_tmp; // [rsp+Fh] [rbp-59h] BYREF
   unsigned __int64 v17; // [rsp+28h] [rbp-40h]
 
   v17 = __readfsqword(40u);
@@ -5113,7 +5113,7 @@ EXIT:
         pixel_bytes[pixel_idx].g,
         pixel_bytes[pixel_idx].b,
         pixel_bytes[pixel_idx].ascii);
-      cimg->framebuffer[ansi_idx % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
+      cimg->framebuffer[ansi_idx % cimg->num_pixels] = emit_tmp;
     }
   }
   return __readfsqword(40u) ^ v17;
@@ -5203,7 +5203,7 @@ Based on these indexes, the code knows which characters to use in the chunk of t
         pixel_bytes[pixel_idx].g,
         pixel_bytes[pixel_idx].b,
         pixel_bytes[pixel_idx].ascii);
-      cimg->framebuffer[ansi_idx % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
+      cimg->framebuffer[ansi_idx % cimg->num_pixels] = emit_tmp;
     }
   }
 
@@ -5765,7 +5765,7 @@ unsigned __int64 __fastcall handle_55369(struct cimg *cimg)
   int width_1; // r15d
   pixel_t *pixel_bytes; // rax
   __int64 j_1; // kr00_8
-  struct cimg emit_tmp; // [rsp+1Fh] [rbp-59h] BYREF
+  term_pixel_t emit_tmp; // [rsp+1Fh] [rbp-59h] BYREF
   unsigned __int64 v15; // [rsp+38h] [rbp-40h]
 
   width = cimg->header.width;
@@ -5931,7 +5931,7 @@ unsigned __int64 __fastcall handle_52965(struct cimg *cimg)
   unsigned __int8 height; // [rsp+Ch] [rbp-5Ch] BYREF
   unsigned __int8 base_x; // [rsp+Dh] [rbp-5Bh] BYREF
   unsigned __int8 base_y; // [rsp+Eh] [rbp-5Ah] BYREF
-  struct cimg emit_tmp; // [rsp+Fh] [rbp-59h] BYREF
+  term_pixel_t emit_tmp; // [rsp+Fh] [rbp-59h] BYREF
   unsigned __int64 v17; // [rsp+28h] [rbp-40h]
 
   v17 = __readfsqword(40u);
@@ -5978,7 +5978,7 @@ EXIT:
         pixel_bytes[pixel_idx].g,
         pixel_bytes[pixel_idx].b,
         pixel_bytes[pixel_idx].ascii);
-      cimg->framebuffer[ansi_idx % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
+      cimg->framebuffer[ansi_idx % cimg->num_pixels] = emit_tmp;
     }
   }
   return __readfsqword(0x28u) ^ v17;
@@ -6068,7 +6068,7 @@ Based on these indexes, the code knows which characters to use in the chunk of t
         pixel_bytes[pixel_idx].g,
         pixel_bytes[pixel_idx].b,
         pixel_bytes[pixel_idx].ascii);
-      cimg->framebuffer[ansi_idx % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
+      cimg->framebuffer[ansi_idx % cimg->num_pixels] = emit_tmp;
     }
   }
 
@@ -6877,7 +6877,7 @@ unsigned __int64 __fastcall handle_1(struct cimg *cimg)
   int width_1; // r15d
   pixel_t *pixel_bytes; // rax
   __int64 j_1; // kr00_8
-  struct cimg emit_tmp; // [rsp+1Fh] [rbp-59h] BYREF
+  term_pixel_t emit_tmp; // [rsp+1Fh] [rbp-59h] BYREF
   unsigned __int64 v15; // [rsp+38h] [rbp-40h]
 
   width = cimg->header.width;
@@ -6922,7 +6922,7 @@ EXIT:
         pixel_bytes->b,
         pixel_bytes->ascii);
       j_1 = j;
-      cimg->framebuffer[((unsigned int)(j_1 % width_1) + i * width_1) % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
+      cimg->framebuffer[((unsigned int)(j_1 % width_1) + i * width_1) % cimg->num_pixels] = emit_tmp;
     }
   }
   return __readfsqword(40u) ^ v15;
@@ -7043,7 +7043,7 @@ unsigned __int64 __fastcall handle_2(struct cimg *cimg)
   unsigned __int8 height; // [rsp+Ch] [rbp-5Ch] BYREF
   unsigned __int8 base_x; // [rsp+Dh] [rbp-5Bh] BYREF
   unsigned __int8 base_y; // [rsp+Eh] [rbp-5Ah] BYREF
-  struct cimg emit_tmp; // [rsp+Fh] [rbp-59h] BYREF
+  term_pixel_t emit_tmp; // [rsp+Fh] [rbp-59h] BYREF
   unsigned __int64 v17; // [rsp+28h] [rbp-40h]
 
   v17 = __readfsqword(40u);
@@ -7090,7 +7090,7 @@ EXIT:
         pixel_bytes[pixel_idx].g,
         pixel_bytes[pixel_idx].b,
         pixel_bytes[pixel_idx].ascii);
-      cimg->framebuffer[ansi_idx % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
+      cimg->framebuffer[ansi_idx % cimg->num_pixels] = emit_tmp;
     }
   }
   return __readfsqword(40u) ^ v17;
@@ -7179,7 +7179,7 @@ Then, the required indexes (`pixel_idx` and `ansi_idx`) are calculated based on 
         pixel_bytes[pixel_idx].g,
         pixel_bytes[pixel_idx].b,
         pixel_bytes[pixel_idx].ascii);
-      cimg->framebuffer[ansi_idx % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
+      cimg->framebuffer[ansi_idx % cimg->num_pixels] = emit_tmp;
     }
   }
 
@@ -7256,6 +7256,55 @@ LABEL_9:
   *(_QWORD *)(16LL * v10 + a1 + 32) = v6;
   return __readfsqword(0x28u) ^ v13;
 }
+```
+
+In order to make this function look better, we have to modify the structs, so that we end up with the following structs:
+
+```c title="/challenge/cimg :: Local Types" showLineNumbers
+struct cimg_header {
+    char magic_number[4];
+    uint16_t version;
+    uint8_t width;
+    uint8_t height;
+    uint32_t remaining_directives;
+};
+
+typedef struct pixel_color_t {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t ascii;
+} pixel_t;
+
+struct term_str_st {
+    char color_set[7];
+    char r[3];
+    char s1;
+    char g[3];
+    char s2;
+    char b[3];
+    char m;
+    char c;
+    char color_reset[4];
+};
+
+union term_pixel_t {
+    char data[24];
+    struct term_str_st str;
+};
+
+typedef sprite {
+    uint8_t height;
+    uint8_t width;
+    uint8_t *data;
+} sprite_t;
+
+struct cimg {
+    struct cimg_header header;
+    unsigned int num_pixels;
+    union term_pixel_t *framebuffer;
+    sprite_t *sprites;
+};
 ```
 
 #### `handle_4()`
