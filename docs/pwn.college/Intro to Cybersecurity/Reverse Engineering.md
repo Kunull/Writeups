@@ -5103,9 +5103,103 @@ EXIT:
 }
 ```
 
-The `handle_52965()`, the program handles our input slightly differently,
+The `handle_52965()`, the program handles our input slightly differently, as it renders the characters at the the coordinates that we provide.
 
+It first reads in the `base_x`, `base_y`, `width` and `height` values for the chunck of the cIMG to be rendered.
 
+```c title="/challenge/cimg :: handle_52965() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  read_exact(0LL, &base_x, 1LL, "ERROR: Failed to read &base_x!", 0xFFFFFFFFLL);
+  read_exact(0LL, &base_y, 1LL, "ERROR: Failed to read &base_y!", 0xFFFFFFFFLL);
+  read_exact(0LL, &width, 1LL, "ERROR: Failed to read &width!", 0xFFFFFFFFLL);
+  read_exact(0LL, &height, 1LL, "ERROR: Failed to read &height!", 0xFFFFFFFFLL);
+
+# ---- snip ----
+```
+
+Then it allocates a location of memory `data` which can fit `width * height` number of pixels.
+
+```c title="/challenge/cimg :: handle_52965() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  data_size = 4 * height * width;
+  data = (pixel_t *)malloc(4LL * height * width);
+
+# ---- snip ----
+```
+
+The user's input is read into the `data` memory allocation. Then, it checks if each fourth byte in the pixel, i.e. the character byte (r,g,b,c), lies between `0x20` and `0x7e`.
+
+```c title="/challenge/cimg :: handle_52965() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  while ( height * width > (int)v4 )
+  {
+    ascii_char = pixel_bytes[v4++].ascii;
+    if ( (unsigned __int8)(ascii_char - 0x20) > 0x5Eu )
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", ascii_char);
+EXIT:
+      exit(-1);
+    }
+  }
+
+# ---- snip ----
+```
+
+```c title="/challenge/cimg :: Local Types" showLineNumbers
+# ---- snip ----
+
+typedef struct pixel_color_t {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t ascii;
+} pixel_t;
+
+# ---- snip ----
+```
+
+Then, the required indexes (`pixel_idx` and `ansi_idx`) are calculated based on the `base_x`, `base_y`, `width` and `height` values that we provided.
+Based on these indexes, the code knows which characters to use in the chunk of the cIMG.
+
+```c title="/challenge/cimg :: handle_52965() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  for ( y_offset = 0; height > y_offset; ++y_offset )
+  {
+    x_offset = 0;
+    while ( width > x_offset )
+    {
+      x_coord = x_offset + base_x;
+      pixel_idx = x_offset + y_offset * width;
+      ++x_offset;
+      ansi_idx = x_coord % cimg->header.width + cimg->header.width * (y_offset + base_y);
+      __snprintf_chk(
+        &emit_tmp,
+        25LL,
+        1LL,
+        25LL,
+        "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
+        pixel_bytes[pixel_idx].r,
+        pixel_bytes[pixel_idx].g,
+        pixel_bytes[pixel_idx].b,
+        pixel_bytes[pixel_idx].ascii);
+      cimg->framebuffer[ansi_idx % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
+    }
+  }
+
+# ---- snip ----
+```
+
+The main difference in the `handle_52965()` function compared to the `handle_55369()` function is that the `handle_52965()` allows us to choose the exact chunk in the cIMG we want to render.
+
+This allows us to save space, as we no longer have to render the empty characters, and can render only the borders and the letters which are in the cIMG.
+
+However, we will have to keep a few things in mind:
+- We will have to call the `handle_52965()` function multiple times to render the disconnected parts of the cIMG.
+- Each patch directive costs 6 bytes: 2 for `directive_code` + 4 for parameters (`base_x`, `base_y`, `width`, `height`).
 
 To put everything together:
 
@@ -5121,9 +5215,8 @@ To put everything together:
     - Immediately following the header, we must provide the 2-byte code `55369` and / or `52965` (little-endian) to trigger the `handle_55369` and / or `handle_52965` function 
 - Pixel Data:
     - The total number of bytes must be less that or equal to `1340`
-    - The number of non-space ASCII pixels must be `num_pixels`, i.e. the number of bytes must be `4 * num_pixels`
-    - When pixel data is loaded into the ANSI escape code: `"\x1b[38;2;%03d;%03d;%03dm%c\x1b[0m"` one by one and appended together, it should match the given ANSI sequence.
-
+    - The framebuffer contains exactly 1824 entries total. All entries must have the correct character at position 19; non-space/newline entries must also have fully matching 24-byte ANSI sequences.
+    
 ### Exploit
 
 #### Print without using any blank characters
@@ -5833,7 +5926,121 @@ EXIT:
 ```
 
 
-In this level, the only difference is the restriction on number of bytes. We can only provide `1337` bytes.
+The `handle_52965()`, the program handles our input slightly differently, as it renders the characters at the the coordinates that we provide.
+
+It first reads in the `base_x`, `base_y`, `width` and `height` values for the chunck of the cIMG to be rendered.
+
+```c title="/challenge/cimg :: handle_52965() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  read_exact(0LL, &base_x, 1LL, "ERROR: Failed to read &base_x!", 0xFFFFFFFFLL);
+  read_exact(0LL, &base_y, 1LL, "ERROR: Failed to read &base_y!", 0xFFFFFFFFLL);
+  read_exact(0LL, &width, 1LL, "ERROR: Failed to read &width!", 0xFFFFFFFFLL);
+  read_exact(0LL, &height, 1LL, "ERROR: Failed to read &height!", 0xFFFFFFFFLL);
+
+# ---- snip ----
+```
+
+Then it allocates a location of memory `data` which can fit `width * height` number of pixels.
+
+```c title="/challenge/cimg :: handle_52965() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  data_size = 4 * height * width;
+  data = (pixel_t *)malloc(4LL * height * width);
+
+# ---- snip ----
+```
+
+The user's input is read into the `data` memory allocation. Then, it checks if each fourth byte in the pixel, i.e. the character byte (r,g,b,c), lies between `0x20` and `0x7e`.
+
+```c title="/challenge/cimg :: handle_52965() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  while ( height * width > (int)v4 )
+  {
+    ascii_char = pixel_bytes[v4++].ascii;
+    if ( (unsigned __int8)(ascii_char - 0x20) > 0x5Eu )
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", ascii_char);
+EXIT:
+      exit(-1);
+    }
+  }
+
+# ---- snip ----
+```
+
+```c title="/challenge/cimg :: Local Types" showLineNumbers
+# ---- snip ----
+
+typedef struct pixel_color_t {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t ascii;
+} pixel_t;
+
+# ---- snip ----
+```
+
+Then, the required indexes (`pixel_idx` and `ansi_idx`) are calculated based on the `base_x`, `base_y`, `width` and `height` values that we provided.
+Based on these indexes, the code knows which characters to use in the chunk of the cIMG.
+
+```c title="/challenge/cimg :: handle_52965() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  for ( y_offset = 0; height > y_offset; ++y_offset )
+  {
+    x_offset = 0;
+    while ( width > x_offset )
+    {
+      x_coord = x_offset + base_x;
+      pixel_idx = x_offset + y_offset * width;
+      ++x_offset;
+      ansi_idx = x_coord % cimg->header.width + cimg->header.width * (y_offset + base_y);
+      __snprintf_chk(
+        &emit_tmp,
+        25LL,
+        1LL,
+        25LL,
+        "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
+        pixel_bytes[pixel_idx].r,
+        pixel_bytes[pixel_idx].g,
+        pixel_bytes[pixel_idx].b,
+        pixel_bytes[pixel_idx].ascii);
+      cimg->framebuffer[ansi_idx % cimg->num_pixels] = (union term_pixel_t)emit_tmp;
+    }
+  }
+
+# ---- snip ----
+```
+
+The main difference in the `handle_52965()` function compared to the `handle_55369()` function is that the `handle_52965()` allows us to choose the exact chunk in the cIMG we want to render.
+
+This allows us to save space, as we no longer have to render the empty characters, and can render only the borders and the letters which are in the cIMG.
+
+However, we will have to keep a few things in mind:
+- We will have to call the `handle_52965()` function multiple times to render the disconnected parts of the cIMG.
+- Each patch directive costs 6 bytes: 2 for `directive_code` + 4 for parameters (`base_x`, `base_y`, `width`, `height`).
+
+To put everything together:
+
+- File Extension: Must end with `.cimg`
+- Header (12 bytes total):
+    - Magic number (4 bytes): Must be `b"cIMG"`
+    - Version (2 bytes): Must be `3` in little-endian
+    - Dimensions (2 bytes total): Must be `76` x (`num_pixels` / `76`) bytes
+        - Width (1 bytes): Must be `76` in little-endian
+        - Height (1 bytes): Must be `num_pixels` / `width` in little-endian
+    - Remaining Directives (4 bytes): Value TBD (This tells the `while` loop to process one directive).
+- Directive Code (2 bytes):
+    - Immediately following the header, we must provide the 2-byte code `55369` and / or `52965` (little-endian) to trigger the `handle_55369` and / or `handle_52965` function 
+- Pixel Data:
+    - The total number of bytes must be less that or equal to `1337`
+    - The framebuffer contains exactly 1824 entries total. All entries must have the correct character at position 19; non-space/newline entries must also have fully matching 24-byte ANSI sequences.
+
+All in all, the only difference is the constraint on number of bytes. We can only provide `1337` bytes.
 
 ### Exploit
 
