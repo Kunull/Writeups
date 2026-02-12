@@ -5456,26 +5456,66 @@ pwn.college{UMeXSUaFZYlR24CqDvgWdMZihWp.QX5AzMwEDL4ITM0EzW}
 
 ### Binary Analysis
 
-```c showLineNumbers
+We must first create the necessary structs.
+
+```c title="/challenge/cimg :: Local types" showLineNumbers
+struct cimg_header {
+    char magic_number[4];
+    uint16_t version;
+    uint8_t width;
+    uint8_t height;
+    uint32_t remaining_directives;
+};
+
+typedef struct pixel_color_t {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t ascii;
+} pixel_t;
+
+struct term_str_st {
+    char color_set[7];
+    char r[3];
+    char s1;
+    char g[3];
+    char s2;
+    char b[3];
+    char m;
+    char c;
+    char color_reset[4];
+};
+
+union term_pixel_t {
+    char data[24];
+    struct term_str_st str;
+};
+
+struct cimg {
+    struct cimg_header header;
+    unsigned int num_pixels;
+    union term_pixel_t *framebuffer;
+};
+```
+
+```c title="/challenge/cimg :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   const char *file_arg; // rbp
   int file; // eax
   const char *error_msg; // rdi
-  char *desired_ansi_sequence; // r12
-  unsigned int v8; // r14d
-  _BYTE *framebuffer_2; // r13
+  char *desired_output; // r12
+  unsigned int num_pixels; // r14d
+  union term_pixel_t *framebuffer; // r13
   _BOOL8 won; // rbx
   unsigned int i; // ebp
-  char v12; // al
+  char ascii_char; // al
   unsigned __int16 directive_code; // [rsp+0h] [rbp-5Ah] BYREF
-  __int128 buf; // [rsp+2h] [rbp-58h] BYREF
-  void *framebuffer; // [rsp+12h] [rbp-48h]
-  unsigned __int64 v17; // [rsp+1Ah] [rbp-40h]
+  struct cimg cimg; // [rsp+2h] [rbp-58h] BYREF
+  unsigned __int64 v16; // [rsp+1Ah] [rbp-40h]
 
-  v17 = __readfsqword(40u);
-  buf = 0LL;
-  framebuffer = 0LL;
+  v16 = __readfsqword(40u);
+  memset(&cimg, 0, sizeof(cimg));
   if ( argc > 1 )
   {
     file_arg = argv[1];
@@ -5487,24 +5527,24 @@ int __fastcall main(int argc, const char **argv, const char **envp)
     file = open(file_arg, 0);
     dup2(file, 0);
   }
-  read_exact(0LL, &buf, 12LL, "ERROR: Failed to read header!", 0xFFFFFFFFLL);
-  if ( (_DWORD)buf != 'GMIc' )
+  read_exact(0LL, &cimg, 12LL, "ERROR: Failed to read header!", 0xFFFFFFFFLL);
+  if ( *(_DWORD *)cimg.header.magic_number != 'GMIc' )
   {
     error_msg = "ERROR: Invalid magic number!";
-PRINT_ERROR_AND_EXIT:
+OUTPUT_ERROR_MSG_AND_EXIT:
     puts(error_msg);
     goto EXIT;
   }
   error_msg = "ERROR: Unsupported version!";
-  if ( WORD2(buf) != 3 )
-    goto PRINT_ERROR_AND_EXIT;
-  initialize_framebuffer(&buf);
-  while ( DWORD2(buf)-- )
+  if ( cimg.header.version != 3 )
+    goto OUTPUT_ERROR_MSG_AND_EXIT;
+  initialize_framebuffer(&cimg);
+  while ( cimg.header.remaining_directives-- )
   {
     read_exact(0LL, &directive_code, 2LL, "ERROR: Failed to read &directive_code!", 0xFFFFFFFFLL);
     if ( directive_code == 52965 )
     {
-      handle_52965(&buf);
+      handle_52965(&cimg);
     }
     else
     {
@@ -5514,26 +5554,26 @@ PRINT_ERROR_AND_EXIT:
 EXIT:
         exit(-1);
       }
-      handle_55369(&buf);
+      handle_55369(&cimg);
     }
   }
-  desired_ansi_sequence = desired_output;
-  display(&buf, 0LL);
-  v8 = HIDWORD(buf);
-  framebuffer_2 = framebuffer;
-  won = HIDWORD(buf) == 1824;
-  for ( i = 0; v8 > i && i != 1824; ++i )
+  desired_output = ::desired_output;
+  display(&cimg, 0LL);
+  num_pixels = cimg.num_pixels;
+  framebuffer = cimg.framebuffer;
+  won = cimg.num_pixels == 1824;
+  for ( i = 0; num_pixels > i && i != 1824; ++i )
   {
-    v12 = framebuffer_2[19];
-    if ( v12 != desired_ansi_sequence[19] )
+    ascii_char = framebuffer->data[19];
+    if ( ascii_char != desired_output[19] )
       LOBYTE(won) = 0;
-    if ( v12 != 32 && v12 != 10 )
+    if ( ascii_char != 32 && ascii_char != 10 )
     {
-      if ( memcmp(framebuffer_2, desired_ansi_sequence, 24uLL) )
+      if ( memcmp(framebuffer, desired_output, 0x18uLL) )
         LOBYTE(won) = 0;
     }
-    framebuffer_2 += 24;
-    desired_ansi_sequence += 24;
+    ++framebuffer;
+    desired_output += 24;
   }
   if ( (unsigned __int64)total_data <= 1337 && won )
     win();
@@ -5577,13 +5617,13 @@ width_value = 76
 height_value = len(pixels) // width_value
 
 directives_payload = b""
-directive_count = 0
+remaining_directives = 0
 
 # --- 1. THE FOUR BORDER DIRECTIVES ---
 
 def add_directive(x, y, w, h, pixel_list):
-    global directives_payload, directive_count
-    directive_count += 1
+    global directives_payload, remaining_directives
+    remaining_directives += 1
     directives_payload += struct.pack("<HBBBB", 52965, x, y, w, h)
     for p in pixel_list:
         directives_payload += struct.pack("BBBB", p[0], p[1], p[2], p[3])
@@ -5628,19 +5668,19 @@ for y in range(1, 23):
             run_pixels.append(struct.pack("BBBB", p[0], p[1], p[2], p[3]))
             x += 1
         
-        directive_count += 1
+        remaining_directives += 1
         directives_payload += struct.pack("<HBBBB", 52965, start_x, y, len(run_pixels), 1)
         directives_payload += b"".join(run_pixels)
 
 # --- 3. HEADER AND OUTPUT ---
-header = struct.pack("<IHBBI", 0x474d4963, 3, width_value, height_value, directive_count)
+header = struct.pack("<IHBBI", 0x474d4963, 3, width_value, height_value, remaining_directives)
 cimg_data = header + directives_payload
 
 with open("/home/hacker/solution.cimg", "wb") as f:
     f.write(cimg_data)
 
 print(f"Total Bytes: {len(cimg_data)} (Limit: 1337)")
-print(f"Directives used: {directive_count}")
+print(f"Directives used: {remaining_directives}")
 ```
 
 ```
@@ -5691,11 +5731,11 @@ width_value = 76
 height_value = len(pixels) // width_value
 
 directives_payload = b""
-directive_count = 0
+remaining_directives = 0
 
 def add_box(x, y, w, h):
-    global directives_payload, directive_count
-    directive_count += 1
+    global directives_payload, remaining_directives
+    remaining_directives += 1
     directives_payload += struct.pack("<HBBBB", 52965, x, y, w, h)
     for row in range(y, y + h):
         for col in range(x, x + w):
@@ -5719,7 +5759,7 @@ add_box(23, 12, 29, 1)          #     "| (__   | |  | |  | | | |_| |"
 add_box(24, 13, 28, 1)          #      "\___| |___| |_|  |_|  \____|"
 
 # --- HEADER ---
-header = struct.pack("<IHBBI", 0x474d4963, 3, width_value, height_value, directive_count)
+header = struct.pack("<IHBBI", 0x474d4963, 3, width_value, height_value, remaining_directives)
 
 # Full file content
 cimg_data = header + directives_payload
@@ -5729,7 +5769,7 @@ with open("/home/hacker/solution.cimg", "wb") as f:
     f.write(cimg_data)
 
 print(f"Total Bytes: {len(cimg_data)} (Limit: 1337)")
-print(f"Directives used: {directive_count}")
+print(f"Directives used: {remaining_directives}")
 ```
 
 ```
@@ -5769,16 +5809,16 @@ pixels = [(int(r), int(g), int(b), ord(char)) for r, g, b, char in matches]
 width_value = 76
 height_value = 24  # 1824 total pixels / 76 width
 directives_payload = b""
-directive_count = 0
+remaining_directives = 0
 
 # 2. Directive Builder
 def add_directive(x, y, w, h, pixel_list):
-    global directives_payload, directive_count
+    global directives_payload, remaining_directives
     # Verification to prevent the "Invalid character 0x1" desync error
     if len(pixel_list) != (w * h):
         return 
         
-    directive_count += 1
+    remaining_directives += 1
     # Directive Header (6 bytes)
     directives_payload += struct.pack("<HBBBB", 52965, x, y, w, h)
     # Pixel Payload (4 bytes per pixel)
@@ -5829,15 +5869,15 @@ for y in range(1, 23):
         add_directive(start_x, y, len(run_data), 1, run_data)
 
 # 5. Global Header and File Output
-# Magic: 0x474d4963 ('cIMG'), Version: 3, Width: 76, Height: 24, Count: directive_count
-header = struct.pack("<IHBBI", 0x474D4963, 3, width_value, height_value, directive_count)
+# Magic: 0x474d4963 ('cIMG'), Version: 3, Width: 76, Height: 24, Count: remaining_directives
+header = struct.pack("<IHBBI", 0x474D4963, 3, width_value, height_value, remaining_directives)
 cimg_data = header + directives_payload
 
 with open("/home/hacker/solution.cimg", "wb") as f:
     f.write(cimg_data)
 
 print(f"Total Bytes: {len(cimg_data)} (Limit: 1337)")
-print(f"Directives used: {directive_count}")
+print(f"Directives used: {remaining_directives}")
 ```
 
 ```
