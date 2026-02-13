@@ -7655,13 +7655,10 @@ header = struct.pack(
 )
 
 payload = header + b"".join(directives)
-
-print(f"Final Payload Size: {len(payload)} bytes")
+print("Final Payload Size:", len(payload))
 
 with open("solution.cimg", "wb") as f:
     f.write(payload)
-
-print("✓ solution.cimg created successfully!")
 ```
 
 ```
