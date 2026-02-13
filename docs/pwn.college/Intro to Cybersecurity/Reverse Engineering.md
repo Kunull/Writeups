@@ -5750,7 +5750,7 @@ In [1]: print(len(".------------------------------------------------------------
 
 Let's look at the `handle_55369()` function.
 
-```c title="/challenge/cimg :: handle_55369() :: showLineNumbers"
+```c title="/challenge/cimg :: handle_55369() :: Pseudocode" showLineNumbers
 unsigned __int64 __fastcall handle_55369(struct cimg *cimg)
 {
   int width; // ebp
@@ -7309,7 +7309,7 @@ struct cimg {
 
 After updating the structs, changing some types, renaming a few things and adding some comments, we get the following decompilation of the `handle_3()` function.
 
-```c title="/challenge/cimg :: handle_3() :: Pseudocode"
+```c title="/challenge/cimg :: handle_3() :: Pseudocode" showLineNumbers
 unsigned __int64 __fastcall handle_3(struct cimg *cimg)
 {
   sprite_t *sprite; // rax
