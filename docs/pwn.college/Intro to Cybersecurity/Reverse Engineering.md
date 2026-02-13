@@ -7646,7 +7646,7 @@ for color, points in pixels_by_color.items():
 # STEP 5: Build the final .cimg file
 # ============================================================
 header = struct.pack(
-    "<4sHBBI",
+    "<4s H B B I",
     b"cIMG",              # Magic number
     3,                    # Version
     WIDTH,                # Width
