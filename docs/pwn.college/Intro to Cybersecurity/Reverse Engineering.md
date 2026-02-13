@@ -7307,6 +7307,74 @@ struct cimg {
 };
 ```
 
+After updating the structs, changing some types, renaming a few things and adding some comments, we get the following decompilation of the `handle_3()` function.
+
+```c title="/challenge/cimg :: handle_3() :: Pseudocode"
+unsigned __int64 __fastcall handle_3(struct cimg *cimg)
+{
+  sprite_t *sprite; // rax
+  unsigned __int8 old_data; // di
+  int data_size; // r12d
+  unsigned __int8 *sprite_data; // rax
+  unsigned __int8 *sprite_data_1; // rbx
+  __int64 i; // rax
+  __int64 ascii_char; // rcx
+  unsigned __int8 sprite_id; // [rsp+5h] [rbp-23h] BYREF
+  unsigned __int8 width; // [rsp+6h] [rbp-22h] BYREF
+  unsigned __int8 height; // [rsp+7h] [rbp-21h] BYREF
+  unsigned __int64 v13; // [rsp+8h] [rbp-20h]
+
+  v13 = __readfsqword(40u);
+
+  // Read sprite metadata
+  read_exact(0LL, &sprite_id, 1LL, "ERROR: Failed to read &sprite_id!", 0xFFFFFFFFLL);
+  read_exact(0LL, &width, 1LL, "ERROR: Failed to read &width!", 0xFFFFFFFFLL);
+  read_exact(0LL, &height, 1LL, "ERROR: Failed to read &height!", 0xFFFFFFFFLL);
+  sprite = (sprite_t *)((char *)cimg + 16 * sprite_id);
+
+  // Update sprite dimensions
+  BYTE1(sprite[1].data) = width;                // `cimg->sprites[sprite_id].width = width;`
+  *(_QWORD *)&old_data = *(_QWORD *)&sprite[2].height;
+  LOBYTE(sprite[1].data) = height;              // `cimg->sprites[sprite_id].height = height;`
+
+  // Free old sprite if it exists
+  // ```
+  // if (sprite->data)
+  //   free(sprite->data);
+  // ```
+  if ( *(_QWORD *)&old_data )
+    free(*(void **)&old_data);
+
+  // Allocate memory for sprite character data (width * height bytes)
+  data_size = height * width;
+  sprite_data = (unsigned __int8 *)malloc(data_size);
+  sprite_data_1 = sprite_data;
+  if ( !sprite_data )
+  {
+    puts("ERROR: Failed to allocate memory for the image data!");
+    goto EXIT;
+  }
+  read_exact(0LL, sprite_data, (unsigned int)data_size, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+
+  // Validate all characters are printable ASCII (0x20-0x7E)
+  i = 0LL;
+  while ( height * width > (int)i )
+  {
+    ascii_char = sprite_data_1[i++];
+    if ( (unsigned __int8)(ascii_char - 0x20) > 0x5Eu )
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", ascii_char);
+EXIT:
+      exit(-1);
+    }
+  }
+
+  // Store sprite data pointer
+  cimg->sprites[sprite_id].data = sprite_data_1;
+  return __readfsqword(0x28u) ^ v13;
+}
+```
+
 #### `handle_4()`
 
 ```c showLineNumbers
