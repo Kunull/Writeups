@@ -7334,7 +7334,7 @@ unsigned __int64 __fastcall handle_3(struct cimg *cimg)
 
   // Update sprite dimensions
   BYTE1(sprites[1].data) = width;               // `cimg->sprites[sprite_id].width = width;`
-  old_sprite_data = *(sprite_t **)&sprites[2].height;  // `old_sprite_data = cimg->sprites[sprite_id].data`
+  old_sprite_data = *(sprite_t **)&sprites[2].height;// `old_sprite_data = cimg->sprites[sprite_id].data`
   LOBYTE(sprites[1].data) = height;             // `cimg->sprites[sprite_id].height = height;`
 
   // Free old sprite if it exists
