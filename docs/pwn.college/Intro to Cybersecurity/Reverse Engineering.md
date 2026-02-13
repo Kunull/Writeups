@@ -7399,7 +7399,7 @@ EXIT:
 
 new structs:
 
-```c
+```c title="/challenge/cimg :: Local Types" showLineNumbers
 struct cimg_header {
     char magic_number[4];
     uint16_t version;
@@ -7447,7 +7447,7 @@ struct cimg {
 };
 ```
 
-```c
+```c title="/challenge/cimg :: handle_3() :: Pseudocode" showLineNumbers
 unsigned __int64 __fastcall handle_3(struct cimg *cimg)
 {
   sprite_store_t *sprites; // rax
