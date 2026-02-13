@@ -7317,7 +7317,7 @@ unsigned __int64 __fastcall handle_3(struct cimg *cimg)
   int data_size; // r12d
   unsigned __int8 *sprite_data; // rax
   unsigned __int8 *sprite_data_1; // rbx
-  int i; // eax
+  int64_t i; // rax
   uint8_t ascii_char; // cl
   unsigned __int8 sprite_id; // [rsp+5h] [rbp-23h] BYREF
   unsigned __int8 width; // [rsp+6h] [rbp-22h] BYREF
@@ -7357,10 +7357,10 @@ unsigned __int64 __fastcall handle_3(struct cimg *cimg)
   read_exact(0LL, sprite_data, (unsigned int)data_size, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
 
   // Validate all characters are printable ASCII (0x20-0x7E)
-  *(_QWORD *)&i = 0LL;
-  while ( height * width > i )
+  i = 0LL;
+  while ( height * width > (int)i )
   {
-    *(_QWORD *)&ascii_char = sprite_data_1[(*(_QWORD *)&i)++];
+    *(_QWORD *)&ascii_char = sprite_data_1[i++];
     if ( (unsigned __int8)(ascii_char - 0x20) > 0x5Eu )
     {
       __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", *(_QWORD *)&ascii_char);
