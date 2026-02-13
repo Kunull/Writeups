@@ -7209,68 +7209,52 @@ The `handle_2()` allows us to choose the exact chunk in the cIMG we want to rend
 Next, let's take a look at the `handle_3()` function.
 
 ```c title="/challenge/cimg :: handle_3() :: Pseudocode" showLineNumbers
-unsigned __int64 __fastcall handle_3(struct cimg *cimg)
+unsigned __int64 __fastcall handle_3(__int64 a1)
 {
-  sprite_t *sprites; // rax
-  sprite_t *old_data; // rdi
-  int data_size; // r12d
-  unsigned __int8 *sprite_data; // rax
-  unsigned __int8 *sprite_data_1; // rbx
-  int64_t i; // rax
-  uint8_t ascii_char; // cl
-  unsigned __int8 sprite_id; // [rsp+5h] [rbp-23h] BYREF
-  unsigned __int8 width; // [rsp+6h] [rbp-22h] BYREF
-  unsigned __int8 height; // [rsp+7h] [rbp-21h] BYREF
+  __int64 v2; // rax
+  void *v3; // rdi
+  int v4; // r12d
+  unsigned __int8 *v5; // rax
+  unsigned __int8 *v6; // rbx
+  __int64 v7; // rax
+  __int64 v8; // rcx
+  unsigned __int8 v10; // [rsp+5h] [rbp-23h] BYREF
+  unsigned __int8 v11; // [rsp+6h] [rbp-22h] BYREF
+  unsigned __int8 v12; // [rsp+7h] [rbp-21h] BYREF
   unsigned __int64 v13; // [rsp+8h] [rbp-20h]
 
-  v13 = __readfsqword(40u);
-
-  // Read sprite metadata
-  read_exact(0LL, &sprite_id, 1LL, "ERROR: Failed to read &sprite_id!", 0xFFFFFFFFLL);
-  read_exact(0LL, &width, 1LL, "ERROR: Failed to read &width!", 0xFFFFFFFFLL);
-  read_exact(0LL, &height, 1LL, "ERROR: Failed to read &height!", 0xFFFFFFFFLL);
-  sprites = (sprite_t *)((char *)cimg + 16 * sprite_id);
-
-  // Update sprite dimensions
-  BYTE1(sprites[1].data) = width;               // `cimg->sprites[sprite_id].width = width;`
-  old_data = *(sprite_t **)&sprites[2].height;  // `sprites->data`
-  LOBYTE(sprites[1].data) = height;             // `cimg->sprites[sprite_id].height = height;`
-
-  // Free old sprite if it exists
-  // ```
-  // if (sprites->data)
-  //   free(sprites->data);
-  // ```
-  if ( old_data )
-    free(old_data);
-
-  // Allocate memory for sprite character data (width * height bytes)
-  data_size = height * width;
-  sprite_data = (unsigned __int8 *)malloc(data_size);
-  sprite_data_1 = sprite_data;
-  if ( !sprite_data )
+  v13 = __readfsqword(0x28u);
+  read_exact(0LL, &v10, 1LL, "ERROR: Failed to read &sprite_id!", 0xFFFFFFFFLL);
+  read_exact(0LL, &v11, 1LL, "ERROR: Failed to read &width!", 0xFFFFFFFFLL);
+  read_exact(0LL, &v12, 1LL, "ERROR: Failed to read &height!", 0xFFFFFFFFLL);
+  v2 = a1 + 16LL * v10;
+  *(_BYTE *)(v2 + 25) = v11;
+  v3 = *(void **)(v2 + 32);
+  *(_BYTE *)(v2 + 24) = v12;
+  if ( v3 )
+    free(v3);
+  v4 = v12 * v11;
+  v5 = (unsigned __int8 *)malloc(v4);
+  v6 = v5;
+  if ( !v5 )
   {
     puts("ERROR: Failed to allocate memory for the image data!");
-    goto EXIT;
+    goto LABEL_9;
   }
-  read_exact(0LL, sprite_data, (unsigned int)data_size, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
-
-  // Validate all characters are printable ASCII (0x20-0x7E)
-  i = 0LL;
-  while ( height * width > (int)i )
+  read_exact(0LL, v5, (unsigned int)v4, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  v7 = 0LL;
+  while ( v12 * v11 > (int)v7 )
   {
-    *(_QWORD *)&ascii_char = sprite_data_1[i++];
-    if ( (unsigned __int8)(ascii_char - 0x20) > 0x5Eu )
+    v8 = v6[v7++];
+    if ( (unsigned __int8)(v8 - 32) > 0x5Eu )
     {
-      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", *(_QWORD *)&ascii_char);
-EXIT:
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", v8);
+LABEL_9:
       exit(-1);
     }
   }
-
-  // Store sprite data pointer
-  cimg->sprites[sprite_id].data = sprite_data_1;
-  return __readfsqword(40u) ^ v13;
+  *(_QWORD *)(16LL * v10 + a1 + 32) = v6;
+  return __readfsqword(0x28u) ^ v13;
 }
 ```
 
@@ -7328,7 +7312,7 @@ After updating the structs, changing some types, renaming a few things and addin
 ```c title="/challenge/cimg :: handle_3() :: Pseudocode" showLineNumbers
 unsigned __int64 __fastcall handle_3(struct cimg *cimg)
 {
-  sprite_t *sprite; // rax
+  sprite_t *sprites; // rax
   sprite_t *old_data; // rdi
   int data_size; // r12d
   unsigned __int8 *sprite_data; // rax
@@ -7346,17 +7330,17 @@ unsigned __int64 __fastcall handle_3(struct cimg *cimg)
   read_exact(0LL, &sprite_id, 1LL, "ERROR: Failed to read &sprite_id!", 0xFFFFFFFFLL);
   read_exact(0LL, &width, 1LL, "ERROR: Failed to read &width!", 0xFFFFFFFFLL);
   read_exact(0LL, &height, 1LL, "ERROR: Failed to read &height!", 0xFFFFFFFFLL);
-  sprite = (sprite_t *)((char *)cimg + 16 * sprite_id);
+  sprites = (sprite_t *)((char *)cimg + 16 * sprite_id);
 
   // Update sprite dimensions
-  BYTE1(sprite[1].data) = width;                // `cimg->sprites[sprite_id].width = width;`
-  old_data = *(sprite_t **)&sprite[2].height;
-  LOBYTE(sprite[1].data) = height;              // `cimg->sprites[sprite_id].height = height;`
+  BYTE1(sprites[1].data) = width;               // `cimg->sprites[sprite_id].width = width;`
+  old_data = *(sprite_t **)&sprites[2].height;  // `sprites->data`
+  LOBYTE(sprites[1].data) = height;             // `cimg->sprites[sprite_id].height = height;`
 
   // Free old sprite if it exists
   // ```
-  // if (sprite->data)
-  //   free(sprite->data);
+  // if (sprites->data)
+  //   free(sprites->data);
   // ```
   if ( old_data )
     free(old_data);
