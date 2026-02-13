@@ -7527,108 +7527,141 @@ from pwn import *
 import struct
 import re
 
-# ------------------------------------------------------------
-# Extract desired_output
-# ------------------------------------------------------------
+# ============================================================
+# STEP 1: Extract the target image from the binary
+# ============================================================
 binary = ELF('/challenge/cimg')
-raw = binary.read(binary.sym.desired_output, 45000)
-ansi = raw.split(b'\0')[0].decode()
 
+# Read the desired output from the binary
+raw_data = binary.read(binary.sym.desired_output, 45000)
+ansi_string = raw_data.split(b'\0')[0].decode()
+
+# Parse ANSI color codes: \x1b[38;2;R;G;Bm + character
 pattern = r"\x1b\[38;2;(\d+);(\d+);(\d+)m(.)"
-pixels = re.findall(pattern, ansi)
+pixels = re.findall(pattern, ansi_string)
 
-W, H = 76, 24
-assert len(pixels) == W * H
+# Image dimensions
+WIDTH = 76
+HEIGHT = 24
+assert len(pixels) == WIDTH * HEIGHT
 
-def px(x, y):
-    r, g, b, ch = pixels[y * W + x]
-    return int(r), int(g), int(b), ch
+# Helper: Get pixel at (x, y)
+def get_pixel(x, y):
+    r, g, b, char = pixels[y * WIDTH + x]
+    return int(r), int(g), int(b), char
 
+# ============================================================
+# STEP 2: Build directives (sprites + render commands)
+# ============================================================
 directives = []
+next_sprite_id = 0
 
-def add_sprite(sid, w, h, data):
-    directives.append(struct.pack("<HBBB", 3, sid, w, h) + data.encode())
+# Helper: Create a sprite (directive 3)
+def create_sprite(sprite_id, width, height, characters):
+    directive = struct.pack("<H", 3)           # Directive code 3
+    params = struct.pack("<BBB", sprite_id, width, height)
+    data = characters.encode()
+    directives.append(directive + params + data)
 
-def render(sid, r, g, b, x, y):
-    directives.append(struct.pack("<HBBBBBB", 4, sid, r, g, b, x, y))
+# Helper: Render a sprite (directive 4)
+def render_sprite(sprite_id, r, g, b, x, y):
+    directive = struct.pack("<H", 4)           # Directive code 4
+    params = struct.pack("<BBBBBB", sprite_id, r, g, b, x, y)
+    directives.append(directive + params)
 
-WHITE = px(0, 0)[:3]
+# ============================================================
+# STEP 3: Create sprites for borders
+# ============================================================
+WHITE = get_pixel(0, 0)[:3]  # White color from corner
 
-sid = 0
+# Top and bottom borders (37 dashes each)
+create_sprite(next_sprite_id, 37, 1, "-" * 37)
+render_sprite(next_sprite_id, *WHITE, 1, 0)    # Top left section
+render_sprite(next_sprite_id, *WHITE, 38, 0)   # Top right section
+render_sprite(next_sprite_id, *WHITE, 1, 23)   # Bottom left section
+render_sprite(next_sprite_id, *WHITE, 38, 23)  # Bottom right section
+next_sprite_id += 1
 
-# ------------------------------------------------------------
-# Borders (minimal, full)
-# ------------------------------------------------------------
-add_sprite(sid, 37, 1, "-" * 37)
-render(sid, *WHITE, 1, 0)
-render(sid, *WHITE, 38, 0)
-render(sid, *WHITE, 1, 23)
-render(sid, *WHITE, 38, 23)
-sid += 1
+# Left and right borders (22 pipes each)
+create_sprite(next_sprite_id, 1, 22, "|" * 22)
+render_sprite(next_sprite_id, *WHITE, 0, 1)    # Left border
+render_sprite(next_sprite_id, *WHITE, 75, 1)   # Right border
+next_sprite_id += 1
 
-add_sprite(sid, 1, 22, "|" * 22)
-render(sid, *WHITE, 0, 1)
-render(sid, *WHITE, 75, 1)
-sid += 1
+# Corners: top-left and top-right (dot)
+create_sprite(next_sprite_id, 1, 1, ".")
+render_sprite(next_sprite_id, *WHITE, 0, 0)    # Top-left corner
+render_sprite(next_sprite_id, *WHITE, 75, 0)   # Top-right corner
+next_sprite_id += 1
 
-add_sprite(sid, 1, 1, ".")
-render(sid, *WHITE, 0, 0)
-render(sid, *WHITE, 75, 0)
-sid += 1
+# Corners: bottom-left and bottom-right (apostrophe)
+create_sprite(next_sprite_id, 1, 1, "'")
+render_sprite(next_sprite_id, *WHITE, 0, 23)   # Bottom-left corner
+render_sprite(next_sprite_id, *WHITE, 75, 23)  # Bottom-right corner
+next_sprite_id += 1
 
-add_sprite(sid, 1, 1, "'")
-render(sid, *WHITE, 0, 23)
-render(sid, *WHITE, 75, 23)
-sid += 1
+# ============================================================
+# STEP 4: Create sprites for the logo (grouped by color)
+# ============================================================
+# Logo region
+logo_x, logo_y = 22, 9
+logo_width, logo_height = 35, 5
 
-# ------------------------------------------------------------
-# Logo split by COLOR (minimal correct partition)
-# ------------------------------------------------------------
-lx, ly, lw, lh = 22, 9, 35, 5
+# Group all non-space characters by their color
+pixels_by_color = {}
+for dy in range(logo_height):
+    for dx in range(logo_width):
+        r, g, b, char = get_pixel(logo_x + dx, logo_y + dy)
+        if char != " ":  # Skip empty spaces
+            color = (r, g, b)
+            if color not in pixels_by_color:
+                pixels_by_color[color] = []
+            pixels_by_color[color].append((dx, dy, char))
 
-by_color = {}
-for dy in range(lh):
-    for dx in range(lw):
-        r, g, b, ch = px(lx + dx, ly + dy)
-        if ch != " ":
-            by_color.setdefault((r, g, b), []).append((dx, dy, ch))
+# Create one sprite per color
+for color, points in pixels_by_color.items():
+    r, g, b = color
+    
+    # Find bounding box for this color
+    x_coords = [p[0] for p in points]
+    y_coords = [p[1] for p in points]
+    min_x, max_x = min(x_coords), max(x_coords)
+    min_y, max_y = min(y_coords), max(y_coords)
+    
+    sprite_width = max_x - min_x + 1
+    sprite_height = max_y - min_y + 1
+    
+    # Build character grid (fill with spaces)
+    grid = [" "] * (sprite_width * sprite_height)
+    for x, y, char in points:
+        grid_index = (y - min_y) * sprite_width + (x - min_x)
+        grid[grid_index] = char
+    
+    # Create and render sprite
+    create_sprite(next_sprite_id, sprite_width, sprite_height, "".join(grid))
+    render_sprite(next_sprite_id, r, g, b, logo_x + min_x, logo_y + min_y)
+    next_sprite_id += 1
 
-for (r, g, b), pts in by_color.items():
-    xs = [p[0] for p in pts]
-    ys = [p[1] for p in pts]
-
-    minx, maxx = min(xs), max(xs)
-    miny, maxy = min(ys), max(ys)
-
-    w = maxx - minx + 1
-    h = maxy - miny + 1
-
-    grid = [" "] * (w * h)
-    for x, y, ch in pts:
-        grid[(y - miny) * w + (x - minx)] = ch
-
-    add_sprite(sid, w, h, "".join(grid))
-    render(sid, r, g, b, lx + minx, ly + miny)
-    sid += 1
-
-# ------------------------------------------------------------
-# File assembly
-# ------------------------------------------------------------
+# ============================================================
+# STEP 5: Build the final .cimg file
+# ============================================================
 header = struct.pack(
-    "<I H B B H H",
-    0x474D4963,
-    3,
-    W,
-    H,
-    len(directives),
-    0
+    "<4sHBBI",
+    b"cIMG",              # Magic number
+    3,                    # Version
+    WIDTH,                # Width
+    HEIGHT,               # Height
+    len(directives)       # Number of directives
 )
 
 payload = header + b"".join(directives)
-print("Final Payload Size:", len(payload))
+
+print(f"Final Payload Size: {len(payload)} bytes")
 
 with open("solution.cimg", "wb") as f:
     f.write(payload)
+
+print("✓ solution.cimg created successfully!")
 ```
 
 ```
