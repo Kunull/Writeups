@@ -7484,7 +7484,7 @@ Finally, we can figure out what `handle_4()` is doing.
 // positive sp value has been detected, the output may be wrong!
 unsigned __int64 __fastcall handle_4(struct cimg *cimg)
 {
-  pixel_t **p_pixel_bytes; // rdi
+  pixel_t **p_pixels; // rdi
   __int64 v3; // rcx
   __int64 v4; // rdx
   char v5; // r10
@@ -7505,7 +7505,7 @@ unsigned __int64 __fastcall handle_4(struct cimg *cimg)
   int v20; // eax
   __int64 v21; // rdx
   _BYTE v23[6]; // [rsp-2Fh] [rbp-4005Fh] BYREF
-  pixel_t *pixel_bytes; // [rsp-29h] [rbp-40059h] BYREF
+  pixel_t *pixels; // [rsp-29h] [rbp-40059h] BYREF
   char v25; // [rsp+0h] [rbp-40030h] BYREF
   __int64 v26; // [rsp+1000h] [rbp-3F030h] BYREF
   term_pixel_t emit_tmp; // [rsp+3FFD7h] [rbp-59h] BYREF
@@ -7515,14 +7515,14 @@ unsigned __int64 __fastcall handle_4(struct cimg *cimg)
     ;
   v28 = __readfsqword(0x28u);
   read_exact(0LL, v23, 6LL, "ERROR: Failed to read &sprite_render_record!", 0xFFFFFFFFLL);
-  p_pixel_bytes = &pixel_bytes;
+  p_pixels = &pixels;
   v3 = 0x10000LL;
   v4 = v23[0];
   v5 = v23[1];
   while ( v3 )
   {
-    *(_DWORD *)p_pixel_bytes = 0;
-    p_pixel_bytes = (pixel_t **)((char *)p_pixel_bytes + 4);
+    *(_DWORD *)p_pixels = 0;
+    p_pixels = (pixel_t **)((char *)p_pixels + 4);
     --v3;
   }
   v6 = v23[2];
@@ -7537,16 +7537,16 @@ unsigned __int64 __fastcall handle_4(struct cimg *cimg)
     while ( v10 > v11 )
     {
       v13 = *((_QWORD *)sprites + 4);
-      *((_BYTE *)&pixel_bytes + 4 * v12) = v5;
-      *((_BYTE *)&pixel_bytes + 4 * v12 + 1) = v6;
-      *((_BYTE *)&pixel_bytes + 4 * v12 + 2) = v7;
+      *((_BYTE *)&pixels + 4 * v12) = v5;
+      *((_BYTE *)&pixels + 4 * v12 + 1) = v6;
+      *((_BYTE *)&pixels + 4 * v12 + 2) = v7;
       if ( !v13 )
       {
         fputs("ERROR: attempted to render uninitialized sprite!\n", stderr);
         exit(-1);
       }
       ++v11;
-      *((_BYTE *)&pixel_bytes + 4 * v12 + 3) = *(_BYTE *)(v13 + v12);
+      *((_BYTE *)&pixels + 4 * v12 + 3) = *(_BYTE *)(v13 + v12);
       ++v12;
     }
     LODWORD(v3) = v3 + 1;
@@ -7568,10 +7568,10 @@ unsigned __int64 __fastcall handle_4(struct cimg *cimg)
         1LL,
         25LL,
         "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
-        *((unsigned __int8 *)&pixel_bytes + 4 * v17 + 4 * i * width),
-        *((unsigned __int8 *)&pixel_bytes + 4 * v17 + 4 * i * width + 1),
-        *((unsigned __int8 *)&pixel_bytes + 4 * v17 + 4 * i * width + 2),
-        *((unsigned __int8 *)&pixel_bytes + 4 * v17 + 4 * i * width + 3));
+        *((unsigned __int8 *)&pixels + 4 * v17 + 4 * i * width),
+        *((unsigned __int8 *)&pixels + 4 * v17 + 4 * i * width + 1),
+        *((unsigned __int8 *)&pixels + 4 * v17 + 4 * i * width + 2),
+        *((unsigned __int8 *)&pixels + 4 * v17 + 4 * i * width + 3));
       v20 = v17 + v15;
       ++v17;
       v21 = (unsigned int)(v20 % v19);
@@ -7579,6 +7579,169 @@ unsigned __int64 __fastcall handle_4(struct cimg *cimg)
       cimg->framebuffer[v21] = emit_tmp;
     }
     ++v14;
+  }
+  return __readfsqword(0x28u) ^ v28;
+}
+```
+
+We need to add another struct for the rendered sprites
+
+```c title="/challenge/cimg :: Local Types"
+struct cimg_header {
+    char magic_number[4];
+    uint16_t version;
+    uint8_t width;
+    uint8_t height;
+    uint32_t remaining_directives;
+};
+
+typedef struct pixel_color_t {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t ascii;
+} pixel_t;
+
+struct term_str_st {
+    char color_set[7];
+    char r[3];
+    char s1;
+    char g[3];
+    char s2;
+    char b[3];
+    char m;
+    char c;
+    char color_reset[4];
+};
+
+union term_pixel_t {
+    char data[24];
+    struct term_str_st str;
+};
+
+typedef struct sprite_store {
+    uint8_t height;
+    uint8_t width;
+    char __pad[6]; 
+    uint8_t *data;
+} sprite_store_t;
+
+typedef struct sprite_render {
+    uint8_t sprite_id;
+    uint8_t x_offset;
+    uint8_t y_offset;
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+} sprite_render_t;
+
+struct cimg {
+    struct cimg_header header;
+    unsigned int num_pixels;
+    union term_pixel_t *framebuffer;
+    sprite_store_t sprites[16];
+};
+```
+
+```c title="/challenge/cimg :: handle_4() :: Pseudocode" showLineNumbers
+// positive sp value has been detected, the output may be wrong!
+unsigned __int64 __fastcall handle_4(struct cimg *cimg)
+{
+  pixel_t **p_pixels; // rdi
+  __int64 v3; // rcx
+  __int64 sprite_id; // rdx
+  uint8_t r; // r10
+  uint8_t g; // r11
+  uint8_t b; // bp
+  sprite_store_t *sprites; // rdx
+  int sprite_height; // r12d
+  int v10; // r8d
+  int col; // edi
+  __int64 pixel_idx; // rax
+  __int64 sprite_char; // r9
+  int y_offset; // r14d
+  int x_offset; // r15d
+  int i; // r13d
+  int base_x; // ebp
+  int width; // ecx
+  int width_1; // r12d
+  int x_coord; // eax
+  __int64 v21; // rdx
+  sprite_render_t render_sprites; // [rsp-2Fh] [rbp-4005Fh] BYREF
+  pixel_t *pixels; // [rsp-29h] [rbp-40059h] BYREF
+  char v25; // [rsp+0h] [rbp-40030h] BYREF
+  __int64 v26; // [rsp+1000h] [rbp-3F030h] BYREF
+  term_pixel_t emit_tmp; // [rsp+3FFD7h] [rbp-59h] BYREF
+  unsigned __int64 v28; // [rsp+3FFF0h] [rbp-40h]
+
+  while ( &v25 != (char *)(&v26 - 0x8000) )
+    ;
+  v28 = __readfsqword(0x28u);
+  read_exact(0LL, &render_sprites, 6LL, "ERROR: Failed to read &sprite_render_record!", 0xFFFFFFFFLL);
+  p_pixels = &pixels;
+  v3 = 0x10000LL;
+  sprite_id = render_sprites.sprite_id;
+  r = render_sprites.r;
+  while ( v3 )
+  {
+    *(_DWORD *)p_pixels = 0;
+    p_pixels = (pixel_t **)((char *)p_pixels + 4);
+    --v3;
+  }
+  g = render_sprites.g;
+  b = render_sprites.b;
+  sprites = (sprite_store_t *)((char *)cimg + 16 * sprite_id);
+  sprite_height = LOBYTE(sprites[1].data);
+  while ( sprite_height > (int)v3 )
+  {
+    v10 = BYTE1(sprites[1].data);
+    col = 0;
+    pixel_idx = (unsigned int)(v3 * v10);
+    while ( v10 > col )
+    {
+      sprite_char = *(_QWORD *)&sprites[2].height;
+      *((_BYTE *)&pixels + 4 * pixel_idx) = r;
+      *((_BYTE *)&pixels + 4 * pixel_idx + 1) = g;
+      *((_BYTE *)&pixels + 4 * pixel_idx + 2) = b;
+      if ( !sprite_char )
+      {
+        fputs("ERROR: attempted to render uninitialized sprite!\n", stderr);
+        exit(-1);
+      }
+      ++col;
+      *((_BYTE *)&pixels + 4 * pixel_idx + 3) = *(_BYTE *)(sprite_char + pixel_idx);
+      ++pixel_idx;
+    }
+    LODWORD(v3) = v3 + 1;
+  }
+  y_offset = render_sprites.y_offset;
+  x_offset = render_sprites.x_offset;
+  for ( i = 0; cimg->sprites[render_sprites.sprite_id].height > i; ++i )
+  {
+    base_x = 0;
+    while ( 1 )
+    {
+      width = cimg->sprites[render_sprites.sprite_id].width;
+      if ( width <= base_x )
+        break;
+      width_1 = cimg->header.width;
+      __snprintf_chk(
+        &emit_tmp,
+        25LL,
+        1LL,
+        25LL,
+        "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
+        *((unsigned __int8 *)&pixels + 4 * base_x + 4 * i * width),
+        *((unsigned __int8 *)&pixels + 4 * base_x + 4 * i * width + 1),
+        *((unsigned __int8 *)&pixels + 4 * base_x + 4 * i * width + 2),
+        *((unsigned __int8 *)&pixels + 4 * base_x + 4 * i * width + 3));
+      x_coord = base_x + x_offset;
+      ++base_x;
+      v21 = (unsigned int)(x_coord % width_1);
+      LODWORD(v21) = (unsigned int)(v21 + y_offset * width_1) % cimg->num_pixels;
+      cimg->framebuffer[v21] = emit_tmp;
+    }
+    ++y_offset;
   }
   return __readfsqword(0x28u) ^ v28;
 }
