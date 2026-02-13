@@ -7702,7 +7702,7 @@ unsigned __int64 __fastcall handle_4(struct cimg *cimg)
 
 We need to add another struct for the rendered sprites
 
-```c title="/challenge/cimg :: Local Types"
+```c title="/challenge/cimg :: Local Types" showLineNumbers
 struct cimg_header {
     char magic_number[4];
     uint16_t version;
@@ -7763,103 +7763,100 @@ struct cimg {
 // positive sp value has been detected, the output may be wrong!
 unsigned __int64 __fastcall handle_4(struct cimg *cimg)
 {
-  pixel_t **p_pixels; // rdi
-  __int64 v3; // rcx
-  __int64 sprite_id; // rdx
+  pixel_t *v2; // rdi
+  __int64 init_count; // rcx
+  uint8_t sprite_id; // dl
   uint8_t r; // r10
   uint8_t g; // r11
   uint8_t b; // bp
   sprite_store_t *sprites; // rdx
   int sprite_height; // r12d
-  int v10; // r8d
+  int sprite_width; // r8d
   int col; // edi
   __int64 pixel_idx; // rax
-  __int64 sprite_char; // r9
+  uint8_t *sprite_char; // r9
   int y_offset; // r14d
   int x_offset; // r15d
   int i; // r13d
-  int base_x; // ebp
-  int width; // ecx
-  int width_1; // r12d
-  int x_coord; // eax
-  __int64 v21; // rdx
+  int x; // ebp
+  int v18; // ecx
+  int framebuffer_width; // r12d
+  int framebuffer_x; // eax
+  unsigned int framebuffer_idx; // edx
   sprite_render_t render_sprites; // [rsp-2Fh] [rbp-4005Fh] BYREF
-  pixel_t *pixels; // [rsp-29h] [rbp-40059h] BYREF
-  char v25; // [rsp+0h] [rbp-40030h] BYREF
-  __int64 v26; // [rsp+1000h] [rbp-3F030h] BYREF
+  pixel_t pixels[65536]; // [rsp-29h] [rbp-40059h] BYREF
   term_pixel_t emit_tmp; // [rsp+3FFD7h] [rbp-59h] BYREF
-  unsigned __int64 v28; // [rsp+3FFF0h] [rbp-40h]
+  unsigned __int64 v26; // [rsp+3FFF0h] [rbp-40h]
 
-  while ( &v25 != (char *)(&v26 - 0x8000) )
+  while ( &pixels[10].g != &pixels[-64502].g )
     ;
-  v28 = __readfsqword(0x28u);
+  v26 = __readfsqword(0x28u);
   read_exact(0LL, &render_sprites, 6LL, "ERROR: Failed to read &sprite_render_record!", 0xFFFFFFFFLL);
-  p_pixels = &pixels;
-  v3 = 0x10000LL;
-  sprite_id = render_sprites.sprite_id;
+  v2 = pixels;
+  init_count = 65536LL;
+  *(_QWORD *)&sprite_id = render_sprites.sprite_id;
   r = render_sprites.r;
-  while ( v3 )
+  while ( init_count )
   {
-    *(_DWORD *)p_pixels = 0;
-    p_pixels = (pixel_t **)((char *)p_pixels + 4);
-    --v3;
+    *v2++ = 0;
+    --init_count;
   }
   g = render_sprites.g;
   b = render_sprites.b;
-  sprites = (sprite_store_t *)((char *)cimg + 16 * sprite_id);
+  sprites = (sprite_store_t *)((char *)cimg + 16 * *(_QWORD *)&sprite_id);
   sprite_height = LOBYTE(sprites[1].data);
-  while ( sprite_height > (int)v3 )
+  while ( sprite_height > (int)init_count )
   {
-    v10 = BYTE1(sprites[1].data);
+    sprite_width = BYTE1(sprites[1].data);
     col = 0;
-    pixel_idx = (unsigned int)(v3 * v10);
-    while ( v10 > col )
+    pixel_idx = (unsigned int)(init_count * sprite_width);
+    while ( sprite_width > col )
     {
-      sprite_char = *(_QWORD *)&sprites[2].height;
-      *((_BYTE *)&pixels + 4 * pixel_idx) = r;
-      *((_BYTE *)&pixels + 4 * pixel_idx + 1) = g;
-      *((_BYTE *)&pixels + 4 * pixel_idx + 2) = b;
+      sprite_char = *(uint8_t **)&sprites[2].height;
+      pixels[pixel_idx].r = r;
+      pixels[pixel_idx].g = g;
+      pixels[pixel_idx].b = b;
       if ( !sprite_char )
       {
         fputs("ERROR: attempted to render uninitialized sprite!\n", stderr);
         exit(-1);
       }
       ++col;
-      *((_BYTE *)&pixels + 4 * pixel_idx + 3) = *(_BYTE *)(sprite_char + pixel_idx);
+      pixels[pixel_idx].ascii = sprite_char[pixel_idx];
       ++pixel_idx;
     }
-    LODWORD(v3) = v3 + 1;
+    LODWORD(init_count) = init_count + 1;
   }
   y_offset = render_sprites.y_offset;
   x_offset = render_sprites.x_offset;
-  for ( i = 0; cimg->sprites[render_sprites.sprite_id].height > i; ++i )
+  for ( i = 0; LOBYTE(cimg->sprites[render_sprites.sprite_id].data) > i; ++i )
   {
-    base_x = 0;
+    x = 0;
     while ( 1 )
     {
-      width = cimg->sprites[render_sprites.sprite_id].width;
-      if ( width <= base_x )
+      v18 = BYTE1(cimg->sprites[render_sprites.sprite_id].data);
+      if ( v18 <= x )
         break;
-      width_1 = cimg->header.width;
+      framebuffer_width = cimg->header.width;
       __snprintf_chk(
         &emit_tmp,
         25LL,
         1LL,
         25LL,
         "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
-        *((unsigned __int8 *)&pixels + 4 * base_x + 4 * i * width),
-        *((unsigned __int8 *)&pixels + 4 * base_x + 4 * i * width + 1),
-        *((unsigned __int8 *)&pixels + 4 * base_x + 4 * i * width + 2),
-        *((unsigned __int8 *)&pixels + 4 * base_x + 4 * i * width + 3));
-      x_coord = base_x + x_offset;
-      ++base_x;
-      v21 = (unsigned int)(x_coord % width_1);
-      LODWORD(v21) = (unsigned int)(v21 + y_offset * width_1) % cimg->num_pixels;
-      cimg->framebuffer[v21] = emit_tmp;
+        pixels[x + i * v18].r,
+        pixels[x + i * v18].g,
+        pixels[x + i * v18].b,
+        pixels[x + i * v18].ascii);
+      framebuffer_x = x + x_offset;
+      ++x;
+      *(_QWORD *)&framebuffer_idx = (unsigned int)(framebuffer_x % framebuffer_width);
+      framebuffer_idx = (framebuffer_idx + y_offset * framebuffer_width) % cimg->num_pixels;
+      *(term_pixel_t *)(*(_QWORD *)&cimg->sprites[0].height + 24LL * *(_QWORD *)&framebuffer_idx) = emit_tmp;
     }
     ++y_offset;
   }
-  return __readfsqword(0x28u) ^ v28;
+  return __readfsqword(0x28u) ^ v26;
 }
 ```
 
