@@ -4894,7 +4894,7 @@ unsigned __int64 __fastcall handle_55369(struct cimg *cimg)
   pixel_t *data; // rax
   pixel_t *data_1; // r12
   __int64 i_1; // rax
-  unsigned __int8 ascii_char; // cl
+  uint8_t ascii_char; // cl
   int i; // r13d
   int j; // ebp
   int width_1; // r15d
@@ -5759,7 +5759,7 @@ unsigned __int64 __fastcall handle_55369(struct cimg *cimg)
   pixel_t *data; // rax
   pixel_t *data_1; // r12
   __int64 i_1; // rax
-  unsigned __int8 ascii_char; // cl
+  uint8_t ascii_char; // cl
   int i; // r13d
   int j; // ebp
   int width_1; // r15d
@@ -6871,7 +6871,7 @@ unsigned __int64 __fastcall handle_1(struct cimg *cimg)
   pixel_t *data; // rax
   pixel_t *data_1; // r12
   __int64 v6; // rax
-  unsigned __int8 ascii_char; // cl
+  uint8_t ascii_char; // cl
   int i; // r13d
   int j; // ebp
   int width_1; // r15d
@@ -7033,7 +7033,7 @@ unsigned __int64 __fastcall handle_2(struct cimg *cimg)
   pixel_t *data; // rax
   pixel_t *pixel_bytes; // rbp
   __int64 v4; // rax
-  unsigned __int8 ascii_char; // cl
+  uint8_t ascii_char; // cl
   int y_offset; // r13d
   int x_offset; // r14d
   int x_coord; // eax
