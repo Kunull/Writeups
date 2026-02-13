@@ -4496,7 +4496,7 @@ EXIT:
 }
 ```
 
-In the `handle_45381()`, the program allocates a location of memory `data` which can fit `width * height` number of pixels.
+In the `handle_45381()`, the program allocates a location of memory `data` which can fit `4 * width * height` number of bytes.
 
 ```c title="/challenge/cimg :: handle_45381() :: Pseudocode" showLineNumbers
 # ---- snip ----
@@ -4516,6 +4516,9 @@ Then, it checks if each fourth byte in the pixel, i.e. the character byte (r,g,b
 ````c title="/challenge/cimg :: handle_45381() :: Pseudocode" showLineNumbers
 # ---- snip ----
 
+  data_1 = data;
+  read_exact(0LL, data, (unsigned int)data_size, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  i = 0LL;
   while ( cimg->header.height * cimg->header.width > (int)i )
   {
     ascii = data_1[i++].ascii;
@@ -4952,7 +4955,7 @@ EXIT:
 }
 ```
 
-The `handle_55369()` the allocates a location of memory data which can fit `width * height` number of pixels.
+The `handle_55369()` the allocates a location of memory data which can fit `4 * width * height` number of bytes.
 
 ````c title="/challenge/cimg :: handle_55369() :: Pseudocode" showLineNumbers
 # ---- snip ----
@@ -4971,12 +4974,15 @@ The user's input is read into the `data` memory allocation. Then, it checks if e
 ````c title="/challenge/cimg :: handle_55369() :: Pseudocode" showLineNumbers
 # ---- snip ----
 
-  while ( cimg->header.height * cimg->header.width > (int)v6 )
+  data_1 = data;
+  read_exact(0LL, data, (unsigned int)data_size, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  i_1 = 0LL;
+  while ( cimg->header.height * cimg->header.width > (int)i_1 )
   {
-    ascii_char = data_1[4 * v6++ + 3];
+    *(_QWORD *)&ascii_char = data_1[i_1++].ascii;
     if ( (unsigned __int8)(ascii_char - 0x20) > 0x5Eu )
     {
-      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", ascii_char);
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", *(_QWORD *)&ascii_char);
 EXIT:
       exit(-1);
     }
@@ -5122,7 +5128,7 @@ EXIT:
 
 The `handle_52965()`, the program handles our input slightly differently, as it renders the characters at the the coordinates that we provide.
 
-It first reads in the `base_x`, `base_y`, `width` and `height` values for the chunck of the cIMG to be rendered.
+It first reads in the `base_x`, `base_y`, `width` and `height` values for the chunk of the cIMG to be rendered.
 
 ```c title="/challenge/cimg :: handle_52965() :: Pseudocode" showLineNumbers
 # ---- snip ----
@@ -5135,7 +5141,7 @@ It first reads in the `base_x`, `base_y`, `width` and `height` values for the ch
 # ---- snip ----
 ```
 
-Then it allocates a location of memory `data` which can fit `width * height` number of pixels.
+Then it allocates a location of memory `data` which can fit `4 * width * height` number of bytes.
 
 ```c title="/challenge/cimg :: handle_52965() :: Pseudocode" showLineNumbers
 # ---- snip ----
@@ -5151,6 +5157,9 @@ The user's input is read into the `data` memory allocation. Then, it checks if e
 ```c title="/challenge/cimg :: handle_52965() :: Pseudocode" showLineNumbers
 # ---- snip ----
 
+  pixel_bytes = data;
+  read_exact(0LL, data, data_size, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  v4 = 0LL;
   while ( height * width > (int)v4 )
   {
     ascii_char = pixel_bytes[v4++].ascii;
@@ -5817,7 +5826,7 @@ EXIT:
 }
 ```
 
-The `handle_55369()` the allocates a location of memory data which can fit `width * height` number of pixels.
+The `handle_55369()` the allocates a location of memory data which can fit `4 * width * height` number of bytes.
 
 ```c title="/challenge/cimg :: handle_55369() :: Pseudocode"
 # ---- snip ----
@@ -5836,6 +5845,9 @@ The user's input is read into the `data` memory allocation. Then, it checks if e
 ```c title="/challenge/cimg :: handle_55369() :: Pseudocode" showLineNumbers
 # ---- snip ----
 
+  data_1 = data;
+  read_exact(0LL, data, (unsigned int)data_size, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  i_1 = 0LL;
   while ( cimg->header.height * cimg->header.width > (int)i_1 )
   {
     *(_QWORD *)&ascii_char = data_1[i_1++].ascii;
@@ -5987,7 +5999,7 @@ EXIT:
 
 The `handle_52965()`, the program handles our input slightly differently, as it renders the characters at the the coordinates that we provide.
 
-It first reads in the `base_x`, `base_y`, `width` and `height` values for the chunck of the cIMG to be rendered.
+It first reads in the `base_x`, `base_y`, `width` and `height` values for the chunk of the cIMG to be rendered.
 
 ```c title="/challenge/cimg :: handle_52965() :: Pseudocode" showLineNumbers
 # ---- snip ----
@@ -6000,7 +6012,7 @@ It first reads in the `base_x`, `base_y`, `width` and `height` values for the ch
 # ---- snip ----
 ```
 
-Then it allocates a location of memory `data` which can fit `width * height` number of pixels.
+Then it allocates a location of memory `data` which can fit `4 * width * height` number of bytes.
 
 ```c title="/challenge/cimg :: handle_52965() :: Pseudocode" showLineNumbers
 # ---- snip ----
@@ -6016,6 +6028,9 @@ The user's input is read into the `data` memory allocation. Then, it checks if e
 ```c title="/challenge/cimg :: handle_52965() :: Pseudocode" showLineNumbers
 # ---- snip ----
 
+  pixel_bytes = data;
+  read_exact(0LL, data, data_size, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  v4 = 0LL;
   while ( height * width > (int)v4 )
   {
     ascii_char = pixel_bytes[v4++].ascii;
@@ -6929,7 +6944,7 @@ EXIT:
 }
 ```
 
-The `handle_1()` the allocates a location of memory data which can fit `width * height` number of pixels.
+The `handle_1()` the allocates a location of memory data which can fit `4 * width * height` number of bytes.
 
 ```c title="/challenge/cimg :: handle_1() :: Pseudocode" showLineNumbers
 # ---- snip ----
@@ -6948,6 +6963,9 @@ The user's input is read into the `data` memory allocation. Then, it checks if e
 ```c title="/challenge/cimg :: handle_1() :: Pseudocode" showLineNumbers
 # ---- snip ----
 
+  data_1 = data;
+  read_exact(0LL, data, (unsigned int)data_size, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  v6 = 0LL;
   while ( cimg->header.height * cimg->header.width > (int)v6 )
   {
     *(_QWORD *)&ascii_char = data_1[v6++].ascii;
@@ -7099,7 +7117,7 @@ EXIT:
 
 The `handle_2()`, the program handles our input slightly differently, as it renders the characters at the the coordinates that we provide.
 
-It first reads in the `base_x`, `base_y`, `width` and `height` values for the chunck of the cIMG to be rendered.
+It first reads in the `base_x`, `base_y`, `width` and `height` values for the chunk of the cIMG to be rendered.
 
 ```c title="/challenge/cimg :: handle_2() :: Pseudocode" showLineNumbers
 # ---- snip ----
@@ -7112,7 +7130,7 @@ It first reads in the `base_x`, `base_y`, `width` and `height` values for the ch
 # ---- snip ----
 ```
 
-Then it allocates a location of memory `data` which can fit `width * height` number of pixels.
+Then it allocates a location of memory `data` which can fit `4 * width * height` number of bytes.
 
 ```c title="/challenge/cimg :: handle_2() :: Pseudocode" showLineNumbers
 # ---- snip ----
@@ -7128,6 +7146,9 @@ The user's input is read into the `data` memory allocation. Then, it checks if e
 ```c title="/challenge/cimg :: handle_2() :: Pseudocode" showLineNumbers
 # ---- snip ----
 
+  pixel_bytes = data;
+  read_exact(0LL, data, data_size, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  v4 = 0LL;
   while ( height * width > (int)v4 )
   {
     *(_QWORD *)&ascii_char = pixel_bytes[v4++].ascii;
@@ -7296,6 +7317,7 @@ union term_pixel_t {
 typedef struct sprite {
     uint8_t height;
     uint8_t width;
+    char __pad[6]; 
     uint8_t *data;
 } sprite_t;
 
@@ -7303,7 +7325,7 @@ struct cimg {
     struct cimg_header header;
     unsigned int num_pixels;
     union term_pixel_t *framebuffer;
-    sprite_t *sprites;
+    sprite_t sprites[16];
 };
 ```
 
@@ -7375,9 +7397,90 @@ EXIT:
 }
 ```
 
-#### `handle_4()`
+The third handler reads the first 3 bytes of the input data as `sprite_id`, `width`, `height` values.
 
-```c showLineNumbers
+```c title="/challenge/cimg :: handle_3() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  read_exact(0LL, &sprite_id, 1LL, "ERROR: Failed to read &sprite_id!", 0xFFFFFFFFLL);
+  read_exact(0LL, &width, 1LL, "ERROR: Failed to read &width!", 0xFFFFFFFFLL);
+  read_exact(0LL, &height, 1LL, "ERROR: Failed to read &height!", 0xFFFFFFFFLL);
+
+# ---- snip ----
+```
+
+Then it sets the `sprite_t.width` and `sprite_t.height` values to the ones we provided.
+
+```c title="/challenge/cimg :: handle_3() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  sprites = (sprite_t *)((char *)cimg + 16 * sprite_id);
+
+  // Update sprite dimensions
+  BYTE1(sprites[1].data) = width;               // `cimg->sprites[sprite_id].width = width;`
+  old_sprite_data = *(sprite_t **)&sprites[2].height;// `old_sprite_data = cimg->sprites[sprite_id].data`
+  LOBYTE(sprites[1].data) = height;             // `cimg->sprites[sprite_id].height = height;`
+
+# ---- snip ----
+```
+
+```c title="/challenge/cimg :: Local Types" showLineNumbers
+# ---- snip ----
+
+typedef struct sprite {
+    uint8_t height;
+    uint8_t width;
+    char __pad[6]; 
+    uint8_t *data;
+} sprite_t;
+
+# ---- snip ----
+```
+
+Next it allocates a location of memory `data` which can fit `width * height` number of bytes.
+
+```c title="/challenge/cimg :: handle_3() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  // Allocate memory for sprite character data (width * height bytes)
+  data_size = height * width;
+  sprite_data = (unsigned __int8 *)malloc(data_size);
+
+# ---- snip ----
+```
+
+The user provided input is read into the `data` memory allocation. Then, it checks if each the character byte, lies between `0x20` and `0x7e`.
+
+```c title="/challenge/cimg :: handle_3() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  sprite_data_1 = sprite_data;
+  if ( !sprite_data )
+  {
+    puts("ERROR: Failed to allocate memory for the image data!");
+    goto EXIT;
+  }
+  read_exact(0LL, sprite_data, (unsigned int)data_size, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+
+  // Validate all characters are printable ASCII (0x20-0x7E)
+  i = 0LL;
+  while ( height * width > (int)i )
+  {
+    *(_QWORD *)&ascii_char = sprite_data_1[i++];
+    if ( (unsigned __int8)(ascii_char - 0x20) > 0x5Eu )
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", *(_QWORD *)&ascii_char);
+EXIT:
+      exit(-1);
+    }
+  }
+
+# ---- snip ----
+```
+
+Finally, we can figure out what `handle_4()` is doing.
+
+```c title="/challenge/cimg :: handle_4() :: Pseudocode" showLineNumbers
 // positive sp value has been detected, the output may be wrong!
 unsigned __int64 __fastcall handle_4(__int64 a1)
 {
