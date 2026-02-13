@@ -7293,7 +7293,7 @@ union term_pixel_t {
     struct term_str_st str;
 };
 
-typedef sprite {
+typedef struct sprite {
     uint8_t height;
     uint8_t width;
     uint8_t *data;
