@@ -7397,6 +7397,122 @@ EXIT:
 }
 ```
 
+new structs:
+
+```c
+struct cimg_header {
+    char magic_number[4];
+    uint16_t version;
+    uint8_t width;
+    uint8_t height;
+    uint32_t remaining_directives;
+};
+
+typedef struct pixel_color_t {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t ascii;
+} pixel_t;
+
+struct term_str_st {
+    char color_set[7];
+    char r[3];
+    char s1;
+    char g[3];
+    char s2;
+    char b[3];
+    char m;
+    char c;
+    char color_reset[4];
+};
+
+union term_pixel_t {
+    char data[24];
+    struct term_str_st str;
+};
+
+typedef struct sprite_store {
+    uint8_t height;
+    uint8_t width;
+    char __pad[6]; 
+    uint8_t *data;
+} sprite_store_t;
+
+struct cimg {
+    struct cimg_header header;
+    unsigned int num_pixels;
+    sprite_store_t sprites[16];
+    union term_pixel_t *framebuffer;
+};
+```
+
+```c
+unsigned __int64 __fastcall handle_3(struct cimg *cimg)
+{
+  sprite_store_t *sprites; // rax
+  sprite_store_t *old_sprite_data; // rdi
+  int data_size; // r12d
+  unsigned __int8 *sprite_data; // rax
+  unsigned __int8 *sprite_data_1; // rbx
+  __int64 i; // rax
+  uint8_t ascii_char; // cl
+  unsigned __int8 sprite_id; // [rsp+5h] [rbp-23h] BYREF
+  unsigned __int8 width; // [rsp+6h] [rbp-22h] BYREF
+  unsigned __int8 height; // [rsp+7h] [rbp-21h] BYREF
+  unsigned __int64 v13; // [rsp+8h] [rbp-20h]
+
+  v13 = __readfsqword(0x28u);
+
+  // Read sprite metadata
+  read_exact(0LL, &sprite_id, 1LL, "ERROR: Failed to read &sprite_id!", 0xFFFFFFFFLL);
+  read_exact(0LL, &width, 1LL, "ERROR: Failed to read &width!", 0xFFFFFFFFLL);
+  read_exact(0LL, &height, 1LL, "ERROR: Failed to read &height!", 0xFFFFFFFFLL);
+  sprites = (sprite_store_t *)((char *)cimg + 16 * sprite_id);
+
+  // Update sprite dimensions
+  BYTE1(sprites[1].data) = width;               // `cimg->sprites[sprite_id].width = width;`
+  old_sprite_data = *(sprite_store_t **)&sprites[2].height;// `old_sprite_data = cimg->sprites[sprite_id].data`
+  LOBYTE(sprites[1].data) = height;             // `cimg->sprites[sprite_id].height = height;`
+
+  // Free old sprite if it exists
+  // ```
+  // if (cimg->sprites[sprite_id].data)
+  //   free(cimg->sprites[sprite_id].data);
+  // ```
+  if ( old_sprite_data )
+    free(old_sprite_data);
+
+  // Allocate memory for sprite character data (width * height bytes)
+  data_size = height * width;
+  sprite_data = (unsigned __int8 *)malloc(data_size);
+  sprite_data_1 = sprite_data;
+  if ( !sprite_data )
+  {
+    puts("ERROR: Failed to allocate memory for the image data!");
+    goto LABEL_9;
+  }
+  read_exact(0LL, sprite_data, (unsigned int)data_size, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+
+  // Validate all characters are printable ASCII (0x20-0x7E)
+  i = 0LL;
+  while ( height * width > (int)i )
+  {
+    *(_QWORD *)&ascii_char = sprite_data_1[i++];
+    if ( (unsigned __int8)(ascii_char - 32) > 0x5Eu )
+    {
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", *(_QWORD *)&ascii_char);
+LABEL_9:
+      exit(-1);
+    }
+  }
+
+  // Store sprite data pointer
+  *(_QWORD *)&cimg->sprites[sprite_id + 1].height = sprite_data_1;
+  return __readfsqword(0x28u) ^ v13;
+}
+```
+
 The third handler reads the first 3 bytes of the input data as `sprite_id`, `width`, `height` values.
 
 ```c title="/challenge/cimg :: handle_3() :: Pseudocode" showLineNumbers
