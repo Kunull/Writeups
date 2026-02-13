@@ -7313,12 +7313,12 @@ After updating the structs, changing some types, renaming a few things and addin
 unsigned __int64 __fastcall handle_3(struct cimg *cimg)
 {
   sprite_t *sprite; // rax
-  unsigned __int8 old_data; // di
+  sprite_t *old_data; // rdi
   int data_size; // r12d
   unsigned __int8 *sprite_data; // rax
   unsigned __int8 *sprite_data_1; // rbx
-  __int64 i; // rax
-  __int64 ascii_char; // rcx
+  int i; // eax
+  uint8_t ascii_char; // cl
   unsigned __int8 sprite_id; // [rsp+5h] [rbp-23h] BYREF
   unsigned __int8 width; // [rsp+6h] [rbp-22h] BYREF
   unsigned __int8 height; // [rsp+7h] [rbp-21h] BYREF
@@ -7334,7 +7334,7 @@ unsigned __int64 __fastcall handle_3(struct cimg *cimg)
 
   // Update sprite dimensions
   BYTE1(sprite[1].data) = width;                // `cimg->sprites[sprite_id].width = width;`
-  *(_QWORD *)&old_data = *(_QWORD *)&sprite[2].height;
+  old_data = *(sprite_t **)&sprite[2].height;
   LOBYTE(sprite[1].data) = height;              // `cimg->sprites[sprite_id].height = height;`
 
   // Free old sprite if it exists
@@ -7342,8 +7342,8 @@ unsigned __int64 __fastcall handle_3(struct cimg *cimg)
   // if (sprite->data)
   //   free(sprite->data);
   // ```
-  if ( *(_QWORD *)&old_data )
-    free(*(void **)&old_data);
+  if ( old_data )
+    free(old_data);
 
   // Allocate memory for sprite character data (width * height bytes)
   data_size = height * width;
@@ -7357,13 +7357,13 @@ unsigned __int64 __fastcall handle_3(struct cimg *cimg)
   read_exact(0LL, sprite_data, (unsigned int)data_size, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
 
   // Validate all characters are printable ASCII (0x20-0x7E)
-  i = 0LL;
-  while ( height * width > (int)i )
+  *(_QWORD *)&i = 0LL;
+  while ( height * width > i )
   {
-    ascii_char = sprite_data_1[i++];
+    *(_QWORD *)&ascii_char = sprite_data_1[(*(_QWORD *)&i)++];
     if ( (unsigned __int8)(ascii_char - 0x20) > 0x5Eu )
     {
-      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", ascii_char);
+      __fprintf_chk(stderr, 1LL, "ERROR: Invalid character 0x%x in the image data!\n", *(_QWORD *)&ascii_char);
 EXIT:
       exit(-1);
     }
