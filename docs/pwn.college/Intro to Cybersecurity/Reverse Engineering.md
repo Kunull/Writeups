@@ -7313,7 +7313,7 @@ After updating the structs, changing some types, renaming a few things and addin
 unsigned __int64 __fastcall handle_3(struct cimg *cimg)
 {
   sprite_t *sprites; // rax
-  sprite_t *old_data; // rdi
+  sprite_t *old_sprite_data; // rdi
   int data_size; // r12d
   unsigned __int8 *sprite_data; // rax
   unsigned __int8 *sprite_data_1; // rbx
@@ -7334,16 +7334,16 @@ unsigned __int64 __fastcall handle_3(struct cimg *cimg)
 
   // Update sprite dimensions
   BYTE1(sprites[1].data) = width;               // `cimg->sprites[sprite_id].width = width;`
-  old_data = *(sprite_t **)&sprites[2].height;  // `sprites->data`
+  old_sprite_data = *(sprite_t **)&sprites[2].height;  // `old_sprite_data = cimg->sprites[sprite_id].data`
   LOBYTE(sprites[1].data) = height;             // `cimg->sprites[sprite_id].height = height;`
 
   // Free old sprite if it exists
   // ```
-  // if (sprites->data)
-  //   free(sprites->data);
+  // if (cimg->sprites[sprite_id].data)
+  //   free(cimg->sprites[sprite_id].data);
   // ```
-  if ( old_data )
-    free(old_data);
+  if ( old_sprite_data )
+    free(old_sprite_data);
 
   // Allocate memory for sprite character data (width * height bytes)
   data_size = height * width;
