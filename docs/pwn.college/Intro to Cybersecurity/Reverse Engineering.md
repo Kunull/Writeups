@@ -7352,6 +7352,8 @@ unsigned __int64 __fastcall handle_3(struct cimg *cimg)
   read_exact(0LL, &sprite_id, 1LL, "ERROR: Failed to read &sprite_id!", 0xFFFFFFFFLL);
   read_exact(0LL, &width, 1LL, "ERROR: Failed to read &width!", 0xFFFFFFFFLL);
   read_exact(0LL, &height, 1LL, "ERROR: Failed to read &height!", 0xFFFFFFFFLL);
+
+  // `sprites = &cimg->sprites[sprite_id];`
   sprites = (sprite_store_t *)((char *)cimg + 16 * sprite_id);
 
   // Update sprite dimensions
@@ -7414,6 +7416,7 @@ Then it sets the `sprite_store_t.width` and `sprite_store_t.height` values to th
 ```c title="/challenge/cimg :: handle_3() :: Pseudocode" showLineNumbers
 # ---- snip ----
 
+  // `sprites = &cimg->sprites[sprite_id];`
   sprites = (sprite_store_t *)((char *)cimg + 16 * sprite_id);
 
   // Update sprite dimensions
@@ -7647,7 +7650,7 @@ struct cimg {
 // positive sp value has been detected, the output may be wrong!
 unsigned __int64 __fastcall handle_4(struct cimg *cimg)
 {
-  pixel_t *v2; // rdi
+  pixel_t *p_pixels; // rdi
   __int64 init_count; // rcx
   uint8_t sprite_id; // dl
   uint8_t r; // r10
@@ -7667,61 +7670,84 @@ unsigned __int64 __fastcall handle_4(struct cimg *cimg)
   int framebuffer_width; // r12d
   int framebuffer_x; // eax
   unsigned int framebuffer_idx; // edx
-  sprite_render_t sprite_renders; // [rsp-2Fh] [rbp-4005Fh] BYREF
+  sprite_render_t sprite_render_record; // [rsp-2Fh] [rbp-4005Fh] BYREF
   pixel_t pixels[65536]; // [rsp-29h] [rbp-40059h] BYREF
   term_pixel_t emit_tmp; // [rsp+3FFD7h] [rbp-59h] BYREF
   unsigned __int64 v26; // [rsp+3FFF0h] [rbp-40h]
 
+  // Stack canary check
   while ( &pixels[10].g != &pixels[-64502].g )
     ;
   v26 = __readfsqword(0x28u);
-  read_exact(0LL, &sprite_renders, 6LL, "ERROR: Failed to read &sprite_render_record!", 0xFFFFFFFFLL);
-  v2 = pixels;
+
+  // Read render parameters (6 bytes total)
+  read_exact(0LL, &sprite_render_record, 6LL, "ERROR: Failed to read &sprite_render_record!", 0xFFFFFFFFLL);
+
+  // Initialize temporary pixel buffer to zero
+  p_pixels = pixels;
   init_count = 0x10000LL;
-  *(_QWORD *)&sprite_id = sprite_renders.sprite_id;
-  r = sprite_renders.r;
+  *(_QWORD *)&sprite_id = sprite_render_record.sprite_id;
+  r = sprite_render_record.r;
   while ( init_count )
   {
-    *v2++ = 0;
+    *p_pixels++ = 0;
     --init_count;
   }
-  g = sprite_renders.g;
-  b = sprite_renders.b;
+  g = sprite_render_record.g;
+  b = sprite_render_record.b;
+
+  // Get sprite pointer (IDA's weird arithmetic - actually &cimg->sprites[sprite_id])
   sprites = (sprite_store_t *)((char *)cimg + 16 * *(_QWORD *)&sprite_id);
-  sprite_height = LOBYTE(sprites[1].data);
+
+  // PHASE 1: Build temporary RGBC buffer
+  // Combine sprite character data with RGB color values
+  sprite_height = LOBYTE(sprites[1].data);      // `cimg->sprites[sprite_id].height`
   while ( sprite_height > (int)init_count )
   {
-    sprite_width = BYTE1(sprites[1].data);
+    sprite_width = BYTE1(sprites[1].data);      // `cimg->sprites[sprite_id].width`
     col = 0;
     pixel_idx = (unsigned int)(init_count * sprite_width);
     while ( sprite_width > col )
     {
-      sprite_char = *(uint8_t **)&sprites[2].height;
+      sprite_char = *(uint8_t **)&sprites[2].height;// `cimg->sprites[sprite_id].data`
+
+      // Set RGB color values
       pixels[pixel_idx].r = r;
       pixels[pixel_idx].g = g;
       pixels[pixel_idx].b = b;
+
+      // Verify sprite data exists
       if ( !sprite_char )
       {
         fputs("ERROR: attempted to render uninitialized sprite!\n", stderr);
         exit(-1);
       }
       ++col;
+      // Set character from sprite data
       pixels[pixel_idx].ascii = sprite_char[pixel_idx];
       ++pixel_idx;
     }
     LODWORD(init_count) = init_count + 1;
   }
-  y_offset = sprite_renders.y_offset;
-  x_offset = sprite_renders.x_offset;
-  for ( i = 0; cimg->sprites[sprite_renders.sprite_id].height > i; ++i )
+
+  // PHASE 2: Render the colored sprite to framebuffer
+  y_offset = sprite_render_record.y_offset;
+  x_offset = sprite_render_record.x_offset;
+
+  // For each row in the sprite
+  for ( i = 0; cimg->sprites[sprite_render_record.sprite_id].height > i; ++i )
   {
     x = 0;
+
+    // For each column in the sprite
     while ( 1 )
     {
-      width = cimg->sprites[sprite_renders.sprite_id].width;
+      width = cimg->sprites[sprite_render_record.sprite_id].width;
       if ( width <= x )
         break;
       framebuffer_width = cimg->header.width;
+
+      // Create ANSI escape sequence: `\x1b[38;2;R;G;Bm + char + \x1b[0m`
       __snprintf_chk(
         &emit_tmp,
         25LL,
@@ -7732,16 +7758,31 @@ unsigned __int64 __fastcall handle_4(struct cimg *cimg)
         pixels[x + i * width].g,
         pixels[x + i * width].b,
         pixels[x + i * width].ascii);
+
+      // Calculate framebuffer position: (x_offset + x, y_offset + i)
       framebuffer_x = x + x_offset;
       ++x;
+
+      // Convert 2D coordinates to 1D framebuffer index
       *(_QWORD *)&framebuffer_idx = (unsigned int)(framebuffer_x % framebuffer_width);
       framebuffer_idx = (framebuffer_idx + y_offset * framebuffer_width) % cimg->num_pixels;
+
+      // Write the colored character to framebuffer
       cimg->framebuffer[*(_QWORD *)&framebuffer_idx] = emit_tmp;
     }
     ++y_offset;
   }
   return __readfsqword(0x28u) ^ v26;
 }
+```
+
+```c title="/challenge/cimg :: handle_4() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  // Read render parameters (6 bytes total)
+  read_exact(0LL, &sprite_render_record, 6LL, "ERROR: Failed to read &sprite_render_record!", 0xFFFFFFFFLL);
+
+# ---- snip ----
 ```
 
 ### Exploit
