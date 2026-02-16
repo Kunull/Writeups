@@ -7776,6 +7776,8 @@ unsigned __int64 __fastcall handle_4(struct cimg *cimg)
 }
 ```
 
+The function first reads the `sprite_render_record` from the user input.
+
 ```c title="/challenge/cimg :: handle_4() :: Pseudocode" showLineNumbers
 # ---- snip ----
 
@@ -7785,43 +7787,146 @@ unsigned __int64 __fastcall handle_4(struct cimg *cimg)
 # ---- snip ----
 ```
 
+It zeroes out the `pixel` buffer, by basically setting the first 0x10000 bytes to 0.
+
+```c title="/challenge/cimg :: handle_4() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  // Initialize temporary pixel buffer to zero
+  p_pixels = pixels;
+  init_count = 0x10000LL;
+  *(_QWORD *)&sprite_id = sprite_render_record.sprite_id;
+  r = sprite_render_record.r;
+  while ( init_count )
+  {
+    *p_pixels++ = 0;
+    --init_count;
+  }
+  g = sprite_render_record.g;
+  b = sprite_render_record.b;
+
+# ---- snip ----
+```
+
+Next, it create fills in the RGB values along with the sprite character in the ``
+
+```c title="/challenge/cimg :: handle_4() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  // PHASE 1: Build temporary RGBC buffer
+  // Combine sprite character data with RGB color values
+  sprite_height = LOBYTE(sprites[1].data);      // `cimg->sprites[sprite_id].height`
+  while ( sprite_height > (int)init_count )
+  {
+    sprite_width = BYTE1(sprites[1].data);      // `cimg->sprites[sprite_id].width`
+    col = 0;
+    pixel_idx = (unsigned int)(init_count * sprite_width);
+    while ( sprite_width > col )
+    {
+      sprite_char = *(uint8_t **)&sprites[2].height;// `cimg->sprites[sprite_id].data`
+
+      // Set RGB color values
+      pixels[pixel_idx].r = r;
+      pixels[pixel_idx].g = g;
+      pixels[pixel_idx].b = b;
+
+      // Verify sprite data exists
+      if ( !sprite_char )
+      {
+        fputs("ERROR: attempted to render uninitialized sprite!\n", stderr);
+        exit(-1);
+      }
+      ++col;
+      // Set character from sprite data
+      pixels[pixel_idx].ascii = sprite_char[pixel_idx];
+      ++pixel_idx;
+    }
+    LODWORD(init_count) = init_count + 1;
+  }
+
+# ---- snip ----
+```
+
+```c title="/challenge/cimg :: Local Types" showLineNumbers
+# ---- snip ----
+
+typedef struct pixel_color_t {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t ascii;
+} pixel_t;
+
+# ---- snip ----
+```
+
+Finally the same ANSI template filling logic is implemented in the program.
+
+```c title="/challenge/cimg :: handle_4() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  // For each row in the sprite
+  for ( i = 0; cimg->sprites[sprite_render_record.sprite_id].height > i; ++i )
+  {
+    x = 0;
+
+    // For each column in the sprite
+    while ( 1 )
+    {
+      width = cimg->sprites[sprite_render_record.sprite_id].width;
+      if ( width <= x )
+        break;
+      framebuffer_width = cimg->header.width;
+
+      // Create ANSI escape sequence: `\x1b[38;2;R;G;Bm + char + \x1b[0m`
+      __snprintf_chk(
+        &emit_tmp,
+        25LL,
+        1LL,
+        25LL,
+        "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
+        pixels[x + i * width].r,
+        pixels[x + i * width].g,
+        pixels[x + i * width].b,
+        pixels[x + i * width].ascii);
+
+      // Calculate framebuffer position: (x_offset + x, y_offset + i)
+      framebuffer_x = x + x_offset;
+      ++x;
+
+      // Convert 2D coordinates to 1D framebuffer index
+      *(_QWORD *)&framebuffer_idx = (unsigned int)(framebuffer_x % framebuffer_width);
+      framebuffer_idx = (framebuffer_idx + y_offset * framebuffer_width) % cimg->num_pixels;
+
+      // Write the colored character to framebuffer
+      cimg->framebuffer[*(_QWORD *)&framebuffer_idx] = emit_tmp;
+    }
+    ++y_offset;
+  }
+  return __readfsqword(0x28u) ^ v26;
+
+# ---- snip ----
+```
+
+```c title="/challenge/cimg :: Local Types" showLineNumbers
+# ---- snip ----
+
+struct term_str_st {
+    char color_set[7];
+    char r[3];
+    char s1;
+    char g[3];
+    char s2;
+    char b[3];
+    char m;
+    char c;
+    char color_reset[4];
+};
+
+# ---- snip ----
+```
+
 ### Exploit
-
-```py title="~/script.py" showLineNumbers
-from pwn import *
-import struct
-import re
-
-# Desired ANSI sequence
-binary = context.binary = ELF('/challenge/cimg')
-desired_ansi_sequence_bytes = binary.string(binary.sym.desired_output)
-desired_ansi_sequence = desired_ansi_sequence_bytes.decode("utf-8")
-print(desired_ansi_sequence)
-```
-
-```
-hacker@reverse-engineering~storage-and-retrieval:~$ python ~/script.py
-[*] '/challenge/cimg'
-    Arch:       amd64-64-little
-    RELRO:      Full RELRO
-    Stack:      Canary found
-    NX:         NX enabled
-    PIE:        No PIE (0x400000)
-    FORTIFY:    Enabled
-    SHSTK:      Enabled
-    IBT:        Enabled
-    Stripped:   No
-.--------------------------------------------------------------------------.|                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                              ___   __  __    ____                        ||                        ___  |_ _| |  \/  |  / ___|                       ||                       / __|  | |  | |\/| | | |  _                        ||                      | (__   | |  | |  | | | |_| |                       ||                       \___| |___| |_|  |_|  \____|                       ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          |'--------------------------------------------------------------------------'
-```
-
-```py
-In [1]: print(len(".--------------------------------------------------------------------------."))
-76
-```
-
-Width is 76.
-
-Final script:
 
 ```py title="~/script.py" showLineNumbers 
 from pwn import *
@@ -7955,11 +8060,13 @@ header = struct.pack(
     len(directives)       # Number of directives
 )
 
-payload = header + b"".join(directives)
-print("Final Payload Size:", len(payload))
+cimg_data = header + b"".join(directives)
 
-with open("solution.cimg", "wb") as f:
-    f.write(payload)
+with open("/home/hacker/solution.cimg", "wb") as f:
+    f.write(cimg_data)
+
+print(f"Total Bytes: {len(cimg_data)} (Limit: 400)")
+print(f"Directives used: {len(directives)}")
 ```
 
 ```
@@ -7974,7 +8081,8 @@ hacker@reverse-engineering~storage-and-retrieval:~$ python ~/script.py
     SHSTK:      Enabled
     IBT:        Enabled
     Stripped:   No
-Final Payload Size: 349
+Total Bytes: 349 (Limit: 400)
+Directives used: 22
 ```
 
 ```
@@ -8005,6 +8113,7 @@ hacker@reverse-engineering~storage-and-retrieval:~$ /challenge/cimg ~/solution.c
 '--------------------------------------------------------------------------'
 pwn.college{gP6BoUhTPNZk0ED6EhlqT9CLBMs.QXxEzMwEDL4ITM0EzW}
 ```
+
 
 &nbsp;
 
