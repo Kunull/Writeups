@@ -13,7 +13,7 @@ It seems that `cryptpad.exe` was used to encrypt the flag, giving us `flag.enc`.
 
 ## Binary Analysis
 
-### Windown setup
+### Window setup
 
 ```c title="cryptpad.exe :: start() :: Pseudocode" showLineNumbers
 void __noreturn start()
