@@ -8114,6 +8114,9 @@ hacker@reverse-engineering~storage-and-retrieval:~$ /challenge/cimg ~/solution.c
 pwn.college{gP6BoUhTPNZk0ED6EhlqT9CLBMs.QXxEzMwEDL4ITM0EzW}
 ```
 
+<figure style={{ textAlign: 'center' }}>
+<img alt="image" src="https://github.com/user-attachments/assets/bd56a44e-d36e-48e8-a04d-e9ea8a7a3e59" />
+</figure>
 
 &nbsp;
 
