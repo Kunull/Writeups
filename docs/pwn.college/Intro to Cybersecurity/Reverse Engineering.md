@@ -8130,9 +8130,35 @@ hacker@reverse-engineering~extracting-knowledge:~$ ls /challenge/
 DESCRIPTION.md  cimg  cimg.c  generate_flag_image
 ```
 
+Let's run the `/challenge/generate_flag_image` script.
+
+```
+hacker@reverse-engineering~extracting-knowledge:~$ /challenge/generate_flag_image 
+```
+
+```
+hacker@reverse-engineering~extracting-knowledge:~$ ls /challenge/
+DESCRIPTION.md  cimg  cimg.c  flag.cimg  generate_flag_image
+```
+
+```
+hacker@reverse-engineering~extracting-knowledge:~$ /challenge/cimg /challenge/flag.cimg 
+                
+ ""m            
+   #            
+   "mm          
+   #            
+   #            
+ "" 
+```
+
+So that script basically writes the flag ASCII in the `/challenge/flag.cimg` file. For some reason though, passing the flag file to `/challenge/cimg` only renders the last character of the flag.
+
+Let's check if this is because `/challenge/generate_flag_image` writes only the last character to the flag file or not.
+
 ### Binary Analysis
 
-```py title="/challenge/generate_flag_image"
+```py title="/challenge/generate_flag_image" showLineNumbers
 #!/usr/bin/exec-suid -- /usr/bin/python3 -I
 
 import subprocess
@@ -8183,6 +8209,70 @@ img = (
 with open("/challenge/flag.cimg", "wb") as o:
     o.write(img)
 ```
+
+So this script basically takes in the flag, checks character by character if the character exists in a `sprites` dictionary, if not, it adds it with its key being the length of `directives` upto that point.
+
+It then calls `figlet -f ascii9` to generate an ASCII art of that character, separates it into different lines, and then appends it all into the following directive:
+
+```py title="/challenge/generate_flag_image" showLineNumbers
+# ---- snip ----
+
+        directives.append(
+            struct.pack(
+                "<HBBB",
+                3,
+                sprites[c],
+                len(sprite[0]),
+                len(sprite),
+            ) + b"".join(sprite)
+        )
+
+# ---- snip ----
+```
+
+Looks like the storage handle is to be called in the `/challenge/cimg` program.
+
+The outside the conditional loop, it appends another directive:
+
+```py title="/challenge/generate_flag_image" showLineNumbers
+# ---- snip ----
+
+    directives.append(
+        struct.pack(
+            "<HBBBBBB",
+            4,
+            sprites[c],
+            0xFF,
+            0xFF,
+            0xFF,
+            0,
+            0,
+        )
+    )
+
+# ---- snip ----
+```
+
+This looks like data which is passed to the render sprite handle.
+Interestingly, it provides `0` in both the X and Y coordinates. That is why when the sprites are rendered, each character is overwritten by it's trailing character, which is why we only see the last character of the flag in the render.
+
+Finally, it appends these two sets of data with the relevant headers, and stores the flag in the `` file.
+
+```py title="/challenge/generate_flag_image" showLineNumbers
+# ---- snip ----
+
+img = (
+    b"cIMG"
+    + struct.pack("<HBBI", 3, 16, 16, len(directives))
+    + b"".join(directives)
+)
+
+with open("/challenge/flag.cimg", "wb") as o:
+    o.write(img)
+
+# ---- snip ----
+```
+
 
 ```c title="/challenge/cimg :: main()" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
