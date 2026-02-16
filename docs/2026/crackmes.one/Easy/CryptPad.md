@@ -13,6 +13,8 @@ It seems that `cryptpad.exe` was used to encrypt the flag, giving us `flag.enc`.
 
 ## Binary Analysis
 
+Let's decompile this program using IDA.
+
 ### Window setup
 
 ```c title="cryptpad.exe :: start() :: Pseudocode" showLineNumbers
@@ -372,7 +374,7 @@ This function calls `GetSaveFileNameA`, which basically shows a Save File dialog
 
 ### Save file dialog
 
-Let's look at the `sub_4013BD()` function which is called after tehe user provides a file.
+Let's look at the `sub_4013BD()` function which is called after the user provides a file.
 
 ```c title="cryptpad.exe :: sub_4013BD() :: Pseuocode" showLineNumbers
 BOOL sub_4013BD()
