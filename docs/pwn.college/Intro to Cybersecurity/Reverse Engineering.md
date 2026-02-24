@@ -8306,7 +8306,7 @@ with open("/challenge/flag.cimg", "wb") as o:
 # ---- snip ----
 ```
 
-### Binary Analysis
+Now let us look at the `/challenge/cimg` binary.
 
 ```c title="/challenge/cimg :: Local Types" showLineNumbers
 struct cimg_header {
