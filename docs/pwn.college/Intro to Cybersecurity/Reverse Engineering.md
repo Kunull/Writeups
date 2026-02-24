@@ -9409,112 +9409,152 @@ pwn.college{s59MKbl6TiR1gXgYJHsskPU-q9b.QXyEzMwEDL4ITM0EzW}
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   __int64 v3; // rcx
-  int *v5; // rdi
+  struct cimg *p_cimg; // rdi
   bool v6; // of
   int v7; // r8d
   const char *v8; // r12
   int v9; // eax
-  const char *v10; // rdi
-  char *v12; // r12
-  unsigned int v13; // r14d
-  _BYTE *v14; // r13
-  _BOOL8 v15; // rbp
+  const char *error_msg; // rdi
+  char *desired_output; // r12
+  unsigned int num_pixels; // r14d
+  union term_pixel_t *framebuffer; // r13
+  _BOOL8 won; // rbp
   unsigned int i; // ebx
-  char v17; // al
-  unsigned __int16 v19; // [rsp+Eh] [rbp-105Ah] BYREF
-  int v20; // [rsp+10h] [rbp-1058h] BYREF
-  __int16 v21; // [rsp+14h] [rbp-1054h]
-  int v22; // [rsp+18h] [rbp-1050h]
-  unsigned int v23; // [rsp+1Ch] [rbp-104Ch]
-  void *s1; // [rsp+20h] [rbp-1048h]
-  unsigned __int64 v25; // [rsp+1028h] [rbp-40h]
+  char ascii_char; // al
+  unsigned __int16 directive_count; // [rsp+Eh] [rbp-105Ah] BYREF
+  struct cimg cimg; // [rsp+10h] [rbp-1058h] BYREF
+  unsigned __int64 v21; // [rsp+1028h] [rbp-40h]
 
   v3 = 1030LL;
-  v25 = __readfsqword(0x28u);
-  v5 = &v20;
+  v21 = __readfsqword(0x28u);
+  p_cimg = &cimg;
   v6 = __OFSUB__(argc, 1);
   v7 = argc - 1;
+
+  // `memset(&cimg, 0, sizeof(cimg));`
   while ( v3 )
   {
-    *v5++ = 0;
+    *(_DWORD *)p_cimg->header.magic_number = 0;
+    p_cimg = (struct cimg *)((char *)p_cimg + 4);
     --v3;
   }
+
+  // `if ( argc > 1 )`
   if ( !((v7 < 0) ^ v6 | (v7 == 0)) )
   {
     v8 = argv[1];
     if ( strcmp(&v8[strlen(v8) - 5], ".cimg") )
     {
       __printf_chk(1LL, "ERROR: Invalid file extension!");
-      goto LABEL_11;
+      goto EXIT;
     }
     v9 = open(v8, 0);
     dup2(v9, 0);
   }
-  read_exact(0LL, &v20, 12LL, "ERROR: Failed to read header!", 0xFFFFFFFFLL);
-  if ( v20 != 1196247395 )
+  read_exact(0LL, &cimg, 12LL, "ERROR: Failed to read header!", 0xFFFFFFFFLL);
+  if ( *(_DWORD *)cimg.header.magic_number != 'GMIc' )
   {
-    v10 = "ERROR: Invalid magic number!";
-LABEL_10:
-    puts(v10);
-    goto LABEL_11;
+    error_msg = "ERROR: Invalid magic number!";
+OUTPUT_ERROR_MSG_AND_EXIT:
+    puts(error_msg);
+    goto EXIT;
   }
-  v10 = "ERROR: Unsupported version!";
-  if ( v21 != 4 )
-    goto LABEL_10;
-  initialize_framebuffer(&v20);
-  while ( v22-- )
+  error_msg = "ERROR: Unsupported version!";
+  if ( cimg.header.version != 4 )
+    goto OUTPUT_ERROR_MSG_AND_EXIT;
+  initialize_framebuffer(&cimg);
+  while ( cimg.header.remaining_directives-- )
   {
-    read_exact(0LL, &v19, 2LL, "ERROR: Failed to read &directive_code!", 0xFFFFFFFFLL);
-    if ( v19 == 3 )
+    read_exact(0LL, &directive_count, 2LL, "ERROR: Failed to read &directive_code!", 0xFFFFFFFFLL);
+    if ( directive_count == 3 )
     {
-      handle_3(&v20);
+      handle_3(&cimg);
     }
-    else if ( v19 > 3u )
+    else if ( directive_count > 3u )
     {
-      if ( v19 != 4 )
+      if ( directive_count != 4 )
       {
-LABEL_24:
-        __fprintf_chk(stderr, 1LL, "ERROR: invalid directive_code %ux\n", v19);
-LABEL_11:
+EXIT_1:
+        __fprintf_chk(stderr, 1LL, "ERROR: invalid directive_code %ux\n", directive_count);
+EXIT:
         exit(-1);
       }
-      handle_4(&v20);
+      handle_4(&cimg);
     }
-    else if ( v19 == 1 )
+    else if ( directive_count == 1 )
     {
-      handle_1(&v20);
+      handle_1(&cimg);
     }
     else
     {
-      if ( v19 != 2 )
-        goto LABEL_24;
-      handle_2(&v20);
+      if ( directive_count != 2 )
+        goto EXIT_1;
+      handle_2(&cimg);
     }
   }
-  v12 = desired_output;
-  display(&v20, 0LL);
-  v13 = v23;
-  v14 = s1;
-  v15 = v23 == 1824;
-  for ( i = 0; v13 > i && i != 1824; ++i )
+  desired_output = ::desired_output;
+  display(&cimg, 0LL);
+  num_pixels = cimg.num_pixels;
+  framebuffer = cimg.framebuffer;
+  won = cimg.num_pixels == 1824;
+  for ( i = 0; num_pixels > i && i != 1824; ++i )
   {
-    v17 = v14[19];
-    if ( v17 != v12[19] )
-      LOBYTE(v15) = 0;
-    if ( v17 != 32 && v17 != 10 )
+    ascii_char = framebuffer->data[19];
+    if ( ascii_char != desired_output[19] )
+      LOBYTE(won) = 0;
+    if ( ascii_char != ' ' && ascii_char != '\n' )
     {
-      if ( memcmp(v14, v12, 0x18uLL) )
-        LOBYTE(v15) = 0;
+      if ( memcmp(framebuffer, desired_output, 0x18uLL) )
+        LOBYTE(won) = 0;
     }
-    v14 += 24;
-    v12 += 24;
+    ++framebuffer;
+    desired_output += 24;
   }
-  if ( (unsigned __int64)total_data <= 0x11D && v15 )
+  if ( (unsigned __int64)total_data <= 285 && won )
     win();
   return 0;
 }
 ```
 
+The `main()` function basically reads in the user input, sends it to the relevant handler funtions based on the directive code that it observes, and finally checks if the 20th byte in the crafted ANSI sequence is a space or newline character.
+
+It checks if the 20th byte in the crafted ANSI sequence is a space or newline character. If it is not, and the total number of user provided bytes is less than `285` it calls `win()` which prints the flag.
+
+Let's find the required width:
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+import struct
+import re
+
+# Desired ANSI sequence
+binary = context.binary = ELF('/challenge/cimg')
+desired_ansi_sequence_bytes = binary.string(binary.sym.desired_output)
+desired_ansi_sequence = desired_ansi_sequence_bytes.decode("utf-8")
+print(desired_ansi_sequence)
+```
+
+```
+hacker@reverse-engineering~advanced-sprites:~/cse240/25-proj-mud/01$ python ~/script.py
+[*] '/challenge/cimg'
+    Arch:       amd64-64-little
+    RELRO:      Full RELRO
+    Stack:      Canary found
+    NX:         NX enabled
+    PIE:        No PIE (0x400000)
+    FORTIFY:    Enabled
+    SHSTK:      Enabled
+    IBT:        Enabled
+    Stripped:   No
+.--------------------------------------------------------------------------.|                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                              ___   __  __    ____                        ||                        ___  |_ _| |  \/  |  / ___|                       ||                       / __|  | |  | |\/| | | |  _                        ||                      | (__   | |  | |  | | | |_| |                       ||                       \___| |___| |_|  |_|  \____|                       ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          ||                                                                          |'--------------------------------------------------------------------------'
+```
+
+```py
+In [1]: print(len(".--------------------------------------------------------------------------."))
+76
+```
+
+Lets quickly go through all the handles as well.
 
 ```c title="/challenge/cimg :: handle_1()" showLineNumbers
 unsigned __int64 __fastcall handle_1(__int64 a1)
