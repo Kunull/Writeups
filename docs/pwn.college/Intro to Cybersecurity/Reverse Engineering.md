@@ -10134,7 +10134,6 @@ unsigned __int64 __fastcall handle_4(struct cimg *cimg)
         exit(-1);
       }
       ++col;
-
       // Set character from sprite data
       pixels[pixel_idx].ascii = *(_BYTE *)(sprite_char + pixel_idx);
       ++pixel_idx;
@@ -10150,6 +10149,8 @@ unsigned __int64 __fastcall handle_4(struct cimg *cimg)
   for ( i = 0; cimg->sprites[sprite_render_record.sprite_id].height > i; ++i )
   {
     x = 0;
+
+    // For each column in the sprite
     while ( 1 )
     {
       width = cimg->sprites[sprite_render_record.sprite_id].width;
