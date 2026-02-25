@@ -10072,7 +10072,7 @@ unsigned __int64 __fastcall handle_4(struct cimg *cimg)
   int sprite_width; // r8d
   int col; // edi
   __int64 pixel_idx; // rax
-  __int64 sprite_char; // r9
+  uint8_t *sprite_char; // r9
   int y_offset; // r14d
   int x_offset; // r15d
   int i; // r13d
@@ -10120,7 +10120,7 @@ unsigned __int64 __fastcall handle_4(struct cimg *cimg)
     pixel_idx = (unsigned int)(init_count * sprite_width);
     while ( sprite_width > col )
     {
-      sprite_char = *(_QWORD *)&sprites[2].height;// `cimg->sprites[sprite_id].data`
+      sprite_char = *(uint8_t **)&sprites[2].height;// `cimg->sprites[sprite_id].data`
 
       // Set RGB color values
       pixels[pixel_idx].r = r;
@@ -10135,7 +10135,7 @@ unsigned __int64 __fastcall handle_4(struct cimg *cimg)
       }
       ++col;
       // Set character from sprite data
-      pixels[pixel_idx].ascii = *(_BYTE *)(sprite_char + pixel_idx);
+      pixels[pixel_idx].ascii = sprite_char[pixel_idx];
       ++pixel_idx;
     }
     LODWORD(init_count) = init_count + 1;
