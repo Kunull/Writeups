@@ -10769,9 +10769,6 @@ pwn.college{4JNfuh3hnmWTXsBKQetE_NAtGxO.QXzEzMwEDL4ITM0EzW}
 
 ## Accessing Resources
 
-> Often times, as feature bloat makes a software project more and more complicated, vulnerabilities slip in due to the interaction of too many moving parts. In the course of reverse engineering the software, reverse engineers will often spot such vulnerabilities.
-> This is one such scenario. Find and use the vulnerability in /challenge/cimg to get the flag!
-
 ### Binary Analysis
 
 ```c title="/challenge/cimg :: main()"
@@ -11231,9 +11228,11 @@ LABEL_7:
 }
 ```
 
+In this challenge, the `handle_5()` function reads the sprite data from a file, instead of reading it from STDIN. We can leverage this to get the flag from the `/flag` file.
+
 ### Exploit
 
-```py
+```py title="~/script.py" showLineNumbers
 from pwn import *
 import struct
 
