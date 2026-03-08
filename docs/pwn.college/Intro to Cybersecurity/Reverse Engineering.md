@@ -12603,3 +12603,96 @@ After finishing the game, we get the flag.
 pwn.college{Upj8Wp5DVOltDRK_958N0rhSiUg.QXzIzMwEDL4ITM0EzW}
 ```
 
+&nbsp;
+
+## Patching Control Flow
+
+### Binary Analysis
+
+Looking at `/challenge/quest.py`, `CIMG_1337` is identical to the previous challenge: magic number `CNNR` and reversed directive codes:
+
+```
+class CIMG_1337:
+    MAGIC = b"CNNR"
+    RENDER_FRAME =  struct.pack("<H", 7)
+    RENDER_PATCH =  struct.pack("<H", 6)
+    CREATE_SPRITE = struct.pack("<H", 5)
+    RENDER_SPRITE = struct.pack("<H", 4)
+    LOAD_SPRITE =   struct.pack("<H", 3)
+    FLUSH =         struct.pack("<H", 2)
+    SLEEP =         struct.pack("<H", 1)
+```
+
+However, looking at the disassembly of `main()`, the directive dispatch is implemented differently this time. Instead of a series of `cmp $X,%cx` instructions, the binary uses a jump table:
+
+```
+4013ef:	lea    -0x1(%rcx),%eax    # eax = directive - 1
+4013f2:	cmp    $0x6,%ax           # if > 6, invalid
+4013f6:	ja     401439             # jump to error
+4013fe:	movslq (%rbx,%rax,4),%rax # look up jump table
+401405:	notrack jmp *%rax         # jump to handler
+```
+
+It subtracts 1 from the directive code and uses it as an index into a jump table at `0x403384`. Inspecting the table:
+
+```
+index 0 (directive 1): -0x1f7c  →  handle_1
+index 1 (directive 2): -0x1f75  →  handle_2
+index 2 (directive 3): -0x1f6e  →  handle_3
+index 3 (directive 4): -0x1f67  →  handle_4
+index 4 (directive 5): -0x1f60  →  handle_5
+index 5 (directive 6): -0x1f59  →  handle_6
+index 6 (directive 7): -0x1f52  →  handle_7
+```
+
+### Exploit
+
+We need two patches:
+
+1. Magic number: patch cIMG --> CNNR
+2. Jump table: reverse the entries so that directive 7 maps to `handle_1()`, directive 6 maps to `handle_2()`, etc., while directive 4 stays in place
+
+```py title="~/patch.py" showLineNumbers
+import struct
+
+data = bytearray(open('/challenge/cimg', 'rb').read())
+
+# Patch magic number
+offset = data.index(b'cIMG')
+data[offset:offset+4] = b'CNNR'
+
+# Reverse the jump table entries at file offset 0x3384
+jt_offset = 0x3384
+entries = []
+for i in range(7):
+    val = struct.unpack_from('<i', data, jt_offset + i*4)[0]
+    entries.append(val)
+
+swapped = [
+    entries[6],  # directive 1 -> handle_1
+    entries[5],  # directive 2 -> handle_2
+    entries[4],  # directive 3 -> handle_3
+    entries[3],  # directive 4 stays
+    entries[2],  # directive 5 -> handle_5
+    entries[1],  # directive 6 -> handle_6
+    entries[0],  # directive 7 -> handle_7
+]
+
+for i, val in enumerate(swapped):
+    struct.pack_into('<i', data, jt_offset + i*4, val)
+
+open('/home/hacker/patched-cimg', 'wb').write(data)
+print('Done!')
+```
+
+We can now pass the output of `/challenge/quest.py` to the `~/patched-cimg` renderer, and play the game. Once the game is won, we get the flag.
+
+```
+hacker@reverse-engineering~patching-code:~$ /challenge/quest.py | /home/hacker/patched-cimg
+```
+
+After finishing the game, we get the flag.
+
+```
+pwn.college{Upj8Wp5DVwk.PJK_958N0rhSiUg.QXzIzMwEDL4IkjIHzW}
+```
