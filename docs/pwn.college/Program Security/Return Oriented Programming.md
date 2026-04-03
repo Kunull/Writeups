@@ -6215,7 +6215,7 @@ One easy way to do that is to just restart the binary by returning to its entryp
 ```
 
 Even though the address of the Libc is not revealed, we can leak it by using `puts@plt` to output the address of the `puts@got`.
-We need a few things perform this attack:
+We need a few things to perform this attack:
 
 - [ ] Offset between buffer and stored return address to `main()`
 - [ ] Location of `puts@plt`
