@@ -9482,7 +9482,7 @@ Stack:
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
 Registers:
-rsp: 0x7fff122d4df8
+rsp: 0x7fff122d4e00
 rbp: 0x............ (Points to some random address)
 
 ═══════════════════════════════════════════════════════════════════════════════════
@@ -9503,7 +9503,7 @@ Stack:
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
 Registers:
-rsp: 0x7fff122d4df8
+rsp: 0x7fff122d4e08
 rbp: 0x............ (Points to some random address)
 rip: 0x7d32b1c75000
 
@@ -10214,7 +10214,8 @@ This is because the address are always `0x1000` aligned. So, if we went with the
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
 Finally we also need to define the value with which we will overwrite the stored base pointer, because that will define what is popped in `rsp`.
-We know the location of the buffer, so we can set the overwritten stored base pointer to that value minus 16. This will be clear when looking at the ROP chain.
+We know the location of the buffer, so we can set the overwritten stored base pointer to that value minus 16. `0x7ffe4e08ddf8` is the value being popped into `rbp`, and after `pop rbp`, `rsp` advances to `de00` where `win()` lives.
+This will be clear when looking at the ROP chain.
 
 - [x] Offset between the location of the buffer and the location of the stored return pointer to `main()`: `128`
    - Location of the buffer: `0x7ffe4e08de08`
