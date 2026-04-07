@@ -9869,9 +9869,9 @@ $
 ## Pivotal Payload (Easy)
 
 ```
-hacker@return-oriented-programming~pivotal-payload-hard:~$ /challenge/pivotal-payload-hard 
+hacker@return-oriented-programming~pivotal-payload-easy:~$ /challenge/pivotal-payload-easy 
 ###
-### Welcome to /challenge/pivotal-payload-hard!
+### Welcome to /challenge/pivotal-payload-easy!
 ###
 
 [LEAK] Your input buffer is located at: 0x7ffc03da76f8.
