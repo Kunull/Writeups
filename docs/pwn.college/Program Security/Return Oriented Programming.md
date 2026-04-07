@@ -9323,7 +9323,7 @@ $1 = 112
 
 #### ROP gadgets
 
-The challenge has ASLR enabled, which means that the addresses of the ROP gadgets would be different safe the 3 least significant nibbles. If we decide to do partial overwrite, that will require brute forcing.
+The challenge has ASLR enabled, which means that the addresses of the ROP gadgets would be different save the 3 least significant nibbles. If we decide to do partial overwrite, that will require brute forcing.
 
 We are looking for a specific gadget `leave ; ret` which pops the value of `rbp` into `rsp`. So in our chain, if we replace the stored base pointer with the address somewhere above that of the pointer to `win()`, our stack pointer would be moved to that location above the pointer to `win()`. This would be our stack pivot.
 
@@ -9383,7 +9383,7 @@ We know the location of the buffer, so we can set the overwritten stored base po
    - Location of stored return pointer to `main()`: `0x7fff122d4e78`
 - [x] LSB of required ROP gadgets:
    - `leave ; ret`: `\xb2`
-- [x] Offset of the overwritten stored base pointer value from the buffer: `-16`
+- [x] Offset of the overwritten stored base pointer value from the buffer: `0x7fff122d4e70 - 16`
 
 ### ROP chain: Stack pivot + ret2win
 
@@ -9753,7 +9753,7 @@ $1 = 96
 
 #### ROP gadgets
 
-The challenge has ASLR enabled, which means that the addresses of the ROP gadgets would be different safe the 3 least significant nibbles. If we decide to do partial overwrite, that will require brute forcing.
+The challenge has ASLR enabled, which means that the addresses of the ROP gadgets would be different save the 3 least significant nibbles. If we decide to do partial overwrite, that will require brute forcing.
 
 We are looking for a specific gadget `leave ; ret` which pops the value of `rbp` into `rsp`. So in our chain, if we replace the stored base pointer with the address somewhere above that of the pointer to `win()`, our stack pointer would be moved to that location above the pointer to `win()`. This would be our stack pivot.
 
@@ -9812,7 +9812,7 @@ Finally we also need to define the value with which we will overwrite the stored
    - Location of the stored return pointer to `main()`: `0x7ffe74b2f678`
 - [x] Locations of required ROP gadgets
    - `leave ; ret`: `\x47`
-- [x] Offset of the overwritten stored base pointer value from the buffer: `-16`
+- [x] Offset of the overwritten stored base pointer value from the buffer: `0x7ffe74b2f670 - 16`
 
 ### ROP chain: Stack pivot + ret2win
 
@@ -10161,7 +10161,7 @@ $1 = 128
 
 #### ROP gadgets
 
-The challenge has ASLR enabled, which means that the addresses of the ROP gadgets would be different safe the 3 least significant nibbles. If we decide to do partial overwrite, that will require brute forcing.
+The challenge has ASLR enabled, which means that the addresses of the ROP gadgets would be different save the 3 least significant nibbles. If we decide to do partial overwrite, that will require brute forcing.
 
 We are looking for a specific gadget `leave ; ret` which pops the value of `rbp` into `rsp`. So in our chain, if we replace the stored base pointer with the address somewhere above that of the pointer to `win()`, our stack pointer would be moved to that location above the pointer to `win()`. This would be our stack pivot.
 
@@ -10221,7 +10221,7 @@ We know the location of the buffer, so we can set the overwritten stored base po
    - Location of stored return pointer to `main()`: `0x7ffe4e08de88`
 - [x] LSB of required ROP gadgets:
    - `leave ; ret`: `\x86`
-- [x] Offset of the overwritten stored base pointer value from the buffer: `-16`
+- [x] Offset of the overwritten stored base pointer value from the buffer: `0x7ffe4e08de80 - 16`
 
 ### ROP chain: Stack pivot + ret2win
 
@@ -10587,7 +10587,7 @@ $1 = 48
 
 #### ROP gadgets
 
-The challenge has ASLR enabled, which means that the addresses of the ROP gadgets would be different safe the 3 least significant nibbles. If we decide to do partial overwrite, that will require brute forcing.
+The challenge has ASLR enabled, which means that the addresses of the ROP gadgets would be different save the 3 least significant nibbles. If we decide to do partial overwrite, that will require brute forcing.
 
 We are looking for a specific gadget `leave ; ret` which pops the value of `rbp` into `rsp`. So in our chain, if we replace the stored base pointer with the address somewhere above that of the pointer to `win()`, our stack pointer would be moved to that location above the pointer to `win()`. This would be our stack pivot.
 
@@ -10646,7 +10646,7 @@ Finally we also need to define the value with which we will overwrite the stored
    - Location of the stored return pointer to `main()`: `0x7ffcacefda88`
 - [x] Locations of required ROP gadgets
    - `leave ; ret`: `\xbb`
-- [x] Offset of the overwritten stored base pointer value from the buffer: `-16`
+- [x] Offset of the overwritten stored base pointer value from the buffer: `0x7ffcacefda80 - 16`
 
 ### ROP chain: Stack pivot + ret2win
 
