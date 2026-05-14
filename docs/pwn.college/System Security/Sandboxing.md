@@ -3829,3 +3829,7 @@ This drops us into a root shell on the real host. Then:
 bashsuid-5.0# cat /flag
 pwn.college{IH60WiwTvVZzkOYQdXpKfLset9i.dhDMzMDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## 
