@@ -102,7 +102,9 @@ done
 Terminal 2:
 
 ```
-hacker@race-conditions~level1-1:~$ while true; do     /challenge/babyrace_level1.1 x; done
+hacker@race-conditions~level1-1:~$ while true; do
+    /challenge/babyrace_level1.0 x
+done
 ###
 ### Welcome to /challenge/babyrace_level1.1!
 ###
@@ -132,7 +134,7 @@ pwn.college{cHDaunhEvD4T9hYDJvi33NxNTe5.0lMwQDL4ITM0EzW}
 
 &nbsp;
 
-## babyrace_level2.0
+## level2.0
 
 > Exploit a race condition with a tighter timing window to read the flag. Keep in mind that tighter timing windows in race conditions generally are harder to exploit reliably!
 
@@ -169,59 +171,8 @@ Terminal 2:
 hacker@race-conditions~level2-0:~$ while true; do
     /challenge/babyrace_level2.0 x
 done
-###
-### Welcome to /challenge/babyrace_level2.0!
-###
 
-Through this series of challenges, you will become familiar with the concept of race conditions. This challenge allows
-you to open a single file, as specified by the first argument to the program (argv[1]).
-
-The file opened will be be sent to you.
-
-This challenge will verify that the file's path does not include "flag".
-This challenge will verify that the file is not a symlink.
-Calling lstat (does not follow symlinks) on the path.
-
-Paused (press enter to continue)
-
-Error: failed to get file status!
-###
-### Welcome to /challenge/babyrace_level2.0!
-###
-
-Through this series of challenges, you will become familiar with the concept of race conditions. This challenge allows
-you to open a single file, as specified by the first argument to the program (argv[1]).
-
-The file opened will be be sent to you.
-
-This challenge will verify that the file's path does not include "flag".
-This challenge will verify that the file is not a symlink.
-Calling lstat (does not follow symlinks) on the path.
-
-Paused (press enter to continue)
-
-Paused (press enter to continue)
-
-hi
-### Goodbye!
-###
-### Welcome to /challenge/babyrace_level2.0!
-###
-
-Through this series of challenges, you will become familiar with the concept of race conditions. This challenge allows
-you to open a single file, as specified by the first argument to the program (argv[1]).
-
-The file opened will be be sent to you.
-
-This challenge will verify that the file's path does not include "flag".
-This challenge will verify that the file is not a symlink.
-Calling lstat (does not follow symlinks) on the path.
-
-Paused (press enter to continue)
-
-Paused (press enter to continue)
+# ---- snip ----
 
 pwn.college{U8-2_E6AoYrIX5lnG5sdQMgCRBV.01MwQDL4ITM0EzW}
 ```
-
-The pauses make the race window so large that the loop wins almost immediately. The first run fails because `x` didn't exist yet. The second reads the dummy file. The third catches `x` as a symlink to `/flag` between the two pauses.
