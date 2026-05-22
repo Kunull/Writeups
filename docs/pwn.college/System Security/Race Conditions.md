@@ -181,7 +181,7 @@ pwn.college{U8-2_E6AoYrIX5lnG5sdQMgCRBV.01MwQDL4ITM0EzW}
 
 ## level3.0
 
-> Read the flag file, but the program verifies the path doesn't contain "flag", that the file is not a symlink, and that the file is not larger than 256 bytes.
+> Exploit a race condition to corrupt memory, affecting the behavior of the challenge.
 
 ```text
 hacker@race-conditions~level3-0:~$ /challenge/babyrace_level3.0 /etc/passwd
@@ -272,7 +272,7 @@ There are two vulnerabilities at play here.
 
 ### TOCTOU
 
-The checks and the subsequent `open()` call are **not atomic**. There is a window of time between the `lstat` check (is it too big?) and the actual `open()` call:
+The checks and the subsequent `open()` call are **not atomic**. There is a window of time between the `lstat` check and the actual `open()` call:
 
 ```
 Timeline:
