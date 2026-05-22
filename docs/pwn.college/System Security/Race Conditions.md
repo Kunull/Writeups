@@ -1051,7 +1051,7 @@ The program performs three checks before opening the file:
 2. The file at that path must not be a symlink (`lstat` → `S_ISLNK`).
 3. The file must not be larger than 256 bytes (`lstat` → `st_size`).
 
-### Source code
+### Source code analysis
 
 ```c
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -1136,8 +1136,6 @@ __uid_t win()
   return result;
 }
 ```
-
-### Analysis
 
 This is identical to level4.0 with one key difference: the `getchar()` pauses are gone, making the race window microseconds wide instead of seconds.
 
