@@ -2199,9 +2199,9 @@ This time, the rules are defined, and then the architecture `SCMP_ARCH_X86` is a
 # ---- snip ----
 ```
 
-As a result of adding the x86 architecture after adding the rules, the rules are applied to the default x86-64 architecture and no x86.
+As a result of adding the x86 architecture after adding the rules, the rules are applied to the default x86-64 architecture and not x86.
 
-We can exploit this by swithing out `syscall` with `int 0x80`, and 
+We can exploit this by switching out `syscall` with `int 0x80`, and use the 32-bit syscall convention. 
 
 ### Exploit
 
