@@ -1058,7 +1058,7 @@ Using `linkat` we can create a [hard link](https://en.wikipedia.org/wiki/Hard_li
 A hard link is an entry that associates a name with a file.
 This allows us to access `/flag` inside of `/tmp/jail/` using a different name.
 
-We can pass `olddrifd` to `3`, as it was the last file descriptor which was opened. As for `newdirfd`, we can set it to `AT_FDCWD` so that it ignores the the file descriptor, and uses the current working directory.
+We can pass `olddirfd` to `3`, as it was the last file descriptor which was opened. As for `newdirfd`, we can set it to `AT_FDCWD` so that it ignores the the file descriptor, and uses the current working directory.
 
 ### Exploit
 
@@ -1349,7 +1349,7 @@ The `fchdir` syscall works similar to `chdir`, the only difference is that it ta
 int fchdir(int fd);
 ```
 
-This challenge opens the file / directory that we pass as an argument, and stores it file descriptor.
+This challenge opens the file / directory that we pass as an argument, and stores it as file descriptor.
 
 ```c title="/challenge/babyjail_level6.c" showLineNumbers
 # ---- snip ----
@@ -1641,7 +1641,7 @@ This challenge opens the file / directory that we pass as an argument, and store
 # ---- snip ----
 ```
 
-It then originally sets the root to `/tmp/jail-XXXXXX`. 
+It then sets the root to `/tmp/jail-XXXXXX`. 
 
 ```c title="/challenge/babyjail_level7.c" showLineNumbers
 # ---- snip ----
@@ -1932,7 +1932,7 @@ int main(int argc, char **argv, char **envp)
 
 This time the challenge does not accept any arguments.
 
-We will have to open the directory in the shell itself and then pass use the file descriptor.
+We will have to open the directory in the shell itself and then pass the file descriptor.
 This is possible because the child (`/challenge/babyjail_level8.c`) inherits the file descriptors of the parent (shell).
 
 ### Exploit
