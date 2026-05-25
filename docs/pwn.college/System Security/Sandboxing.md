@@ -2856,7 +2856,7 @@ FLAG: pwn.college{sJMIlSDbCV5i1li7B7rzqaNTqK3.0VM0IDL4ITM0EzW}
 
 > Escape a chroot sandbox using shellcode, but this time only using the following syscalls: ["read"]. Note that "write" is disabled! You will need a creative way of extracting the flag data from your process!
 
-```c title="/challenge/babyjail_level11.c" showLineNumbers
+```c title="/challenge/babyjail_level12.c" showLineNumbers
 #define _GNU_SOURCE 1
 
 #include <stdlib.h>
@@ -3303,7 +3303,7 @@ It also closes STDIN, STDOUT, STDERR, so the child cannot directly print anythin
 
 However, the parent exposes a command interface over the socket:
 
-```c title="" showLineNumbers
+```c title="/challenge/babyjail_level13.c" showLineNumbers
 # ---- snip ----
 
             else if (strcmp(command, "read_file") == 0)
