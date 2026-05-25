@@ -2550,7 +2550,6 @@ pwn.college{0uXfozp4efRYCq_1KHu3550oGXd.0FM0IDL4ITM0EzW
 pwn.college{0uXfozp4efRYCq_1KHu3550oGXd.0FM0IDL4ITM0EzW}
 pwn.college{0uXfozp4efRYCq_1KHu3550oGXd.0FM0IDL4ITM0EzW}
 
-
 FLAG: pwn.college{0uXfozp4efRYCq_1KHu3550oGXd.0FM0IDL4ITM0EzW}
 ```
 
@@ -2714,7 +2713,7 @@ Then we have two options based on the result of the comparison:
 
 ### Exploit
 
-```py title="" showLineNumbers
+```py title="~/script.py" showLineNumbers
 from pwn import *
 import time
 import string
@@ -2857,7 +2856,7 @@ FLAG: pwn.college{sJMIlSDbCV5i1li7B7rzqaNTqK3.0VM0IDL4ITM0EzW}
 
 > Escape a chroot sandbox using shellcode, but this time only using the following syscalls: ["read"]. Note that "write" is disabled! You will need a creative way of extracting the flag data from your process!
 
-```c title="" showLineNumbers
+```c title="/challenge/babyjail_level11.c" showLineNumbers
 #define _GNU_SOURCE 1
 
 #include <stdlib.h>
@@ -3015,7 +3014,7 @@ If the process is still running, the guessed byte was correct. Otherwise, the gu
 
 ### Exploit
 
-```py title="" showLineNumebers
+```py title="~/script.py" showLineNumebers
 from pwn import *
 import string
 import time
