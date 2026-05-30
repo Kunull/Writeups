@@ -11157,67 +11157,77 @@ ASLR randomizes 28 bits of the libc base (bits 12–39). Since the base is alway
 
 Stack:
                            ┌───────────────────────────┐
-            buf - 16       │  .. .. .. .. .. .. .. ..  │  ( garbage / don't care )
+            0x7ffedfb5b0e8 │  .. .. .. .. .. .. .. ..  │ ( garbage / don't care )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            buf -  8       │   pointer to win()         │  --> ( win() )
+            0x7ffedfb5b0f0 │  00 00 77 6c 54 62 40 00  │ --> ( win() )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-    rsi --> buf +  0       │  41 41 41 41 41 41 41 41  │  ( b"AAAAAAAA" )
+    rsi --> 0x7ffedfb5b0f8 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAA" )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-                      .... │  .. .. .. .. .. .. .. ..  │  ....
-                      .... │  .. .. .. .. .. .. .. ..  │  ....
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-    rbp --> buf + 104      │   buf - 16                 │  ( overwritten saved RBP )
+            0x7ffedfb5b158 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAA" )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-    rsp --> buf + 112      │   ?? ?? ??                 │  --> ( leave ; ret in libc )
+    rbp --> 0x7ffedfb5b160 │  00 00 7f fe df b5 b0 e8  │ ( buf - 16, overwritten saved RBP )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+    rsp --> 0x7ffedfb5b168 │  00 00 77 6c 53 3e 80 83  │ --> ( __libc_start_main+243 )
                            └───────────────────────────┘
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
 ═══════════════════════════════════════════════════════════════════════════════════
 rip --> main() return
+	// The saved RIP low 3 bytes are overwritten with our leave ; ret pattern.
+	// main's own epilogue fires first.
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
                            ┌───────────────────────────┐
-            buf - 16       │  .. .. .. .. .. .. .. ..  │
+            0x7ffedfb5b0e8 │  .. .. .. .. .. .. .. ..  │ ( garbage / don't care )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            buf -  8       │   pointer to win()         │  --> ( win() )
+            0x7ffedfb5b0f0 │  00 00 77 6c 54 62 40 00  │ --> ( win() )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            buf +  0       │  41 41 41 41 41 41 41 41  │
+            0x7ffedfb5b0f8 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAA" )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-                      .... │  .. .. .. .. .. .. .. ..  │
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-    rbp --> buf + 104      │   buf - 16                 │
+            0x7ffedfb5b158 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAA" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+    rbp --> 0x7ffedfb5b160 │  00 00 7f fe df b5 b0 e8  │ ( buf - 16 )
                            └───────────────────────────┘
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
+Registers:
+rsp: 0x7ffedfb5b160
+
 ═══════════════════════════════════════════════════════════════════════════════════
-rip --> leave ; ret  (main epilogue)
-	// leave: mov rsp, rbp → rsp = buf + 104
-	//        pop rbp      → rbp = buf - 16,  rsp = buf + 112
+rip --> leave ; ret  (main's epilogue)
+	// leave: mov rsp, rbp → rsp = 0x7ffedfb5b160
+	//        pop rbp      → rbp = buf - 16,  rsp = 0x7ffedfb5b168
 	// ret:   rip = leave ; ret gadget in libc
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
                            ┌───────────────────────────┐
-            buf - 16       │  .. .. .. .. .. .. .. ..  │
+            0x7ffedfb5b0e8 │  .. .. .. .. .. .. .. ..  │ ( garbage / don't care )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-    rsp --> buf -  8       │   pointer to win()         │  --> ( win() )
+    rsp --> 0x7ffedfb5b0f0 │  00 00 77 6c 54 62 40 00  │ --> ( win() )
                            └───────────────────────────┘
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
 Registers:
-rbp: buf - 16
+rbp: 0x7ffedfb5b0e8
 
 ═══════════════════════════════════════════════════════════════════════════════════
 rip --> leave ; ret  (libc gadget)
-	// leave: mov rsp, rbp → rsp = buf - 16
-	//        pop rbp      → rbp = [buf - 16] (don't care),  rsp = buf - 8
-	// ret:   rip = [buf - 8] = win()  ✓
+	// leave: mov rsp, rbp → rsp = 0x7ffedfb5b0e8
+	//        pop rbp      → rbp = [0x7ffedfb5b0e8] (don't care),  rsp = 0x7ffedfb5b0f0
+	// ret:   rip = [0x7ffedfb5b0f0] = win()  ✓
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
                            ┌───────────────────────────┐
-    rsp --> buf -  8       │   pointer to win()         │
+    rsp --> 0x7ffedfb5b0f0 │  00 00 77 6c 54 62 40 00  │ --> ( win() )
                            └───────────────────────────┘
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
