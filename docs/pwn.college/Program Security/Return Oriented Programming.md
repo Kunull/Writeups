@@ -11030,7 +11030,7 @@ Breakpoint hit at 0x64b6f3eb9207
 ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer: `112`
+- [x] Offset between the location of the buffer and the location of the stored return pointer: 
    - Location of the buffer: `0x7ffedfb5b0f8`
 - [ ] Locations of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
@@ -11157,7 +11157,7 @@ ASLR randomizes 28 bits of the libc base (bits 12–39). Since the base is alway
 
 Stack:
                            ┌───────────────────────────┐
-            0x7ffedfb5b0e8 │  .. .. .. .. .. .. .. ..  │ 
+            0x7ffedfb5b0e8 │  .. .. .. .. .. .. .. ..  │ ( garbage / don't care )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
             0x7ffedfb5b0f0 │  00 00 77 6c 54 62 40 00  │ --> ( win() )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
@@ -11182,7 +11182,7 @@ rip --> main() return
 
 Stack:
                            ┌───────────────────────────┐
-            0x7ffedfb5b0e8 │  .. .. .. .. .. .. .. ..  │ 
+            0x7ffedfb5b0e8 │  .. .. .. .. .. .. .. ..  │ ( garbage / don't care )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
             0x7ffedfb5b0f0 │  00 00 77 6c 54 62 40 00  │ --> ( win() )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
@@ -11209,7 +11209,7 @@ rip --> leave ; ret  (main's epilogue)
 
 Stack:
                            ┌───────────────────────────┐
-            0x7ffedfb5b0e8 │  .. .. .. .. .. .. .. ..  │ 
+            0x7ffedfb5b0e8 │  .. .. .. .. .. .. .. ..  │ ( garbage / don't care )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
     rsp --> 0x7ffedfb5b0f0 │  00 00 77 6c 54 62 40 00  │ --> ( win() )
                            └───────────────────────────┘
@@ -11303,3 +11303,197 @@ Leaving!
 ### Goodbye!
 pwn.college{orp505Xqzn5aiXZ3gTgAFgUFRGK.01M2MDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## Pivotal Pursuit (Hard)
+
+```
+hacker@return-oriented-programming~pivotal-pursuit-hard:~$ /challenge/pivotal-pursuit-hard 
+###
+### Welcome to /challenge/pivotal-pursuit-hard!
+###
+
+[LEAK] Your input buffer is located at: 0x7fffaae11c88.
+```
+
+We need the following:
+
+- [ ] Offset between the location of the buffer and the location of the stored return pointer
+- [ ] LSB of required ROP gadgets
+- [ ] Offset of the overwritten stored base pointer value from the buffer
+
+### Binary analysis
+
+#### `main()`
+
+```
+pwndbg> disassemble main
+Dump of assembler code for function main:
+   0x00000000000020d7 <+0>:     endbr64
+   0x00000000000020db <+4>:     push   rbp
+   0x00000000000020dc <+5>:     mov    rbp,rsp
+   0x00000000000020df <+8>:     sub    rsp,0x70
+   0x00000000000020e3 <+12>:    mov    DWORD PTR [rbp-0x54],edi
+   0x00000000000020e6 <+15>:    mov    QWORD PTR [rbp-0x60],rsi
+   0x00000000000020ea <+19>:    mov    QWORD PTR [rbp-0x68],rdx
+   0x00000000000020ee <+23>:    lea    rdi,[rip+0xf13]        # 0x3008
+   0x00000000000020f5 <+30>:    call   0x10e0 <puts@plt>
+   0x00000000000020fa <+35>:    mov    rax,QWORD PTR [rbp-0x60]
+   0x00000000000020fe <+39>:    mov    rax,QWORD PTR [rax]
+   0x0000000000002101 <+42>:    mov    rsi,rax
+   0x0000000000002104 <+45>:    lea    rdi,[rip+0xf01]        # 0x300c
+   0x000000000000210b <+52>:    mov    eax,0x0
+   0x0000000000002110 <+57>:    call   0x1100 <printf@plt>
+   0x0000000000002115 <+62>:    lea    rdi,[rip+0xeec]        # 0x3008
+   0x000000000000211c <+69>:    call   0x10e0 <puts@plt>
+   0x0000000000002121 <+74>:    mov    edi,0xa
+   0x0000000000002126 <+79>:    call   0x10d0 <putchar@plt>
+   0x000000000000212b <+84>:    mov    rax,QWORD PTR [rip+0x2eee]        # 0x5020 <stdin@@GLIBC_2.2.5>
+   0x0000000000002132 <+91>:    mov    ecx,0x0
+   0x0000000000002137 <+96>:    mov    edx,0x2
+   0x000000000000213c <+101>:   mov    esi,0x0
+   0x0000000000002141 <+106>:   mov    rdi,rax
+   0x0000000000002144 <+109>:   call   0x1140 <setvbuf@plt>
+   0x0000000000002149 <+114>:   mov    rax,QWORD PTR [rip+0x2ec0]        # 0x5010 <stdout@@GLIBC_2.2.5>
+   0x0000000000002150 <+121>:   mov    ecx,0x1
+   0x0000000000002155 <+126>:   mov    edx,0x2
+   0x000000000000215a <+131>:   mov    esi,0x0
+   0x000000000000215f <+136>:   mov    rdi,rax
+   0x0000000000002162 <+139>:   call   0x1140 <setvbuf@plt>
+   0x0000000000002167 <+144>:   mov    eax,DWORD PTR [rbp-0x54]
+   0x000000000000216a <+147>:   mov    DWORD PTR [rbp-0x4],eax
+   0x000000000000216d <+150>:   mov    rax,QWORD PTR [rbp-0x60]
+   0x0000000000002171 <+154>:   mov    QWORD PTR [rbp-0x10],rax
+   0x0000000000002175 <+158>:   mov    rax,QWORD PTR [rbp-0x68]
+   0x0000000000002179 <+162>:   mov    QWORD PTR [rbp-0x18],rax
+   0x000000000000217d <+166>:   mov    QWORD PTR [rbp-0x50],0x0
+   0x0000000000002185 <+174>:   mov    QWORD PTR [rbp-0x48],0x0
+   0x000000000000218d <+182>:   mov    QWORD PTR [rbp-0x40],0x0
+   0x0000000000002195 <+190>:   mov    QWORD PTR [rbp-0x38],0x0
+   0x000000000000219d <+198>:   mov    QWORD PTR [rbp-0x30],0x0
+   0x00000000000021a5 <+206>:   mov    QWORD PTR [rbp-0x28],0x0
+   0x00000000000021ad <+214>:   lea    rax,[rbp-0x50]
+   0x00000000000021b1 <+218>:   add    rax,0x8
+   0x00000000000021b5 <+222>:   mov    rsi,rax
+   0x00000000000021b8 <+225>:   lea    rdi,[rip+0xe61]        # 0x3020
+   0x00000000000021bf <+232>:   mov    eax,0x0
+   0x00000000000021c4 <+237>:   call   0x1100 <printf@plt>
+   0x00000000000021c9 <+242>:   mov    r9d,0x0
+   0x00000000000021cf <+248>:   mov    r8d,0x0
+   0x00000000000021d5 <+254>:   mov    ecx,0x22
+   0x00000000000021da <+259>:   mov    edx,0x3
+   0x00000000000021df <+264>:   mov    esi,0x138
+   0x00000000000021e4 <+269>:   mov    edi,0x0
+   0x00000000000021e9 <+274>:   call   0x10f0 <mmap@plt>
+   0x00000000000021ee <+279>:   mov    QWORD PTR [rbp-0x50],rax
+   0x00000000000021f2 <+283>:   mov    rax,QWORD PTR [rbp-0x50]
+   0x00000000000021f6 <+287>:   mov    edx,0x138
+   0x00000000000021fb <+292>:   lea    rsi,[rip+0xe4e]        # 0x3050
+   0x0000000000002202 <+299>:   mov    rdi,rax
+   0x0000000000002205 <+302>:   call   0x1130 <memcpy@plt>
+   0x000000000000220a <+307>:   mov    rax,QWORD PTR [rbp-0x50]
+   0x000000000000220e <+311>:   mov    edx,0x5
+   0x0000000000002213 <+316>:   mov    esi,0x138
+   0x0000000000002218 <+321>:   mov    rdi,rax
+   0x000000000000221b <+324>:   call   0x1150 <mprotect@plt>
+   0x0000000000002220 <+329>:   test   eax,eax
+   0x0000000000002222 <+331>:   je     0x2243 <main+364>
+   0x0000000000002224 <+333>:   lea    rcx,[rip+0xecd]        # 0x30f8 <__PRETTY_FUNCTION__.5687>
+   0x000000000000222b <+340>:   mov    edx,0x2a
+   0x0000000000002230 <+345>:   lea    rsi,[rip+0xe68]        # 0x309f
+   0x0000000000002237 <+352>:   lea    rdi,[rip+0xe6a]        # 0x30a8
+   0x000000000000223e <+359>:   call   0x1110 <__assert_fail@plt>
+   0x0000000000002243 <+364>:   lea    rax,[rbp-0x50]
+   0x0000000000002247 <+368>:   add    rax,0x8
+   0x000000000000224b <+372>:   mov    edx,0x1000
+   0x0000000000002250 <+377>:   mov    rsi,rax
+   0x0000000000002253 <+380>:   mov    edi,0x0
+   0x0000000000002258 <+385>:   call   0x1120 <read@plt>
+   0x000000000000225d <+390>:   mov    DWORD PTR [rbp-0x1c],eax
+   0x0000000000002260 <+393>:   lea    rdi,[rip+0xe7a]        # 0x30e1
+   0x0000000000002267 <+400>:   call   0x10e0 <puts@plt>
+   0x000000000000226c <+405>:   nop
+   0x000000000000226d <+406>:   lea    rdi,[rip+0xe76]        # 0x30ea
+   0x0000000000002274 <+413>:   call   0x10e0 <puts@plt>
+   0x0000000000002279 <+418>:   mov    eax,0x0
+   0x000000000000227e <+423>:   leave
+   0x000000000000227f <+424>:   ret
+End of assembler dump.
+```
+
+Let us set a breakpoint at `main+385` where the call to `read()` is made.
+
+```
+pwndbg> break *(main+385)
+Breakpoint 1 at 0x2258
+```
+
+```
+pwndbg> run
+Starting program: /challenge/pivotal-pursuit-hard 
+Downloading separate debug info for system-supplied DSO at 0x7ffdc2db5000
+Download failed: Invalid argument.  Continuing without separate debug info for system-supplied DSO at 0x7ffdc2db5000.                                                                           
+###
+### Welcome to /challenge/pivotal-pursuit-hard!
+###
+
+[LEAK] Your input buffer is located at: 0x7ffdc2d2b198.
+
+
+Breakpoint 1, 0x0000564274d9d258 in main ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+────────────────────────────────────────────────────────────────────────────────────────[ LAST SIGNAL ]─────────────────────────────────────────────────────────────────────────────────────────
+Breakpoint hit at 0x564274d9d258
+─────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────────────────────────────────────────
+ RAX  0x7ffdc2d2b198 ◂— 0
+ RBX  0x564274d9d280 (__libc_csu_init) ◂— endbr64
+ RCX  0x7f5efddb5bcb (mprotect+11) ◂— cmp rax, -0xfff
+ RDX  0x1000
+ RDI  0
+ RSI  0x7ffdc2d2b198 ◂— 0
+ R8   8
+ R9   0x7f5efdecb020 ◂— xor qword ptr [rsp], rax
+ R10  0x22
+ R11  0x287
+ R12  0x564274d9c160 (_start) ◂— endbr64
+ R13  0x7ffdc2d2b2d0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffdc2d2b1e0 ◂— 0
+ RSP  0x7ffdc2d2b170 ◂— 0
+ RIP  0x564274d9d258 (main+385) ◂— call read@plt
+──────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────────
+ ► 0x564274d9d258 <main+385>           call   read@plt                    <read@plt>
+        fd: 0 (/dev/pts/2)
+        buf: 0x7ffdc2d2b198 ◂— 0
+        nbytes: 0x1000
+ 
+   0x564274d9d25d <main+390>           mov    dword ptr [rbp - 0x1c], eax
+   0x564274d9d260 <main+393>           lea    rdi, [rip + 0xe7a]              RDI => 0x564274d9e0e1 ◂— 'Leaving!'
+   0x564274d9d267 <main+400>           call   puts@plt                    <puts@plt>
+ 
+   0x564274d9d26c <main+405>           nop   
+   0x564274d9d26d <main+406>           lea    rdi, [rip + 0xe76]     RDI => 0x564274d9e0ea ◂— '### Goodbye!'
+   0x564274d9d274 <main+413>           call   puts@plt                    <puts@plt>
+ 
+   0x564274d9d279 <main+418>           mov    eax, 0                 EAX => 0
+   0x564274d9d27e <main+423>           leave 
+   0x564274d9d27f <main+424>           ret   
+ 
+   0x564274d9d280 <__libc_csu_init>    endbr64
+───────────────────────────────────────────────────────────────────────────────────────────[ STACK ]────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp     0x7ffdc2d2b170 ◂— 0
+01:0008│-068     0x7ffdc2d2b178 —▸ 0x7ffdc2d2b2e8 —▸ 0x7ffdc2d2cea3 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-060     0x7ffdc2d2b180 —▸ 0x7ffdc2d2b2d8 —▸ 0x7ffdc2d2ce83 ◂— '/challenge/pivotal-pursuit-hard'
+03:0018│-058     0x7ffdc2d2b188 ◂— 0x100f0b2ff
+04:0020│-050     0x7ffdc2d2b190 —▸ 0x7f5efdecb000 ◂— push rbp
+05:0028│ rax rsi 0x7ffdc2d2b198 ◂— 0
+... ↓            2 skipped
+─────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]──────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x564274d9d258 main+385
+   1   0x7f5efdcc1083 __libc_start_main+243
+   2   0x564274d9c18e _start+46
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
