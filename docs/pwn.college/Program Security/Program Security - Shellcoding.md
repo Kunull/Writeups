@@ -11409,6 +11409,8 @@ We can see that the expected substring is `REPEAT`.
 Since we will make the program call itself again by sending the `REPEAT` substring in our payload, the frame will be different for the second invocation.
 This means that when we overwrite the stored return address, we have to overwrite it with the buffer address of the new frame.
 
+This is because our shellcode will be sent in the second stage, so it's addresses will be relative to the second frame's addresses.
+
 Let's see how this works.
 
 #### Analyzing distance between the buffer of the old and the new frames

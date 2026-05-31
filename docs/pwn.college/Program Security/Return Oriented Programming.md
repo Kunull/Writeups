@@ -12936,3 +12936,20 @@ pwn.college{cuAFnOlGqi0aaNd1OJwtlLU09th.0lN2MDL4ITM0EzW}
 ```
 
 &nbsp;
+
+## ROP Roulette (Easy)
+
+```
+hacker@return-oriented-programming~rop-roulette-easy:~$ /challenge/rop-roulette-easy 
+###
+### Welcome to /challenge/rop-roulette-easy!
+###
+
+This challenge is listening for connections on TCP port 1337.
+
+The challenge supports unlimited sequential connections.
+```
+
+```
+
+```
