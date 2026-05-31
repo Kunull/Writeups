@@ -5585,7 +5585,7 @@ End of assembler dump.
 - [x] Offset between the buffer and variable `n`: `24`
 - [x] Offset of instruction within `win_authed()` which skips the authentication: `0x164e`
 
-Intbhis exploit we have to partially overwrite the return address.
+In this exploit we have to partially overwrite the return address.
 
 ### Partial return address overwrite
 
