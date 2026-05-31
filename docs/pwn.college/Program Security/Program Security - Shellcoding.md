@@ -6170,7 +6170,7 @@ The solution to this challenge is pretty easy.
 
 If we look at the addresses we have been provided with, we can see that the flag sits between the buffer and the stored return address. 
 
-```py title"~/script.py" showLineNumbers
+```py title="~/script.py" showLineNumbers
 buffer_addr = 0x7fffeec29490
 canary_addr = 0x7fffeec295f8
 ret_addr = 0x7fffeec29608

