@@ -12313,10 +12313,10 @@ The buffer address for the `n+1`th frame is `0x7fff591b05b0`.
 
 #### Determining Stack Layout via Frame Pointer Leakage
 
-Given what we know about the stack, we know that the right between the canary and the stored return address, is stored base pointer for the caller function.
-So, when we are in the first invocation of `challenge()`, the stored base pointer has the value of the pointer of `main()`.
+Given what we know about the stack, we know that right between the canary and the stored return address, is the stored base pointer for the caller function.
+So, when we are in the first invocation of `challenge()`, the stored base pointer has the value of the base pointer of `main()`.
 
-Similarly, when we send `REPEAT*` in payload, and the `challenge()` invokes itself again, the stored base pointer of the second invocation points to the stored base pointer of the first invocation of `challenge()`.
+Similarly, when we send `REPEAT` in payload, and the `challenge()` invokes itself again, the stored base pointer of the second invocation points to the stored base pointer of the first invocation of `challenge()`.
 
 ```
 <==: Value stored at address
