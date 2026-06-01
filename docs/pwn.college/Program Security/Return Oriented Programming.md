@@ -11222,7 +11222,7 @@ rbp: 0x7ffedfb5b0e8
 rip --> leave ; ret  (libc gadget)
 	// leave: mov rsp, rbp → rsp = 0x7ffedfb5b0e8
 	//        pop rbp      → rbp = [0x7ffedfb5b0e8] (don't care),  rsp = 0x7ffedfb5b0f0
-	// ret:   rip = [0x7ffedfb5b0f0] = win()  ✓
+	// ret:   rip = [0x7ffedfb5b0f0] = win()  
 ═══════════════════════════════════════════════════════════════════════════════════
 
 Stack:
@@ -12192,7 +12192,7 @@ pwndbg> info frame
   rbp at 0x7ffe0e9228f0, rip at 0x7ffe0e9228f8
 ```
 
-`buf + 88 = 0x7ffe0e9228a0 + 88 = 0x7ffe0e9228f8` ✓
+`buf + 88 = 0x7ffe0e9228a0 + 88 = 0x7ffe0e9228f8` 
 
 The saved RIP value comes from the backtrace:
 
@@ -12211,7 +12211,7 @@ pwndbg> x/gx 0x7ffe0e9228f8
 
 ```
 pwndbg> p/x 0x737019aac083 - 0x24083
-$3 = 0x737019a88000   ← libc base (page-aligned ✓)
+$3 = 0x737019a88000   ← libc base (page-aligned )
 ```
 
 - Saved RIP address: `buf + 88 = 0x7ffe0e9228f8`
@@ -12771,7 +12771,7 @@ pwndbg> info frame
   rbp at 0x7ffcf1340cf0, rip at 0x7ffcf1340cf8
 ```
 
-`buf + 136 = 0x7ffcf1340c70 + 136 = 0x7ffcf1340cf8` ✓
+`buf + 136 = 0x7ffcf1340c70 + 136 = 0x7ffcf1340cf8` 
 
 The saved RIP value comes from the backtrace:
 
@@ -12790,7 +12790,7 @@ pwndbg> x/gx 0x7ffcf1340cf8
 
 ```
 pwndbg> p/x 0x757e58b54083 - 0x24083
-$3 = 0x757e58b30000   ← libc base (page-aligned ✓)
+$3 = 0x757e58b30000   ← libc base (page-aligned )
 ```
 
 - Saved RIP address: `buf + 136 = 0x7ffcf1340cf8`
@@ -13139,7 +13139,7 @@ There is no arbitrary read primitive in this challenge. However, the chain print
 
 ```
 pwndbg> p/x 0x7ffdccee6250 + 168
-$3 = 0x7ffdccee62f8   ← main()'s saved RIP address ✓
+$3 = 0x7ffdccee62f8   ← main()'s saved RIP address 
 ```
 
 The chain header also prints `rp_`:
@@ -13158,7 +13158,7 @@ From the backtrace:
 
 ```
 pwndbg> p/x 0x7bb94ef0d083 - 0x24083
-$4 = 0x7bb94eee9000   ← libc base (page-aligned ✓)
+$4 = 0x7bb94eee9000   ← libc base (page-aligned )
 ```
 
 - `__libc_start_main+243` libc offset: `0x24083`
