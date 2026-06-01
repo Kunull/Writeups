@@ -12116,7 +12116,7 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_6
 
 ### Leaking Libc base
 
-The binary doesn't print any libc addresses. However, the saved RIP sitting at `buf + 88` on the stack points into `__libc_start_main+243`, because that is who called `main()`. We use the arbitrary read primitive to fetch that 8-byte value directly.
+The binary doesn't print any Libc addresses. However, the saved RIP sitting at `buf + 88` on the stack points into `__libc_start_main+243`, because that is who called `main()`. We use the arbitrary read primitive to fetch that 8-byte value directly.
 
 The saved RIP address comes from `info frame`:
 
@@ -12148,7 +12148,7 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_6
     512: 0000000000023f90   392 FUNC    GLOBAL DEFAULT   15 __libc_start_main@@GLIBC_2.34
 ```
 
-So, __libc_start_main is at an offset of `0x23f90` within Libc, therefore `__libc_start_main+243` is at libc offset `0x24083` within libc.
+So, `__libc_start_main` is at an offset of `0x23f90` within Libc, therefore `__libc_start_main+243` is at offset `0x23f90 + 243 = 0x24083` within Libc.
 
 Let's get the base of Libc.
 
@@ -12748,7 +12748,7 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_6
 
 ### Leaking Libc base
 
-The binary doesn't print any libc addresses. However, the saved RIP sitting at `buf + 136` on the stack points into `__libc_start_main+243`, because that is who called `main()`. We use the arbitrary read primitive to fetch that 8-byte value directly.
+The binary doesn't print any Libc addresses. However, the saved RIP sitting at `buf + 136` on the stack points into `__libc_start_main+243`, because that is who called `main()`. We use the arbitrary read primitive to fetch that 8-byte value directly.
 
 The saved RIP address comes from `info frame`:
 
@@ -12781,7 +12781,7 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_6
     512: 0000000000023f90   392 FUNC    GLOBAL DEFAULT   15 __libc_start_main@@GLIBC_2.34
 ```
 
-So, __libc_start_main is at an offset of `0x23f90` within Libc, therefore `__libc_start_main+243` is at libc offset `0x24083` within libc.
+So, `__libc_start_main` is at an offset of `0x23f90` within Libc, therefore `__libc_start_main+243` is at offset `0x23f90 + 243 = 0x24083` within Libc.
 
 Let's get the base of Libc.
 
