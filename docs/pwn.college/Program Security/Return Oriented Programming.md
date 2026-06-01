@@ -12777,7 +12777,7 @@ pwndbg> x/gx 0x7ffcf1340cf8
 Let's now find the offset of `__libc_start_main` within Libc.
 
 ```
-hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "__libc_start_main"
+hacker@return-oriented-programming~guarded-gadgets-hard:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "__libc_start_main"
     512: 0000000000023f90   392 FUNC    GLOBAL DEFAULT   15 __libc_start_main@@GLIBC_2.34
 ```
 
