@@ -12122,6 +12122,9 @@ The saved RIP address comes from `info frame`:
 
 ```
 pwndbg> info frame
+
+# ---- snip ----
+
  Saved registers:
   rbp at 0x7ffe0e9228f0, rip at 0x7ffe0e9228f8
 ```
@@ -12131,7 +12134,13 @@ pwndbg> info frame
 The saved RIP value comes from the backtrace:
 
 ```
-1   0x737019aac083 __libc_start_main+243
+─────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────────────────────────────────────────
+
+# ---- snip ----
+
+   1   0x737019aac083 __libc_start_main+243
+   
+# ---- snip ----   
 ```
 
 Confirmed by reading it directly:
@@ -12754,8 +12763,11 @@ The saved RIP address comes from `info frame`:
 
 ```
 pwndbg> info frame
-Saved registers:
-rbp at 0x7ffcf1340cf0, rip at 0x7ffcf1340cf8
+
+# ---- snip ----
+
+ Saved registers:
+  rbp at 0x7ffcf1340cf0, rip at 0x7ffcf1340cf8
 ```
 
 `buf + 136 = 0x7ffcf1340c70 + 136 = 0x7ffcf1340cf8`
@@ -12763,7 +12775,12 @@ rbp at 0x7ffcf1340cf0, rip at 0x7ffcf1340cf8
 The saved RIP value comes from the backtrace:
 
 ```
-1 0x757e58b54083 __libc_start_main+243
+─────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────────────────────────────────────────
+# ---- snip ----
+
+   1   0x757e58b54083 __libc_start_main+243
+
+# ---- snip ----
 ```
 
 Confirmed by reading it directly:
@@ -12772,7 +12789,6 @@ Confirmed by reading it directly:
 pwndbg> x/gx 0x7ffcf1340cf8
 0x7ffcf1340cf8: 0x0000757e58b54083
 ```
-
 
 Let's now find the offset of `__libc_start_main` within Libc.
 
@@ -13156,7 +13172,13 @@ $2 = 72
 `main()`'s saved RIP address comes from `info frame`:
 
 ```
+pwndbg> info frame
+
+# ---- snip ----
+
 called by frame at 0x7ffdccee6300
+
+# ---- snip ----
 ```
 
 Its saved RIP sits at `0x7ffdccee6300 - 8 = 0x7ffdccee62f8`. The offset from `buf` is:
@@ -13169,7 +13191,13 @@ $3 = 0x7ffdccee62f8   ← main()'s saved RIP address ✓
 So sending 168 bytes overwrites entries 1–12 (`buf+72` through `buf+167`) but leaves entry 13 (`buf+168`) untouched. From the backtrace that untouched value is `__libc_start_main+243`:
 
 ```
-2   0x7bb94ef0d083 __libc_start_main+243
+─────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────────────────────────────────────────
+
+# ---- snip ----
+
+   1   0x5d08a2005ad3 main+457
+   
+# ---- snip ----   
 ```
 
 Let's now find the offset of `__libc_start_main` within Libc.
