@@ -13144,9 +13144,9 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ readelf -s /lib/x86_64-l
 
 ### Leaking libc base and buf address
 
-There is no arbitrary read primitive in this challenge. However, the chain printer prints every 8-byte value on the stack starting at `rp_` for as many entries as there are gadgets in our input. By sending 168 bytes of `A`s we overwrite entries 1–12 but leave entry 13 at `buf+168` untouched — `main()`'s saved RIP = `__libc_start_main+243`. The chain printer prints it back to us. The chain header also prints `rp_` which gives us `buf = rp_ - 72`.
+There is no arbitrary read primitive in this challenge. Instead, by sending 168 bytes of `A`s we overwrite chain entries 1–12 but leave entry 13 at `buf+168` untouched — this is `main()`'s saved RIP = `__libc_start_main+243`, because that is who called `main()`. The chain printer prints it for us. The chain header also prints `rp_` which gives us `buf = rp_ - 72`.
 
-`rp_` is set by the binary as `rbp + 8` (from the disassembly at `challenge+128`). From the GDB session `rbp = 0x7ffdccee6290`, so `rp_ = 0x7ffdccee6298`:
+`rp_` is set by the binary as `rbp + 8` (from the disassembly at `challenge+128`). From the GDB session `rbp = 0x7ffdccee6290`, so `rp_ = 0x7ffdccee6298`. The offset from `buf` to `rp_` is therefore:
 
 ```
 pwndbg> p/d 0x7ffdccee6298 - 0x7ffdccee6250
@@ -13159,11 +13159,11 @@ $2 = 72
 called by frame at 0x7ffdccee6300
 ```
 
-Its saved RIP sits at `0x7ffdccee6300 - 8 = 0x7ffdccee62f8`:
+Its saved RIP sits at `0x7ffdccee6300 - 8 = 0x7ffdccee62f8`. The offset from `buf` is:
 
 ```
-pwndbg> p/d 0x7ffdccee62f8 - 0x7ffdccee6250
-$3 = 168
+pwndbg> p/x 0x7ffdccee6250 + 168
+$3 = 0x7ffdccee62f8   ← main()'s saved RIP address ✓
 ```
 
 So sending 168 bytes overwrites entries 1–12 (`buf+72` through `buf+167`) but leaves entry 13 (`buf+168`) untouched. From the backtrace that untouched value is `__libc_start_main+243`:
