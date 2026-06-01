@@ -11137,7 +11137,7 @@ hacker@return-oriented-programming~pivotal-pursuit-easy:~$ ROPgadget --binary /l
 
 The saved RIP is `0x776c533e8083` (`__libc_start_main+243`, libc offset `0x24083`). The `leave ; ret` gadget is at libc offset `0x578c8`. Since both the saved RIP and the gadget live within libc, a partial overwrite of the saved RIP stays within the same mapping.
 
-A **2-byte** overwrite locks byte 2 of the resulting address to `0x3e` (the current value in the saved RIP), which constrains which ASLR base values can ever succeed — only those where byte 2 of `libc_base + 0x578c8` happens to equal `0x3e`, roughly a 2/256 chance. A **3-byte** overwrite instead replaces the low 3 bytes of the saved RIP entirely, leaving the upper 5 bytes intact (same libc mapping), which is both correct and far more efficient.
+A **2-byte** overwrite locks byte 2 of the resulting address to `0x3e` (the current value in the saved RIP), which constrains which ASLR base values can ever succeed, only those where byte 2 of `libc_base + 0x578c8` happens to equal `0x3e`, roughly a 2/256 chance. A **3-byte** overwrite instead replaces the low 3 bytes of the saved RIP entirely, leaving the upper 5 bytes intact (same libc mapping), which is both correct and far more efficient.
 
 ASLR randomizes 28 bits of the libc base (bits 12–39). Since the base is always page-aligned (low 12 bits = `0x000`), the lower nibble of byte 1 of any libc gadget address is always `0x0`. This leaves **4 bits (upper nibble of byte 1) × 8 bits (byte 2) = 4096 possible 3-byte patterns** to enumerate.
 
@@ -11598,7 +11598,7 @@ hacker@return-oriented-programming~pivotal-pursuit-hard:~$ ROPgadget --binary /l
 
 The saved RIP is `0x7f5efdcc1083` (`__libc_start_main+243`, libc offset `0x24083`). The `leave ; ret` gadget is at libc offset `0x578c8`. Since both the saved RIP and the gadget live within libc, a partial overwrite of the saved RIP stays within the same mapping.
 
-A **2-byte** overwrite locks byte 2 of the resulting address to `0xcc` (the current value in the saved RIP), which constrains which ASLR base values can ever succeed — only those where byte 2 of `libc_base + 0x578c8` happens to equal `0xcc`, roughly a 2/256 chance. A **3-byte** overwrite instead replaces the low 3 bytes of the saved RIP entirely, leaving the upper 5 bytes intact (same libc mapping), which is both correct and far more efficient.
+A **2-byte** overwrite locks byte 2 of the resulting address to `0xcc` (the current value in the saved RIP), which constrains which ASLR base values can ever succeed, only those where byte 2 of `libc_base + 0x578c8` happens to equal `0xcc`, roughly a 2/256 chance. A **3-byte** overwrite instead replaces the low 3 bytes of the saved RIP entirely, leaving the upper 5 bytes intact (same libc mapping), which is both correct and far more efficient.
 
 ASLR randomizes 28 bits of the libc base (bits 12–39). Since the base is always page-aligned (low 12 bits = `0x000`), the lower nibble of byte 1 of any libc gadget address is always `0x0`. This leaves **4 bits (upper nibble of byte 1) × 8 bits (byte 2) = 4096 possible 3-byte patterns** to enumerate.
 
@@ -11742,12 +11742,12 @@ call *rax                       ← restarts main() cleanly
 ```
  
 3. PIE randomizes only the top nibble of the page offset (4 bits = 1-in-16 odds), so this is a **1-in-16 brute force**. The lower 12 bits of the libc offset are fixed.
-4. `main()` restarts inside the same process — same canary, same ASLR layout.
+4. `main()` restarts inside the same process, same canary, same ASLR layout.
 #### Stage 2: Leak libc, ROP chain
  
 1. Use the arbitrary read on `buf + 88` (saved RIP = `__libc_start_main+243`). Subtract the known offset to get the exact libc base.
 2. Compute all gadget and function addresses from libc base.
-3. Send `chmod("!", 0o777)` ROP chain — the binary runs with elevated privileges so the `chmod` succeeds.
+3. Send `chmod("!", 0o777)` ROP chain, the binary runs with elevated privileges so the `chmod` succeeds.
 
 ### `puts@plt` (Procedure Linkage Table entry)
 
@@ -12182,7 +12182,7 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ objdump -s -j .rodata
 
 ### Leaking Libc base
 
-The binary doesn't print any libc addresses. However, the saved RIP sitting at `buf + 88` on the stack points into `__libc_start_main+243` — because that is who called `main()`. We use the arbitrary read primitive to fetch that 8-byte value directly.
+The binary doesn't print any libc addresses. However, the saved RIP sitting at `buf + 88` on the stack points into `__libc_start_main+243`, because that is who called `main()`. We use the arbitrary read primitive to fetch that 8-byte value directly.
 
 The saved RIP address comes from `info frame`:
 
@@ -12207,7 +12207,7 @@ pwndbg> x/gx 0x7ffe0e9228f8
 0x7ffe0e9228f8: 0x0000737019aac083
 ```
 
-`__libc_start_main+243` is at libc offset `0x24083` — this is fixed for this libc version, derived from:
+`__libc_start_main+243` is at libc offset `0x24083`, this is fixed for this libc version, derived from:
 
 ```
 pwndbg> p/x 0x737019aac083 - 0x24083
@@ -12280,7 +12280,7 @@ Stack:
                       .... │  .. .. .. .. .. .. .. ..  │ ....
                       .... │  .. .. .. .. .. .. .. ..  │ ....
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffe0e922958 │   canary                   │ ( same value — same process )
+            0x7ffe0e922958 │   canary                   │ ( same value, same process )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
             0x7ffe0e922960 │  00 00 00 00 00 00 00 00  │ ( saved RBP )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
@@ -12786,7 +12786,7 @@ pwndbg> x/gx 0x7ffcf1340cf8
 0x7ffcf1340cf8: 0x0000757e58b54083
 ```
 
-`__libc_start_main+243` is at libc offset `0x24083` — this is fixed for this libc version, derived from:
+`__libc_start_main+243` is at libc offset `0x24083`, this is fixed for this libc version, derived from:
 
 ```
 pwndbg> p/x 0x757e58b54083 - 0x24083
@@ -12935,7 +12935,7 @@ We need the following:
 
 ### Strategy
 
-Three problems to solve: canary, ASLR, and privilege. The server forks a child per connection — the child keeps the same canary and ASLR layout for its entire lifetime. We exploit this across three stages.
+Three problems to solve: canary, ASLR, and privilege. The server forks a child per connection, the child keeps the same canary and ASLR layout for its entire lifetime. We exploit this across three stages.
 
 #### Stage 1: Leak libc base and buf address
 
@@ -13135,7 +13135,7 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ readelf -s /lib/x86_64-l
 
 There is no arbitrary read primitive in this challenge. However, the chain printer prints every 8-byte value on the stack starting at `rp_` (`buf + 72`) for as many entries as there are gadgets in our input. By sending 168 bytes of `A`s, we overwrite entries 1–12 of the chain (`buf+72` through `buf+167`), but leave entry 13 at `buf+168` untouched.
 
-`buf+168` is exactly `main()`'s saved RIP — `__libc_start_main+243` — because `main()`'s frame starts at `0x7ffdccee6300` and its saved RIP sits at `0x7ffdccee62f8 = buf + 168`.
+`buf+168` is exactly `main()`'s saved RIP, `__libc_start_main+243`, because `main()`'s frame starts at `0x7ffdccee6300` and its saved RIP sits at `0x7ffdccee62f8 = buf + 168`.
 
 ```
 pwndbg> p/x 0x7ffdccee6250 + 168
@@ -13189,7 +13189,7 @@ Stack:
                       .... │  41 41 41 41 41 41 41 41  │ ( entries 2–12 overwritten )
                       .... │  41 41 41 41 41 41 41 41  │ ....
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffdccee62f8 │   __libc_start_main+243   │ ( entry 13 — untouched )
+            0x7ffdccee62f8 │   __libc_start_main+243   │ ( entry 13, untouched )
                            └───────────────────────────┘
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
