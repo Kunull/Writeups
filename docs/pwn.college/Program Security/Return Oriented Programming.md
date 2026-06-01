@@ -12141,7 +12141,16 @@ pwndbg> x/gx 0x7ffe0e9228f8
 0x7ffe0e9228f8: 0x0000737019aac083
 ```
 
-`__libc_start_main+243` is at libc offset `0x24083`, this is fixed for this libc version, derived from:
+Let's now find the offset of `__libc_start_main` within Libc.
+
+```
+hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "__libc_start_main"
+    512: 0000000000023f90   392 FUNC    GLOBAL DEFAULT   15 __libc_start_main@@GLIBC_2.34
+```
+
+So, __libc_start_main is at an offset of `0x23f90` within Libc, therefore `__libc_start_main+243` is at libc offset `0x24083` within libc.
+
+Let's get the base of Libc.
 
 ```
 pwndbg> p/x 0x737019aac083 - 0x24083
@@ -12764,7 +12773,17 @@ pwndbg> x/gx 0x7ffcf1340cf8
 0x7ffcf1340cf8: 0x0000757e58b54083
 ```
 
-`__libc_start_main+243` is at libc offset `0x24083`, this is fixed for this libc version, derived from:
+
+Let's now find the offset of `__libc_start_main` within Libc.
+
+```
+hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "__libc_start_main"
+    512: 0000000000023f90   392 FUNC    GLOBAL DEFAULT   15 __libc_start_main@@GLIBC_2.34
+```
+
+So, __libc_start_main is at an offset of `0x23f90` within Libc, therefore `__libc_start_main+243` is at libc offset `0x24083` within libc.
+
+Let's get the base of Libc.
 
 ```
 pwndbg> p/x 0x757e58b54083 - 0x24083
