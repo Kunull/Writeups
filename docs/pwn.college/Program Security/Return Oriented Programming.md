@@ -12742,19 +12742,6 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_6
    - `pop rdi ; ret`: `0x23b6a`
    - `pop rsi ; ret`: `0x2601f`
 
-- [x] Offset between buffer and stack canary: `72`
-   - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffcf1340ce8`
-- [x] Offset between buffer and stored return address: `88`
-   - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the stored return address: `0x7ffcf1340cf8`
-- [x] Offsets of required Libc functions
-   - Offset of `system()` within Libc: `0x52290`
-   - Offset of `chmod()` within Libc: `0x10dd80`
-- [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x23b6a`
-   - `pop rsi ; ret`: `0x2601f`
-
 ### Leaking Libc base
 
 The binary doesn't print any Libc addresses. However, the saved RIP sitting at `buf + 136` on the stack points into `__libc_start_main+243`, because that is who called `main()`. We use the arbitrary read primitive to fetch that 8-byte value directly.
