@@ -12227,7 +12227,9 @@ pop_rsi = 0x737019a88000 + 0x2601f = 0x737019aae01f
 chmod   = 0x737019a88000 + 0x10dd80 = 0x737019b95d80
 ```
 
-### ROP chain: Stage 1 — leak canary, restart `main()`
+### ROP chain
+
+#### Stage 1: Leaking the canary and restarting `main()`
 
 ```
 <== Value is stored at the address
@@ -12263,7 +12265,7 @@ rip --> __libc_start_main+0x69
 ═══════════════════════════════════════════════════════════════════════════════════
 ```
 
-### ROP chain: Stage 2 — leak libc base, `chmod("!", 0o777)`
+#### Stage 2: Using leaked Libc base to `chmod("!", 0o777)`
 
 ```
 <== Value is stored at the address
@@ -13170,7 +13172,7 @@ chmod   = libc_base + 0x10dd80
 ```
 
 ### ROP chain
-#### Stage 1: leak libc base via chain printer
+#### Stage 1: Leaking libc base and buf address via chain printer
 
 ```
 <== Value is stored at the address
@@ -13203,7 +13205,7 @@ chain printer output:
 ═══════════════════════════════════════════════════════════════════════════════════
 ```
 
-#### Stage 2: brute-force canary, oracle = `### Goodbye!`
+#### Stage 2: Leaking the canary byte-by-byte
 
 ```
 <== Value is stored at the address
@@ -13225,7 +13227,7 @@ wrong byte    → __stack_chk_fail kills process → ### Goodbye! never printed
 ═══════════════════════════════════════════════════════════════════════════════════
 ```
 
-#### Stage 3: `chmod("!", 0o777)`
+#### Stage 3: Using leaked libc base to `chmod("!", 0o777)`
 
 ```
 <== Value is stored at the address
@@ -13466,3 +13468,8 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ python ~/script.py
 [*] Stage 3: Sending chmod chain...
 pwn.college{UP5vZhPaAtVu_qG_L993WkbHfNH.01N2MDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## ROP Roulette (Hard)
+
