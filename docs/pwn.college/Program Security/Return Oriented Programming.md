@@ -3703,7 +3703,7 @@ Unique gadgets found: 149
 
 We still have the classic `pop` gadgets which set the values of registers. So we can still set up a syscall.
 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
 - [ ] Location of a NULL terminated string
 - [ ] Locations of required PLT stubs
 - [x] Locations of required ROP gadgets
@@ -3757,7 +3757,7 @@ Non-debugging symbols:
 
 We can use the `open@plt`, `read@plt` and `puts@plt`.
 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
 - [ ] Location of a NULL terminated string
 - [x] Locations of required PLT stubs
    - `open@plt`: `0x4011d0`
@@ -4674,7 +4674,7 @@ hacker@return-oriented-programming~indirect-invocation-hard:/$ /challenge/indire
 
 We need the following to craft the exploit.
 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
 - [ ] Location of a NULL terminated string
 - [ ] Locations of required PLT stubs
 - [ ] Locations of required ROP gadgets
@@ -5273,7 +5273,7 @@ Gadgets information
 Unique gadgets found: 131
 ```
 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
 - [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
 - [x] Locations of required ROP gadgets
@@ -5292,7 +5292,7 @@ hacker@return-oriented-programming~leaky-libc-easy:~$ readelf -s /lib/x86_64-lin
   1430: 0000000000052290    45 FUNC    WEAK   DEFAULT   15 system@@GLIBC_2.2.5
 ```
 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
 - [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
@@ -5310,7 +5310,7 @@ hacker@return-oriented-programming~leaky-libc-easy:~$ readelf -s /lib/x86_64-lin
   2099: 000000000010dde0    24 FUNC    GLOBAL DEFAULT   15 lchmod@@GLIBC_2.3.2
 ```
 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
 - [ ] Location of a NULL terminated string
 - [x] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
@@ -5803,7 +5803,7 @@ hacker@return-oriented-programming~leaky-libc-hard:/$ /challenge/leveraging-libc
 
 Requirements to craft a successful exploit:
 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
 - [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
@@ -5901,7 +5901,7 @@ Gadgets information
 Unique gadgets found: 79
 ```
 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
 - [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
 - [x] Locations of required ROP gadgets
@@ -5919,7 +5919,7 @@ hacker@return-oriented-programming~leaky-libc-hard:/$ readelf -s /lib/x86_64-lin
   1430: 0000000000052290    45 FUNC    WEAK   DEFAULT   15 system@@GLIBC_2.2.5
 ```
 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
 - [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
@@ -5937,7 +5937,7 @@ hacker@return-oriented-programming~leaky-libc-hard:/$ readelf -s /lib/x86_64-lin
   2099: 000000000010dde0    24 FUNC    GLOBAL DEFAULT   15 lchmod@@GLIBC_2.3.2
 ```
 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
 - [ ] Location of a NULL terminated string
 - [x] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
@@ -6053,7 +6053,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
    - Location of the buffer: `0x7ffd039a08b0`
 - [ ] Location of a NULL terminated string
 - [x] Offsets of required Libc functions
@@ -6076,7 +6076,7 @@ Stack level 0, frame at 0x7ffd039a0900:
   rbp at 0x7ffd039a08f0, rip at 0x7ffd039a08f8
 ```
 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
    - Location of the buffer: `0x7ffd039a08b0`
    - location of the stored return pointer: `0x7ffd039a08f8`
 - [ ] Location of a NULL terminated string
@@ -6217,7 +6217,7 @@ One easy way to do that is to just restart the binary by returning to its entryp
 Even though the address of the Libc is not revealed, we can leak it by using `puts@plt` to output the address of the `puts@got`.
 We need a few things to perform this attack:
 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
 - [ ] Location of `puts@plt`
 - [ ] Location of `puts@got`
 - [ ] Location of a NULL terminated string
@@ -6236,7 +6236,7 @@ hacker@return-oriented-programming~putsception-easy:/$ objdump -d /challenge/put
 0000000000401110 <puts@plt>:
 ```
 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
 - [x] Location of the PLT entry of `puts@plt`: `0x401110`
 - [ ] Location of the GOT entry of `puts@got`
 - [ ] Location of a NULL terminated string
@@ -6253,7 +6253,7 @@ hacker@return-oriented-programming~putsception-easy:/$ readelf -r /challenge/put
 000000405028  000300000007 R_X86_64_JUMP_SLO 0000000000000000 puts@GLIBC_2.2.5 + 0
 ```
 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
 - [x] Location of the PLT entry of `puts@plt`: `0x401110`
 - [x] Location of the GOT entry of `puts@got`: `0x405028`
 - [ ] Location of a NULL terminated string
@@ -6270,7 +6270,7 @@ pwndbg> info address _start
 Symbol "_start" is at 0x4011b0 in a file compiled without debugging.
 ```
 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
 - [x] Location of the PLT entry of `puts@plt`: `0x401110`
 - [x] Location of the GOT entry of `puts@got`: `0x405028`
 - [ ] Location of a NULL terminated string
@@ -6449,7 +6449,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
    - Location of the buffer: `0x7fff7f3afc20`
 - [x] Location of the PLT entry of `puts@plt`: `0x401110`
 - [x] Location of the GOT entry of `puts@got`: `0x405028`
@@ -7178,7 +7178,7 @@ hacker@return-oriented-programming~putsception-hard:/$ /challenge/putsception-ha
 
 Requirements to craft a successful exploit.
 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
 - [ ] Location of the PLT entry of `puts@plt`
 - [ ] Location of the GOT entry of `puts@got`
 - [ ] Location of a NULL terminated string
@@ -7197,7 +7197,7 @@ hacker@return-oriented-programming~putsception-hard:/$ objdump -d /challenge/put
 0000000000401090 <puts@plt>:
 ```
 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
 - [x] Location of the PLT entry of `puts@plt`: `0x401090`
 - [ ] Location of the GOT entry of `puts@got`
 - [ ] Location of a NULL terminated string
@@ -7212,7 +7212,7 @@ hacker@return-oriented-programming~putsception-hard:/$ readelf -r /challenge/put
 000000405020  000200000007 R_X86_64_JUMP_SLO 0000000000000000 puts@GLIBC_2.2.5 + 0
 ```
 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
 - [x] Location of the PLT entry of `puts@plt`: `0x401090`
 - [x] Location of the GOT entry of `puts@got`: `0x405020`
 - [ ] Location of a NULL terminated string
@@ -7229,7 +7229,7 @@ pwndbg> info address _start
 Symbol "_start" is at 0x4010d0 in a file compiled without debugging.
 ```
 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
 - [x] Location of the PLT entry of `puts@plt`: `0x401090`
 - [x] Location of the GOT entry of `puts@got`: `0x405020`
 - [ ] Location of a NULL terminated string
@@ -7333,7 +7333,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
    - Location of the buffer: `0x7fff1ca54290`
 - [x] Location of the PLT entry of `puts@plt`: `0x401090`
 - [x] Location of the GOT entry of `puts@got`: `0x405020`
@@ -11721,7 +11721,7 @@ Address in hex to read from:
 We need the following:
 
 - [ ] Offset between buffer and stack canary 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 
@@ -11985,7 +11985,7 @@ Breakpoint hit at 0x5e1c69bd94b3
 
 - [ ] Offset between buffer and stack canary
    - Location of the buffer: `0x7ffe0e9228a0`
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
    - Location of the buffer: `0x7ffe0e9228a0`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
@@ -12488,7 +12488,7 @@ Address in hex to read from:
 We need the following:
 
 - [ ] Offset between buffer and stack canary 
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 
@@ -12663,7 +12663,7 @@ Breakpoint hit at 0x641a475e0a4a
 
 - [ ] Offset between buffer and stack canary
    - Location of the buffer: `0x7ffcf1340c70`
-- [ ] Offset between buffer and stored return address to `main()`
+- [ ] Offset between buffer and stored return address
    - Location of the buffer: `0x7ffcf1340c70`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
@@ -13940,7 +13940,7 @@ hacker@return-oriented-programming~rop-roulette-hard:~$ ROPgadget --binary /lib/
 - [x] Offset between buffer and stack canary: `72`
    - Location of the buffer: `0x7ffdc145e1f0`
    - Location of the canary: `0x7ffdc145e240 - 8` = `0x7ffdc145e238`
-- [x] Offset between buffer and stored return address to `challenge()`: `88`
+- [x] Offset between buffer and stored return address: `88`
    - Location of the buffer: `0x7ffdc145e1f0`
    - Location of the stored return address: `0x7ffdc145e248`
 - [x] Location of the PLT entry of `puts@plt`: `0x11d4`
@@ -13981,7 +13981,7 @@ hacker@return-oriented-programming~rop-roulette-hard:~$ python3 -c "d=open('/lib
 - [x] Offset between buffer and stack canary: `72`
    - Location of the buffer: `0x7ffdc145e1f0`
    - Location of the canary: `0x7ffdc145e240 - 8` = `0x7ffdc145e238`
-- [x] Offset between buffer and stored return address to `challenge()`: `88`
+- [x] Offset between buffer and stored return address: `88`
    - Location of the buffer: `0x7ffdc145e1f0`
    - Location of the stored return address: `0x7ffdc145e248`
 - [x] Location of the PLT entry of `puts@plt`: `0x11d4`
