@@ -13124,7 +13124,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 - [ ] Location of the GOT entry of `puts@got`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
-- [ ] Offset of `"!\x00"` string within Libc
+- [ ] Offset of NULL terminated string `"!\x00"` string within Libc
 
 
 ```
@@ -13155,7 +13155,7 @@ $2 = 72
 - [ ] Location of the GOT entry of `puts@got`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
-- [ ] Offset of `"!\x00"` string within Libc
+- [ ] Offset of NULL terminated string `"!\x00"` string within Libc
 
 ### `puts@plt` and `puts@got`
 Let's get the addresses of `puts@plt` and `puts@got`.
@@ -13175,7 +13175,7 @@ puts@plt: 0x11d4 puts@got: 0x4f30
 - [x] Location of the GOT entry of `puts@got`: `0x4f30`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
-- [ ] Offset of `"!\x00"` string within Libc
+- [ ] Offset of NULL terminated string `"!\x00"` string within Libc
 
 ### ROP gadgets
 
@@ -13215,7 +13215,7 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ ROPgadget --binary /lib/
    - Binary: `puts@got`: `0x4f30`
    - Libc: `pop rdi ; ret`: `0x23b6a`
    - Libc: `pop rsi ; ret`: `0x2601f`
-- [ ] Offset of `"!\x00"` string within Libc
+- [ ] Offset of NULL terminated string `"!\x00"` string within Libc
 
 ### Libc functions
 
@@ -13257,7 +13257,7 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ python3 -c "d=open('/lib
    - Binary: `pop rdi ; ret`: `0x2b63`
    - Libc: `pop rdi ; ret`: `0x23b6a`
    - Libc: `pop rsi ; ret`: `0x2601f`
-- [x] Offset of `"!\x00"` string within Libc: `0x2a32`
+- [x] Offset of NULL terminated string `"!\x00"` string within Libc: `0x2a32`
 
 
 ### Leaking binary base
@@ -13735,7 +13735,7 @@ We need the following:
 - [ ] Location of the GOT entry of `puts@got`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
-- [ ] Offset of `"!\x00"` string within Libc
+- [ ] Offset of NULL terminated string `"!\x00"` string within Libc
 
 ### Binary analysis
 
@@ -13864,7 +13864,7 @@ Breakpoint hit at 0x5f97bb53f532
 - [ ] Location of the GOT entry of `puts@got`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
-- [ ] Offset of `"!\x00"` string within Libc
+- [ ] Offset of NULL terminated string `"!\x00"` string within Libc
 
 ```
 pwndbg> info frame
@@ -13894,7 +13894,7 @@ $2 = 88
 - [ ] Location of the GOT entry of `puts@got`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
-- [ ] Offset of `"!\x00"` string within Libc
+- [ ] Offset of NULL terminated string `"!\x00"` string within Libc
 
 ### `puts@plt` and `puts@got`
 Let's get the addresses of `puts@plt` and `puts@got`.
@@ -13914,7 +13914,7 @@ puts@plt: 0x11d4 puts@got: 0x4f30
 - [x] Location of the GOT entry of `puts@got`: `0x4f30`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
-- [ ] Offset of `"!\x00"` string within Libc
+- [ ] Offset of NULL terminated string `"!\x00"` string within Libc
 
 ### ROP gadgets
 
@@ -13952,7 +13952,7 @@ hacker@return-oriented-programming~rop-roulette-hard:~$ ROPgadget --binary /lib/
    - Binary: `puts@got`: `0x3f60`
    - Libc: `pop rdi ; ret`: `0x23b6a`
    - Libc: `pop rsi ; ret`: `0x2601f`
-- [ ] Offset of `"!\x00"` string within Libc
+- [ ] Offset of NULL terminated string `"!\x00"` string within Libc
 
 ### Libc functions
 
@@ -13990,14 +13990,13 @@ hacker@return-oriented-programming~rop-roulette-hard:~$ python3 -c "d=open('/lib
    - Offset of `system()` within Libc: `0x52290`
    - Offset of `chmod()` within Libc: `0x10dd80`
    - Offset of `puts()` within Libc: `0x84420`
-   - Offset of `"!\x00"` string within Libc: `0x2a32`
 - [x] Locations of required ROP gadgets
    - Binary: `pop rdi ; ret`: `0x17b3`
    - Binary: `puts@plt`: `0x1154`
    - Binary: `puts@got`: `0x3f60`
    - Libc: `pop rdi ; ret`: `0x23b6a`
    - Libc: `pop rsi ; ret`: `0x2601f`
-- [x] Offset of `"!\x00"` string within Libc: `0x2a32`
+- [x] Offset of NULL terminated string `"!\x00"` string within Libc: `0x2a32`
 
 ### Leaking binary base
 
