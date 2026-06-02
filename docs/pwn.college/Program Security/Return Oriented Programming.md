@@ -13324,6 +13324,13 @@ The saved `rip` in `challenge()`'s frame comes from the backtrace:
 # ---- snip ----
 ```
 
+Let's find the offset of `main+457` within the binary.
+
+```
+hacker@return-oriented-programming~rop-roulette-easy:~/cse240/25-proj-mud/01$ python3 -c "from pwn import *; e = ELF('/challenge/rop-roulette-easy', checksec=False); print(hex(e.symbols['main'] + 457))"
+0x2ad3
+```
+
 `challenge()`'s saved `rip` = `0x5d08a2005ad3` = `binary_base + 0x2ad3`. Byte 0 is `0xd3` (fixed, `binary_base & 0xFF == 0` due to page alignment). Bytes 1–5 are random. Bytes 6–7 are always `0x00` (48-bit user-space address) and are never written.
 
 By brute-forcing bytes 1–5 with the `### Goodbye!` oracle, the same oracle used for the canary, we recover the full saved `rip` and compute:
@@ -14068,6 +14075,13 @@ The saved `rip` in `challenge()`'s frame comes from the backtrace:
 
 ```
 1   0x5f97bb53f726 main+457
+```
+
+Let's find the offset of `main+457` within the binary.
+
+```
+hacker@return-oriented-programming~rop-roulette-hard:~/cse240/25-proj-mud/01$ python3 -c "from pwn import *; e = ELF('/challenge/rop-roulette-hard', checksec=False); print(hex(e.symbols['main'] + 457))"
+0x1726
 ```
 
 `challenge()`'s saved `rip` = `0x5f97bb53f726` = `binary_base + 0x1726`. Byte 0 is `0x26` (fixed, `binary_base & 0xFF == 0` due to page alignment). Bytes 1–5 are random. Bytes 6–7 are always `0x00` (48-bit user-space address) and are never written.
