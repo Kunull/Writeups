@@ -13040,7 +13040,7 @@ The challenge supports unlimited sequential connections.
 We need the following:
 
 - [ ] Offset between buffer and stack canary
-- [ ] Offset between buffer and stored return address to `challenge()`
+- [ ] Offset between buffer and stored return address
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 
@@ -13163,7 +13163,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 
 - [ ] Offset between buffer and stack canary
    - Location of the buffer: `0x7ffdccee6250`
-- [ ] Offset between buffer and stored return address to `challenge()`
+- [ ] Offset between buffer and stored return
    - Location of the buffer: `0x7ffdccee6250`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
@@ -13189,7 +13189,7 @@ $2 = 72
 - [x] Offset between buffer and stack canary: `56`
    - Location of the buffer: `0x7ffdccee6250`
    - Location of the canary: `0x7ffdccee6290 - 8` = `0x7ffdccee6288`
-- [x] Offset between buffer and stored return address to `challenge()`: `72`
+- [x] Offset between buffer and stored return address to
    - Location of the buffer: `0x7ffdccee6250`
    - Location of the stored return address: `0x7ffdccee6298`
 - [ ] Offsets of required Libc functions
@@ -13224,7 +13224,7 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ ROPgadget --binary /lib/
 - [x] Offset between buffer and stack canary: `56`
    - Location of the buffer: `0x7ffdccee6250`
    - Location of the canary: `0x7ffdccee6288`
-- [x] Offset between buffer and stored return address to `challenge()`: `72`
+- [x] Offset between buffer and stored return address: `72`
    - Location of the buffer: `0x7ffdccee6250`
    - Location of the stored return address: `0x7ffdccee6298`
 - [ ] Offsets of required Libc functions
@@ -13260,7 +13260,7 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ python3 -c "d=open('/lib
 - [x] Offset between buffer and stack canary: `56`
    - Location of the buffer: `0x7ffdccee6250`
    - Location of the canary: `0x7ffdccee6288`
-- [x] Offset between buffer and stored return address to `challenge()`: `72`
+- [x] Offset between buffer and stored return address: `72`
    - Location of the buffer: `0x7ffdccee6250`
    - Location of the stored return address: `0x7ffdccee6298`
 - [x] Offsets of required Libc functions
@@ -14196,4 +14196,20 @@ hacker@return-oriented-programming~rop-roulette-hard:~$ python ~/script.py
 [*] Libc base: 0x7e3331429000
 [*] Stage 4: Sending chmod chain...
 pwn.college{kj5uG0F6hVZ6lLeWqZ2FoHdKP1O.0FO2MDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Libc Lottery (Easy)
+
+```
+hacker@return-oriented-programming~libc-lottery-easy:~$ /challenge/libc-lottery-easy 
+###
+### Welcome to /challenge/libc-lottery-easy!
+###
+
+This challenge is listening for connections on TCP port 1337.
+
+The challenge supports unlimited sequential connections.
+
 ```
