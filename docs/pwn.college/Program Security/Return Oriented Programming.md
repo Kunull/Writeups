@@ -13328,7 +13328,7 @@ wrong byte    → __stack_chk_fail kills process → ### Goodbye! never printed
 ═══════════════════════════════════════════════════════════════════════════════════
 ```
 
-#### Stage 2: Brute-force saved RIP bytes 1–5 → binary base
+#### Stage 2: Brute-force saved RIP bytes 1–5 -> binary base
 
 ```
 <== Value is stored at the address
@@ -13744,13 +13744,13 @@ Four problems to solve: canary, PIE, libc, and privilege. The server forks a chi
 
 The fork server keeps the same canary across all connections. Oracle: `### Goodbye!` at the end of output means `challenge()` returned cleanly (canary intact). No `### Goodbye!` means `__stack_chk_fail` killed the process before `main()` could print it.
 
-#### Stage 2: Brute-force saved RIP bytes 1–5 → binary base
+#### Stage 2: Brute-force saved RIP bytes 1–5 -> binary base
 
 `read()` writes exactly the bytes we send and leaves everything above untouched on the stack. The saved RIP in `challenge()`'s frame equals `binary_base + 0x1726`. Byte 0 (`0x26`) is fixed since `binary_base` is page-aligned. By sending `pad + canary + 0 (rbp) + known_prefix + guess_byte`, the remaining saved RIP bytes stay at their original stack values. The oracle is identical to Stage 1: `### Goodbye!` appears only when the assembled 8-byte saved RIP is valid.
 
 #### Stage 3: Leak libc base via `puts(puts@got)`
 
-With `binary_base` known, chain `pop rdi ; ret` (from the binary) → `puts@got` → `puts@plt`. `puts` prints the 6-byte libc address of `puts`, giving us `libc_base`.
+With `binary_base` known, chain `pop rdi ; ret` (from the binary) -> `puts@got` -> `puts@plt`. `puts` prints the 6-byte libc address of `puts`, giving us `libc_base`.
 
 #### Stage 4: `chmod("!", 0o777)`
 
