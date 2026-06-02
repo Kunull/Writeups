@@ -11725,29 +11725,6 @@ We need the following:
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 
-### Strategy
- 
-Three problems to solve: canary, ASLR, and privilege. The trick is doing it in **two stages within the same process**, so ASLR is defeated for free on the second stage.
- 
-#### Stage 1: Leak canary, restart `main()`
- 
-1. Use the arbitrary read primitive to fetch `buf + 72`, exactly where the canary lives on the stack.
-2. Partially overwrite only the low 2 bytes of saved `rip` with a value targeting `__libc_start_main+0x69` inside Libc. That offset contains:
-```
-mov argv from lsm_stack → rsi
-mov argc from lsm_stack → edi
-mov main_ptr from lsm_stack → rax
-call *rax                       ← restarts main() cleanly
-```
- 
-3. PIE randomizes only the top nibble of the page offset (4 bits = 1-in-16 odds), so this is a **1-in-16 brute force**. The lower 12 bits of the libc offset are fixed.
-4. `main()` restarts inside the same process, same canary, same ASLR layout.
-#### Stage 2: Leak libc, ROP chain
- 
-1. Use the arbitrary read on `buf + 88` (saved `rip` = `__libc_start_main+243`). Subtract the known offset to get the exact libc base.
-2. Compute all gadget and function addresses from libc base.
-3. Send `chmod("!", 0o777)` ROP chain, the binary runs with elevated privileges so the `chmod` succeeds.
-
 ### `puts@plt` (Procedure Linkage Table entry)
 
 ```
@@ -12515,11 +12492,6 @@ We need the following:
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 
-### Strategy
- 
-Three problems to solve: canary, ASLR, and privilege. The trick is doing it in **two stages within the same process**, so ASLR is defeated for free on the second stage.
-Same the [easy version](#strategy).
-
 ### Binary analysis
 
 #### `main()`
@@ -13047,26 +13019,6 @@ We need the following:
 - [ ] Locations of required ROP gadgets
 - [ ] Location of a NULL terminated string
 
-### Strategy
-
-Four problems to solve: canary, PIE, libc, and privilege. The server forks a child per connection, the child keeps the same canary and ASLR layout for its entire lifetime. We exploit this across four stages.
-
-#### Stage 1: Brute-force canary byte-by-byte
-
-The fork server keeps the same canary across all connections. Oracle: `### Goodbye!` at the end of output means `challenge()` returned cleanly (canary intact). No `### Goodbye!` means `__stack_chk_fail` killed the process before `main()` could print it.
-
-#### Stage 2: Leaking the binary's base by brute-forcing saved `rip` bytes 1–5
-
-`read()` writes exactly the bytes we send and leaves everything above untouched on the stack. The saved `rip` in `challenge()`'s frame equals `binary_base + 0x2ad3`. Byte 0 (`0xd3`) is fixed since `binary_base` is page-aligned. By sending `pad + canary + 0 (rbp) + known_prefix + guess_byte`, the remaining saved `rip` bytes stay at their original stack values. The oracle is identical to Stage 1: `### Goodbye!` appears only when the assembled 8-byte saved `rip` is valid.
-
-#### Stage 3: Leak libc base via `puts(puts@got)`
-
-With `binary_base` known, chain `pop rdi ; ret` (from the binary) -> `puts@got` -> `puts@plt`. `puts` prints the 6-byte libc address of `puts`, giving us `libc_base`.
-
-#### Stage 4: `chmod("!", 0o777)`
-
-`b"!\x00"` already exists at offset `0x2a32` within libc. Passing `libc_base + 0x2a32` as the `chmod` path eliminates any need for the stack buffer address.
-
 ### Binary analysis
 
 #### `challenge()`
@@ -13225,7 +13177,6 @@ puts@plt: 0x11d4 puts@got: 0x4f30
 - [ ] Locations of required ROP gadgets
 - [ ] Offset of `"!\x00"` string within Libc
 
-
 ### ROP gadgets
 
 Now let's find the relevant ROP gadgets.
@@ -13265,7 +13216,6 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ ROPgadget --binary /lib/
    - Libc: `pop rdi ; ret`: `0x23b6a`
    - Libc: `pop rsi ; ret`: `0x2601f`
 - [ ] Offset of `"!\x00"` string within Libc
-
 
 ### Libc functions
 
@@ -13312,7 +13262,7 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ python3 -c "d=open('/lib
 
 ### Leaking binary base
 
-The saved `rip` in `challenge()`'s frame comes from the backtrace:
+From the backtrace, we can tell that the saved `rip` in `challenge()`'s frame, points to the intruction at `main+457`.
 
 ```
 ─────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────────────────────────────────────────
@@ -13324,7 +13274,7 @@ The saved `rip` in `challenge()`'s frame comes from the backtrace:
 # ---- snip ----
 ```
 
-Let's find the offset of `main+457` within the binary.
+Let's find the offset of `main+457` within the binary. Once we have that, we can calculate the base address of the binary.
 
 ```
 hacker@return-oriented-programming~rop-roulette-easy:~/cse240/25-proj-mud/01$ python3 -c "from pwn import *; e = ELF('/challenge/rop-roulette-easy', checksec=False); print(hex(e.symbols['main'] + 457))"
@@ -13341,7 +13291,7 @@ binary_base = saved_rip - 0x2ad3
 
 ### Leaking libc base
 
-With `binary_base` known, `puts@plt` and `puts@got` are at known addresses. We call `puts(puts@got)` which prints the 6-byte runtime address of `puts` in libc. Then:
+With the challenge binary's base known, `puts@plt` and `puts@got` are at known addresses. We call `puts(puts@got)` which prints the 6-byte runtime address of `puts` in libc. Then:
 
 ```
 hacker@return-oriented-programming~rop-roulette-easy:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "\bputs\b"
@@ -13787,26 +13737,6 @@ We need the following:
 - [ ] Locations of required ROP gadgets
 - [ ] Offset of `"!\x00"` string within Libc
 
-### Strategy
-
-Four problems to solve: canary, PIE, libc, and privilege. The server forks a child per connection, the child keeps the same canary and ASLR layout for its entire lifetime. We exploit this across four stages.
-
-#### Stage 1: Brute-force canary byte-by-byte
-
-The fork server keeps the same canary across all connections. Oracle: `### Goodbye!` at the end of output means `challenge()` returned cleanly (canary intact). No `### Goodbye!` means `__stack_chk_fail` killed the process before `main()` could print it.
-
-#### Stage 2: Leaking the binary's base by brute-forcing saved `rip` bytes 1–5 -> binary base
-
-`read()` writes exactly the bytes we send and leaves everything above untouched on the stack. The saved `rip` in `challenge()`'s frame equals `binary_base + 0x1726`. Byte 0 (`0x26`) is fixed since `binary_base` is page-aligned. By sending `pad + canary + 0 (rbp) + known_prefix + guess_byte`, the remaining saved `rip` bytes stay at their original stack values. The oracle is identical to Stage 1: `### Goodbye!` appears only when the assembled 8-byte saved `rip` is valid.
-
-#### Stage 3: Leak libc base via `puts(puts@got)`
-
-With `binary_base` known, chain `pop rdi ; ret` (from the binary) -> `puts@got` -> `puts@plt`. `puts` prints the 6-byte libc address of `puts`, giving us `libc_base`.
-
-#### Stage 4: `chmod("!", 0o777)`
-
-`"!\x00"` already exists at offset `0x2a32` within libc. Passing `libc_base + 0x2a32` as the `chmod` path eliminates any need for the stack buffer address.
-
 ### Binary analysis
 
 #### `challenge()`
@@ -14071,13 +14001,18 @@ hacker@return-oriented-programming~rop-roulette-hard:~$ python3 -c "d=open('/lib
 
 ### Leaking binary base
 
-The saved `rip` in `challenge()`'s frame comes from the backtrace:
+From the backtrace, we can tell that the saved `rip` in `challenge()`'s frame, points to the intruction at `main+457`.
 
 ```
-1   0x5f97bb53f726 main+457
+─────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]──────────────────────────────────────────────────────────────────────────────────────────────
+# ---- snip ----
+
+   1   0x5f97bb53f726 main+457
+
+# ---- snip ----
 ```
 
-Let's find the offset of `main+457` within the binary.
+Let's find the offset of `main+457` within the binary. Once we have that, we can calculate the base address of the binary.
 
 ```
 hacker@return-oriented-programming~rop-roulette-hard:~/cse240/25-proj-mud/01$ python3 -c "from pwn import *; e = ELF('/challenge/rop-roulette-hard', checksec=False); print(hex(e.symbols['main'] + 457))"
@@ -14086,7 +14021,7 @@ hacker@return-oriented-programming~rop-roulette-hard:~/cse240/25-proj-mud/01$ py
 
 `challenge()`'s saved `rip` = `0x5f97bb53f726` = `binary_base + 0x1726`. Byte 0 is `0x26` (fixed, `binary_base & 0xFF == 0` due to page alignment). Bytes 1–5 are random. Bytes 6–7 are always `0x00` (48-bit user-space address) and are never written.
 
-By brute-forcing bytes 1–5 with the `### Goodbye!` oracle, the same oracle used for the canary, we recover the full saved `rip` and compute:
+By brute-forcing bytes 1–5 with the `### Goodbye!` oracle, the same oracle used for the canary, we recover the full saved `rip`, which then allows us to compute the binary base:
 
 ```
 binary_base = saved_rip - 0x1726
@@ -14094,7 +14029,7 @@ binary_base = saved_rip - 0x1726
 
 ### Leaking libc base
 
-With `binary_base` known, `puts@plt` and `puts@got` are at known addresses. We call `puts(puts@got)` which prints the 6-byte runtime address of `puts` in libc. Then:
+With the challenge binary's base known, `puts@plt` and `puts@got` are at known addresses. We call `puts(puts@got)` which prints the 6-byte runtime address of `puts` in libc. Then:
 
 ```
 hacker@return-oriented-programming~rop-roulette-hard:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "\bputs\b"
