@@ -12252,7 +12252,7 @@ Stack:
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
             0x7ffe0e9228f0 │  42 42 42 42 42 42 42 42  │ ( saved RBP )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-    rsp --> 0x7ffe0e9228f8 │  ?? ??                    │ --> ( __libc_start_main+0x69 )
+    rsp --> 0x7ffe0e9228f8 │  ?? ?? ?? ?? ?? ?? ?? ??  │ --> ( __libc_start_main+0x69 )
                            └───────────────────────────┘
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
@@ -12262,7 +12262,7 @@ rip --> main() return
 
 Stack:
                            ┌───────────────────────────┐
-    rsp --> 0x7ffe0e9228f8 │  ?? ??                    │ --> ( __libc_start_main+0x69 )
+    rsp --> 0x7ffe0e9228f8 │  ?? ?? ?? ?? ?? ?? ?? ??  │ --> ( __libc_start_main+0x69 )
                            └───────────────────────────┘
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
@@ -13344,17 +13344,17 @@ Stack (bruting byte 1 — 74 bytes sent):
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
             0x7ffdccee6290 │  00 00 00 00 00 00 00 00  │ ( saved RBP clobbered )
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-            0x7ffdccee6298 │  d3 g? 5a 00 a2 08 5d 00  │ ( saved RIP )
+            0x7ffdccee6298 │  00 5d 08 a2 00 5a ?? d3  │ ( saved RIP )
                            └───────────────────────────┘
                            ╎  .. .. .. .. .. .. .. ..  ╎
 
 d3       byte 0 — fixed (binary_base & 0xFF == 0)
-g?       byte 1 — current guess
+??       byte 1 — current guess
 5a..5d   bytes 2–7 — unwritten, retain original stack values
 
 ═══════════════════════════════════════════════════════════════════════════════════
-correct g? → saved RIP valid → challenge() returns → ### Goodbye!
-wrong g?   → saved RIP invalid → process crashes → no ### Goodbye!
+correct ?? → saved RIP valid → challenge() returns → ### Goodbye!
+wrong ??   → saved RIP invalid → process crashes → no ### Goodbye!
 ═══════════════════════════════════════════════════════════════════════════════════
 
 binary_base = assembled_saved_rip - 0x2ad3
