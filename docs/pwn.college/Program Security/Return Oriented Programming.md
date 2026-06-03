@@ -262,9 +262,9 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-- [x] Location of buffer: `0x7ffdb569ada0`
+- [x] Location of buffer: **`0x7ffdb569ada0`**
 - [ ] Location of return address to `main()`
-- [x] Offset of instruction in `win()` within the program: `0x4018a6`
+- [x] Offset of instruction in `win()` within the program: **`0x4018a6`**
 
 ```
 pwndbg> info frame
@@ -277,9 +277,9 @@ Stack level 0, frame at 0x7ffdb569add0:
   rbp at 0x7ffdb569adc0, rip at 0x7ffdb569adc8
 ```
 
-- [x] Location of buffer: `0x7ffdb569ada0`
-- [x] Location of return address: `0x7ffdb569adc8`
-- [x] Offset of instruction in `win()` within the program: `0x4018a6`
+- [x] Location of buffer: **`0x7ffdb569ada0`**
+- [x] Location of return address: **`0x7ffdb569adc8`**
+- [x] Offset of instruction in `win()` within the program: **`0x4018a6`**
 
 ### Exploit
 
@@ -513,8 +513,8 @@ Symbol "win_stage_2" is at 0x4022eb in a file compiled without debugging.
 
 - [ ] Location of buffer
 - [ ] Location of return address to `main()`
-- [x] Offset of instruction in `win_stage_1()` within the program: `0x40223e`
-- [x] Offset of instruction in `win_stage_2()` within the program: `0x4022eb`
+- [x] Offset of instruction in `win_stage_1()` within the program: **`0x40223e`**
+- [x] Offset of instruction in `win_stage_2()` within the program: **`0x4022eb`**
 
 #### `challenge()`
 
@@ -611,10 +611,10 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-- [x] Location of buffer: `0x7fff0ca86600`
+- [x] Location of buffer: **`0x7fff0ca86600`**
 - [ ] Location of return address to `main()`
-- [x] Offset of instruction in `win_stage_1()` within the program: `0x40223e`
-- [x] Offset of instruction in `win_stage_2()` within the program: `0x4022eb`
+- [x] Offset of instruction in `win_stage_1()` within the program: **`0x40223e`**
+- [x] Offset of instruction in `win_stage_2()` within the program: **`0x4022eb`**
 
 ```
 pwndbg> info frame
@@ -627,10 +627,10 @@ Stack level 0, frame at 0x7fff0ca86690:
   rbp at 0x7fff0ca86680, rip at 0x7fff0ca86688
 ```
 
-- [x] Location of buffer: `0x7fff0ca86600`
-- [x] Location of return address: `0x7fff0ca86688`
-- [x] Offset of instruction in `win_stage_1()` within the program: `0x40223e`
-- [x] Offset of instruction in `win_stage_2()` within the program: `0x4022eb`
+- [x] Location of buffer: **`0x7fff0ca86600`**
+- [x] Location of return address: **`0x7fff0ca86688`**
+- [x] Offset of instruction in `win_stage_1()` within the program: **`0x40223e`**
+- [x] Offset of instruction in `win_stage_2()` within the program: **`0x4022eb`**
 
 ### Exploit
 
@@ -765,11 +765,11 @@ hacker@return-oriented-programming~chain-of-command-easy:/$ objdump -d -M intel 
 00000000004027d7 <win_stage_5>:
 ```
 
-- [x] Offset of instruction in `win_stage_1()` within the program: `0x4028ba`
-- [x] Offset of instruction in `win_stage_2()` within the program: `0x402615`
-- [x] Offset of instruction in `win_stage_3()` within the program: `0x4026f5`
-- [x] Offset of instruction in `win_stage_4()` within the program: `0x40252f`
-- [x] Offset of instruction in `win_stage_5()` within the program: `0x4027d7`
+- [x] Offset of instruction in `win_stage_1()` within the program: **`0x4028ba`**
+- [x] Offset of instruction in `win_stage_2()` within the program: **`0x402615`**
+- [x] Offset of instruction in `win_stage_3()` within the program: **`0x4026f5`**
+- [x] Offset of instruction in `win_stage_4()` within the program: **`0x40252f`**
+- [x] Offset of instruction in `win_stage_5()` within the program: **`0x4027d7`**
 - [ ] Offset of `pop rdi ; ret` gadget within the program
 
 #### `pop rdi ; ret` gadget
@@ -781,12 +781,12 @@ hacker@return-oriented-programming~chain-of-command-easy:/$ ROPgadget --binary /
 0x0000000000402ca3 : pop rdi ; ret
 ```
 
-- [x] Offset of instruction in `win_stage_1()` within the program: `0x4028ba`
-- [x] Offset of instruction in `win_stage_2()` within the program: `0x402615`
-- [x] Offset of instruction in `win_stage_3()` within the program: `0x4026f5`
-- [x] Offset of instruction in `win_stage_4()` within the program: `0x40252f`
-- [x] Offset of instruction in `win_stage_5()` within the program: `0x4027d7`
-- [x] Offset of `pop rdi ; ret` gadget within the program: `0x402ca3`
+- [x] Offset of instruction in `win_stage_1()` within the program: **`0x4028ba`**
+- [x] Offset of instruction in `win_stage_2()` within the program: **`0x402615`**
+- [x] Offset of instruction in `win_stage_3()` within the program: **`0x4026f5`**
+- [x] Offset of instruction in `win_stage_4()` within the program: **`0x40252f`**
+- [x] Offset of instruction in `win_stage_5()` within the program: **`0x4027d7`**
+- [x] Offset of `pop rdi ; ret` gadget within the program: **`0x402ca3`**
 
 ### ROP chain
 
@@ -1121,7 +1121,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-- [x] Location of buffer: `0x7ffd74326e20`
+- [x] Location of buffer: **`0x7ffd74326e20`**
 - [ ] Location of return address to `main()`
 - [ ] Offset of instruction in `win_stage_1()` within the program
 - [ ] Argument expected by `win_stage_1()` 
@@ -1146,8 +1146,8 @@ Stack level 0, frame at 0x7ffd74326e90:
   rbp at 0x7ffd74326e80, rip at 0x7ffd74326e88
 ```
 
-- [x] Location of buffer: `0x7ffd74326e20`
-- [x] Location of return address: `0x7ffd74326e88`
+- [x] Location of buffer: **`0x7ffd74326e20`**
+- [x] Location of return address: **`0x7ffd74326e88`**
 - [ ] Offset of instruction in `win_stage_1()` within the program
 - [ ] Argument expected by `win_stage_1()` 
 - [ ] Offset of instruction in `win_stage_2()` within the program
@@ -1186,10 +1186,10 @@ Dump of assembler code for function win_stage_1:
 End of assembler dump.
 ```
 
-- [x] Location of buffer: `0x7ffd74326e20`
-- [x] Location of return address: `0x7ffd74326e88`
-- [x] Offset of instruction in `win_stage_1()` within the program: `0x40223b`
-- [x] Argument expected by `win_stage_1()`: `0x1` 
+- [x] Location of buffer: **`0x7ffd74326e20`**
+- [x] Location of return address: **`0x7ffd74326e88`**
+- [x] Offset of instruction in `win_stage_1()` within the program: **`0x40223b`**
+- [x] Argument expected by `win_stage_1()`: **`0x1`**
 - [ ] Offset of instruction in `win_stage_2()` within the program
 - [ ] Argument expected by `win_stage_2()` 
 - [ ] Offset of instruction in `win_stage_3()` within the program
@@ -1224,12 +1224,12 @@ Dump of assembler code for function win_stage_2:
 End of assembler dump.
 ```
 
-- [x] Location of buffer: `0x7ffd74326e20`
-- [x] Location of return address: `0x7ffd74326e88`
-- [x] Offset of instruction in `win_stage_1()` within the program: `0x40223b`
-- [x] Argument expected by `win_stage_1()`: `0x1` 
-- [x] Offset of instruction in `win_stage_2()` within the program: `0x402079`
-- [x] Argument expected by `win_stage_2()`: `0x2`
+- [x] Location of buffer: **`0x7ffd74326e20`**
+- [x] Location of return address: **`0x7ffd74326e88`**
+- [x] Offset of instruction in `win_stage_1()` within the program: **`0x40223b`**
+- [x] Argument expected by `win_stage_1()`: **`0x1`**
+- [x] Offset of instruction in `win_stage_2()` within the program: **`0x402079`**
+- [x] Argument expected by `win_stage_2()`: **`0x2`**
 - [ ] Offset of instruction in `win_stage_3()` within the program
 - [ ] Argument expected by `win_stage_3()` 
 - [ ] Offset of instruction in `win_stage_4()` within the program
@@ -1262,14 +1262,14 @@ Dump of assembler code for function win_stage_3:
 End of assembler dump.
 ```
 
-- [x] Location of buffer: `0x7ffd74326e20`
-- [x] Location of return address: `0x7ffd74326e88`
-- [x] Offset of instruction in `win_stage_1()` within the program: `0x40223b`
-- [x] Argument expected by `win_stage_1()`: `0x1`
-- [x] Offset of instruction in `win_stage_2()` within the program: `0x402079`
-- [x] Argument expected by `win_stage_2()`: `0x2`
-- [x] Offset of instruction in `win_stage_3()` within the program: `0x402159`
-- [x] Argument expected by `win_stage_3()`: `0x3` 
+- [x] Location of buffer: **`0x7ffd74326e20`**
+- [x] Location of return address: **`0x7ffd74326e88`**
+- [x] Offset of instruction in `win_stage_1()` within the program: **`0x40223b`**
+- [x] Argument expected by `win_stage_1()`: **`0x1`**
+- [x] Offset of instruction in `win_stage_2()` within the program: **`0x402079`**
+- [x] Argument expected by `win_stage_2()`: **`0x2`**
+- [x] Offset of instruction in `win_stage_3()` within the program: **`0x402159`**
+- [x] Argument expected by `win_stage_3()`: **`0x3`**
 - [ ] Offset of instruction in `win_stage_4()` within the program
 - [ ] Argument expected by `win_stage_4()` 
 - [ ] Offset of instruction in `win_stage_5()` within the program
@@ -1300,16 +1300,16 @@ Dump of assembler code for function win_stage_4:
 End of assembler dump.
 ```
 
-- [x] Location of buffer: `0x7ffd74326e20`
-- [x] Location of return address: `0x7ffd74326e88`
-- [x] Offset of instruction in `win_stage_1()` within the program: `0x40223b`
-- [x] Argument expected by `win_stage_1()`: `0x1`
-- [x] Offset of instruction in `win_stage_2()` within the program: `0x402079`
-- [x] Argument expected by `win_stage_2()`: `0x2`
-- [x] Offset of instruction in `win_stage_3()` within the program: `0x402159`
-- [x] Argument expected by `win_stage_3()`: `0x3` 
-- [x] Offset of instruction in `win_stage_4()` within the program: `0x4023fa`
-- [x] Argument expected by `win_stage_4()`: `0x4`
+- [x] Location of buffer: **`0x7ffd74326e20`**
+- [x] Location of return address: **`0x7ffd74326e88`**
+- [x] Offset of instruction in `win_stage_1()` within the program: **`0x40223b`**
+- [x] Argument expected by `win_stage_1()`: **`0x1`**
+- [x] Offset of instruction in `win_stage_2()` within the program: **`0x402079`**
+- [x] Argument expected by `win_stage_2()`: **`0x2`**
+- [x] Offset of instruction in `win_stage_3()` within the program: **`0x402159`**
+- [x] Argument expected by `win_stage_3()`: **`0x3`**
+- [x] Offset of instruction in `win_stage_4()` within the program: **`0x4023fa`**
+- [x] Argument expected by `win_stage_4()`: **`0x4`**
 - [ ] Offset of instruction in `win_stage_5()` within the program
 - [ ] Argument expected by `win_stage_5()` 
 - [ ] Offset of `pop rdi ; ret` gadget within the program
@@ -1338,18 +1338,18 @@ Dump of assembler code for function win_stage_5:
 End of assembler dump.
 ```
 
-- [x] Location of buffer: `0x7ffd74326e20`
-- [x] Location of return address: `0x7ffd74326e88`
-- [x] Offset of instruction in `win_stage_1()` within the program: `0x40223b`
-- [x] Argument expected by `win_stage_1()`: `0x1`
-- [x] Offset of instruction in `win_stage_2()` within the program: `0x402079` 
-- [x] Argument expected by `win_stage_2()`: `0x2`
-- [x] Offset of instruction in `win_stage_3()` within the program: `0x402159`
-- [x] Argument expected by `win_stage_3()`: `0x3` 
-- [x] Offset of instruction in `win_stage_4()` within the program: `0x4023fa`
-- [x] Argument expected by `win_stage_4()`: `0x4`
-- [x] Offset of instruction in `win_stage_5()` within the program: `0x402317`
-- [x] Argument expected by `win_stage_5()`: `0x5`
+- [x] Location of buffer: **`0x7ffd74326e20`**
+- [x] Location of return address: **`0x7ffd74326e88`**
+- [x] Offset of instruction in `win_stage_1()` within the program: **`0x40223b`**
+- [x] Argument expected by `win_stage_1()`: **`0x1`**
+- [x] Offset of instruction in `win_stage_2()` within the program: **`0x402079`**
+- [x] Argument expected by `win_stage_2()`: **`0x2`**
+- [x] Offset of instruction in `win_stage_3()` within the program: **`0x402159`**
+- [x] Argument expected by `win_stage_3()`: **`0x3`**
+- [x] Offset of instruction in `win_stage_4()` within the program: **`0x4023fa`**
+- [x] Argument expected by `win_stage_4()`: **`0x4`**
+- [x] Offset of instruction in `win_stage_5()` within the program: **`0x402317`**
+- [x] Argument expected by `win_stage_5()`: **`0x5`**
 - [ ] Offset of `pop rdi ; ret` gadget within the program
 
 #### `pop rdi ; ret` gadget
@@ -1361,19 +1361,19 @@ hacker@return-oriented-programming~chain-of-command-hard:/$ ROPgadget --binary /
 0x0000000000402643 : pop rdi ; ret
 ```
 
-- [x] Location of buffer: `0x7ffd74326e20`
-- [x] Location of return address: `0x7ffd74326e88`
-- [x] Offset of instruction in `win_stage_1()` within the program: `0x40223b`
-- [x] Argument expected by `win_stage_1()`: `0x1`
-- [x] Offset of instruction in `win_stage_2()` within the program: `0x402079` 
-- [x] Argument expected by `win_stage_2()`: `0x2`
-- [x] Offset of instruction in `win_stage_3()` within the program: `0x402159`
-- [x] Argument expected by `win_stage_3()`: `0x3` 
-- [x] Offset of instruction in `win_stage_4()` within the program: `0x4023fa`
-- [x] Argument expected by `win_stage_4()`: `0x4`
-- [x] Offset of instruction in `win_stage_5()` within the program: `0x402317`
-- [x] Argument expected by `win_stage_5()`: `0x5`
-- [x] Offset of `pop rdi ; ret` gadget within the program: `0x402643`
+- [x] Location of buffer: **`0x7ffd74326e20`**
+- [x] Location of return address: **`0x7ffd74326e88`**
+- [x] Offset of instruction in `win_stage_1()` within the program: **`0x40223b`**
+- [x] Argument expected by `win_stage_1()`: **`0x1`**
+- [x] Offset of instruction in `win_stage_2()` within the program: **`0x402079`**
+- [x] Argument expected by `win_stage_2()`: **`0x2`**
+- [x] Offset of instruction in `win_stage_3()` within the program: **`0x402159`**
+- [x] Argument expected by `win_stage_3()`: **`0x3`**
+- [x] Offset of instruction in `win_stage_4()` within the program: **`0x4023fa`**
+- [x] Argument expected by `win_stage_4()`: **`0x4`**
+- [x] Offset of instruction in `win_stage_5()` within the program: **`0x402317`**
+- [x] Argument expected by `win_stage_5()`: **`0x5`**
+- [x] Offset of `pop rdi ; ret` gadget within the program: **`0x402643`**
 
 ### ROP chain
 
@@ -1706,7 +1706,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-- [x] Location of buffer: `0x7ffd7804eba0`
+- [x] Location of buffer: **`0x7ffd7804eba0`**
 - [ ] Location of stored return address to `main()`
 
 ```
@@ -1720,8 +1720,8 @@ Stack level 0, frame at 0x7ffd7804ec40:
   rbp at 0x7ffd7804ec30, rip at 0x7ffd7804ec38
 ```
 
-- [x] Location of buffer: `0x7ffd7804eba0`
-- [x] Location of stored return address: `0x7ffd7804ec38`
+- [x] Location of buffer: **`0x7ffd7804eba0`**
+- [x] Location of stored return address: **`0x7ffd7804ec38`**
 
 Let's get the offset.
 
@@ -2318,7 +2318,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-- [x] Location of the buffer: `0x7ffeefcd0a30`
+- [x] Location of the buffer: **`0x7ffeefcd0a30`**
 - [ ] location of the stored return pointer to `main()`
 
 ```
@@ -2332,8 +2332,8 @@ Stack level 0, frame at 0x7ffeefcd0a90:
   rbp at 0x7ffeefcd0a80, rip at 0x7ffeefcd0a88
 ```
 
-- [x] Location of the buffer: `0x7ffeefcd0a30`
-- [x] location of the stored return pointer: `0x7ffeefcd0a88`
+- [x] Location of the buffer: **`0x7ffeefcd0a30`**
+- [x] location of the stored return pointer: **`0x7ffeefcd0a88`**
 
 Now we can successfully craft.
 
@@ -2720,7 +2720,7 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-- [x] Location of the buffer: `0x7ffd2b5e9be0` 
+- [x] Location of the buffer: **`0x7ffd2b5e9be0`** 
 - [ ] location of the stored return pointer to `main()`
 - [ ] Location of a NULL terminated string
 
@@ -2735,8 +2735,8 @@ Stack level 0, frame at 0x7ffd2b5e9c30:
   rbp at 0x7ffd2b5e9c20, rip at 0x7ffd2b5e9c28
 ```
 
-- [x] Location of the buffer: `0x7ffd2b5e9be0` 
-- [x] location of the stored return pointer: `0x7ffd2b5e9c28`
+- [x] Location of the buffer: **`0x7ffd2b5e9be0`** 
+- [x] location of the stored return pointer: **`0x7ffd2b5e9c28`**
 - [ ] Location of a NULL terminated string
 
 Now, let's look at the ROP gadgets that we have at our disposal.
@@ -2927,9 +2927,9 @@ hacker@return-oriented-programming~stop-pop-and-rop-ii-easy:/$ objdump -s -j .ro
 
 Out of the various options that we have, let's go with `b"!\x00"` which is at the address `0x403386`.
 
-- [x] Location of the buffer: `0x7ffd2b5e9be0` 
-- [x] location of the stored return pointer: `0x7ffd2b5e9c28`
-- [x] Location of a NULL terminated string: `0x403386`
+- [x] Location of the buffer: **`0x7ffd2b5e9be0`** 
+- [x] location of the stored return pointer: **`0x7ffd2b5e9c28`**
+- [x] Location of a NULL terminated string: **`0x403386`**
 
 ### ROP chain: ret2stack
 
@@ -3233,7 +3233,7 @@ hacker@return-oriented-programming~stop-pop-and-rop-ii-hard:/$ objdump -s -j .ro
 
 - [ ] Location of the buffer 
 - [ ] location of the stored return pointer to `main()`
-- [x] Location of a NULL terminated string: `0x403030`
+- [x] Location of a NULL terminated string: **`0x403030`**
 
 ### Binary Analysis
 
@@ -3333,9 +3333,9 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-- [x] Location of the buffer: `0x7ffdc51a0330`
+- [x] Location of the buffer: **`0x7ffdc51a0330`**
 - [ ] location of the stored return pointer to `main()`
-- [x] Location of a NULL terminated string: `0x403030`
+- [x] Location of a NULL terminated string: **`0x403030`**
 
 ```
 pwndbg> info frame
@@ -3348,9 +3348,9 @@ Stack level 0, frame at 0x7ffdc51a0380:
   rbp at 0x7ffdc51a0370, rip at 0x7ffdc51a0378
 ```
 
-- [x] Location of the buffer: `0x7ffdc51a0330`
-- [x] location of the stored return pointer: `0x7ffdc51a0378`
-- [x] Location of a NULL terminated string: `0x403030`
+- [x] Location of the buffer: **`0x7ffdc51a0330`**
+- [x] location of the stored return pointer: **`0x7ffdc51a0378`**
+- [x] Location of a NULL terminated string: **`0x403030`**
 
 Finally let's take a look at the ROP gadgets.
 
@@ -3707,9 +3707,9 @@ We still have the classic `pop` gadgets which set the values of registers. So we
 - [ ] Location of a NULL terminated string
 - [ ] Locations of required PLT stubs
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x40229e`
-   - `pop rsi ; ret`: `0x402296`
-   - `pop rdx ; ret`: `0x40228e`
+   - `pop rdi ; ret`: **`0x40229e`**
+   - `pop rsi ; ret`: **`0x402296`**
+   - `pop rdx ; ret`: **`0x40228e`**
 - [ ] Location to which flag is to be read
 
 As for the invocation of the syscall, even if we cannot directly do it, we can leverage the PLT stubs which are present in the binary.
@@ -3760,13 +3760,13 @@ We can use the `open@plt`, `read@plt` and `puts@plt`.
 - [ ] Offset between buffer and stored return address
 - [ ] Location of a NULL terminated string
 - [x] Locations of required PLT stubs
-   - `open@plt`: `0x4011d0`
-   - `read@plt`: `0x401160`
-   - `puts@plt`: `0x401130`
+   - `open@plt`: **`0x4011d0`**
+   - `read@plt`: **`0x401160`**
+   - `puts@plt`: **`0x401130`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x40229e`
-   - `pop rsi ; ret`: `0x402296`
-   - `pop rdx ; ret`: `0x40228e`
+   - `pop rdi ; ret`: **`0x40229e`**
+   - `pop rsi ; ret`: **`0x402296`**
+   - `pop rdx ; ret`: **`0x40228e`**
 - [ ] Location to which flag is to be read
 
 #### `challenge()`
@@ -3936,18 +3936,18 @@ pwndbg> p/d 0x7ffcd4fe1b38 - 0x7ffcd4fe1ae0
 $1 = 88
 ```
 
-- [x] Offset between buffer and stored return address: `88`
-   - Buffer address: `0x7ffcd4fe1ae0`
-   - location of the stored return pointer: `0x7ffcd4fe1b38`
+- [x] Offset between buffer and stored return address: **`88`**
+   - Buffer address: **`0x7ffcd4fe1ae0`**
+   - location of the stored return pointer: **`0x7ffcd4fe1b38`**
 - [ ] Location of a NULL terminated string
 - [x] Locations of required PLT stubs
-   - `open@plt`: `0x4011d0`
-   - `read@plt`: `0x401160`
-   - `puts@plt`: `0x401130`
+   - `open@plt`: **`0x4011d0`**
+   - `read@plt`: **`0x401160`**
+   - `puts@plt`: **`0x401130`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x40229e`
-   - `pop rsi ; ret`: `0x402296`
-   - `pop rdx ; ret`: `0x40228e`
+   - `pop rdi ; ret`: **`0x40229e`**
+   - `pop rsi ; ret`: **`0x402296`**
+   - `pop rdx ; ret`: **`0x40228e`**
 - [ ] Location to which flag is to be read
 
 Let's find a string we can use as a symlink.
@@ -3977,18 +3977,18 @@ hacker@return-oriented-programming~indirect-invocation-easy:/$ objdump -s -j .ro
  403380 6f6f6462 79652100                    oodbye!.
 ```
 
-- [x] Offset between buffer and stored return address: `88`
-   - Buffer address: `0x7ffcd4fe1ae0`
-   - location of the stored return pointer: `0x7ffcd4fe1b38`
-- [x] Location of a NULL terminated string: `0x403386`
+- [x] Offset between buffer and stored return address: **`88`**
+   - Buffer address: **`0x7ffcd4fe1ae0`**
+   - location of the stored return pointer: **`0x7ffcd4fe1b38`**
+- [x] Location of a NULL terminated string: **`0x403386`**
 - [x] Locations of required PLT stubs
-   - `open@plt`: `0x4011d0`
-   - `read@plt`: `0x401160`
-   - `puts@plt`: `0x401130`
+   - `open@plt`: **`0x4011d0`**
+   - `read@plt`: **`0x401160`**
+   - `puts@plt`: **`0x401130`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x40229e`
-   - `pop rsi ; ret`: `0x402296`
-   - `pop rdx ; ret`: `0x40228e`
+   - `pop rdi ; ret`: **`0x40229e`**
+   - `pop rsi ; ret`: **`0x402296`**
+   - `pop rdx ; ret`: **`0x40228e`**
 - [ ] Location to which flag is to be read
 
 Let's get the address of the `.bss` section so that we can read the flag.
@@ -4027,19 +4027,19 @@ Local exec file:
         0x00000000004050a0 - 0x00000000004050f8 is .bss
 ```
 
-- [x] Offset between buffer and stored return address: `88`
-   - Buffer address: `0x7ffcd4fe1ae0`
-   - location of the stored return pointer: `0x7ffcd4fe1b38`
-- [x] Location of a NULL terminated string: `0x403386`
+- [x] Offset between buffer and stored return address: **`88`**
+   - Buffer address: **`0x7ffcd4fe1ae0`**
+   - location of the stored return pointer: **`0x7ffcd4fe1b38`**
+- [x] Location of a NULL terminated string: **`0x403386`**
 - [x] Locations of required PLT stubs
-   - `open@plt`: `0x4011d0`
-   - `read@plt`: `0x401160`
-   - `puts@plt`: `0x401130`
+   - `open@plt`: **`0x4011d0`**
+   - `read@plt`: **`0x401160`**
+   - `puts@plt`: **`0x401130`**
 - [x] Locations of required ROP gadgets
-   - `pop rdi ; ret`: `0x40229e`
-   - `pop rsi ; ret`: `0x402296`
-   - `pop rdx ; ret`: `0x40228e`
-- [x] Location to which flag is to be read: `0x405100`
+   - `pop rdi ; ret`: **`0x40229e`**
+   - `pop rsi ; ret`: **`0x402296`**
+   - `pop rdx ; ret`: **`0x40228e`**
+- [x] Location to which flag is to be read: **`0x405100`**
 
 ### ROP chain: ret2plt
 
@@ -13883,7 +13883,7 @@ Breakpoint hit at 0x5f97bb53f532
 ```
 
 - [ ] Offset between buffer and stack canary
-   - Location of the buffer: *`0x7ffdc145e1f0`*
+   - Location of the buffer: **`0x7ffdc145e1f0`**
 - [ ] Offset between buffer and stored return address
    - Location of the buffer: **`0x7ffdc145e1f0`**
 - [ ] Location of the PLT entry of `puts@plt` 
