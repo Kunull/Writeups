@@ -13171,8 +13171,10 @@ puts@plt: 0x11d4 puts@got: 0x4f30
 - [x] Offset between buffer and stored return address to
    - Location of the buffer: `0x7ffdccee6250`
    - Location of the stored return address: `0x7ffdccee6298`
-- [x] Location of the PLT entry of `puts@plt`: `0x11d4`
-- [x] Location of the GOT entry of `puts@got`: `0x4f30`
+- [ ] Location of the PLT entry of `puts@plt`
+   - Offset of `puts@plt` within the binary: `0x11d4`
+- [ ] Location of the GOT entry of `puts@got`: 
+   - Offset of `puts@got` within the binary: `0x4f30`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 - [ ] Offset of NULL terminated string `"!\x00"` string within Libc
@@ -13206,8 +13208,10 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ ROPgadget --binary /lib/
 - [x] Offset between buffer and stored return address: `72`
    - Location of the buffer: `0x7ffdccee6250`
    - Location of the stored return address: `0x7ffdccee6298`
-- [x] Location of the PLT entry of `puts@plt`: `0x11d4`
-- [x] Location of the GOT entry of `puts@got`: `0x4f30`
+- [ ] Location of the PLT entry of `puts@plt`
+   - Offset of `puts@plt` within the binary: `0x11d4`
+- [ ] Location of the GOT entry of `puts@got`: 
+   - Offset of `puts@got` within the binary: `0x4f30`
 - [ ] Offsets of required Libc functions
 - [x] Locations of required ROP gadgets
    - Binary: `pop rdi ; ret`: `0x2b63`
@@ -13247,8 +13251,10 @@ hacker@return-oriented-programming~rop-roulette-easy:~$ python3 -c "d=open('/lib
 - [x] Offset between buffer and stored return address: `72`
    - Location of the buffer: `0x7ffdccee6250`
    - Location of the stored return address: `0x7ffdccee6298`
-- [x] Location of the PLT entry of `puts@plt`: `0x11d4`
-- [x] Location of the GOT entry of `puts@got`: `0x4f30`
+- [ ] Location of the PLT entry of `puts@plt`
+   - Offset of `puts@plt` within the binary: `0x11d4`
+- [ ] Location of the GOT entry of `puts@got`: 
+   - Offset of `puts@got` within the binary: `0x4f30`
 - [x] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
    - Offset of `chmod()` within Libc: `0x10dd80`
@@ -13288,6 +13294,26 @@ By brute-forcing bytes 1–5 with the `### Goodbye!` oracle, the same oracle use
 ```
 binary_base = saved_rip - 0x2ad3
 ```
+
+- [x] Offset between buffer and stack canary: `56`
+   - Location of the buffer: `0x7ffdccee6250`
+   - Location of the canary: `0x7ffdccee6288`
+- [x] Offset between buffer and stored return address: `72`
+   - Location of the buffer: `0x7ffdccee6250`
+   - Location of the stored return address: `0x7ffdccee6298`
+- [x] Location of the PLT entry of `puts@plt`: leaked `binary_base` + `0x11d4`
+   - Offset of `puts@plt` within the binary: `0x11d4`
+- [x] Location of the GOT entry of `puts@got`: leaked `binary_base` + `0x4f30`
+   - Offset of `puts@got` within the binary: `0x4f30`
+- [x] Offsets of required Libc functions
+   - Offset of `system()` within Libc: `0x52290`
+   - Offset of `chmod()` within Libc: `0x10dd80`
+   - Offset of `puts()` within Libc: `0x84420`
+- [x] Locations of required ROP gadgets
+   - Binary: `pop rdi ; ret`: `0x2b63`
+   - Libc: `pop rdi ; ret`: `0x23b6a`
+   - Libc: `pop rsi ; ret`: `0x2601f`
+- [x] Offset of NULL terminated string `"!\x00"` string within Libc: `0x2a32`
 
 ### Leaking libc base
 
@@ -13860,7 +13886,7 @@ Breakpoint hit at 0x5f97bb53f532
    - Location of the buffer: `0x7ffdc145e1f0`
 - [ ] Offset between buffer and stored return address
    - Location of the buffer: `0x7ffdc145e1f0`
-- [ ] Location of the PLT entry of `puts@plt`
+- [ ] Location of the PLT entry of `puts@plt` 
 - [ ] Location of the GOT entry of `puts@got`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
@@ -13910,8 +13936,10 @@ puts@plt: 0x11d4 puts@got: 0x4f30
 - [x] Offset between buffer and stored return address: `88`
    - Location of the buffer: `0x7ffdc145e1f0`
    - Location of the stored return address: `0x7ffdc145e248`
-- [x] Location of the PLT entry of `puts@plt`: `0x11d4`
-- [x] Location of the GOT entry of `puts@got`: `0x4f30`
+- [ ] Location of the PLT entry of `puts@plt`
+   - Offset of `puts@plt` within the binary: `0x11d4`
+- [ ] Location of the GOT entry of `puts@got`
+   - Offset of `puts@got` within the binary: `0x4f30`
 - [ ] Offsets of required Libc functions
 - [ ] Locations of required ROP gadgets
 - [ ] Offset of NULL terminated string `"!\x00"` string within Libc
@@ -13943,8 +13971,10 @@ hacker@return-oriented-programming~rop-roulette-hard:~$ ROPgadget --binary /lib/
 - [x] Offset between buffer and stored return address: `88`
    - Location of the buffer: `0x7ffdc145e1f0`
    - Location of the stored return address: `0x7ffdc145e248`
-- [x] Location of the PLT entry of `puts@plt`: `0x11d4`
-- [x] Location of the GOT entry of `puts@got`: `0x4f30`
+- [x] Location of the PLT entry of `puts@plt`
+   - Offset of `puts@plt` within the binary: `0x11d4`
+- [x] Location of the GOT entry of `puts@got`
+   - Offset of `puts@got` within the binary: `0x4f30`
 - [ ] Offsets of required Libc functions
 - [x] Locations of required ROP gadgets
    - Binary: `pop rdi ; ret`: `0x17b3`
@@ -13984,8 +14014,10 @@ hacker@return-oriented-programming~rop-roulette-hard:~$ python3 -c "d=open('/lib
 - [x] Offset between buffer and stored return address: `88`
    - Location of the buffer: `0x7ffdc145e1f0`
    - Location of the stored return address: `0x7ffdc145e248`
-- [x] Location of the PLT entry of `puts@plt`: `0x11d4`
-- [x] Location of the GOT entry of `puts@got`: `0x4f30`
+- [x] Location of the PLT entry of `puts@plt`
+   - Offset of `puts@plt` within the binary: `0x11d4`
+- [x] Location of the GOT entry of `puts@got`
+   - Offset of `puts@got` within the binary: `0x4f30`
 - [x] Offsets of required Libc functions
    - Offset of `system()` within Libc: `0x52290`
    - Offset of `chmod()` within Libc: `0x10dd80`
@@ -14025,6 +14057,28 @@ By brute-forcing bytes 1–5 with the `### Goodbye!` oracle, the same oracle use
 ```
 binary_base = saved_rip - 0x1726
 ```
+
+- [x] Offset between buffer and stack canary: `72`
+   - Location of the buffer: `0x7ffdc145e1f0`
+   - Location of the canary: `0x7ffdc145e240 - 8` = `0x7ffdc145e238`
+- [x] Offset between buffer and stored return address: `88`
+   - Location of the buffer: `0x7ffdc145e1f0`
+   - Location of the stored return address: `0x7ffdc145e248`
+- [x] Location of the PLT entry of `puts@plt`: leaked `binary_base` + `0x11d4`
+   - Offset of `puts@plt` within the binary: `0x11d4`
+- [x] Location of the GOT entry of `puts@got`: leaked `binary_base` + `0x4f30`
+   - Offset of `puts@got` within the binary: `0x4f30`
+- [x] Offsets of required Libc functions
+   - Offset of `system()` within Libc: `0x52290`
+   - Offset of `chmod()` within Libc: `0x10dd80`
+   - Offset of `puts()` within Libc: `0x84420`
+- [x] Locations of required ROP gadgets
+   - Binary: `pop rdi ; ret`: `0x17b3`
+   - Binary: `puts@plt`: `0x1154`
+   - Binary: `puts@got`: `0x3f60`
+   - Libc: `pop rdi ; ret`: `0x23b6a`
+   - Libc: `pop rsi ; ret`: `0x2601f`
+- [x] Offset of NULL terminated string `"!\x00"` string within Libc: `0x2a32`
 
 ### Leaking libc base
 

