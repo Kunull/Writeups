@@ -13883,9 +13883,9 @@ Breakpoint hit at 0x5f97bb53f532
 ```
 
 - [ ] Offset between buffer and stack canary
-   - Location of the buffer: `0x7ffdc145e1f0`
+   - Location of the buffer: *`0x7ffdc145e1f0`*
 - [ ] Offset between buffer and stored return address
-   - Location of the buffer: `0x7ffdc145e1f0`
+   - Location of the buffer: **`0x7ffdc145e1f0`**
 - [ ] Location of the PLT entry of `puts@plt` 
 - [ ] Location of the GOT entry of `puts@got`
 - [ ] Offsets of required Libc functions
