@@ -2918,7 +2918,7 @@ pwn.college{ks-9GPm_6puqSjEYA-bLxxBHRy3.01M3IDL4ITM0EzW}
 ## Trust the Yancode (Hard)
 
 ```
-hacker@reverse-engineering~trust-the-yancode-hard:~$ /challenge/trust-the-yancode-hard 
+hacker@reverse-engineering~trust-the-yancode-hard:~$ /challenge/trust-the-yancode-hard
 [+] Welcome to /challenge/trust-the-yancode-hard!
 [+] This challenge is an custom emulator. It emulates a completely custom
 [+] architecture that we call "Yan85"! You'll have to understand the
@@ -2929,5 +2929,76 @@ hacker@reverse-engineering~trust-the-yancode-hard:~$ /challenge/trust-the-yancod
 [+] This is an introductory Yan85 level, where we trigger Yan85 architecture
 [+] operations directly. The parts of Yan85 that are used here is the emulated
 [+] registers, memory, and system calls.
+```
+
+Unlike the easy version, there is no execution trace — the Yan85 operations are inlined as direct C function calls in the binary. Let's open it in a decompiler.
+
+### Reversing the Helper Functions
+
+The emulator core (`sub_1A97`) calls three helper functions repeatedly. By analyzing their bodies, we can recover the Yan85 instruction they implement:
+
+| Function | Yan85 Equivalent | Behavior |
+|---|---|---|
+| `sub_1533(mem, reg, val)` | `IMM reg = val` | Load immediate into register |
+| `sub_1687(mem, reg1, reg2)` | `STM *reg1 = reg2` | Store register value into memory address held by reg1 |
+| `sub_1568(mem, reg1, reg2)` | `ADD reg1, reg2` | reg1 = reg1 + reg2 |
+| `sub_1896(mem, id, reg)` | `SYS id reg` | Syscall |
+
+The second argument to each function encodes which register is being targeted — the same register encoding as the easy challenge, just dispatched directly instead of through an interpreter loop.
+
+### Tracing the Logic
+
+#### Step 1: Read Input
+
+```c
+sub_1533(a1, 8LL, 86LL);    // IMM b = 86  (buf address)
+sub_1533(a1, 32LL, 4LL);    // IMM c = 4   (count)
+sub_1533(a1, 16LL, 0LL);    // IMM a = 0   (stdin)
+sub_1896(a1, 8LL, 16LL);    // SYS 0x8 a   read(stdin, mem[86], 4)
+```
+
+The program reads **4 bytes** from stdin into memory at offset `86`.
+
+#### Step 2: Build a Reference Array
+
+Next, the program writes 4 hardcoded bytes into memory at offset `118`, incrementing the address pointer each time:
+
+```c
+sub_1533(a1, 8LL, 118LL);   // IMM b = 118
+sub_1533(a1, 32LL, 1LL);    // IMM c = 1
+sub_1533(a1, 16LL, 124LL);  // IMM a = 0x7c → mem[118]
+sub_1687(a1, 8LL, 16LL);    // STM *b = a
+sub_1568(a1, 8LL, 32LL);    // ADD b c  →  b = 119
+
+sub_1533(a1, 16LL, 227LL);  // IMM a = 0xe3 → mem[119]
+sub_1687(a1, 8LL, 16LL);
+sub_1568(a1, 8LL, 32LL);    // b = 120
+
+sub_1533(a1, 16LL, 138LL);  // IMM a = 0x8a → mem[120]
+sub_1687(a1, 8LL, 16LL);
+sub_1568(a1, 8LL, 32LL);    // b = 121
+
+sub_1533(a1, 16LL, 120LL);  // IMM a = 0x78 → mem[121]
+sub_1687(a1, 8LL, 16LL);
+```
+
+The expected answer `\x7c\xe3\x8a\x78` is now at offsets `118–121`.
+
+#### Step 3: Compare
+
+```c
+v2 = memcmp((const void *)(a1 + 118), (const void *)(a1 + 86), 4uLL) == 0;
+```
+
+A direct `memcmp` between the reference bytes at `118` and our input at `86`. There is no transformation or encoding — the correct input simply is those four bytes. If they match, the program prints `CORRECT! Your flag:`, opens `/flag`, and writes it to stdout. Otherwise it prints `INCORRECT!` and exits.
+
+### Solution
 
 ```
+hacker@reverse-engineering~trust-the-yancode-hard:~$ printf "\x7c\xe3\x8a\x78" | /challenge/trust-the-yancode-hard | grep "pwn.college"
+pwn.college{U66Piapa9GpaWl9ssC5cuI2R9CK.0FN3IDL4ITM0EzW}
+```
+
+### Key Difference from Easy
+
+The easy version used a live interpreter loop with a printed trace. The hard version **inlines all Yan85 operations as direct C function calls** with no trace output, forcing us to reverse the binary itself. The underlying logic is identical — the difficulty is purely in recovering the architecture from decompiled code rather than reading a trace.
