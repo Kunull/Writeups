@@ -1623,7 +1623,8 @@ At a high level, the program compares the user input at `&buf` with the `EXPECTE
 Let's check how the conditional is performed in Assembly.
 
 ```asm showLineNumbers
-# ---- snip -
+# ---- snip ----
+
 .text:0000000000002005                 lea     rax, [rbp+buf]
 .text:0000000000002009                 mov     edx, 1Dh        ; n
 .text:000000000000200E                 lea     rsi, EXPECTED_RESULT ; s2
@@ -1642,7 +1643,9 @@ Let's check how the conditional is performed in Assembly.
 .text:0000000000002041                 mov     edi, 1          ; status
 .text:0000000000002046                 call    _exit
 
-# ---- snip -```
+# ---- snip ----
+---
+```
 
 The `_memcmp` result would be `rax=0` if the values of the hashed user input at `&buf` and `EXPECTED_RESULT` are the same.
 This would cause the `test` instruction to set the Zero Flag (ZF), as it would perform bitwise AND of two 0 values.
@@ -1817,7 +1820,8 @@ void __fastcall __noreturn main(int a1, char **a2, char **a3)
 Let's look at the disassembly view.
 
 ```asm showLineNumbers
-# ---- snip -
+# ---- snip ----
+
 .text:0000000000001E1D                 mov     edx, 1Ch        ; n
 .text:0000000000001E22                 lea     rsi, EXPECTED_RESULT ; s2
 .text:0000000000001E29                 mov     rdi, rax        ; s1
@@ -1835,7 +1839,8 @@ Let's look at the disassembly view.
 .text:0000000000001E55                 mov     edi, 1          ; status
 .text:0000000000001E5A                 call    _exit
 
-# ---- snip -```
+# ---- snip ----
+```
 
 The `_memcmp` result would be `rax=0` if the values of the hashed user input at `&buf` and `EXPECTED_RESULT` are the same.
 This would cause the `test` instruction to set the Zero Flag (ZF), as it would perform bitwise AND of two 0 values.
@@ -2044,7 +2049,8 @@ int __fastcall __noreturn main(int argc, const char **argv, const char **envp)
 Let's look at the disassembly view.
 
 ```asm showLineNumbers
-# ---- snip -
+# ---- snip ----
+
 .text:00000000000024B4                 lea     rax, [rbp+buf]
 .text:00000000000024B8                 mov     edx, 1Dh        ; n
 .text:00000000000024BD                 lea     rsi, EXPECTED_RESULT ; s2
@@ -2063,7 +2069,8 @@ Let's look at the disassembly view.
 .text:00000000000024F0                 mov     edi, 1          ; status
 .text:00000000000024F5                 call    _exit
 
-# ---- snip -```
+# ---- snip ----
+```
 
 The `_memcmp` result would be `rax=0` if the values of the hashed user input at `&buf` and `EXPECTED_RESULT` are the same.
 This would cause the `test` instruction to set the Zero Flag (ZF), as it would perform bitwise AND of two 0 values.
@@ -2230,7 +2237,8 @@ void __fastcall __noreturn main(int a1, char **a2, char **a3)
 Lets look at the disassembly view.
 
 ```asm showLineNumbers
-# ---- snip -
+# ---- snip ----
+
 .text:00000000000023A7                 lea     rax, [rbp+buf]
 .text:00000000000023AB                 mov     edx, 1Dh        ; n
 .text:00000000000023B0                 lea     rsi, EXPECTED_RESULT ; s2
@@ -2249,7 +2257,8 @@ Lets look at the disassembly view.
 .text:00000000000023E3                 mov     edi, 1          ; status
 .text:00000000000023E8                 call    _exit
 
-# ---- snip -```
+# ---- snip ----
+```
 
 The `_memcmp` result would be `rax=0` if the values of the hashed user input at `&buf` and `EXPECTED_RESULT` are the same.
 This would cause the `test` instruction to set the Zero Flag (ZF), as it would perform bitwise AND of two 0 values.
@@ -2460,7 +2469,8 @@ int __fastcall __noreturn main(int argc, const char **argv, const char **envp)
 Let's look at the disassembly view.
 
 ```asm showLineNumbers
-# ---- snip -
+# ---- snip ----
+
 .text:0000000000002733                 lea     rcx, [rbp+post_crack_hash]
 .text:0000000000002737                 lea     rax, [rbp+pre_crack_hash]
 .text:000000000000273B                 mov     edx, 10h        ; n
@@ -2477,7 +2487,8 @@ Let's look at the disassembly view.
 .text:0000000000002773                 mov     [rbp+var_18], 0
 .text:000000000000277A                 lea     rdi, aReadyToReceive ; "Ready to receive your license key!\n"
 
-# ---- snip -
+# ---- snip ----
+
 .text:00000000000027BE ; ------------------------------------------------------------------------.text:00000000000027BE
 .text:00000000000027BE loc_27BE:                               ; CODE XREF: main+404↑j
 .text:00000000000027BE                 lea     rdi, aTheCodeSIntegr_0 ; "The code's integrity has been breached,"...
@@ -2485,7 +2496,8 @@ Let's look at the disassembly view.
 .text:00000000000027CA                 mov     edi, 1          ; status
 .text:00000000000027CF                 call    _exit
 
-# ---- snip -
+# ---- snip ----
+
 .text:00000000000027BE ; ------------------------------------------------------------------------.text:00000000000027BE
 .text:00000000000027BE loc_27BE:                               ; CODE XREF: main+404↑j
 .text:00000000000027BE                 lea     rdi, aTheCodeSIntegr_0 ; "The code's integrity has been breached,"...
@@ -2493,7 +2505,8 @@ Let's look at the disassembly view.
 .text:00000000000027CA                 mov     edi, 1          ; status
 .text:00000000000027CF                 call    _exit
 
-# ---- snip -```
+# ---- snip ----
+```
 
 The first `_memcmp` result would be `rax=0` if the values of the hashed user input at `pre_crack_hash` and `post_crack_hash` are the same.
 This would cause the `test` instruction to set the Zero Flag (ZF), as it would perform bitwise AND of two 0 values.
@@ -2700,7 +2713,8 @@ void __fastcall __noreturn main(int a1, char **a2, char **a3)
 Disassembly:
 
 ```asm showLineNumbers
-# ---- snip -
+# ---- snip ----
+
 .text:000000000000214F                 lea     rcx, [rbp+post_crack_hash]
 .text:0000000000002153                 lea     rax, [rbp+pre_crack_hash]
 .text:0000000000002157                 mov     edx, 10h        ; n
@@ -2711,7 +2725,8 @@ Disassembly:
 .text:0000000000002169                 jnz     loc_2252
 .text:000000000000216F                 lea     rdi, aTheCodeSIntegr ; "The code's integrity is secure!\n"
 
-# ---- snip -
+# ---- snip ----
+
 .text:0000000000002234                 lea     rax, [rbp+buf]
 .text:0000000000002238                 mov     edx, 1Dh        ; n
 .text:000000000000223D                 lea     rsi, EXPECTED_RESULT ; s2
@@ -2727,7 +2742,8 @@ Disassembly:
 .text:000000000000225E                 mov     edi, 1          ; status
 .text:0000000000002263                 call    _exit
 
-# ---- snip -```
+# ---- snip ----
+```
 
 The first `_memcmp` result would be `rax=0` if the values of the hashed user input at `pre_crack_hash` and `post_crack_hash` are the same.
 This would cause the `test` instruction to set the Zero Flag (ZF), as it would perform bitwise AND of two 0 values.
