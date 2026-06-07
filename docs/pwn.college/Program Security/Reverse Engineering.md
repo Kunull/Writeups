@@ -2917,3 +2917,17 @@ pwn.college{ks-9GPm_6puqSjEYA-bLxxBHRy3.01M3IDL4ITM0EzW}
 
 ## Trust the Yancode (Hard)
 
+```
+hacker@reverse-engineering~trust-the-yancode-hard:~$ /challenge/trust-the-yancode-hard 
+[+] Welcome to /challenge/trust-the-yancode-hard!
+[+] This challenge is an custom emulator. It emulates a completely custom
+[+] architecture that we call "Yan85"! You'll have to understand the
+[+] emulator to understand the architecture, and you'll have to understand
+[+] the architecture to understand the code being emulated, and you will
+[+] have to understand that code to get the flag. Good luck!
+[+]
+[+] This is an introductory Yan85 level, where we trigger Yan85 architecture
+[+] operations directly. The parts of Yan85 that are used here is the emulated
+[+] registers, memory, and system calls.
+
+```
