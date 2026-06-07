@@ -2861,15 +2861,15 @@ From observing the trace, we can identify the following instructions:
 | `IMM <reg1> = <reg2>` | Copy one register's value into another |
 | `STM *<reg1> = <reg2>` | Store the value of `reg2` into the memory address pointed to by `reg1` |
 | `ADD <reg1> <reg2>` | Add `reg2` into `reg1` (in-place) |
-| `SYS <id> <reg>` | Invoke a syscall; return value stored in `<reg>` |
+| `SYS <id> <reg>` | Invoke a syscall, return value stored in `<reg>` |
 
 ### Syscall Table
 
 | ID | Name | arg0 | arg1 | arg2 |
 |---|---|---|---|---|
-| `0x01` | `exit` | `a` (exit code) | — | — |
+| `0x01` | `exit` | `a` (exit code) | ` ` | ` ` |
 | `0x08` | `read` | `a` (fd) | `b` (buf addr) | `c` (count) |
-| `0x10` | `open` | `b` (filename addr) | `a` (flags) | — |
+| `0x10` | `open` | `b` (filename addr) | `a` (flags) | ` ` |
 | `0x20` | `write` | `a` (fd) | `b` (buf addr) | `c` (count) |
 
 
@@ -2909,7 +2909,7 @@ This hardcodes the expected answer at `0x8b`:
 \x79\xd4\xcb\x73\x86\xb5\x5b\x86
 ```
 
-At this point, the program presumably compares your input (at `0x6b`) against this reference (at `0x8b`). If they don't match, it prints `INCORRECT!\n` and exits. If they match, it continues.
+At this point, the program presumably compares our input (at `0x6b`) against this reference (at `0x8b`). If they don't match, it prints `INCORRECT!\n` and exits. If they match, it continues.
 
 #### Step 3: Print the Flag
 
@@ -2917,11 +2917,10 @@ On a correct match, the program:
 
 1. Prints `CORRECT! Your flag:\n` via repeated single-byte `write` syscalls
 2. Constructs the string `/flag\x00` in memory starting at address `0`
-3. Calls `open("/flag", 0)` → returns fd `3`
+3. Calls `open("/flag", 0)`, returns fd `3`
 4. Reads up to `0x64` (100) bytes from the flag file into the buffer at `0`
 5. Writes the entire flag to stdout
 6. Calls `exit`
-
 
 ### Solution
 
@@ -3021,3 +3020,202 @@ pwn.college{U66Piapa9GpaWl9ssC5cuI2R9CK.0FN3IDL4ITM0EzW}
 ### Key Difference from Easy
 
 The easy version used a live interpreter loop with a printed trace. The hard version **inlines all Yan85 operations as direct C function calls** with no trace output, forcing us to reverse the binary itself. The underlying logic is identical — the difficulty is purely in recovering the architecture from decompiled code rather than reading a trace.
+
+&nbsp;
+
+## Know the Yancode (Easy)
+
+```
+hacker@reverse-engineering~know-the-yancode-easy:~$ /challenge/know-the-yancode-easy
+[+] Welcome to /challenge/know-the-yancode-easy!
+[+] This challenge is an custom emulator. It emulates a completely custom
+[+] architecture that we call "Yan85"! You'll have to understand the
+[+] emulator to understand the architecture, and you'll have to understand
+[+] the architecture to understand the code being emulated, and you will
+[+] have to understand that code to get the flag. Good luck!
+[+]
+[+] This is an introductory Yan85 level, where we trigger Yan85 architecture
+[+] operations directly. The parts of Yan85 that are used here is the emulated
+[+] registers, memory, and system calls.
+[+]
+[+] This is a *teaching* challenge, which means that it will output
+[+] a trace of the Yan85 code as it processes it. The output is here
+[+] for you to understand what the challenge is doing, and you should use
+[+] it as a guide to help with your reversing of the code.
+```
+
+This challenge builds on the Yan85 architecture from the previous challenges. The syscall IDs have changed, and two new instructions appear in the trace.
+
+### Instruction Set
+
+| Instruction | Behavior |
+|---|---|
+| `LDM <reg> = *<reg>` | Dereference the address in reg and load the value into reg |
+| `CMP <reg1> <reg2>` | Compare two register values |
+
+### Syscall Table
+
+The syscall IDs are randomized per challenge instance. This time:
+
+| ID | Name |
+|---|---|
+| `0x04` | `read` |
+| `0x02` | `write` |
+| `0x10` | `exit` |
+
+### Tracing the Program
+
+#### Step 1: Read Input
+
+```
+IMM b = 0x75    ; buf = 0x75
+IMM c = 0x4     ; count = 4
+IMM a = 0       ; fd = stdin
+SYS 0x4 a       ; read(stdin, mem[0x75], 4)
+```
+
+The program reads **4 bytes** from stdin into memory at `0x75`.
+
+#### Step 2: Build Reference Array
+
+```
+IMM b = 0x95
+IMM c = 0x1
+; write 0xdd → mem[0x95]
+; write 0x3f → mem[0x96]
+; write 0xc1 → mem[0x97]
+; write 0x51 → mem[0x98]
+```
+
+The expected bytes `\xdd\x3f\xc1\x51` are hardcoded into memory at `0x95–0x98`.
+
+#### Step 3: Compare Byte by Byte
+
+Rather than a single `memcmp`, the comparison is done manually one byte at a time using `LDM` to dereference each address and `CMP` to compare:
+
+```
+IMM b = 0x95 ; LDM b = *b  → b = mem[0x95] = 0xdd
+IMM a = 0x75 ; LDM a = *a  → a = mem[0x75] = input[0]
+CMP a b      ; input[0] == 0xdd ?
+
+IMM b = 0x96 ; LDM b = *b  → b = mem[0x96] = 0x3f
+IMM a = 0x76 ; LDM a = *a  → a = mem[0x76] = input[1]
+CMP a b      ; input[1] == 0x3f ?
+
+; ... repeated for input[2] vs 0xc1, input[3] vs 0x51
+```
+
+There is no transformation — the correct input is exactly the reference bytes.
+
+### Solution
+
+```
+hacker@reverse-engineering~know-the-yancode-easy:~$ printf "\xdd\x3f\xc1\x51" | /challenge/know-the-yancode-easy | grep "pwn.college"
+pwn.college{stQcw4nk2SABvQVlC4r9NBGW_Jl.0VN3IDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Know the Yancode (Hard)
+
+```
+hacker@reverse-engineering~know-the-yancode-hard:~$ /challenge/know-the-yancode-hard
+[+] Welcome to /challenge/know-the-yancode-hard!
+[+] This challenge is an custom emulator. It emulates a completely custom
+[+] architecture that we call "Yan85"! You'll have to understand the
+[+] emulator to understand the architecture, and you'll have to understand
+[+] the architecture to understand the code being emulated, and you will
+[+] have to understand that code to get the flag. Good luck!
+[+]
+[+] This is an introductory Yan85 level, where we trigger Yan85 architecture
+[+] operations directly. The parts of Yan85 that are used here is the emulated
+[+] registers, memory, and system calls.
+```
+
+This is the hard version of Know the Yancode — no execution trace, and a new comparison mechanism using a flags register. Let's open it in a decompiler.
+
+### Reversing the Helper Functions
+
+| Function | Yan85 Equivalent | Behavior |
+|---|---|---|
+| `sub_1513(mem, reg, val)` | `IMM reg = val` | Load immediate into register |
+| `sub_1667(mem, reg1, reg2)` | `STM *reg1 = reg2` | Store reg2 into memory address held by reg1 |
+| `sub_1548(mem, reg1, reg2)` | `ADD reg1, reg2` | reg1 = reg1 + reg2 |
+| `sub_16C6(mem, reg1, reg2)` | `LDM reg1 = *reg2` | Dereference address in reg2 into reg1 |
+| `sub_171D(mem, reg1, reg2)` | `CMP reg1, reg2` | Compare and set flags at `mem[262]` |
+| `sub_1876(mem, id, reg)` | `SYS id reg` | Syscall |
+
+The check `*(_BYTE *)(a1 + 262) & 8` reads **bit 3 of the flags register** — this is the equality flag set by `CMP`. If the two values are equal, bit 3 is set.
+
+### Tracing the Logic
+
+#### Step 1: Read Input
+
+```c
+sub_1513(a1, 64LL, 97LL);   // IMM d = 97  (buf address)
+sub_1513(a1, 8LL, 4LL);     // IMM b = 4   (count)
+sub_1513(a1, 32LL, 0LL);    // IMM c = 0   (stdin)
+sub_1876(a1, 2LL, 32LL);    // SYS 0x2 c   read(stdin, mem[97], 4)
+```
+
+The program reads **4 bytes** from stdin into memory at offset `97`.
+
+#### Step 2: Build Reference Array
+
+The program writes 4 hardcoded expected bytes into memory at offsets `129–132`:
+
+```c
+sub_1513(a1, 64LL, 129LL);  // IMM d = 129
+sub_1513(a1, 8LL, 1LL);     // IMM b = 1  (increment)
+sub_1513(a1, 32LL, 68LL);   // IMM c = 0x44 → mem[129]
+sub_1667(a1, 64LL, 32LL);   // STM *d = c
+sub_1548(a1, 64LL, 8LL);    // ADD d b  → d = 130
+
+sub_1513(a1, 32LL, 35LL);   // IMM c = 0x23 → mem[130]
+sub_1667(a1, 64LL, 32LL);
+sub_1548(a1, 64LL, 8LL);    // d = 131
+
+sub_1513(a1, 32LL, 220LL);  // IMM c = 0xdc → mem[131]
+sub_1667(a1, 64LL, 32LL);
+sub_1548(a1, 64LL, 8LL);    // d = 132
+
+sub_1513(a1, 32LL, 239LL);  // IMM c = 0xef → mem[132]
+sub_1667(a1, 64LL, 32LL);
+```
+
+The expected bytes `\x44\x23\xdc\xef` are now at `mem[129–132]`.
+
+#### Step 3: Compare Using LDM + CMP
+
+Each byte is compared individually using `LDM` to dereference both sides and `CMP` to set the flags register:
+
+```c
+sub_1513(a1, 64LL, 129LL);         // IMM d = 129
+sub_16C6(a1, 64LL, 64LL);          // LDM d = *d  → d = mem[129] = 0x44
+sub_1513(a1, 32LL, 97LL);          // IMM c = 97
+sub_16C6(a1, 32LL, 32LL);          // LDM c = *c  → c = mem[97] = input[0]
+sub_171D(a1, 32LL, 64LL);          // CMP c, d
+v2 = (*(_BYTE *)(a1 + 262) & 8) != 0;  // v2 = (input[0] == 0x44)
+
+sub_1513(a1, 64LL, 130LL);         // d = mem[130] = 0x23
+sub_16C6(a1, 64LL, 64LL);
+sub_1513(a1, 32LL, 98LL);          // c = mem[98] = input[1]
+sub_16C6(a1, 32LL, 32LL);
+sub_171D(a1, 32LL, 64LL);          // CMP c, d
+if ( (*(_BYTE *)(a1 + 262) & 8) == 0 ) v2 = 0;  // v2 &= (input[1] == 0x23)
+
+// ... repeated for input[2] vs 0xdc, input[3] vs 0xef
+```
+
+`v2` is initialized from the first comparison and then ANDed with each subsequent result — all 4 bytes must match for `v2` to remain true.
+
+### Solution
+
+```
+hacker@reverse-engineering~know-the-yancode-hard:~$ printf "\x44\x23\xdc\xef" | /challenge/know-the-yancode-hard | grep "pwn.college"
+pwn.college{IjY7EpuKB8YVlqEUVrxL_DE6xu0.0lN3IDL4ITM0EzW}
+```
+
+### Key Differences from Easy
+
+The easy version used a live trace and a simple `CMP` on register values. The hard version adds two layers of complexity: `LDM` is used to dereference both the reference address and the input address before comparing, and the equality flag at `mem[262]` bit 3 is checked after each `CMP` to build a running all-match boolean — the Yan85 equivalent of a multi-byte equality check without `memcmp`.
