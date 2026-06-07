@@ -2796,7 +2796,7 @@ pwn.college{YNiwod-O5RXrhyhFGbFC_Xq8Bew.0lM3IDL4ITM0EzW}
 
 &nbsp;
 
-## Trust the Yancode (Easy
+## Trust the Yancode (Easy)
 
 ```
 hacker@reverse-engineering~trust-the-yancode-easy:~$ /challenge/trust-the-yancode-easy 
