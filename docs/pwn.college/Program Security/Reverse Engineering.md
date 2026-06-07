@@ -1,8 +1,6 @@
----
 custom_edit_url: null
 sidebar_position: 2
 slug: /pwn-college/program-security/reverse-engineering
----
 
 ## Terrible Token (Easy)
 
@@ -1625,8 +1623,7 @@ At a high level, the program compares the user input at `&buf` with the `EXPECTE
 Let's check how the conditional is performed in Assembly.
 
 ```asm showLineNumbers
-# ---- snip ----
-
+# ---- snip -
 .text:0000000000002005                 lea     rax, [rbp+buf]
 .text:0000000000002009                 mov     edx, 1Dh        ; n
 .text:000000000000200E                 lea     rsi, EXPECTED_RESULT ; s2
@@ -1638,16 +1635,14 @@ Let's check how the conditional is performed in Assembly.
 .text:0000000000002026                 call    win
 .text:000000000000202B                 mov     edi, 0          ; status
 .text:0000000000002030                 call    _exit
-.text:0000000000002035 ; ---------------------------------------------------------------------------
-.text:0000000000002035
+.text:0000000000002035 ; ------------------------------------------------------------------------.text:0000000000002035
 .text:0000000000002035 loc_2035:                               ; CODE XREF: main+4A3↑j
 .text:0000000000002035                 lea     rdi, aWrongNoFlagFor ; "Wrong! No flag for you!"
 .text:000000000000203C                 call    _puts
 .text:0000000000002041                 mov     edi, 1          ; status
 .text:0000000000002046                 call    _exit
 
-# ---- snip ----
-```
+# ---- snip -```
 
 The `_memcmp` result would be `rax=0` if the values of the hashed user input at `&buf` and `EXPECTED_RESULT` are the same.
 This would cause the `test` instruction to set the Zero Flag (ZF), as it would perform bitwise AND of two 0 values.
@@ -1822,8 +1817,7 @@ void __fastcall __noreturn main(int a1, char **a2, char **a3)
 Let's look at the disassembly view.
 
 ```asm showLineNumbers
-# ---- snip ----
-
+# ---- snip -
 .text:0000000000001E1D                 mov     edx, 1Ch        ; n
 .text:0000000000001E22                 lea     rsi, EXPECTED_RESULT ; s2
 .text:0000000000001E29                 mov     rdi, rax        ; s1
@@ -1834,16 +1828,14 @@ Let's look at the disassembly view.
 .text:0000000000001E3A                 call    win
 .text:0000000000001E3F                 mov     edi, 0          ; status
 .text:0000000000001E44                 call    _exit
-.text:0000000000001E49 ; ---------------------------------------------------------------------------
-.text:0000000000001E49
+.text:0000000000001E49 ; ------------------------------------------------------------------------.text:0000000000001E49
 .text:0000000000001E49 loc_1E49:                               ; CODE XREF: main+2FF↑j
 .text:0000000000001E49                 lea     rdi, aWrongNoFlagFor ; "Wrong! No flag for you!"
 .text:0000000000001E50                 call    _puts
 .text:0000000000001E55                 mov     edi, 1          ; status
 .text:0000000000001E5A                 call    _exit
 
-# ---- snip ----
-```
+# ---- snip -```
 
 The `_memcmp` result would be `rax=0` if the values of the hashed user input at `&buf` and `EXPECTED_RESULT` are the same.
 This would cause the `test` instruction to set the Zero Flag (ZF), as it would perform bitwise AND of two 0 values.
@@ -2052,8 +2044,7 @@ int __fastcall __noreturn main(int argc, const char **argv, const char **envp)
 Let's look at the disassembly view.
 
 ```asm showLineNumbers
-# ---- snip ----
-
+# ---- snip -
 .text:00000000000024B4                 lea     rax, [rbp+buf]
 .text:00000000000024B8                 mov     edx, 1Dh        ; n
 .text:00000000000024BD                 lea     rsi, EXPECTED_RESULT ; s2
@@ -2065,16 +2056,14 @@ Let's look at the disassembly view.
 .text:00000000000024D5                 call    win
 .text:00000000000024DA                 mov     edi, 0          ; status
 .text:00000000000024DF                 call    _exit
-.text:00000000000024E4 ; ---------------------------------------------------------------------------
-.text:00000000000024E4
+.text:00000000000024E4 ; ------------------------------------------------------------------------.text:00000000000024E4
 .text:00000000000024E4 loc_24E4:                               ; CODE XREF: main+4A3↑j
 .text:00000000000024E4                 lea     rdi, aWrongNoFlagFor ; "Wrong! No flag for you!"
 .text:00000000000024EB                 call    _puts
 .text:00000000000024F0                 mov     edi, 1          ; status
 .text:00000000000024F5                 call    _exit
 
-# ---- snip ----
-```
+# ---- snip -```
 
 The `_memcmp` result would be `rax=0` if the values of the hashed user input at `&buf` and `EXPECTED_RESULT` are the same.
 This would cause the `test` instruction to set the Zero Flag (ZF), as it would perform bitwise AND of two 0 values.
@@ -2241,8 +2230,7 @@ void __fastcall __noreturn main(int a1, char **a2, char **a3)
 Lets look at the disassembly view.
 
 ```asm showLineNumbers
-# ---- snip ----
-
+# ---- snip -
 .text:00000000000023A7                 lea     rax, [rbp+buf]
 .text:00000000000023AB                 mov     edx, 1Dh        ; n
 .text:00000000000023B0                 lea     rsi, EXPECTED_RESULT ; s2
@@ -2254,16 +2242,14 @@ Lets look at the disassembly view.
 .text:00000000000023C8                 call    win
 .text:00000000000023CD                 mov     edi, 0          ; status
 .text:00000000000023D2                 call    _exit
-.text:00000000000023D7 ; ---------------------------------------------------------------------------
-.text:00000000000023D7
+.text:00000000000023D7 ; ------------------------------------------------------------------------.text:00000000000023D7
 .text:00000000000023D7 loc_23D7:                               ; CODE XREF: main+301↑j
 .text:00000000000023D7                 lea     rdi, aWrongNoFlagFor ; "Wrong! No flag for you!"
 .text:00000000000023DE                 call    _puts
 .text:00000000000023E3                 mov     edi, 1          ; status
 .text:00000000000023E8                 call    _exit
 
-# ---- snip ----
-```
+# ---- snip -```
 
 The `_memcmp` result would be `rax=0` if the values of the hashed user input at `&buf` and `EXPECTED_RESULT` are the same.
 This would cause the `test` instruction to set the Zero Flag (ZF), as it would perform bitwise AND of two 0 values.
@@ -2474,8 +2460,7 @@ int __fastcall __noreturn main(int argc, const char **argv, const char **envp)
 Let's look at the disassembly view.
 
 ```asm showLineNumbers
-# ---- snip ----
-
+# ---- snip -
 .text:0000000000002733                 lea     rcx, [rbp+post_crack_hash]
 .text:0000000000002737                 lea     rax, [rbp+pre_crack_hash]
 .text:000000000000273B                 mov     edx, 10h        ; n
@@ -2492,28 +2477,23 @@ Let's look at the disassembly view.
 .text:0000000000002773                 mov     [rbp+var_18], 0
 .text:000000000000277A                 lea     rdi, aReadyToReceive ; "Ready to receive your license key!\n"
 
-# ---- snip ----
-
-.text:00000000000027BE ; ---------------------------------------------------------------------------
-.text:00000000000027BE
+# ---- snip -
+.text:00000000000027BE ; ------------------------------------------------------------------------.text:00000000000027BE
 .text:00000000000027BE loc_27BE:                               ; CODE XREF: main+404↑j
 .text:00000000000027BE                 lea     rdi, aTheCodeSIntegr_0 ; "The code's integrity has been breached,"...
 .text:00000000000027C5                 call    _puts
 .text:00000000000027CA                 mov     edi, 1          ; status
 .text:00000000000027CF                 call    _exit
 
-# ---- snip ----
-
-.text:00000000000027BE ; ---------------------------------------------------------------------------
-.text:00000000000027BE
+# ---- snip -
+.text:00000000000027BE ; ------------------------------------------------------------------------.text:00000000000027BE
 .text:00000000000027BE loc_27BE:                               ; CODE XREF: main+404↑j
 .text:00000000000027BE                 lea     rdi, aTheCodeSIntegr_0 ; "The code's integrity has been breached,"...
 .text:00000000000027C5                 call    _puts
 .text:00000000000027CA                 mov     edi, 1          ; status
 .text:00000000000027CF                 call    _exit
 
-# ---- snip ----
-```
+# ---- snip -```
 
 The first `_memcmp` result would be `rax=0` if the values of the hashed user input at `pre_crack_hash` and `post_crack_hash` are the same.
 This would cause the `test` instruction to set the Zero Flag (ZF), as it would perform bitwise AND of two 0 values.
@@ -2720,8 +2700,7 @@ void __fastcall __noreturn main(int a1, char **a2, char **a3)
 Disassembly:
 
 ```asm showLineNumbers
-# ---- snip ----
-
+# ---- snip -
 .text:000000000000214F                 lea     rcx, [rbp+post_crack_hash]
 .text:0000000000002153                 lea     rax, [rbp+pre_crack_hash]
 .text:0000000000002157                 mov     edx, 10h        ; n
@@ -2732,8 +2711,7 @@ Disassembly:
 .text:0000000000002169                 jnz     loc_2252
 .text:000000000000216F                 lea     rdi, aTheCodeSIntegr ; "The code's integrity is secure!\n"
 
-# ---- snip ----
-
+# ---- snip -
 .text:0000000000002234                 lea     rax, [rbp+buf]
 .text:0000000000002238                 mov     edx, 1Dh        ; n
 .text:000000000000223D                 lea     rsi, EXPECTED_RESULT ; s2
@@ -2742,16 +2720,14 @@ Disassembly:
 .text:000000000000224C                 test    eax, eax
 .text:000000000000224E                 jnz     short loc_227C
 .text:0000000000002250                 jmp     short loc_2268
-.text:0000000000002252 ; ---------------------------------------------------------------------------
-.text:0000000000002252
+.text:0000000000002252 ; ------------------------------------------------------------------------.text:0000000000002252
 .text:0000000000002252 loc_2252:                               ; CODE XREF: main+342↑j
 .text:0000000000002252                 lea     rdi, aTheCodeSIntegr_0 ; "The code's integrity has been breached,"...
 .text:0000000000002259                 call    _puts
 .text:000000000000225E                 mov     edi, 1          ; status
 .text:0000000000002263                 call    _exit
 
-# ---- snip ----
-```
+# ---- snip -```
 
 The first `_memcmp` result would be `rax=0` if the values of the hashed user input at `pre_crack_hash` and `post_crack_hash` are the same.
 This would cause the `test` instruction to set the Zero Flag (ZF), as it would perform bitwise AND of two 0 values.
@@ -2820,7 +2796,7 @@ pwn.college{YNiwod-O5RXrhyhFGbFC_Xq8Bew.0lM3IDL4ITM0EzW}
 
 &nbsp;
 
-## Trust the Yancode (Easy)
+## Trust the Yancode (Easy
 
 ```
 hacker@reverse-engineering~trust-the-yancode-easy:~$ /challenge/trust-the-yancode-easy 
@@ -2848,578 +2824,94 @@ hacker@reverse-engineering~trust-the-yancode-easy:~$ /challenge/trust-the-yancod
 
 ```
 
-### Yan85 Analysis
+This challenge introduces a custom CPU emulator called **Yan85** — a fictional architecture with its own registers, memory model, and syscall interface. The goal is to reverse-engineer what the emulated program does, figure out what input it expects, and provide it to trigger the "CORRECT" path that prints the flag.
 
-#### Instructions
+The challenge helpfully traces every instruction as it executes, making this an exercise in reading and understanding an unfamiliar ISA from its runtime behavior.
 
-The following is the initial analysis of the Yan85 instructions. It can be updated in the further challenges, or as teh program gives more output.
+### Registers
 
-| Yan85 code   | Description |
-| :---------------- | :----------- |
-| `IMM <reg> = <val>` | Set the register to the value |
-| `IMM <reg1> = <reg2>` | Set first register's value to the value in the second register | 
-| `SYS <id> <reg>` | Make a syscall based on the identifer, and store the result in the specified register |
-| ... `<action>` | Action defined by the syscall is being performed |
+The emulator uses at least four named registers: `a`, `b`, `c`, and `d`.
 
-#### `read_memory` "syscall"
+### Instruction Set
 
-It seems like the program sets us a `read_memory` call which is equivalent to a `read` syscall.
+From observing the trace, we can identify the following instructions:
+
+| Instruction | Behavior |
+|---|---|
+| `IMM <reg> = <val>` | Load an immediate value into a register |
+| `IMM <reg1> = <reg2>` | Copy one register's value into another |
+| `STM *<reg1> = <reg2>` | Store the value of `reg2` into the memory address pointed to by `reg1` |
+| `ADD <reg1> <reg2>` | Add `reg2` into `reg1` (in-place) |
+| `SYS <id> <reg>` | Invoke a syscall; return value stored in `<reg>` |
+
+### Syscall Table
+
+| ID | Name | arg0 | arg1 | arg2 |
+|---|---|---|---|---|
+| `0x01` | `exit` | `a` (exit code) | — | — |
+| `0x08` | `read` | `a` (fd) | `b` (buf addr) | `c` (count) |
+| `0x10` | `open` | `b` (filename addr) | `a` (flags) | — |
+| `0x20` | `write` | `a` (fd) | `b` (buf addr) | `c` (count) |
 
 
-| ID     | (arg0) unsigned int fd   | (arg1) char *buf   | (arg2) size_t count   |
-| :----- | :----------------------- | :----------------- | :-------------------- |
-| `0x8`  | `a`                      | `b`                | `c`                   |
+### Tracing the Program
 
-So the program sets up a `read_memory` call and read `0x8` bytes from STDIN to `0x6b`.
-
-Let's provide some input.
-
-```
-# ---- snip ----
-
-[s] IMM b = 0x6b
-[s] IMM c = 0x8
-[s] IMM a = 0
-[s] SYS 0x8 a
-[s] ... read_memory
-abcde
-[s] ... return value (in register a): 0x6
-
-# ---- snip ----
-```
-
-So it read `5` bytes including the newline character, and stored the return value in `a`.
+#### Step 1: Read Input
 
 ```
-# ---- snip ----
-
-[s] IMM b = 0x8b
-[s] IMM c = 0x1
-[s] IMM a = 0x79
-[s] STM *b = a
-[s] ADD b c
-[s] IMM a = 0xd4
-[s] STM *b = a
-[s] ADD b c
-[s] IMM a = 0xcb
-[s] STM *b = a
-[s] ADD b c
-[s] IMM a = 0x73
-[s] STM *b = a
-[s] ADD b c
-[s] IMM a = 0x86
-[s] STM *b = a
-[s] ADD b c
-[s] IMM a = 0xb5
-[s] STM *b = a
-[s] ADD b c
-[s] IMM a = 0x5b
-[s] STM *b = a
-[s] ADD b c
-[s] IMM a = 0x86
-[s] STM *b = a
-[s] ADD b c
-
-# ---- snip ----
+IMM b = 0x6b    ; buf = 0x6b
+IMM c = 0x8     ; count = 8
+IMM a = 0       ; fd = 0 (stdin)
+SYS 0x8 a       ; read(stdin, 0x6b, 8)
 ```
 
-So the program then sets up at array beginning from `0x8b`, and moves some bytes into it one by one.
-The final byte string which is moved into the array is: `\x79\xd4\xcb\x73\x86\xb5\x5b\x86`.
+The program reads **8 bytes** from stdin into memory address `0x6b`. The return value (bytes read) is stored in `a`.
 
-Yan85 Emulator:
+#### Step 2: Build a Reference Array
 
-| Yan85 code   | Description |
-| :---------------- | :----------- |
-| `IMM <reg> = <val>` | Set the register to the value |
-| `IMM <reg1> = <reg2>` | Set first register's value to the value in the second register | 
-| `SYS <id> <reg>` | Make a syscall based on the identifer, and store the result in the specified register |
-| ... `<action>` | Action defined by the syscall is being performed |
-| `ADD <reg1> <reg2>` | Add the values in register 1 and 2 and store result in register 1 |
+Starting at address `0x8b`, the program writes 8 bytes into memory one at a time:
 
 ```
-# ---- snip -----
-
-[s] IMM a = 0x1
-[s] IMM b = 0
-[s] IMM c = 0x1
-[s] IMM d = 0x49
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-I[s] ... return value (in register a): 0x1
-[s] IMM d = 0x4e
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-N[s] ... return value (in register a): 0x1
-[s] IMM d = 0x43
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-C[s] ... return value (in register a): 0x1
-[s] IMM d = 0x4f
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-O[s] ... return value (in register a): 0x1
-[s] IMM d = 0x52
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-R[s] ... return value (in register a): 0x1
-[s] IMM d = 0x52
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-R[s] ... return value (in register a): 0x1
-[s] IMM d = 0x45
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-E[s] ... return value (in register a): 0x1
-[s] IMM d = 0x43
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-C[s] ... return value (in register a): 0x1
-[s] IMM d = 0x54
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-T[s] ... return value (in register a): 0x1
-[s] IMM d = 0x21
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-![s] ... return value (in register a): 0x1
-[s] IMM a = 0x1
-[s] IMM d = 0xa
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-
-[s] ... return value (in register a): 0x1
-
-# ---- snip ----
+IMM b = 0x8b
+IMM c = 0x1
+; write 0x79 → [0x8b]
+; write 0xd4 → [0x8c]
+; write 0xcb → [0x8d]
+; write 0x73 → [0x8e]
+; write 0x86 → [0x8f]
+; write 0xb5 → [0x90]
+; write 0x5b → [0x91]
+; write 0x86 → [0x92]
 ```
 
-The program also writes the bytes `"INCORRECT!"` to STDOUT one by one, using the `write` syscall.
-
-#### `write` "syscall"
-
-| ID     | (arg0) unsigned int fd   | (arg1) const char *buf   | (arg2) size_t count   |
-| :----- | :----------------------- | :----------------------- | :-------------------- |
-| `0X20` | `a`                      | `b`                      | `c`                   |
-
-Finally it exits.
-
-#### `exit` "syscall"
+This hardcodes the expected answer at `0x8b`:
 
 ```
-# ---- snip ----
-
-[s] SYS 0x1 a
-[s] ... exit
+\x79\xd4\xcb\x73\x86\xb5\x5b\x86
 ```
 
-| ID     | (arg0) int error_code    | 
-| :----- | :----------------------- |
-| `0x1`  | `a`                      |
+At this point, the program presumably compares your input (at `0x6b`) against this reference (at `0x8b`). If they don't match, it prints `INCORRECT!\n` and exits. If they match, it continues.
 
-In order to solve this challenge, let's provide the byte string which it initializes.
+#### Step 3: Print the Flag
+
+On a correct match, the program:
+
+1. Prints `CORRECT! Your flag:\n` via repeated single-byte `write` syscalls
+2. Constructs the string `/flag\x00` in memory starting at address `0`
+3. Calls `open("/flag", 0)` → returns fd `3`
+4. Reads up to `0x64` (100) bytes from the flag file into the buffer at `0`
+5. Writes the entire flag to stdout
+6. Calls `exit`
+
+
+### Solution
+
+The required input is exactly the 8-byte reference sequence the program hardcodes:
 
 ```
-hacker@reverse-engineering~trust-the-yancode-easy:~$ printf "\x79\xd4\xcb\x73\x86\xb5\x5b\x86\x23" | /challenge/trust-the-yancode-easy
-[+] Welcome to /challenge/trust-the-yancode-easy!
-[+] This challenge is an custom emulator. It emulates a completely custom
-[+] architecture that we call "Yan85"! You'll have to understand the
-[+] emulator to understand the architecture, and you'll have to understand
-[+] the architecture to understand the code being emulated, and you will
-[+] have to understand that code to get the flag. Good luck!
-[+]
-[+] This is an introductory Yan85 level, where we trigger Yan85 architecture
-[+] operations directly. The parts of Yan85 that are used here is the emulated
-[+] registers, memory, and system calls.
-[+]
-[+] This is a *teaching* challenge, which means that it will output
-[+] a trace of the Yan85 code as it processes it. The output is here
-[+] for you to understand what the challenge is doing, and you should use
-[+] it as a guide to help with your reversing of the code.
-[+]
-[s] IMM b = 0x6b
-[s] IMM c = 0x8
-[s] IMM a = 0
-[s] SYS 0x8 a
-[s] ... read_memory
-[s] ... return value (in register a): 0x8
-[s] IMM b = 0x8b
-[s] IMM c = 0x1
-[s] IMM a = 0x79
-[s] STM *b = a
-[s] ADD b c
-[s] IMM a = 0xd4
-[s] STM *b = a
-[s] ADD b c
-[s] IMM a = 0xcb
-[s] STM *b = a
-[s] ADD b c
-[s] IMM a = 0x73
-[s] STM *b = a
-[s] ADD b c
-[s] IMM a = 0x86
-[s] STM *b = a
-[s] ADD b c
-[s] IMM a = 0xb5
-[s] STM *b = a
-[s] ADD b c
-[s] IMM a = 0x5b
-[s] STM *b = a
-[s] ADD b c
-[s] IMM a = 0x86
-[s] STM *b = a
-[s] ADD b c
-[s] IMM a = 0x1
-[s] IMM b = 0
-[s] IMM c = 0x1
-[s] IMM d = 0x43
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-C[s] ... return value (in register a): 0x1
-[s] IMM d = 0x4f
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-O[s] ... return value (in register a): 0x1
-[s] IMM d = 0x52
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-R[s] ... return value (in register a): 0x1
-[s] IMM d = 0x52
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-R[s] ... return value (in register a): 0x1
-[s] IMM d = 0x45
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-E[s] ... return value (in register a): 0x1
-[s] IMM d = 0x43
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-C[s] ... return value (in register a): 0x1
-[s] IMM d = 0x54
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-T[s] ... return value (in register a): 0x1
-[s] IMM d = 0x21
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-![s] ... return value (in register a): 0x1
-[s] IMM d = 0x20
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
- [s] ... return value (in register a): 0x1
-[s] IMM d = 0x59
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-Y[s] ... return value (in register a): 0x1
-[s] IMM d = 0x6f
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-o[s] ... return value (in register a): 0x1
-[s] IMM d = 0x75
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-u[s] ... return value (in register a): 0x1
-[s] IMM d = 0x72
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-r[s] ... return value (in register a): 0x1
-[s] IMM d = 0x20
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
- [s] ... return value (in register a): 0x1
-[s] IMM d = 0x66
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-f[s] ... return value (in register a): 0x1
-[s] IMM d = 0x6c
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-l[s] ... return value (in register a): 0x1
-[s] IMM d = 0x61
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-a[s] ... return value (in register a): 0x1
-[s] IMM d = 0x67
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-g[s] ... return value (in register a): 0x1
-[s] IMM d = 0x3a
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-:[s] ... return value (in register a): 0x1
-[s] IMM d = 0xa
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-
-[s] ... return value (in register a): 0x1
-[s] IMM d = 0x2f
-[s] IMM b = 0
-[s] STM *b = d
-[s] IMM d = 0x66
-[s] IMM b = 0x1
-[s] STM *b = d
-[s] IMM d = 0x6c
-[s] IMM b = 0x2
-[s] STM *b = d
-[s] IMM d = 0x61
-[s] IMM b = 0x3
-[s] STM *b = d
-[s] IMM d = 0x67
-[s] IMM b = 0x4
-[s] STM *b = d
-[s] IMM d = 0
-[s] IMM b = 0x5
-[s] STM *b = d
-[s] IMM a = 0
-[s] IMM b = 0
-[s] SYS 0x10 a
-[s] ... open
-[s] ... return value (in register a): 0x3
-[s] IMM c = 0x64
-[s] SYS 0x8 c
-[s] ... read_memory
-[s] ... return value (in register c): 0x39
-[s] IMM a = 0x1
-[s] SYS 0x20 c
-[s] ... write
+hacker@reverse-engineering~trust-the-yancode-easy:~$ printf "\x79\xd4\xcb\x73\x86\xb5\x5b\x86" | /challenge/trust-the-yancode-easy | grep "pwn.college"
 pwn.college{ks-9GPm_6puqSjEYA-bLxxBHRy3.01M3IDL4ITM0EzW}
-[s] ... return value (in register c): 0x39
-[s] IMM a = 0
-[s] IMM d = 0xa
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-[s] ... return value (in register a): 0xff
-[s] SYS 0x1 a
-[s] ... exit
 ```
-
-We get the flag, and also get to see some more functionality from the program. Let's analyze that as well.
-
-This time, the `write` syscall writes a different message `"CORRECT! Your flag:"` to STDOUT.
-
-```
-# ---- snip ----
-
-[s] IMM a = 0x1
-[s] IMM b = 0
-[s] IMM c = 0x1
-[s] IMM d = 0x43
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-C[s] ... return value (in register a): 0x1
-[s] IMM d = 0x4f
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-O[s] ... return value (in register a): 0x1
-[s] IMM d = 0x52
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-R[s] ... return value (in register a): 0x1
-[s] IMM d = 0x52
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-R[s] ... return value (in register a): 0x1
-[s] IMM d = 0x45
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-E[s] ... return value (in register a): 0x1
-[s] IMM d = 0x43
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-C[s] ... return value (in register a): 0x1
-[s] IMM d = 0x54
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-T[s] ... return value (in register a): 0x1
-[s] IMM d = 0x21
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-![s] ... return value (in register a): 0x1
-[s] IMM d = 0x20
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
- [s] ... return value (in register a): 0x1
-[s] IMM d = 0x59
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-Y[s] ... return value (in register a): 0x1
-[s] IMM d = 0x6f
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-o[s] ... return value (in register a): 0x1
-[s] IMM d = 0x75
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-u[s] ... return value (in register a): 0x1
-[s] IMM d = 0x72
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-r[s] ... return value (in register a): 0x1
-[s] IMM d = 0x20
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
- [s] ... return value (in register a): 0x1
-[s] IMM d = 0x66
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-f[s] ... return value (in register a): 0x1
-[s] IMM d = 0x6c
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-l[s] ... return value (in register a): 0x1
-[s] IMM d = 0x61
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-a[s] ... return value (in register a): 0x1
-[s] IMM d = 0x67
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-g[s] ... return value (in register a): 0x1
-[s] IMM d = 0x3a
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-:[s] ... return value (in register a): 0x1
-[s] IMM d = 0xa
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-
-[s] ... return value (in register a): 0x1
-
-# ---- snip ----
-```
-
-It then crafts the string `/flag\00`.
-
-```
-# ---- snip ----
-
-[s] IMM d = 0x2f
-[s] IMM b = 0
-[s] STM *b = d
-[s] IMM d = 0x66
-[s] IMM b = 0x1
-[s] STM *b = d
-[s] IMM d = 0x6c
-[s] IMM b = 0x2
-[s] STM *b = d
-[s] IMM d = 0x61
-[s] IMM b = 0x3
-[s] STM *b = d
-[s] IMM d = 0x67
-[s] IMM b = 0x4
-[s] STM *b = d
-[s] IMM d = 0
-[s] IMM b = 0x5
-[s] STM *b = d
-
-# ---- snip ----
-```
-
-Then makes the `open` syscall, opening the flag file at location `0`
-
-```
-# ---- snip ----
-
-[s] IMM a = 0
-[s] IMM b = 0
-[s] SYS 0x10 a
-[s] ... open
-[s] ... return value (in register a): 0x3
-
-# ---- snip ----
-```
-
-#### `open` "syscall"
-
-| ID     | const char *filename     | (arg1) const char *buf   | (arg2) size_t count   |
-| :----- | :----------------------- | :----------------------- | :-------------------- |
-| `0x10` | `b`                      | `a`                      | `c`                   |
-
-Next, it reads the contents of the `/flag` file to location `0`.
-
-```
-# ---- snip ----
-
-[s] IMM c = 0x64
-[s] SYS 0x8 c
-[s] ... read_memory
-[s] ... return value (in register c): 0x39
-
-# ---- snip ----
-```
-
-Then the program, write out the file to STDOUT.
-
-```
-# ---- snip ----
-
-[s] IMM a = 0x1
-[s] SYS 0x20 c
-[s] ... write
-pwn.college{ks-9GPm_6puqSjEYA-bLxxBHRy3.01M3IDL4ITM0EzW}
-[s] ... return value (in register c): 0x39
-[s] IMM a = 0
-[s] IMM d = 0xa
-[s] STM *b = d
-[s] SYS 0x20 a
-[s] ... write
-[s] ... return value (in register a): 0xff
-[s] SYS 0x1 a
-[s] ... exit
-```
-
-That was it for this challenge.
 
 &nbsp;
 

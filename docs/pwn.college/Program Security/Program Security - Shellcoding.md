@@ -14548,3 +14548,64 @@ pwn.college{sn7SkYlVBAGiSKjtSu8TvzUUa0Q.QXyUDO4EDL4ITM0EzW}
 ```
 
 The exit code −11 (SIGSEGV) is expected, `win()` returns into a corrupted frame since we only patched `saved_rip` and left `saved_rbp` intact. The flag is printed before `win()` returns, so the crash is inconsequential.
+
+&nbsp;
+
+## Make it FizzBuzz
+
+
+```c title="/challenge/make-it-fizzbuzz :: challenge() :: Pseudocode" showLineNumbers 
+__int64 challenge()
+{
+  __int64 result; // rax
+  __int64 v1[2]; // [rsp+20h] [rbp-50h] BYREF
+  __int64 v2[2]; // [rsp+30h] [rbp-40h] BYREF
+  __int64 v3; // [rsp+40h] [rbp-30h] BYREF
+  __int64 v4; // [rsp+48h] [rbp-28h]
+  char *src; // [rsp+50h] [rbp-20h]
+  char *dest; // [rsp+58h] [rbp-18h]
+  unsigned __int64 v7; // [rsp+68h] [rbp-8h]
+
+  v7 = __readfsqword(0x28u);
+  v1[0] = 16LL;
+  v1[1] = 0LL;
+  v2[0] = 0LL;
+  v2[1] = 0LL;
+  v3 = 0x7A7A754200000000LL;
+  v4 = 10LL;
+  dest = (char *)v1 + 4;
+  src = (char *)v2 + 4;
+  puts("Welcome to Fizz Buzz!");
+  for ( HIDWORD(v4) = 0; ; ++HIDWORD(v4) )
+  {
+    result = LODWORD(v1[0]);
+    if ( SHIDWORD(v4) >= SLODWORD(v1[0]) )
+      break;
+    if ( SHIDWORD(v4) % 15 )
+    {
+      if ( SHIDWORD(v4) % 3 )
+      {
+        if ( SHIDWORD(v4) % 5 )
+          src = (char *)&nothing;
+        else
+          src = (char *)&v3 + 4;
+      }
+      else
+      {
+        src = fizz;
+      }
+    }
+    else
+    {
+      src = (char *)&fuzzbuzz;
+    }
+    printf("%d: ", HIDWORD(v4));
+    read(0, (char *)v2 + 4, 0x54uLL);
+    printf("You entered: %s\n", (const char *)v2 + 4);
+    BYTE4(v2[0]) = 0;
+    strcpy(dest, src);
+    printf("Correct answer: %s\n", dest);
+  }
+  return result;
+}
+```
