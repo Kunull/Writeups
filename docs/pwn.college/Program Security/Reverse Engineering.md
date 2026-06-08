@@ -2867,9 +2867,9 @@ From observing the trace, we can identify the following instructions:
 
 | ID | Name | arg0 | arg1 | arg2 |
 |---|---|---|---|---|
-| `0x01` | `exit` | `a` (exit code) | ` ` | ` ` |
+| `0x01` | `exit` | `a` (exit code) | | |
 | `0x08` | `read` | `a` (fd) | `b` (buf addr) | `c` (count) |
-| `0x10` | `open` | `b` (filename addr) | `a` (flags) | ` ` |
+| `0x10` | `open` | `b` (filename addr) | `a` (flags) | |
 | `0x20` | `write` | `a` (fd) | `b` (buf addr) | `c` (count) |
 
 ### Tracing the Program
