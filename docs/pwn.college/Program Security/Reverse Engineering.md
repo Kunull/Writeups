@@ -2994,8 +2994,10 @@ __int64 __fastcall sub_1A97(__int64 a1)
   sub_1533(a1, 16LL, 0LL);
   sub_1896(a1, 8LL, 16LL);
 
-  // sub_1687 matches STM — stores a register value into the address held by another register. sub_1568 matches ADD. 
-  // This block builds the 4-byte reference array at mem[118]: IMM b=118, IMM c=1 (step), then for each byte: IMM a=<val>, STM *b=a, ADD b c to advance the pointer.
+  // sub_1687 matches STM — stores a register value into the address held by
+  // another register. sub_1568 matches ADD. This block builds the 4-byte
+  // reference array at mem[118]: IMM b=118, IMM c=1 (step), then for each
+  // byte: IMM a=<val>, STM *b=a, ADD b c to advance the pointer.
   sub_1533(a1, 8LL, 118LL);
   sub_1533(a1, 32LL, 1LL);
   sub_1533(a1, 16LL, 124LL);   // 0x7c
@@ -3020,7 +3022,8 @@ __int64 __fastcall sub_1A97(__int64 a1)
   sub_1533(a1, 32LL, 1LL);
   if ( v2 )
   {
-    // CORRECT path: repeated IMM d=<ascii>, STM *b=d, SYS 0x2 a (write) sequences spell out "CORRECT! Your flag:\n" one byte at a time.
+    // CORRECT path: repeated IMM d=<ascii>, STM *b=d, SYS 0x2 a (write)
+    // sequences spell out "CORRECT! Your flag:\n" one byte at a time.
     sub_1533(a1, 64LL, 67LL);   // 'C'
     sub_1687(a1, 8LL, 64LL);
     sub_1896(a1, 2LL, 16LL);
@@ -3082,8 +3085,9 @@ __int64 __fastcall sub_1A97(__int64 a1)
     sub_1687(a1, 8LL, 64LL);
     sub_1896(a1, 2LL, 16LL);
 
-    // Build "/flag\0" at mem[0] by writing each character with IMM b=<offset>, STM *b=d. 
-    // Then SYS 0x10 (open), SYS 0x8 (read), SYS 0x20 (write) to read and print the flag file.
+    // Build "/flag\0" at mem[0] by writing each character with IMM b=<offset>,
+    // STM *b=d. Then SYS 0x10 (open), SYS 0x8 (read), SYS 0x20 (write) to
+    // read and print the flag file.
     sub_1533(a1, 64LL, 47LL);   // '/'
     sub_1533(a1, 8LL, 0LL);
     sub_1687(a1, 8LL, 64LL);
@@ -3113,7 +3117,8 @@ __int64 __fastcall sub_1A97(__int64 a1)
   }
   else
   {
-    // INCORRECT path: same IMM/STM/SYS write pattern, printing "INCORRECT!\n" one character at a time before falling through to exit.
+    // INCORRECT path: same IMM/STM/SYS write pattern, printing "INCORRECT!\n"
+    // one character at a time before falling through to exit.
     sub_1533(a1, 64LL, 73LL);   // 'I'
     sub_1687(a1, 8LL, 64LL);
     sub_1896(a1, 2LL, 16LL);
@@ -3161,8 +3166,9 @@ __int64 __fastcall sub_1568(__int64 a1, unsigned __int8 a2, unsigned __int8 a3)
   char v3; // bl
   char v4; // al
 
-  // sub_1363 reads a register by its bitmask id; sub_1415 writes one. 
-  // This function reads two registers, adds them, and writes the result back to the first — confirming sub_1568 is ADD reg1, reg2.
+  // sub_1363 reads a register by its bitmask id; sub_1415 writes one. This
+  // function reads two registers, adds them, and writes the result back to the
+  // first — confirming sub_1568 is ADD reg1, reg2.
   v3 = sub_1363(a1, a2);                              // read register a2
   v4 = sub_1363(a1, a3);                              // read register a3
   return sub_1415(a1, a2, (unsigned __int8)(v3 + v4)); // write sum back to a2
@@ -3185,7 +3191,8 @@ We map helpers by cross-referencing argument patterns against the labeled easy t
 #### Step 1: Read Input
 
 ```c title="/challenge/trust-the-yancode-hard :: sub_1A97() :: Pseudocode" showLineNumbers
-// IMM b=86 (buf address), IMM c=4 (count), IMM a=0 (STDIN), SYS 0x8 a -> read(STDIN, mem[86], 4).
+// IMM b=86 (buf address), IMM c=4 (count), IMM a=0 (STDIN),
+// SYS 0x8 a -> read(STDIN, mem[86], 4).
 sub_1533(a1, 8LL, 86LL);    // IMM b = 86  (buf address)
 sub_1533(a1, 32LL, 4LL);    // IMM c = 4   (count)
 sub_1533(a1, 16LL, 0LL);    // IMM a = 0   (STDIN)
@@ -3199,8 +3206,8 @@ The program reads **4 bytes** from STDIN into memory at offset `86`.
 Next, the program writes 4 hardcoded bytes into memory at offset `118`, incrementing the address pointer each time:
 
 ```c title="/challenge/trust-the-yancode-hard :: sub_1A97() :: Pseudocode" showLineNumbers
-// IMM b=118 (dest pointer), IMM c=1 (step). 
-// Each iteration: load a byte into a via IMM, store it with STM *b=a, then advance b with ADD b c.
+// IMM b=118 (dest pointer), IMM c=1 (step). Each iteration: load a byte into
+// a via IMM, store it with STM *b=a, then advance b with ADD b c.
 sub_1533(a1, 8LL, 118LL);   // IMM b = 118
 sub_1533(a1, 32LL, 1LL);    // IMM c = 1
 
@@ -3225,8 +3232,8 @@ The expected answer `\x7c\xe3\x8a\x78` is now at offsets `118–121`.
 #### Step 3: Compare
 
 ```c title="/challenge/trust-the-yancode-hard :: sub_1A97() :: Pseudocode" showLineNumbers
-// memcmp directly between the 4 reference bytes at mem[118] and our 4 input bytes at mem[86]. 
-// No transformation — the correct input is those bytes verbatim.
+// memcmp directly between the 4 reference bytes at mem[118] and our 4 input
+// bytes at mem[86]. No transformation — the correct input is those bytes verbatim.
 v2 = memcmp((const void *)(a1 + 118), (const void *)(a1 + 86), 4uLL) == 0;
 ```
 
