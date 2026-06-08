@@ -3698,3 +3698,599 @@ pwn.college{IjY7EpuKB8YVlqEUVrxL_DE6xu0.0lN3IDL4ITM0EzW}
 ### Key Differences from Easy
 
 The easy version used a live trace and a simple `CMP` on register values. The hard version adds two layers of complexity: `LDM` is used to dereference both the reference address and the input address before comparing, and the equality flag at `mem[262]` bit 3 is checked after each `CMP` to build a running all-match boolean — the Yan85 equivalent of a multi-byte equality check without `memcmp`.
+
+&nbsp;
+
+## Master the Yancode (Easy)
+
+```
+hacker@reverse-engineering~master-the-yancode-easy:~$ /challenge/master-the-yancode-easy
+[+] Welcome to /challenge/master-the-yancode-easy!
+[+] This challenge is an custom emulator. It emulates a completely custom
+[+] architecture that we call "Yan85"! You'll have to understand the
+[+] emulator to understand the architecture, and you'll have to understand
+[+] the architecture to understand the code being emulated, and you will
+[+] have to understand that code to get the flag. Good luck!
+[+]
+[+] This is an introductory Yan85 level, where we trigger Yan85 architecture
+[+] operations directly. The parts of Yan85 that are used here is the emulated
+[+] registers, memory, and system calls.
+[+]
+[+] This is a *teaching* challenge, which means that it will output
+[+] a trace of the Yan85 code as it processes it. The output is here
+[+] for you to understand what the challenge is doing, and you should use
+[+] it as a guide to help with your reversing of the code.
+```
+
+This challenge builds on the Yan85 architecture from the previous challenges. The key new concept is a **transformation step** — the reference array is mutated with per-byte additions before the comparison, so the correct input is not the raw hardcoded bytes but the result of applying those additions.
+
+### Syscall Table
+
+The syscall IDs are randomized per challenge instance. This time:
+
+| ID | Name |
+|---|---|
+| `0x01` | `read` |
+| `0x02` | `write` |
+| `0x04` | `exit` |
+
+### Tracing the Program
+
+#### Step 1: Read Input
+
+```
+IMM b = 0x5a    ; buf = 0x5a
+IMM c = 0x6     ; count = 6
+IMM a = 0       ; fd = stdin
+SYS 0x1 a       ; read(stdin, mem[0x5a], 6)
+```
+
+The program reads **6 bytes** from stdin into memory at `0x5a`.
+
+#### Step 2: Build Reference Array
+
+```
+IMM b = 0x7a
+IMM c = 0x1
+; write 0x00 → mem[0x7a]
+; write 0x77 → mem[0x7b]
+; write 0x43 → mem[0x7c]
+; write 0x2f → mem[0x7d]
+; write 0x60 → mem[0x7e]
+; write 0x81 → mem[0x7f]
+```
+
+Six hardcoded bytes are written into `mem[0x7a–0x7f]`.
+
+#### Step 3: Transform the Reference Array
+
+This is the new step compared to previous challenges. The program loops back over `mem[0x7a–0x7f]` and adds a different constant to each byte in place, with all arithmetic wrapping at 256:
+
+```
+IMM b = 0x7a
+IMM c = 0x1
+; LDM a = *b → a = mem[0x7a] = 0x00 ; IMM d = 0xf5 ; ADD a d ; STM *b = a → mem[0x7a] = 0xf5
+; LDM a = *b → a = mem[0x7b] = 0x77 ; IMM d = 0xa5 ; ADD a d ; STM *b = a → mem[0x7b] = 0x1c
+; LDM a = *b → a = mem[0x7c] = 0x43 ; IMM d = 0xd9 ; ADD a d ; STM *b = a → mem[0x7c] = 0x1c
+; LDM a = *b → a = mem[0x7d] = 0x2f ; IMM d = 0x07 ; ADD a d ; STM *b = a → mem[0x7d] = 0x36
+; LDM a = *b → a = mem[0x7e] = 0x60 ; IMM d = 0xff ; ADD a d ; STM *b = a → mem[0x7e] = 0x5f
+; LDM a = *b → a = mem[0x7f] = 0x81 ; IMM d = 0x03 ; ADD a d ; STM *b = a → mem[0x7f] = 0x84
+```
+
+The final transformed reference array at `0x7a–0x7f`:
+
+```
+\xf5\x1c\x1c\x36\x5f\x84
+```
+
+#### Step 4: Compare Byte by Byte
+
+The same `LDM` + `CMP` pattern from Know the Yancode compares each transformed reference byte against the corresponding input byte:
+
+```
+IMM b = 0x7a ; LDM b = *b  → b = mem[0x7a] = 0xf5
+IMM a = 0x5a ; LDM a = *a  → a = mem[0x5a] = input[0]
+CMP a b      ; input[0] == 0xf5 ?
+
+IMM b = 0x7b ; LDM b = *b  → b = mem[0x7b] = 0x1c
+IMM a = 0x5b ; LDM a = *a  → a = mem[0x5b] = input[1]
+CMP a b      ; input[1] == 0x1c ?
+
+; ... repeated for input[2] vs 0x1c, input[3] vs 0x36, input[4] vs 0x5f, input[5] vs 0x84
+```
+
+The transformation is applied to the reference, not our input, so there is nothing to invert — the correct input is simply the post-transformation bytes.
+
+### Solution
+
+```
+hacker@reverse-engineering~master-the-yancode-easy:~$ printf "\xf5\x1c\x1c\x36\x5f\x84" | /challenge/master-the-yancode-easy | grep "pwn.college"
+pwn.college{MeH5jO1lDM_xd6RTYUxhE1ORNy4.01N3IDL4ITM0EzW}
+```
+
+&nbsp;
+
+## Master the Yancode (Hard)
+
+```
+hacker@reverse-engineering~master-the-yancode-hard:~$ /challenge/master-the-yancode-hard
+[+] Welcome to /challenge/master-the-yancode-hard!
+[+] This challenge is an custom emulator. It emulates a completely custom
+[+] architecture that we call "Yan85"! You'll have to understand the
+[+] emulator to understand the architecture, and you'll have to understand
+[+] the architecture to understand the code being emulated, and you will
+[+] have to understand that code to get the flag. Good luck!
+[+]
+[+] This is an introductory Yan85 level, where we trigger Yan85 architecture
+[+] operations directly. The parts of Yan85 that are used here is the emulated
+[+] registers, memory, and system calls.
+```
+
+This is the hard version of Master the Yancode — no execution trace, a shuffled register bitmask encoding, a shifted equality flag bit, and a 9-byte input with a per-byte ADD transformation on the reference array. Let's open it in a decompiler.
+
+### Decompilation
+
+```c title="/challenge/master-the-yancode-hard :: main() :: Pseudocode" showLineNumbers
+__int64 __fastcall main(int a1, char **a2, char **a3)
+{
+  char v4[256]; // [rsp+10h] [rbp-110h] BYREF
+  int v5; // [rsp+110h] [rbp-10h]
+  __int16 v6; // [rsp+114h] [rbp-Ch]
+  char v7; // [rsp+116h] [rbp-Ah]
+  _BYTE v8[9]; // [rsp+117h] [rbp-9h] BYREF
+  *(_QWORD *)&v8[1] = __readfsqword(0x28u);
+  printf("[+] Welcome to %s!\n", *a2);
+  puts("[+] This challenge is an custom emulator. It emulates a completely custom");
+  puts("[+] architecture that we call \"Yan85\"! You'll have to understand the");
+  puts("[+] emulator to understand the architecture, and you'll have to understand");
+  puts("[+] the architecture to understand the code being emulated, and you will");
+  puts("[+] have to understand that code to get the flag. Good luck!");
+  puts("[+]");
+  puts("[+] This is an introductory Yan85 level, where we trigger Yan85 architecture");
+  puts("[+] operations directly. The parts of Yan85 that are used here is the emulated");
+  puts("[+] registers, memory, and system calls.");
+  setvbuf(stdout, 0LL, 2, 1uLL);
+  memset(v4, 0, sizeof(v4));
+  v5 = 0;
+  v6 = 0;
+  v7 = 0;
+  sub_1A77(v4, 0LL, v8);  // run the emulator with a 256-byte memory array
+  return 0LL;
+}
+```
+
+```c title="/challenge/master-the-yancode-hard :: sub_1A77() :: Pseudocode" showLineNumbers
+__int64 __fastcall sub_1A77(__int64 a1)
+{
+  _BOOL4 v2; // [rsp+1Ch] [rbp-4h]
+
+  // The register bitmask encoding has shuffled compared to previous challenges.
+  // Cross-referencing the read syscall pattern (fd, buf, count) against known
+  // argument positions: bitmask 64=d (buf), 1=b (count), 2=c (fd/return).
+  // sub_1876 matches SYS; SYS 0x20 here is read.
+  // IMM d=78 (buf), IMM b=9 (count), IMM c=0 (stdin), SYS 0x20 c → read(stdin, mem[78], 9).
+  sub_1513(a1, 64LL, 78LL);
+  sub_1513(a1, 1LL, 9LL);
+  sub_1513(a1, 2LL, 0LL);
+  sub_1876(a1, 32LL, 2LL);
+
+  // sub_1667 matches STM; sub_1548 matches ADD. IMM d=110 (dest pointer),
+  // IMM b=1 (step). Each iteration: IMM c=<val>, STM *d=c, ADD d b to advance.
+  // This builds the raw reference array at mem[110..118]:
+  // [0xb9, 0x04, 0x6f, 0x40, 0xcc, 0xaf, 0x0d, 0x27, 0x4e]
+  sub_1513(a1, 64LL, 110LL);
+  sub_1513(a1, 1LL, 1LL);
+  sub_1513(a1, 2LL, 185LL);   // 0xb9
+  sub_1667(a1, 64LL, 2LL);
+  sub_1548(a1, 64LL, 1LL);
+  sub_1513(a1, 2LL, 4LL);     // 0x04
+  sub_1667(a1, 64LL, 2LL);
+  sub_1548(a1, 64LL, 1LL);
+  sub_1513(a1, 2LL, 111LL);   // 0x6f
+  sub_1667(a1, 64LL, 2LL);
+  sub_1548(a1, 64LL, 1LL);
+  sub_1513(a1, 2LL, 64LL);    // 0x40
+  sub_1667(a1, 64LL, 2LL);
+  sub_1548(a1, 64LL, 1LL);
+  sub_1513(a1, 2LL, 204LL);   // 0xcc
+  sub_1667(a1, 64LL, 2LL);
+  sub_1548(a1, 64LL, 1LL);
+  sub_1513(a1, 2LL, 175LL);   // 0xaf
+  sub_1667(a1, 64LL, 2LL);
+  sub_1548(a1, 64LL, 1LL);
+  sub_1513(a1, 2LL, 13LL);    // 0x0d
+  sub_1667(a1, 64LL, 2LL);
+  sub_1548(a1, 64LL, 1LL);
+  sub_1513(a1, 2LL, 39LL);    // 0x27
+  sub_1667(a1, 64LL, 2LL);
+  sub_1548(a1, 64LL, 1LL);
+  sub_1513(a1, 2LL, 78LL);    // 0x4e
+  sub_1667(a1, 64LL, 2LL);
+  sub_1548(a1, 64LL, 1LL);
+
+  // sub_16C6 matches LDM. The pointer is reset to 110 and the program loops
+  // over each byte, loading it with LDM c=*d, adding a per-byte constant via
+  // IMM a=<key>, ADD c a, then writing back with STM *d=c and advancing d.
+  // All arithmetic wraps at 256. The transformed values are:
+  // mem[110]: (0xb9+0xc4)&0xff = 0x7d
+  // mem[111]: (0x04+0x9a)&0xff = 0x9e
+  // mem[112]: (0x6f+0x47)&0xff = 0xb6
+  // mem[113]: (0x40+0x60)&0xff = 0xa0
+  // mem[114]: (0xcc+0xa2)&0xff = 0x6e
+  // mem[115]: (0xaf+0x4a)&0xff = 0xf9
+  // mem[116]: (0x0d+0x93)&0xff = 0xa0
+  // mem[117]: (0x27+0x4f)&0xff = 0x76
+  // mem[118]: (0x4e+0xa2)&0xff = 0xf0
+  sub_1513(a1, 64LL, 110LL);
+  sub_1513(a1, 1LL, 1LL);
+  sub_16C6(a1, 2LL, 64LL);    // LDM c = *d → c = mem[110] = 0xb9
+  sub_1513(a1, 16LL, 196LL);  // IMM a = 0xc4
+  sub_1548(a1, 2LL, 16LL);    // ADD c a → c = 0x7d
+  sub_1667(a1, 64LL, 2LL);    // STM *d = c → mem[110] = 0x7d
+  sub_1548(a1, 64LL, 1LL);    // d++
+  sub_16C6(a1, 2LL, 64LL);    // c = mem[111] = 0x04
+  sub_1513(a1, 16LL, 154LL);  // IMM a = 0x9a
+  sub_1548(a1, 2LL, 16LL);    // ADD c a → c = 0x9e
+  sub_1667(a1, 64LL, 2LL);    // STM *d = c → mem[111] = 0x9e
+  sub_1548(a1, 64LL, 1LL);    // d++
+  sub_16C6(a1, 2LL, 64LL);    // c = mem[112] = 0x6f
+  sub_1513(a1, 16LL, 71LL);   // IMM a = 0x47
+  sub_1548(a1, 2LL, 16LL);    // ADD c a → c = 0xb6
+  sub_1667(a1, 64LL, 2LL);    // STM *d = c → mem[112] = 0xb6
+  sub_1548(a1, 64LL, 1LL);    // d++
+  sub_16C6(a1, 2LL, 64LL);    // c = mem[113] = 0x40
+  sub_1513(a1, 16LL, 96LL);   // IMM a = 0x60
+  sub_1548(a1, 2LL, 16LL);    // ADD c a → c = 0xa0
+  sub_1667(a1, 64LL, 2LL);    // STM *d = c → mem[113] = 0xa0
+  sub_1548(a1, 64LL, 1LL);    // d++
+  sub_16C6(a1, 2LL, 64LL);    // c = mem[114] = 0xcc
+  sub_1513(a1, 16LL, 162LL);  // IMM a = 0xa2
+  sub_1548(a1, 2LL, 16LL);    // ADD c a → c = 0x6e
+  sub_1667(a1, 64LL, 2LL);    // STM *d = c → mem[114] = 0x6e
+  sub_1548(a1, 64LL, 1LL);    // d++
+  sub_16C6(a1, 2LL, 64LL);    // c = mem[115] = 0xaf
+  sub_1513(a1, 16LL, 74LL);   // IMM a = 0x4a
+  sub_1548(a1, 2LL, 16LL);    // ADD c a → c = 0xf9
+  sub_1667(a1, 64LL, 2LL);    // STM *d = c → mem[115] = 0xf9
+  sub_1548(a1, 64LL, 1LL);    // d++
+  sub_16C6(a1, 2LL, 64LL);    // c = mem[116] = 0x0d
+  sub_1513(a1, 16LL, 147LL);  // IMM a = 0x93
+  sub_1548(a1, 2LL, 16LL);    // ADD c a → c = 0xa0
+  sub_1667(a1, 64LL, 2LL);    // STM *d = c → mem[116] = 0xa0
+  sub_1548(a1, 64LL, 1LL);    // d++
+  sub_16C6(a1, 2LL, 64LL);    // c = mem[117] = 0x27
+  sub_1513(a1, 16LL, 79LL);   // IMM a = 0x4f
+  sub_1548(a1, 2LL, 16LL);    // ADD c a → c = 0x76
+  sub_1667(a1, 64LL, 2LL);    // STM *d = c → mem[117] = 0x76
+  sub_1548(a1, 64LL, 1LL);    // d++
+  sub_16C6(a1, 2LL, 64LL);    // c = mem[118] = 0x4e
+  sub_1513(a1, 16LL, 162LL);  // IMM a = 0xa2
+  sub_1548(a1, 2LL, 16LL);    // ADD c a → c = 0xf0
+  sub_1667(a1, 64LL, 2LL);    // STM *d = c → mem[118] = 0xf0
+  sub_1548(a1, 64LL, 1LL);    // d++
+
+  // sub_171D matches CMP. The equality flag has shifted — this instance uses
+  // bit 2 of mem[262] (& 4) instead of bit 3 (& 8) seen in previous challenges.
+  // Each pair: LDM d=*ref_addr loads the transformed reference byte; LDM c=*input_addr
+  // loads the input byte. CMP c,d sets the flag. v2 is initialized from the
+  // first result and cleared if any subsequent comparison fails — all 9 bytes must match.
+  sub_1513(a1, 64LL, 110LL);
+  sub_16C6(a1, 64LL, 64LL);   // LDM d = *d → d = mem[110] = 0x7d
+  sub_1513(a1, 2LL, 78LL);
+  sub_16C6(a1, 2LL, 2LL);     // LDM c = *c → c = mem[78]  = input[0]
+  sub_171D(a1, 2LL, 64LL);    // CMP c, d
+  v2 = (*(_BYTE *)(a1 + 262) & 4) != 0;  // v2 = (input[0] == 0x7d)
+
+  sub_1513(a1, 64LL, 111LL);
+  sub_16C6(a1, 64LL, 64LL);   // d = mem[111] = 0x9e
+  sub_1513(a1, 2LL, 79LL);
+  sub_16C6(a1, 2LL, 2LL);     // c = mem[79]  = input[1]
+  sub_171D(a1, 2LL, 64LL);    // CMP c, d
+  if ( (*(_BYTE *)(a1 + 262) & 4) == 0 )
+    v2 = 0;                    // v2 &= (input[1] == 0x9e)
+
+  sub_1513(a1, 64LL, 112LL);
+  sub_16C6(a1, 64LL, 64LL);   // d = mem[112] = 0xb6
+  sub_1513(a1, 2LL, 80LL);
+  sub_16C6(a1, 2LL, 2LL);     // c = mem[80]  = input[2]
+  sub_171D(a1, 2LL, 64LL);
+  if ( (*(_BYTE *)(a1 + 262) & 4) == 0 )
+    v2 = 0;                    // v2 &= (input[2] == 0xb6)
+
+  sub_1513(a1, 64LL, 113LL);
+  sub_16C6(a1, 64LL, 64LL);   // d = mem[113] = 0xa0
+  sub_1513(a1, 2LL, 81LL);
+  sub_16C6(a1, 2LL, 2LL);     // c = mem[81]  = input[3]
+  sub_171D(a1, 2LL, 64LL);
+  if ( (*(_BYTE *)(a1 + 262) & 4) == 0 )
+    v2 = 0;                    // v2 &= (input[3] == 0xa0)
+
+  sub_1513(a1, 64LL, 114LL);
+  sub_16C6(a1, 64LL, 64LL);   // d = mem[114] = 0x6e
+  sub_1513(a1, 2LL, 82LL);
+  sub_16C6(a1, 2LL, 2LL);     // c = mem[82]  = input[4]
+  sub_171D(a1, 2LL, 64LL);
+  if ( (*(_BYTE *)(a1 + 262) & 4) == 0 )
+    v2 = 0;                    // v2 &= (input[4] == 0x6e)
+
+  sub_1513(a1, 64LL, 115LL);
+  sub_16C6(a1, 64LL, 64LL);   // d = mem[115] = 0xf9
+  sub_1513(a1, 2LL, 83LL);
+  sub_16C6(a1, 2LL, 2LL);     // c = mem[83]  = input[5]
+  sub_171D(a1, 2LL, 64LL);
+  if ( (*(_BYTE *)(a1 + 262) & 4) == 0 )
+    v2 = 0;                    // v2 &= (input[5] == 0xf9)
+
+  sub_1513(a1, 64LL, 116LL);
+  sub_16C6(a1, 64LL, 64LL);   // d = mem[116] = 0xa0
+  sub_1513(a1, 2LL, 84LL);
+  sub_16C6(a1, 2LL, 2LL);     // c = mem[84]  = input[6]
+  sub_171D(a1, 2LL, 64LL);
+  if ( (*(_BYTE *)(a1 + 262) & 4) == 0 )
+    v2 = 0;                    // v2 &= (input[6] == 0xa0)
+
+  sub_1513(a1, 64LL, 117LL);
+  sub_16C6(a1, 64LL, 64LL);   // d = mem[117] = 0x76
+  sub_1513(a1, 2LL, 85LL);
+  sub_16C6(a1, 2LL, 2LL);     // c = mem[85]  = input[7]
+  sub_171D(a1, 2LL, 64LL);
+  if ( (*(_BYTE *)(a1 + 262) & 4) == 0 )
+    v2 = 0;                    // v2 &= (input[7] == 0x76)
+
+  sub_1513(a1, 64LL, 118LL);
+  sub_16C6(a1, 64LL, 64LL);   // d = mem[118] = 0xf0
+  sub_1513(a1, 2LL, 86LL);
+  sub_16C6(a1, 2LL, 2LL);     // c = mem[86]  = input[8]
+  sub_171D(a1, 2LL, 64LL);
+  if ( (*(_BYTE *)(a1 + 262) & 4) == 0 )
+    v2 = 0;                    // v2 &= (input[8] == 0xf0)
+
+  sub_1513(a1, 2LL, 1LL);
+  sub_1513(a1, 64LL, 0LL);
+  sub_1513(a1, 1LL, 1LL);
+  if ( v2 )
+  {
+    // CORRECT path: repeated IMM/STM/SYS write sequences printing
+    // "CORRECT! Your flag:\n" one byte at a time.
+    sub_1513(a1, 16LL, 67LL);   // 'C'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 79LL);   // 'O'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 82LL);   // 'R'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 82LL);   // 'R'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 69LL);   // 'E'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 67LL);   // 'C'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 84LL);   // 'T'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 33LL);   // '!'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 32LL);   // ' '
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 89LL);   // 'Y'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 111LL);  // 'o'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 117LL);  // 'u'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 114LL);  // 'r'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 32LL);   // ' '
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 102LL);  // 'f'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 108LL);  // 'l'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 97LL);   // 'a'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 103LL);  // 'g'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 58LL);   // ':'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 10LL);   // '\n'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+
+    // Build "/flag\0" at mem[0] with direct-addressed IMM d=<offset>, STM *d=a
+    // writes. Then SYS 0x2 (open), SYS 0x20 (read), SYS 0x1 (write) to read
+    // and print the flag file to stdout.
+    sub_1513(a1, 16LL, 47LL);   // '/'
+    sub_1513(a1, 64LL, 0LL);
+    sub_1667(a1, 64LL, 16LL);
+    sub_1513(a1, 16LL, 102LL);  // 'f'
+    sub_1513(a1, 64LL, 1LL);
+    sub_1667(a1, 64LL, 16LL);
+    sub_1513(a1, 16LL, 108LL);  // 'l'
+    sub_1513(a1, 64LL, 2LL);
+    sub_1667(a1, 64LL, 16LL);
+    sub_1513(a1, 16LL, 97LL);   // 'a'
+    sub_1513(a1, 64LL, 3LL);
+    sub_1667(a1, 64LL, 16LL);
+    sub_1513(a1, 16LL, 103LL);  // 'g'
+    sub_1513(a1, 64LL, 4LL);
+    sub_1667(a1, 64LL, 16LL);
+    sub_1513(a1, 16LL, 0LL);    // '\0'
+    sub_1513(a1, 64LL, 5LL);
+    sub_1667(a1, 64LL, 16LL);
+    sub_1513(a1, 2LL, 0LL);
+    sub_1513(a1, 64LL, 0LL);
+    sub_1876(a1, 2LL, 2LL);     // open("/flag", 0)
+    sub_1513(a1, 1LL, 100LL);
+    sub_1876(a1, 32LL, 1LL);    // read(fd, mem[0], 100)
+    sub_1513(a1, 2LL, 1LL);
+    sub_1876(a1, 1LL, 1LL);     // write(stdout, mem[0], bytes_read)
+    sub_1513(a1, 2LL, 0LL);
+  }
+  else
+  {
+    // INCORRECT path: same IMM/STM/SYS write pattern printing "INCORRECT!\n"
+    // one character at a time before falling through to exit.
+    sub_1513(a1, 16LL, 73LL);   // 'I'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 78LL);   // 'N'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 67LL);   // 'C'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 79LL);   // 'O'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 82LL);   // 'R'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 82LL);   // 'R'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 69LL);   // 'E'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 67LL);   // 'C'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 84LL);   // 'T'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 16LL, 33LL);   // '!'
+    sub_1667(a1, 64LL, 16LL);
+    sub_1876(a1, 1LL, 2LL);
+    sub_1513(a1, 2LL, 1LL);
+  }
+
+  // Trailing newline write then SYS 0x4 (exit) — shared by both paths.
+  sub_1513(a1, 16LL, 10LL);    // '\n'
+  sub_1667(a1, 64LL, 16LL);
+  sub_1876(a1, 1LL, 2LL);
+  return sub_1876(a1, 4LL, 2LL);  // exit
+}
+```
+
+### Reversing the Helper Functions
+
+The helper function addresses are new but the roles are the same as previous hard challenges. The register bitmask encoding has shuffled this instance — cross-referencing the `read` syscall at the top against the known argument order `(fd, buf, count)` gives us the new mapping:
+
+| Bitmask | Register |
+|---|---|
+| `1` | `b` |
+| `2` | `c` |
+| `16` | `a` |
+| `64` | `d` |
+
+Two other differences from previous instances: the equality flag is now **bit 2** of `mem[262]` (`& 4`) instead of bit 3 (`& 8`), and the syscall IDs have shuffled again.
+
+| Function | Yan85 Equivalent | Behavior |
+|---|---|---|
+| `sub_1513(mem, reg, val)` | `IMM reg = val` | Load immediate into register |
+| `sub_1667(mem, reg1, reg2)` | `STM *reg1 = reg2` | Store reg2 into memory address held by reg1 |
+| `sub_1548(mem, reg1, reg2)` | `ADD reg1, reg2` | reg1 = reg1 + reg2 |
+| `sub_16C6(mem, reg1, reg2)` | `LDM reg1 = *reg2` | Dereference address in reg2 into reg1 |
+| `sub_171D(mem, reg1, reg2)` | `CMP reg1, reg2` | Compare and set flags at `mem[262]` |
+| `sub_1876(mem, id, reg)` | `SYS id reg` | Syscall |
+
+### Syscall Table
+
+| ID | Name |
+|---|---|
+| `0x20` | `read` |
+| `0x01` | `write` |
+| `0x02` | `open` |
+| `0x04` | `exit` |
+
+### Tracing the Logic
+
+#### Step 1: Read Input
+
+```c title="/challenge/master-the-yancode-hard :: sub_1A77() :: Pseudocode" showLineNumbers
+// IMM d=78 (buf), IMM b=9 (count), IMM c=0 (stdin),
+// SYS 0x20 c → read(stdin, mem[78], 9).
+sub_1513(a1, 64LL, 78LL);   // IMM d = 78  (buf address)
+sub_1513(a1, 1LL, 9LL);     // IMM b = 9   (count)
+sub_1513(a1, 2LL, 0LL);     // IMM c = 0   (stdin)
+sub_1876(a1, 32LL, 2LL);    // SYS 0x20 c  read(stdin, mem[78], 9)
+```
+
+The program reads **9 bytes** from stdin into memory at offset `78`.
+
+#### Step 2: Build Reference Array
+
+```c title="/challenge/master-the-yancode-hard :: sub_1A77() :: Pseudocode" showLineNumbers
+// IMM d=110 (dest pointer), IMM b=1 (step). Each iteration: IMM c=<val>,
+// STM *d=c, ADD d b to advance. Writes raw reference bytes into mem[110..118]:
+// [0xb9, 0x04, 0x6f, 0x40, 0xcc, 0xaf, 0x0d, 0x27, 0x4e]
+sub_1513(a1, 64LL, 110LL);  // IMM d = 110
+sub_1513(a1, 1LL, 1LL);     // IMM b = 1
+sub_1513(a1, 2LL, 185LL);   // IMM c = 0xb9 → mem[110]
+sub_1667(a1, 64LL, 2LL);    // STM *d = c
+sub_1548(a1, 64LL, 1LL);    // ADD d b → d = 111
+sub_1513(a1, 2LL, 4LL);     // IMM c = 0x04 → mem[111]
+sub_1667(a1, 64LL, 2LL);
+sub_1548(a1, 64LL, 1LL);    // d = 112
+// ... continues for 0x6f, 0x40, 0xcc, 0xaf, 0x0d, 0x27, 0x4e
+```
+
+#### Step 3: Transform the Reference Array
+
+```c title="/challenge/master-the-yancode-hard :: sub_1A77() :: Pseudocode" showLineNumbers
+// Pointer reset to 110. Each iteration: LDM c=*d loads the raw byte, IMM a=<key>,
+// ADD c a adds the key (wrapping at 256), STM *d=c writes back, ADD d b advances.
+// Final transformed values at mem[110..118]:
+// (0xb9+0xc4)=0x7d, (0x04+0x9a)=0x9e, (0x6f+0x47)=0xb6, (0x40+0x60)=0xa0,
+// (0xcc+0xa2)=0x6e, (0xaf+0x4a)=0xf9, (0x0d+0x93)=0xa0, (0x27+0x4f)=0x76,
+// (0x4e+0xa2)=0xf0
+sub_1513(a1, 64LL, 110LL);  // IMM d = 110 (reset pointer)
+sub_1513(a1, 1LL, 1LL);     // IMM b = 1
+sub_16C6(a1, 2LL, 64LL);    // LDM c = *d → c = 0xb9
+sub_1513(a1, 16LL, 196LL);  // IMM a = 0xc4
+sub_1548(a1, 2LL, 16LL);    // ADD c a → c = 0x7d
+sub_1667(a1, 64LL, 2LL);    // STM *d = c → mem[110] = 0x7d
+sub_1548(a1, 64LL, 1LL);    // d++
+// ... repeated for remaining 8 bytes
+```
+
+#### Step 4: Compare Byte by Byte
+
+```c title="/challenge/master-the-yancode-hard :: sub_1A77() :: Pseudocode" showLineNumbers
+// LDM d=*ref_addr loads transformed reference; LDM c=*input_addr loads input.
+// CMP sets bit 2 of mem[262] if equal. v2 initialized from first result,
+// ANDed with each subsequent — all 9 bytes must match.
+sub_1513(a1, 64LL, 110LL);
+sub_16C6(a1, 64LL, 64LL);              // LDM d = *d → d = mem[110] = 0x7d
+sub_1513(a1, 2LL, 78LL);
+sub_16C6(a1, 2LL, 2LL);               // LDM c = *c → c = mem[78]  = input[0]
+sub_171D(a1, 2LL, 64LL);              // CMP c, d
+v2 = (*(_BYTE *)(a1 + 262) & 4) != 0; // v2 = (input[0] == 0x7d)
+// ... repeated for input[1..8] vs 0x9e, 0xb6, 0xa0, 0x6e, 0xf9, 0xa0, 0x76, 0xf0
+```
+
+### Solution
+
+```
+hacker@reverse-engineering~master-the-yancode-hard:~$ printf "\x7d\x9e\xb6\xa0\x6e\xf9\xa0\x76\xf0" | /challenge/master-the-yancode-hard | grep "pwn.college"
+pwn.college{4abBz0TawNAJTcnpLGW8GeVeSjK.0FO3IDL4ITM0EzW}
+```
+
+&nbsp;
+
