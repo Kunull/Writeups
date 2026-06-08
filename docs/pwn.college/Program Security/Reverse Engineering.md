@@ -3286,11 +3286,11 @@ This challenge builds on the Yan85 architecture from the previous challenges. Th
 
 The syscall IDs are randomized per challenge instance. This time:
 
-| ID | Name |
-|---|---|
-| `0x04` | `read` |
-| `0x02` | `write` |
-| `0x10` | `exit` |
+| ID | Name | arg0 | arg1 | arg2 |
+|---|---|---|---|---|
+| `0x10` | `exit` | `a` (exit code) | | |
+| `0x04` | `read` | `a` (fd) | `b` (buf addr) | `c` (count) |
+| `0x02` | `write` | `a` (fd) | `b` (buf addr) | `c` (count) |
 
 ### Tracing the Program
 
