@@ -2840,8 +2840,9 @@ hacker@reverse-engineering~trust-the-yancode-easy:~$ /challenge/trust-the-yancod
 [s] IMM a = 0
 [s] SYS 0x8 a
 [s] ... read_memory
-
 ```
+
+Let's pass `abcd` as the input.
 
 ```
 hacker@reverse-engineering~trust-the-yancode-easy:~$ /challenge/trust-the-yancode-easy 
@@ -3387,6 +3388,8 @@ hacker@reverse-engineering~know-the-yancode-easy:~$ /challenge/know-the-yancode-
 [+] for you to understand what the challenge is doing, and you should use
 [+] it as a guide to help with your reversing of the code.
 ```
+
+Let's pass `abcd` as the input.
 
 ```
 hacker@reverse-engineering~know-the-yancode-easy:~$ /challenge/know-the-yancode-easy 
@@ -3959,6 +3962,8 @@ hacker@reverse-engineering~master-the-yancode-easy:~$ /challenge/master-the-yanc
 [+] for you to understand what the challenge is doing, and you should use
 [+] it as a guide to help with your reversing of the code.
 ```
+
+Let's pass `abcd` as the input.
 
 ```
 hacker@reverse-engineering~master-the-yancode-easy:~$ /challenge/master-the-yancode-easy 
@@ -4723,6 +4728,8 @@ hacker@reverse-engineering~transcend-the-yancode-easy:~$ /challenge/transcend-th
 [+] for you to understand what the challenge is doing, and you should use
 [+] it as a guide to help with your reversing of the code.
 ```
+
+Let's pass `abcd` as the input.
 
 ```
 hacker@reverse-engineering~transcend-the-yancode-easy:~$ /challenge/transcend-the-yancode-easy 
