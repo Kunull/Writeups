@@ -5380,6 +5380,164 @@ Three things differ from Transcend the Yancode (Easy). The register bitmask enco
 
 &nbsp;
 
-```
+## The Yanalyzer (Easy)
 
 ```
+hacker@reverse-engineering~the-yanalyzer-easy:~$ /challenge/the-yanalyzer-easy
+[+] Welcome to /challenge/the-yanalyzer-easy!
+[+] This challenge is an custom emulator. It emulates a completely custom
+[+] architecture that we call "Yan85"! You'll have to understand the
+[+] emulator to understand the architecture, and you'll have to understand
+[+] the architecture to understand the code being emulated, and you will
+[+] have to understand that code to get the flag. Good luck!
+[+]
+[+] This level is a full Yan85 emulator. You'll have to reason about yancode,
+[+] and the implications of how the emulator interprets it!
+[+]
+[+] This is a *teaching* challenge, which means that it will output
+[+] a trace of the Yan85 code as it processes it. The output is here
+[+] for you to understand what the challenge is doing, and you should use
+[+] it as a guide to help with your reversing of the code.
+```
+
+This challenge is a significant step up from previous levels. Rather than a fixed sequence of inlined operations, this is a **full Yan85 emulator** running actual bytecode stored in memory — complete with a stack, an instruction pointer, conditional jumps, and a proper comparison loop. The trace now shows register state at every step, which is essential for following the control flow.
+
+### New Architecture Features
+
+The trace introduces several registers and instructions not seen before.
+
+#### New Registers
+
+| Register | Description |
+|---|---|
+| `s` | Stack pointer |
+| `i` | Instruction pointer |
+| `f` | Flags register |
+
+#### Complete Instruction Set
+
+| Opcode | Instruction | Behavior |
+|---|---|---|
+| `0x20` | `IMM reg = val` | Load immediate into register |
+| `0x40` | `ADD reg1 reg2` | reg1 = reg1 + reg2 |
+| `0x80` | `STM *reg1 = reg2` | Store reg2 into address held by reg1 |
+| `0x04` | `LDM reg1 = *reg2` | Dereference address in reg2 into reg1 |
+| `0x08` | `STK NONE reg` | Push register onto stack |
+| `0x08` | `STK reg NONE` | Pop from stack into register |
+| `0x08` | `STK reg1 reg2` | Push reg2 then pop into reg1 |
+| `0x01` | `CMP reg1 reg2` | Compare and set flags |
+| `0x02` | `JMP <cond> reg` | Jump to address in reg if condition met |
+| `0x10` | `SYS id reg` | Syscall |
+
+#### Jump Conditions
+
+| Code | Condition |
+|---|---|
+| `N` | Not equal |
+| `E` | Equal |
+| `LG` | Less or greater (non-zero) |
+
+#### Register Bitmasks
+
+| Bitmask | Register |
+|---|---|
+| `0x20` | `a` |
+| `0x02` | `b` |
+| `0x04` | `c` |
+| `0x01` | `d` |
+| `0x08` | `s` |
+| `0x40` | `i` |
+
+#### Syscall Table
+
+| ID | Name |
+|---|---|
+| `0x01` | `read` |
+| `0x04` | `write` |
+| `0x10` | `exit` |
+
+---
+
+### Tracing the Program
+
+#### Phase 1: Write Reference Bytes into Memory
+
+Before jumping into the main loop, the program stores 11 hardcoded bytes into `mem[0x80–0x8a]` one at a time using `IMM d = <val>`, `IMM c = <addr>`, `STM *c = d`:
+
+```
+mem[0x80] = 0xc6
+mem[0x81] = 0x08
+mem[0x82] = 0xb9
+mem[0x83] = 0xc3
+mem[0x84] = 0x50
+mem[0x85] = 0x89
+mem[0x86] = 0xa6
+mem[0x87] = 0xa8
+mem[0x88] = 0x64
+mem[0x89] = 0x5b
+mem[0x8a] = 0x9c
+```
+
+Then `IMM i = 0x2b` jumps execution into the main loop body.
+
+#### Phase 2: Print Prompt
+
+The program pushes `a`, `b`, `c` onto the stack to preserve them, then constructs the string `"KEY: "` by pushing the ASCII bytes `0x4b, 0x45, 0x59, 0x3a, 0x20` onto the stack and calling `SYS 0x4` (write) to print them. Registers are then restored by popping `a`, `b`, `c` back.
+
+#### Phase 3: Read Input
+
+```
+IMM b = 0x30    ; buf = 0x30
+IMM c = 0xb     ; count = 11
+IMM a = 0       ; fd = stdin
+SYS 0x1 d       ; read(stdin, mem[0x30], 11)
+```
+
+Up to 11 bytes are read from stdin into `mem[0x30]`.
+
+#### Phase 4: Main Comparison Loop
+
+After reading input, execution jumps back to `0x2` — the start of the comparison loop. The loop sets up:
+
+```
+a = 0x30    ; base address of input buffer
+b = 0x82    ; base address of reference bytes (mem[0x82] onwards)
+c = 0x9     ; loop counter — 9 bytes to compare
+```
+
+Each iteration computes the current offset, loads one byte from input and one from the reference array, compares them with `CMP a b`, and branches:
+
+```
+; JMP N → 0x22  if not equal → INCORRECT path
+; JMP LG → loop back while counter > 0
+```
+
+The 9 reference bytes at `mem[0x82–0x8a]` are compared directly against our input with no transformation:
+
+```
+input[0] == mem[0x82] = 0xb9
+input[1] == mem[0x83] = 0xc3
+input[2] == mem[0x84] = 0x50
+input[3] == mem[0x85] = 0x89
+input[4] == mem[0x86] = 0xa6
+input[5] == mem[0x87] = 0xa8
+input[6] == mem[0x88] = 0x64
+input[7] == mem[0x89] = 0x5b
+input[8] == mem[0x8a] = 0x9c
+```
+
+If all 9 bytes match, the loop exits normally and the program prints `CORRECT!`, opens `/flag`, and writes it to stdout. If any byte mismatches, `JMP N` is taken immediately to the INCORRECT path.
+
+### Solution
+
+```
+hacker@reverse-engineering~the-yanalyzer-easy:~$ printf "\xb9\xc3\x50\x89\xa6\xa8\x64\x5b\x9c" | /challenge/the-yanalyzer-easy | grep "pwn.college"
+pwn.college{c_90CnAVxyf5RzBpbEyRc5Dz4sS.0VM4IDL4ITM0EzW}
+```
+
+### Key Differences from Previous Challenges
+
+Every previous challenge ran a fixed linear sequence of Yan85 operations with no branching. This challenge runs real **bytecode** — the program is stored in memory and executed by a dispatch loop, with a stack for temporary storage, an explicit instruction pointer that can be redirected by conditional jumps, and a flags register set by `CMP`. The comparison is still a direct byte-by-byte check with no transformation, but following the control flow now requires tracking `i`, `s`, and `f` across every instruction rather than reading a flat sequence.
+
+&nbsp;
+
