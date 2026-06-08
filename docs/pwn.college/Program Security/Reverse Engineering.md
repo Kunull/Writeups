@@ -5456,8 +5456,6 @@ The trace introduces several registers and instructions not seen before.
 | `0x04` | `write` |
 | `0x10` | `exit` |
 
----
-
 ### Tracing the Program
 
 #### Phase 1: Write Reference Bytes into Memory
