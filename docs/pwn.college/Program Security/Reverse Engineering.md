@@ -4188,7 +4188,7 @@ __int64 __fastcall sub_1A77(__int64 a1)
 }
 ```
 
-### Reversing the Helper Functions
+### Helper Functions
 
 The helper function addresses are new but the roles are the same as previous hard challenges. The register bitmask encoding has shuffled this instance — cross-referencing the `read` syscall at the top against the known argument order `(fd, buf, count)` gives us the new mapping:
 
