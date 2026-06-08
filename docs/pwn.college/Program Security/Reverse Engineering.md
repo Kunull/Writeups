@@ -3960,6 +3960,177 @@ hacker@reverse-engineering~master-the-yancode-easy:~$ /challenge/master-the-yanc
 [+] it as a guide to help with your reversing of the code.
 ```
 
+```
+hacker@reverse-engineering~master-the-yancode-easy:~$ /challenge/master-the-yancode-easy 
+[+] Welcome to /challenge/master-the-yancode-easy!
+[+] This challenge is an custom emulator. It emulates a completely custom
+[+] architecture that we call "Yan85"! You'll have to understand the
+[+] emulator to understand the architecture, and you'll have to understand
+[+] the architecture to understand the code being emulated, and you will
+[+] have to understand that code to get the flag. Good luck!
+[+]
+[+] This is an introductory Yan85 level, where we trigger Yan85 architecture
+[+] operations directly. The parts of Yan85 that are used here is the emulated
+[+] registers, memory, and system calls.
+[+]
+[+] This is a *teaching* challenge, which means that it will output
+[+] a trace of the Yan85 code as it processes it. The output is here
+[+] for you to understand what the challenge is doing, and you should use
+[+] it as a guide to help with your reversing of the code.
+[+]
+[s] IMM b = 0x5a
+[s] IMM c = 0x6
+[s] IMM a = 0
+[s] SYS 0x1 a
+[s] ... read_memory
+abcd
+[s] ... return value (in register a): 0x5
+[s] IMM b = 0x7a
+[s] IMM c = 0x1
+[s] IMM a = 0
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0x77
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0x43
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0x2f
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0x60
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0x81
+[s] STM *b = a
+[s] ADD b c
+[s] IMM b = 0x7a
+[s] IMM c = 0x1
+[s] LDM a = *b
+[s] IMM d = 0xf5
+[s] ADD a d
+[s] STM *b = a
+[s] ADD b c
+[s] LDM a = *b
+[s] IMM d = 0xa5
+[s] ADD a d
+[s] STM *b = a
+[s] ADD b c
+[s] LDM a = *b
+[s] IMM d = 0xd9
+[s] ADD a d
+[s] STM *b = a
+[s] ADD b c
+[s] LDM a = *b
+[s] IMM d = 0x7
+[s] ADD a d
+[s] STM *b = a
+[s] ADD b c
+[s] LDM a = *b
+[s] IMM d = 0xff
+[s] ADD a d
+[s] STM *b = a
+[s] ADD b c
+[s] LDM a = *b
+[s] IMM d = 0x3
+[s] ADD a d
+[s] STM *b = a
+[s] ADD b c
+[s] IMM b = 0x7a
+[s] LDM b = *b
+[s] IMM a = 0x5a
+[s] LDM a = *a
+[s] CMP a b
+[s] IMM b = 0x7b
+[s] LDM b = *b
+[s] IMM a = 0x5b
+[s] LDM a = *a
+[s] CMP a b
+[s] IMM b = 0x7c
+[s] LDM b = *b
+[s] IMM a = 0x5c
+[s] LDM a = *a
+[s] CMP a b
+[s] IMM b = 0x7d
+[s] LDM b = *b
+[s] IMM a = 0x5d
+[s] LDM a = *a
+[s] CMP a b
+[s] IMM b = 0x7e
+[s] LDM b = *b
+[s] IMM a = 0x5e
+[s] LDM a = *a
+[s] CMP a b
+[s] IMM b = 0x7f
+[s] LDM b = *b
+[s] IMM a = 0x5f
+[s] LDM a = *a
+[s] CMP a b
+[s] IMM a = 0x1
+[s] IMM b = 0
+[s] IMM c = 0x1
+[s] IMM d = 0x49
+[s] STM *b = d
+[s] SYS 0x2 a
+[s] ... write
+I[s] ... return value (in register a): 0x1
+[s] IMM d = 0x4e
+[s] STM *b = d
+[s] SYS 0x2 a
+[s] ... write
+N[s] ... return value (in register a): 0x1
+[s] IMM d = 0x43
+[s] STM *b = d
+[s] SYS 0x2 a
+[s] ... write
+C[s] ... return value (in register a): 0x1
+[s] IMM d = 0x4f
+[s] STM *b = d
+[s] SYS 0x2 a
+[s] ... write
+O[s] ... return value (in register a): 0x1
+[s] IMM d = 0x52
+[s] STM *b = d
+[s] SYS 0x2 a
+[s] ... write
+R[s] ... return value (in register a): 0x1
+[s] IMM d = 0x52
+[s] STM *b = d
+[s] SYS 0x2 a
+[s] ... write
+R[s] ... return value (in register a): 0x1
+[s] IMM d = 0x45
+[s] STM *b = d
+[s] SYS 0x2 a
+[s] ... write
+E[s] ... return value (in register a): 0x1
+[s] IMM d = 0x43
+[s] STM *b = d
+[s] SYS 0x2 a
+[s] ... write
+C[s] ... return value (in register a): 0x1
+[s] IMM d = 0x54
+[s] STM *b = d
+[s] SYS 0x2 a
+[s] ... write
+T[s] ... return value (in register a): 0x1
+[s] IMM d = 0x21
+[s] STM *b = d
+[s] SYS 0x2 a
+[s] ... write
+![s] ... return value (in register a): 0x1
+[s] IMM a = 0x1
+[s] IMM d = 0xa
+[s] STM *b = d
+[s] SYS 0x2 a
+[s] ... write
+
+[s] ... return value (in register a): 0x1
+[s] SYS 0x4 a
+[s] ... exit
+```
+
 This challenge builds on the Yan85 architecture from the previous challenges. The key new concept is a **transformation step** — the reference array is mutated with per-byte additions before the comparison, so the correct input is not the raw hardcoded bytes but the result of applying those additions.
 
 ### Syscall Table
@@ -4551,6 +4722,157 @@ hacker@reverse-engineering~transcend-the-yancode-easy:~$ /challenge/transcend-th
 [+] a trace of the Yan85 code as it processes it. The output is here
 [+] for you to understand what the challenge is doing, and you should use
 [+] it as a guide to help with your reversing of the code.
+```
+
+```
+hacker@reverse-engineering~transcend-the-yancode-easy:~$ /challenge/transcend-the-yancode-easy 
+[+] Welcome to /challenge/transcend-the-yancode-easy!
+[+] This challenge is an custom emulator. It emulates a completely custom
+[+] architecture that we call "Yan85"! You'll have to understand the
+[+] emulator to understand the architecture, and you'll have to understand
+[+] the architecture to understand the code being emulated, and you will
+[+] have to understand that code to get the flag. Good luck!
+[+]
+[+] This is an introductory Yan85 level, where we trigger Yan85 architecture
+[+] operations directly. The parts of Yan85 that are used here is the emulated
+[+] registers, memory, and system calls.
+[+]
+[+] This is a *teaching* challenge, which means that it will output
+[+] a trace of the Yan85 code as it processes it. The output is here
+[+] for you to understand what the challenge is doing, and you should use
+[+] it as a guide to help with your reversing of the code.
+[+]
+[s] IMM b = 0x53
+[s] IMM c = 0x6
+[s] IMM a = 0
+[s] SYS 0x20 a
+[s] ... read_memory
+abcd
+[s] ... return value (in register a): 0x5
+[s] IMM b = 0x73
+[s] IMM c = 0x1
+[s] IMM a = 0x88
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0xd1
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0xff
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0x12
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0xff
+[s] STM *b = a
+[s] ADD b c
+[s] IMM a = 0x3c
+[s] STM *b = a
+[s] ADD b c
+[s] IMM b = 0x73
+[s] LDM b = *b
+[s] IMM a = 0x53
+[s] LDM a = *a
+[s] IMM c = 0xbe
+[s] ADD a c
+[s] CMP a b
+[s] IMM b = 0x74
+[s] LDM b = *b
+[s] IMM a = 0x54
+[s] LDM a = *a
+[s] IMM c = 0x45
+[s] ADD a c
+[s] CMP a b
+[s] IMM b = 0x75
+[s] LDM b = *b
+[s] IMM a = 0x55
+[s] LDM a = *a
+[s] IMM c = 0x2f
+[s] ADD a c
+[s] CMP a b
+[s] IMM b = 0x76
+[s] LDM b = *b
+[s] IMM a = 0x56
+[s] LDM a = *a
+[s] IMM c = 0x74
+[s] ADD a c
+[s] CMP a b
+[s] IMM b = 0x77
+[s] LDM b = *b
+[s] IMM a = 0x57
+[s] LDM a = *a
+[s] IMM c = 0x8c
+[s] ADD a c
+[s] CMP a b
+[s] IMM b = 0x78
+[s] LDM b = *b
+[s] IMM a = 0x58
+[s] LDM a = *a
+[s] IMM c = 0x35
+[s] ADD a c
+[s] CMP a b
+[s] IMM a = 0x1
+[s] IMM b = 0
+[s] IMM c = 0x1
+[s] IMM d = 0x49
+[s] STM *b = d
+[s] SYS 0x4 a
+[s] ... write
+I[s] ... return value (in register a): 0x1
+[s] IMM d = 0x4e
+[s] STM *b = d
+[s] SYS 0x4 a
+[s] ... write
+N[s] ... return value (in register a): 0x1
+[s] IMM d = 0x43
+[s] STM *b = d
+[s] SYS 0x4 a
+[s] ... write
+C[s] ... return value (in register a): 0x1
+[s] IMM d = 0x4f
+[s] STM *b = d
+[s] SYS 0x4 a
+[s] ... write
+O[s] ... return value (in register a): 0x1
+[s] IMM d = 0x52
+[s] STM *b = d
+[s] SYS 0x4 a
+[s] ... write
+R[s] ... return value (in register a): 0x1
+[s] IMM d = 0x52
+[s] STM *b = d
+[s] SYS 0x4 a
+[s] ... write
+R[s] ... return value (in register a): 0x1
+[s] IMM d = 0x45
+[s] STM *b = d
+[s] SYS 0x4 a
+[s] ... write
+E[s] ... return value (in register a): 0x1
+[s] IMM d = 0x43
+[s] STM *b = d
+[s] SYS 0x4 a
+[s] ... write
+C[s] ... return value (in register a): 0x1
+[s] IMM d = 0x54
+[s] STM *b = d
+[s] SYS 0x4 a
+[s] ... write
+T[s] ... return value (in register a): 0x1
+[s] IMM d = 0x21
+[s] STM *b = d
+[s] SYS 0x4 a
+[s] ... write
+![s] ... return value (in register a): 0x1
+[s] IMM a = 0x1
+[s] IMM d = 0xa
+[s] STM *b = d
+[s] SYS 0x4 a
+[s] ... write
+
+[s] ... return value (in register a): 0x1
+[s] SYS 0x2 a
+[s] ... exit
 ```
 
 This challenge introduces a new twist on the transformation pattern from Master the Yancode. Rather than transforming the reference array and comparing directly, the program **adds a per-byte constant to our input** before comparing it against the reference. This means we need to invert the transformation to recover the correct input.
