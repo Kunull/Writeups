@@ -4137,11 +4137,11 @@ This challenge builds on the Yan85 architecture from the previous challenges. Th
 
 The syscall IDs are randomized per challenge instance. This time:
 
-| ID | Name |
-|---|---|
-| `0x01` | `read` |
-| `0x02` | `write` |
-| `0x04` | `exit` |
+| ID | Name | arg0 | arg1 | arg2 |
+|---|---|---|---|---|
+| `0x04` | `exit` | `a` (exit code) | | |
+| `0x01` | `read` | `a` (fd) | `b` (buf addr) | `c` (count) |
+| `0x02` | `write` | `a` (fd) | `b` (buf addr) | `c` (count) |
 
 ### Tracing the Program
 
@@ -4879,11 +4879,12 @@ This challenge introduces a new twist on the transformation pattern from Master 
 
 ### Syscall Table
 
-| ID | Name |
-|---|---|
-| `0x20` | `read` |
-| `0x04` | `write` |
-| `0x02` | `exit` |
+| ID | Name | arg0 | arg1 | arg2 |
+|---|---|---|---|---|
+| `0x04` | `exit` | `a` (exit code) | | |
+| `0x20` | `read` | `a` (fd) | `b` (buf addr) | `c` (count) |
+| `0x04` | `write` | `a` (fd) | `b` (buf addr) | `c` (count) |
+
 
 ### Tracing the Program
 
@@ -5369,3 +5370,9 @@ pwn.college{QcT96uy4VsoZN85c9LkNDw6gWKg.0FM4IDL4ITM0EzW}
 ### Key Differences from Easy
 
 Three things differ from Transcend the Yancode (Easy). The register bitmask encoding shuffled (`32=d`, `2=c`, `1=b`, `8=a`), the equality flag shifted to **bit 4** (`& 0x10`), and most importantly the transformation direction flipped — the easy version added constants to the **input side** requiring subtraction to invert, while here the constants are added to the **reference side**, making the correct input simply `(reference[n] + key[n]) & 0xff` with no inversion step needed.
+
+&nbsp;
+
+```
+
+```
