@@ -16,7 +16,7 @@ hacker@reverse-engineering~terrible-token-easy:/$ /challenge/terrible-token-easy
 ###
 
 This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
-are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely
 different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
 Providing the correct license key will net you the flag!
 
@@ -62,7 +62,7 @@ hacker@reverse-engineering~terrible-token-easy:~$ /challenge/terrible-token-easy
 ###
 
 This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
-are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely
 different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
 Providing the correct license key will net you the flag!
 
@@ -107,15 +107,15 @@ void __fastcall __noreturn main(int a1, char **a2, char **a3)
   unsigned __int64 v5; // [rsp+28h] [rbp-8h]
 
   v5 = __readfsqword(0x28u);
-  setvbuf(stdin, 0LL, 2, 0LL);
-  setvbuf(stdout, 0LL, 2, 0LL);
+  setvbuf(STDIN, 0LL, 2, 0LL);
+  setvbuf(STDOUT, 0LL, 2, 0LL);
   puts("###");
   printf("### Welcome to %s!\n", *a2);
   puts("###");
   putchar(10);
   puts(
     "This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you");
-  puts("are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely");
+  puts("are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely");
   puts(
     "different operations on that input! You must figure out (by reverse engineering this program) what that license key is.");
   puts("Providing the correct license key will net you the flag!\n");
@@ -149,7 +149,7 @@ hacker@reverse-engineering~terrible-token-hard:~$ /challenge/terrible-token-hard
 ###
 
 This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
-are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely
 different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
 Providing the correct license key will net you the flag!
 
@@ -173,7 +173,7 @@ hacker@reverse-engineering~tangled-ticket-easy:~$ /challenge/tangled-ticket-easy
 ###
 
 This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
-are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely
 different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
 Providing the correct license key will net you the flag!
 
@@ -227,7 +227,7 @@ hacker@reverse-engineering~tangled-ticket-easy:~$ /challenge/tangled-ticket-easy
 ###
 
 This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
-are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely
 different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
 Providing the correct license key will net you the flag!
 
@@ -279,15 +279,15 @@ void __fastcall __noreturn main(int a1, char **a2, char **a3)
   unsigned __int64 v6; // [rsp+28h] [rbp-8h]
 
   v6 = __readfsqword(0x28u);
-  setvbuf(stdin, 0LL, 2, 0LL);
-  setvbuf(stdout, 0LL, 2, 0LL);
+  setvbuf(STDIN, 0LL, 2, 0LL);
+  setvbuf(STDOUT, 0LL, 2, 0LL);
   puts("###");
   printf("### Welcome to %s!\n", *a2);
   puts("###");
   putchar(10);
   puts(
     "This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you");
-  puts("are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely");
+  puts("are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely");
   puts(
     "different operations on that input! You must figure out (by reverse engineering this program) what that license key is.");
   puts("Providing the correct license key will net you the flag!\n");
@@ -347,7 +347,7 @@ hacker@reverse-engineering~tangled-ticket-hard:~$ /challenge/tangled-ticket-hard
 ###
 
 This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
-are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely
 different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
 Providing the correct license key will net you the flag!
 
@@ -394,8 +394,8 @@ int __fastcall main(int argc, const char **argv, const char **envp)
   __int64 s1[4]; // [rsp+60h] [rbp-20h] BYREF
 
   s1[3] = __readfsqword(0x28u);
-  setvbuf(stdin, 0LL, 2, 0LL);
-  setvbuf(stdout, 0LL, 2, 0LL);
+  setvbuf(STDIN, 0LL, 2, 0LL);
+  setvbuf(STDOUT, 0LL, 2, 0LL);
   puts("###");
   printf("### Welcome to %s!\n", *argv);
   puts("###");
@@ -408,7 +408,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
   s1[0] = 0LL;
   s1[1] = 0LL;
   printf("Enter a %d-byte key:\n", 16LL);
-  len_user_input = fread(&key[16], 1uLL, 16uLL, stdin);
+  len_user_input = fread(&key[16], 1uLL, 16uLL, STDIN);
   if ( len_user_input == 16 )
   {
     for ( i = 0LL; i < 16; ++i )
@@ -527,8 +527,8 @@ int __fastcall main(int argc, const char **argv, const char **envp)
   __int64 modified_user_input[4]; // [rsp+60h] [rbp-20h] BYREF
 
   modified_user_input[3] = __readfsqword(0x28u);
-  setvbuf(stdin, 0LL, 2, 0LL);
-  setvbuf(stdout, 0LL, 2, 0LL);
+  setvbuf(STDIN, 0LL, 2, 0LL);
+  setvbuf(STDOUT, 0LL, 2, 0LL);
   puts("###");
   printf("### Welcome to %s!\n", *argv);
   puts("###");
@@ -541,7 +541,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
   modified_user_input[0] = 0LL;
   modified_user_input[1] = 0LL;
   printf("Enter a %d-byte key:\n", 16LL);
-  len_user_input = fread(&key[16], 1uLL, 16uLL, stdin);
+  len_user_input = fread(&key[16], 1uLL, 16uLL, STDIN);
   if ( len_user_input == 16 )
   {
     for ( i = 0LL; i < 16; ++i )
@@ -646,7 +646,7 @@ hacker@reverse-engineering~meager-mangler-easy:~$ /challenge/meager-mangler-easy
 ###
 
 This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
-are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely
 different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
 Providing the correct license key will net you the flag!
 
@@ -870,15 +870,15 @@ void __fastcall __noreturn main(int a1, char **a2, char **a3)
   unsigned __int64 v13; // [rsp+58h] [rbp-8h]
 
   v13 = __readfsqword(0x28u);
-  setvbuf(stdin, 0LL, 2, 0LL);
-  setvbuf(stdout, 0LL, 2, 0LL);
+  setvbuf(STDIN, 0LL, 2, 0LL);
+  setvbuf(STDOUT, 0LL, 2, 0LL);
   puts("###");
   printf("### Welcome to %s!\n", *a2);
   puts("###");
   putchar(10);
   puts(
     "This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you");
-  puts("are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely");
+  puts("are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely");
   puts(
     "different operations on that input! You must figure out (by reverse engineering this program) what that license key is.");
   puts("Providing the correct license key will net you the flag!\n");
@@ -1010,7 +1010,7 @@ hacker@reverse-engineering~monstrous-mangler-easy:~$ /challenge/monstrous-mangle
 ###
 
 This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
-are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely
 different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
 Providing the correct license key will net you the flag!
 
@@ -1212,15 +1212,15 @@ void __fastcall __noreturn main(int a1, char **a2, char **a3)
   unsigned __int64 v19; // [rsp+68h] [rbp-8h]
 
   v19 = __readfsqword(0x28u);
-  setvbuf(stdin, 0LL, 2, 0LL);
-  setvbuf(stdout, 0LL, 2, 0LL);
+  setvbuf(STDIN, 0LL, 2, 0LL);
+  setvbuf(STDOUT, 0LL, 2, 0LL);
   puts("###");
   printf("### Welcome to %s!\n", *a2);
   puts("###");
   putchar(10);
   puts(
     "This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you");
-  puts("are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely");
+  puts("are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely");
   puts(
     "different operations on that input! You must figure out (by reverse engineering this program) what that license key is.");
   puts("Providing the correct license key will net you the flag!\n");
@@ -1461,7 +1461,7 @@ hacker@reverse-engineering~patched-up-easy:~$ /challenge/patched-up-easy
 ###
 
 This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
-are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely
 different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
 Providing the correct license key will net you the flag!
 
@@ -1543,15 +1543,15 @@ int __fastcall __noreturn main(int argc, const char **argv, const char **envp)
   unsigned __int64 v21; // [rsp+E8h] [rbp-8h]
 
   v21 = __readfsqword(40u);
-  setvbuf(stdin, 0LL, 2, 0LL);
-  setvbuf(stdout, 0LL, 2, 0LL);
+  setvbuf(STDIN, 0LL, 2, 0LL);
+  setvbuf(STDOUT, 0LL, 2, 0LL);
   puts("###");
   printf("### Welcome to %s!\n", *argv);
   puts("###");
   putchar(10);
   puts(
     "This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you");
-  puts("are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely");
+  puts("are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely");
   puts(
     "different operations on that input! You must figure out (by reverse engineering this program) what that license key is.");
   puts("Providing the correct license key will net you the flag!\n");
@@ -1667,7 +1667,7 @@ hacker@reverse-engineering~patched-up-easy:~$ /challenge/patched-up-easy
 ###
 
 This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
-are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely
 different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
 Providing the correct license key will net you the flag!
 
@@ -1733,7 +1733,7 @@ hacker@reverse-engineering~patched-up-hard:~$ /challenge/patched-up-hard
 ###
 
 This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
-are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely
 different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
 Providing the correct license key will net you the flag!
 
@@ -1764,15 +1764,15 @@ void __fastcall __noreturn main(int a1, char **a2, char **a3)
   unsigned __int64 v16; // [rsp+D8h] [rbp-8h]
 
   v16 = __readfsqword(40u);
-  setvbuf(stdin, 0LL, 2, 0LL);
-  setvbuf(stdout, 0LL, 2, 0LL);
+  setvbuf(STDIN, 0LL, 2, 0LL);
+  setvbuf(STDOUT, 0LL, 2, 0LL);
   puts("###");
   printf("### Welcome to %s!\n", *a2);
   puts("###");
   putchar(10);
   puts(
     "This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you");
-  puts("are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely");
+  puts("are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely");
   puts(
     "different operations on that input! You must figure out (by reverse engineering this program) what that license key is.");
   puts("Providing the correct license key will net you the flag!\n");
@@ -1862,7 +1862,7 @@ hacker@reverse-engineering~patched-up-hard:~$ /challenge/patched-up-hard
 ###
 
 This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
-are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely
 different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
 Providing the correct license key will net you the flag!
 
@@ -1908,7 +1908,7 @@ hacker@reverse-engineering~puzzle-patch-easy:~$ /challenge/puzzle-patch-easy
 ###
 
 This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
-are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely
 different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
 Providing the correct license key will net you the flag!
 
@@ -1971,15 +1971,15 @@ int __fastcall __noreturn main(int argc, const char **argv, const char **envp)
   unsigned __int64 v20; // [rsp+E8h] [rbp-8h]
 
   v20 = __readfsqword(0x28u);
-  setvbuf(stdin, 0LL, 2, 0LL);
-  setvbuf(stdout, 0LL, 2, 0LL);
+  setvbuf(STDIN, 0LL, 2, 0LL);
+  setvbuf(STDOUT, 0LL, 2, 0LL);
   puts("###");
   printf("### Welcome to %s!\n", *argv);
   puts("###");
   putchar(10);
   puts(
     "This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you");
-  puts("are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely");
+  puts("are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely");
   puts(
     "different operations on that input! You must figure out (by reverse engineering this program) what that license key is.");
   puts("Providing the correct license key will net you the flag!\n");
@@ -2092,7 +2092,7 @@ hacker@reverse-engineering~puzzle-patch-easy:~$ /challenge/puzzle-patch-easy
 ###
 
 This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
-are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely
 different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
 Providing the correct license key will net you the flag!
 
@@ -2142,7 +2142,7 @@ hacker@reverse-engineering~puzzle-patch-hard:~$ /challenge/puzzle-patch-hard
 ###
 
 This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
-are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely
 different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
 Providing the correct license key will net you the flag!
 
@@ -2181,15 +2181,15 @@ void __fastcall __noreturn main(int a1, char **a2, char **a3)
   unsigned __int64 v16; // [rsp+D8h] [rbp-8h]
 
   v16 = __readfsqword(40u);
-  setvbuf(stdin, 0LL, 2, 0LL);
-  setvbuf(stdout, 0LL, 2, 0LL);
+  setvbuf(STDIN, 0LL, 2, 0LL);
+  setvbuf(STDOUT, 0LL, 2, 0LL);
   puts("###");
   printf("### Welcome to %s!\n", *a2);
   puts("###");
   putchar(10);
   puts(
     "This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you");
-  puts("are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely");
+  puts("are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely");
   puts(
     "different operations on that input! You must figure out (by reverse engineering this program) what that license key is.");
   puts("Providing the correct license key will net you the flag!\n");
@@ -2280,7 +2280,7 @@ hacker@reverse-engineering~puzzle-patch-hard:~$ /challenge/puzzle-patch-hard
 ###
 
 This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
-are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely
 different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
 Providing the correct license key will net you the flag!
 
@@ -2310,7 +2310,7 @@ hacker@reverse-engineering~patch-perfect-easy:~$ /challenge/patch-perfect-easy
 ###
 
 This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
-are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely
 different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
 Providing the correct license key will net you the flag!
 
@@ -2367,15 +2367,15 @@ int __fastcall __noreturn main(int argc, const char **argv, const char **envp)
   unsigned __int64 v25; // [rsp+118h] [rbp-8h]
 
   v25 = __readfsqword(0x28u);
-  setvbuf(stdin, 0LL, 2, 0LL);
-  setvbuf(stdout, 0LL, 2, 0LL);
+  setvbuf(STDIN, 0LL, 2, 0LL);
+  setvbuf(STDOUT, 0LL, 2, 0LL);
   puts("###");
   printf("### Welcome to %s!\n", *argv);
   puts("###");
   putchar(10);
   puts(
     "This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you");
-  puts("are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely");
+  puts("are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely");
   puts(
     "different operations on that input! You must figure out (by reverse engineering this program) what that license key is.");
   puts("Providing the correct license key will net you the flag!\n");
@@ -2532,7 +2532,7 @@ hacker@reverse-engineering~patch-perfect-easy:~$ /challenge/patch-perfect-easy
 ###
 
 This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
-are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely
 different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
 Providing the correct license key will net you the flag!
 
@@ -2598,7 +2598,7 @@ hacker@reverse-engineering~patch-perfect-hard:~$ /challenge/patch-perfect-hard
 ###
 
 This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
-are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely
 different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
 Providing the correct license key will net you the flag!
 
@@ -2642,15 +2642,15 @@ void __fastcall __noreturn main(int a1, char **a2, char **a3)
   unsigned __int64 v20; // [rsp+F8h] [rbp-8h]
 
   v20 = __readfsqword(40u);
-  setvbuf(stdin, 0LL, 2, 0LL);
-  setvbuf(stdout, 0LL, 2, 0LL);
+  setvbuf(STDIN, 0LL, 2, 0LL);
+  setvbuf(STDOUT, 0LL, 2, 0LL);
   puts("###");
   printf("### Welcome to %s!\n", *a2);
   puts("###");
   putchar(10);
   puts(
     "This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you");
-  puts("are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely");
+  puts("are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely");
   puts(
     "different operations on that input! You must figure out (by reverse engineering this program) what that license key is.");
   puts("Providing the correct license key will net you the flag!\n");
@@ -2786,7 +2786,7 @@ hacker@reverse-engineering~patch-perfect-hard:~$ /challenge/patch-perfect-hard
 ###
 
 This license verifier software will allow you to read the flag. However, before you can do so, you must verify that you
-are licensed to read flag files! This program consumes a license key over stdin. Each program may perform entirely
+are licensed to read flag files! This program consumes a license key over STDIN. Each program may perform entirely
 different operations on that input! You must figure out (by reverse engineering this program) what that license key is.
 Providing the correct license key will net you the flag!
 
@@ -2879,11 +2879,11 @@ From observing the trace, we can identify the following instructions:
 ```
 IMM b = 0x6b    ; buf = 0x6b
 IMM c = 0x8     ; count = 8
-IMM a = 0       ; fd = 0 (stdin)
-SYS 0x8 a       ; read(stdin, 0x6b, 8)
+IMM a = 0       ; fd = 0 (STDIN)
+SYS 0x8 a       ; read(STDIN, 0x6b, 8)
 ```
 
-The program reads **8 bytes** from stdin into memory address `0x6b`. The return value (bytes read) is stored in `a`.
+The program reads **8 bytes** from STDIN into memory address `0x6b`. The return value (bytes read) is stored in `a`.
 
 #### Step 2: Build a Reference Array
 
@@ -2918,7 +2918,7 @@ On a correct match, the program:
 2. Constructs the string `/flag\x00` in memory starting at address `0`
 3. Calls `open("/flag", 0)`, returns fd `3`
 4. Reads up to `0x64` (100) bytes from the flag file into the buffer at `0`
-5. Writes the entire flag to stdout
+5. Writes the entire flag to STDOUT
 6. Calls `exit`
 
 ### Solution
@@ -2971,7 +2971,7 @@ __int64 __fastcall main(int a1, char **a2, char **a3)
   puts("[+] This is an introductory Yan85 level, where we trigger Yan85 architecture");
   puts("[+] operations directly. The parts of Yan85 that are used here is the emulated");
   puts("[+] registers, memory, and system calls.");
-  setvbuf(stdout, 0LL, 2, 1uLL);
+  setvbuf(STDOUT, 0LL, 2, 1uLL);
   memset(v4, 0, sizeof(v4));
   v5 = 0;
   v6 = 0;
@@ -2988,7 +2988,7 @@ __int64 __fastcall sub_1A97(__int64 a1)
 
   // sub_1533 matches the easy trace's IMM instruction — sets a register to an
   // immediate value. sub_1896 matches SYS. Here: IMM b=86 (buf), IMM c=4
-  // (count), IMM a=0 (stdin), SYS 0x8 a → read(stdin, mem[86], 4).
+  // (count), IMM a=0 (STDIN), SYS 0x8 a → read(STDIN, mem[86], 4).
   sub_1533(a1, 8LL, 86LL);
   sub_1533(a1, 32LL, 4LL);
   sub_1533(a1, 16LL, 0LL);
@@ -3112,7 +3112,7 @@ __int64 __fastcall sub_1A97(__int64 a1)
     sub_1533(a1, 32LL, 100LL);
     sub_1896(a1, 8LL, 32LL);    // read(fd, mem[0], 100)
     sub_1533(a1, 16LL, 1LL);
-    sub_1896(a1, 2LL, 32LL);    // write(stdout, mem[0], bytes_read)
+    sub_1896(a1, 2LL, 32LL);    // write(STDOUT, mem[0], bytes_read)
     sub_1533(a1, 16LL, 0LL);
   }
   else
@@ -3191,15 +3191,15 @@ We map helpers by cross-referencing argument patterns against the labeled easy t
 #### Step 1: Read Input
 
 ```c title="/challenge/trust-the-yancode-hard :: sub_1A97() :: Pseudocode" showLineNumbers
-// IMM b=86 (buf address), IMM c=4 (count), IMM a=0 (stdin),
-// SYS 0x8 a → read(stdin, mem[86], 4).
+// IMM b=86 (buf address), IMM c=4 (count), IMM a=0 (STDIN),
+// SYS 0x8 a → read(STDIN, mem[86], 4).
 sub_1533(a1, 8LL, 86LL);    // IMM b = 86  (buf address)
 sub_1533(a1, 32LL, 4LL);    // IMM c = 4   (count)
-sub_1533(a1, 16LL, 0LL);    // IMM a = 0   (stdin)
-sub_1896(a1, 8LL, 16LL);    // SYS 0x8 a   read(stdin, mem[86], 4)
+sub_1533(a1, 16LL, 0LL);    // IMM a = 0   (STDIN)
+sub_1896(a1, 8LL, 16LL);    // SYS 0x8 a   read(STDIN, mem[86], 4)
 ```
 
-The program reads **4 bytes** from stdin into memory at offset `86`.
+The program reads **4 bytes** from STDIN into memory at offset `86`.
 
 #### Step 2: Build a Reference Array
 
@@ -3237,7 +3237,7 @@ The expected answer `\x7c\xe3\x8a\x78` is now at offsets `118–121`.
 v2 = memcmp((const void *)(a1 + 118), (const void *)(a1 + 86), 4uLL) == 0;
 ```
 
-A direct `memcmp` between the reference bytes at `118` and our input at `86`. There is no transformation or encoding — the correct input simply is those four bytes. If they match, the program prints `CORRECT! Your flag:`, opens `/flag`, and writes it to stdout. Otherwise it prints `INCORRECT!` and exits.
+A direct `memcmp` between the reference bytes at `118` and our input at `86`. There is no transformation or encoding — the correct input simply is those four bytes. If they match, the program prints `CORRECT! Your flag:`, opens `/flag`, and writes it to STDOUT. Otherwise it prints `INCORRECT!` and exits.
 
 ### Solution
 
@@ -3299,11 +3299,11 @@ The syscall IDs are randomized per challenge instance. This time:
 ```
 IMM b = 0x75    ; buf = 0x75
 IMM c = 0x4     ; count = 4
-IMM a = 0       ; fd = stdin
-SYS 0x4 a       ; read(stdin, mem[0x75], 4)
+IMM a = 0       ; fd = STDIN
+SYS 0x4 a       ; read(STDIN, mem[0x75], 4)
 ```
 
-The program reads **4 bytes** from stdin into memory at `0x75`.
+The program reads **4 bytes** from STDIN into memory at `0x75`.
 
 #### Step 2: Build Reference Array
 
@@ -3384,7 +3384,7 @@ __int64 __fastcall main(int a1, char **a2, char **a3)
   puts("[+] This is an introductory Yan85 level, where we trigger Yan85 architecture");
   puts("[+] operations directly. The parts of Yan85 that are used here is the emulated");
   puts("[+] registers, memory, and system calls.");
-  setvbuf(stdout, 0LL, 2, 1uLL);
+  setvbuf(STDOUT, 0LL, 2, 1uLL);
   memset(v4, 0, sizeof(v4));
   v5 = 0;
   v6 = 0;
@@ -3401,7 +3401,7 @@ __int64 __fastcall sub_1A77(__int64 a1)
 
   // sub_1513 matches IMM (same power-of-2 register bitmask: 8=b, 16=a, 32=c,
   // 64=d). sub_1876 matches SYS. Register order here is d=buf, b=count, c=fd,
-  // matching SYS 0x2 c → read(stdin, mem[97], 4).
+  // matching SYS 0x2 c → read(STDIN, mem[97], 4).
   sub_1513(a1, 64LL, 97LL);
   sub_1513(a1, 8LL, 4LL);
   sub_1513(a1, 32LL, 0LL);
@@ -3530,7 +3530,7 @@ __int64 __fastcall sub_1A77(__int64 a1)
 
     // Build "/flag\0" at mem[0] with direct-addressed IMM d=<offset>, STM
     // *d=a writes. Then SYS 0x1 (open), SYS 0x2 (read), SYS 0x10 (write)
-    // to read and print the flag file to stdout.
+    // to read and print the flag file to STDOUT.
     sub_1513(a1, 16LL, 47LL);   // '/'
     sub_1513(a1, 64LL, 0LL);
     sub_1667(a1, 64LL, 16LL);
@@ -3555,7 +3555,7 @@ __int64 __fastcall sub_1A77(__int64 a1)
     sub_1513(a1, 8LL, 100LL);
     sub_1876(a1, 2LL, 8LL);     // read(fd, mem[0], 100)
     sub_1513(a1, 32LL, 1LL);
-    sub_1876(a1, 16LL, 8LL);    // write(stdout, mem[0], bytes_read)
+    sub_1876(a1, 16LL, 8LL);    // write(STDOUT, mem[0], bytes_read)
     sub_1513(a1, 32LL, 0LL);
   }
   else
@@ -3623,15 +3623,15 @@ The check `*(_BYTE *)(a1 + 262) & 8` reads **bit 3 of the flags register** — t
 #### Step 1: Read Input
 
 ```c title="/challenge/know-the-yancode-hard :: sub_1A77() :: Pseudocode" showLineNumbers
-// IMM d=97 (buf address), IMM b=4 (count), IMM c=0 (stdin),
-// SYS 0x2 c → read(stdin, mem[97], 4).
+// IMM d=97 (buf address), IMM b=4 (count), IMM c=0 (STDIN),
+// SYS 0x2 c → read(STDIN, mem[97], 4).
 sub_1513(a1, 64LL, 97LL);   // IMM d = 97  (buf address)
 sub_1513(a1, 8LL, 4LL);     // IMM b = 4   (count)
-sub_1513(a1, 32LL, 0LL);    // IMM c = 0   (stdin)
-sub_1876(a1, 2LL, 32LL);    // SYS 0x2 c   read(stdin, mem[97], 4)
+sub_1513(a1, 32LL, 0LL);    // IMM c = 0   (STDIN)
+sub_1876(a1, 2LL, 32LL);    // SYS 0x2 c   read(STDIN, mem[97], 4)
 ```
 
-The program reads **4 bytes** from stdin into memory at offset `97`.
+The program reads **4 bytes** from STDIN into memory at offset `97`.
 
 #### Step 2: Build Reference Array
 
@@ -3741,11 +3741,11 @@ The syscall IDs are randomized per challenge instance. This time:
 ```
 IMM b = 0x5a    ; buf = 0x5a
 IMM c = 0x6     ; count = 6
-IMM a = 0       ; fd = stdin
-SYS 0x1 a       ; read(stdin, mem[0x5a], 6)
+IMM a = 0       ; fd = STDIN
+SYS 0x1 a       ; read(STDIN, mem[0x5a], 6)
 ```
 
-The program reads **6 bytes** from stdin into memory at `0x5a`.
+The program reads **6 bytes** from STDIN into memory at `0x5a`.
 
 #### Step 2: Build Reference Array
 
@@ -3849,7 +3849,7 @@ __int64 __fastcall main(int a1, char **a2, char **a3)
   puts("[+] This is an introductory Yan85 level, where we trigger Yan85 architecture");
   puts("[+] operations directly. The parts of Yan85 that are used here is the emulated");
   puts("[+] registers, memory, and system calls.");
-  setvbuf(stdout, 0LL, 2, 1uLL);
+  setvbuf(STDOUT, 0LL, 2, 1uLL);
   memset(v4, 0, sizeof(v4));
   v5 = 0;
   v6 = 0;
@@ -3868,7 +3868,7 @@ __int64 __fastcall sub_1A77(__int64 a1)
   // Cross-referencing the read syscall pattern (fd, buf, count) against known
   // argument positions: bitmask 64=d (buf), 1=b (count), 2=c (fd/return).
   // sub_1876 matches SYS; SYS 0x20 here is read.
-  // IMM d=78 (buf), IMM b=9 (count), IMM c=0 (stdin), SYS 0x20 c → read(stdin, mem[78], 9).
+  // IMM d=78 (buf), IMM b=9 (count), IMM c=0 (STDIN), SYS 0x20 c → read(STDIN, mem[78], 9).
   sub_1513(a1, 64LL, 78LL);
   sub_1513(a1, 1LL, 9LL);
   sub_1513(a1, 2LL, 0LL);
@@ -4115,7 +4115,7 @@ __int64 __fastcall sub_1A77(__int64 a1)
 
     // Build "/flag\0" at mem[0] with direct-addressed IMM d=<offset>, STM *d=a
     // writes. Then SYS 0x2 (open), SYS 0x20 (read), SYS 0x1 (write) to read
-    // and print the flag file to stdout.
+    // and print the flag file to STDOUT.
     sub_1513(a1, 16LL, 47LL);   // '/'
     sub_1513(a1, 64LL, 0LL);
     sub_1667(a1, 64LL, 16LL);
@@ -4140,7 +4140,7 @@ __int64 __fastcall sub_1A77(__int64 a1)
     sub_1513(a1, 1LL, 100LL);
     sub_1876(a1, 32LL, 1LL);    // read(fd, mem[0], 100)
     sub_1513(a1, 2LL, 1LL);
-    sub_1876(a1, 1LL, 1LL);     // write(stdout, mem[0], bytes_read)
+    sub_1876(a1, 1LL, 1LL);     // write(STDOUT, mem[0], bytes_read)
     sub_1513(a1, 2LL, 0LL);
   }
   else
@@ -4224,15 +4224,15 @@ Two other differences from previous instances: the equality flag is now **bit 2*
 #### Step 1: Read Input
 
 ```c title="/challenge/master-the-yancode-hard :: sub_1A77() :: Pseudocode" showLineNumbers
-// IMM d=78 (buf), IMM b=9 (count), IMM c=0 (stdin),
-// SYS 0x20 c → read(stdin, mem[78], 9).
+// IMM d=78 (buf), IMM b=9 (count), IMM c=0 (STDIN),
+// SYS 0x20 c → read(STDIN, mem[78], 9).
 sub_1513(a1, 64LL, 78LL);   // IMM d = 78  (buf address)
 sub_1513(a1, 1LL, 9LL);     // IMM b = 9   (count)
-sub_1513(a1, 2LL, 0LL);     // IMM c = 0   (stdin)
-sub_1876(a1, 32LL, 2LL);    // SYS 0x20 c  read(stdin, mem[78], 9)
+sub_1513(a1, 2LL, 0LL);     // IMM c = 0   (STDIN)
+sub_1876(a1, 32LL, 2LL);    // SYS 0x20 c  read(STDIN, mem[78], 9)
 ```
 
-The program reads **9 bytes** from stdin into memory at offset `78`.
+The program reads **9 bytes** from STDIN into memory at offset `78`.
 
 #### Step 2: Build Reference Array
 
