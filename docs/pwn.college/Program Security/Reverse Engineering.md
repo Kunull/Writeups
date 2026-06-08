@@ -93,13 +93,13 @@ pwn.college{gIx0gHwBB1snl_xHLkQI8Grmugg.0VM1IDL4ITM0EzW}
 
 ## Terrible Token (Hard)
 
-### `main()`
+### Binary analysis
 
 <figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/8c39503b-9edc-42e8-8c7e-ca8134217e85" />
 </figure>
 
-```c showLineNumber
+```c title="/challenge/terrible-token-hard :: main() :: " showLineNumbers
 void __fastcall __noreturn main(int a1, char **a2, char **a3)
 {
   int buf; // [rsp+22h] [rbp-Eh] BYREF
@@ -264,13 +264,13 @@ pwn.college{8FlXhX2U1VQwVOC4n7Adfe5OkL4.01M1IDL4ITM0EzW}
 
 ## Tangled Ticket (Hard)
 
-### `main()`
+### Binary analysis
 
 <figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/6fb73a5f-e3bb-43d5-a4ec-64284f03213f" />
 </figure>
 
-```c showLineNumbers
+```c title="/challenge/tangled-ticket-hard :: main() :: Pseudocode" showLineNumbers
 void __fastcall __noreturn main(int a1, char **a2, char **a3)
 {
   char v3; // [rsp+20h] [rbp-10h]
@@ -375,13 +375,13 @@ abcdabcdabcdabcd
 Incorrect!
 ```
 
-### `main()`
+### Binary analysis
 
 <figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/3a845cd5-a542-4cf8-8293-010eee2b9ea0" />
 </figure>
 
-```c showLineNumbers
+```c title="/challenge/bit-bender :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   unsigned __int64 i; // [rsp+28h] [rbp-58h]
@@ -508,13 +508,13 @@ abcdabcdabcdabcd
 Incorrect!
 ```
 
-### `main()`
+### Binary analysis
 
 <figure style={{ textAlign: 'center' }}>
 <img alt="image" src="https://github.com/user-attachments/assets/6966a2cf-60d7-4547-a254-5369bd519f46" />
 </figure>
 
-```c showLineNumbers
+```c title="/challenge/substitution-sorcery :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   unsigned __int64 i; // [rsp+28h] [rbp-58h]
@@ -846,7 +846,7 @@ $
 
 ## Meager Mangler (Hard)
 
-### `main()`
+### Binary analysis
 
 After a bit of analyzing and adding helpful comments, we get the following:
 
@@ -854,7 +854,7 @@ After a bit of analyzing and adding helpful comments, we get the following:
 <img alt="image" src="https://github.com/user-attachments/assets/5909cff7-5316-4723-9865-e0faa88c5faf" />
 </figure>
 
-```c showLineNumbers
+```c title="/challenge/meager-mangler :: main() :: Pseudocode" showLineNumbers
 void __fastcall __noreturn main(int a1, char **a2, char **a3)
 {
   int modulo_3; // eax
@@ -1188,9 +1188,9 @@ $
 
 ## Monstrous Mangler (Hard)
 
-### `main()`
+### Binary analysis
 
-```c showLineNumbers
+```c title="/challenge/monstrous-mangler :: main() :: Pseudocode" showLineNumbers
 void __fastcall __noreturn main(int a1, char **a2, char **a3)
 {
   char v3; // [rsp+20h] [rbp-50h]
@@ -1517,9 +1517,9 @@ Wrong! No flag for you!
 
 Let's open the program within IDA.
 
-### `main()`
+### Binary analysis
 
-```c showLineNumbers
+```c title="/challenge/patched-up-easy :: main() :: Pseudocode" showLineNumbers
 int __fastcall __noreturn main(int argc, const char **argv, const char **envp)
 {
   int v3; // eax
@@ -1743,9 +1743,9 @@ Changing byte 1/5.
 Offset (hex) to change: 
 ```
 
-### `main()`
+### Binary analysis
 
-```c showLineNumbers
+```c title="/challenge/patched-up-hard :: main() :: Pseudocode" showLineNumbers
 void __fastcall __noreturn main(int a1, char **a2, char **a3)
 {
   int v3; // eax
@@ -1946,9 +1946,9 @@ Checking the received license key!
 Wrong! No flag for you!
 ```
 
-### `main()`
+### Binary analysis
 
-```c showLineNumbers
+```c title="/challenge/puzzle-patch-easy :: main() :: Pseudocode" showLineNumbers
 int __fastcall __noreturn main(int argc, const char **argv, const char **envp)
 {
   int i_2; // eax
@@ -2160,9 +2160,9 @@ Checking the received license key!
 Wrong! No flag for you!
 ```
 
-### `main()`
+### Binary analysis
 
-```c showLineNumbers
+```c title="/challenge/puzzle-patch-hard :: main() :: Pseudocode" showLineNumbers
 void __fastcall __noreturn main(int a1, char **a2, char **a3)
 {
   int v3; // eax
@@ -2337,9 +2337,9 @@ The post-crack code integrity hash is:
 The code's integrity has been breached, aborting!
 ```
 
-### `main()`
+### Binary analysis
 
-```c showLineNumbers
+```c title="/challenge/patch-perfect-easy :: main() :: Pseudocode" showLineNumbers
 int __fastcall __noreturn main(int argc, const char **argv, const char **envp)
 {
   int v3; // eax
@@ -2617,9 +2617,9 @@ The byte has been changed: *0x5d729bd67001 = 1.
 The code's integrity has been breached, aborting!
 ```
 
-### `main()`
+### Binary analysis
 
-```c showLineNumbers
+```c title="/challenge/patch-perfect-hard :: main() :: Pseudocode" showLineNumbers
 void __fastcall __noreturn main(int a1, char **a2, char **a3)
 {
   int v3; // eax
