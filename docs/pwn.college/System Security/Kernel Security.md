@@ -223,7 +223,7 @@ Looking at the relevant sections:
 We load the module into IDA to inspect the `.rodata` section.
 
 <figure style={{ textAlign: 'center' }}>
-![image](https://github.com/user-attachments/assets/df92d5bb-3a2a-4d6b-b874-603890c77ef1?raw=1)
+ <img alt="image" src="https://github.com/user-attachments/assets/7a9ad384-2ec6-42ab-be7d-a6600d71affd" />
 </figure>
 
 ```c title="/challenge/babykernel_level1.0.ko :: .rodata"
