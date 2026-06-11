@@ -6,6 +6,8 @@ slug: /pwn-college/system-security/kernel-security
 
 ## level1.0
 
+> Ease into kernel exploitation with this simple crackme level!
+
 We have to first start and connect to the custom VM.
 
 ```
@@ -396,6 +398,8 @@ b'pwn.college{07BVixbx15euU8bhJUNxxTetCwn.01MyQDL4ITM0EzW}\n'
 
 ## level1.1
 
+> Ease into kernel exploitation with this simple crackme level!
+
 We have to first start and connect to the custom VM.
 
 ```
@@ -574,6 +578,8 @@ The write triggers the `strncmp` check against `fuxzvzdurndqgqsv`, which passes 
 
 ## level2.0
 
+> Ease into kernel exploitation with another crackme level.
+
 We have to first start and connect to the custom VM.
 
 ```
@@ -714,6 +720,8 @@ The write triggers the `strncmp` check against `zvcjxwvydfmyjyhl`, which passes.
 
 ## level2.1
 
+> Ease into kernel exploitation with another crackme level.
+ 
 We have to first start and connect to the custom VM.
 
 ```
@@ -821,6 +829,8 @@ The write triggers the `strncmp` check against `lmutfodocxaogxuk`, which passes.
 &nbsp;
 
 ## level3.0
+
+> Ease into kernel exploitation with another crackme level, this time with some privilege escalation (whoami?).
 
 We have to first start and connect to the custom VM.
 
@@ -1117,6 +1127,8 @@ The write triggers the `strncmp` check against `mmtilqnbfhgnhthd`, which passes.
 &nbsp;
 
 ## level3.1
+
+> Ease into kernel exploitation with another crackme level, this time with some privilege escalation (whoami?).
 
 We have to first start and connect to the custom VM.
 
