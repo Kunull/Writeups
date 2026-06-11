@@ -9,7 +9,13 @@ slug: /pwn-college/system-security/kernel-security
 We have to first start and connect to the custom VM.
 
 ```
+hacker@kernel-security~level1-0:~$ vm start
+hacker@kernel-security~level1-0:~$ vm connect
+Welcome to Ubuntu 20.04.6 LTS (GNU/Linux 5.4.0 x86_64)
 
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
 ```
 
 ### Binary analysis
@@ -233,7 +239,7 @@ We load the module into IDA to inspect the `.rodata` section.
 </figure>
 
 ```c title="/challenge/babykernel_level1.0.ko :: .rodata"
-odata.str1.1:0000000000000D43 aDeviceErrorUnk db 'device error: unknown state',0Ah,0
+.rodata.str1.1:0000000000000D43 aDeviceErrorUnk db 'device error: unknown state',0Ah,0
 .rodata.str1.1:0000000000000D43                                         ; DATA XREF: device_read+33↑o
 .rodata.str1.1:0000000000000D43                                         ; device_read+49↑o
 .rodata.str1.1:0000000000000D60 aFlag           db '/flag',0            ; DATA XREF: init_module+5↑o
@@ -270,8 +276,6 @@ We can also see:
 
 - `aFlag` -> `/flag`: the file the module reads from
 - `aPwncollege` -> `pwncollege`: the module name, which tells us where to find the proc entry
-
-## Finding the device
 
 The module isn't registered as a character device, so `/dev/pwncollege` doesn't exist. 
 We can check `lsmod` to confirm the module name.
@@ -335,7 +339,7 @@ hacker@vm_kernel-security~level1-0:~$ find /proc -maxdepth 1 -type f 2>/dev/null
 
 There it is: `/proc/pwncollege`.
 
-## Exploit
+### Exploit
 
 In another terminal craft the `~/exploit.c` file, and compile it.
 
@@ -389,3 +393,314 @@ b'pwn.college{07BVixbx15euU8bhJUNxxTetCwn.01MyQDL4ITM0EzW}\n'
 
 &nbsp;
 
+## level1.1
+
+We have to first start and connect to the custom VM.
+
+```
+hacker@kernel-security~level1-1:~$ vm start
+hacker@kernel-security~level1-1:~$ vm connect
+Welcome to Ubuntu 20.04.6 LTS (GNU/Linux 5.4.0 x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+```
+
+### Binary analysis
+
+We start by disassembling the kernel module.
+
+```text
+hacker@vm_kernel-security~level1-1:~$ objdump -d /challenge/babykernel_level1.1.ko | tail -75
+ d3b:   90                      nop
+ d3c:   90                      nop
+ d3d:   90                      nop
+ d3e:   90                      nop
+ d3f:   90                      nop
+ d40:   90                      nop
+ d41:   90                      nop
+ d42:   90                      nop
+ d43:   90                      nop
+ d44:   90                      nop
+ d45:   90                      nop
+ d46:   90                      nop
+ d47:   90                      nop
+ d48:   90                      nop
+ d49:   90                      nop
+ d4a:   90                      nop
+ d4b:   90                      nop
+ d4c:   90                      nop
+ d4d:   90                      nop
+ d4e:   90                      nop
+ d4f:   90                      nop
+ d50:   90                      nop
+ d51:   90                      nop
+ d52:   90                      nop
+ d53:   90                      nop
+ d54:   90                      nop
+ d55:   c3                      ret
+ d56:   66 2e 0f 1f 84 00 00    cs nopw 0x0(%rax,%rax,1)
+ d5d:   00 00 00
+0000000000000d60 <init_module>:
+ d60:   55                      push   %rbp
+ d61:   31 d2                   xor    %edx,%edx
+ d63:   31 f6                   xor    %esi,%esi
+ d65:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ d6c:   e8 00 00 00 00          call   d71 <init_module+0x11>
+ d71:   48 c7 c2 00 00 00 00    mov    $0x0,%rdx
+ d78:   b9 10 00 00 00          mov    $0x10,%ecx
+ d7d:   48 c7 c6 00 00 00 00    mov    $0x0,%rsi
+ d84:   48 89 c5                mov    %rax,%rbp
+ d87:   48 89 d7                mov    %rdx,%rdi
+ d8a:   31 c0                   xor    %eax,%eax
+ d8c:   ba 80 00 00 00          mov    $0x80,%edx
+ d91:   f3 48 ab                rep stos %rax,%es:(%rdi)
+ d94:   48 8d 4d 68             lea    0x68(%rbp),%rcx
+ d98:   48 89 ef                mov    %rbp,%rdi
+ d9b:   e8 00 00 00 00          call   da0 <init_module+0x40>
+ da0:   48 89 ef                mov    %rbp,%rdi
+ da3:   31 f6                   xor    %esi,%esi
+ da5:   e8 00 00 00 00          call   daa <init_module+0x4a>
+ daa:   48 c7 c1 00 00 00 00    mov    $0x0,%rcx
+ db1:   31 d2                   xor    %edx,%edx
+ db3:   be b6 01 00 00          mov    $0x1b6,%esi
+ db8:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ dbf:   e8 00 00 00 00          call   dc4 <init_module+0x64>
+ dc4:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ dcb:   48 89 05 00 00 00 00    mov    %rax,0x0(%rip)        # dd2 <init_module+0x72>
+ dd2:   e8 00 00 00 00          call   dd7 <init_module+0x77>
+ dd7:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ dde:   e8 00 00 00 00          call   de3 <init_module+0x83>
+ de3:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ dea:   e8 00 00 00 00          call   def <init_module+0x8f>
+ def:   31 c0                   xor    %eax,%eax
+ df1:   5d                      pop    %rbp
+ df2:   c3                      ret
+ df3:   66 66 2e 0f 1f 84 00    data16 cs nopw 0x0(%rax,%rax,1)
+ dfa:   00 00 00 00
+ dfe:   66 90                   xchg   %ax,%ax
+0000000000000e00 <cleanup_module>:
+ e00:   48 8b 3d 00 00 00 00    mov    0x0(%rip),%rdi        # e07 <cleanup_module+0x7>
+ e07:   48 85 ff                test   %rdi,%rdi
+ e0a:   74 05                   je     e11 <cleanup_module+0x11>
+ e0c:   e9 00 00 00 00          jmp    e11 <cleanup_module+0x11>
+ e11:   c3                      ret
+```
+
+The structure is identical to level1.0 — same `init_module`, same `device_write`/`device_read` pattern. We load the module into IDA to inspect the `.rodata` section and find the password.
+
+```c title="/challenge/babykernel_level1.1.ko :: .rodata"
+.rodata.str1.1:0000000000000E12 aFuxzvzdurndqgq db 'fuxzvzdurndqgqsv',0 ; DATA XREF: device_write+36↑o
+.rodata.str1.1:0000000000000E23 aPassword       db 'password:',0Ah,0    ; DATA XREF: device_read+5A↑o
+.rodata.str1.1:0000000000000E2E aInvalidPasswor db 'invalid password',0Ah,0
+.rodata.str1.1:0000000000000E2E                                         ; DATA XREF: device_read+43↑o
+.rodata.str1.1:0000000000000E40 aDeviceErrorUnk db 'device error: unknown state',0Ah,0
+.rodata.str1.1:0000000000000E40                                         ; DATA XREF: device_read+1C↑o
+.rodata.str1.1:0000000000000E5D aFlag           db '/flag',0            ; DATA XREF: init_module+5↑o
+.rodata.str1.1:0000000000000E63 aPwncollege     db 'pwncollege',0       ; DATA XREF: init_module+58↑o
+```
+
+The password is `fuxzvzdurndqgqsv`.
+
+We can also see:
+
+- `aFlag` -> `/flag`: the file the module reads from
+- `aPwncollege` -> `pwncollege`: the module name, which tells us where to find the proc entry
+
+The module isn't registered as a character device, so `/dev/pwncollege` doesn't exist.
+We can confirm the module name with `lsmod`.
+
+```text
+hacker@vm_kernel-security~level1-1:~$ lsmod
+Module                  Size  Used by
+challenge              16384  0
+```
+
+We then look for the proc entry it registered.
+
+```text
+hacker@vm_kernel-security~level1-1:~$ find /proc -maxdepth 1 -type f 2>/dev/null
+...
+/proc/pwncollege
+...
+```
+
+There it is: `/proc/pwncollege`.
+
+### Exploit
+
+In another terminal craft the `~/exploit.c` file, and compile it.
+
+```c title="~/exploit.c" showLineNumbers
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+int main() {
+    int fd = open("/proc/pwncollege", O_RDWR);
+    if (fd < 0) {
+        perror("open");
+        return 1;
+    }
+
+    write(fd, "fuxzvzdurndqgqsv", 16);
+
+    char buf[256] = {0};
+    int n = read(fd, buf, sizeof(buf));
+    printf("%.*s\n", n, buf);
+
+    close(fd);
+    return 0;
+}
+```
+
+```
+hacker@kernel-security~level1-1:~$ gcc -o exploit exploit.c
+```
+
+Back in the VM terminal, execute the `~/exploit` binary.
+
+```
+hacker@vm_kernel-security~level1-1:~$ ./exploit
+pwn.college{<flag>}
+```
+
+The write triggers the `strncmp` check against `fuxzvzdurndqgqsv`, which passes and sets the flag byte to `2`. The subsequent read sees the flag byte is `2`, reads `/flag`, and returns the contents.
+
+&nbsp;
+
+## level2.0
+
+We have to first start and connect to the custom VM.
+
+```
+hacker@kernel-security~level2-0:~$ vm start
+hacker@kernel-security~level2-0:~$ vm connect
+Welcome to Ubuntu 20.04.6 LTS (GNU/Linux 5.4.0 x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+```
+
+### Binary analysis
+
+We start by disassembling the kernel module.
+
+```text
+hacker@vm_kernel-security~level2-0:~$ objdump -d /challenge/babykernel_level2.0.ko | tail -200
+...
+000000000000002a <device_write>:
+  2a:   41 54                   push   %r12
+  2c:   49 89 c8                mov    %rcx,%r8
+  2f:   49 89 d4                mov    %rdx,%r12
+  32:   48 89 d1                mov    %rdx,%rcx
+  35:   55                      push   %rbp
+  36:   48 89 f2                mov    %rsi,%rdx
+  39:   48 89 f5                mov    %rsi,%rbp
+  3c:   48 89 fe                mov    %rdi,%rsi
+  3f:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+  46:   48 83 ec 18             sub    $0x18,%rsp
+  4a:   65 48 8b 04 25 28 00    mov    %gs:0x28,%rax
+  51:   00 00
+  53:   48 89 44 24 10          mov    %rax,0x10(%rsp)
+  58:   31 c0                   xor    %eax,%eax
+  5a:   e8 00 00 00 00          call   5f <device_write+0x35>
+  5f:   49 83 fc 10             cmp    $0x10,%r12
+  63:   ba 10 00 00 00          mov    $0x10,%edx
+  68:   48 89 ee                mov    %rbp,%rsi
+  6b:   49 0f 46 d4             cmovbe %r12,%rdx
+  6f:   48 89 e7                mov    %rsp,%rdi
+  72:   e8 00 00 00 00          call   77 <device_write+0x4d>
+  77:   ba 10 00 00 00          mov    $0x10,%edx
+  7c:   48 c7 c6 00 00 00 00    mov    $0x0,%rsi
+  83:   48 89 e7                mov    %rsp,%rdi
+  86:   e8 00 00 00 00          call   8b <device_write+0x61>
+  8b:   85 c0                   test   %eax,%eax
+  8d:   75 13                   jne    a2 <device_write+0x78>
+  8f:   48 c7 c6 00 00 00 00    mov    $0x0,%rsi
+  96:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+  9d:   e8 00 00 00 00          call   a2 <device_write+0x78>
+  a2:   48 8b 44 24 10          mov    0x10(%rsp),%rax
+...
+```
+
+This level differs from level1 — `device_write` no longer sets a flag byte for `device_read` to check. Instead, on a correct password it directly calls a function with two string arguments:
+
+```asm
+8d:   jne    a2              ← skip if password wrong
+8f:   mov    rsi,0x0         ← format string argument
+96:   mov    rdi,0x0         ← format string argument
+9d:   call   a2              ← logs the flag to the kernel ring buffer
+```
+
+We load the module into IDA to inspect the `.rodata` section.
+
+```c title="/challenge/babykernel_level2.0.ko :: .rodata"
+.rodata.str1.1:0000000000000B67 ; const char s2[]
+.rodata.str1.1:0000000000000B67 s2              db 'zvcjxwvydfmyjyhl',0 ; DATA XREF: device_write+52↑o
+.rodata.str1.1:0000000000000B78 unk_B78         db    1                 ; DATA XREF: device_write+6C↑o
+.rodata.str1.1:0000000000000B79                 db  36h ; 6
+.rodata.str1.1:0000000000000B7A                 db  54h ; T
+
+# ---- snip ----
+
+.rodata.str1.1:0000000000000B7E                 db  66h ; f
+.rodata.str1.1:0000000000000B7F                 db  6Ch ; l
+.rodata.str1.1:0000000000000B80                 db  61h ; a
+.rodata.str1.1:0000000000000B81                 db  67h ; g
+.rodata.str1.1:0000000000000B82                 db  20h
+.rodata.str1.1:0000000000000B83                 db  69h ; i
+.rodata.str1.1:0000000000000B84                 db  73h ; s
+.rodata.str1.1:0000000000000B85                 db  3Ah ; :
+.rodata.str1.1:0000000000000B86                 db  20h
+.rodata.str1.1:0000000000000B87                 db  25h ; %
+.rodata.str1.1:0000000000000B88                 db  73h ; s  ← "The flag is: %s"
+.rodata.str1.1:0000000000000B8B aFlag           db '/flag',0            ; DATA XREF: init_module+5↑o
+.rodata.str1.1:0000000000000B91 aPwncollege     db 'pwncollege',0       ; DATA XREF: init_module+58↑o
+```
+
+The password is `zvcjxwvydfmyjyhl`. On a correct password match, `device_write` calls `printk` with the format string `"The flag is: %s"` and the contents of `/flag`, logging it to the kernel ring buffer instead of returning it via `device_read`.
+
+### Exploit
+
+In another terminal craft the `~/exploit.c` file, and compile it. Since the flag is no longer returned via `read`, we drop that part.
+
+```c title="~/exploit.c" showLineNumbers
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+int main() {
+    int fd = open("/proc/pwncollege", O_RDWR);
+    if (fd < 0) {
+        perror("open");
+        return 1;
+    }
+
+    write(fd, "zvcjxwvydfmyjyhl", 16);
+
+    close(fd);
+    return 0;
+}
+```
+
+```
+hacker@kernel-security~level2-0:~$ gcc -o exploit exploit.c
+```
+
+Back in the VM terminal, execute the `~/exploit` binary, then check the kernel ring buffer.
+
+```
+hacker@vm_kernel-security~level2-0:~$ ./exploit
+hacker@vm_kernel-security~level2-0:~$ dmesg | tail
+[   34.858035] [device_open] inode=ffff88807cab5448, file=ffff88807d6d7c00
+[   34.859952] [device_write] file=ffff88807d6d7c00, buffer=0000565415d6501a, length=16, offset=ffffc90000157f08
+[   34.862507] The flag is: pwn.college{kvGaeMALSoqkJpMltIq3vLw_vPd.0VNyQDL4ITM0EzW}
+[   34.867074] [device_release] inode=ffff88807cab5448, file=ffff88807d6d7c00
+```
+
+The write triggers the `strncmp` check against `zvcjxwvydfmyjyhl`, which passes. On success `device_write` calls `printk` with the flag contents, which logs it to the kernel ring buffer. We retrieve it with `dmesg`.
+
+&nbsp;
