@@ -6,6 +6,12 @@ slug: /pwn-college/system-security/kernel-security
 
 ## level1.0
 
+We have to first start and connect to the custom VM.
+
+```
+
+```
+
 ### Binary analysis
 
 We start by disassembling the kernel module.
@@ -331,13 +337,55 @@ There it is: `/proc/pwncollege`.
 
 ## Exploit
 
-```text
-hacker@vm_kernel-security~level1-0:~$ python3 -c "
-import os
-fd = os.open('/proc/pwncollege', os.O_RDWR)
-os.write(fd, b'qqypfbyywqmzhfcn')
-print(os.read(fd, 256))
-"
+In another terminal craft the `~/exploit.c` file, and compile it.
+
+```c title="~/exploit.c" showLineNumbers
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+int main() {
+    int fd = open("/proc/pwncollege", O_RDWR);
+    if (fd < 0) {
+        perror("open");
+        return 1;
+    }
+
+    write(fd, "qqypfbyywqmzhfcn", 16);
+
+    char buf[256] = {0};
+    int n = read(fd, buf, sizeof(buf));
+    printf("%.*s\n", n, buf);
+
+    close(fd);
+    return 0;
+}
+```
+
+```
+hacker@kernel-security~level1-0:~$ gcc -o exploit exploit.c
+```
+
+Back in the VM terminal, execute the `~/exploit` binary.
+
+```
+hacker@vm_kernel-security~level1-0:~$ ./exploit 
+pwn.college{07BVixbx15euU8bhJUNxxTetCwn.01MyQDL4ITM0EzW}
 ```
 
 The write triggers the `strncmp` check against `qqypfbyywqmzhfcn`, which passes and sets the flag byte to `2`. The subsequent read sees the flag byte is `2`, reads `/flag`, and returns the contents.
+
+Alternatively, we can just use a python script.
+
+```text
+hacker@vm_kernel-security~level1-0:~$ python3 -c "
+> import os
+> fd = os.open('/proc/pwncollege', os.O_RDWR)
+> os.write(fd, b'qqypfbyywqmzhfcn')
+> print(os.read(fd, 256))
+> "
+b'pwn.college{07BVixbx15euU8bhJUNxxTetCwn.01MyQDL4ITM0EzW}\n'
+```
+
+&nbsp;
+
