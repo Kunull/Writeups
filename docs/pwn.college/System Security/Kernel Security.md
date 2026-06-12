@@ -25,208 +25,66 @@ hacker@vm_kernel-security~level1-0:~$
 
 We start by disassembling the kernel module.
 
-```text
-hacker@vm_kernel-security~level1-0:~$ objdump -d /challenge/babykernel_level1.0.ko | tail -200
- 845:   90                      nop
- 846:   90                      nop
- 847:   90                      nop
- 848:   90                      nop
- 849:   90                      nop
- 84a:   90                      nop
- 84b:   90                      nop
- 84c:   90                      nop
- 84d:   90                      nop
- 84e:   90                      nop
- 84f:   90                      nop
- 850:   90                      nop
- 851:   90                      nop
- 852:   90                      nop
- 853:   90                      nop
- 854:   90                      nop
- 855:   90                      nop
- 856:   90                      nop
- 857:   90                      nop
- 858:   90                      nop
- 859:   90                      nop
- 85a:   90                      nop
- 85b:   90                      nop
- 85c:   90                      nop
- 85d:   90                      nop
- 85e:   90                      nop
- 85f:   90                      nop
- 860:   90                      nop
- 861:   90                      nop
- 862:   90                      nop
- 863:   90                      nop
- 864:   90                      nop
- 865:   90                      nop
- 866:   90                      nop
- 867:   90                      nop
- 868:   90                      nop
- 869:   90                      nop
- 86a:   90                      nop
- 86b:   90                      nop
- 86c:   90                      nop
- 86d:   c3                      ret
- 86e:   66 90                   xchg   %ax,%ax
+```
+0040098a    int64_t device_write(int64_t arg1, int64_t arg2, int64_t arg3, int64_t arg4)
 
-0000000000000870 <init_module>:
- 870:   55                      push   %rbp
- 871:   31 d2                   xor    %edx,%edx
- 873:   31 f6                   xor    %esi,%esi
- 875:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
- 87c:   e8 00 00 00 00          call   881 <init_module+0x11>
- 881:   48 c7 c2 00 00 00 00    mov    $0x0,%rdx
- 888:   b9 10 00 00 00          mov    $0x10,%ecx
- 88d:   48 c7 c6 00 00 00 00    mov    $0x0,%rsi
- 894:   48 89 c5                mov    %rax,%rbp
- 897:   48 89 d7                mov    %rdx,%rdi
- 89a:   31 c0                   xor    %eax,%eax
- 89c:   ba 80 00 00 00          mov    $0x80,%edx
- 8a1:   f3 48 ab                rep stos %rax,%es:(%rdi)
- 8a4:   48 8d 4d 68             lea    0x68(%rbp),%rcx
- 8a8:   48 89 ef                mov    %rbp,%rdi
- 8ab:   e8 00 00 00 00          call   8b0 <init_module+0x40>
- 8b0:   48 89 ef                mov    %rbp,%rdi
- 8b3:   31 f6                   xor    %esi,%esi
- 8b5:   e8 00 00 00 00          call   8ba <init_module+0x4a>
- 8ba:   48 c7 c1 00 00 00 00    mov    $0x0,%rcx
- 8c1:   31 d2                   xor    %edx,%edx
- 8c3:   be b6 01 00 00          mov    $0x1b6,%esi
- 8c8:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
- 8cf:   e8 00 00 00 00          call   8d4 <init_module+0x64>
- 8d4:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
- 8db:   48 89 05 00 00 00 00    mov    %rax,0x0(%rip)        # 8e2 <init_module+0x72>
- 8e2:   e8 00 00 00 00          call   8e7 <init_module+0x77>
- 8e7:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
- 8ee:   e8 00 00 00 00          call   8f3 <init_module+0x83>
- 8f3:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
- 8fa:   e8 00 00 00 00          call   8ff <init_module+0x8f>
- 8ff:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
- 906:   e8 00 00 00 00          call   90b <init_module+0x9b>
- 90b:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
- 912:   e8 00 00 00 00          call   917 <init_module+0xa7>
- 917:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
- 91e:   e8 00 00 00 00          call   923 <init_module+0xb3>
- 923:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
- 92a:   e8 00 00 00 00          call   92f <init_module+0xbf>
- 92f:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
- 936:   e8 00 00 00 00          call   93b <init_module+0xcb>
- 93b:   31 c0                   xor    %eax,%eax
- 93d:   5d                      pop    %rbp
- 93e:   c3                      ret
- 93f:   90                      nop
+0040098a    {
+0040098a        void* gsbase;
+004009aa        int64_t rax = *(uint64_t*)((char*)gsbase + 0x28);
+004009ba        printk(0x400b00, arg1, arg2, arg3, arg4);
+004009c3        int64_t rdx_1 = 0x10;
+004009c3        
+004009cb        if (arg3 <= 0x10)
+004009cb            rdx_1 = arg3;
+004009cb        
+004009d2        void var_28;
+004009d2        _copy_from_user(&var_28, arg2, rdx_1);
+004009ed        int32_t rax_2;
+004009ed        (uint8_t)rax_2 = !strncmp(&var_28, "qqypfbyywqmzhfcn", 0x10);
+004009f2        device_state = (uint8_t)rax_2 + 1;
+004009f2        
+00400a06        if (rax != *(uint64_t*)((char*)gsbase + 0x28))
+00400a08            __stack_chk_fail();
+00400a08        
+00400a17        return arg3;
+0040098a    }
+```
 
-0000000000000940 <cleanup_module>:
- 940:   48 8b 3d 00 00 00 00    mov    0x0(%rip),%rdi        # 947 <cleanup_module+0x7>
- 947:   48 85 ff                test   %rdi,%rdi
- 94a:   74 05                   je     951 <cleanup_module+0x11>
- 94c:   e9 00 00 00 00          jmp    951 <cleanup_module+0x11>
- 951:   c3                      ret
+```
+int init_module(void)
 
-Disassembly of section .text.unlikely:
-
-0000000000000000 <device_release>:
-   0:   48 89 f2                mov    %rsi,%rdx
-   3:   48 89 fe                mov    %rdi,%rsi
-   6:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
-   d:   e8 00 00 00 00          call   12 <device_release+0x12>
-  12:   31 c0                   xor    %eax,%eax
-  14:   c3                      ret
-
-0000000000000015 <device_open>:
-  15:   48 89 f2                mov    %rsi,%rdx
-  18:   48 89 fe                mov    %rdi,%rsi
-  1b:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
-  22:   e8 00 00 00 00          call   27 <device_open+0x12>
-  27:   31 c0                   xor    %eax,%eax
-  29:   c3                      ret
-
-000000000000002a <device_write>:
-  2a:   41 54                   push   %r12
-  2c:   49 89 c8                mov    %rcx,%r8
-  2f:   49 89 d4                mov    %rdx,%r12
-  32:   48 89 d1                mov    %rdx,%rcx
-  35:   55                      push   %rbp
-  36:   48 89 f2                mov    %rsi,%rdx
-  39:   48 89 f5                mov    %rsi,%rbp
-  3c:   48 89 fe                mov    %rdi,%rsi
-  3f:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
-  46:   48 83 ec 18             sub    $0x18,%rsp
-  4a:   65 48 8b 04 25 28 00    mov    %gs:0x28,%rax
-  51:   00 00 
-  53:   48 89 44 24 10          mov    %rax,0x10(%rsp)
-  58:   31 c0                   xor    %eax,%eax
-  5a:   e8 00 00 00 00          call   5f <device_write+0x35>
-  5f:   49 83 fc 10             cmp    $0x10,%r12
-  63:   ba 10 00 00 00          mov    $0x10,%edx
-  68:   48 89 ee                mov    %rbp,%rsi
-  6b:   49 0f 46 d4             cmovbe %r12,%rdx
-  6f:   48 89 e7                mov    %rsp,%rdi
-  72:   e8 00 00 00 00          call   77 <device_write+0x4d>
-  77:   ba 10 00 00 00          mov    $0x10,%edx
-  7c:   48 c7 c6 00 00 00 00    mov    $0x0,%rsi
-  83:   48 89 e7                mov    %rsp,%rdi
-  86:   e8 00 00 00 00          call   8b <device_write+0x61>
-  8b:   85 c0                   test   %eax,%eax
-  8d:   0f 94 c0                sete   %al
-  90:   ff c0                   inc    %eax
-  92:   88 05 00 00 00 00       mov    %al,0x0(%rip)        # 98 <device_write+0x6e>
-  98:   48 8b 44 24 10          mov    0x10(%rsp),%rax
-  9d:   65 48 33 04 25 28 00    xor    %gs:0x28,%rax
-  a4:   00 00 
-  a6:   74 05                   je     ad <device_write+0x83>
-  a8:   e8 00 00 00 00          call   ad <device_write+0x83>
-  ad:   48 83 c4 18             add    $0x18,%rsp
-  b1:   4c 89 e0                mov    %r12,%rax
-  b4:   5d                      pop    %rbp
-  b5:   41 5c                   pop    %r12
-  b7:   c3                      ret
-
-00000000000000b8 <device_read>:
-  b8:   41 54                   push   %r12
-  ba:   49 89 c8                mov    %rcx,%r8
-  bd:   49 89 f4                mov    %rsi,%r12
-  c0:   48 89 d1                mov    %rdx,%rcx
-  c3:   55                      push   %rbp
-  c4:   48 89 d5                mov    %rdx,%rbp
-  c7:   48 89 f2                mov    %rsi,%rdx
-  ca:   48 89 fe                mov    %rdi,%rsi
-  cd:   53                      push   %rbx
-  ce:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
-  d5:   e8 00 00 00 00          call   da <device_read+0x22>
-  da:   8a 05 00 00 00 00       mov    0x0(%rip),%al        # e0 <device_read+0x28>
-  e0:   48 c7 c6 00 00 00 00    mov    $0x0,%rsi
-  e7:   3c 02                   cmp    $0x2,%al
-  e9:   74 2d                   je     118 <device_read+0x60>
-  eb:   48 c7 c6 00 00 00 00    mov    $0x0,%rsi
-  f2:   7f 24                   jg     118 <device_read+0x60>
-  f4:   48 c7 c6 00 00 00 00    mov    $0x0,%rsi
-  fb:   84 c0                   test   %al,%al
-  fd:   74 19                   je     118 <device_read+0x60>
-  ff:   fe c8                   dec    %al
- 101:   48 c7 c6 00 00 00 00    mov    $0x0,%rsi
- 108:   75 0e                   jne    118 <device_read+0x60>
- 10a:   c6 05 00 00 00 00 00    movb   $0x0,0x0(%rip)        # 111 <device_read+0x59>
- 111:   48 c7 c6 00 00 00 00    mov    $0x0,%rsi
- 118:   31 c0                   xor    %eax,%eax
- 11a:   48 89 f7                mov    %rsi,%rdi
- 11d:   48 83 c9 ff             or     $0xffffffffffffffff,%rcx
- 121:   48 89 ea                mov    %rbp,%rdx
- 124:   f2 ae                   repnz scas %es:(%rdi),%al
- 126:   4c 89 e7                mov    %r12,%rdi
- 129:   48 89 c8                mov    %rcx,%rax
- 12c:   48 f7 d0                not    %rax
- 12f:   48 8d 58 ff             lea    -0x1(%rax),%rbx
- 133:   48 39 eb                cmp    %rbp,%rbx
- 136:   48 0f 46 d3             cmovbe %rbx,%rdx
- 13a:   e8 00 00 00 00          call   13f <device_read+0x87>
- 13f:   48 29 c3                sub    %rax,%rbx
- 142:   48 89 d8                mov    %rbx,%rax
- 145:   5b                      pop    %rbx
- 146:   5d                      pop    %rbp
- 147:   41 5c                   pop    %r12
- 149:   c3                      ret
+{
+  long lVar1;
+  long lVar2;
+  char *pcVar3;
+  byte bVar4;
+  
+  bVar4 = 0;
+  lVar1 = filp_open("/flag",0,0);
+  pcVar3 = flag;
+  for (lVar2 = 0x10; lVar2 != 0; lVar2 = lVar2 + -1) {
+    pcVar3[0] = '\0';
+    pcVar3[1] = '\0';
+    pcVar3[2] = '\0';
+    pcVar3[3] = '\0';
+    pcVar3[4] = '\0';
+    pcVar3[5] = '\0';
+    pcVar3[6] = '\0';
+    pcVar3[7] = '\0';
+    pcVar3 = pcVar3 + ((ulong)bVar4 * -2 + 1) * 8;
+  }
+  kernel_read(lVar1,flag,0x80,lVar1 + 0x68);
+  filp_close(lVar1,0);
+  proc_entry = (proc_dir_entry *)proc_create("pwncollege",0x1b6,0,&fops);
+  printk(&DAT_00100db1);
+  printk(&DAT_00100bb0);
+  printk(&DAT_00100db1);
+  printk(&DAT_00100be0);
+  printk(&DAT_00100c48);
+  printk(&DAT_00100ca8);
+  printk(&DAT_00100cf8);
+  printk(&DAT_00100db8);
+  return 0;
 ```
 
 Looking at the relevant sections:
@@ -1195,6 +1053,8 @@ The write triggers the `strncmp` check against `limtlgzgaygslnew`, which passes.
 
 ## level4.0
 
+> Ease into kernel exploitation with another crackme level and learn how kernel devices communicate.
+
 We have to first start and connect to the custom VM.
 
 ```
@@ -1400,6 +1260,8 @@ The `ioctl` call passes the command check (`0x539`) and the `strncmp` check agai
 
 ## level4.1
 
+> Ease into kernel exploitation with another crackme level and learn how kernel devices communicate.
+
 We have to first start and connect to the custom VM.
 
 ```
@@ -1557,3 +1419,287 @@ pwn.college{AbzNYx21kQFWjBS4IOPbo5bMUtR.0FMzQDL4ITM0EzW}
 The `ioctl` call passes the command check (`0x539`) and the `strncmp` check against `srungttywgwxmrht`. On success `device_ioctl` calls `win`, which calls `prepare_kernel_cred(0)` and `commit_creds()` to escalate the process to root. We then spawn a shell and read `/flag`.
 
 &nbsp;
+
+Looking at `device_ioctl`, this level removes the password check entirely — the only requirement is the correct ioctl command:
+
+```asm
+49:   cmp    $0x539,%ebp
+4f:   jne    58          ← bail if wrong command
+51:   call   56 <win>    ← escalate to root immediately
+```
+
+No `strncmp`, no password. Just `ioctl(fd, 0x539, anything)` and `win` is called.
+
+## level5.0
+
+We have to first start and connect to the custom VM.
+
+```
+hacker@kernel-security~level5-0:~$ vm start
+hacker@kernel-security~level5-0:~$ vm connect
+Welcome to Ubuntu 20.04.6 LTS (GNU/Linux 5.4.0 x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+hacker@vm_kernel-security~level5-0:~$
+```
+
+### Binary analysis
+
+We start by disassembling the kernel module.
+
+```text
+hacker@vm_kernel-security~level5-0:~$ objdump -d /challenge/babykernel_level5.0.ko | tail -200
+ 342:   90                      nop
+ 343:   90                      nop
+ 344:   90                      nop
+ 345:   90                      nop
+ 346:   90                      nop
+ 347:   90                      nop
+ 348:   90                      nop
+ 349:   90                      nop
+ 34a:   90                      nop
+ 34b:   90                      nop
+ 34c:   90                      nop
+ 34d:   90                      nop
+ 34e:   90                      nop
+ 34f:   90                      nop
+ 350:   90                      nop
+ 351:   90                      nop
+ 352:   90                      nop
+ 353:   90                      nop
+ 354:   90                      nop
+ 355:   90                      nop
+ 356:   90                      nop
+ 357:   90                      nop
+ 358:   90                      nop
+ 359:   90                      nop
+ 35a:   90                      nop
+ 35b:   90                      nop
+ 35c:   90                      nop
+ 35d:   90                      nop
+ 35e:   90                      nop
+ 35f:   90                      nop
+ 360:   90                      nop
+ 361:   90                      nop
+ 362:   90                      nop
+ 363:   90                      nop
+ 364:   90                      nop
+ 365:   90                      nop
+ 366:   90                      nop
+ 367:   90                      nop
+ 368:   90                      nop
+ 369:   90                      nop
+ 36a:   90                      nop
+ 36b:   90                      nop
+ 36c:   90                      nop
+ 36d:   90                      nop
+ 36e:   90                      nop
+ 36f:   90                      nop
+ 370:   90                      nop
+ 371:   90                      nop
+ 372:   90                      nop
+ 373:   90                      nop
+ 374:   90                      nop
+ 375:   90                      nop
+ 376:   90                      nop
+ 377:   90                      nop
+ 378:   90                      nop
+ 379:   90                      nop
+ 37a:   90                      nop
+ 37b:   90                      nop
+ 37c:   90                      nop
+ 37d:   90                      nop
+ 37e:   90                      nop
+ 37f:   90                      nop
+ 380:   90                      nop
+ 381:   90                      nop
+ 382:   90                      nop
+ 383:   90                      nop
+ 384:   90                      nop
+ 385:   90                      nop
+ 386:   90                      nop
+ 387:   90                      nop
+ 388:   90                      nop
+ 389:   90                      nop
+ 38a:   90                      nop
+ 38b:   90                      nop
+ 38c:   90                      nop
+ 38d:   90                      nop
+ 38e:   90                      nop
+ 38f:   90                      nop
+ 390:   90                      nop
+ 391:   90                      nop
+ 392:   90                      nop
+ 393:   90                      nop
+ 394:   90                      nop
+ 395:   90                      nop
+ 396:   90                      nop
+ 397:   90                      nop
+ 398:   90                      nop
+ 399:   90                      nop
+ 39a:   90                      nop
+ 39b:   90                      nop
+ 39c:   90                      nop
+ 39d:   90                      nop
+ 39e:   90                      nop
+ 39f:   90                      nop
+ 3a0:   90                      nop
+ 3a1:   90                      nop
+ 3a2:   90                      nop
+ 3a3:   90                      nop
+ 3a4:   90                      nop
+ 3a5:   90                      nop
+ 3a6:   90                      nop
+ 3a7:   90                      nop
+ 3a8:   90                      nop
+ 3a9:   90                      nop
+ 3aa:   90                      nop
+ 3ab:   90                      nop
+ 3ac:   90                      nop
+ 3ad:   90                      nop
+ 3ae:   90                      nop
+ 3af:   90                      nop
+ 3b0:   90                      nop
+ 3b1:   90                      nop
+ 3b2:   90                      nop
+ 3b3:   90                      nop
+ 3b4:   c3                      ret
+ 3b5:   66 66 2e 0f 1f 84 00    data16 cs nopw 0x0(%rax,%rax,1)
+ 3bc:   00 00 00 00
+
+00000000000003c0 <init_module>:
+ 3c0:   48 c7 c1 00 00 00 00    mov    $0x0,%rcx
+ 3c7:   31 d2                   xor    %edx,%edx
+ 3c9:   be b6 01 00 00          mov    $0x1b6,%esi
+ 3ce:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ 3d5:   e8 00 00 00 00          call   3da <init_module+0x1a>
+ 3da:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ 3e1:   48 89 05 00 00 00 00    mov    %rax,0x0(%rip)        # 3e8 <init_module+0x28>
+ 3e8:   e8 00 00 00 00          call   3ed <init_module+0x2d>
+ 3ed:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ 3f4:   e8 00 00 00 00          call   3f9 <init_module+0x39>
+ 3f9:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ 400:   e8 00 00 00 00          call   405 <init_module+0x45>
+ 405:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ 40c:   e8 00 00 00 00          call   411 <init_module+0x51>
+ 411:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ 418:   e8 00 00 00 00          call   41d <init_module+0x5d>
+ 41d:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ 424:   e8 00 00 00 00          call   429 <init_module+0x69>
+ 429:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ 430:   e8 00 00 00 00          call   435 <init_module+0x75>
+ 435:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ 43c:   e8 00 00 00 00          call   441 <init_module+0x81>
+ 441:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ 448:   e8 00 00 00 00          call   44d <init_module+0x8d>
+ 44d:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+ 454:   e8 00 00 00 00          call   459 <init_module+0x99>
+ 459:   31 c0                   xor    %eax,%eax
+ 45b:   c3                      ret
+ 45c:   0f 1f 40 00             nopl   0x0(%rax)
+
+0000000000000460 <cleanup_module>:
+ 460:   48 8b 3d 00 00 00 00    mov    0x0(%rip),%rdi        # 467 <cleanup_module+0x7>
+ 467:   48 85 ff                test   %rdi,%rdi
+ 46a:   74 05                   je     471 <cleanup_module+0x11>
+ 46c:   e9 00 00 00 00          jmp    471 <cleanup_module+0x11>
+ 471:   c3                      ret
+
+Disassembly of section .text.unlikely:
+
+0000000000000000 <device_release>:
+   0:   48 89 f2                mov    %rsi,%rdx
+   3:   48 89 fe                mov    %rdi,%rsi
+   6:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+   d:   e8 00 00 00 00          call   12 <device_release+0x12>
+  12:   31 c0                   xor    %eax,%eax
+  14:   c3                      ret
+
+0000000000000015 <device_open>:
+  15:   48 89 f2                mov    %rsi,%rdx
+  18:   48 89 fe                mov    %rdi,%rsi
+  1b:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+  22:   e8 00 00 00 00          call   27 <device_open+0x12>
+  27:   31 c0                   xor    %eax,%eax
+  29:   c3                      ret
+
+000000000000002a <device_ioctl>:
+  2a:   55                      push   %rbp
+  2b:   48 89 d1                mov    %rdx,%rcx
+  2e:   89 f5                   mov    %esi,%ebp
+  30:   53                      push   %rbx
+  31:   48 89 d3                mov    %rdx,%rbx
+  34:   89 f2                   mov    %esi,%edx
+  36:   48 89 fe                mov    %rdi,%rsi
+  39:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+  40:   e8 00 00 00 00          call   45 <device_ioctl+0x1b>
+  45:   48 83 c8 ff             or     $0xffffffffffffffff,%rax
+  49:   81 fd 39 05 00 00       cmp    $0x539,%ebp
+  4f:   75 07                   jne    58 <device_ioctl+0x2e>
+  51:   e8 00 00 00 00          call   56 <device_ioctl+0x2c>
+  56:   31 c0                   xor    %eax,%eax
+  58:   5b                      pop    %rbx
+  59:   5d                      pop    %rbp
+  5a:   c3                      ret
+
+000000000000005b <win>:
+  5b:   48 c7 c7 00 00 00 00    mov    $0x0,%rdi
+  62:   e8 00 00 00 00          call   67 <win+0xc>
+  67:   31 ff                   xor    %edi,%edi
+  69:   e8 00 00 00 00          call   6e <win+0x13>
+  6e:   48 89 c7                mov    %rax,%rdi
+  71:   e9 00 00 00 00          jmp    76 <__UNIQUE_ID_depends23+0x6>
+```
+
+This level removes the password check entirely. `device_ioctl` now only checks the command number — no `strncmp`, no password copy. Sending `ioctl(fd, 0x539, 0)` is sufficient to call `win` and escalate to root.
+
+```asm
+49:   cmp    $0x539,%ebp
+4f:   jne    58          ← bail if wrong command
+51:   call   win         ← escalate to root immediately
+```
+
+### Exploit
+
+In another terminal craft the `~/exploit.c` file, and compile it. Since there is no password check, the third argument to `ioctl` is irrelevant.
+
+```c title="~/exploit.c" showLineNumbers
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+
+int main() {
+    int fd = open("/proc/pwncollege", O_RDWR);
+    if (fd < 0) {
+        perror("open");
+        return 1;
+    }
+
+    ioctl(fd, 0x539, 0);
+    close(fd);
+
+    // We are now root
+    execl("/bin/sh", "sh", NULL);
+    return 0;
+}
+```
+
+```
+hacker@kernel-security~level5-0:~$ gcc -o exploit exploit.c
+```
+
+Back in the VM terminal, execute the `~/exploit` binary.
+
+```
+hacker@vm_kernel-security~level5-0:~$ ./exploit
+# cat /flag
+pwn.college{<flag>}
+```
+
+The `ioctl` call passes the command check (`0x539`). With no password check, `device_ioctl` calls `win` immediately, which calls `prepare_kernel_cred(0)` and `commit_creds()` to escalate the process to root. We then spawn a shell and read `/flag`.
+
+&nbsp;
+
