@@ -43,7 +43,7 @@ Data: Segmentation fault
 ### Use-After-Free
 
 We can leverage a UAF vulnerability here, where we allocate 292 bytes of memory using `malloc`, and then free it using the `free` command.
-It is important that we allocate the name number of bytes that the `read_flag` function uses, otherwise it will use another Tcache bin.
+It is important that we allocate the same number of bytes that the `read_flag` function uses, otherwise it will use another Tcache bin.
 
 #### Tcache Binning
 The heap allocator (GLIBC) doesn't just throw all freed memory into one big pile. It organizes freed chunks into "bins" based on their size.
@@ -528,7 +528,7 @@ Memory managers handle splitting large memory blocks from the "top chunk" (the l
 
 Instead of immediately putting newly freed chunks onto the correct bin, the heap manager coalesces it with neighbors, and dumps it onto a general unsorted linked list. During `malloc`, each item on the unsorted bin is checked to see if it “fits” the request. If it does, `mallo`c can use it immediately. If it does not, `malloc` then puts the chunk into its corresponding small or large bin.
 
-<figure>
+<figure style={{ textAlign: 'center' }}>
    <img alt="image" src="https://github.com/user-attachments/assets/f32f89e4-513f-47b9-80f3-8f781f4ebfb8" />
    <figcaption>Source: [Azeria labs](https://azeria-labs.com/heap-exploitation-part-2-glibc-heap-free-bins/)</figcaption>
 </figure>
