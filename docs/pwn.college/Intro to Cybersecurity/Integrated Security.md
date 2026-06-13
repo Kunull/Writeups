@@ -2296,7 +2296,7 @@ __int16 __fastcall handle_1337(__int64 a1)
 }
 ```
 
-So replace the asm block with the full `handle_1337` pseudocode that's already shown earlier in the document — just reusing it in place of the asm block for the explanation section. Like this:
+So replace the asm block with the full `handle_1337()` pseudocode that's already shown earlier in the document — just reusing it in place of the asm block for the explanation section. Like this:
 
 ```c title="/challenge/integration-cimg-screenshot-sc :: handle_1337() :: Pseudocode" showLineNumbers
 __int16 __fastcall handle_1337(__int64 a1)
