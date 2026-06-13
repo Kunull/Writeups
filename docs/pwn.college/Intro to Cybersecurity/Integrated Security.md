@@ -2328,7 +2328,7 @@ __int16 __fastcall handle_1337(__int64 a1)
 }
 ```
 
-The output buffer `v16` is at `rsp+0x10`, and the return address sits at `rsp+0xb8`, a distance of **168 bytes** from the start of the buffer. There is **no bounds check** on `width × height`, so supplying a region wider than 168 pixels overwrites the saved return address, a classic stack buffer overflow.
+The output buffer `v16` is at `rsp+0x10`, and the return address sits at `rsp+0xb8`, a distance of 168 bytes from the start of the buffer. There is no bounds check on `width × height`, so supplying a region wider than 168 pixels overwrites the saved return address, a classic stack buffer overflow.
 
 Is that the shape you're after, or did you want it verbatim (no ellipses)?
 
