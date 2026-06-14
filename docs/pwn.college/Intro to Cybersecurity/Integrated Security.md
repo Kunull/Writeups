@@ -2509,5 +2509,3 @@ hacker@integrated-security~integration-cimg-screenshot-win:~$ python3 ~/win_expl
 ...
 pwn.college{wj1Qz7XQTeBxj6-rTwrVdzyrKNU.QXyYDMxEDL4ITM0EzW}
 ```
-
-&nbsp;
