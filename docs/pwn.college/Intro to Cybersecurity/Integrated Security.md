@@ -2058,7 +2058,7 @@ LABEL_11:
 
 The relevant handlers are:
 
-**handle_5()**: loads a sprite from a file. It reads 258 bytes from the `.cimg` stream: `[sprite_id, width, height, path...]`. It opens the file at `path`, allocates `width × height` bytes, and reads the raw file contents in. The only validation is a `strncmp` that rejects files whose contents start with `"pwn.college{"`.
+`**handle_5()**`: loads a sprite from a file. It reads 258 bytes from the `.cimg` stream: `[sprite_id, width, height, path...]`. It opens the file at `path`, allocates `width × height` bytes, and reads the raw file contents in. The only validation is a `strncmp` that rejects files whose contents start with `"pwn.college{"`.
 
 ```c title="/challenge/integration-cimg-screenshot-sc :: handle_5() :: Pseudocode" showLineNumbers
 int __fastcall handle_5(__int64 a1)
@@ -2111,7 +2111,7 @@ LABEL_6:
 }
 ```
 
-**handle_4()**: renders a sprite onto the canvas. It reads 9 parameter bytes: `[sprite_id, R, G, B, src_x, src_y, dest_w, dest_h, transparency_key]`. The canvas stores each pixel as a 24-byte ANSI escape sequence `\x1b[38;2;RRR;GGG;BBMc\x1b[0m`, where the character `c` is at byte offset 19. handle_4 writes each sprite byte directly into the `c` position of the corresponding pixel — **no printable-ASCII validation**, unlike handle_2 and handle_3. Pixels whose sprite byte equals `transparency_key` are skipped.
+`**handle_4()**`: renders a sprite onto the canvas. It reads 9 parameter bytes: `[sprite_id, R, G, B, src_x, src_y, dest_w, dest_h, transparency_key]`. The canvas stores each pixel as a 24-byte ANSI escape sequence `\x1b[38;2;RRR;GGG;BBMc\x1b[0m`, where the character `c` is at byte offset 19. handle_4 writes each sprite byte directly into the `c` position of the corresponding pixel — **no printable-ASCII validation**, unlike handle_2 and handle_3. Pixels whose sprite byte equals `transparency_key` are skipped.
 
 ```c title="/challenge/integration-cimg-screenshot-sc :: handle_4() :: Pseudocode" showLineNumbers
 // positive sp value has been detected, the output may be wrong!
@@ -2245,7 +2245,7 @@ __int64 __fastcall handle_4(__int64 a1)
 }
 ```
 
-**handle_1337()**: screenshots a rectangular region of the canvas. It reads 5 parameter bytes: `[dest_sprite_id, src_x, src_y, width, height]`. It then iterates over `width × height` canvas pixels, extracting the character byte at offset 19 of each pixel's ANSI string, and stores it into a local output buffer:
+**`handle_1337()`**: screenshots a rectangular region of the canvas. It reads 5 parameter bytes: `[dest_sprite_id, src_x, src_y, width, height]`. It then iterates over `width × height` canvas pixels, extracting the character byte at offset 19 of each pixel's ANSI string, and stores it into a local output buffer:
 
 ```c title="/challenge/integration-cimg-screenshot-sc :: handle_1337() :: Pseudocode" showLineNumbers
 __int16 __fastcall handle_1337(__int64 a1)
