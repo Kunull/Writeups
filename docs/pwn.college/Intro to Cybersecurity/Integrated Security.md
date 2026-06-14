@@ -2339,7 +2339,7 @@ The exploit chain is:
 3. **`handle_1337()`** screenshots a `176 × 1` region into the output buffer on the stack. `176 > 168`, so the last 8 bytes overwrite the saved return address.
 
 The payload in `exploit.bin` is:
-- NOP sled filling buffer[0..(167 - len(sc))]
+- NOP sled filling `buffer[0..(167 - len(sc))]`
 - PIC chmod shellcode using RIP-relative `flag_str` label
 - 8-byte return address pointing to the start of the output buffer (confirmed at `0x7fffffffda00`)
 
