@@ -2250,6 +2250,57 @@ __int64 __fastcall handle_4(__int64 a1)
 ```c title="/challenge/integration-cimg-screenshot-sc :: handle_1337() :: Pseudocode" showLineNumbers
 __int16 __fastcall handle_1337(__int64 a1)
 {
+  int v2; // r12d
+  _BYTE *v3; // rdi
+  int v4; // esi
+  int v5; // r13d
+  int v6; // r11d
+  int v7; // r10d
+  __int64 v8; // r8
+  __int64 i; // rcx
+  void *v10; // rdi
+  __int16 result; // ax
+  __int64 v12; // rbx
+  _BYTE v13[3]; // [rsp+Bh] [rbp-ADh] BYREF
+  unsigned __int8 v14; // [rsp+Eh] [rbp-AAh]
+  unsigned __int8 v15; // [rsp+Fh] [rbp-A9h]
+  _BYTE v16[168]; // [rsp+10h] [rbp-A8h] BYREF
+
+  read_exact(0, v13, 5, "ERROR: Failed to read &sprite_screenshot_record!", 0xFFFFFFFFLL);
+  v2 = v14;
+  v3 = v16;
+  v4 = 0;
+  v5 = v15;
+  v6 = v13[1];
+  v7 = v13[2];
+  v8 = v14;
+  while ( v5 > v4 )
+  {
+    for ( i = 0; v2 > (int)i; ++i )
+      v3[i] = *(_BYTE *)(*(_QWORD *)(a1 + 16)
+                       + 24LL
+                       * (((unsigned int)i + v6 + (v7 + v4) * *(unsigned __int8 *)(a1 + 6)) % *(_DWORD *)(a1 + 12))
+                       + 19);
+    ++v4;
+    v3 += v8;
+  }
+  v10 = *(void **)(16LL * v13[0] + a1 + 32);
+  if ( v10 )
+    free(v10);
+  LOBYTE(result) = v15;
+  HIBYTE(result) = v14;
+  v12 = 16LL * v13[0] + a1;
+  *(_QWORD *)(v12 + 32) = v16;
+  *(_WORD *)(v12 + 24) = result;
+  return result;
+}
+```
+
+The output buffer `v16` is at `rsp+0x10`, and the return address sits at `rsp+0xb8`, a distance of 168 bytes from the start of the buffer. There is no bounds check on `width × height`, so supplying a region wider than 168 pixels overwrites the saved return address, a classic stack buffer overflow.
+
+```c title="/challenge/integration-cimg-screenshot-sc :: handle_1337() :: Pseudocode" showLineNumbers
+__int16 __fastcall handle_1337(__int64 a1)
+{
 
   # ---- snip ----
 
@@ -2276,8 +2327,6 @@ __int16 __fastcall handle_1337(__int64 a1)
 
 }
 ```
-
-The output buffer `v16` is at `rsp+0x10`, and the return address sits at `rsp+0xb8`, a distance of 168 bytes from the start of the buffer. There is no bounds check on `width × height`, so supplying a region wider than 168 pixels overwrites the saved return address, a classic stack buffer overflow.
 
 The binary also disables ASLR by re-executing itself with `ADDR_NO_RANDOMIZE`, and the stack has no canary, making the overflow trivially exploitable.
 
