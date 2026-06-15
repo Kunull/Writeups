@@ -14022,9 +14022,9 @@ After this iteration the counter increments: −1 + 1 = 0. The next iteration st
 
 ### Stage 2: shellcode
 
-For Stage 2, `i = 0` is FizzBuzz, so `arr[11]` will be set to `&fizzbuzz` (a BSS address) by the branch logic, but we overwrite `arr[11]` and `arr[12]` ourselves before `strcpy` fires, so the branch assignment doesn't matter. The shellcode must fit in 0x34 bytes (offset `+0x04` to `+0x37`). `BYTE4(arr[2])` zeroes input[0] after `printf`, so the first 4 bytes are sacrificed as NOP sled. Shellcode starts at `rbp−0x58` = `sc_addr`.
+For Stage 2, `i = 0` is FizzBuzz, so `arr[11]` will be set to `&fizzbuzz` (a BSS address) by the branch logic, but we overwrite `arr[11]` and `arr[12]` ourselves before `strcpy` fires, so the branch assignment doesn't matter. The shellcode must fit between `rbp−0x58` and `rbp−0x21`. `BYTE4(arr[2])` zeroes `input[0]` after `printf`, so the byte at `rbp−0x5C` is sacrificed as a NOP sled. Shellcode starts at `rbp−0x58` = `sc_addr`.
 
-The NOP padding between the shellcode and `sc_addr` at offset `+0x3C` is pure filler, it pushes `p64(sc_addr)` rightward in the payload until it aligns with `arr[10]` at exactly offset `+0x3C`. The shellcode is 0x1F bytes ending at offset `+0x23`, so 0x19 NOP bytes bridge the gap. Any non-NULL byte would work equally well here.
+The NOP padding between the end of the shellcode and `rbp−0x20` is pure filler, pushing `p64(sc_addr)` rightward until it aligns with `arr[10]` at `rbp−0x20`. The shellcode is 0x1F bytes ending at `rbp−0x39`, so 0x19 NOP bytes bridge the gap to `rbp−0x20`. Any non-NULL byte would work equally well here.
 
 Stack after Stage 2 payload is received, before `strcpy` fires:
 
