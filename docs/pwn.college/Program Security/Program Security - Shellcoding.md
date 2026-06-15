@@ -14383,7 +14383,7 @@ After this iteration the counter increments: `−1 + 1 = 0`. The next iteration 
 
 At `i = 0` (FizzBuzz), `src` is set to `&fuzzbuzz` by the branch. 
 
-Looking at the IDA dump, we can see that the `&fuzzbuzz` string is at an offset of `` from the base of the binary.
+Looking at the IDA dump, we can see that the `&fuzzbuzz` string is at an offset of `0x4098` from the base of the binary.
 
 ```asm title="/challenge/can-it-fizz :: .data"
 # ---- snip ----
