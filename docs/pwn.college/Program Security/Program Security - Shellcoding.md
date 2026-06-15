@@ -13828,15 +13828,6 @@ hacker@program-security~can-it-fizz:~$ checksec /challenge/can-it-fizz
     Stripped:   No
 ```
 
-Checklist:
-- [x] PIE enabled: binary base unknown at runtime
-- [x] No canary: stack smashing undetected
-- [x] NX disabled: stack is executable, shellcode is viable
-- [x] SHSTK/IBT present: not enforced, not a barrier
-- [x] `setuid`: successful shellcode runs as root
-
-### Decompilation
-
 ```c title="/challenge/can-it-fizz :: challenge() :: Pseudocode" showLineNumbers
 void challenge(void) {
     long long arr[13];
@@ -13939,6 +13930,17 @@ The `strcpy` primitive uses `arr[11]` as its source pointer. In three of the fou
                                                         │     = rbp−0x24        │  └─────────────────────-┘
                                                         └────────────────────────┘  ✗ not a stack addr
                                                         ✓ stack addr → rbp known
+```
+
+```mermaid
+flowchart TD
+    A([counter i]) --> B{i % 15 == 0?}
+    B -->|yes| C[fizzbuzz\nBSS address\n✗ not stack addr]
+    B -->|no| D{i % 3 == 0?}
+    D -->|yes| E[fizz\nBSS address\n✗ not stack addr]
+    D -->|no| F{i % 5 == 0?}
+    F -->|yes| G["buzz\narr[11] = &arr[9]+4\n= rbp−0x24\n✓ stack addr → rbp known"]
+    F -->|no| H[nothing\nBSS address\n✗ not stack addr]
 ```
 
 The first Buzz iteration is `i = 5`. We burn iterations 0–4 with dummy newlines and send the Stage 1 payload on `i = 5`.
