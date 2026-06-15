@@ -14310,14 +14310,14 @@ The first Buzz iteration is `i = 5`. We burn iterations 0–4 with dummy newline
 
 The branch sets `src` **before** `read()`. Sending exactly 28 bytes — filling offsets 0–27 and leaving `src` at offset +28 untouched — means `printf` spills those 6 non-NULL bytes of the branch-assigned pointer.
 
+### Stage 1: Leaking `rbp`
+
 Stage 1 payload on `i = 5` (Buzz branch):
 
 ```
 +0   b"A" × 24       pad through offset +23
 +24  p32(0xFFFFFFFF)  bridges counter NULLs, wraps loop to i=0
 ```
-
-### Stage 1: Leaking `rbp`
 
 ```
                            ┌───────────────────────────┐
