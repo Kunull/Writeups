@@ -14656,7 +14656,7 @@ The frame layout:
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp−0x10 │  = 0                        │ zeroed, unused
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-   rbp−0x08 │  stack canary               │ corrupt → __stack_chk_fail → mprotect_stack
+   rbp−0x08 │  stack canary               │ corrupt -> __stack_chk_fail -> mprotect_stack
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp+0x00 │  saved RBP                  │
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
@@ -14821,7 +14821,7 @@ leaked_puts = u64(leak_bytes + b"\x00\x00")
 libc_base   = leaked_puts - PUTS_LIBC_OFF    # PUTS_LIBC_OFF = 0x084420
 ```
 
-### Stage 3: Overwriting `__stack_chk_fail@GOT` → `mprotect_stack`
+### Stage 3: Overwriting `__stack_chk_fail@GOT` -> `mprotect_stack`
 
 At `i = 1` (nothing), the branch-assigned `src` points into the binary and is irrelevant, we overwrite both `src` and `dest` ourselves. We place the bytes of `mprotect_stack` at `rbp−0x3B` and point `dest` at `__stack_chk_fail@GOT`. `strcpy` copies the 6 non-NULL low bytes; the high two bytes of the GOT slot are already `0x00`, so the full 8-byte address is correct after the write.
 
