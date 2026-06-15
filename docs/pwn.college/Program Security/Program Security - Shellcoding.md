@@ -14223,7 +14223,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-```c title="/challenge/does-it-buzz :: challenge() :: Pseudocode: showLineNumbers
+```c title="/challenge/does-it-buzz :: challenge() :: Pseudocode" showLineNumbers
 __int64 challenge()
 {
   __int64 result; // rax
