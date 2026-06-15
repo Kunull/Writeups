@@ -40,6 +40,86 @@ But it SEGFAULTs when we try the `puts` command.
 Data: Segmentation fault
 ```
 
+### Binary analysis
+
+Let's look at the code.
+
+```c title="/challenge/freebie-easy :: main() :: Pseudocode" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  int v3; // ecx
+  int i; // [rsp+2Ch] [rbp-B4h]
+  unsigned int size; // [rsp+34h] [rbp-ACh]
+  void *size_4; // [rsp+38h] [rbp-A8h]
+  void *ptr; // [rsp+48h] [rbp-98h]
+  char s1[136]; // [rsp+50h] [rbp-90h] BYREF
+  unsigned __int64 v10; // [rsp+D8h] [rbp-8h]
+
+  v10 = __readfsqword(0x28u);
+  setvbuf(stdin, nullptr, 2, 0);
+  setvbuf(stdout, nullptr, 2, 1u);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  ptr = nullptr;
+  puts(
+    "This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of");
+  puts("challenges, you will become familiar with the concept of heap exploitation.\n");
+  printf("This challenge can manage up to %d unique allocations.\n\n", 1);
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          print_tcache(main_thread_tcache);
+          puts(byte_2419);
+          printf("[*] Function (malloc/free/puts/read_flag/quit): ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_2419);
+          if ( strcmp(s1, "malloc") )
+            break;
+          printf("Size: ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_2419);
+          size = atoi(s1);
+          printf("[*] allocations[%d] = malloc(%d)\n", 0, size);
+          ptr = malloc(size);
+          printf("[*] allocations[%d] = %p\n", 0, ptr);
+        }
+        if ( strcmp(s1, "free") )
+          break;
+        printf("[*] free(allocations[%d])\n", 0);
+        free(ptr);
+      }
+      if ( strcmp(s1, "puts") )
+        break;
+      printf("[*] puts(allocations[%d])\n", 0);
+      printf("Data: ");
+      puts((const char *)ptr);
+    }
+    if ( strcmp(s1, "read_flag") )
+      break;
+    for ( i = 0; i <= 0; ++i )
+    {
+      printf("[*] flag_buffer = malloc(%d)\n", 292);
+      size_4 = malloc(292u);
+      printf("[*] flag_buffer = %p\n", size_4);
+    }
+    v3 = open("/flag", 0);
+    read(v3, size_4, 0x80u);
+    puts("[*] read the flag!");
+  }
+  if ( strcmp(s1, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
 ### Use-After-Free
 
 We can leverage a UAF vulnerability here, where we allocate 292 bytes of memory using `malloc`, and then free it using the `free` command.
@@ -54,6 +134,8 @@ When the program calls `malloc(N)`, the allocator only looks in the bin that mat
 
 We then use `read_flag` to instruct the program to read the flag next it will read it to the same location where the first allocated memory was, because that pointer is not cleared.
 Next, when we use `puts`, the program will print the data pointed to by the original pointer. However, since we read the flag to that location, the flag will be printed.
+
+Alternatively, we can also `malloc` a huge bin so that we do not have to worry about the specific size, but we will leverage that in another challenge.
 
 ### Exploit
 
@@ -130,37 +212,70 @@ This time the program does not tell us how many bytes the `read_flag` function i
 
 ### Binary Analysis
 
-```
-pwndbg> info functions
-All defined functions:
+```c title="/challenge/freebie-hard :: main() :: Pseudocode" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  int v3; // ecx
+  int i; // [rsp+2Ch] [rbp-B4h]
+  unsigned int size; // [rsp+34h] [rbp-ACh]
+  void *size_4; // [rsp+38h] [rbp-A8h]
+  void *ptr; // [rsp+48h] [rbp-98h]
+  char s1[136]; // [rsp+50h] [rbp-90h] BYREF
+  unsigned __int64 v10; // [rsp+D8h] [rbp-8h]
 
-Non-debugging symbols:
-0x0000000000001000  _init
-0x00000000000010f0  __cxa_finalize@plt
-0x0000000000001100  free@plt
-0x0000000000001110  putchar@plt
-0x0000000000001120  puts@plt
-0x0000000000001130  __stack_chk_fail@plt
-0x0000000000001140  printf@plt
-0x0000000000001150  read@plt
-0x0000000000001160  strcmp@plt
-0x0000000000001170  malloc@plt
-0x0000000000001180  setvbuf@plt
-0x0000000000001190  open@plt
-0x00000000000011a0  atoi@plt
-0x00000000000011b0  __isoc99_scanf@plt
-0x00000000000011c0  _start
-0x00000000000011f0  deregister_tm_clones
-0x0000000000001220  register_tm_clones
-0x0000000000001260  __do_global_dtors_aux
-0x00000000000012a0  frame_dummy
-0x00000000000012a9  main
-0x00000000000015b0  __libc_csu_init
-0x0000000000001620  __libc_csu_fini
-0x0000000000001628  _fini
+  v10 = __readfsqword(0x28u);
+  setvbuf(stdin, nullptr, 2, 0);
+  setvbuf(stdout, nullptr, 2, 1u);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  ptr = nullptr;
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          puts(byte_2020);
+          printf("[*] Function (malloc/free/puts/read_flag/quit): ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_2020);
+          if ( strcmp(s1, "malloc") )
+            break;
+          printf("Size: ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_2020);
+          size = atoi(s1);
+          ptr = malloc(size);
+        }
+        if ( strcmp(s1, "free") )
+          break;
+        free(ptr);
+      }
+      if ( strcmp(s1, "puts") )
+        break;
+      printf("Data: ");
+      puts((const char *)ptr);
+    }
+    if ( strcmp(s1, "read_flag") )
+      break;
+    for ( i = 0; i <= 0; ++i )
+      size_4 = malloc(262u);
+    v3 = open("/flag", 0);
+    read(v3, size_4, 0x80u);
+  }
+  if ( strcmp(s1, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
+}
 ```
 
-#### `main()`
+We can see, that on selecting `read_flag`, a bin of 262 is allocated using `malloc()`.
+For paractice, let's find out how we can discovert the same using GDB.
 
 ```
 pwndbg> disassemble main
@@ -441,7 +556,87 @@ This challenge can manage up to 1 unique allocations.
 [*] read the flag!
 ```
 
-This challenge is very similar to the previous one, only difference being that the size of the `flag_buffer` is pretty arbitrary this time. So we have to allocate the same size when we use `malloc`.
+### Binary analysis
+
+```c title="/challenge/freebie-feint-easy :: main() :: Pseudocode" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  int v3; // ecx
+  int i; // [rsp+2Ch] [rbp-B4h]
+  unsigned int size; // [rsp+34h] [rbp-ACh]
+  void *size_4; // [rsp+38h] [rbp-A8h]
+  size_t v8; // [rsp+40h] [rbp-A0h]
+  void *ptr; // [rsp+48h] [rbp-98h]
+  char s1[136]; // [rsp+50h] [rbp-90h] BYREF
+  unsigned __int64 v11; // [rsp+D8h] [rbp-8h]
+
+  v11 = __readfsqword(0x28u);
+  setvbuf(stdin, nullptr, 2, 0);
+  setvbuf(stdout, nullptr, 2, 1u);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  ptr = nullptr;
+  v8 = rand() % 872 + 128;
+  puts(
+    "This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of");
+  puts("challenges, you will become familiar with the concept of heap exploitation.\n");
+  printf("This challenge can manage up to %d unique allocations.\n\n", 1);
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          print_tcache(main_thread_tcache);
+          puts(byte_2441);
+          printf("[*] Function (malloc/free/puts/read_flag/quit): ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_2441);
+          if ( strcmp(s1, "malloc") )
+            break;
+          printf("Size: ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_2441);
+          size = atoi(s1);
+          printf("[*] allocations[%d] = malloc(%d)\n", 0, size);
+          ptr = malloc(size);
+          printf("[*] allocations[%d] = %p\n", 0, ptr);
+        }
+        if ( strcmp(s1, "free") )
+          break;
+        printf("[*] free(allocations[%d])\n", 0);
+        free(ptr);
+      }
+      if ( strcmp(s1, "puts") )
+        break;
+      printf("[*] puts(allocations[%d])\n", 0);
+      printf("Data: ");
+      puts((const char *)ptr);
+    }
+    if ( strcmp(s1, "read_flag") )
+      break;
+    for ( i = 0; i <= 0; ++i )
+    {
+      printf("[*] flag_buffer = malloc(%d)\n", v8);
+      size_4 = malloc(v8);
+      printf("[*] flag_buffer = %p\n", size_4);
+    }
+    v3 = open("/flag", 0);
+    read(v3, size_4, 0x80u);
+    puts("[*] read the flag!");
+  }
+  if ( strcmp(s1, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+This challenge is very similar to the previous one, only difference being that the size of the `flag_buffer` is arbitrary this time. So we have to allocate the same size when we use `malloc`.
 
 ### Exploit
 
@@ -519,8 +714,80 @@ hacker@dynamic-allocator-misuse~freebin-feint-hard:~$ /challenge/freebin-feint-h
 ### Goodbye!
 ```
 
+### Binary analysis
+
+```c title="/challenge/freebie-feint-hard :: main() :: Pseudocode" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  int v3; // ecx
+  int i; // [rsp+2Ch] [rbp-B4h]
+  unsigned int size; // [rsp+34h] [rbp-ACh]
+  void *size_4; // [rsp+38h] [rbp-A8h]
+  size_t v8; // [rsp+40h] [rbp-A0h]
+  void *ptr; // [rsp+48h] [rbp-98h]
+  char s1[136]; // [rsp+50h] [rbp-90h] BYREF
+  unsigned __int64 v11; // [rsp+D8h] [rbp-8h]
+
+  v11 = __readfsqword(0x28u);
+  setvbuf(stdin, nullptr, 2, 0);
+  setvbuf(stdout, nullptr, 2, 1u);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  ptr = nullptr;
+  v8 = rand() % 872 + 128;
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          puts(byte_204E);
+          printf("[*] Function (malloc/free/puts/read_flag/quit): ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_204E);
+          if ( strcmp(s1, "malloc") )
+            break;
+          printf("Size: ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_204E);
+          size = atoi(s1);
+          ptr = malloc(size);
+          printf("[*] allocations[%d] = %p\n", 0, ptr);
+        }
+        if ( strcmp(s1, "free") )
+          break;
+        free(ptr);
+      }
+      if ( strcmp(s1, "puts") )
+        break;
+      printf("Data: ");
+      puts((const char *)ptr);
+    }
+    if ( strcmp(s1, "read_flag") )
+      break;
+    for ( i = 0; i <= 0; ++i )
+    {
+      size_4 = malloc(v8);
+      printf("[*] flag_buffer = %p\n", size_4);
+    }
+    v3 = open("/flag", 0);
+    read(v3, size_4, 0x80u);
+  }
+  if ( strcmp(s1, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
 Again, the `flag_buffer` is some arbitrary size.
 In order to solve this challenge, we have to leverage Remaindering.
+
+This is the actual method to solve even the [easy version](#freebin-feint-easy). We were able to allocate the exact number of bytes in that challenge because the program printed that number then.
 
 ### Leveraging the unsorted bin / cache
 
