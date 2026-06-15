@@ -13906,18 +13906,20 @@ The frame is fixed-size (`sub rsp, 0x90`) and every offset is a compile-time con
 
 The `strcpy` primitive uses `arr[11]` as its source pointer. In three of the four branches `arr[11]` is set to a BSS address, statically-linked, already known, tells us nothing about where the stack is. Only the **Buzz branch** (`i % 5 == 0`, `i % 3 != 0`, `i % 15 != 0`) sets `arr[11]` to `(char *)&arr[9] + 4`, a live stack address at `rbp−0x24`. Leaking that value gives us `rbp` and, from there, every address we need.
 
+Let's look at which condition we have to trigger.
+
 ```mermaid
 flowchart TD
     A([counter i]) --> B{i % 15 == 0?}
 
-    B -->|yes| C["fizzbuzz<br/>BSS address<br/>✗ not stack addr"]
+    B -->|yes| C["fizzbuzz<br/>BSS address<br/>not stack addr"]
     B -->|no| D{i % 3 == 0?}
 
-    D -->|yes| E["fizz<br/>BSS address<br/>✗ not stack addr"]
+    D -->|yes| E["fizz<br/>BSS address<br/>not stack addr"]
     D -->|no| F{i % 5 == 0?}
 
     F -->|yes| G["buzz<br/>arr[11] = &arr[9]+4 = rbp−0x24<br/>✓ stack addr → rbp known<br/>-- EXPLOIT PATH --"]
-    F -->|no| H["nothing<br/>BSS address<br/>✗ not stack addr"]
+    F -->|no| H["nothing<br/>BSS address<br/>not stack addr"]
 
     linkStyle 0 stroke:#888
     linkStyle 1 stroke:#f44336,color:#f44336
