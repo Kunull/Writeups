@@ -14416,7 +14416,9 @@ With both `rbp` and `win_addr` known, every address in the exploit is now pure a
 
 ### Stage 3: Writing `win_addr` to `saved_rip` via `strcpy`
 
-On the next iteration (`i = 0`, FizzBuzz again), we send a payload that places the bytes of `win_addr` inside the read buffer, then points `src` at those bytes and `dest` at `saved_rip`. `strcpy(saved_rip, src)` copies the 6 significant bytes and stops at the natural NULL in `win_addr`'s high two bytes. The high two bytes of `saved_rip` are already `0x0000` from ASLR, so the partial write is correct. Setting the counter to 16 causes the loop to exit immediately on the next check (`16 ≥ 16`), then `challenge()` returns and `ret` pops `win_addr`.
+On the next iteration (`i = 0`, FizzBuzz again), we send a payload that places the bytes of `win_addr` inside the read buffer, then points `src` at those bytes and `dest` at `saved_rip`. `strcpy(saved_rip, src)` copies the 6 significant bytes and stops at the natural NULL in `win_addr`'s high two bytes. 
+
+The high two bytes of `saved_rip` are already `0x0000` from ASLR, so the partial write is correct. Setting the counter to 16 causes the loop to exit immediately on the next check (`16 ≥ 16`), then `challenge()` returns and `ret` pops `win_addr`.
 
 Stage 3 payload layout (44 bytes, canary at `rbp−0x08` never touched):
 
