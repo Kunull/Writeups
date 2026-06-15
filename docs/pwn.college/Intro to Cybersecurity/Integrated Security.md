@@ -2865,7 +2865,7 @@ Total: 8191 bytes
 
 ### Exploit
 
-```python
+```python title="~/script.py" showLineNumbers
 #!/usr/bin/env python3
 from pwn import *
 import socket, time, subprocess, re
@@ -2988,7 +2988,7 @@ hacker@integrated-security~watering-hole:~$ checksec /challenge/server
 
 No canary, no PIE, executable stack. ASLR is disabled at runtime by a constructor.
 
-```c
+```c title="/challenge/server.c" showLineNumbers
 #define _GNU_SOURCE 1
 
 #include <stdlib.h>
@@ -3123,7 +3123,7 @@ int main(int argc, char **argv, char **envp)
 }
 ```
 
-```python
+```python title="/challenge/victim" showLineNumbers
 #!/usr/bin/exec-suid -- /usr/bin/python3 -I
 
 import requests
