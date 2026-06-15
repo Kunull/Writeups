@@ -3245,7 +3245,7 @@ Return address slot: `0x2008 + 8 = 8208` bytes from `content[0]` → **file byte
 
 Since ASLR is disabled and ptrace is blocked, we use the same probe technique as before. The probe mimics the exact call-chain frame sizes from the IDA disassembly, identical to the previous challenge since `send_file` and `handle_connection` are unchanged:
 
-```c
+```c title="~/probe.c" showLineNumbers
 #define _GNU_SOURCE 1
 #include <stdio.h>
 #include <stdint.h>
