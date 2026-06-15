@@ -14823,7 +14823,7 @@ libc_base   = leaked_puts - PUTS_LIBC_OFF    # PUTS_LIBC_OFF = 0x084420
 
 ### Stage 3: Overwriting `__stack_chk_fail@GOT` → `mprotect_stack`
 
-At `i = 1` (nothing), the branch-assigned `src` points into the binary and is irrelevant — we overwrite both `src` and `dest` ourselves. We place the bytes of `mprotect_stack` at `rbp−0x3B` and point `dest` at `__stack_chk_fail@GOT`. `strcpy` copies the 6 non-NULL low bytes; the high two bytes of the GOT slot are already `0x00`, so the full 8-byte address is correct after the write.
+At `i = 1` (nothing), the branch-assigned `src` points into the binary and is irrelevant, we overwrite both `src` and `dest` ourselves. We place the bytes of `mprotect_stack` at `rbp−0x3B` and point `dest` at `__stack_chk_fail@GOT`. `strcpy` copies the 6 non-NULL low bytes; the high two bytes of the GOT slot are already `0x00`, so the full 8-byte address is correct after the write.
 
 Stage 3 payload on `i = 1` (nothing):
 
@@ -15074,4 +15074,4 @@ hacker@dojo.pwn.college:~$ cat /flag
 pwn.college{Ih-Vn6xQaGqEhcNpfdSYYuSP7Z-.QXzUDO4EDL4ITM0EzW}
 ```
 
-The SIGSEGV at exit is expected: the shellcode calls `SYS_exit`, pwnlib reports the abnormal termination. The `chmod("/flag", 0o777)` syscall ran as EUID=0 before that, so `/flag` is world-readable when Python checks it. `system("/bin/sh")` would not work here — modern dash/bash detect `RUID ≠ EUID` and drop setuid privileges before executing. The raw `chmod` syscall in shellcode bypasses the shell entirely and succeeds.
+The SIGSEGV at exit is expected: the shellcode calls `SYS_exit`, pwnlib reports the abnormal termination. The `chmod("/flag", 0o777)` syscall ran as EUID=0 before that, so `/flag` is world-readable when Python checks it. `system("/bin/sh")` would not work here, modern dash/bash detect `RUID ≠ EUID` and drop setuid privileges before executing. The raw `chmod` syscall in shellcode bypasses the shell entirely and succeeds.
