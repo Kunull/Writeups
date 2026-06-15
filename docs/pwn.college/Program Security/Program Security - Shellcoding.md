@@ -13955,6 +13955,8 @@ The first Buzz iteration is `i = 5`. We burn iterations 0–4 with dummy newline
 
 `printf("You entered: %s\n", input)` starts printing from `rbp−0x5C` and stops at the first NULL byte. For it to reach `arr[11]` at offset `+0x44`, every byte from `+0x00` to `+0x43` must be non-NULL. There is one trap: `arr[9]` HIDWORD at offset `+0x38` initially contains `"\n\0\0\0"`. That `\0` at offset `+0x39` stops `printf` before it reaches the counter or `arr[11]`. The Stage 1 payload must overwrite those four bytes with non-NULL values (e.g. `b"CCCC"`) to bridge the gap. `BYTE4(arr[2]) = 0` runs *after* `printf`, so zeroing input[0] does not interfere with the spill.
 
+### Stage 1: Leaking the saved `rbp`
+
 Stage 1 payload on `i = 5` (Buzz branch):
 
 ```
@@ -13963,8 +13965,6 @@ Stage 1 payload on `i = 5` (Buzz branch):
 +0x3C  b"D" × 4        arr[10] LODWORD, filler
 +0x40  p32(0xFFFFFFFF) arr[10] HIDWORD = −1, loop continues
 ```
-
-### Stage 1: Leaking the saved `rbp`
 
 ```
             ┌─────────────────────────────┐
@@ -14020,11 +14020,11 @@ saved_rip   = rbp + 0x08
 
 After this iteration the counter increments: −1 + 1 = 0. The next iteration starts at `i = 0` (FizzBuzz).
 
+### Stage 2: shellcode
+
 For Stage 2, `i = 0` is FizzBuzz, so `arr[11]` will be set to `&fizzbuzz` (a BSS address) by the branch logic, but we overwrite `arr[11]` and `arr[12]` ourselves before `strcpy` fires, so the branch assignment doesn't matter. The shellcode must fit in 0x34 bytes (offset `+0x04` to `+0x37`). `BYTE4(arr[2])` zeroes input[0] after `printf`, so the first 4 bytes are sacrificed as NOP sled. Shellcode starts at `rbp−0x58` = `sc_addr`.
 
 The NOP padding between the shellcode and `sc_addr` at offset `+0x3C` is pure filler, it pushes `p64(sc_addr)` rightward in the payload until it aligns with `arr[10]` at exactly offset `+0x3C`. The shellcode is 0x1F bytes ending at offset `+0x23`, so 0x19 NOP bytes bridge the gap. Any non-NULL byte would work equally well here.
-
-### Stage 2: shellcode
 
 Stack after Stage 2 payload is received, before `strcpy` fires:
 
