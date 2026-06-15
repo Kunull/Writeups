@@ -14388,15 +14388,15 @@ Looking at the IDA dump, we can see that the `&fuzzbuzz` string is at an offset 
 ```asm title="/challenge/can-it-fizz :: .data"
 # ---- snip ----
 
-.data:0000000000004018                 public fuzzbuzz
-.data:0000000000004018 fuzzbuzz        db  46h ; F             ; DATA XREF: challenge+B3↑o
-.data:0000000000004019                 db  69h ; i
-.data:000000000000401A                 db  7Ah ; z
-.data:000000000000401B                 db  7Ah ; z
-.data:000000000000401C                 db  42h ; B
-.data:000000000000401D                 db  75h ; u
-.data:000000000000401E                 db  7Ah ; z
-.data:000000000000401F                 db  7Ah ; z
+.data:0000000000004098                 public fuzzbuzz
+.data:0000000000004098 fuzzbuzz        db  46h ; F             ; DATA XREF: challenge+E8↑o
+.data:0000000000004099                 db  69h ; i
+.data:000000000000409A                 db  7Ah ; z
+.data:000000000000409B                 db  7Ah ; z
+.data:000000000000409C                 db  42h ; B
+.data:000000000000409D                 db  75h ; u
+.data:000000000000409E                 db  7Ah ; z
+.data:000000000000409F                 db  7Ah ; z
 
 # ---- snip ----
 ```
