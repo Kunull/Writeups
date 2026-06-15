@@ -14383,7 +14383,7 @@ After this iteration the counter increments: `−1 + 1 = 0`. The next iteration 
 
 At `i = 0` (FizzBuzz), `src` is set to `&fuzzbuzz` by the branch. 
 
-Looking at the IDA dump, we can see that the `&fuzzbuzz` string is at an offset of `0x4098` from the base of the binary.
+Looking at the IDA dump, we can see that the `&fuzzbuzz` string is at an offset of `0x4090` from the base of the binary.
 
 ```asm title="/challenge/can-it-fizz :: .data"
 # ---- snip ----
@@ -14401,7 +14401,7 @@ Looking at the IDA dump, we can see that the `&fuzzbuzz` string is at an offset 
 # ---- snip ----
 ```
 
-So, if we leak the address of `&fuzzbuzz`, we can leak the address of the binary base: `binary_base = &fuzzbuzz - 0x4098`.
+So, if we leak the address of `&fuzzbuzz`, we can leak the address of the binary base: `binary_base = &fuzzbuzz - 0x4090`.
 
 The same counter bridge trick applies: we send 24 A's followed by `p32(0xFFFFFFFF)`, `printf` spills the 6 non-NULL bytes of `&fuzzbuzz`, and the loop wraps again to `i = 0`.
 
