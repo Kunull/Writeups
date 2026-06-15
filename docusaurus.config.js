@@ -43,6 +43,10 @@ const config = {
     locales: ['en'],
   },
 
+  markdown: {      // ← added
+    mermaid: true, // ← added
+  },               // ← added
+
   presets: [
     [
       'classic',
@@ -62,6 +66,8 @@ const config = {
       }),
     ],
   ],
+
+  themes: ['@docusaurus/theme-mermaid'], // ← added
 
   // Load KaTeX CSS
   stylesheets: [

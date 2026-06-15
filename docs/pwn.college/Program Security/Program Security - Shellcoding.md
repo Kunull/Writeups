@@ -13935,12 +13935,12 @@ The `strcpy` primitive uses `arr[11]` as its source pointer. In three of the fou
 ```mermaid
 flowchart TD
     A([counter i]) --> B{i % 15 == 0?}
-    B -->|yes| C[fizzbuzz\nBSS address\n✗ not stack addr]
+    B -->|yes| C["fizzbuzz<br/>BSS address<br/>✗ not stack addr"]
     B -->|no| D{i % 3 == 0?}
-    D -->|yes| E[fizz\nBSS address\n✗ not stack addr]
+    D -->|yes| E["fizz<br/>BSS address<br/>✗ not stack addr"]
     D -->|no| F{i % 5 == 0?}
-    F -->|yes| G["buzz\narr[11] = &arr[9]+4\n= rbp−0x24\n✓ stack addr → rbp known"]
-    F -->|no| H[nothing\nBSS address\n✗ not stack addr]
+    F -->|yes| G["buzz<br/>arr[11] = &amp;arr[9]+4<br/>= rbp−0x24<br/>✓ stack addr → rbp known"]
+    F -->|no| H["nothing<br/>BSS address<br/>✗ not stack addr"]
 ```
 
 The first Buzz iteration is `i = 5`. We burn iterations 0–4 with dummy newlines and send the Stage 1 payload on `i = 5`.
