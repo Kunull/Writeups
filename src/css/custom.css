@@ -572,3 +572,10 @@ html[data-theme=dark] {
 .hidden {
   display: none !important;
 }
+
+
+
+.docusaurus-mermaid-container {
+  display: flex;
+  justify-content: center;
+}
