@@ -13939,7 +13939,7 @@ flowchart TD
     D -->|yes| E["fizz<br/>BSS address<br/>not stack addr"]
     D -->|no| F{i % 5 == 0?}
 
-    F -->|yes| G["buzz<br/>arr[11] = &arr[9]+4 = rbp−0x24<br/>✓ stack addr -> rbp known<br/>-- EXPLOIT PATH --"]
+    F -->|yes| G["buzz<br/>arr[11] = &arr[9]+4 = rbp−0x24<br/> stack addr -> rbp known<br/>-- EXPLOIT PATH --"]
     F -->|no| H["nothing<br/>BSS address<br/>not stack addr"]
 
     linkStyle 0 stroke:#888
@@ -14285,11 +14285,11 @@ The frame layout:
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp−0x10 │  = 0                        │ zeroed, unused
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-   rbp−0x08 │  stack canary               │ read limit 48, never reached ✓
+   rbp−0x08 │  stack canary               │ read limit 48, never reached 
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp+0x00 │  saved RBP                  │
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-   rbp+0x08 │  saved RIP                  │ ← Stage 3 writes win_addr here
+   rbp+0x08 │  saved RIP                  │ <- Stage 3 writes win_addr here
             └─────────────────────────────┘
 ```
 
@@ -14307,7 +14307,7 @@ flowchart TD
     D -->|yes| E["fizz<br/>binary addr<br/>not stack addr"]
     D -->|no| F{i % 5 == 0?}
 
-    F -->|yes| G["buzz<br/>src = rbp−0x2C<br/>✓ stack addr -> rbp known<br/>-- EXPLOIT PATH --"]
+    F -->|yes| G["buzz<br/>src = rbp−0x2C<br/> stack addr -> rbp known<br/>-- EXPLOIT PATH --"]
     F -->|no| H["nothing<br/>binary addr<br/>not stack addr"]
 
     linkStyle 0 stroke:#888
@@ -14325,7 +14325,7 @@ The first Buzz iteration is `i = 5`. We burn iterations 0–4 with dummy newline
 
 `printf("You entered: %s\n", rbp−0x3C)` starts printing from the read buffer and stops at the first NULL byte. For it to reach `src` at `rbp−0x20`, every byte from `rbp−0x3C` to `rbp−0x21` must be non-NULL. The loop counter at `rbp−0x24` is the obstacle: for `i = 5`, those four bytes are `05 00 00 00`, the `\0` at `rbp−0x23` stops `printf` before it reaches `src`. We overwrite the counter with `p32(0xFFFFFFFF)` (all `0xFF`, non-NULL), which simultaneously bridges the NULL gap and wraps the counter: `−1 + 1 = 0`, restarting the loop at `i = 0` (FizzBuzz).
 
-The branch sets `src` **before** `read()`. Sending exactly 28 bytes, filling `rbp−0x3C` through `rbp−0x21` and leaving `src` at `rbp−0x20` untouched, means `printf` spills those 6 non-NULL bytes of the branch-assigned pointer.
+The branch sets `src` before `read()`. Sending exactly 28 bytes, filling `rbp−0x3C` through `rbp−0x21` and leaving `src` at `rbp−0x20` untouched, means `printf` spills those 6 non-NULL bytes of the branch-assigned pointer.
 
 ### Stage 1: Leaking `rbp`
 
@@ -14360,7 +14360,7 @@ rbp−0x24  p32(0xFFFFFFFF)  bridges counter NULLs, wraps loop to i=0
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp−0x10 │  = 0                        │ unchanged
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-   rbp−0x08 │  canary (untouched)         │ read limit = 48 ✓
+   rbp−0x08 │  canary (untouched)         │ read limit = 48 
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp+0x00 │  saved RBP                  │ unchanged
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
@@ -14428,17 +14428,17 @@ Stack after Stage 3 payload is received, before `strcpy` fires:
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp−0x24 │  00 00 00 10                │ counter = 16, loop exits
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-   rbp−0x20 │  [ rbp−0x3B ]              │ src = &win_addr bytes
+   rbp−0x20 │  [ rbp−0x3B ]               │ src = &win_addr bytes
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp−0x18 │  [ saved_rip addr ]         │ dest = where to write
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp−0x10 │  = 0                        │ unchanged
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-   rbp−0x08 │  canary (untouched)         │ read limit = 48 ✓
+   rbp−0x08 │  canary (untouched)         │ read limit = 48 
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp+0x00 │  saved RBP                  │ unchanged
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-   rbp+0x08 │  saved RIP                  │ ← strcpy writes win_addr here
+   rbp+0x08 │  saved RIP                  │ <- strcpy writes win_addr here
             └─────────────────────────────┘
 
 ═══════════════════════════════════════════════════════════════════
@@ -14660,7 +14660,7 @@ The frame layout:
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp+0x00 │  saved RBP                  │
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-   rbp+0x08 │  saved RIP                  │ ← Stage 4 writes shellcode entry here
+   rbp+0x08 │  saved RIP                  │ <- Stage 4 writes shellcode entry here
             └─────────────────────────────┘
 ```
 
@@ -14690,7 +14690,7 @@ flowchart TD
     D -->|yes| E["fizz<br/>binary addr<br/>not stack addr"]
     D -->|no| F{i % 5 == 0?}
 
-    F -->|yes| G["buzz<br/>src = rbp−0x2C<br/>✓ stack addr -> rbp known<br/>-- EXPLOIT PATH --"]
+    F -->|yes| G["buzz<br/>src = rbp−0x2C<br/> stack addr -> rbp known<br/>-- EXPLOIT PATH --"]
     F -->|no| H["nothing<br/>binary addr<br/>not stack addr"]
 
     linkStyle 0 stroke:#888
@@ -14735,7 +14735,7 @@ rbp−0x24  p32(0xFFFFFFFF) bridge counter NULLs, wrap loop to i=0
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp−0x10 │  = 0                        │ unchanged
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-   rbp−0x08 │  canary (untouched)         │ payload = 28 bytes ✓
+   rbp−0x08 │  canary (untouched)         │ payload = 28 bytes 
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp+0x00 │  saved RBP                  │ unchanged
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
@@ -14796,11 +14796,11 @@ Stack after Stage 2.5 payload is received, before `strcpy` fires:
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp−0x20 │  [ puts@GOT ]               │ src = address holding puts@libc
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-   rbp−0x18 │  [ rbp−0x3B ]              │ dest = where strcpy writes the leak
+   rbp−0x18 │  [ rbp−0x3B ]               │ dest = where strcpy writes the leak
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp−0x10 │  = 0                        │ unchanged
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-   rbp−0x08 │  canary (untouched)         │ payload = 44 bytes ✓
+   rbp−0x08 │  canary (untouched)         │ payload = 44 bytes 
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp+0x00 │  saved RBP                  │ unchanged
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
@@ -14842,7 +14842,7 @@ Stack after Stage 3 payload is received, before `strcpy` fires:
             ┌─────────────────────────────┐
    rbp−0x3C │  00 (zeroed by binary)      │
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-   rbp−0x3B │  [ mprotect_stack bytes ]   │ ← src points here
+   rbp−0x3B │  [ mprotect_stack bytes ]   │ <- src points here
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp−0x33 │  00 00 00 00 00 00 00 00    │ strcpy NULL terminator + pad
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
@@ -14850,13 +14850,13 @@ Stack after Stage 3 payload is received, before `strcpy` fires:
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp−0x24 │  00 00 00 01                │ counter = 1
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-   rbp−0x20 │  [ rbp−0x3B ]              │ src = &mprotect_stack bytes
+   rbp−0x20 │  [ rbp−0x3B ]               │ src = &mprotect_stack bytes
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp−0x18 │  [ stk_chk_fail@GOT ]       │ dest = GOT entry to overwrite
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp−0x10 │  = 0                        │ unchanged
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-   rbp−0x08 │  canary (untouched)         │ payload = 44 bytes ✓
+   rbp−0x08 │  canary (untouched)         │ payload = 44 bytes 
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp+0x00 │  saved RBP                  │ unchanged
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
@@ -14887,7 +14887,7 @@ rbp−0x14  b"/flag\x00"              chmod path argument
 rbp−0x0E  b"\x00\x00"               padding
 rbp−0x08  b"\xde\xad\xbe\xef" × 2  corrupt canary, triggers __stack_chk_fail
 rbp+0x00  p64(rbp−0x3C)            saved RBP (any writable address)
-rbp+0x08  p64(rbp−0x3B)            saved RIP ← shellcode entry
+rbp+0x08  p64(rbp−0x3B)            saved RIP <- shellcode entry
 ```
 
 Stack after Stage 4 payload is received, before `strcpy` fires:
@@ -14896,7 +14896,7 @@ Stack after Stage 4 payload is received, before `strcpy` fires:
             ┌─────────────────────────────┐
    rbp−0x3C │  00 (zeroed by binary)      │
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-   rbp−0x3B │  [ chmod+exit shellcode ]   │ ← saved_rip points here (sc_bytes 0x00..0x06)
+   rbp−0x3B │  [ chmod+exit shellcode ]   │ <- saved_rip points here (sc_bytes 0x00..0x06)
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp−0x34 │  [ shellcode cont. ]        │ sc_bytes 0x07..0x0E
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
@@ -14906,7 +14906,7 @@ Stack after Stage 4 payload is received, before `strcpy` fires:
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp−0x1C │  [ harmless addr ]          │ dest
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-   rbp−0x14 │  2f 66 6c 61 67 00          │ "/flag\0" ← rdi for chmod
+   rbp−0x14 │  2f 66 6c 61 67 00          │ "/flag\0" <- rdi for chmod
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp−0x0E │  00 00                      │ padding
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
@@ -14914,7 +14914,7 @@ Stack after Stage 4 payload is received, before `strcpy` fires:
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
    rbp+0x00 │  [ rbp−0x3C ]              │ saved RBP
             ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-   rbp+0x08 │  [ rbp−0x3B ]              │ saved RIP ← shellcode entry
+   rbp+0x08 │  [ rbp−0x3B ]              │ saved RIP <- shellcode entry
             └─────────────────────────────┘
 
 ═══════════════════════════════════════════════════════════════════════════════
