@@ -1767,7 +1767,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 
 So if we pass the `read_flag` command, the program zeroes out the first 8 bytes represented by `size_4` of that allocation. The flag is then read 16 bytes after `size_4`.
 
-```c showLineNumbers
+```c title="/challenge/malloc-mirage-easy :: main()" showLineNumbers
 # ---- snip ----
 
       if ( strcmp(choice, "read_flag") )
@@ -1788,7 +1788,7 @@ So if we pass the `read_flag` command, the program zeroes out the first 8 bytes 
 
 Then, if we pass `puts_flag`, it checks if the `size_4` is zeroed out. If it is, the flag is not printed.
 
-```c showLineNumbers
+```c title="/challenge/malloc-mirage-easy :: main()" showLineNumbers
 # ---- snip ----
 
     if ( strcmp(choice, "puts_flag") )
