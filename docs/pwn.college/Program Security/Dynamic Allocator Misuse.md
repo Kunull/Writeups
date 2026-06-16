@@ -805,11 +805,11 @@ This only happens if the large bin / cache is used instead of Tcache to allocate
 Currently, the `ptmalloc` caching design is (in order of use):
 - 64 singly-linked tcache bins for allocations of size 16 to 1032 (functionally "covers" fastbins and smallbins)
 - 10 singly-linked "fast" bins for allocations of size up to 160 bytes
-- 1 doubly-linked "unsorted" bin to quickly stash free()d chunks that don't fit into tcache or fastbins
+- 1 doubly-linked "unsorted" bin to quickly stash freed chunks that don't fit into tcache or fastbins
 - 62 doubly-linked "small" bins for allocations up to 512 bytes
 - 63 doubly-linked "large" bins (anything over 512 bytes) that contain different-sized chunks
 
-So, if we allocate a large enough space, then free it, and then call the `read_flag` command, we would not have to worry about the size of `flag_buffer` because it will be split and used from our large buffer allocation.
+So, if we allocate a large enough space, then free it, and then call the `read_flag` command, we would not have to worry about the size of `flag_buffer` because it will be split and used from our unsorted bin allocation.
 
 ### Exploit
 
@@ -868,6 +868,106 @@ In this challenge, the flag buffer is allocated 2 times before it is used.
 [*] flag_buffer = malloc(480)
 [*] flag_buffer = 0x59c50bb2c4b0
 [*] read the flag!
+```
+
+### Binary analysis
+
+```c title="/challenge/free-flag-fumble-easy :: main()" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  int v3; // ecx
+  int i; // [rsp+24h] [rbp-12Ch]
+  unsigned int v6; // [rsp+28h] [rbp-128h]
+  unsigned int v7; // [rsp+28h] [rbp-128h]
+  unsigned int v8; // [rsp+28h] [rbp-128h]
+  unsigned int size; // [rsp+2Ch] [rbp-124h]
+  void *size_4; // [rsp+30h] [rbp-120h]
+  void *ptr[16]; // [rsp+40h] [rbp-110h] BYREF
+  char s1[136]; // [rsp+C0h] [rbp-90h] BYREF
+  unsigned __int64 v13; // [rsp+148h] [rbp-8h]
+
+  v13 = __readfsqword(0x28u);
+  setvbuf(stdin, nullptr, 2, 0);
+  setvbuf(stdout, nullptr, 2, 1u);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  memset(ptr, 0, sizeof(ptr));
+  puts(
+    "This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of");
+  puts("challenges, you will become familiar with the concept of heap exploitation.\n");
+  printf("This challenge can manage up to %d unique allocations.\n\n", 16);
+  printf("In this challenge, the flag buffer is allocated %d times before it is used.\n\n", 2);
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          print_tcache(main_thread_tcache);
+          puts(byte_246E);
+          printf("[*] Function (malloc/free/puts/read_flag/quit): ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_246E);
+          if ( strcmp(s1, "malloc") )
+            break;
+          printf("Index: ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_246E);
+          v6 = atoi(s1);
+          if ( v6 > 0xF )
+            __assert_fail("allocation_index < 16", "<stdin>", 0xE0u, "main");
+          printf("Size: ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_246E);
+          size = atoi(s1);
+          printf("[*] allocations[%d] = malloc(%d)\n", v6, size);
+          ptr[v6] = malloc(size);
+          printf("[*] allocations[%d] = %p\n", v6, ptr[v6]);
+        }
+        if ( strcmp(s1, "free") )
+          break;
+        printf("Index: ");
+        __isoc99_scanf("%127s", s1);
+        puts(byte_246E);
+        v7 = atoi(s1);
+        if ( v7 > 0xF )
+          __assert_fail("allocation_index < 16", "<stdin>", 0xF2u, "main");
+        printf("[*] free(allocations[%d])\n", v7);
+        free(ptr[v7]);
+      }
+      if ( strcmp(s1, "puts") )
+        break;
+      printf("Index: ");
+      __isoc99_scanf("%127s", s1);
+      puts(byte_246E);
+      v8 = atoi(s1);
+      if ( v8 > 0xF )
+        __assert_fail("allocation_index < 16", "<stdin>", 0xFFu, "main");
+      printf("[*] puts(allocations[%d])\n", v8);
+      printf("Data: ");
+      puts((const char *)ptr[v8]);
+    }
+    if ( strcmp(s1, "read_flag") )
+      break;
+    for ( i = 0; i <= 1; ++i )
+    {
+      printf("[*] flag_buffer = malloc(%d)\n", 480);
+      size_4 = malloc(0x1E0u);
+      printf("[*] flag_buffer = %p\n", size_4);
+    }
+    v3 = open("/flag", 0);
+    read(v3, size_4, 0x80u);
+    puts("[*] read the flag!");
+  }
+  if ( strcmp(s1, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
+}
 ```
 
 This time the `read_flag` function reads the flag twice into buffers of size `480` bytes.
@@ -1118,6 +1218,115 @@ Data: pwn.college{8Wq-xUWLolH-kpTT9mLLl4qgFmM.0lN3MDL4ITM0EzW}
 &nbsp;
 
 ## Fickle Free (Easy)
+
+```
+hacker@dynamic-allocator-misuse~fickle-free-easy:~$ /challenge/fickle-free-easy 
+###
+### Welcome to /challenge/fickle-free-easy!
+###
+
+This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of
+challenges, you will become familiar with the concept of heap exploitation.
+
+This challenge can manage up to 1 unique allocations.
+
+In this challenge, the flag buffer is allocated 2 times before it is used.
+
+
+[*] Function (malloc/free/puts/scanf/read_flag/quit): 
+```
+
+### Binary analysis
+
+```c title="/challenge/fickle-free-easy :: main()" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  int v3; // eax
+  int v4; // eax
+  int v5; // ecx
+  int i; // [rsp+2Ch] [rbp-B4h]
+  unsigned int size; // [rsp+34h] [rbp-ACh]
+  void *size_4; // [rsp+38h] [rbp-A8h]
+  void *ptr; // [rsp+48h] [rbp-98h]
+  char s1[136]; // [rsp+50h] [rbp-90h] BYREF
+  unsigned __int64 v12; // [rsp+D8h] [rbp-8h]
+
+  v12 = __readfsqword(0x28u);
+  setvbuf(stdin, nullptr, 2, 0);
+  setvbuf(stdout, nullptr, 2, 1u);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  ptr = nullptr;
+  puts(
+    "This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of");
+  puts("challenges, you will become familiar with the concept of heap exploitation.\n");
+  printf("This challenge can manage up to %d unique allocations.\n\n", 1);
+  printf("In this challenge, the flag buffer is allocated %d times before it is used.\n\n", 2);
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          while ( 1 )
+          {
+            print_tcache(main_thread_tcache);
+            puts(byte_246E);
+            printf("[*] Function (malloc/free/puts/scanf/read_flag/quit): ");
+            __isoc99_scanf("%127s", s1);
+            puts(byte_246E);
+            if ( strcmp(s1, "malloc") )
+              break;
+            printf("Size: ");
+            __isoc99_scanf("%127s", s1);
+            puts(byte_246E);
+            size = atoi(s1);
+            printf("[*] allocations[%d] = malloc(%d)\n", 0, size);
+            ptr = malloc(size);
+            printf("[*] allocations[%d] = %p\n", 0, ptr);
+          }
+          if ( strcmp(s1, "free") )
+            break;
+          printf("[*] free(allocations[%d])\n", 0);
+          free(ptr);
+        }
+        if ( strcmp(s1, "puts") )
+          break;
+        printf("[*] puts(allocations[%d])\n", 0);
+        printf("Data: ");
+        puts((const char *)ptr);
+      }
+      if ( strcmp(s1, "scanf") )
+        break;
+      v3 = malloc_usable_size(ptr);
+      sprintf(s1, "%%%us", v3);
+      v4 = malloc_usable_size(ptr);
+      printf("[*] scanf(\"%%%us\", allocations[%d])\n", v4, 0);
+      __isoc99_scanf(s1, ptr);
+      puts(byte_246E);
+    }
+    if ( strcmp(s1, "read_flag") )
+      break;
+    for ( i = 0; i <= 1; ++i )
+    {
+      printf("[*] flag_buffer = malloc(%d)\n", 784);
+      size_4 = malloc(0x310u);
+      printf("[*] flag_buffer = %p\n", size_4);
+    }
+    v5 = open("/flag", 0);
+    read(v5, size_4, 0x80u);
+    puts("[*] read the flag!");
+  }
+  if ( strcmp(s1, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
+}
+```
 
 In this challege we have to leverage Double Free vulnerability.
 
@@ -1380,7 +1589,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-- [x] Size of memory allocation into which the flag is read: `328`
+- [x] Size of the memory allocation into which the flag is read: `328`
 
 ### Exploit
 
