@@ -3017,8 +3017,8 @@ This would cause the chunk `B` to be removed from the singly-linked list, and th
 
 Now, if we allocate two chunks again of the same size, the chunk `A` and `SECRET` would be allocated because to `tcache_perthread_struct`, those are the two free chunks. The first 8 bytes of the `SECRET` chunk would hold the first 8 bytes of secret value, and the next 8 bytes would be right after that.
 
-However, due to Tcache's behaviour of setting the `key` pointer to `NULL` clobbers the trailing 8 bytes of the secret value.
-So, using the previously employesd method, we are able to get the first 8 bytes.
+However, due to Tcache's behaviour of setting the `key` pointer to `NULL` after allocating a chunk, the trailing 8 bytes of the secret value are clobbered.
+So, using the previously employed method, we are able to get the first 8 bytes.
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
