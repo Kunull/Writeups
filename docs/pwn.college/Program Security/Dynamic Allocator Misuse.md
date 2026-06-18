@@ -3778,7 +3778,131 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
+### Overwriting the Secret via Tcache Poisoning
 
+Since the secret's address contains a `0x0a` byte, `scanf` would stop reading before completing the full 8-byte address, so we can't directly poison the `next` pointer to point at `secret_addr`. Instead, we target a nearby aligned address (`secret_addr - 16`) that contains no whitespace bytes, and use padding to bridge the gap.
+
+Let's say we allocate two chunks `A`, `B` of memory and then free them:
+
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┊  tcache_perthread_struct Void                                        ┊
+┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
+┊    counts: ┃ count_16: 2    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
+┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
+┊   entries: ┃ entry_16: &A   ┃ entry_32: NULL ┃ entry_48: NULL ┃ ...  ┊
+┊            ┗━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛      ┊
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+                         │
+         ╭───────────────╯
+         │
+         v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry A  ┆
+├──────────────────┤
+│    next: &B      │ ────╮
+├──────────────────┤     │
+│    key: Void     │     │
+└──────────────────┘     │
+                         │
+         ╭───────────────╯
+         │
+         v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry B  ┆
+├──────────────────┤
+│    next: NULL    │
+├──────────────────┤
+│    key: Void     │
+└──────────────────┘
+```
+
+We then use `scanf` on the dangling pointer at index `0` (chunk `A`) to overwrite its `next` pointer with `target_addr = secret_addr - 16`. This address has no whitespace bytes, so `scanf` can write it in full:
+
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┊  tcache_perthread_struct Void                                        ┊
+┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
+┊    counts: ┃ count_16: 2    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
+┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
+┊   entries: ┃ entry_16: &A   ┃ entry_32: NULL ┃ entry_48: NULL ┃ ...  ┊
+┊            ┗━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛      ┊
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+                         │
+         ╭───────────────╯
+         │
+         v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry A  ┆
+├──────────────────┤
+│ next: target_adr │ ────╮
+├──────────────────┤     │
+│    key: Void     │     │
+└──────────────────┘     │
+                         │
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐     │   (B is now orphaned, A skips over it)
+┆  tcache_entry B  ┆     │
+├──────────────────┤     │
+│    next: NULL    │     │
+├──────────────────┤     │
+│    key: Void     │     │
+└──────────────────┘     │
+                         │
+         ╭───────────────╯
+         │
+         v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  DATA SEGMENT (target_addr)    ┆
+├────────────────────────────────┤
+│  [16 bytes before secret_addr] │
+│          ...garbage...         │
+└────────────────────────────────┘
+```
+
+Now we call `malloc` twice. The first allocation returns chunk `A` (a real heap chunk), and the second returns `target_addr`, a pointer into the program's data segment 16 bytes before the secret:
+
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┊  tcache_perthread_struct Void                                        ┊
+┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
+┊    counts: ┃ count_16: 0    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
+┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
+┊   entries: ┃ entry_16: NULL ┃ entry_32: NULL ┃ entry_48: NULL ┃ ...  ┊
+┊            ┗━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛      ┊
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+
+
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry A  ┆ (allocated as ptr[0])
+├──────────────────┤
+│  ..............  │
+├──────────────────┤
+│       NULL       │
+└──────────────────┘
+
+
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  DATA SEGMENT (target_addr)    ┆ (allocated as ptr[1])
+├────────────────────────────────┤
+│  [16 bytes before secret_addr] │
+│          ...garbage...         │
+│          secret_addr >>>       │ <-- secret lives here, 16 bytes in
+└────────────────────────────────┘
+```
+
+We now have a writable pointer (`ptr[1]`) that starts 16 bytes before `secret_addr`. We call `scanf` on `ptr[1]` and send 16 bytes of padding followed by our chosen 16-byte secret value, which overwrites the original random secret with something we know:
+
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  DATA SEGMENT (target_addr)    ┆
+├────────────────────────────────┤
+│  BBBBBBBBBBBBBBBB (16 padding) │ <-- bytes before secret_addr
+├────────────────────────────────┤
+│  AAAAAAAAAAAAAAAA (16 secret)  │ <-- secret_addr, now overwritten
+└────────────────────────────────┘
+```
+
+Finally, we call `send_flag` and submit our known value (`AAAAAAAAAAAAAAAA`). Since we wrote it ourselves, we know exactly what to send without ever needing to leak the original.
 
 ### Exploit
 
