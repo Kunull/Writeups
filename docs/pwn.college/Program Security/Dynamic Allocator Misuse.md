@@ -2968,7 +2968,7 @@ Let's say we allocate two chunks `A`, `B` of memory and then free them. It would
 └──────────────────┘
 ```
 
-Then we use the `scanf` command and read the the index of the first allocation `A` using the hanging pointer. The first 8 bytes at that location would hold the `next` pointer which would point to `B`. 
+Then we use the `scanf` command and read to the index of the first allocation `A` using the hanging pointer. The first 8 bytes at that location would hold the `next` pointer which would point to `B`. 
 
 We can overwrite this with the address of the secret.
 This would cause the chunk `B` to be removed from the singly-linked list, and the memory at the secret address would take it's place.
@@ -3018,7 +3018,7 @@ This would cause the chunk `B` to be removed from the singly-linked list, and th
 Now, if we allocate two chunks again of the same size, the chunk `A` and `SECRET` would be allocated because to `tcache_perthread_struct`, those are the two free chunks. The first 8 bytes of the `SECRET` chunk would hold the first 8 bytes of secret value, and the next 8 bytes would be right after that.
 
 However, due to Tcache's behaviour of setting the `key` pointer to `NULL` after allocating a chunk, the trailing 8 bytes of the secret value are clobbered.
-So, using the previously employed method, we are able to get the first 8 bytes.
+So, by polluting `tcache_perthread_struct` once, we are able to get only the first 8 bytes.
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
