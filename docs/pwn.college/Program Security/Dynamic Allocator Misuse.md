@@ -4666,14 +4666,33 @@ malloc(1) → ptr[1] = NULL (secret_addr discarded by guard)
             count[128] = 0, so displayed as NULL
 
 
-┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  tcache_perthread_struct Void                                        ┊
-┊            ┏━━━━━━━━━━━━━━━━━━┓                                      ┊
-┊    counts: ┃ count_128: 0     ┃                                      ┊
-┊            ┣━━━━━━━━━━━━━━━━━━┫                                      ┊
-┊   entries: ┃ entry_128: NULL  ┃   (raw memory = "lbaaifox", stale)   ┊
-┊            ┗━━━━━━━━━━━━━━━━━━┛                                      ┊
-└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┊  tcache_perthread_struct Void                                               ┊
+┊            ┏━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
+┊    counts: ┃ count_128: 0          ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
+┊            ┣━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
+┊   entries: ┃ entry_128: secret[:8] ┃ entry_32: NULL ┃ entry_48: NULL ┃ ...  ┊
+┊            ┗━━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛      ┊
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+
+
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry A  ┆
+├──────────────────┤
+│ next: &SECRET    │
+├──────────────────┤    
+│    key: Void     │    
+└──────────────────┘    
+                           
+        
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  DATA SEGMENT (secret_addr)      ┆
+├──────────────────────────────────┤
+│  next: secret[:8]  "lbaaifox"    │
+├──────────────────────────────────┤
+│  key:  secret[8:16] "clsnrpaf"   │
+└──────────────────────────────────┘
 ```
 
 The key insight is that `entries[128]` and `counts[128]` are independent. The display reads `counts[128] == 0` and renders the head as `(nil)`, but the underlying 8 bytes at `entries[128]` were never cleared. They still hold `secret[:8]`.
