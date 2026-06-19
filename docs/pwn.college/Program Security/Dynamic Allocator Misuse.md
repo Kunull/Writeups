@@ -4585,7 +4585,7 @@ free(1), free(0)
 └──────────────────┘
 ```
 
-**Step 2: Poison chunk `A`'s next pointer to secret_addr**
+**Step 2: Poison chunk `A`'s next pointer to `secret_addr`**
 
 Since `ptr[0]` is a dangling pointer to chunk A, `scanf` lets us write directly into the freed chunk's memory. The first 8 bytes of a freed chunk are its `next` pointer, so we overwrite it with `secret_addr`. Chunk B is now orphaned.
 
