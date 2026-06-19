@@ -3092,7 +3092,7 @@ We can overwrite this with the address of the `secret` plus 8.
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
 ┆  tcache_entry A  ┆
 ├──────────────────┤
-│  next: &SECRET   │ ────╮
+│  next: &SECRET2  │ ────╮
 ├──────────────────┤     │
 │    key: Void     │     │
 └──────────────────┘     │
