@@ -5621,8 +5621,8 @@ The sequence is:
 5. `echo(0, 8)` — `/bin/echo` prints the bytes at `ptr[0] + 8`, which is `argv[1]`, the address of `v4` on echo's stack
 
 ```
-┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  chunk A (ptr[0], also echo's internal argv array)      ┆
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  chunk A (ptr[0], also echo's internal argv array)    ┆
 ├───────────────────────────────────────────────────────┤
 │  +0x00: argv[0] = &"/bin/echo"  ← binary leak         │
 ├───────────────────────────────────────────────────────┤
