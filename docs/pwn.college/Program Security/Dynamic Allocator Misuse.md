@@ -5660,8 +5660,6 @@ base     = bin_leak - 0x33f8
 win_addr = base + 0x1b00
 ```
 
-Replace that section with this:
-
 For the stack leak, `argv[1]` points to `v4` which is at `[rbp-0xe]` inside echo's frame. We find the fixed offset between `v4` and main's return address using GDB:
 
 ```
@@ -5766,10 +5764,10 @@ Breakpoint hit at 0x5f3e5bba0c09
 
 From this we can extract:
 
-- echo's `rbp` = `0x7fff427b7c60`
-- echo's `v4` is at `[rbp-0xe]` = `0x7fff427b7c52`
-- main's `rbp` = `0x7fff427b7dc0` (stored at echo's `rbp+0x00`)
-- main's return address is at main's `rbp+0x8` = `0x7fff427b7dc8`
+- `echo()`'s `rbp` = `0x7fff427b7c60`
+- `echo()`'s `v4` is at `rbp-0xe` = `0x7fff427b7c52`
+- `main()`'s `rbp` = `0x7fff427b7dc0` (stored at `echo()`'s `rbp+0x00`)
+- `main()`'s return address is at `main()`'s `rbp+0x8` = `0x7fff427b7dc8`
 
 ```
 offset = 0x7fff427b7dc8 - 0x7fff427b7c52 = 0x176
