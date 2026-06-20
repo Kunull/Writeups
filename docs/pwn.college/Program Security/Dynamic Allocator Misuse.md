@@ -5614,21 +5614,21 @@ This chunk is never freed. However, if we free one of our own 32-byte chunks int
 
 The sequence is:
 
-1. `malloc(0, 32)` — allocate chunk A
-2. `free(0)` — put chunk A into tcache bin for 25-40 byte chunks
-3. `echo(0, 0)` — echo's `malloc(0x20)` pops chunk A from the tcache and writes its argv pointers into it. `ptr[0]` still points to chunk A since `free` never clears it.
-4. `echo(0, 0)` — `/bin/echo` prints the bytes at `ptr[0] + 0`, which is `argv[0]`, the address of `"/bin/echo"` in the binary
-5. `echo(0, 8)` — `/bin/echo` prints the bytes at `ptr[0] + 8`, which is `argv[1]`, the address of `v4` on echo's stack
+1. `malloc(0, 32)`: allocate chunk A
+2. `free(0)`: put chunk A into tcache bin for 25-40 byte chunks
+3. `echo(0, 0)`: echo's `malloc(0x20)` pops chunk A from the tcache and writes its argv pointers into it. `ptr[0]` still points to chunk A since `free` never clears it.
+4. `echo(0, 0)`: `/bin/echo` prints the bytes at `ptr[0] + 0`, which is `argv[0]`, the address of `"/bin/echo"` in the binary
+5. `echo(0, 8)`: `/bin/echo` prints the bytes at `ptr[0] + 8`, which is `argv[1]`, the address of `v4` on echo's stack
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
 ┆  chunk A (ptr[0], also echo's internal argv array)    ┆
 ├───────────────────────────────────────────────────────┤
-│  +0x00: argv[0] = &"/bin/echo"  ← binary leak         │
+│  +0x00: argv[0] = &"/bin/echo"  <- binary leak        │
 ├───────────────────────────────────────────────────────┤
-│  +0x08: argv[1] = &v4           ← stack leak          │
+│  +0x08: argv[1] = &v4           <- stack leak         │
 ├───────────────────────────────────────────────────────┤
-│  +0x10: argv[2] = ptr[0] + 0    ← heap address        │
+│  +0x10: argv[2] = ptr[0] + 0    <- heap address       │
 ├───────────────────────────────────────────────────────┤
 │  +0x18: argv[3] = NULL                                │
 └───────────────────────────────────────────────────────┘
