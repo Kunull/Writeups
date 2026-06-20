@@ -5583,25 +5583,42 @@ This challenge has no startup leaks and no `send_flag`. The goal is the same as 
 
 The `echo` command takes an index and an offset, and calls `execve("/bin/echo", argv, NULL)` where `argv[2] = ptr[idx] + offset`. This prints the bytes at that address as a string, giving us an arbitrary read within any allocation at any offset.
 
+Replace the "Leaking via Echo's Internal Chunk" section with this:
+
+---
+
 ### Leaking via Echo's Internal Chunk
 
-Every time `echo` is called, it runs `malloc(0x20)` internally and populates the resulting chunk with three pointers:
+Every time `echo` is called, it runs `malloc(0x20)` internally. Looking at the source:
 
-```
-argv[0] = pointer to "/bin/echo"   ← binary address
-argv[1] = pointer to v4 ("Data:")  ← stack address
-argv[2] = ptr[idx] + offset        ← our controlled address
+```c title="/challenge/echo-emanations-easy :: echo() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+char v4[6]; // [rsp+22h] [rbp-Eh] BYREF
+// ...
+strcpy(v4, "Data:");
+argv = (char **)malloc(0x20u);
+*argv       = "/bin/echo";        // argv[0] = address of "/bin/echo" in the binary
+argv[1]     = v4;                 // argv[1] = address of v4 on echo's stack
+argv[2]     = (char *)(a1 + a2); // argv[2] = ptr[idx] + offset
+argv[3]     = nullptr;
+
+# ---- snip ----
 ```
 
-This chunk is never freed. However, if we free one of our own 32-byte chunks into the tcache first, echo's internal `malloc(0x20)` will pop it. Our dangling pointer still points to that chunk, so we can call `echo` again to read the pointers echo wrote into it.
+`argv` is just a pointer to whatever `malloc` returns. Every assignment to `argv[0]`, `argv[1]`, `argv[2]`, `argv[3]` writes directly into that chunk's memory at offsets 0, 8, 16, 24 respectively since each pointer is 8 bytes wide. So after those four lines, the chunk contains a binary address at offset 0 and a stack address at offset 8.
+
+`v4` is a 6-byte array on echo's stack holding the string `"Data:"`. When echo does `argv[1] = v4`, it stores the address of this stack variable into the chunk, giving us a pointer into echo's own stack frame.
+
+This chunk is never freed. However, if we free one of our own 32-byte chunks into the tcache first, echo's internal `malloc(0x20)` will pop it. Our dangling `ptr[0]` still points to that chunk, so we can call `echo` again to read the pointers echo wrote into it.
 
 The sequence is:
 
 1. `malloc(0, 32)` — allocate chunk A
 2. `free(0)` — put chunk A into tcache bin for 25-40 byte chunks
-3. `echo(0, 0)` — echo's `malloc(0x20)` pops chunk A and writes its pointers into it
-4. `echo(0, 0)` — reads `argv[0]` from chunk A: a pointer to `"/bin/echo"` in the binary
-5. `echo(0, 8)` — reads `argv[1]` from chunk A: a pointer to `v4` on echo's stack
+3. `echo(0, 0)` — echo's `malloc(0x20)` pops chunk A from the tcache and writes its argv pointers into it. `ptr[0]` still points to chunk A since `free` never clears it.
+4. `echo(0, 0)` — `/bin/echo` prints the bytes at `ptr[0] + 0`, which is `argv[0]`, the address of `"/bin/echo"` in the binary
+5. `echo(0, 8)` — `/bin/echo` prints the bytes at `ptr[0] + 8`, which is `argv[1]`, the address of `v4` on echo's stack
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
