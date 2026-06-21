@@ -6258,7 +6258,7 @@ double free or corruption (out)
 Aborted
 ```
 
-Instead we use TCACHE poisoning. The `stack_malloc_win` command helpfully prints `v15`'s address before doing the malloc check, so we can read it from the output. We then poison a freed heap chunk's `next` pointer to point at `v15`, causing the next `malloc(63)` call to return it.
+Instead we use TCACHE poisoning. The `stack_malloc_win` command helpfully prints `v15`'s address before doing the malloc check, so we can read it from the output. We then poison a freed heap chunk's `next` pointer to point at `v15`, causing the next `malloc(63)` call to return the `v15` chunk.
 
 The TCACHE bin for `malloc(63)` is the 57-72 byte bin (bin `#3`). We allocate two chunks of size 72 to match this bin, free them, and poison the first chunk's `next`:
 
