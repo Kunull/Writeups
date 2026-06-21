@@ -5177,7 +5177,7 @@ win_addr = leaked_main_addr - 0xfd
 
 ### Tcache Poisoning to Overwrite the Return Address
 
-The program has no secret to leak and no authorization check. The only way out is to make `main` return to `win()` instead of back to `__libc_start_main`. We do this by poisoning the TCACHE to hand us a pointer directly onto the stack, at `main`'s return address, and then writing `win_addr` there with `scanf`.
+The program has no secret to leak and no authorization check. The only way out is to make `main` return to `win()` instead of back to `__libc_start_main()`. We do this by poisoning the TCACHE to hand us a pointer directly onto the stack, at `main()`'s return address, and then writing `win_addr` there with `scanf`.
 
 We allocate two chunks, free them to populate the TCACHE, then use `scanf` on the dangling pointer to overwrite chunk A's `next` with the return address on the stack:
 
@@ -5241,7 +5241,7 @@ Now we `malloc` twice. The first allocation returns chunk A (real heap, harmless
 └──────────────────────────┘
 ```
 
-We then call `scanf` on `ptr[1]` and write `win_addr` into it. When we type `quit`, `main` returns and jumps to `win()` instead of back to libc.
+We then call `scanf` on `ptr[1]` and write `win_addr` into it. When we type `quit`, `main()` returns and jumps to `win()` instead of back to libc.
 
 ### Exploit
 
