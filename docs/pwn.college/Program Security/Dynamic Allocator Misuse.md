@@ -6492,8 +6492,12 @@ For `free` to accept a pointer, the allocator checks the size field stored 8 byt
 
 Every heap chunk in glibc has a fixed layout. The pointer returned by `malloc` points to the user data, but the 8 bytes before it contain the chunk's size field, and the 8 bytes before that contain the previous chunk's size:
 
+<figure style={{ textAlign: 'center' }}>
+   <img alt="image" src="https://github.com/user-attachments/assets/eb0d2bc8-1314-4319-8063-89d5ad40e325" />
+   <figcaption>Source: [Azeria labs](https://azeria-labs.com/heap-exploitation-part-1-understanding-the-glibc-heap-implementation/)</figcaption>
+</figure>
 
-
+When `free(ptr)` is called, glibc reads `ptr - 0x8` to get the chunk size and determine which bin to use. For real heap chunks this field is written automatically by `malloc` at allocation time. Since `v13` is on the stack, nothing ever wrote a valid size there, so `free` aborts with `munmap_chunk(): invalid pointer`.
 
 `v13` is at `[rbp-0x50]` and `v12` (the `stack_scanf` buffer) is at `[rbp-0x90]`. The offset between them is `0x40` = 64 bytes. Since `stack_scanf` reads up to 127 bytes, we can write past `v12` and into the memory just before `v13`.
 
