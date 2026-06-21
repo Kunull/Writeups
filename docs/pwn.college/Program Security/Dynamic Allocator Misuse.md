@@ -6490,6 +6490,11 @@ The goal is the same as the easy version: make `malloc(0x75)` return `v13`'s add
 
 For `free` to accept a pointer, the allocator checks the size field stored 8 bytes before the pointer (`ptr - 0x8`). If that value is not a plausible chunk size, the allocator aborts.
 
+Every heap chunk in glibc has a fixed layout. The pointer returned by `malloc` points to the user data, but the 8 bytes before it contain the chunk's size field, and the 8 bytes before that contain the previous chunk's size:
+
+
+
+
 `v13` is at `[rbp-0x50]` and `v12` (the `stack_scanf` buffer) is at `[rbp-0x90]`. The offset between them is `0x40` = 64 bytes. Since `stack_scanf` reads up to 127 bytes, we can write past `v12` and into the memory just before `v13`.
 
 The fake size field needs to sit at `v13 - 0x8` = `rbp-0x58`, which is `rbp-0x90 + 0x38` = 56 bytes into the `stack_scanf` buffer. We write 56 bytes of padding followed by a valid size value.
