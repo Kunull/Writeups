@@ -5634,7 +5634,7 @@ The sequence is:
 └───────────────────────────────────────────────────────┘
 ```
 
-### Calculating win and ret
+### Calculating `win()` and `ret`
 
 `"/bin/echo"` lives at file offset `0x33f8` in the binary:
 
