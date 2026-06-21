@@ -75,7 +75,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
       {
         while ( 1 )
         {
-          print_tcache(main_thread_tcache);
+          print_TCACHE(main_thread_TCACHE);
           puts(byte_2419);
           printf("[*] Function (malloc/free/puts/read_flag/quit): ");
           __isoc99_scanf("%127s", s1);
@@ -591,7 +591,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
       {
         while ( 1 )
         {
-          print_tcache(main_thread_tcache);
+          print_TCACHE(main_thread_TCACHE);
           puts(byte_2441);
           printf("[*] Function (malloc/free/puts/read_flag/quit): ");
           __isoc99_scanf("%127s", s1);
@@ -803,9 +803,9 @@ Instead of immediately putting newly freed chunks onto the correct bin, the heap
 This only happens if the large bin / cache is used instead of Tcache to allocated memory. For that we have to allocate a chunk of size greater than 1032 bytes, as Tcache only handles memory allocation upto 1032 bytes.
 
 Currently, the `ptmalloc` caching design is (in order of use):
-- 64 singly-linked tcache bins for allocations of size 16 to 1032 (functionally "covers" fastbins and smallbins)
+- 64 singly-linked TCACHE bins for allocations of size 16 to 1032 (functionally "covers" fastbins and smallbins)
 - 10 singly-linked "fast" bins for allocations of size up to 160 bytes
-- 1 doubly-linked "unsorted" bin to quickly stash freed chunks that don't fit into tcache or fastbins
+- 1 doubly-linked "unsorted" bin to quickly stash freed chunks that don't fit into TCACHE or fastbins
 - 62 doubly-linked "small" bins for allocations up to 512 bytes
 - 63 doubly-linked "large" bins (anything over 512 bytes) that contain different-sized chunks
 
@@ -907,7 +907,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
       {
         while ( 1 )
         {
-          print_tcache(main_thread_tcache);
+          print_TCACHE(main_thread_TCACHE);
           puts(byte_246E);
           printf("[*] Function (malloc/free/puts/read_flag/quit): ");
           __isoc99_scanf("%127s", s1);
@@ -1274,7 +1274,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
         {
           while ( 1 )
           {
-            print_tcache(main_thread_tcache);
+            print_TCACHE(main_thread_TCACHE);
             puts(byte_246E);
             printf("[*] Function (malloc/free/puts/scanf/read_flag/quit): ");
             __isoc99_scanf("%127s", s1);
@@ -1332,7 +1332,7 @@ In this challege we have to leverage Double Free vulnerability.
 
 ### Double free
 
-In the allocated memory chunks, the second set of 8 bytes include the pointer `key` to `tcache_perthread_struct`. Once a chunk is allocated, the `key` pointer no longer points to `tcache_perthread_struct` and is set to `NULL`. This state of the `key` is what helps Tcache distinguish free chunks from allocated ones.
+In the allocated memory chunks, the second set of 8 bytes include the pointer `key` to `TCACHE_perthread_struct`. Once a chunk is allocated, the `key` pointer no longer points to `TCACHE_perthread_struct` and is set to `NULL`. This state of the `key` is what helps Tcache distinguish free chunks from allocated ones.
 
 ```
 a = malloc(16)
@@ -1345,7 +1345,7 @@ a = malloc(16)
 
 
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  tcache_perthread_struct Void                                        ┊
+┊  TCACHE_perthread_struct Void                                        ┊
 ┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
 ┊    counts: ┃ count_16: 1    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
 ┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
@@ -1357,7 +1357,7 @@ a = malloc(16)
                          │
                          │
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐     │
-┆  tcache_entry A  ┆     │
+┆  TCACHE_entry A  ┆     │
 ├──────────────────┤     │
 │  ..............  │     │
 ├──────────────────┤     │
@@ -1368,7 +1368,7 @@ a = malloc(16)
          │
          v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry B  ┆
+┆  TCACHE_entry B  ┆
 ├──────────────────┤
 │    next: NULL    │ 
 ├──────────────────┤
@@ -1376,11 +1376,11 @@ a = malloc(16)
 └──────────────────┘
 ```
 
-When `free()` is called on a chunk that fits in the Tcache, the allocator checks if that chunk's `key` field already points to the `tcache_perthread_struct` for the current thread.
+When `free()` is called on a chunk that fits in the Tcache, the allocator checks if that chunk's `key` field already points to the `TCACHE_perthread_struct` for the current thread.
 
-If `key == tcache_perthread_struct`, the allocator scans the relevant Tcache bin to see if that chunk is already there. If it finds it, the program crashes with a "double free or corruption (tcache)" error.
+If `key == TCACHE_perthread_struct`, the allocator scans the relevant Tcache bin to see if that chunk is already there. If it finds it, the program crashes with a "double free or corruption (TCACHE)" error.
 
-If `key != tcache_perthread_struct`, the allocator assumes the chunk is currently allocated and proceeds to add it to the Tcache.
+If `key != TCACHE_perthread_struct`, the allocator assumes the chunk is currently allocated and proceeds to add it to the Tcache.
 
 ```
 a = malloc(16)
@@ -1395,7 +1395,7 @@ free(a)
 
 
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  tcache_perthread_struct Void                                        ┊
+┊  TCACHE_perthread_struct Void                                        ┊
 ┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
 ┊    counts: ┃ count_16: 2    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
 ┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
@@ -1407,7 +1407,7 @@ free(a)
          │
          v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry A  ┆
+┆  TCACHE_entry A  ┆
 ├──────────────────┤
 │    next: &B      │ ────╮
 ├──────────────────┤     │
@@ -1418,7 +1418,7 @@ free(a)
          │
          v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry B  ┆
+┆  TCACHE_entry B  ┆
 ├──────────────────┤
 │    next: NULL    │ 
 ├──────────────────┤
@@ -1694,7 +1694,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
         {
           while ( 1 )
           {
-            print_tcache(main_thread_tcache);
+            print_TCACHE(main_thread_TCACHE);
             puts(byte_2419);
             printf("[*] Function (malloc/free/puts/read_flag/puts_flag/quit): ");
             __isoc99_scanf("%127s", choice);
@@ -1803,11 +1803,11 @@ Then, if we pass `puts_flag`, it checks if the `size_4` is zeroed out. If it is,
 
 ### Tcache chunk chaining
 
-When `free()` is called on a chunk that fits in the Tcache, the allocator checks if that chunk's `key` field already points to the `tcache_perthread_struct` for the current thread.
+When `free()` is called on a chunk that fits in the Tcache, the allocator checks if that chunk's `key` field already points to the `TCACHE_perthread_struct` for the current thread.
 
-If `key == tcache_perthread_struct`, the allocator scans the relevant Tcache bin to see if that chunk is already there. If it finds it, the program crashes with a "double free or corruption (tcache)" error.
+If `key == TCACHE_perthread_struct`, the allocator scans the relevant Tcache bin to see if that chunk is already there. If it finds it, the program crashes with a "double free or corruption (TCACHE)" error.
 
-If `key != tcache_perthread_struct`, the allocator assumes the chunk is currently allocated and proceeds to add it to the Tcache by setting that chunk's `key` pointer to the `tcache_perthread_struct` for the current thread. It also adds that chunk to the beginning of the singly-linked list by setting the chunks `next` pointer to the address of the previously first chunk.
+If `key != TCACHE_perthread_struct`, the allocator assumes the chunk is currently allocated and proceeds to add it to the Tcache by setting that chunk's `key` pointer to the `TCACHE_perthread_struct` for the current thread. It also adds that chunk to the beginning of the singly-linked list by setting the chunks `next` pointer to the address of the previously first chunk.
 
 ```
 a = malloc(16)
@@ -1818,7 +1818,7 @@ free(a)
 
 
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  tcache_perthread_struct Void                                        ┊
+┊  TCACHE_perthread_struct Void                                        ┊
 ┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
 ┊    counts: ┃ count_16: 2    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
 ┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
@@ -1830,7 +1830,7 @@ free(a)
          │
          v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry A  ┆
+┆  TCACHE_entry A  ┆
 ├──────────────────┤
 │    next: &B      │ ────╮
 ├──────────────────┤     │
@@ -1841,7 +1841,7 @@ free(a)
          │
          v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry B  ┆
+┆  TCACHE_entry B  ┆
 ├──────────────────┤
 │    next: NULL    │ 
 ├──────────────────┤
@@ -1850,7 +1850,7 @@ free(a)
 ```
 
 Knowing this, if we make the program read the flag to a chunk that we control using UAF, and then free that chunk, when it's `next` pointer is be set, the `size_4` check is overwritten.
-We can `free` that chunk, because `read_flag` causes the `key` pointer which was pointing to `tcache_perthread_struct`, to be overwritten.
+We can `free` that chunk, because `read_flag` causes the `key` pointer which was pointing to `TCACHE_perthread_struct`, to be overwritten.
 
 Thus we will be able to use the `puts_flag` command and get the flag.
 
@@ -2197,7 +2197,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
         {
           while ( 1 )
           {
-            print_tcache(main_thread_tcache);
+            print_TCACHE(main_thread_TCACHE);
             puts(byte_4035BA);
             printf("[*] Function (malloc/free/puts/scanf/send_flag/quit): ");
             __isoc99_scanf("%127s", choice);
@@ -2286,7 +2286,7 @@ Let's say we allocate two chunks `A`, `B` of memory and then free them. It would
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  tcache_perthread_struct Void                                        ┊
+┊  TCACHE_perthread_struct Void                                        ┊
 ┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
 ┊    counts: ┃ count_16: 2    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
 ┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
@@ -2298,7 +2298,7 @@ Let's say we allocate two chunks `A`, `B` of memory and then free them. It would
          │
          v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry A  ┆
+┆  TCACHE_entry A  ┆
 ├──────────────────┤
 │    next: &B      │ ────╮
 ├──────────────────┤     │
@@ -2309,7 +2309,7 @@ Let's say we allocate two chunks `A`, `B` of memory and then free them. It would
          │
          v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry B  ┆
+┆  TCACHE_entry B  ┆
 ├──────────────────┤
 │    next: NULL    │ 
 ├──────────────────┤
@@ -2324,7 +2324,7 @@ This would cause the chunk `B` to be removed from the singly-linked list, and th
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  tcache_perthread_struct Void                                        ┊
+┊  TCACHE_perthread_struct Void                                        ┊
 ┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
 ┊    counts: ┃ count_16: 2    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
 ┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
@@ -2336,7 +2336,7 @@ This would cause the chunk `B` to be removed from the singly-linked list, and th
          │
          v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry A  ┆
+┆  TCACHE_entry A  ┆
 ├──────────────────┤
 │  next: &SECRET   │ ────╮
 ├──────────────────┤     │
@@ -2345,7 +2345,7 @@ This would cause the chunk `B` to be removed from the singly-linked list, and th
                          │
                          │
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐     │
-┆  tcache_entry B  ┆     │
+┆  TCACHE_entry B  ┆     │
 ├──────────────────┤     │
 │    next: NULL    │     │
 ├──────────────────┤     │
@@ -2364,11 +2364,11 @@ This would cause the chunk `B` to be removed from the singly-linked list, and th
 └──────────────────┘
 ```
 
-Now, if we allocate two chunks again of the same size, the chunk `A` and `SECRET` would be allocated because to `tcache_perthread_struct`, those are the two free chunks. And the first 8 bytes of the `SECRET` chunk would hold the secret value.
+Now, if we allocate two chunks again of the same size, the chunk `A` and `SECRET` would be allocated because to `TCACHE_perthread_struct`, those are the two free chunks. And the first 8 bytes of the `SECRET` chunk would hold the secret value.
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  tcache_perthread_struct Void                                               ┊
+┊  TCACHE_perthread_struct Void                                               ┊
 ┊            ┏━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
 ┊    counts: ┃ count_128: 0          ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
 ┊            ┣━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
@@ -2378,7 +2378,7 @@ Now, if we allocate two chunks again of the same size, the chunk `A` and `SECRET
 
 
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry A  ┆
+┆  TCACHE_entry A  ┆
 ├──────────────────┤
 │  ..............  │ 
 ├──────────────────┤  
@@ -2848,7 +2848,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
         {
           while ( 1 )
           {
-            print_tcache(main_thread_tcache);
+            print_TCACHE(main_thread_TCACHE);
             puts(byte_4035BA);
             printf("[*] Function (malloc/free/puts/scanf/send_flag/quit): ");
             __isoc99_scanf("%127s", choice);
@@ -2937,7 +2937,7 @@ Let's say we allocate two chunks `A`, `B` of memory and then free them. It would
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  tcache_perthread_struct Void                                        ┊
+┊  TCACHE_perthread_struct Void                                        ┊
 ┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
 ┊    counts: ┃ count_16: 2    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
 ┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
@@ -2949,7 +2949,7 @@ Let's say we allocate two chunks `A`, `B` of memory and then free them. It would
          │
          v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry A  ┆
+┆  TCACHE_entry A  ┆
 ├──────────────────┤
 │    next: &B      │ ────╮
 ├──────────────────┤     │
@@ -2960,7 +2960,7 @@ Let's say we allocate two chunks `A`, `B` of memory and then free them. It would
          │
          v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry B  ┆
+┆  TCACHE_entry B  ┆
 ├──────────────────┤
 │    next: NULL    │ 
 ├──────────────────┤
@@ -2975,7 +2975,7 @@ This would cause the chunk `B` to be removed from the singly-linked list, and th
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  tcache_perthread_struct Void                                        ┊
+┊  TCACHE_perthread_struct Void                                        ┊
 ┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
 ┊    counts: ┃ count_16: 2    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
 ┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
@@ -2987,7 +2987,7 @@ This would cause the chunk `B` to be removed from the singly-linked list, and th
          │
          v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry A  ┆
+┆  TCACHE_entry A  ┆
 ├──────────────────┤
 │  next: &SECRET   │ ────╮
 ├──────────────────┤     │
@@ -2996,7 +2996,7 @@ This would cause the chunk `B` to be removed from the singly-linked list, and th
                          │
                          │
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐     │
-┆  tcache_entry B  ┆     │
+┆  TCACHE_entry B  ┆     │
 ├──────────────────┤     │
 │    next: NULL    │     │
 ├──────────────────┤     │
@@ -3015,14 +3015,14 @@ This would cause the chunk `B` to be removed from the singly-linked list, and th
 └───────────────────┘
 ```
 
-Now, if we allocate two chunks again of the same size, the chunk `A` and `SECRET` would be allocated because to `tcache_perthread_struct`, those are the two free chunks. The first 8 bytes of the `SECRET` chunk would hold the first 8 bytes of secret value, and the next 8 bytes would be right after that.
+Now, if we allocate two chunks again of the same size, the chunk `A` and `SECRET` would be allocated because to `TCACHE_perthread_struct`, those are the two free chunks. The first 8 bytes of the `SECRET` chunk would hold the first 8 bytes of secret value, and the next 8 bytes would be right after that.
 
 However, due to Tcache's behaviour of setting the `key` pointer to `NULL` after allocating a chunk, the trailing 8 bytes of the secret value are clobbered.
-So, by polluting `tcache_perthread_struct` once, we are able to get only the first 8 bytes.
+So, by polluting `TCACHE_perthread_struct` once, we are able to get only the first 8 bytes.
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  tcache_perthread_struct Void                                               ┊
+┊  TCACHE_perthread_struct Void                                               ┊
 ┊            ┏━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
 ┊    counts: ┃ count_128: 0          ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
 ┊            ┣━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
@@ -3032,7 +3032,7 @@ So, by polluting `tcache_perthread_struct` once, we are able to get only the fir
 
 
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry A  ┆
+┆  TCACHE_entry A  ┆
 ├──────────────────┤
 │  ..............  │ 
 ├──────────────────┤  
@@ -3053,7 +3053,7 @@ For the next, 8 bytes, we have to pollute Tcache `entry_struct` again, but this 
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  tcache_perthread_struct Void                                        ┊
+┊  TCACHE_perthread_struct Void                                        ┊
 ┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
 ┊    counts: ┃ count_16: 1    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
 ┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
@@ -3065,7 +3065,7 @@ For the next, 8 bytes, we have to pollute Tcache `entry_struct` again, but this 
          │
          v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry A  ┆
+┆  TCACHE_entry A  ┆
 ├──────────────────┤
 │  next: &SECRET   │
 ├──────────────────┤     
@@ -3078,7 +3078,7 @@ We can overwrite this with the address of the `secret` plus 8.
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  tcache_perthread_struct Void                                        ┊
+┊  TCACHE_perthread_struct Void                                        ┊
 ┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
 ┊    counts: ┃ count_16: 2    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
 ┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
@@ -3090,7 +3090,7 @@ We can overwrite this with the address of the `secret` plus 8.
          │
          v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry A  ┆
+┆  TCACHE_entry A  ┆
 ├──────────────────┤
 │  next: &SECRET2  │ ────╮
 ├──────────────────┤     │
@@ -3109,11 +3109,11 @@ We can overwrite this with the address of the `secret` plus 8.
 └────────────────────┘
 ```
 
-Now, if we allocate two chunks again of the same size, the chunk `A` and `SECRET2` would be allocated because to `tcache_perthread_struct`, those are the two free chunks. And the first 8 bytes of the `SECRET` chunk would hold the remaining secret value.
+Now, if we allocate two chunks again of the same size, the chunk `A` and `SECRET2` would be allocated because to `TCACHE_perthread_struct`, those are the two free chunks. And the first 8 bytes of the `SECRET` chunk would hold the remaining secret value.
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  tcache_perthread_struct Void                                                 ┊
+┊  TCACHE_perthread_struct Void                                                 ┊
 ┊            ┏━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
 ┊    counts: ┃ count_128: 0            ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
 ┊            ┣━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
@@ -3123,7 +3123,7 @@ Now, if we allocate two chunks again of the same size, the chunk `A` and `SECRET
 
 
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry A  ┆
+┆  TCACHE_entry A  ┆
 ├──────────────────┤
 │  ..............  │ 
 ├──────────────────┤  
@@ -3382,7 +3382,7 @@ hacker@dynamic-allocator-misuse~seeking-substantial-secrets-hard:/$ /challenge/s
 [*] Function (malloc/free/puts/scanf/send_flag/quit): 
 ```
 
-The solution is the same as the [easy one](#polluting-tcache-entry_struct-multiple-times), only difference being that we have to find the address of the secret value.
+The solution is the same as the [easy one](#polluting-TCACHE-entry_struct-multiple-times), only difference being that we have to find the address of the secret value.
 
 ### Binary Analysis
 
@@ -3697,7 +3697,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
         {
           while ( 1 )
           {
-            print_tcache(main_thread_tcache);
+            print_TCACHE(main_thread_TCACHE);
             puts(byte_4035D1);
             printf("[*] Function (malloc/free/puts/scanf/send_flag/quit): ");
             __isoc99_scanf("%127s", choice);
@@ -3786,7 +3786,7 @@ Let's say we allocate two chunks `A`, `B` of memory and then free them:
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  tcache_perthread_struct Void                                        ┊
+┊  TCACHE_perthread_struct Void                                        ┊
 ┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
 ┊    counts: ┃ count_16: 2    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
 ┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
@@ -3798,7 +3798,7 @@ Let's say we allocate two chunks `A`, `B` of memory and then free them:
          │
          v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry A  ┆
+┆  TCACHE_entry A  ┆
 ├──────────────────┤
 │    next: &B      │ ────╮
 ├──────────────────┤     │
@@ -3809,7 +3809,7 @@ Let's say we allocate two chunks `A`, `B` of memory and then free them:
          │
          v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry B  ┆
+┆  TCACHE_entry B  ┆
 ├──────────────────┤
 │    next: NULL    │
 ├──────────────────┤
@@ -3821,7 +3821,7 @@ We then use `scanf` on the dangling pointer at index `0` (chunk `A`) to overwrit
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  tcache_perthread_struct Void                                        ┊
+┊  TCACHE_perthread_struct Void                                        ┊
 ┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
 ┊    counts: ┃ count_16: 2    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
 ┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
@@ -3833,7 +3833,7 @@ We then use `scanf` on the dangling pointer at index `0` (chunk `A`) to overwrit
          │
          v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry A  ┆
+┆  TCACHE_entry A  ┆
 ├──────────────────┤
 │ next: target_adr │ ────╮
 ├──────────────────┤     │
@@ -3841,7 +3841,7 @@ We then use `scanf` on the dangling pointer at index `0` (chunk `A`) to overwrit
 └──────────────────┘     │
                          │
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐     │   (B is now orphaned, A skips over it)
-┆  tcache_entry B  ┆     │
+┆  TCACHE_entry B  ┆     │
 ├──────────────────┤     │
 │    next: NULL    │     │
 ├──────────────────┤     │
@@ -3863,7 +3863,7 @@ Now we call `malloc` twice. The first allocation returns chunk `A` (a real heap 
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  tcache_perthread_struct Void                                        ┊
+┊  TCACHE_perthread_struct Void                                        ┊
 ┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
 ┊    counts: ┃ count_16: 0    ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
 ┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
@@ -3873,7 +3873,7 @@ Now we call `malloc` twice. The first allocation returns chunk `A` (a real heap 
 
 
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry A  ┆ (allocated as ptr[0])
+┆  TCACHE_entry A  ┆ (allocated as ptr[0])
 ├──────────────────┤
 │  ..............  │
 ├──────────────────┤
@@ -4391,7 +4391,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
         {
           while ( 1 )
           {
-            print_tcache(main_thread_tcache);
+            print_TCACHE(main_thread_TCACHE);
             puts(byte_4035D4);
             printf("[*] Function (malloc/free/puts/scanf/send_flag/quit): ");
             __isoc99_scanf("%127s", choice);
@@ -4509,8 +4509,8 @@ A correct implementation would have validated **before** calling `malloc`:
 ```c title="/challenge/seeking-smuggled-secrets-easy :: main() :: Pseudocode" showLineNumbers
 # ---- snip ----
 
-// CORRECT: check what tcache is about to return before popping it
-tcache_entry *next = tcache->entries[tc_idx];
+// CORRECT: check what TCACHE is about to return before popping it
+TCACHE_entry *next = TCACHE->entries[tc_idx];
 if ( next < (char *)&secret + 65536 )
 {
   puts("Invalid allocation detected: rejected!");
@@ -4522,25 +4522,25 @@ ptr[v7] = malloc(size);
 # ---- snip ----
 ```
 
-But this program checks the **result** of `malloc` after the fact. By then the tcache has already popped `secret_addr` and advanced its internal `entries[idx]` field. The guard closes the door, but the horse has already bolted, and that side effect is exactly what we will exploit.
+But this program checks the **result** of `malloc` after the fact. By then the TCACHE has already popped `secret_addr` and advanced its internal `entries[idx]` field. The guard closes the door, but the horse has already bolted, and that side effect is exactly what we will exploit.
 
 ### Leaking via Stale Tcache HEAD
 
-The tcache's `entries[]` array and `counts[]` array are independent. When `malloc` pops the last chunk from a bin, glibc does this:
+The TCACHE's `entries[]` array and `counts[]` array are independent. When `malloc` pops the last chunk from a bin, glibc does this:
 
 ```c
 *entries = REVEAL_PTR(e->next);   // entries[idx] = whatever was in popped chunk's next
---(tcache->counts[tc_idx]);        // count drops to 0
+--(TCACHE->counts[tc_idx]);        // count drops to 0
 ```
 
-Nothing zeroes `entries[idx]` when the count reaches 0. If the popped chunk was `secret_addr`, then `entries[idx]` now holds `*(secret_addr)`, which is `secret[:8]`. The `print_tcache` helper iterates `count` times from `entries[idx]`, so when count is 0 the loop body never runs and the head displays as `(nil)`. The display layer hides it, but the raw memory still holds the secret bytes.
+Nothing zeroes `entries[idx]` when the count reaches 0. If the popped chunk was `secret_addr`, then `entries[idx]` now holds `*(secret_addr)`, which is `secret[:8]`. The `print_TCACHE` helper iterates `count` times from `entries[idx]`, so when count is 0 the loop body never runs and the head displays as `(nil)`. The display layer hides it, but the raw memory still holds the secret bytes.
 
-The next time we `free` a chunk of the same size class, `tcache_put` runs:
+The next time we `free` a chunk of the same size class, `TCACHE_put` runs:
 
 ```c
-e->next = PROTECT_PTR(&e->next, tcache->entries[tc_idx]);
-tcache->entries[tc_idx] = e;
-++(tcache->counts[tc_idx]);
+e->next = PROTECT_PTR(&e->next, TCACHE->entries[tc_idx]);
+TCACHE->entries[tc_idx] = e;
+++(TCACHE->counts[tc_idx]);
 ```
 
 The new chunk's `next` is set to whatever is currently in `entries[idx]`, with no validation. The stale secret bytes get copied straight into the freed chunk's first 8 bytes, where `puts` can read them.
@@ -4554,7 +4554,7 @@ free(1), free(0)
 
 
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  tcache_perthread_struct Void                                        ┊
+┊  TCACHE_perthread_struct Void                                        ┊
 ┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
 ┊    counts: ┃ count_128: 2   ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
 ┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
@@ -4566,7 +4566,7 @@ free(1), free(0)
          │
          v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry A  ┆
+┆  TCACHE_entry A  ┆
 ├──────────────────┤
 │    next: &B      │────╮
 ├──────────────────┤    │
@@ -4577,7 +4577,7 @@ free(1), free(0)
         │
         v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry B  ┆
+┆  TCACHE_entry B  ┆
 ├──────────────────┤
 │    next: NULL    │
 ├──────────────────┤
@@ -4607,7 +4607,7 @@ scanf(0, p64(secret_addr))
 
 
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  tcache_perthread_struct Void                                        ┊
+┊  TCACHE_perthread_struct Void                                        ┊
 ┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
 ┊    counts: ┃ count_128: 2   ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
 ┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
@@ -4619,7 +4619,7 @@ scanf(0, p64(secret_addr))
          │
          v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry A  ┆
+┆  TCACHE_entry A  ┆
 ├──────────────────┤
 │ next: &SECRET    │────╮   (B is now orphaned)
 ├──────────────────┤    │
@@ -4640,7 +4640,7 @@ scanf(0, p64(secret_addr))
 
 **Step 3: `malloc` twice, second one gets discarded**
 
-The first `malloc` pops chunk A normally. It is a real heap address, the guard passes. The second `malloc` pops `secret_addr` and advances the tcache's `entries[idx]` field to `*(secret_addr)`, which is `secret[:8]`. Then the guard fires and nullifies `ptr[1]`. The pointer is gone, but the stale `secret[:8]` value is now sitting in `entries[idx]`.
+The first `malloc` pops chunk A normally. It is a real heap address, the guard passes. The second `malloc` pops `secret_addr` and advances the TCACHE's `entries[idx]` field to `*(secret_addr)`, which is `secret[:8]`. Then the guard fires and nullifies `ptr[1]`. The pointer is gone, but the stale `secret[:8]` value is now sitting in `entries[idx]`.
 
 ```c title="/challenge/seeking-smuggled-secrets-easy :: main() :: Pseudocode" showLineNumbers
 # ---- snip ----
@@ -4668,7 +4668,7 @@ malloc(1) → ptr[1] = NULL (secret_addr discarded by guard)
 
 
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  tcache_perthread_struct Void                                               ┊
+┊  TCACHE_perthread_struct Void                                               ┊
 ┊            ┏━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓      ┊
 ┊    counts: ┃ count_128: 0          ┃ count_32: 0    ┃ count_48: 0    ┃ ...  ┊
 ┊            ┣━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫      ┊
@@ -4678,7 +4678,7 @@ malloc(1) → ptr[1] = NULL (secret_addr discarded by guard)
 
 
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry A  ┆
+┆  TCACHE_entry A  ┆
 ├──────────────────┤
 │ next: &SECRET    │
 ├──────────────────┤    
@@ -4699,14 +4699,14 @@ The key insight is that `entries[128]` and `counts[128]` are independent. The di
 
 **Step 4: Free chunk `A`, its next gets set to the stale entries value**
 
-When we `free(0)`, `tcache_put` inserts chunk A at the front of the bin. The insertion sets chunk A's `next` to the **current value** at `entries[128]`, which is the stale `secret[:8]` from step 3. There is no check that this value is a valid pointer, it is just copied verbatim.
+When we `free(0)`, `TCACHE_put` inserts chunk A at the front of the bin. The insertion sets chunk A's `next` to the **current value** at `entries[128]`, which is the stale `secret[:8]` from step 3. There is no check that this value is a valid pointer, it is just copied verbatim.
 
 ```
 free(0)
 
 
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  tcache_perthread_struct Void                                        ┊
+┊  TCACHE_perthread_struct Void                                        ┊
 ┊            ┏━━━━━━━━━━━━━━━━┓                                        ┊
 ┊    counts: ┃ count_128: 1   ┃                                        ┊
 ┊            ┣━━━━━━━━━━━━━━━━┫                                        ┊
@@ -4718,7 +4718,7 @@ free(0)
          │
          v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry A  ┆ <── ptr[0] still points here (dangling)
+┆  TCACHE_entry A  ┆ <── ptr[0] still points here (dangling)
 ├──────────────────┤
 │ next: "lbaaifox" │ <── secret bytes smuggled in from stale entries
 ├──────────────────┤
@@ -4995,7 +4995,7 @@ def leak_8_bytes(target):
     free(0)
     scanf(0, p64(target))
     malloc(0, 128)
-    malloc(1, 128)  # discarded — tcache HEAD = secret bytes at target
+    malloc(1, 128)  # discarded — TCACHE HEAD = secret bytes at target
     free(0)         # chunk 0's next = secret bytes
     return puts(0).ljust(8, b"\x00")[:8]
 
@@ -5087,7 +5087,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
       {
         while ( 1 )
         {
-          print_tcache(main_thread_tcache);
+          print_TCACHE(main_thread_TCACHE);
           puts(byte_3588);
           printf("[*] Function (malloc/free/puts/scanf/quit): ");
           __isoc99_scanf("%127s", s1);
@@ -5165,7 +5165,7 @@ The two leaks give us everything we need:
 ```
 hacker@dynamic-allocator-misuse~sus-sequence-easy:/$ nm /challenge/sus-sequence-easy | grep -E "main|win"
 0000000000001afd T main
-0000000000005048 B main_thread_tcache
+0000000000005048 B main_thread_TCACHE
 0000000000001a00 T win
 ```
 
@@ -5177,13 +5177,13 @@ win_addr = leaked_main_addr - 0xfd
 
 ### Tcache Poisoning to Overwrite the Return Address
 
-The program has no secret to leak and no authorization check. The only way out is to make `main` return to `win()` instead of back to `__libc_start_main`. We do this by poisoning the tcache to hand us a pointer directly onto the stack, at `main`'s return address, and then writing `win_addr` there with `scanf`.
+The program has no secret to leak and no authorization check. The only way out is to make `main` return to `win()` instead of back to `__libc_start_main`. We do this by poisoning the TCACHE to hand us a pointer directly onto the stack, at `main`'s return address, and then writing `win_addr` there with `scanf`.
 
-We allocate two chunks, free them to populate the tcache, then use `scanf` on the dangling pointer to overwrite chunk A's `next` with the return address on the stack:
+We allocate two chunks, free them to populate the TCACHE, then use `scanf` on the dangling pointer to overwrite chunk A's `next` with the return address on the stack:
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  tcache_perthread_struct Void                                        ┊
+┊  TCACHE_perthread_struct Void                                        ┊
 ┊            ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓                       ┊
 ┊    counts: ┃ count_128: 2   ┃ count_32: 0    ┃  ...                  ┊
 ┊            ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫                       ┊
@@ -5195,7 +5195,7 @@ We allocate two chunks, free them to populate the tcache, then use `scanf` on th
          │
          v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry A  ┆
+┆  TCACHE_entry A  ┆
 ├──────────────────┤
 │  next: ret_addr  │ ────╮   (poisoned via scanf on dangling ptr[0])
 ├──────────────────┤     │
@@ -5212,11 +5212,11 @@ We allocate two chunks, free them to populate the tcache, then use `scanf` on th
 └──────────────────────────┘
 ```
 
-Now we `malloc` twice. The first allocation returns chunk A (real heap, harmless). The second pops `ret_addr` from the tcache, giving us `ptr[1]` pointing directly at `main`'s return address on the stack:
+Now we `malloc` twice. The first allocation returns chunk A (real heap, harmless). The second pops `ret_addr` from the TCACHE, giving us `ptr[1]` pointing directly at `main`'s return address on the stack:
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┊  tcache_perthread_struct Void                                               ┊
+┊  TCACHE_perthread_struct Void                                               ┊
 ┊            ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓                ┊
 ┊    counts: ┃ count_128: 0                 ┃ count_32: 0    ┃  ...           ┊
 ┊            ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫                ┊
@@ -5226,7 +5226,7 @@ Now we `malloc` twice. The first allocation returns chunk A (real heap, harmless
 
 
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  tcache_entry A  ┆  (ptr[0], allocated normally)
+┆  TCACHE_entry A  ┆  (ptr[0], allocated normally)
 ├──────────────────┤
 │  ..............  │
 ├──────────────────┤
@@ -5328,7 +5328,7 @@ hacker@dynamic-allocator-misuse~sus-sequence-hard:/$ /challenge/sus-sequence-har
 [*] Function (malloc/free/puts/scanf/quit):
 ```
 
-The solution is the same as the [easy version](#sus-sequence-easy). The only differences are that there is no `print_tcache` display, and we have to find the offset between `main` and `win` from the binary ourselves.
+The solution is the same as the [easy version](#sus-sequence-easy). The only differences are that there is no `print_TCACHE` display, and we have to find the offset between `main` and `win` from the binary ourselves.
 
 ### Binary Analysis
 
@@ -5486,7 +5486,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
       {
         while ( 1 )
         {
-          print_tcache(main_thread_tcache);
+          print_TCACHE(main_thread_TCACHE);
           puts(byte_3529);
           printf("[*] Function (malloc/free/echo/scanf/quit): ");
           __isoc99_scanf("%127s", s1);
@@ -5579,7 +5579,7 @@ unsigned __int64 __fastcall echo(__int64 a1, __int64 a2)
 }
 ```
 
-This challenge has no startup leaks and no `send_flag`. The goal is the same as the sus-sequence challenges: overwrite `main()`'s return address with `win()` via tcache poisoning. The difference is that we have to obtain the leaks ourselves using the `echo` command.
+This challenge has no startup leaks and no `send_flag`. The goal is the same as the sus-sequence challenges: overwrite `main()`'s return address with `win()` via TCACHE poisoning. The difference is that we have to obtain the leaks ourselves using the `echo` command.
 
 The `echo` command takes an index and an offset, and calls `execve("/bin/echo", argv, NULL)` where `argv[2] = ptr[idx] + offset`. This prints the bytes at that address as a string, giving us an arbitrary read within any allocation at any offset.
 
@@ -5610,13 +5610,13 @@ argv[3]     = nullptr;
 
 `v4` is a 6-byte array on echo's stack holding the string `"Data:"`. When echo does `argv[1] = v4`, it stores the address of this stack variable into the chunk, giving us a pointer into echo's own stack frame.
 
-This chunk is never freed. However, if we free one of our own 32-byte chunks into the tcache first, echo's internal `malloc(0x20)` will pop it. Our dangling `ptr[0]` still points to that chunk, so we can call `echo` again to read the pointers echo wrote into it.
+This chunk is never freed. However, if we free one of our own 32-byte chunks into the TCACHE first, echo's internal `malloc(0x20)` will pop it. Our dangling `ptr[0]` still points to that chunk, so we can call `echo` again to read the pointers echo wrote into it.
 
 The sequence is:
 
 1. `malloc(0, 32)`: allocate chunk A
-2. `free(0)`: put chunk A into tcache bin for 25-40 byte chunks
-3. `echo(0, 0)`: echo's `malloc(0x20)` pops chunk A from the tcache and writes its argv pointers into it. `ptr[0]` still points to chunk A since `free` never clears it.
+2. `free(0)`: put chunk A into TCACHE bin for 25-40 byte chunks
+3. `echo(0, 0)`: echo's `malloc(0x20)` pops chunk A from the TCACHE and writes its argv pointers into it. `ptr[0]` still points to chunk A since `free` never clears it.
 4. `echo(0, 0)`: `/bin/echo` prints the bytes at `ptr[0] + 0`, which is `argv[0]`, the address of `"/bin/echo"` in the binary
 5. `echo(0, 8)`: `/bin/echo` prints the bytes at `ptr[0] + 8`, which is `argv[1]`, the address of `v4` on echo's stack
 
@@ -5650,7 +5650,7 @@ print(hex(data.find(b'/bin/echo')))
 hacker@dynamic-allocator-misuse~echo-emanations-easy:/$ nm /challenge/echo-emanations-easy | grep -E "main|win"
                  U __libc_start_main@@GLIBC_2.2.5
 0000000000001cce T main
-0000000000005048 B main_thread_tcache
+0000000000005048 B main_thread_TCACHE
 0000000000001b00 T win
 ```
 
@@ -5834,7 +5834,7 @@ print(f"[*] base:       {hex(base)}")
 print(f"[*] win:        {hex(win_addr)}")
 print(f"[*] ret:        {hex(ret_addr)}")
 
-# tcache poisoning to overwrite main's return address with win
+# TCACHE poisoning to overwrite main's return address with win
 malloc(0, 128)
 malloc(1, 128)
 free(1)
@@ -5878,7 +5878,7 @@ hacker@dynamic-allocator-misuse~echo-emanations-hard:/$ /challenge/echo-emanatio
 [*] Function (malloc/free/echo/scanf/quit):
 ```
 
-The solution is the same as the [easy version](#echo-emanations-easy). The only differences are that there is no `print_tcache` display, and we have to find the file offset of `"/bin/echo"` and the address of `win` from the binary ourselves.
+The solution is the same as the [easy version](#echo-emanations-easy). The only differences are that there is no `print_TCACHE` display, and we have to find the file offset of `"/bin/echo"` and the address of `win` from the binary ourselves.
 
 ### Binary Analysis
 
