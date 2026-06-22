@@ -6484,7 +6484,7 @@ The goal is the same as the easy version: make `malloc(0x75)` return `v13`'s add
 
 ### Forging a Chunk Header
 
-For `free` to accept a pointer, the allocator checks the size field stored 8 bytes before the pointer (`ptr - 0x8`). If that value is not a plausible chunk size, the allocator aborts.
+For `free` to accept a pointer, the allocator checks the size field stored 8 bytes before the pointer (`ptr-0x8`). If that value is not a plausible chunk size, the allocator aborts.
 
 Every heap chunk in glibc has a fixed layout. The pointer returned by `malloc` points to the user data, but the 8 bytes before it contain the chunk's size field, and the 8 bytes before that contain the previous chunk's size:
 
@@ -6493,13 +6493,13 @@ Every heap chunk in glibc has a fixed layout. The pointer returned by `malloc` p
    <figcaption>Source: [Azeria labs](https://azeria-labs.com/heap-exploitation-part-1-understanding-the-glibc-heap-implementation/)</figcaption>
 </figure>
 
-When `free(ptr)` is called, glibc reads `ptr - 0x8` to get the chunk size and determine which bin to use. For real heap chunks this field is written automatically by `malloc` at allocation time. Since `v13` is on the stack, nothing ever wrote a valid size there, so `free` aborts with `munmap_chunk(): invalid pointer`.
+When `free(ptr)` is called, glibc reads `ptr-0x8` to get the chunk size and determine which bin to use. For real heap chunks this field is written automatically by `malloc` at allocation time. Since `v13` is on the stack, nothing ever wrote a valid size there, so `free` aborts with `munmap_chunk(): invalid pointer`.
 
 `v13` is at `[rbp-0x50]` and `v12` (the `stack_scanf` buffer) is at `[rbp-0x90]`. The offset between them is `0x40` = 64 bytes. Since `stack_scanf` reads up to 127 bytes, we can write past `v12` and into the memory just before `v13`.
 
-The fake size field needs to sit at `v13 - 0x8` = `rbp-0x58`, which is `rbp-0x90 + 0x38` = 56 bytes into the `stack_scanf` buffer. We write 56 bytes of padding followed by a valid size value.
+The fake size field needs to sit at `v13-0x8` = `rbp-0x58`, which is `rbp-0x90 + 0x38` = 56 bytes into the `stack_scanf` buffer. We write 56 bytes of padding followed by a valid size value.
 
-`malloc(0x75)` rounds up to a 128-byte chunk, which corresponds to size `0x81` (128 with the `PREV_INUSE` bit set). Writing `0x81` at `v13 - 0x8` makes the allocator believe `v13` is a valid 128-byte chunk:
+`malloc(0x75)` rounds up to a 128-byte chunk, which corresponds to size `0x81` (128 with the `PREV_INUSE` bit set). Writing `0x81` at `v13-0x8` makes the allocator believe `v13` is a valid 128-byte chunk:
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
