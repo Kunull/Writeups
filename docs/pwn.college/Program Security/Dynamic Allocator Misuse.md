@@ -5583,10 +5583,6 @@ This challenge has no startup leaks and no `send_flag`. The goal is the same as 
 
 The `echo` command takes an index and an offset, and calls `execve("/bin/echo", argv, NULL)` where `argv[2] = ptr[idx] + offset`. This prints the bytes at that address as a string, giving us an arbitrary read within any allocation at any offset.
 
-Replace the "Leaking via Echo's Internal Chunk" section with this:
-
----
-
 ### Leaking via Echo's Internal Chunk
 
 Every time `echo` is called, it runs `malloc(0x20)` internally. Looking at the source:
