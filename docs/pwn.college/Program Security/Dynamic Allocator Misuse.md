@@ -5157,8 +5157,8 @@ This challenge provides two leaks and has no `send_flag` or `read_flag`. The goa
 
 The two leaks give us everything we need:
 
-- `ptr` is the address of the `ptr[]` array on the stack. `main`'s return address lives at a fixed offset from it, calculable from the stack layout in the pseudocode. `ptr` is at `[rbp-110h]` and the return address is at `[rbp+8]`, so the offset from `ptr` to the return address is `0x110 + 8 = 0x118`.
-- `main`'s address lets us calculate `win()`'s address at runtime since both live in the same binary at fixed offsets.
+- `ptr` is the address of the `ptr[]` array on the stack. `main()`'s return address lives at a fixed offset from it, calculable from the stack layout in the pseudocode. `ptr` is at `[rbp-110h]` and the return address is at `[rbp+8]`, so the offset from `ptr` to the return address is `0x110 + 8 = 0x118`.
+- `main()`'s address lets us calculate `win()`'s address at runtime since both live in the same binary at fixed offsets.
 
 ### Finding `win()`
 
@@ -5169,7 +5169,7 @@ hacker@dynamic-allocator-misuse~sus-sequence-easy:/$ nm /challenge/sus-sequence-
 0000000000001a00 T win
 ```
 
-`win` is at offset `0x1a00` and `main` is at `0x1afd`, so:
+`win()` is at offset `0x1a00` and `main()` is at `0x1afd`, so:
 
 ```
 win_addr = leaked_main_addr - 0xfd
@@ -5177,7 +5177,7 @@ win_addr = leaked_main_addr - 0xfd
 
 ### Tcache Poisoning to Overwrite the Return Address
 
-The program has no secret to leak and no authorization check. The only way out is to make `main` return to `win()` instead of back to `__libc_start_main()`. We do this by poisoning the TCACHE to hand us a pointer directly onto the stack, at `main()`'s return address, and then writing `win_addr` there with `scanf`.
+The program has no secret to leak and no authorization check. The only way out is to make `main()` return to `win()` instead of back to `__libc_start_main()`. We do this by poisoning the TCACHE to hand us a pointer directly onto the stack, at `main()`'s return address, and then writing `win_addr` there with `scanf`.
 
 We allocate two chunks, free them to populate the TCACHE, then use `scanf` on the dangling pointer to overwrite chunk A's `next` with the return address on the stack:
 
@@ -5212,7 +5212,7 @@ We allocate two chunks, free them to populate the TCACHE, then use `scanf` on th
 └──────────────────────────┘
 ```
 
-Now we `malloc` twice. The first allocation returns chunk A (real heap, harmless). The second pops `ret_addr` from the TCACHE, giving us `ptr[1]` pointing directly at `main`'s return address on the stack:
+Now we `malloc` twice. The first allocation returns chunk A (real heap, harmless). The second pops `ret_addr` from the TCACHE, giving us `ptr[1]` pointing directly at `main()`'s return address on the stack:
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
@@ -5328,7 +5328,7 @@ hacker@dynamic-allocator-misuse~sus-sequence-hard:/$ /challenge/sus-sequence-har
 [*] Function (malloc/free/puts/scanf/quit):
 ```
 
-The solution is the same as the [easy version](#sus-sequence-easy). The only differences are that there is no `print_TCACHE` display, and we have to find the offset between `main` and `win` from the binary ourselves.
+The solution is the same as the [easy version](#sus-sequence-easy). The only differences are that there is no `print_TCACHE` display, and we have to find the offset between `main()` and `win()` from the binary ourselves.
 
 ### Binary Analysis
 
@@ -5878,7 +5878,7 @@ hacker@dynamic-allocator-misuse~echo-emanations-hard:/$ /challenge/echo-emanatio
 [*] Function (malloc/free/echo/scanf/quit):
 ```
 
-The solution is the same as the [easy version](#echo-emanations-easy). The only differences are that there is no `print_TCACHE` display, and we have to find the file offset of `"/bin/echo"` and the address of `win` from the binary ourselves.
+The solution is the same as the [easy version](#echo-emanations-easy). The only differences are that there is no `print_TCACHE` display, and we have to find the file offset of `"/bin/echo"` and the address of `win()` from the binary ourselves.
 
 ### Binary Analysis
 
