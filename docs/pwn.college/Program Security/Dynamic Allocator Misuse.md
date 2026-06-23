@@ -6609,7 +6609,7 @@ The secret is a 16-byte random string stored at `v15` on the stack, whose addres
 
 The challenge provides `stack_free` which frees `v14` (a stack buffer) and prints its address, and `stack_scanf` which writes 127 bytes into `v13` (another stack buffer). We also have the standard heap `malloc`, `free`, `puts`, and `scanf`.
 
-### The Approach
+### Reading a Stack Secret with Tcache Poisoning
 
 We cannot read from `secret_addr` directly using `puts` since `puts` only reads from pointers stored in `ptr[]`, and we have no way to put `secret_addr` into `ptr[]` directly. Instead we use tcache poisoning to make `malloc` return `secret_addr`, giving us a pointer in `ptr[]` that we can then `puts` to leak the secret.
 
