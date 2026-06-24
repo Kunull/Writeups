@@ -4522,7 +4522,7 @@ ptr[v7] = malloc(size);
 # ---- snip ----
 ```
 
-But this program checks the **result** of `malloc` after the fact. By then the TCACHE has already popped `secret_addr` and advanced its internal `entries[idx]` field. The guard closes the door, but the horse has already bolted, and that side effect is exactly what we will exploit.
+But this program checks the **result** of `malloc` after the fact. By then the TCACHE has already popped `secret_addr` and advanced its internal `entries[idx]` field. 
 
 ### Leaking via Stale TCACHE HEAD
 
