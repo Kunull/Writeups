@@ -4504,7 +4504,6 @@ else
 
 If the returned pointer falls below `secret_addr + 0x10000`, the program nullifies `ptr[idx]`, so we never get a direct handle to the secret. The straightforward approach of pointing an allocation at `secret_addr` and calling `puts` on it is closed off.
 
-The problem with the guard check is that it fires after every `malloc`.
 A correct implementation would have validated before calling `malloc`:
 
 ```c title="/challenge/seeking-smuggled-secrets-easy :: main() :: Pseudocode" showLineNumbers
