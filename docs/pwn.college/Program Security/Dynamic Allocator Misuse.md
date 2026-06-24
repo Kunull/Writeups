@@ -4728,7 +4728,7 @@ free(0)
 
 **Step 5: `puts` leaks the secret**
 
-`ptr[0]` still points to chunk A because `free` never clears the pointer. When we call `puts(0)`, the program reads from chunk A's memory. The very first bytes of chunk A are its `next` field, which now holds the secret bytes.
+`ptr[0]` still points to chunk A because `free` never clears the pointer. When we call `puts(0)`, the program reads from chunk A's memory. The first 8 bytes of chunk A are its `next` field, which now holds the secret bytes.
 
 ```c title="/challenge/seeking-smuggled-secrets-easy :: main() :: Pseudocode" showLineNumbers
 # ---- snip ----
