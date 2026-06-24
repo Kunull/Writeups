@@ -123,9 +123,9 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 ### Use-After-Free
 
 We can leverage a UAF vulnerability here, where we allocate 292 bytes of memory using `malloc`, and then free it using the `free` command.
-It is important that we allocate the same number of bytes that the `read_flag` function uses, otherwise it will use another Tcache bin.
+It is important that we allocate the same number of bytes that the `read_flag` function uses, otherwise it will use another TCACHE bin.
 
-#### Tcache Binning
+#### TCACHE Binning
 The heap allocator (GLIBC) doesn't just throw all freed memory into one big pile. It organizes freed chunks into "bins" based on their size.
 - A chunk of `128` bytes goes into Bin `#7`.
 - A chunk of `292` bytes goes into Bin `#17`.
@@ -800,7 +800,7 @@ Instead of immediately putting newly freed chunks onto the correct bin, the heap
    <figcaption>Source: [Azeria labs](https://azeria-labs.com/heap-exploitation-part-2-glibc-heap-free-bins/)</figcaption>
 </figure>
 
-This only happens if the large bin / cache is used instead of Tcache to allocated memory. For that we have to allocate a chunk of size greater than 1032 bytes, as Tcache only handles memory allocation upto 1032 bytes.
+This only happens if the large bin / cache is used instead of TCACHE to allocated memory. For that we have to allocate a chunk of size greater than 1032 bytes, as TCACHE only handles memory allocation upto 1032 bytes.
 
 Currently, the `ptmalloc` caching design is (in order of use):
 - 64 singly-linked TCACHE bins for allocations of size 16 to 1032 (functionally "covers" fastbins and smallbins)
@@ -1332,7 +1332,7 @@ In this challege we have to leverage Double Free vulnerability.
 
 ### Double free
 
-In the allocated memory chunks, the second set of 8 bytes include the pointer `key` to `TCACHE_perthread_struct`. Once a chunk is allocated, the `key` pointer no longer points to `TCACHE_perthread_struct` and is set to `NULL`. This state of the `key` is what helps Tcache distinguish free chunks from allocated ones.
+In the allocated memory chunks, the second set of 8 bytes include the pointer `key` to `TCACHE_perthread_struct`. Once a chunk is allocated, the `key` pointer no longer points to `TCACHE_perthread_struct` and is set to `NULL`. This state of the `key` is what helps TCACHE distinguish free chunks from allocated ones.
 
 ```
 a = malloc(16)
@@ -1376,11 +1376,11 @@ a = malloc(16)
 └──────────────────┘
 ```
 
-When `free()` is called on a chunk that fits in the Tcache, the allocator checks if that chunk's `key` field already points to the `TCACHE_perthread_struct` for the current thread.
+When `free()` is called on a chunk that fits in the TCACHE, the allocator checks if that chunk's `key` field already points to the `TCACHE_perthread_struct` for the current thread.
 
-If `key == TCACHE_perthread_struct`, the allocator scans the relevant Tcache bin to see if that chunk is already there. If it finds it, the program crashes with a "double free or corruption (TCACHE)" error.
+If `key == TCACHE_perthread_struct`, the allocator scans the relevant TCACHE bin to see if that chunk is already there. If it finds it, the program crashes with a "double free or corruption (TCACHE)" error.
 
-If `key != TCACHE_perthread_struct`, the allocator assumes the chunk is currently allocated and proceeds to add it to the Tcache.
+If `key != TCACHE_perthread_struct`, the allocator assumes the chunk is currently allocated and proceeds to add it to the TCACHE.
 
 ```
 a = malloc(16)
@@ -1426,7 +1426,7 @@ free(a)
 └──────────────────┘
 ```
 
-By overwriting the `key` with a dummy value (or `NULL`), we can "trick" the allocator into thinking the chunk is not currently in the Tcache. This allows us to call `free()` a second time on the same chunk without triggering the security crash.
+By overwriting the `key` with a dummy value (or `NULL`), we can "trick" the allocator into thinking the chunk is not currently in the TCACHE. This allows us to call `free()` a second time on the same chunk without triggering the security crash.
 
 ### Exploit
 
@@ -1801,13 +1801,13 @@ Then, if we pass `puts_flag`, it checks if the `size_4` is zeroed out. If it is,
 # ---- snip ----
 ```
 
-### Tcache chunk chaining
+### TCACHE chunk chaining
 
-When `free()` is called on a chunk that fits in the Tcache, the allocator checks if that chunk's `key` field already points to the `TCACHE_perthread_struct` for the current thread.
+When `free()` is called on a chunk that fits in the TCACHE, the allocator checks if that chunk's `key` field already points to the `TCACHE_perthread_struct` for the current thread.
 
-If `key == TCACHE_perthread_struct`, the allocator scans the relevant Tcache bin to see if that chunk is already there. If it finds it, the program crashes with a "double free or corruption (TCACHE)" error.
+If `key == TCACHE_perthread_struct`, the allocator scans the relevant TCACHE bin to see if that chunk is already there. If it finds it, the program crashes with a "double free or corruption (TCACHE)" error.
 
-If `key != TCACHE_perthread_struct`, the allocator assumes the chunk is currently allocated and proceeds to add it to the Tcache by setting that chunk's `key` pointer to the `TCACHE_perthread_struct` for the current thread. It also adds that chunk to the beginning of the singly-linked list by setting the chunks `next` pointer to the address of the previously first chunk.
+If `key != TCACHE_perthread_struct`, the allocator assumes the chunk is currently allocated and proceeds to add it to the TCACHE by setting that chunk's `key` pointer to the `TCACHE_perthread_struct` for the current thread. It also adds that chunk to the beginning of the singly-linked list by setting the chunks `next` pointer to the address of the previously first chunk.
 
 ```
 a = malloc(16)
@@ -2280,7 +2280,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 
 So the secret is kept at a location in memory, which we have to read from and pass to the `send_flag`.
 
-### Polluting Tcache `entry_struct`
+### Polluting TCACHE `entry_struct`
 
 Let's say we allocate two chunks `A`, `B` of memory and then free them. It would look something as follows:
 
@@ -2929,9 +2929,9 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-This time, we can see that the secret is 16 bytes long. Therefore, we will have to employ two rounds of Tcache `entry_struct` poisoning.
+This time, we can see that the secret is 16 bytes long. Therefore, we will have to employ two rounds of TCACHE `entry_struct` poisoning.
 
-### Polluting Tcache `entry_struct` multiple times
+### Polluting TCACHE `entry_struct` multiple times
 
 Let's say we allocate two chunks `A`, `B` of memory and then free them. It would look something as follows:
 
@@ -3017,7 +3017,7 @@ This would cause the chunk `B` to be removed from the singly-linked list, and th
 
 Now, if we allocate two chunks again of the same size, the chunk `A` and `SECRET` would be allocated because to `TCACHE_perthread_struct`, those are the two free chunks. The first 8 bytes of the `SECRET` chunk would hold the first 8 bytes of secret value, and the next 8 bytes would be right after that.
 
-However, due to Tcache's behaviour of setting the `key` pointer to `NULL` after allocating a chunk, the trailing 8 bytes of the secret value are clobbered.
+However, due to TCACHE's behaviour of setting the `key` pointer to `NULL` after allocating a chunk, the trailing 8 bytes of the secret value are clobbered.
 So, by polluting `TCACHE_perthread_struct` once, we are able to get only the first 8 bytes.
 
 ```
@@ -3049,7 +3049,7 @@ So, by polluting `TCACHE_perthread_struct` once, we are able to get only the fir
 └──────────────────┘
 ```
 
-For the next, 8 bytes, we have to pollute Tcache `entry_struct` again, but this time we set the address into which `scanf` reads to 8 bytes after the secret value's address. So, let's free the first allocation only so that it is added back into the singly linked list.
+For the next, 8 bytes, we have to pollute TCACHE `entry_struct` again, but this time we set the address into which `scanf` reads to 8 bytes after the secret value's address. So, let's free the first allocation only so that it is added back into the singly linked list.
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
@@ -3778,7 +3778,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-### Overwriting the Secret via Tcache Poisoning
+### Overwriting the Secret via TCACHE Poisoning
 
 Since the secret's address contains a `0x0a` byte, `scanf` would stop reading before completing the full 8-byte address, so we can't directly poison the `next` pointer to point at `secret_addr`. Instead, we target a nearby aligned address (`secret_addr - 16`) that contains no whitespace bytes, and use padding to bridge the gap.
 
@@ -3936,7 +3936,7 @@ p.sendline(b"1")
 p.sendline(b"128")
 print(p.recvuntil(b"quit): ").decode())
 
-# Free them to populate Tcache
+# Free them to populate TCACHE
 p.sendline(b"free")
 p.sendline(b"1")
 print(p.recvuntil(b"quit): ").decode())
@@ -4231,7 +4231,7 @@ p.sendline(b"1")
 p.sendline(b"128")
 print(p.recvuntil(b"quit): ").decode())
 
-# Free them to populate Tcache
+# Free them to populate TCACHE
 p.sendline(b"free")
 p.sendline(b"1")
 print(p.recvuntil(b"quit): ").decode())
@@ -4483,7 +4483,9 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-The goal is to leak the 16-byte secret stored at `byte_429360` and pass it to `send_flag`. The interesting part of this binary is the guard check that fires after every `malloc`:
+The goal is to leak the 16-byte secret stored at `byte_429360` and pass it to `send_flag`. However, there is a check that we need to bypass.
+
+The interesting part of this binary is the guard check that fires after every `malloc`:
 
 ```c title="/challenge/seeking-smuggled-secrets-easy :: main() :: Pseudocode" showLineNumbers
 # ---- snip ----
@@ -4524,7 +4526,7 @@ ptr[v7] = malloc(size);
 
 But this program checks the **result** of `malloc` after the fact. By then the TCACHE has already popped `secret_addr` and advanced its internal `entries[idx]` field. The guard closes the door, but the horse has already bolted, and that side effect is exactly what we will exploit.
 
-### Leaking via Stale Tcache HEAD
+### Leaking via Stale TCACHE HEAD
 
 The TCACHE's `entries[]` array and `counts[]` array are independent. When `malloc` pops the last chunk from a bin, glibc does this:
 
@@ -5175,7 +5177,7 @@ hacker@dynamic-allocator-misuse~sus-sequence-easy:/$ nm /challenge/sus-sequence-
 win_addr = leaked_main_addr - 0xfd
 ```
 
-### Tcache Poisoning to Overwrite the Return Address
+### TCACHE Poisoning to Overwrite the Return Address
 
 The program has no secret to leak and no authorization check. The only way out is to make `main()` return to `win()` instead of back to `__libc_start_main()`. We do this by poisoning the TCACHE to hand us a pointer directly onto the stack, at `main()`'s return address, and then writing `win_addr` there with `scanf`.
 
@@ -6244,7 +6246,7 @@ This challenge introduces three new commands. `stack_free` frees `v15`, a stack-
 
 The goal is to make `malloc(63)` return the address of `v15` on the stack.
 
-### Getting a Stack Address into the Tcache
+### Getting a Stack Address into the TCACHE
 
 We cannot call `stack_free` directly to put `v15` into the TCACHE, the allocator detects that `v15` is not a valid heap chunk and aborts:
 
@@ -6717,7 +6719,7 @@ This challenge is essentially the same as the [Seeking Secrets](#seeking-secrets
 
 The `stack_free` and `stack_scanf` commands are not needed at all for the easy version. The solution uses only the standard heap primitives.
 
-### Polluting Tcache `entry_struct` to Leak the Secret
+### Polluting TCACHE `entry_struct` to Leak the Secret
 
 The approach is identical to Seeking Secrets. We allocate two heap chunks, free them into the tcache, and poison the first chunk's `next` to point at `secret_addr`. We then `malloc` twice and `puts` on the second allocation to leak the secret.
 
@@ -7238,7 +7240,7 @@ ret_addr = rbp + 0x8 = v15_addr + 0x58
 
 But `stack_free` will abort with `munmap_chunk(): invalid pointer` unless `v15` has a valid size field at `v15-0x8`. We use `stack_scanf` to forge one first. `v14` is at `[rbp-0x90]` and `v15-0x8` is at `[rbp-0x58]`, which is 56 bytes into `v14`. We write 56 bytes of padding followed by `p64(0x81)` (128 bytes with PREV_INUSE set, matching `malloc(128)` which we use for the poisoning).
 
-### Tcache Poisoning to Overwrite the Return Address
+### TCACHE Poisoning to Overwrite the Return Address
 
 After `stack_free`, `v15` is in the tcache with count=1. We then free two heap chunks of size 128 on top, making count=3 with the chain `a -> b -> v15`. We poison `a`'s `next` to `ret_addr`, orphaning `b` and `v15`. The chain becomes `a -> ret_addr` with count=3.
 
@@ -7581,7 +7583,7 @@ The sequence is:
 
 `stack_free` aborts without a valid size field at `v14-0x8`. `v13` is at `[rbp-0x90]` and `v14-0x8` is at `[rbp-0x58]`, which is 56 bytes into `v13`. We write 56 bytes of padding followed by `p64(0x91)` (144 bytes with PREV_INUSE set, matching `malloc(128)`).
 
-### Tcache Poisoning to Overwrite the Return Address
+### TCACHE Poisoning to Overwrite the Return Address
 
 With `v14_addr` known, `ret_addr = v14_addr + 0x58`. After `malloc(2, 128)` has already popped `v14` (count=0), we free two fresh heap chunks making count=2. We poison the first chunk's `next` to `ret_addr`. Then:
 
