@@ -5652,7 +5652,7 @@ hacker@dynamic-allocator-misuse~echo-emanations-easy:/$ nm /challenge/echo-emana
 
 So:
 ```
-base     = bin_leak - 0x33f8
+base = bin_leak - 0x33f8
 win_addr = base + 0x1b00
 ```
 
