@@ -2280,7 +2280,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 
 So the secret is kept at a location in memory, which we have to read from and pass to the `send_flag`.
 
-### Polluting TCACHE `entry_struct`
+### Polluting `tcache_entry` struct
 
 Let's say we allocate two chunks `A`, `B` of memory and then free them. It would look something as follows:
 
@@ -2929,9 +2929,9 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-This time, we can see that the secret is 16 bytes long. Therefore, we will have to employ two rounds of TCACHE `entry_struct` poisoning.
+This time, we can see that the secret is 16 bytes long. Therefore, we will have to employ two rounds of `tcache_entry` struct poisoning.
 
-### Polluting TCACHE `entry_struct` multiple times
+### Polluting `tcache_entry` struct multiple times
 
 Let's say we allocate two chunks `A`, `B` of memory and then free them. It would look something as follows:
 
@@ -3049,7 +3049,7 @@ So, by polluting `tcache_perthread_struct` once, we are able to get only the fir
 └──────────────────┘
 ```
 
-For the next, 8 bytes, we have to pollute TCACHE `entry_struct` again, but this time we set the address into which `scanf` reads to 8 bytes after the secret value's address. So, let's free the first allocation only so that it is added back into the singly linked list.
+For the next, 8 bytes, we have to pollute `tcache_entry` struct again, but this time we set the address into which `scanf` reads to 8 bytes after the secret value's address. So, let's free the first allocation only so that it is added back into the singly linked list.
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
@@ -6717,23 +6717,13 @@ This challenge is essentially the same as the [Seeking Secrets](#seeking-secrets
 
 The `stack_free` and `stack_scanf` commands are not needed at all for the [easy version](#stack-summoning-easy). The solution uses only the standard heap primitives.
 
-### Polluting TCACHE `entry_struct` to leak the Secret
+### Polluting `tcache_entry` struct to leak the Secret
 
-The approach is identical to Seeking Secrets. We allocate two heap chunks, free them into the TCACHE, and poison the first chunk's `next` to point at `secret_addr`. We then `malloc` twice and `puts` on the second allocation to leak the secret.
+We allocate two heap chunks, free them into the TCACHE, and poison the first chunk's `next` to point at `secret_addr`. We then `malloc` twice and `puts` on the second allocation to leak the secret.
 
-The one subtlety is that the TCACHE count must be at least 1 when we call the final `malloc` that should return `secret_addr`. When `malloc` pops a chunk, it reads that chunk's `next` field, writes it into `entries[idx]`, and decrements `counts[idx]`. If count drops to 0, the next `malloc` call bypasses the TCACHE entirely, even if `entries[idx]` points somewhere valid.
-
-With two heap chunks freed (count=2), the sequence works out correctly:
-
-1. `free(1)`, `free(0)`, TCACHE: `A -> B`, count=2
-2. Poison `A`'s `next` to `secret_addr`, TCACHE: `A -> secret_addr`, count=2
-3. `malloc` pops `A`, count=1, `entries = secret_addr`
-4. `malloc`, count=1 so TCACHE is used, pops `secret_addr`, count=0
+Let's say we allocate two chunks `A`, `B` of memory and then free them. It would look something as follows:
 
 ```
-free(1), free(0)
-
-
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
 ┊  tcache_perthread_struct Void                                        ┊
 ┊            ┏━━━━━━━━━━━━━━━━┓                                        ┊
@@ -6764,11 +6754,15 @@ free(1), free(0)
 ├──────────────────┤
 │    key: Void     │
 └──────────────────┘
+```
+
+Then we use the `scanf` command and read to the index of the first allocation `A` using the hanging pointer. The first 8 bytes at that location would hold the next pointer which would point to `B`.
+
+We can overwrite this with the address of the secret. This would cause the chunk B to be removed from the singly-linked list, and the memory at the secret address would take it's place.
 
 
-scanf(0, p64(secret_addr))
 
-
+```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
 ┊  tcache_perthread_struct Void                                        ┊
 ┊            ┏━━━━━━━━━━━━━━━━┓                                        ┊
@@ -6799,11 +6793,10 @@ scanf(0, p64(secret_addr))
 ├──────────────────────────┤
 │  key:  secret[8:16]      │
 └──────────────────────────┘
-
-
-malloc(2) -> pops A, count=1, entries=secret_addr
-malloc(3) -> count=1 so TCACHE is used, pops secret_addr, count=0
 ```
+
+Now, if we allocate two chunks again of the same size, the chunk `A` and `SECRET` would be allocated because to `tcache_perthread_struct`, those are the two free chunks. And the first 16 bytes of the `SECRET` chunk would hold the secret value.
+
 
 ### Exploit
 
