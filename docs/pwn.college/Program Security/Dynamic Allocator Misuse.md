@@ -2731,7 +2731,7 @@ p.sendline(b"puts")
 p.sendline(b"1")
 p.recvuntil(b"Data: ")
 secret = p.recvline().strip().decode()
-print(f"[*] Leaked Secret: {secret}")
+print(f"[*] leaked Secret: {secret}")
 
 p.sendline(b"send_flag")
 p.sendline(secret.encode()) 
@@ -2774,7 +2774,7 @@ Index:
 Size: 
 
 [*] Function (malloc/free/puts/scanf/send_flag/quit):
-[*] Leaked Secret: ipubljho
+[*] leaked Secret: ipubljho
 
 [*] Function (malloc/free/puts/scanf/send_flag/quit): 
 Secret: 
@@ -4524,7 +4524,7 @@ ptr[v7] = malloc(size);
 
 But this program checks the **result** of `malloc` after the fact. By then the TCACHE has already popped `secret_addr` and advanced its internal `entries[idx]` field. 
 
-### Leaking via Stale TCACHE HEAD
+### leaking via Stale TCACHE HEAD
 
 The TCACHE's `entries[]` array and `counts[]` array are independent. When `malloc` pops the last chunk from a bin, glibc does this:
 
@@ -5583,7 +5583,7 @@ This challenge has no startup leaks and no `send_flag`. The goal is the same as 
 
 The `echo` command takes an index and an offset, and calls `execve("/bin/echo", argv, NULL)` where `argv[2] = ptr[idx] + offset`. This prints the bytes at that address as a string, giving us an arbitrary read within any allocation at any offset.
 
-### Leaking via Echo's Internal Chunk
+### leaking via Echo's Internal Chunk
 
 Every time `echo` is called, it runs `malloc(0x20)` internally. Looking at the source:
 
@@ -6717,7 +6717,7 @@ This challenge is essentially the same as the [Seeking Secrets](#seeking-secrets
 
 The `stack_free` and `stack_scanf` commands are not needed at all for the [easy version](#stack-summoning-easy). The solution uses only the standard heap primitives.
 
-### Polluting TCACHE `entry_struct` to Leak the Secret
+### Polluting TCACHE `entry_struct` to leak the Secret
 
 The approach is identical to Seeking Secrets. We allocate two heap chunks, free them into the tcache, and poison the first chunk's `next` to point at `secret_addr`. We then `malloc` twice and `puts` on the second allocation to leak the secret.
 
@@ -7205,7 +7205,7 @@ This challenge combines the echo emanations and stack spoofing techniques. There
 
 We have two useful primitives. First, the `echo` command's internal `malloc(0x20)` can be exploited just like in echo emanations to leak a binary address. Second, `stack_free` prints `v15`'s address and frees it into the tcache, giving us both a stack leak and a chunk we can use for tcache poisoning.
 
-### Binary Leak via Echo's Internal Chunk
+### Binary leak via Echo's Internal Chunk
 
 In echo emanations, `argv[1]` pointed to `v4`, a local stack variable holding `"Data:"`. In this binary, `"Data:"` is stored as a global string in rodata instead, so offset 8 gives another binary address rather than a stack address. We only get one useful leak from echo, the binary base from `argv[0]` at offset 0.
 
@@ -7227,7 +7227,7 @@ base     = bin_leak - 0x33f8
 win_addr = base + 0x1a22
 ```
 
-### Stack Leak via stack_free
+### Stack leak via stack_free
 
 Since echo does not give us a stack address, we use `stack_free` instead. It prints `v15`'s address before freeing it. `v15` is at `[rbp-0x50]`, so:
 
@@ -7544,7 +7544,7 @@ hacker@dynamic-allocator-misuse~enterprising-echo-hard:/$ objdump -d /challenge/
 
 `win+5 = 0x140e` is `mov %rsp,%rbp`, the third instruction. Jumping here skips `endbr64` and `push %rbp` but lands cleanly inside the function, sets up the frame, and continues normally to open and print the flag. `0x140e`'s lowest byte is `0x0e`, which is not whitespace. So we use `win_addr = base + 0x140e`.
 
-### Binary Leak via Echo's Internal Chunk
+### Binary leak via Echo's Internal Chunk
 
 Same as the [easy version](#enterprising-echo-easy). `argv[1]` points to a rodata string rather than a stack variable, so only offset 0 gives a useful binary leak:
 
@@ -7552,7 +7552,7 @@ Same as the [easy version](#enterprising-echo-easy). `argv[1]` points to a rodat
 base = bin_leak - 0x2110
 ```
 
-### Stack Leak via Echo's argv[2]
+### Stack leak via Echo's argv[2]
 
 Since `stack_free` prints nothing, we need another way to get `v14`'s address. The key insight is that when `echo(idx, offset)` runs, it writes `argv[2] = ptr[idx] + offset` into its internal `malloc(0x20)` chunk at offset `0x10`. If we arrange for that chunk to be a chunk we control, we can read `ptr[idx] + offset` back via echo.
 
