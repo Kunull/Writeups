@@ -5596,7 +5596,7 @@ strcpy(v4, "Data:");
 argv = (char **)malloc(0x20u);
 *argv       = "/bin/echo";        // argv[0] = address of "/bin/echo" in the binary
 argv[1]     = v4;                 // argv[1] = address of v4 on echo's stack
-argv[2]     = (char *)(a1 + a2); // argv[2] = ptr[idx] + offset
+argv[2]     = (char *)(a1 + a2);  // argv[2] = ptr[idx] + offset
 argv[3]     = nullptr;
 
 # ---- snip ----
