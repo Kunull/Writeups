@@ -4954,7 +4954,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-The solution is the same as the easy version. The only difference is that the secret address is not printed, we have to find it from the binary. From the decompiled code we can see it is stored at `byte_428363`.
+The solution is the same as the [easy version](#seeking-smuggled-secrets-easy). The only difference is that the secret address is not printed, we have to find it from the binary. From the decompiled code we can see it is stored at `byte_428363`.
 
 ### Exploit
 
@@ -5362,7 +5362,7 @@ hacker@dynamic-allocator-misuse~sus-sequence-hard:/$ nm /challenge/sus-sequence-
 0000000000001400 T win
 ```
 
-The offset is the same as the easy version: `win_addr = leaked_main_addr - 0xfd`.
+The offset is the same as the [easy version](#sus-sequence-easy): `win_addr = leaked_main_addr - 0xfd`.
 
 ### Exploit
 
@@ -6008,7 +6008,7 @@ hacker@dynamic-allocator-misuse~echo-emanations-hard:/$ nm /challenge/echo-emana
 # 0000000000001500 T win
 ```
 
-The `echo` function is identical to the easy version and `ptr` sits at the same stack offset `[rbp-0x110]` in both binaries, so the offset between `v4` and main's return address remains `0x176`.
+The `echo` function is identical to the [easy version](#echo-emanations-easy) and `ptr` sits at the same stack offset `[rbp-0x110]` in both binaries, so the offset between `v4` and main's return address remains `0x176`.
 
 ### Exploit
 
@@ -6480,7 +6480,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-The goal is the same as the easy version: make `malloc(0x75)` return `v13`'s address. The difference is that this binary prints nothing, no address leaks, and `stack_free` aborts immediately with `munmap_chunk(): invalid pointer` because `v13` has no valid chunk header in the memory before it.
+The goal is the same as the [easy version](#stack-spoofing-easy): make `malloc(0x75)` return `v13`'s address. The difference is that this binary prints nothing, no address leaks, and `stack_free` aborts immediately with `munmap_chunk(): invalid pointer` because `v13` has no valid chunk header in the memory before it.
 
 ### Forging a Chunk Header
 
@@ -6715,7 +6715,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 
 This challenge is essentially the same as the [Seeking Secrets](#seeking-secrets-easy) challenges. A 16-byte secret is stored at a known address, printed at startup, and we have to leak it using tcache poisoning. The only difference is that the secret lives on the stack rather than in the data segment. Since the stack address is printed at startup just like the BSS address was in Seeking Secrets, this makes no difference to the exploit.
 
-The `stack_free` and `stack_scanf` commands are not needed at all for the easy version. The solution uses only the standard heap primitives.
+The `stack_free` and `stack_scanf` commands are not needed at all for the [easy version](#stack-summoning-easy). The solution uses only the standard heap primitives.
 
 ### Polluting TCACHE `entry_struct` to Leak the Secret
 
@@ -7035,7 +7035,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-This version prints nothing: no address leaks, no tcache display, no allocation addresses. So we cannot use the same approach as the easy version since we have no way to know `v14`'s address to poison the tcache with.
+This version prints nothing: no address leaks, no tcache display, no allocation addresses. So we cannot use the same approach as the [easy version](#stack-summoning-easy) since we have no way to know `v14`'s address to poison the tcache with.
 
 Instead we take the opposite approach: rather than leaking the secret, we overwrite it with a value we choose, then submit that value to `send_flag`.
 
@@ -7498,7 +7498,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-The hard version prints nothing at all. No allocation addresses, no `stack_free` address, no tcache display. The goal is the same as the easy version, overwriting `main`'s return address with `win()`, but we have to obtain both the binary base and the stack address entirely through the echo and tcache mechanisms.
+The hard version prints nothing at all. No allocation addresses, no `stack_free` address, no tcache display. The goal is the same as the [easy version](#enterprising-echo-easy), overwriting `main`'s return address with `win()`, but we have to obtain both the binary base and the stack address entirely through the echo and tcache mechanisms.
 
 ### Finding win
 
@@ -7546,7 +7546,7 @@ hacker@dynamic-allocator-misuse~enterprising-echo-hard:/$ objdump -d /challenge/
 
 ### Binary Leak via Echo's Internal Chunk
 
-Same as the easy version. `argv[1]` points to a rodata string rather than a stack variable, so only offset 0 gives a useful binary leak:
+Same as the [easy version](#enterprising-echo-easy). `argv[1]` points to a rodata string rather than a stack variable, so only offset 0 gives a useful binary leak:
 
 ```
 base = bin_leak - 0x2110
