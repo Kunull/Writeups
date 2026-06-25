@@ -2683,7 +2683,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-The solution for this level remains the same as the easy one.
+The solution for this level remains the same as the [easy one](#seeking-secrets-easy).
 
 ### Exploit 
 
@@ -5579,7 +5579,7 @@ unsigned __int64 __fastcall echo(__int64 a1, __int64 a2)
 }
 ```
 
-This challenge has no startup leaks and no `send_flag`. The goal is the same as the sus-sequence challenges: overwrite `main()`'s return address with `win()` via TCACHE poisoning. The difference is that we have to obtain the leaks ourselves using the `echo` command.
+This challenge has no startup leaks and no `send_flag`. The goal is the same as the [Sus Sequence](#sus-sequence-easy) challenges: overwrite `main()`'s return address with `win()` via TCACHE poisoning. The difference is that we have to obtain the leaks ourselves using the `echo` command.
 
 The `echo` command takes an index and an offset, and calls `execve("/bin/echo", argv, NULL)` where `argv[2] = ptr[idx] + offset`. This prints the bytes at that address as a string, giving us an arbitrary read within any allocation at any offset.
 
