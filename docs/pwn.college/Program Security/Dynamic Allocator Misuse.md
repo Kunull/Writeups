@@ -7040,7 +7040,7 @@ The stack layout gives us everything we need:
 - `v13` at `[rbp-0x130]`, freed by `stack_free`
 - `v14` at `[rbp-0xa6]`, the secret
 
-`v13` is 64 bytes past `v12`, so `stack_scanf` can plant a fake size field at `v13 - 0x8` (56 bytes into `v12`) just like the Stack Spoofing Hard challenge. We use `0xb1` as the fake size, giving a chunk of 176 bytes with `malloc_usable_size` returning 168 bytes.
+`v13` is 64 bytes past `v12`, so `stack_scanf` can plant a fake size field at `v13 - 0x8` (56 bytes into `v12`) just like the [Stack Spoofing (Hard)](#stack-spoofing-hard) challenge. We use `0xb1` as the fake size, giving a chunk of 176 bytes with `malloc_usable_size` returning 168 bytes.
 
 After `stack_free` puts `v13` into the TCACHE, we `malloc` of the same size to get `v13` back into `ptr[0]`. Now `ptr[0]` points directly at `v13`. `v14` sits at `v13 + 0x8a` = offset 138. Since `malloc_usable_size` returns 168 bytes, heap `scanf` lets us write 168 bytes into `ptr[0]`, which is more than enough to reach `v14` at offset 138.
 
