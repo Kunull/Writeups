@@ -7220,7 +7220,7 @@ base     = bin_leak - 0x33f8
 win_addr = base + 0x1a22
 ```
 
-### Stack leak via stack_free
+### Stack leak via `stack_free`
 
 Since echo does not give us a stack address, we use `stack_free` instead. It prints `v15`'s address before freeing it. `v15` is at `[rbp-0x50]`, so:
 
