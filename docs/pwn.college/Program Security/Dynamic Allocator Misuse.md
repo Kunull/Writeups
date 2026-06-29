@@ -4524,7 +4524,7 @@ ptr[v7] = malloc(size);
 
 But this program checks the **result** of `malloc` after the fact. By then the TCACHE has already popped `secret_addr` and advanced its internal `entries[idx]` field. 
 
-### leaking via Stale TCACHE HEAD
+### Leaking via stale TCACHE HEAD
 
 The TCACHE's `entries[]` array and `counts[]` array are independent. When `malloc` pops the last chunk from a bin, glibc does this:
 
