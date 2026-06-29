@@ -3778,7 +3778,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-### Overwriting the secret via TCACHE Poisoning
+### Overwriting the secret via TCACHE poisoning
 
 Since the secret's address contains a `0x0a` byte, `scanf` would stop reading before completing the full 8-byte address, so we can't directly poison the `next` pointer to point at `secret_addr`. Instead, we target a nearby aligned address (`secret_addr - 16`) that contains no whitespace bytes, and use padding to bridge the gap.
 
@@ -7231,7 +7231,7 @@ ret_addr = rbp + 0x8 = v15_addr + 0x58
 
 But `stack_free` will abort with `munmap_chunk(): invalid pointer` unless `v15` has a valid size field at `v15-0x8`. We use `stack_scanf` to forge one first. `v14` is at `[rbp-0x90]` and `v15-0x8` is at `[rbp-0x58]`, which is 56 bytes into `v14`. We write 56 bytes of padding followed by `p64(0x81)` (128 bytes with PREV_INUSE set, matching `malloc(128)` which we use for the poisoning).
 
-### TCACHE Poisoning to Overwrite the Return Address
+### TCACHE poisoning to overwrite the return address
 
 After `stack_free`, `v15` is in the TCACHE with count=1. We then free two heap chunks of size 128 on top, making count=3 with the chain `a -> b -> v15`. We poison `a`'s `next` to `ret_addr`, orphaning `b` and `v15`. The chain becomes `a -> ret_addr` with count=3.
 
@@ -7574,7 +7574,7 @@ The sequence is:
 
 `stack_free` aborts without a valid size field at `v14-0x8`. `v13` is at `[rbp-0x90]` and `v14-0x8` is at `[rbp-0x58]`, which is 56 bytes into `v13`. We write 56 bytes of padding followed by `p64(0x91)` (144 bytes with PREV_INUSE set, matching `malloc(128)`).
 
-### TCACHE Poisoning to Overwrite the Return Address
+### TCACHE poisoning to overwrite the return address
 
 With `v14_addr` known, `ret_addr = v14_addr + 0x58`. After `malloc(2, 128)` has already popped `v14` (count=0), we free two fresh heap chunks making count=2. We poison the first chunk's `next` to `ret_addr`. Then:
 
