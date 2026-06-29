@@ -75,7 +75,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
       {
         while ( 1 )
         {
-          print_TCACHE(main_thread_TCACHE);
+          print_tcache(main_thread_tcache);
           puts(byte_2419);
           printf("[*] Function (malloc/free/puts/read_flag/quit): ");
           __isoc99_scanf("%127s", s1);
@@ -591,7 +591,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
       {
         while ( 1 )
         {
-          print_TCACHE(main_thread_TCACHE);
+          print_tcache(main_thread_tcache);
           puts(byte_2441);
           printf("[*] Function (malloc/free/puts/read_flag/quit): ");
           __isoc99_scanf("%127s", s1);
@@ -907,7 +907,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
       {
         while ( 1 )
         {
-          print_TCACHE(main_thread_TCACHE);
+          print_tcache(main_thread_tcache);
           puts(byte_246E);
           printf("[*] Function (malloc/free/puts/read_flag/quit): ");
           __isoc99_scanf("%127s", s1);
@@ -1274,7 +1274,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
         {
           while ( 1 )
           {
-            print_TCACHE(main_thread_TCACHE);
+            print_tcache(main_thread_tcache);
             puts(byte_246E);
             printf("[*] Function (malloc/free/puts/scanf/read_flag/quit): ");
             __isoc99_scanf("%127s", s1);
@@ -1694,7 +1694,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
         {
           while ( 1 )
           {
-            print_TCACHE(main_thread_TCACHE);
+            print_tcache(main_thread_tcache);
             puts(byte_2419);
             printf("[*] Function (malloc/free/puts/read_flag/puts_flag/quit): ");
             __isoc99_scanf("%127s", choice);
@@ -2197,7 +2197,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
         {
           while ( 1 )
           {
-            print_TCACHE(main_thread_TCACHE);
+            print_tcache(main_thread_tcache);
             puts(byte_4035BA);
             printf("[*] Function (malloc/free/puts/scanf/send_flag/quit): ");
             __isoc99_scanf("%127s", choice);
@@ -2848,7 +2848,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
         {
           while ( 1 )
           {
-            print_TCACHE(main_thread_TCACHE);
+            print_tcache(main_thread_tcache);
             puts(byte_4035BA);
             printf("[*] Function (malloc/free/puts/scanf/send_flag/quit): ");
             __isoc99_scanf("%127s", choice);
@@ -3697,7 +3697,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
         {
           while ( 1 )
           {
-            print_TCACHE(main_thread_TCACHE);
+            print_tcache(main_thread_tcache);
             puts(byte_4035D1);
             printf("[*] Function (malloc/free/puts/scanf/send_flag/quit): ");
             __isoc99_scanf("%127s", choice);
@@ -4391,7 +4391,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
         {
           while ( 1 )
           {
-            print_TCACHE(main_thread_TCACHE);
+            print_tcache(main_thread_tcache);
             puts(byte_4035D4);
             printf("[*] Function (malloc/free/puts/scanf/send_flag/quit): ");
             __isoc99_scanf("%127s", choice);
@@ -4533,7 +4533,7 @@ The TCACHE's `entries[]` array and `counts[]` array are independent. When `mallo
 --(TCACHE->counts[tc_idx]);        // count drops to 0
 ```
 
-Nothing zeroes `entries[idx]` when the count reaches 0. If the popped chunk was `secret_addr`, then `entries[idx]` now holds `*(secret_addr)`, which is `secret[:8]`. The `print_TCACHE` helper iterates `count` times from `entries[idx]`, so when count is 0 the loop body never runs and the head displays as `(nil)`. The display layer hides it, but the raw memory still holds the secret bytes.
+Nothing zeroes `entries[idx]` when the count reaches 0. If the popped chunk was `secret_addr`, then `entries[idx]` now holds `*(secret_addr)`, which is `secret[:8]`. The `print_tcache` helper iterates `count` times from `entries[idx]`, so when count is 0 the loop body never runs and the head displays as `(nil)`. The display layer hides it, but the raw memory still holds the secret bytes.
 
 The next time we `free` a chunk of the same size class, `tcache_put` runs:
 
@@ -5087,7 +5087,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
       {
         while ( 1 )
         {
-          print_TCACHE(main_thread_TCACHE);
+          print_tcache(main_thread_tcache);
           puts(byte_3588);
           printf("[*] Function (malloc/free/puts/scanf/quit): ");
           __isoc99_scanf("%127s", s1);
@@ -5165,7 +5165,7 @@ The two leaks give us everything we need:
 ```
 hacker@dynamic-allocator-misuse~sus-sequence-easy:/$ nm /challenge/sus-sequence-easy | grep -E "main|win"
 0000000000001afd T main
-0000000000005048 B main_thread_TCACHE
+0000000000005048 B main_thread_tcache
 0000000000001a00 T win
 ```
 
@@ -5328,7 +5328,7 @@ hacker@dynamic-allocator-misuse~sus-sequence-hard:/$ /challenge/sus-sequence-har
 [*] Function (malloc/free/puts/scanf/quit):
 ```
 
-The solution is the same as the [easy version](#sus-sequence-easy). The only differences are that there is no `print_TCACHE` display, and we have to find the offset between `main()` and `win()` from the binary ourselves.
+The solution is the same as the [easy version](#sus-sequence-easy). The only differences are that there is no `print_tcache` display, and we have to find the offset between `main()` and `win()` from the binary ourselves.
 
 ### Binary analysis
 
@@ -5486,7 +5486,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
       {
         while ( 1 )
         {
-          print_TCACHE(main_thread_TCACHE);
+          print_tcache(main_thread_tcache);
           puts(byte_3529);
           printf("[*] Function (malloc/free/echo/scanf/quit): ");
           __isoc99_scanf("%127s", s1);
@@ -5646,7 +5646,7 @@ print(hex(data.find(b'/bin/echo')))
 hacker@dynamic-allocator-misuse~echo-emanations-easy:/$ nm /challenge/echo-emanations-easy | grep -E "main|win"
                  U __libc_start_main@@GLIBC_2.2.5
 0000000000001cce T main
-0000000000005048 B main_thread_TCACHE
+0000000000005048 B main_thread_tcache
 0000000000001b00 T win
 ```
 
@@ -5874,7 +5874,7 @@ hacker@dynamic-allocator-misuse~echo-emanations-hard:/$ /challenge/echo-emanatio
 [*] Function (malloc/free/echo/scanf/quit):
 ```
 
-The solution is the same as the [easy version](#echo-emanations-easy). The only differences are that there is no `print_TCACHE` display, and we have to find the file offset of `"/bin/echo"` and the address of `win()` from the binary ourselves.
+The solution is the same as the [easy version](#echo-emanations-easy). The only differences are that there is no `print_tcache` display, and we have to find the file offset of `"/bin/echo"` and the address of `win()` from the binary ourselves.
 
 ### Binary analysis
 
@@ -6154,7 +6154,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
             {
               while ( 1 )
               {
-                print_TCACHE(main_thread_TCACHE);
+                print_tcache(main_thread_tcache);
                 puts(byte_3519);
                 printf("[*] Function (malloc/free/puts/scanf/stack_free/stack_scanf/stack_malloc_win/quit): ");
                 __isoc99_scanf("%127s", s1);
