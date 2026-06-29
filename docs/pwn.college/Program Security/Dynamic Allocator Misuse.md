@@ -210,7 +210,7 @@ This time the program does not tell us how many bytes the `read_flag` function i
 
 - [ ] Size allocated for `read_flag`
 
-### Binary Analysis
+### Binary analysis
 
 ```c title="/challenge/freebie-hard :: main() :: Pseudocode :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -1080,7 +1080,7 @@ hacker@dynamic-allocator-misuse~free-flag-fumble-hard:/$ /challenge/free-flag-fu
 
 As always, the hard challenge does not tell us the size of the buffers into which the flag was read.
 
-### Binary Analysis
+### Binary analysis
 
 ```c title="/challenge/free-flag-fumble-hard :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -1515,7 +1515,7 @@ Data: pwn.college{Mbk_-TzLM_emeeQEjY3XeOkWk_p.01N3MDL4ITM0EzW}
 
 This time we need to find the size of the buffer into which the flag is read.
 
-### Binary Analysis
+### Binary analysis
 
 ```c title="/challenge/fickle-free-hard :: main() :: Pseudocode" showLineNumbers 
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -1656,7 +1656,7 @@ This challenge can manage up to 16 unique allocations.
 
 Let's see what the program does by decompiling the binary.
 
-### Binary Analysis
+### Binary analysis
 
 ```c title="/challenge/malloc-mirage-easy :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -1980,7 +1980,7 @@ hacker@dynamic-allocator-misuse~malloc-mirage-hard:/$ /challenge/malloc-mirage-h
 We need to figure out the following in order to solve the hard version.
 - [ ] Size of memory allocation into which the flag is read
 
-### Binary Analysis
+### Binary analysis
 
 ```c title="/challenge/malloc-mirage-hard :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -2154,7 +2154,7 @@ If you can leak out this secret, you can redeem it for the flag.
 
 Lets look at the decompiled code in order to figure out the functionality of the challenge.
 
-### Binary Analysis
+### Binary analysis
 
 ```c title="/challenge/seeking-secrets-easy :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -2573,7 +2573,7 @@ hacker@dynamic-allocator-misuse~seeking-secrets-hard:~$ /challenge/seeking-secre
 [*] Function (malloc/free/puts/scanf/send_flag/quit): 
 ```
 
-### Binary Analysis
+### Binary analysis
 
 ```c title="/challenge/seeking-secrets-hard :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -2805,7 +2805,7 @@ If you can leak out this secret, you can redeem it for the flag.
 [*] Function (malloc/free/puts/scanf/send_flag/quit): 
 ```
 
-### Binary Analysis
+### Binary analysis
 
 ```c title="/challenge/seeking-substantial-secrets-easy :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -3384,7 +3384,7 @@ hacker@dynamic-allocator-misuse~seeking-substantial-secrets-hard:/$ /challenge/s
 
 The solution is the same as the [easy one](#polluting-TCACHE-entry_struct-multiple-times), only difference being that we have to find the address of the secret value.
 
-### Binary Analysis
+### Binary analysis
 
 ```c title="/challenge/seeking-substantial-secrets-hard :: main() :: Pseudocode" showLineNumbers 
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -3654,7 +3654,7 @@ pwn.college{Y1obx4BDBPfdkgWr6FXdTlE7-n5.0FN4MDL4ITM0EzW}
 
 ## Seeking Spanless Secrets (Easy)
 
-### Binary Analysis
+### Binary analysis
 
 ```c title="/challenge/seeking-spanless-secrets-easy :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -3778,7 +3778,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-### Overwriting the Secret via TCACHE Poisoning
+### Overwriting the secret via TCACHE Poisoning
 
 Since the secret's address contains a `0x0a` byte, `scanf` would stop reading before completing the full 8-byte address, so we can't directly poison the `next` pointer to point at `secret_addr`. Instead, we target a nearby aligned address (`secret_addr - 16`) that contains no whitespace bytes, and use padding to bridge the gap.
 
@@ -4089,7 +4089,7 @@ pwn.college{UXoETFJzikCNvh66nGl1nVtHrJT.0VN4MDL4ITM0EzW}
 
 ## Seeking Spanless Secrets (Hard)
 
-### Binary Analysis
+### Binary analysis
 
 ```c title="/challenge/seeking-spanless-secrets-hard :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -4348,7 +4348,7 @@ If you attempt to malloc an address near where the secret is stored, it will be 
 [*] Function (malloc/free/puts/scanf/send_flag/quit):
 ```
 
-### Binary Analysis
+### Binary analysis
 
 ```c title="/challenge/seeking-smuggled-secrets-easy :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -4836,7 +4836,7 @@ hacker@dynamic-allocator-misuse~seeking-smuggled-secrets-hard:/$ /challenge/seek
 [*] Function (malloc/free/puts/scanf/send_flag/quit):
 ```
 
-### Binary Analysis
+### Binary analysis
 
 ```c title="/challenge/seeking-smuggled-secrets-hard :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -5049,7 +5049,7 @@ This challenge can manage up to 16 unique allocations.
 [*] Function (malloc/free/puts/scanf/quit):
 ```
 
-### Binary Analysis
+### Binary analysis
 
 ```c title="/challenge/sus-sequence-easy :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -5175,7 +5175,7 @@ hacker@dynamic-allocator-misuse~sus-sequence-easy:/$ nm /challenge/sus-sequence-
 win_addr = leaked_main_addr - 0xfd
 ```
 
-### TCACHE Poisoning to Overwrite the Return Address
+### TCACHE poisoning to overwrite the return address
 
 The program has no secret to leak and no authorization check. The only way out is to make `main()` return to `win()` instead of back to `__libc_start_main()`. We do this by poisoning the TCACHE to hand us a pointer directly onto the stack, at `main()`'s return address, and then writing `win_addr` there with `scanf`.
 
@@ -5330,7 +5330,7 @@ hacker@dynamic-allocator-misuse~sus-sequence-hard:/$ /challenge/sus-sequence-har
 
 The solution is the same as the [easy version](#sus-sequence-easy). The only differences are that there is no `print_TCACHE` display, and we have to find the offset between `main()` and `win()` from the binary ourselves.
 
-### Binary Analysis
+### Binary analysis
 
 ```c title="/challenge/sus-sequence-hard :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -5449,7 +5449,7 @@ This challenge can manage up to 16 unique allocations.
 [*] Function (malloc/free/echo/scanf/quit):
 ```
 
-### Binary Analysis
+### Binary analysis
 
 ```c title="/challenge/echo-emanations-easy :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -5583,7 +5583,7 @@ This challenge has no startup leaks and no `send_flag`. The goal is the same as 
 
 The `echo` command takes an index and an offset, and calls `execve("/bin/echo", argv, NULL)` where `argv[2] = ptr[idx] + offset`. This prints the bytes at that address as a string, giving us an arbitrary read within any allocation at any offset.
 
-### leaking via Echo's Internal Chunk
+### Leaking via `echo`'s internal chunk
 
 Every time `echo` is called, it runs `malloc(0x20)` internally. Looking at the source:
 
@@ -5876,7 +5876,7 @@ hacker@dynamic-allocator-misuse~echo-emanations-hard:/$ /challenge/echo-emanatio
 
 The solution is the same as the [easy version](#echo-emanations-easy). The only differences are that there is no `print_TCACHE` display, and we have to find the file offset of `"/bin/echo"` and the address of `win()` from the binary ourselves.
 
-### Binary Analysis
+### Binary analysis
 
 ```c title="/challenge/echo-emanations-hard :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -6110,7 +6110,7 @@ This challenge can manage up to 16 unique allocations.
 [*] Function (malloc/free/puts/scanf/stack_free/stack_scanf/stack_malloc_win/quit):
 ```
 
-### Binary Analysis
+### Binary analysis
 
 ```c title="/challenge/stack-spoofing-easy :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -6244,7 +6244,7 @@ This challenge introduces three new commands. `stack_free` frees `v15`, a stack-
 
 The goal is to make `malloc(63)` return the address of `v15` on the stack.
 
-### Getting a Stack Address into the TCACHE
+### Getting a stack address into the TCACHE
 
 We cannot call `stack_free` directly to put `v15` into the TCACHE, the allocator detects that `v15` is not a valid heap chunk and aborts:
 
@@ -6369,7 +6369,7 @@ hacker@dynamic-allocator-misuse~stack-spoofing-hard:/$ /challenge/stack-spoofing
 [*] Function (malloc/free/puts/scanf/stack_free/stack_scanf/stack_malloc_win/quit):
 ```
 
-### Binary Analysis
+### Binary analysis
 
 ```c title="/challenge/stack-spoofing-hard :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -6482,7 +6482,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 
 The goal is the same as the [easy version](#stack-spoofing-easy): make `malloc(0x75)` return `v13`'s address. The difference is that this binary prints nothing, no address leaks, and `stack_free` aborts immediately with `munmap_chunk(): invalid pointer` because `v13` has no valid chunk header in the memory before it.
 
-### Forging a Chunk Header
+### Forging a chunk header
 
 For `free` to accept a pointer, the allocator checks the size field stored 8 bytes before the pointer (`ptr-0x8`). If that value is not a plausible chunk size, the allocator aborts.
 
@@ -6571,7 +6571,7 @@ If you can leak out this secret, you can redeem it for the flag.
 [*] Function (malloc/free/puts/scanf/stack_free/stack_scanf/send_flag/quit):
 ```
 
-### Binary Analysis
+### Binary analysis
 
 ```c title="/challenge/stack-summoning-easy :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -6717,7 +6717,7 @@ This challenge is essentially the same as the [Seeking Secrets](#seeking-secrets
 
 The `stack_free` and `stack_scanf` commands are not needed at all for the [easy version](#stack-summoning-easy). The solution uses only the standard heap primitives.
 
-### Polluting `tcache_entry` struct to leak the Secret
+### Polluting `tcache_entry` struct to leak the secret
 
 We allocate two heap chunks, free them into the TCACHE, and poison the first chunk's `next` to point at `secret_addr`. We then `malloc` twice and `puts` on the second allocation to leak the secret.
 
@@ -6902,7 +6902,7 @@ hacker@dynamic-allocator-misuse~stack-summoning-hard:/$ /challenge/stack-summoni
 
 The solution for the hard version is different from the easy one. Instead of leaking the secret and submitting it, we overwrite it with a known value and submit that instead.
 
-### Binary Analysis
+### Binary analysis
 
 ```c title="/challenge/stack-summoning-hard :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -7032,7 +7032,7 @@ This version prints nothing: no address leaks, no TCACHE display, no allocation 
 
 Instead we take the opposite approach: rather than leaking the secret, we overwrite it with a value we choose, then submit that value to `send_flag`.
 
-### Overwriting the Secret
+### Overwriting the secret
 
 The stack layout gives us everything we need:
 
@@ -7150,7 +7150,7 @@ This challenge can manage up to 16 unique allocations.
 [*] Function (malloc/free/echo/scanf/stack_free/stack_scanf/quit):
 ```
 
-### Binary Analysis
+### Binary analysis
 
 ```c title="/challenge/enterprising-echo-easy :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
@@ -7384,7 +7384,7 @@ hacker@dynamic-allocator-misuse~enterprising-echo-hard:/$ /challenge/enterprisin
 [*] Function (malloc/free/echo/scanf/stack_free/stack_scanf/quit):
 ```
 
-### Binary Analysis
+### Binary analysis
 
 ```c title="/challenge/enterprising-echo-hard :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
