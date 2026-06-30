@@ -6515,7 +6515,7 @@ The fake size field needs to sit at `v13-0x8` = `rbp-0x58`, which is `rbp-0x90 +
 └─────────────────────────────────────────────────────────┘
 ```
 
-`free(v13)` reads `*(v13-8)` = `0x81`, decodes that as size `0x80` (128) with `PREV_INUSE` set, accepts it as plausible, and inserts it into the TCACHE bin for size-128 chunks.
+`free(v13)` reads `[v13-8]` = `0x81`, decodes that as size `0x80` (128) with `PREV_INUSE` set, accepts it as plausible, and inserts it into the tcache bin for size-128 chunks.
 
 With the fake header in place, `stack_free` succeeds and puts `v13` into the TCACHE bin for 113-128 byte chunks. Then `stack_malloc_win`'s `malloc(0x75)` pops it back out, the check passes, and `win()` is called.
 
