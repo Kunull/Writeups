@@ -7200,7 +7200,7 @@ This challenge combines the echo emanations and stack spoofing techniques. There
 
 We have two useful primitives. First, the `echo` command's internal `malloc(0x20)` can be exploited just like in echo emanations to leak a binary address. Second, `stack_free` prints `v15`'s address and frees it into the TCACHE, giving us both a stack leak and a chunk we can use for TCACHE poisoning.
 
-### Binary leak via Echo's Internal Chunk
+### Binary leak via `echo`'s Internal Chunk
 
 In echo emanations, `argv[1]` pointed to `v4`, a local stack variable holding `"Data:"`. In this binary, `"Data:"` is stored as a global string in rodata instead, so offset 8 gives another binary address rather than a stack address. We only get one useful leak from echo, the binary base from `argv[0]` at offset 0.
 
@@ -7539,7 +7539,7 @@ hacker@dynamic-allocator-misuse~enterprising-echo-hard:/$ objdump -d /challenge/
 
 `win+5 = 0x140e` is `mov %rsp,%rbp`, the third instruction. Jumping here skips `endbr64` and `push %rbp` but lands cleanly inside the function, sets up the frame, and continues normally to open and print the flag. `0x140e`'s lowest byte is `0x0e`, which is not whitespace. So we use `win_addr = base + 0x140e`.
 
-### Binary leak via Echo's Internal Chunk
+### Binary leak via `echo`'s Internal Chunk
 
 Same as the [easy version](#enterprising-echo-easy). `argv[1]` points to a rodata string rather than a stack variable, so only offset 0 gives a useful binary leak:
 
@@ -7547,7 +7547,7 @@ Same as the [easy version](#enterprising-echo-easy). `argv[1]` points to a rodat
 base = bin_leak - 0x2110
 ```
 
-### Stack leak via Echo's argv[2]
+### Stack leak via `echo`'s argv[2]
 
 Since `stack_free` prints nothing, we need another way to get `v14`'s address. The key insight is that when `echo(idx, offset)` runs, it writes `argv[2] = ptr[idx] + offset` into its internal `malloc(0x20)` chunk at offset `0x10`. If we arrange for that chunk to be a chunk we control, we can read `ptr[idx] + offset` back via echo.
 
