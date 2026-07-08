@@ -7202,19 +7202,33 @@ unsigned __int64 __fastcall echo(__int64 a1, __int64 a2)
 }
 ```
 
-This challenge combines the [Echo Emanations](#echo-emanations-easy) and [Stack Spoofing](#stack-spoofing-easy) techniques. There is no `send_flag` or secret to leak, the goal is to overwrite `main`'s return address with `win()`.
+This challenge combines the echo emanations and stack spoofing techniques. There is no `send_flag` or secret to leak, the goal is to overwrite `main`'s return address with `win()`. We need two things: a binary leak to calculate `win`'s address, and a stack leak to locate `main`'s return address.
 
 ### Overwriting `main`'s Return Address via TCACHE Poisoning
 
-We need two things: the binary base to calculate `win`'s address, and a stack address to locate `main`'s return address. Neither is printed at startup, so we derive both from the available primitives.
+**Step 1: Binary leak via echo's internal chunk**
 
-For the binary leak, we use the same echo chunk reuse trick as in Echo Emanations. We allocate a 32-byte chunk, free it, and call `echo(0, 0)`. Echo's internal `malloc(0x20)` pops our freed chunk and writes its argv pointers into it. `ptr[0]` is still a dangling pointer to that chunk, so calling `echo(0, 0)` again has `/bin/echo` print the bytes at `ptr[0] + 0`, which is `argv[0]`, the address of `"/bin/echo"` in the binary's rodata section.
+Every time `echo` is called, it runs `malloc(0x20)` internally to allocate an argv array, writes four pointers into it, then calls `execve("/bin/echo", argv, NULL)`. `/bin/echo` prints the string at `argv[2] = ptr[idx] + offset`.
 
-In the easy version of echo emanations, `argv[1]` pointed to a stack variable `v4` holding `"Data:"`, giving us a stack leak at offset 8. In this binary, `"Data:"` is a global string in rodata, so offset 8 gives another binary address rather than a stack address. We only get one useful leak from echo.
+We allocate a 32-byte chunk, free it into the tcache, then call `echo(0, 0)`. Echo's internal `malloc(0x20)` pops our freed chunk from the tcache and writes its argv pointers into it:
 
-For the stack leak we use `stack_free`, which prints `v15`'s address before freeing it. But `stack_free` aborts unless `v15` has a valid size field at `v15-0x8`. We use `stack_scanf` to plant one first. `v14` is at `[rbp-0x90]` and `v15-0x8` is at `[rbp-0x58]`, which is 56 bytes into `v14`. We write 56 bytes of padding followed by `p64(0x81)` to forge the header, then call `stack_free` to get both the address leak and put `v15` into the tcache.
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  chunk A (ptr[0], also echo's internal argv array)    ┆
+├───────────────────────────────────────────────────────┤
+│  +0x00: argv[0] = &"/bin/echo"  <- binary address     │
+├───────────────────────────────────────────────────────┤
+│  +0x08: argv[1] = &"Data: "     <- binary address     │
+├───────────────────────────────────────────────────────┤
+│  +0x10: argv[2] = ptr[0] + 0    <- heap address       │
+├───────────────────────────────────────────────────────┤
+│  +0x18: argv[3] = NULL                                │
+└───────────────────────────────────────────────────────┘
+```
 
-With `v15_addr` in hand, `rbp = v15_addr + 0x50` and `ret_addr = rbp + 0x8 = v15_addr + 0x58`. For `win_addr`:
+Since `ptr[0]` is still a dangling pointer to that chunk, calling `echo(0, 0)` again has `/bin/echo` print the bytes at `ptr[0] + 0`, which is `argv[0]`, the address of `"/bin/echo"` in the binary's rodata section. This is our binary leak.
+
+In echo emanations easy, `argv[1]` was the address of `v4`, a local stack variable inside `echo()` holding the string `"Data:"`, which gave us a stack leak at offset 8. In this binary, `"Data:"` is a global string stored in rodata instead of on the stack, so `argv[1]` is another binary address. Offset 8 gives no stack leak.
 
 ```
 hacker@dynamic-allocator-misuse~enterprising-echo-easy:/$ nm /challenge/enterprising-echo-easy | grep -E "main|win"
@@ -7228,9 +7242,40 @@ print(hex(data.find(b'/bin/echo')))
 0x33f8
 ```
 
-So `base = bin_leak - 0x33f8` and `win_addr = base + 0x1a22`.
+```
+base     = bin_leak - 0x33f8
+win_addr = base + 0x1a22
+```
 
-After `stack_free`, `v15` is in the tcache with count=1. We free two heap chunks of size 128 on top, making count=3 with chain `a -> b -> v15`. We poison `a`'s `next` to `ret_addr`, orphaning `b` and `v15`. The chain becomes `a -> ret_addr` with count=3:
+**Step 2: Stack leak via `stack_free`**
+
+Since echo gives no stack address, we use `stack_free` instead. It prints `v15`'s address before freeing it. But `v15` has no valid chunk header, so `stack_free` aborts unless we forge one first using `stack_scanf`.
+
+`v14` is at `[rbp-0x90]` and `v15-0x8` is at `[rbp-0x58]`, which is 56 bytes into `v14`. We write 56 bytes of padding followed by `p64(0x81)`, planting a fake size field matching `malloc(128)`:
+
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  STACK                                                  ┆
+├─────────────────────────────────────────────────────────┤
+│  rbp-0x90: v14  <- stack_scanf writes here              │
+│            "A" * 56 bytes of padding                    │
+├─────────────────────────────────────────────────────────┤
+│  rbp-0x58: fake size field = 0x81  <- v15 - 0x8         │
+├─────────────────────────────────────────────────────────┤
+│  rbp-0x50: v15  <- stack_free frees here                │
+└─────────────────────────────────────────────────────────┘
+```
+
+With the fake header in place, `stack_free` succeeds. It prints `v15`'s address and puts `v15` into the tcache with count=1. From `v15_addr` we calculate:
+
+```
+rbp      = v15_addr + 0x50
+ret_addr = rbp + 0x8 = v15_addr + 0x58
+```
+
+**Step 3: TCACHE poisoning to overwrite the return address**
+
+After `stack_free`, `v15` is in the tcache with count=1. We free two heap chunks of size 128 on top, making count=3 with chain `a -> b -> v15`. We poison `a`'s `next` to `ret_addr`, orphaning `b` and `v15`:
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
@@ -7484,6 +7529,26 @@ The hard version prints nothing at all. No allocation addresses, no `stack_free`
 
 ### Overwriting `main`'s Return Address via TCACHE Poisoning
 
+**Step 1: Binary leak via echo's internal chunk**
+
+Same trick as the easy version and echo emanations. We allocate a 32-byte chunk, free it, and call `echo(0, 0)`. Echo's internal `malloc(0x20)` pops our freed chunk and writes its argv pointers into it. Since `ptr[0]` is still a dangling pointer to that chunk, calling `echo(0, 0)` again has `/bin/echo` print the bytes at `ptr[0] + 0`, which is `argv[0]`, the address of `"/bin/echo"` in the binary:
+
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  chunk A (ptr[0], also echo's internal argv array)    ┆
+├───────────────────────────────────────────────────────┤
+│  +0x00: argv[0] = &"/bin/echo"  <- binary address     │
+├───────────────────────────────────────────────────────┤
+│  +0x08: argv[1] = &"Data: "     <- binary address     │
+├───────────────────────────────────────────────────────┤
+│  +0x10: argv[2] = ptr[0] + 0    <- heap address       │
+├───────────────────────────────────────────────────────┤
+│  +0x18: argv[3] = NULL                                │
+└───────────────────────────────────────────────────────┘
+```
+
+Just like the easy version, `argv[1]` points to rodata so offset 8 gives no stack address.
+
 ```
 hacker@dynamic-allocator-misuse~enterprising-echo-hard:/$ nm /challenge/enterprising-echo-hard | grep -E "main|win"
                  U __libc_start_main@@GLIBC_2.2.5
@@ -7497,7 +7562,7 @@ print(hex(data.find(b'/bin/echo')))
 0x2110
 ```
 
-So `base = bin_leak - 0x2110`. However `win` is at offset `0x1409`, whose lowest byte is `0x09`, a tab character. Since `scanf` stops at whitespace, we can never write `win_addr` directly. Checking the disassembly:
+`base = bin_leak - 0x2110`. However `win` is at offset `0x1409`, whose lowest byte is `0x09`, a tab character. Since `scanf` stops at whitespace, we cannot write `win_addr` directly. Checking the disassembly:
 
 ```
 hacker@dynamic-allocator-misuse~enterprising-echo-hard:/$ objdump -d /challenge/enterprising-echo-hard | grep -A 20 "<win>"
@@ -7524,15 +7589,17 @@ hacker@dynamic-allocator-misuse~enterprising-echo-hard:/$ objdump -d /challenge/
     145b:       b8 00 00 00 00          mov    $0x0,%eax
 ```
 
-`win+5 = 0x140e` is `mov %rsp,%rbp`, the third instruction. Jumping here skips `endbr64` and `push %rbp` but lands cleanly inside the function and continues normally to open and print the flag. `0x140e`'s lowest byte is `0x0e`, which is not whitespace, so we use `win_addr = base + 0x140e`.
+`win+5 = 0x140e` is `mov %rsp,%rbp`, the third instruction. Jumping here skips `endbr64` and `push %rbp` but lands cleanly inside the function and continues normally to open and print the flag. Its lowest byte is `0x0e`, not whitespace, so `win_addr = base + 0x140e`.
 
-The binary leak uses the same echo chunk reuse trick as before — `argv[1]` points to rodata so only offset 0 gives a useful address. The stack leak is more involved. Since `stack_free` prints nothing, we need another way to get `v14`'s address. When `echo(idx, offset)` runs, it writes `argv[2] = ptr[idx] + offset` into its internal `malloc(0x20)` chunk at offset `0x10`. If we arrange for that chunk to be one we already have a dangling pointer to, we can read that address back.
+**Step 2: Stack leak via echo's argv[2]**
 
-The sequence is: call `stack_free` to put `v14` into the tcache (after forging the fake header the same way as the easy version), then `malloc(2, 128)` to pop `v14` into `ptr[2]`. Now `ptr[2] = v14_addr`. We then `malloc(3, 32)` and `free(3)` to put a fresh 32-byte chunk into the tcache. Calling `echo(2, 0)` causes echo's internal `malloc(0x20)` to pop that chunk and write `argv[2] = ptr[2] + 0 = v14_addr` into it at offset `0x10`. Since `ptr[3]` is still a dangling pointer to that chunk, `echo(3, 0x10)` reads `v14_addr` back out.
+Since `stack_free` prints nothing, we need another way to get `v14`'s address. We first forge a fake chunk header at `v14-0x8` using `stack_scanf` (56 bytes of padding + `p64(0x91)`), then call `stack_free` to put `v14` into the tcache. `malloc(2, 128)` pops `v14` into `ptr[2]`, so now `ptr[2] = v14_addr`.
+
+When `echo(idx, offset)` runs, it writes `argv[2] = ptr[idx] + offset` into its internal `malloc(0x20)` chunk at offset `0x10`. We arrange for that chunk to be one we already have a dangling pointer to: `malloc(3, 32)`, `free(3)`, then call `echo(2, 0)`. Echo's internal `malloc(0x20)` pops `ptr[3]`'s chunk and writes `argv[2] = ptr[2] + 0 = v14_addr` into it at offset `0x10`. Since `ptr[3]` is still a dangling pointer to that chunk, `echo(3, 0x10)` reads `v14_addr` back out:
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
-┆  echo's internal argv chunk (was ptr[3])              ┆
+┆  chunk A (ptr[3], also echo's internal argv array)    ┆
 ├───────────────────────────────────────────────────────┤
 │  +0x00: argv[0] = &"/bin/echo"  <- binary address     │
 ├───────────────────────────────────────────────────────┤
@@ -7544,12 +7611,44 @@ The sequence is: call `stack_free` to put `v14` into the tcache (after forging t
 └───────────────────────────────────────────────────────┘
 ```
 
-With `v14_addr` known, `ret_addr = v14_addr + 0x58`. After `malloc(2, 128)` has already popped `v14` (count=0), we free two fresh heap chunks making count=2, poison the first chunk's `next` to `ret_addr`, then:
+With `v14_addr` known, `ret_addr = v14_addr + 0x58`.
 
-- `malloc(4)` pops first chunk, count=1, head=`ret_addr`
-- `malloc(5)` pops `ret_addr`, count=0
-- `scanf(5, p64(win_addr))` writes `win_addr` to the return address
-- `quit` triggers the return, jumping to `win+5`
+**Step 3: TCACHE poisoning to overwrite the return address**
+
+After `malloc(2, 128)` popped `v14`, count=0. We free two fresh heap chunks making count=2, then poison the first chunk's `next` to `ret_addr`:
+
+```
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┊  tcache_perthread_struct Void                                        ┊
+┊            ┏━━━━━━━━━━━━━━━━┓                                        ┊
+┊    counts: ┃ count_128: 2   ┃                                        ┊
+┊            ┣━━━━━━━━━━━━━━━━┫                                        ┊
+┊   entries: ┃ entry_128: &A  ┃                                        ┊
+┊            ┗━━━━━━━━━━━━━━━━┛                                        ┊
+└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+                          │
+        ╭─────────────────╯
+        │
+        v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  tcache_entry A  ┆
+├──────────────────┤
+│ next: ret_addr   │ ────╮  (B orphaned)
+├──────────────────┤     │
+│    key: Void     │     │
+└──────────────────┘     │
+                         │
+        ╭────────────────╯
+        │
+        v
+┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+┆  STACK (ret_addr)        ┆
+├──────────────────────────┤
+│  main's return address   │
+└──────────────────────────┘
+```
+
+`malloc(4)` pops `A`, count=1, head=`ret_addr`. `malloc(5)` pops `ret_addr`, count=0. `scanf(5, p64(win_addr))` writes `win+5` to the return address. `quit` triggers `main`'s return, jumping to `win+5`.
 
 ### Exploit
 
