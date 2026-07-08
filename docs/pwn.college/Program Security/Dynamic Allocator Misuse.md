@@ -7202,7 +7202,7 @@ unsigned __int64 __fastcall echo(__int64 a1, __int64 a2)
 }
 ```
 
-This challenge combines the echo emanations and stack spoofing techniques. There is no `send_flag` or secret to leak, the goal is to overwrite `main`'s return address with `win()`.
+This challenge combines the [Echo Emanations](#echo-emanations-easy) and [Stack Spoofing](#stack-spoofing-easy) techniques. There is no `send_flag` or secret to leak, the goal is to overwrite `main`'s return address with `win()`.
 
 ### Overwriting `main`'s Return Address via TCACHE Poisoning
 
