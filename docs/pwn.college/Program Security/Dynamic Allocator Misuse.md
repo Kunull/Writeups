@@ -7165,18 +7165,110 @@ int __fastcall main(int argc, const char **argv, const char **envp)
   unsigned int size; // [rsp+34h] [rbp-19Ch]
   void *ptr[16]; // [rsp+40h] [rbp-190h] BYREF
   char s1[128]; // [rsp+C0h] [rbp-110h] BYREF
-  _BYTE v14[64]; // [rsp+140h] [rbp-90h] BYREF  <- stack_scanf writes here
-  _QWORD v15[10]; // [rsp+180h] [rbp-50h] BYREF  <- stack_free frees this
+  _BYTE v14[64]; // [rsp+140h] [rbp-90h] BYREF
+  _QWORD v15[10]; // [rsp+180h] [rbp-50h] BYREF
+
   v15[9] = __readfsqword(0x28u);
-  // ...
-
-  // stack_free
-  printf("[*] free(%p)\n", v15);
-  free(v15);
-
-  // stack_scanf
-  printf("[*] scanf(\"%%127s\", %p)\n", v14);
-  __isoc99_scanf("%127s", v14);
+  setvbuf(stdin, nullptr, 2, 0);
+  setvbuf(stdout, nullptr, 2, 1u);
+  puts("###");
+  printf("### Welcome to %s!\n", *argv);
+  puts("###");
+  putchar(10);
+  memset(ptr, 0, sizeof(ptr));
+  puts(
+    "This challenge allows you to perform various heap operations, some of which may involve the flag. Through this series of");
+  puts("challenges, you will become familiar with the concept of heap exploitation.\n");
+  printf("This challenge can manage up to %d unique allocations.\n\n", 16);
+  while ( 1 )
+  {
+    while ( 1 )
+    {
+      while ( 1 )
+      {
+        while ( 1 )
+        {
+          while ( 1 )
+          {
+            while ( 1 )
+            {
+              print_tcache(main_thread_tcache);
+              puts(byte_3529);
+              printf("[*] Function (malloc/free/echo/scanf/stack_free/stack_scanf/quit): ");
+              __isoc99_scanf("%127s", s1);
+              puts(byte_3529);
+              if ( strcmp(s1, "malloc") )
+                break;
+              printf("Index: ");
+              __isoc99_scanf("%127s", s1);
+              puts(byte_3529);
+              v6 = atoi(s1);
+              if ( v6 > 0xF )
+                __assert_fail("allocation_index < 16", "<stdin>", 0x112u, "main");
+              printf("Size: ");
+              __isoc99_scanf("%127s", s1);
+              puts(byte_3529);
+              size = atoi(s1);
+              printf("[*] allocations[%d] = malloc(%d)\n", v6, size);
+              ptr[v6] = malloc(size);
+              printf("[*] allocations[%d] = %p\n", v6, ptr[v6]);
+            }
+            if ( strcmp(s1, "free") )
+              break;
+            printf("Index: ");
+            __isoc99_scanf("%127s", s1);
+            puts(byte_3529);
+            v7 = atoi(s1);
+            if ( v7 > 0xF )
+              __assert_fail("allocation_index < 16", "<stdin>", 0x124u, "main");
+            printf("[*] free(allocations[%d])\n", v7);
+            free(ptr[v7]);
+          }
+          if ( strcmp(s1, "echo") )
+            break;
+          printf("Index: ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_3529);
+          v8 = atoi(s1);
+          if ( v8 > 0xF )
+            __assert_fail("allocation_index < 16", "<stdin>", 0x131u, "main");
+          printf("Offset: ");
+          __isoc99_scanf("%127s", s1);
+          puts(byte_3529);
+          v10 = atoi(s1);
+          printf("[*] echo(allocations[%d], %d)\n", v8, v10);
+          echo(ptr[v8], v10);
+        }
+        if ( strcmp(s1, "scanf") )
+          break;
+        printf("Index: ");
+        __isoc99_scanf("%127s", s1);
+        puts(byte_3529);
+        v9 = atoi(s1);
+        if ( v9 > 0xF )
+          __assert_fail("allocation_index < 16", "<stdin>", 0x142u, "main");
+        v3 = malloc_usable_size(ptr[v9]);
+        sprintf(s1, "%%%us", v3);
+        v4 = malloc_usable_size(ptr[v9]);
+        printf("[*] scanf(\"%%%us\", allocations[%d])\n", v4, v9);
+        __isoc99_scanf(s1, ptr[v9]);
+        puts(byte_3529);
+      }
+      if ( strcmp(s1, "stack_free") )
+        break;
+      printf("[*] free(%p)\n", v15);
+      free(v15);
+    }
+    if ( strcmp(s1, "stack_scanf") )
+      break;
+    printf("[*] scanf(\"%%127s\", %p)\n", v14);
+    __isoc99_scanf("%127s", v14);
+    puts(byte_3529);
+  }
+  if ( strcmp(s1, "quit") )
+    puts("Unrecognized choice!");
+  puts("### Goodbye!");
+  return 0;
 }
 ```
 
