@@ -6515,7 +6515,7 @@ The fake size field needs to sit at `v13-0x8` = `rbp-0x58`, which is `rbp-0x90 +
 └─────────────────────────────────────────────────────────┘
 ```
 
-`free(v13)` reads `[v13-8]` = `0x81`, decodes that as size `0x80` (128) with `PREV_INUSE` set, accepts it as plausible, and inserts it into the tcache bin for size-128 chunks.
+`free(v13)` reads `[v13-8]` = `0x81`, decodes that as size `0x80` (128) with `PREV_INUSE` set, accepts it as plausible, and inserts it into the TCACHE bin for size-128 chunks.
 
 With the fake header in place, `stack_free` succeeds and puts `v13` into the TCACHE bin for 113-128 byte chunks. Then `stack_malloc_win`'s `malloc(0x75)` pops it back out, the check passes, and `win()` is called.
 
@@ -7298,11 +7298,11 @@ This challenge combines the echo emanations and stack spoofing techniques. There
 
 ### Overwriting `main`'s Return Address via TCACHE Poisoning
 
-**Step 1: Binary leak via echo's internal chunk**
+**Step 1: Binary leak via `echo`'s internal chunk**
 
-Every time `echo` is called, it runs `malloc(0x20)` internally to allocate an argv array, writes four pointers into it, then calls `execve("/bin/echo", argv, NULL)`. `/bin/echo` prints the string at `argv[2] = ptr[idx] + offset`.
+Every time `echo` is called, it runs `malloc(0x20)` internally to allocate an `argv` array, writes four pointers into it, then calls `execve("/bin/echo", argv, NULL)`. `/bin/echo` prints the string at `argv[2] = ptr[idx] + offset`.
 
-We allocate a 32-byte chunk, free it into the tcache, then call `echo(0, 0)`. Echo's internal `malloc(0x20)` pops our freed chunk from the tcache and writes its argv pointers into it:
+We allocate a 32-byte chunk, free it into the TCACHE, then call `echo(0, 0)`. `echo`'s internal `malloc(0x20)` pops our freed chunk from the TCACHE and writes its `argv` pointers into it:
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
@@ -7320,13 +7320,17 @@ We allocate a 32-byte chunk, free it into the tcache, then call `echo(0, 0)`. Ec
 
 Since `ptr[0]` is still a dangling pointer to that chunk, calling `echo(0, 0)` again has `/bin/echo` print the bytes at `ptr[0] + 0`, which is `argv[0]`, the address of `"/bin/echo"` in the binary's rodata section. This is our binary leak.
 
-In echo emanations easy, `argv[1]` was the address of `v4`, a local stack variable inside `echo()` holding the string `"Data:"`, which gave us a stack leak at offset 8. In this binary, `"Data:"` is a global string stored in rodata instead of on the stack, so `argv[1]` is another binary address. Offset 8 gives no stack leak.
+In Echo Emanations (Easy), `argv[1]` was the address of `v4`, a local stack variable inside `echo()` holding the string `"Data:"`, which gave us a stack leak at offset 8. 
+
+In this binary, `"Data:"` is a global string stored in rodata instead of on the stack, so `argv[1]` is another binary address. Offset 8 gives no stack leak.
 
 ```
 hacker@dynamic-allocator-misuse~enterprising-echo-easy:/$ nm /challenge/enterprising-echo-easy | grep -E "main|win"
 0000000000001bc2 T main
 0000000000001a22 T win
+```
 
+```
 hacker@dynamic-allocator-misuse~enterprising-echo-easy:/$ python3 -c "
 data = open('/challenge/enterprising-echo-easy', 'rb').read()
 print(hex(data.find(b'/bin/echo')))
@@ -7341,7 +7345,7 @@ win_addr = base + 0x1a22
 
 **Step 2: Stack leak via `stack_free`**
 
-Since echo gives no stack address, we use `stack_free` instead. It prints `v15`'s address before freeing it. But `v15` has no valid chunk header, so `stack_free` aborts unless we forge one first using `stack_scanf`.
+Since `echo` gives no stack address, we use `stack_free` instead. It prints `v15`'s address before freeing it. But `v15` has no valid chunk header, so `stack_free` aborts unless we forge one first using `stack_scanf`.
 
 `v14` is at `[rbp-0x90]` and `v15-0x8` is at `[rbp-0x58]`, which is 56 bytes into `v14`. We write 56 bytes of padding followed by `p64(0x81)`, planting a fake size field matching `malloc(128)`:
 
@@ -7358,7 +7362,7 @@ Since echo gives no stack address, we use `stack_free` instead. It prints `v15`'
 └─────────────────────────────────────────────────────────┘
 ```
 
-With the fake header in place, `stack_free` succeeds. It prints `v15`'s address and puts `v15` into the tcache with count=1. From `v15_addr` we calculate:
+With the fake header in place, `stack_free` succeeds. It prints `v15`'s address and puts `v15` into the TCACHE with `count=1`. From `v15_addr` we calculate:
 
 ```
 rbp      = v15_addr + 0x50
@@ -7367,7 +7371,7 @@ ret_addr = rbp + 0x8 = v15_addr + 0x58
 
 **Step 3: TCACHE poisoning to overwrite the return address**
 
-After `stack_free`, `v15` is in the tcache with count=1. We free two heap chunks of size 128 on top, making count=3 with chain `a -> b -> v15`. We poison `a`'s `next` to `ret_addr`, orphaning `b` and `v15`:
+After `stack_free`, `v15` is in the TCACHE with `count=1`. We free two heap chunks of size 128 on top, making `count=3` with chain `a -> b -> v15`. We poison `a`'s `next` to `ret_addr`, orphaning `b` and `v15`:
 
 ```
 ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
@@ -7400,7 +7404,7 @@ After `stack_free`, `v15` is in the tcache with count=1. We free two heap chunks
 └──────────────────────────┘
 ```
 
-`malloc(0)` pops `A`, count=2, head=`ret_addr`. `malloc(1)`, count=2 so tcache is used, pops `ret_addr`, count=1. `scanf(1, p64(win_addr))` overwrites the return address with `win`. `quit` triggers `main`'s return, jumping to `win()`.
+`malloc(0)` pops `A`, count=2, head=`ret_addr`. `malloc(1)`, count=2 so TCACHE is used, pops `ret_addr`, count=1. `scanf(1, p64(win_addr))` overwrites the return address with `win`. `quit` triggers `main()`'s return, jumping to `win()`.
 
 ### Exploit
 
@@ -7453,7 +7457,7 @@ p.sendline(b"stack_scanf")
 p.sendline(b"A" * 56 + p64(0x81))
 p.recvuntil(b"quit): ")
 
-# stack_free puts v15 into tcache (count=1), leak its address
+# stack_free puts v15 into TCACHE (count=1), leak its address
 p.sendline(b"stack_free")
 p.recvuntil(b"free(")
 v15_addr = int(p.recvuntil(b")").strip(b")"), 16)
@@ -7617,7 +7621,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-The hard version prints nothing at all. No allocation addresses, no `stack_free` address, no tcache display. The goal is the same as the [easy version](#enterprising-echo-easy), overwriting `main`'s return address with `win()`, but we have to obtain both the binary base and the stack address entirely through the echo and tcache mechanisms.
+The hard version prints nothing at all. No allocation addresses, no `stack_free` address, no TCACHE display. The goal is the same as the [easy version](#enterprising-echo-easy), overwriting `main`'s return address with `win()`, but we have to obtain both the binary base and the stack address entirely through the echo and TCACHE mechanisms.
 
 ### Overwriting `main`'s Return Address via TCACHE Poisoning
 
@@ -7685,7 +7689,7 @@ hacker@dynamic-allocator-misuse~enterprising-echo-hard:/$ objdump -d /challenge/
 
 **Step 2: Stack leak via echo's argv[2]**
 
-Since `stack_free` prints nothing, we need another way to get `v14`'s address. We first forge a fake chunk header at `v14-0x8` using `stack_scanf` (56 bytes of padding + `p64(0x91)`), then call `stack_free` to put `v14` into the tcache. `malloc(2, 128)` pops `v14` into `ptr[2]`, so now `ptr[2] = v14_addr`.
+Since `stack_free` prints nothing, we need another way to get `v14`'s address. We first forge a fake chunk header at `v14-0x8` using `stack_scanf` (56 bytes of padding + `p64(0x91)`), then call `stack_free` to put `v14` into the TCACHE. `malloc(2, 128)` pops `v14` into `ptr[2]`, so now `ptr[2] = v14_addr`.
 
 When `echo(idx, offset)` runs, it writes `argv[2] = ptr[idx] + offset` into its internal `malloc(0x20)` chunk at offset `0x10`. We arrange for that chunk to be one we already have a dangling pointer to: `malloc(3, 32)`, `free(3)`, then call `echo(2, 0)`. Echo's internal `malloc(0x20)` pops `ptr[3]`'s chunk and writes `argv[2] = ptr[2] + 0 = v14_addr` into it at offset `0x10`. Since `ptr[3]` is still a dangling pointer to that chunk, `echo(3, 0x10)` reads `v14_addr` back out:
 
@@ -7793,7 +7797,7 @@ p.sendline(b"stack_scanf")
 p.sendline(b"A" * 56 + p64(0x91))
 p.recvuntil(b"quit): ")
 
-# stack_free puts v14 into tcache (count=1)
+# stack_free puts v14 into TCACHE (count=1)
 p.sendline(b"stack_free")
 p.recvuntil(b"quit): ")
 
