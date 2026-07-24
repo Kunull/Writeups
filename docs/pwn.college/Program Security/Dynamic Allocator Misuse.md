@@ -4526,25 +4526,6 @@ ptr[v7] = malloc(size);
 
 ### Leaking via stale TCACHE HEAD
 
-The TCACHE's `entries[]` array and `counts[]` array are independent. When `malloc` pops the last chunk from a bin, glibc does this:
-
-```c
-*entries = REVEAL_PTR(e->next);   // entries[idx] = whatever was in popped chunk's next
---(TCACHE->counts[tc_idx]);        // count drops to 0
-```
-
-Nothing zeroes `entries[idx]` when the count reaches 0. If the popped chunk was `secret_addr`, then `entries[idx]` now holds `*(secret_addr)`, which is `secret[:8]`. The `print_tcache` helper iterates `count` times from `entries[idx]`, so when count is 0 the loop body never runs and the head displays as `(nil)`. The display layer hides it, but the raw memory still holds the secret bytes.
-
-The next time we `free` a chunk of the same size class, `tcache_put` runs:
-
-```c
-e->next = PROTECT_PTR(&e->next, TCACHE->entries[tc_idx]);
-TCACHE->entries[tc_idx] = e;
-++(TCACHE->counts[tc_idx]);
-```
-
-The new chunk's `next` is set to whatever is currently in `entries[idx]`, with no validation. The stale secret bytes get copied straight into the freed chunk's first 8 bytes, where `puts` can read them.
-
 **Step 1: Allocate two chunks and free them**
 
 As long as we allocate on the real heap (far above the secret address), the guard check passes and we get our chunks normally.
