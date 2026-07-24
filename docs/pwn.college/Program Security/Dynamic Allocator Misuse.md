@@ -4663,7 +4663,7 @@ malloc(1) -> ptr[1] = NULL (secret_addr discarded by guard)
 ├──────────────────┤
 │ next: &SECRET    │
 ├──────────────────┤    
-│    key: Void     │    
+│    key: Null     │    
 └──────────────────┘    
                            
         
@@ -4672,7 +4672,7 @@ malloc(1) -> ptr[1] = NULL (secret_addr discarded by guard)
 ├──────────────────────────────────┤
 │  next: secret[:8]  "lbaaifox"    │
 ├──────────────────────────────────┤
-│  key:  secret[8:16] "clsnrpaf"   │
+│  key:  Null                      │
 └──────────────────────────────────┘
 ```
 
