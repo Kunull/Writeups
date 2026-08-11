@@ -820,7 +820,7 @@ Instead of immediately putting newly freed chunks onto the correct bin, the heap
    <figcaption>Source: [Azeria labs](https://azeria-labs.com/heap-exploitation-part-2-glibc-heap-free-bins/)</figcaption>
 </figure>
 
-This only happens if the large bin / cache is used instead of TCACHE to allocated memory. For that we have to allocate a chunk of size greater than 1032 bytes, as any chunks from 24 to 1032 in size are handled by TCACHE.
+This only happens if the large bin / cache is used instead of TCACHE to allocated memory. For that we have to allocate a chunk of size greater than 1032 bytes, as any chunks from 24 to 1032 bytes in size are handled by TCACHE.
 
 Currently, the `ptmalloc` caching design is (in order of use):
 - 64 singly-linked TCACHE bins for allocations of size 16 to 1032 (functionally "covers" fastbins and smallbins)
