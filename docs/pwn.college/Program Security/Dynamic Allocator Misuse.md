@@ -44,7 +44,7 @@ Data: Segmentation fault
 
 Let's look at the code.
 
-```c title="/challenge/freebie-easy :: main() :: Pseudocode :: Pseudocode" showLineNumbers
+```c title="/challenge/freebie-easy :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   int v3; // ecx
@@ -212,7 +212,7 @@ This time the program does not tell us how many bytes the `read_flag` function i
 
 ### Binary analysis
 
-```c title="/challenge/freebie-hard :: main() :: Pseudocode :: Pseudocode" showLineNumbers
+```c title="/challenge/freebie-hard :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   int v3; // ecx
@@ -558,7 +558,7 @@ This challenge can manage up to 1 unique allocations.
 
 ### Binary analysis
 
-```c title="/challenge/freebie-feint-easy :: main() :: Pseudocode :: Pseudocode" showLineNumbers
+```c title="/challenge/freebie-feint-easy :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   int v3; // ecx
@@ -716,7 +716,7 @@ hacker@dynamic-allocator-misuse~freebin-feint-hard:~$ /challenge/freebin-feint-h
 
 ### Binary analysis
 
-```c title="/challenge/freebie-feint-hard :: main() :: Pseudocode :: Pseudocode" showLineNumbers
+```c title="/challenge/freebie-feint-hard :: main() :: Pseudocode" showLineNumbers
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   int v3; // ecx
