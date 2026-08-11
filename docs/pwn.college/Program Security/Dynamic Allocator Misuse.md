@@ -636,7 +636,18 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-This challenge is very similar to the previous one, only difference being that the size of the `flag_buffer` is arbitrary this time. So we have to allocate the same size when we use `malloc`.
+This challenge is very similar to the previous one, only difference being that the size of the `flag_buffer` is arbitrary this time. 
+
+```c title="/challenge/freebie-feint-easy :: main() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  v8 = rand() % 872 + 128;
+
+# ---- snip ----
+```
+
+This easy version prints out the size of the memory allocation for us, so we just have to allocate the same size when we use `malloc`.
+So we have to allocate the same size when we use `malloc`.
 
 ### Exploit
 
