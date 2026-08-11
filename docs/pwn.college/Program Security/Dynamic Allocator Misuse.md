@@ -796,6 +796,15 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 ```
 
 Again, the `flag_buffer` is some arbitrary size.
+
+```c title="/challenge/freebie-feint-hard :: main() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+  v8 = rand() % 872 + 128;
+
+# ---- snip ----
+```
+
 In order to solve this challenge, we have to leverage Remaindering.
 
 This is the actual method to solve even the [easy version](#freebin-feint-easy). We were able to allocate the exact number of bytes in that challenge because the program printed that number then.
