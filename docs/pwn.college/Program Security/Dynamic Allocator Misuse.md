@@ -823,11 +823,11 @@ Instead of immediately putting newly freed chunks onto the correct bin, the heap
 This only happens if the unsorted bin is used instead of TCACHE to allocated memory. For that we have to allocate a chunk of size greater than 1032 bytes, as any chunks from 24 to 1032 bytes in size are handled by TCACHE.
 
 Currently, the `ptmalloc` caching design (in order of use) is as follows:
-- 64 singly-linked TCACHE bins for allocations of size 16 to 1032 (functionally "covers" fastbins and smallbins)
-- 10 singly-linked "fast" bins for allocations of size up to 160 bytes
-- 1 doubly-linked "unsorted" bin to quickly stash freed chunks that don't fit into TCACHE or fastbins
-- 62 doubly-linked "small" bins for allocations up to 512 bytes
-- 63 doubly-linked "large" bins (anything over 512 bytes) that contain different-sized chunks
+- Tcache: 64 bins, chunk sizes ~32 to ~1040 bytes (request sizes up to ~1032)
+- Fastbins: 10 bins, chunk sizes up to 128 bytes by default (not 160)
+- Unsorted bin: 1 doubly-linked staging list for anything freed that doesn't fit tcache/fastbin
+- Small bins: 62 bins, chunk sizes 32 to ~1008 bytes (not up to 512)
+- Large bins: 63 bins, chunk sizes over 1024 bytes (not over 512)
 
 So, if we allocate a large enough space, then free it, and then call the `read_flag` command, we would not have to worry about the size of `flag_buffer` because it will be split and used from our unsorted bin allocation.
 
