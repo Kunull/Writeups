@@ -275,7 +275,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 ```
 
 We can see, that on selecting `read_flag`, a bin of 262 is allocated using `malloc()`.
-For paractice, let's find out how we can discovert the same using GDB.
+For practice, let's find out how we can discover the same using GDB.
 
 ```
 pwndbg> disassemble main
