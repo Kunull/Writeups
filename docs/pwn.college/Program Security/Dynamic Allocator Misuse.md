@@ -1446,7 +1446,7 @@ free(a)
 └──────────────────┘
 ```
 
-By overwriting the `key` with a dummy value (or `NULL`), we can "trick" the allocator into thinking the chunk is not currently in the TCACHE. This allows us to call `free()` a second time on the same chunk without triggering the security crash.
+By overwriting the `key` with a dummy value (or `NULL`), we can "trick" the allocator into thinking that the chunk is not currently in the TCACHE. This allows us to call `free()` a second time on the same chunk without triggering the security crash.
 
 ### Exploit
 
