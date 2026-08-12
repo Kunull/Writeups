@@ -1348,7 +1348,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-Unlike previous challenges, `read_flag` here calls `malloc` **twice** before it ever touches the flag:
+Unlike previous challenges, `read_flag` here calls `malloc` twice before it ever touches the flag:
 
 ```c title="/challenge/fickle-free-easy :: main() :: Pseudocode" showLineNumbers
 # ---- snip ----
