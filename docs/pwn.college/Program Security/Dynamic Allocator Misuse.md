@@ -1348,7 +1348,37 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-In this challege we have to leverage Double Free vulnerability.
+Unlike previous challenges, `read_flag` here calls `malloc` **twice** before it ever touches the flag:
+
+```c title="/challenge/fickle-free-easy :: main() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+    for ( i = 0; i <= 1; ++i )
+    {
+      printf("[*] flag_buffer = malloc(%d)\n", 784);
+      size_4 = malloc(0x310u);
+      printf("[*] flag_buffer = %p\n", size_4);
+    }
+
+# ---- snip ----
+```
+
+Only the *second* `malloc(784)` result is kept — that's the one `read()` writes the flag into. Since 784 bytes falls within TCACHE's size range, both of these calls will be serviced from the TCACHE bin for that size *if* there's anything sitting in it.
+
+The problem is that this challenge only gives us one allocation slot (`ptr`), so a single `malloc` + `free` only ever places one chunk into the TCACHE bin. That's not enough:
+
+- `read_flag`'s 1st `malloc(784)` would pop that single chunk out of the bin (and throw the result away).
+- `read_flag`'s 2nd `malloc(784)` would then find the bin empty, and would be serviced with fresh, unrelated heap memory instead.
+
+The result: `size_4` (the pointer the flag actually gets read into) would end up completely unrelated to our `ptr`, leaving us no way to leak it back out with `puts`.
+
+To fix this, we need the TCACHE bin to contain the same chunk address twice:
+
+That way, `read_flag`'s first `malloc(784)` pops one entry (discarded), and its second `malloc(784)` pops the other entry - landing on the exact same address as our `ptr`. Since the flag is written into that second allocation, and `ptr` still refers to the same memory, we can simply `puts(ptr)` afterward to read it back out.
+
+Freeing the same chunk normally isn't allowed twice in a row - glibc's TCACHE detects this and aborts with "double free or corruption (tcache)." To get around that check (explained below), we exploit a use-after-free write to corrupt the chunk's internal `key` field, tricking the allocator into accepting a second `free()` on the same chunk. This gives us the two-entries-same-address TCACHE state we need.
+
+In this challenge we have to leverage Double Free vulnerability.
 
 ### Double free
 
