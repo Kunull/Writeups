@@ -1363,7 +1363,7 @@ Unlike previous challenges, `read_flag` here calls `malloc` twice before it ever
 # ---- snip ----
 ```
 
-Only the *second* `malloc(784)` result is kept — that's the one `read()` writes the flag into. Since 784 bytes falls within TCACHE's size range, both of these calls will be serviced from the TCACHE bin for that size *if* there's anything sitting in it.
+Only the second `malloc(784)` result is kept, that's the one `read()` writes the flag into. Since 784 bytes falls within TCACHE's size range, both of these calls will be serviced from the TCACHE bin for that size if there's anything sitting in it.
 
 The problem is that this challenge only gives us one allocation slot (`ptr`), so a single `malloc` + `free` only ever places one chunk into the TCACHE bin. That's not enough:
 
