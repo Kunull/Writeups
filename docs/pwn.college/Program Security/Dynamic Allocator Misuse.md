@@ -1378,8 +1378,6 @@ That way, `read_flag`'s first `malloc(784)` pops one entry and discards the poin
 
 Freeing the same chunk normally isn't allowed twice in a row as glibc's TCACHE detects this and aborts with "double free or corruption (tcache)." To get around that check, we exploit a use-after-free write to corrupt the chunk's internal `key` field, tricking the allocator into accepting a second `free()` on the same chunk. This gives us the two-entries-same-address TCACHE state we need.
 
-In this challenge we have to leverage Double Free vulnerability.
-
 ### Double free
 
 In the allocated memory chunks, the second set of 8 bytes include the pointer `key` to `tcache_perthread_struct`. Once a chunk is allocated, the `key` pointer no longer points to `tcache_perthread_struct` and is set to `NULL`. This state of the `key` is what helps TCACHE distinguish free chunks from allocated ones.
@@ -1899,7 +1897,7 @@ free(a)
 └──────────────────┘
 ```
 
-Knowing this, if we make the program read the flag to a chunk that we control using UAF, and then free that chunk, when it's `next` pointer is be set, the `size_4` check is overwritten.
+Knowing this, if we make the program read the flag to a chunk that we control using UAF, and then free that chunk, when it's `next` pointer is to be set, the `size_4` check is overwritten.
 We can `free` that chunk, because `read_flag` causes the `key` pointer which was pointing to `tcache_perthread_struct`, to be overwritten.
 
 Thus we will be able to use the `puts_flag` command and get the flag.
