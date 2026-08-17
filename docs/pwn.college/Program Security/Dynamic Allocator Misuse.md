@@ -1903,9 +1903,11 @@ Note that `next` sits at offset 0 of a freed chunk, the same offset `puts_flag` 
 
 If we free two chunks into the tcache, then call `read_flag`, its `malloc(896)` pops the head chunk, which is one we already have a pointer to. This makes the flag buffer and our own allocation the same memory (a use-after-free). The flag lands at offset 16, and offset 0 gets zeroed.
 
-Freeing that same chunk again is normally blocked as a double free, but popping a chunk from tcache never clears its `key` field, only our own zeroing touched offset 0. So the stale `key` lets the second `free()` go through. When glibc re-inserts the chunk, it writes a `next` pointer at offset 0, pointing to the other freed chunk. That overwrite makes the check field non-zero, without touching the flag bytes at offset 16 onward.
+Freeing `allocations[0]` again would normally be caught as a double free. glibc catches double frees by checking the chunk's `key` field (offset 8): if `key == tcache_perthread_struct`, it scans the bin to see if the chunk is already sitting there, and aborts if it finds it. But `malloc` never resets `key` when it hands a chunk out, only `read_flag`'s own zeroing touched offset 0. 
 
-So: free two chunks, run `read_flag`, free the same chunk again, then run `puts_flag` to get the flag.
+So `key` is still left over from the first free, and when we free the chunk again, glibc scans the bin, doesn't find the chunk there (since `read_flag`'s `malloc` already removed it), and lets the free go through. Completing that free means glibc writes `allocations[1]`'s address into offset 0 as a `next` pointer, this is just normal bookkeeping for adding a chunk to the tcache list. That write overwrites the zero `read_flag` left at offset 0 with a non-zero value, while the flag bytes at offset 16 onward are left alone.
+
+So free two chunks, run `read_flag`, free the same chunk again, then run `puts_flag` to get the flag.
 
 ### Exploit
 
