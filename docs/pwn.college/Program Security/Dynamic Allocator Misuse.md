@@ -1813,7 +1813,7 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 }
 ```
 
-So if we pass the `read_flag` command, the program zeroes out the first 8 bytes represented by `size_4` of that allocation. The flag is then read 16 bytes after `size_4`.
+`read_flag` allocates a chunk, zeroes its first 8 bytes, then reads the flag starting at byte 16.
 
 ```c title="/challenge/malloc-mirage-easy :: main() :: Pseudocode" showLineNumbers
 # ---- snip ----
@@ -1834,7 +1834,7 @@ So if we pass the `read_flag` command, the program zeroes out the first 8 bytes 
 # ---- snip ----      
 ```
 
-Then, if we pass `puts_flag`, it checks if the `size_4` is zeroed out. If it is, the flag is not printed.
+`puts_flag` checks that same 8-byte field. If it's zero, the flag isn't printed.
 
 ```c title="/challenge/malloc-mirage-easy :: main() :: Pseudocode" showLineNumbers
 # ---- snip ----
@@ -1849,13 +1849,15 @@ Then, if we pass `puts_flag`, it checks if the `size_4` is zeroed out. If it is,
 # ---- snip ----
 ```
 
+We need that field to become non-zero without touching the flag bytes after it.
+
 ### TCACHE chunk chaining
 
 When `free()` is called on a chunk that fits in the TCACHE, the allocator checks if that chunk's `key` field already points to the `tcache_perthread_struct` for the current thread.
 
 If `key == tcache_perthread_struct`, the allocator scans the relevant TCACHE bin to see if that chunk is already there. If it finds it, the program crashes with a "double free or corruption (TCACHE)" error.
 
-If `key != tcache_perthread_struct`, the allocator assumes the chunk is currently allocated and proceeds to add it to the TCACHE by setting that chunk's `key` pointer to the `tcache_perthread_struct` for the current thread. It also adds that chunk to the beginning of the singly-linked list by setting the chunks `next` pointer to the address of the previously first chunk.
+If `key != tcache_perthread_struct`, the allocator assumes the chunk is currently allocated and proceeds to add it to the TCACHE by setting that chunk's `key` pointer to the `tcache_perthread_struct` for the current thread. It also adds that chunk to the beginning of the singly-linked list by setting the chunk's `next` pointer to the address of the previously first chunk.
 
 ```
 a = malloc(16)
@@ -1897,10 +1899,13 @@ free(a)
 └──────────────────┘
 ```
 
-Knowing this, if we make the program read the flag to a chunk that we control using UAF, and then free that chunk, when it's `next` pointer is to be set, the `size_4` check is overwritten.
-We can `free` that chunk, because `read_flag` causes the `key` pointer which was pointing to `tcache_perthread_struct`, to be overwritten.
+Note that `next` sits at offset 0 of a freed chunk, the same offset `puts_flag` checks.
 
-Thus we will be able to use the `puts_flag` command and get the flag.
+If we free two chunks into the tcache, then call `read_flag`, its `malloc(896)` pops the head chunk, which is one we already have a pointer to. This makes the flag buffer and our own allocation the same memory (a use-after-free). The flag lands at offset 16, and offset 0 gets zeroed.
+
+Freeing that same chunk again is normally blocked as a double free, but popping a chunk from tcache never clears its `key` field, only our own zeroing touched offset 0. So the stale `key` lets the second `free()` go through. When glibc re-inserts the chunk, it writes a `next` pointer at offset 0, pointing to the other freed chunk. That overwrite makes the check field non-zero, without touching the flag bytes at offset 16 onward.
+
+So: free two chunks, run `read_flag`, free the same chunk again, then run `puts_flag` to get the flag.
 
 ### Exploit
 
@@ -2012,6 +2017,7 @@ pwn.college{YaCr8LqQNO7XOxRVrb2l58ayfLL.0VO3MDL4ITM0EzW}
 ```
 
 &nbsp;
+
 
 ## Malloc Mirage (Hard)
 
