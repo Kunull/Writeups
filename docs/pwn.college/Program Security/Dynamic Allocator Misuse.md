@@ -808,27 +808,27 @@ In order to solve this challenge, we have to leverage Remaindering.
 
 This is the actual method to solve even the [easy version](#freebin-feint-easy). We were able to allocate the exact number of bytes in that challenge because the program printed that number then.
 
-### Leveraging the unsorted bin / cache
+### Leveraging the Unsorted Bin
 
 Memory managers handle splitting large memory blocks from the "top chunk" (the largest free block) to satisfy smaller allocation requests, creating a smaller "remainder" block that stays available in the heap.
 
-Instead of immediately putting newly freed chunks onto the correct bin, the heap manager coalesces it with neighbors, and dumps it onto a general unsorted linked list. During `malloc`, each item on the unsorted bin is checked to see if it “fits” the request. If it does, `malloc` can use it immediately. If it does not, `malloc` then puts the chunk into its corresponding small or large bin.
+Instead of immediately putting newly freed chunks into the correct bin, the heap manager dumps them onto a general unsorted linked list. During `malloc`, each item on the unsorted bin is checked to see if it fits the request. If it does, `malloc` splits off exactly the requested size, returns it, and puts the remainder back. If it does not fit, `malloc` moves it into its corresponding small or large bin.
 
 <figure style={{ textAlign: 'center' }}>
    <img alt="image" src="https://github.com/user-attachments/assets/f32f89e4-513f-47b9-80f3-8f781f4ebfb8" />
    <figcaption>Source: [Azeria labs](https://azeria-labs.com/heap-exploitation-part-2-glibc-heap-free-bins/)</figcaption>
 </figure>
 
-This only happens if the unsorted bin is used instead of TCACHE to allocated memory. For that we have to allocate a chunk of size greater than 1032 bytes, as any chunks from 24 to 1032 bytes in size are handled by TCACHE.
+This only happens if the unsorted bin is used instead of TCACHE. Any chunk with a usable size from 16 to 1032 bytes is handled by tcache, so to bypass it we need to allocate more than 1032 bytes.
 
-Currently, the `ptmalloc` caching design (in order of use) is as follows:
-- Tcache: 64 bins, chunk sizes ~32 to ~1040 bytes
-- Fastbins: 10 bins, chunk sizes up to 128 bytes by default 
-- Unsorted bin: 1 doubly-linked staging list for anything freed that doesn't fit tcache/fastbin
-- Small bins: 62 bins, chunk sizes 32 to ~1008 bytes 
+The `ptmalloc` caching design in order of use is:
+- Tcache: 64 bins, chunk sizes 16 to 1032 bytes
+- Fastbins: 10 bins, chunk sizes up to 160 bytes
+- Unsorted bin: 1 doubly-linked staging list for anything freed that does not fit TCACHE or fastbins
+- Small bins: 62 bins, chunk sizes 32 to 1008 bytes
 - Large bins: 63 bins, chunk sizes over 1024 bytes
 
-So, if we allocate a large enough space, then free it, and then call the `read_flag` command, we would not have to worry about the size of `flag_buffer` because it will be split and used from our unsorted bin allocation.
+So if we allocate more than 1032 bytes, free it, and then call `read_flag`, we do not need to know the exact size of `flag_buffer` because the allocator will split our unsorted bin chunk to satisfy whatever size `read_flag` requests.
 
 ### Exploit
 
@@ -1904,7 +1904,7 @@ If we free two chunks into the tcache, then call `read_flag`, its `malloc(896)` 
 
 Freeing `allocations[0]` again would normally be caught as a double free. glibc catches double frees by checking the chunk's `key` field (offset 8): if `key == tcache_perthread_struct`, it scans the bin to see if the chunk is already sitting there, and aborts if it finds it. But `malloc` never resets `key` when it hands a chunk out, only `read_flag`'s own zeroing touched offset 0. 
 
-So `key` is still left over from the first free, and when we free the chunk again, glibc scans the bin, doesn't find the chunk there (since `read_flag`'s `malloc` already removed it), and lets the free go through. Completing that free means glibc writes `allocations[1]`'s address into offset 0 as a `next` pointer, this is just normal bookkeeping for adding a chunk to the tcache list. That write overwrites the zero `read_flag` left at offset 0 with a non-zero value, while the flag bytes at offset 16 onward are left alone.
+So `key` is still left over from the first free, and when we free the chunk again, glibc scans the bin, doesn't find the chunk there (since `read_flag`'s `malloc` already removed it), and lets the free go through. Completing that free means glibc writes `allocations[1]`'s address into offset 0 as a `next` pointer, this is just normal bookkeeping for adding a chunk to the TCACHE list. That write overwrites the zero `read_flag` left at offset 0 with a non-zero value, while the flag bytes at offset 16 onward are left alone.
 
 So free two chunks, run `read_flag`, free the same chunk again, then run `puts_flag` to get the flag.
 
