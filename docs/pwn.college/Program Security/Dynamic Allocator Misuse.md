@@ -647,7 +647,6 @@ This challenge is very similar to the previous one, only difference being that t
 ```
 
 This easy version prints out the size of the memory allocation for us, so we just have to allocate the same size when we use `malloc`.
-So we have to allocate the same size when we use `malloc`.
 
 ### Exploit
 
