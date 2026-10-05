@@ -819,10 +819,10 @@ Instead of immediately putting newly freed chunks into the correct bin, the heap
    <figcaption>Source: [Azeria labs](https://azeria-labs.com/heap-exploitation-part-2-glibc-heap-free-bins/)</figcaption>
 </figure>
 
-This only happens if the unsorted bin is used instead of TCACHE. Any chunk with a usable size from 16 to 1032 bytes is handled by tcache, so to bypass it we need to allocate more than 1032 bytes.
+This only happens if the unsorted bin is used instead of TCACHE. Any chunk with a usable size from 16 to 1032 bytes is handled by TCACHE, so to bypass it we need to allocate more than 1032 bytes.
 
 The `ptmalloc` caching design in order of use is:
-- Tcache: 64 bins, chunk sizes 16 to 1032 bytes
+- TCACHE: 64 bins, chunk sizes 16 to 1032 bytes
 - Fastbins: 10 bins, chunk sizes up to 160 bytes
 - Unsorted bin: 1 doubly-linked staging list for anything freed that does not fit TCACHE or fastbins
 - Small bins: 62 bins, chunk sizes 32 to 1008 bytes
@@ -990,6 +990,24 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 ```
 
 This time the `read_flag` function reads the flag twice into buffers of size `480` bytes.
+
+```c title="/challenge/free-flag-fumble-easy :: main() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+    if ( strcmp(s1, "read_flag") )
+      break;
+    for ( i = 0; i <= 1; ++i )
+    {
+      printf("[*] flag_buffer = malloc(%d)\n", 480);
+      size_4 = malloc(0x1E0u);
+      printf("[*] flag_buffer = %p\n", size_4);
+    }
+    v3 = open("/flag", 0);
+    read(v3, size_4, 0x80u);
+    puts("[*] read the flag!");
+
+# ---- snip ----
+```
 
 ### Exploit
 
@@ -1185,6 +1203,19 @@ int __fastcall main(int argc, const char **argv, const char **envp)
 ```
 
 We can see that on making the `read_flag` choice, the program allocates two buffers of size `957` bytes.
+
+```c title="/challenge/free-flag-fumble-hard :: main() :: Pseudocode" showLineNumbers
+# ---- snip ----
+
+    if ( strcmp(choice, "read_flag") )
+      break;
+    for ( i = 0; i <= 1; ++i )
+      size_4 = malloc(957uLL);
+    v3 = open("/flag", 0);
+    read(v3, size_4, 128uLL);
+
+# ---- snip ----
+```
 
 ### Exploit
 
